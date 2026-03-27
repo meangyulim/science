@@ -9,7 +9,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
-        /* 모바일 스크롤 원천 차단 및 앱 화면처럼 고정 */
         body, html { 
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; 
             background-color: #e8f0fe; 
@@ -18,11 +17,10 @@
             width: 100%; 
             height: 100%; 
             overflow: hidden; 
-            position: fixed; /* 중요: iOS 바운스 및 스크롤 방지 */
-            touch-action: none; /* 브라우저 기본 터치 액션 끄기 */
+            position: fixed; 
+            touch-action: none; 
         }
         
-        /* 3D 캔버스는 전체 화면 꽉 채움 */
         #canvas-container { 
             position: absolute; 
             top: 0; left: 0; 
@@ -30,26 +28,23 @@
             z-index: 1; 
         }
 
-        /* UI 레이어 (3D 위에 떠 있음) */
         .ui-layer { 
             position: absolute; 
             left: 0; 
             width: 100%; 
             z-index: 10; 
-            pointer-events: none; /* 배경 터치 통과 (3D 드래그 가능하게) */
+            pointer-events: none; 
         }
         
         .ui-interactive { 
-            pointer-events: auto; /* 버튼이나 패널은 터치 가능하게 */
+            pointer-events: auto; 
         }
 
-        /* 상단 타이틀 및 범례 */
         .top-bar { top: env(safe-area-inset-top, 10px); padding: 10px 15px; display: flex; justify-content: space-between; align-items: flex-start; }
         
         .legend-box { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px); border-radius: 10px; padding: 8px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-size: 0.75rem; color: #374151; border: 1px solid rgba(255,255,255,0.5); }
         .color-mark { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 
-        /* 하단 조작부 */
         .bottom-panel { 
             bottom: 0; 
             background: linear-gradient(to top, rgba(255,255,255,1) 70%, rgba(255,255,255,0)); 
@@ -57,15 +52,13 @@
             padding-bottom: env(safe-area-inset-bottom, 15px);
         }
 
-        /* 설명 텍스트 박스 */
         .desc-box { background: rgba(255, 255, 255, 0.95); border: 1px solid #bfdbfe; border-radius: 12px; margin: 0 15px 10px 15px; padding: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center; }
 
-        /* 가로 스크롤 버튼 영역 */
         .btn-scroll-container { display: flex; overflow-x: auto; gap: 10px; padding: 5px 15px 15px 15px; scroll-snap-type: x mandatory; }
-        .btn-scroll-container::-webkit-scrollbar { display: none; } /* 스크롤바 숨김 */
+        .btn-scroll-container::-webkit-scrollbar { display: none; } 
         
         .stage-btn { 
-            flex: 0 0 75%; /* 한 화면에 버튼 1.2개 정도 보이게 하여 스크롤 유도 */
+            flex: 0 0 75%; 
             padding: 14px; 
             border-radius: 12px; 
             font-weight: 800; 
@@ -81,10 +74,8 @@
 </head>
 <body>
 
-    <!-- 1. 전체 화면 3D 캔버스 -->
     <div id="canvas-container"></div>
 
-    <!-- 2. 상단 UI (제목 & 범례) -->
     <div class="ui-layer top-bar">
         <div class="ui-interactive" style="text-shadow: 0 2px 4px rgba(255,255,255,0.8);">
             <h1 class="text-2xl font-extrabold text-gray-800 tracking-tight leading-none">중위도 저기압</h1>
@@ -99,7 +90,6 @@
         </div>
     </div>
 
-    <!-- 3. 하단 UI (설명 & 버튼) -->
     <div class="ui-layer bottom-panel ui-interactive">
         <div class="desc-box">
             <p id="descText" class="text-[0.95rem] font-bold text-blue-900 leading-snug break-keep">
@@ -108,7 +98,6 @@
         </div>
 
         <div class="relative">
-            <!-- 가로 스크롤 가능한 버튼 영역 -->
             <div id="btnContainer" class="btn-scroll-container hide-scrollbar">
                 <button id="btn1" class="stage-btn btn-active" onclick="setStage(1)">1. 정체 전선</button>
                 <button id="btn2" class="stage-btn btn-inactive" onclick="setStage(2)">2. 제트기류 파동</button>
@@ -124,27 +113,22 @@
         // --- 1. Three.js 기본 설정 ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        // 안개 효과를 살짝 주어 부드럽게 배경과 블렌딩
         scene.background = new THREE.Color(0xe8f0fe);
-        scene.fog = new THREE.Fog(0xe8f0fe, 50, 150);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        // 모바일 세로 화면을 고려하여 카메라를 위로 높이 올리고 거리를 확보
         camera.position.set(0, 75, 75); 
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // 성능 최적화
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
         container.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        // 모델 중심점을 살짝 위로 잡아 화면 하단 UI에 모델이 덜 가려지게 함
         controls.target.set(0, 5, 0); 
         controls.maxPolarAngle = Math.PI / 2 - 0.05;
-        // 모바일에서 오작동 방지 (두 손가락 패닝 끔)
         controls.enablePan = false; 
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
@@ -155,13 +139,12 @@
         dirLight.castShadow = true;
         scene.add(dirLight);
 
-        // 지표면 그리드
         const gridHelper = new THREE.GridHelper(90, 90, 0x9ca3af, 0xd1d5db);
         gridHelper.position.y = 0.01;
         scene.add(gridHelper);
 
         // --- 2. 동적 기단(Air Mass) 형상 생성 ---
-        const boxW = 80, boxH = 14, boxD = 40, segs = 60; // 모바일에 꽉 차게 크기 확장
+        const boxW = 80, boxH = 14, boxD = 40, segs = 60; 
 
         const coldGeo = new THREE.BoxGeometry(boxW, boxH, boxD, segs, 5, 1).toNonIndexed();
         coldGeo.translate(0, boxH/2, -boxD/2); 
@@ -177,10 +160,11 @@
         const warmMesh = new THREE.Mesh(warmGeo, warmMat);
         scene.add(warmMesh);
 
+        // [피드백 적용] 전선면을 훨씬 투명하게 (opacity: 0.25)
         const frontGeo = new THREE.PlaneGeometry(boxW, boxH, segs, 5).toNonIndexed();
         frontGeo.translate(0, boxH/2, 0);
         const frontOrig = Float32Array.from(frontGeo.attributes.position.array);
-        const frontMat = new THREE.MeshLambertMaterial({ color: 0xa855f7, transparent: true, opacity: 0.4, side: THREE.DoubleSide, depthWrite: false });
+        const frontMat = new THREE.MeshLambertMaterial({ color: 0xa855f7, transparent: true, opacity: 0.20, side: THREE.DoubleSide, depthWrite: false });
         const frontMesh = new THREE.Mesh(frontGeo, frontMat);
         scene.add(frontMesh);
 
@@ -190,7 +174,6 @@
         const frontLineMesh = new THREE.Mesh(frontLineGeo, frontLineMat);
         scene.add(frontLineMesh);
         
-        // 기호 모델링 (모바일 시인성 향상)
         const coldShape = new THREE.Shape();
         coldShape.moveTo(0, 3.5); coldShape.lineTo(1.6, 0); coldShape.lineTo(-1.6, 0); coldShape.lineTo(0, 3.5);
         const coldSymGeo = new THREE.ExtrudeGeometry(coldShape, { depth: 0.6, bevelEnabled: false });
@@ -239,10 +222,11 @@
         };
         scene.add(arrows.coldLeft, arrows.warmRight, arrows.ccw1, arrows.ccw2, arrows.ccw3, arrows.ccw4, arrows.expandColdSW, arrows.expandWarmSE);
 
+        // [피드백 적용] 제트기류 화살표 개수 증가 및 간격 조정 (수렴/발산 뚜렷하게)
         const jetFlowArrows = [];
-        for(let i=0; i<15; i++) {
-            let arrow = createArrow(0x0ea5e9, 4, 0.5); 
-            arrow.userData = { offset: i * (70 / 15), side: (i % 3) - 1 }; 
+        for(let i=0; i<24; i++) {
+            let arrow = createArrow(0x0ea5e9, 3.5, 0.4); 
+            arrow.userData = { offset: i * (70 / 24), side: (i % 3) - 1 }; 
             scene.add(arrow); jetFlowArrows.push(arrow);
         }
 
@@ -271,7 +255,6 @@
         const lblL = createLabel("저기압(L)", "#dc2626", 0.5, 20);
         const lblJet = createLabel("제트기류 파동", "#0284c7", 22, 22);
 
-        // 구름 생성 함수
         function createCumulusCloud(scale) {
             const cloud = new THREE.Group();
             const geo = new THREE.SphereGeometry(1, 8, 8);
@@ -316,7 +299,7 @@
 
         function getWaveZ(x, amp) {
             if (amp === 0) return 0;
-            if (x < 0) return -amp * Math.cos(x * 0.1); // 폭을 넓게 조정
+            if (x < 0) return -amp * Math.cos(x * 0.1); 
             return -amp * Math.cos(x * 0.07);            
         }
         
@@ -408,7 +391,7 @@
             for(let i=-35; i<=35; i++) {
                 let x = i * 1.5;
                 let z = -currentAmp * 1.5 * Math.cos((x + 5) * 0.1); 
-                jetPts.push(new THREE.Vector3(x, 20, z)); // 모바일은 상공 높이 조절
+                jetPts.push(new THREE.Vector3(x, 20, z)); 
             }
             jetMesh.geometry.dispose();
             jetMesh.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(jetPts), 70, 0.8, 8, false);
@@ -423,23 +406,45 @@
             if (currentStage >= 2) {
                 const targetJetZ = -currentAmp * 1.5 * Math.cos(5 * 0.1); 
                 
+                // [피드백 적용] 제트기류 수렴(느려짐) 및 발산(빨라짐/퍼짐) 역학 시각화
                 jetFlowArrows.forEach(arrow => {
-                    arrow.userData.offset += 0.3;
+                    let px_current = (arrow.userData.offset % 70) - 35;
+                    
+                    // 기압골(x=-5)을 기준으로 서쪽(x < -5)은 수렴하여 느려지고, 동쪽(x >= -5)은 발산하며 가속
+                    let dynamicSpeed = 0.3 + 0.2 * Math.sin((px_current + 5) * 0.15);
+                    if (dynamicSpeed < 0.1) dynamicSpeed = 0.1; // 최소 속도 보장
+                    
+                    arrow.userData.offset += dynamicSpeed;
+                    
                     let px = (arrow.userData.offset % 70) - 35; 
                     let spread = 0;
-                    if (px > -5 && px < 25) {
-                        let progress = (px + 5) / 30; 
-                        spread = Math.sin(progress * Math.PI) * 4.5;
+                    
+                    // 수렴역 (기압골 후면, x < -5): 화살표들이 가운데로 살짝 모이는 느낌
+                    if (px < -5 && px > -25) {
+                        let convProgress = (px + 25) / 20;
+                        spread = -Math.sin(convProgress * Math.PI) * 1.2;
                     }
+                    // 발산역 (기압골 전면, x >= -5): 화살표들이 양옆으로 강하게 퍼짐
+                    else if (px >= -5 && px < 25) {
+                        let divProgress = (px + 5) / 30; 
+                        spread = Math.sin(divProgress * Math.PI) * 5.0;
+                    }
+
                     let pz = -currentAmp * 1.5 * Math.cos((px + 5) * 0.1) + spread * arrow.userData.side;
                     
+                    // 방향 계산용 (살짝 앞선 위치)
                     let npx = px + 0.5; let nspread = 0;
-                    if (npx > -5 && npx < 25) {
-                        let nprogress = (npx + 5) / 30; nspread = Math.sin(nprogress * Math.PI) * 4.5;
+                    if (npx < -5 && npx > -25) {
+                        let nconvProgress = (npx + 25) / 20;
+                        nspread = -Math.sin(nconvProgress * Math.PI) * 1.2;
+                    } else if (npx >= -5 && npx < 25) {
+                        let nprogress = (npx + 5) / 30; 
+                        nspread = Math.sin(nprogress * Math.PI) * 5.0;
                     }
                     let npz = -currentAmp * 1.5 * Math.cos((npx + 5) * 0.1) + nspread * arrow.userData.side;
 
-                    arrow.position.set(px, 20, pz); arrow.lookAt(npx, 20, npz);
+                    arrow.position.set(px, 20, pz); 
+                    arrow.lookAt(npx, 20, npz);
                     arrow.visible = true;
                 });
 
@@ -501,41 +506,34 @@
             renderer.render(scene, camera);
         }
 
-        // 반응형 리사이즈 (모바일 가로/세로 모드 완벽 대응)
         window.addEventListener('resize', () => {
             const width = window.innerWidth;
             const height = window.innerHeight;
             camera.aspect = width / height;
             
-            // 모바일 세로 화면일 때는 FOV를 넓혀 잘리지 않게 방지
-            if(width < height) {
-                camera.fov = 55;
-            } else {
-                camera.fov = 40;
-            }
+            if(width < height) camera.fov = 55;
+            else camera.fov = 40;
+            
             camera.updateProjectionMatrix();
             renderer.setSize(width, height);
         });
         window.dispatchEvent(new Event('resize'));
 
-        // 단계 텍스트 배열
         const descriptions = [
             "[1단계] 무거운 찬 공기가 밑으로 깔려 전선면이 비스듬한 쐐기 모양(정체전선)을 이룹니다.",
-            "[2단계] 상층 제트기류 발산에 의해 지상 공기가 맹렬히 빨려 올라가며(상승기류) 에너지가 전환됩니다.",
-            "[3단계] 지표면에 강한 저기압(L)이 생기고, 주변 공기가 시계 반대 방향(반시계)으로 거세게 회전합니다.",
+            "[2단계] 제트기류 수렴/발산 역학! 기압골 뒤쪽에서 공기가 모여들며(느려짐) 전면에서 빠르게 퍼져나갑니다(발산). 이로 인해 상승기류가 폭발합니다.",
+            "[3단계] 지표면에 강한 저기압(L)이 생기고, 주변 공기가 시계 반대 방향(반시계)으로 거세게 회전하며 빨려 들어옵니다.",
             "[4단계] 한랭전선(적운형, 남서쪽)과 온난전선(층운형, 남동쪽)이 완벽히 분리되어 세력을 확장합니다."
         ];
 
         window.setStage = function(stage) {
             currentStage = stage;
             
-            // 스와이프 버튼 UI 업데이트 및 중앙 스크롤
             const container = document.getElementById('btnContainer');
             for (let i = 1; i <= 4; i++) {
                 const btn = document.getElementById(`btn${i}`);
                 if (i === stage) {
                     btn.classList.replace('btn-inactive', 'btn-active');
-                    // 클릭된 버튼이 화면 중앙에 오도록 스크롤 (부드럽게)
                     const scrollPos = btn.offsetLeft - (container.clientWidth / 2) + (btn.clientWidth / 2);
                     container.scrollTo({ left: scrollPos, behavior: 'smooth' });
                 } else {
@@ -545,7 +543,7 @@
             
             document.getElementById('descText').innerText = descriptions[stage - 1];
 
-            targetAmp = [0, 0, 6, 12, 18][stage]; // 모바일 화면에 맞게 진폭(Amp) 스케일 업
+            targetAmp = [0, 0, 6, 12, 18][stage]; 
 
             arrows.coldLeft.visible = (stage === 1);
             arrows.warmRight.visible = (stage === 1);
