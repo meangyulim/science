@@ -8,113 +8,120 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap');
         
-        /* 전체 페이지 바운스(출렁임) 방지 */
+        /* 전체 페이지 설정: 스크롤 및 바운스 원천 차단 */
         html, body { 
             font-family: 'Noto Sans KR', sans-serif; 
             overflow: hidden; 
             position: fixed; 
             width: 100%; 
             height: 100%;
-            overscroll-behavior: none; /* 모바일 브라우저 바운스 방지 */
+            margin: 0;
+            padding: 0;
+            overscroll-behavior: none;
+            background-color: #ffffff;
         }
 
-        /* 시뮬레이션 컨테이너 높이 설정 */
+        /* 헤더 영역 최소화 */
+        header {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #fff;
+            z-index: 50;
+        }
+
+        /* 시뮬레이션 영역: 남은 공간 전체 차지 */
         .sim-container { 
-            height: calc(100vh - 160px); 
-            touch-action: none; /* 터치 드래그 시 화면 밀림 방지 */
-        }
-
-        /* 아이폰 하단 홈 바 영역 고려 */
-        @supports (padding-bottom: env(safe-area-inset-bottom)) {
-            .sim-container {
-                height: calc(100vh - 160px - env(safe-area-inset-bottom));
-            }
+            position: absolute;
+            top: 50px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            /* 아이폰 하단 홈 바 영역 대응 */
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         iframe { 
             border: none; 
             width: 100%; 
             height: 100%; 
-            border-radius: 12px; 
-            background: white; 
+            display: block;
+        }
+
+        /* 버튼 스타일 최적화 */
+        .btn-sim {
+            padding: 6px 12px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+            transition: all 0.2s;
+        }
+
+        .btn-sim.active {
+            background: #4f46e5;
+            color: #fff;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body>
 
-    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
-            <div>
-                <h1 class="text-xl font-bold text-indigo-600 flex items-center gap-2">
-                    <span>🔬</span> 과학 실험실
-                </h1>
-                <p class="text-[10px] md:text-sm text-slate-500">모바일 및 태블릿 최적화 버전</p>
-            </div>
-            <div id="sim-menu" class="flex flex-wrap gap-2">
-                <!-- 버튼이 자바스크립트로 생성됩니다 -->
+    <header>
+        <div class="flex items-center justify-between w-full">
+            <h1 class="text-sm font-bold text-indigo-600 truncate mr-4">
+                🔬 과학 실험실
+            </h1>
+            <div id="sim-menu" class="flex gap-2">
+                <!-- 버튼 생성 영역 -->
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto p-3 md:p-6">
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-            <div class="bg-slate-800 px-4 py-2 flex items-center justify-between">
-                <div class="flex gap-1.5">
-                    <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                </div>
-                <span id="current-title" class="text-[10px] text-slate-400 font-mono uppercase tracking-widest leading-none">실험 대기 중</span>
-                <div class="w-8"></div> 
-            </div>
-            
-            <div class="sim-container p-1 bg-slate-100">
-                <iframe id="sim-viewer" src="about:blank" scrolling="no"></iframe>
-            </div>
-        </div>
+    <main class="sim-container">
+        <!-- 불필요한 내부 카드/창 구조 제거 -->
+        <iframe id="sim-viewer" src="about:blank" allow="autoplay; fullscreen" scrolling="no"></iframe>
     </main>
 
     <script>
-        // 목록에서 '중위도 저기압'만 남겼습니다.
+        // 현재는 중위도 저기압만 유지
         const simulations = [
             { id: 'cyclone', name: '중위도 저기압', url: 'cyclone.html' }
         ];
 
         const menuContainer = document.getElementById('sim-menu');
         const viewer = document.getElementById('sim-viewer');
-        const titleDisplay = document.getElementById('current-title');
 
         simulations.forEach(sim => {
             const btn = document.createElement('button');
-            btn.className = "px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 transition-all shadow-sm active:scale-95";
+            btn.className = "btn-sim active:scale-95";
             btn.innerText = sim.name;
             btn.onclick = () => {
                 viewer.src = sim.url; 
-                titleDisplay.innerText = "Playing: " + sim.name;
                 
-                Array.from(menuContainer.children).forEach(b => {
-                    b.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
-                });
-                btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+                // 버튼 상태 변경
+                Array.from(menuContainer.children).forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
             };
             menuContainer.appendChild(btn);
         });
 
-        // 페이지 로딩 완료 후 첫 번째 실험 바로 실행
+        // 로드 시 자동 실행
         window.addEventListener('load', () => {
             if(simulations.length > 0) {
                 setTimeout(() => {
                     const firstBtn = menuContainer.firstElementChild;
                     if (firstBtn) firstBtn.click();
-                }, 300);
+                }, 100);
             }
         });
 
-        // iOS에서 불필요한 스크롤 이벤트 방지
+        // iOS 브라우저 튕김 방지 (iframe 내부는 허용)
         document.addEventListener('touchmove', function(e) {
-            if (e.target.closest('.sim-container')) {
-                // 시뮬레이션 영역 내부 터치는 허용하되 브라우저 스크롤은 막음
-            } else {
+            if (!e.target.closest('#sim-viewer')) {
                 e.preventDefault();
             }
         }, { passive: false });
