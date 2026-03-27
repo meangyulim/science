@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 중위도 저기압 교과서형 시뮬레이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background-color: #f3f4f6; margin: 0; overflow-x: hidden;}
+        #canvas-container { width: 100%; height: 650px; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); background-color: #ffffff; cursor: grab;}
+        #canvas-container:active { cursor: grabbing; }
+        .btn-active { background-color: #2563eb; color: white; border: 2px solid #1d4ed8; }
+        .btn-inactive { background-color: #ffffff; color: #4b5563; border: 1px solid #d1d5db; }
+        .btn-inactive:hover { background-color: #f3f4f6; }
+        .instruction-overlay { position: absolute; bottom: 15px; left: 15px; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #1f2937; pointer-events: none; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.1); line-height: 1.6;}
+        .color-box { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 4px; vertical-align: baseline; }
+        .symbol-tri { display: inline-block; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 10px solid #1d4ed8; margin-right: 4px; }
+        .symbol-semi { display: inline-block; width: 12px; height: 6px; background: #dc2626; border-top-left-radius: 12px; border-top-right-radius: 12px; margin-right: 4px; }
+    </style>
+</head>
+<body class="p-4 flex flex-col items-center">
+
+    <div class="max-w-6xl w-full">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-2 text-center tracking-tight">3D 중위도 저기압 입체 시뮬레이션</h1>
+        <p class="text-center text-gray-600 mb-4 font-medium">전선면이 찬 공기 쪽으로 비스듬히 기울어진 쐐기 모양(정체전선)에서 발달하는 과정을 관찰하세요.</p>
+
+        <!-- 컨트롤 패널 -->
+        <div class="flex justify-center gap-3 mb-4 flex-wrap">
+            <button id="btn1" class="px-5 py-2.5 rounded-lg font-bold transition-all btn-active shadow-sm" onclick="setStage(1)">1. 정체 전선 (지그재그 배열)</button>
+            <button id="btn2" class="px-5 py-2.5 rounded-lg font-bold transition-all btn-inactive shadow-sm" onclick="setStage(2)">2. 제트기류 파동 (에너지 전환)</button>
+            <button id="btn3" class="px-5 py-2.5 rounded-lg font-bold transition-all btn-inactive shadow-sm" onclick="setStage(3)">3. 저기압 발달 (반시계 회전)</button>
+            <button id="btn4" class="px-5 py-2.5 rounded-lg font-bold transition-all btn-inactive shadow-sm" onclick="setStage(4)">4. 전선 분리 및 세력 확장</button>
+        </div>
+
+        <!-- 설명 패널 -->
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg mb-4 flex items-center justify-center text-center min-h-[90px] shadow-sm">
+            <p id="descText" class="text-lg font-bold text-blue-900 leading-snug">
+                [1단계] 무거운 찬 공기가 밑에 깔려 쐐기 모양으로 전선면이 기울어져 있습니다. 기단이 엇갈려 이동하며 바닥엔 완벽한 지그재그 기호가 나타납니다.
+            </p>
+        </div>
+
+        <!-- 3D 캔버스 영역 -->
+        <div class="relative w-full flex justify-center border border-gray-200 rounded-xl overflow-hidden shadow-inner">
+            <div id="canvas-container"></div>
+            <div class="instruction-overlay">
+                <div class="font-bold mb-1 border-b pb-1">범례 및 조작법</div>
+                <span class="color-box" style="background:#3b82f6;"></span>찬 공기 / <span class="color-box" style="background:#fca5a5;"></span>따뜻한 공기<br>
+                <span class="color-box" style="background:#a855f7;"></span>전선면 (경계) / <span class="color-box" style="background:#0284c7;"></span>제트기류<br>
+                <div class="mt-1">
+                    <span class="symbol-tri"></span>한랭전선 (찬 공기가 파고듦)<br>
+                    <span class="symbol-semi"></span>온난전선 (따뜻한 공기가 타고오름)
+                </div>
+                <div class="mt-2 text-xs text-gray-500">🖱️ 좌클릭: 3D 회전 | 휠: 확대/축소</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStage = 1;
+
+        // --- 1. Three.js 기본 설정 ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf0f4f8); 
+
+        const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 55, 65); 
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.target.set(0, 2, 0); 
+        controls.maxPolarAngle = Math.PI / 2 - 0.05;
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        dirLight.position.set(20, 50, 30);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        const gridHelper = new THREE.GridHelper(80, 80, 0x9ca3af, 0xe5e7eb);
+        gridHelper.position.y = 0.01;
+        scene.add(gridHelper);
+
+        // --- 2. 동적 기단(Air Mass) 형상 생성 ---
+        const boxW = 70, boxH = 12, boxD = 35, segs = 70; 
+
+        const coldGeo = new THREE.BoxGeometry(boxW, boxH, boxD, segs, 5, 1).toNonIndexed();
+        coldGeo.translate(0, boxH/2, -boxD/2); 
+        const coldOrig = Float32Array.from(coldGeo.attributes.position.array);
+        const coldMat = new THREE.MeshLambertMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.8, side: THREE.DoubleSide });
+        const coldMesh = new THREE.Mesh(coldGeo, coldMat);
+        scene.add(coldMesh);
+
+        const warmGeo = new THREE.BoxGeometry(boxW, boxH, boxD, segs, 5, 1).toNonIndexed();
+        warmGeo.translate(0, boxH/2, boxD/2);
+        const warmOrig = Float32Array.from(warmGeo.attributes.position.array);
+        const warmMat = new THREE.MeshLambertMaterial({ color: 0xfca5a5, transparent: true, opacity: 0.45, side: THREE.DoubleSide, depthWrite: false });
+        const warmMesh = new THREE.Mesh(warmGeo, warmMat);
+        scene.add(warmMesh);
+
+        const frontGeo = new THREE.PlaneGeometry(boxW, boxH, segs, 5).toNonIndexed();
+        frontGeo.translate(0, boxH/2, 0);
+        const frontOrig = Float32Array.from(frontGeo.attributes.position.array);
+        const frontMat = new THREE.MeshLambertMaterial({ color: 0xa855f7, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false });
+        const frontMesh = new THREE.Mesh(frontGeo, frontMat);
+        scene.add(frontMesh);
+
+        // --- 3. 굵은 기준선 (지표면 전선) 및 완벽히 정렬된 일기도 기호 ---
+        const frontLineGeo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(Array(65).fill(new THREE.Vector3())), 64, 0.3, 8, false);
+        const frontLineMat = new THREE.MeshBasicMaterial({ color: 0x1f2937 }); 
+        const frontLineMesh = new THREE.Mesh(frontLineGeo, frontLineMat);
+        scene.add(frontLineMesh);
+        
+        const coldShape = new THREE.Shape();
+        coldShape.moveTo(0, 2.5); coldShape.lineTo(1.2, 0); coldShape.lineTo(-1.2, 0); coldShape.lineTo(0, 2.5);
+        const coldSymGeo = new THREE.ExtrudeGeometry(coldShape, { depth: 0.4, bevelEnabled: false });
+        coldSymGeo.rotateX(-Math.PI / 2); coldSymGeo.translate(0, 0.2, 0);  
+        const coldSymMat = new THREE.MeshBasicMaterial({ color: 0x0044ff }); 
+
+        const warmShape = new THREE.Shape();
+        warmShape.absarc(0, 0, 1.4, 0, Math.PI, false); warmShape.lineTo(1.4, 0); 
+        const warmSymGeo = new THREE.ExtrudeGeometry(warmShape, { depth: 0.4, bevelEnabled: false });
+        warmSymGeo.rotateX(-Math.PI / 2); warmSymGeo.translate(0, 0.2, 0);
+        const warmSymMat = new THREE.MeshBasicMaterial({ color: 0xff0033 });
+
+        const frontMarkers = [];
+        for (let x = -32; x <= 32; x += 3.2) {
+            const cMesh = new THREE.Mesh(coldSymGeo, coldSymMat);
+            const wMesh = new THREE.Mesh(warmSymGeo, warmSymMat);
+            scene.add(cMesh); scene.add(wMesh);
+            frontMarkers.push({ x: x, coldMesh: cMesh, warmMesh: wMesh, index: frontMarkers.length });
+        }
+
+        // --- 4. 기타 시각적 요소들 (화살표, 구름, 제트기류) ---
+        const jetCurve = new THREE.CatmullRomCurve3(Array(20).fill(new THREE.Vector3()));
+        const jetTubeGeo = new THREE.TubeGeometry(jetCurve, 40, 0.6, 8, false);
+        const jetMat = new THREE.MeshLambertMaterial({ color: 0x0284c7, transparent: true, opacity: 0.8 });
+        const jetMesh = new THREE.Mesh(jetTubeGeo, jetMat);
+        scene.add(jetMesh);
+
+        function createArrow(color, length, thickness=0.5) {
+            const group = new THREE.Group();
+            const shaftGeo = new THREE.CylinderGeometry(thickness, thickness, length, 12);
+            shaftGeo.rotateX(Math.PI / 2); shaftGeo.translate(0, 0, length/2);
+            const mat = new THREE.MeshLambertMaterial({ color: color });
+            const shaft = new THREE.Mesh(shaftGeo, mat);
+            const headGeo = new THREE.ConeGeometry(thickness*2.5, thickness*4, 12);
+            headGeo.rotateX(Math.PI / 2); headGeo.translate(0, 0, length + thickness*2);
+            const head = new THREE.Mesh(headGeo, mat);
+            group.add(shaft); group.add(head);
+            return group;
+        }
+
+        const arrows = {
+            coldLeft: createArrow(0x1e3a8a, 10, 0.6),
+            warmRight: createArrow(0xb91c1c, 10, 0.6),
+            ccw1: createArrow(0x4b5563, 6, 0.4), ccw2: createArrow(0x4b5563, 6, 0.4),
+            ccw3: createArrow(0x4b5563, 6, 0.4), ccw4: createArrow(0x4b5563, 6, 0.4),
+            expandColdSW: createArrow(0x1d4ed8, 12, 0.8),
+            expandWarmSE: createArrow(0xdc2626, 12, 0.8)
+        };
+        scene.add(arrows.coldLeft, arrows.warmRight);
+        scene.add(arrows.ccw1, arrows.ccw2, arrows.ccw3, arrows.ccw4);
+        scene.add(arrows.expandColdSW, arrows.expandWarmSE);
+
+        const updraftGroup = new THREE.Group();
+        const pGeo = new THREE.SphereGeometry(0.3, 4, 4);
+        const pMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+        for(let i=0; i<30; i++) {
+            let p = new THREE.Mesh(pGeo, pMat);
+            p.userData = { offset: Math.random() * Math.PI * 2, speed: 0.05 + Math.random()*0.02 };
+            updraftGroup.add(p);
+        }
+        scene.add(updraftGroup);
+
+        function createLabel(text, color, yOffset) {
+            const cvs = document.createElement('canvas');
+            cvs.width = 256; cvs.height = 64;
+            const ctx = cvs.getContext('2d');
+            ctx.fillStyle = color; ctx.font = 'Bold 36px Pretendard, sans-serif';
+            ctx.textAlign = 'center'; ctx.fillText(text, 128, 45);
+            const tex = new THREE.CanvasTexture(cvs);
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(10, 2.5, 1); sprite.position.y = yOffset;
+            scene.add(sprite); return sprite;
+        }
+        const lblL = createLabel("저기압(L)", "#dc2626", 0.5);
+        const lblJet = createLabel("제트기류 파동", "#0284c7", 19);
+
+        // --- 구름 생성 (적운형 / 층운형 분리) ---
+        function createCumulusCloud(scale) {
+            const cloud = new THREE.Group();
+            const geo = new THREE.SphereGeometry(1, 8, 8);
+            const mat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const positions = [[0,0,0], [0.5,0.5,-0.5], [-0.5,0.8,0.5], [0,1.5,0], [0.2,2.2,-0.2], [-0.2,2.8,0.2], [0,3.5,0]];
+            positions.forEach(pos => {
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(...pos); mesh.scale.setScalar(0.9 + Math.random()*0.4);
+                cloud.add(mesh);
+            });
+            cloud.scale.setScalar(scale);
+            scene.add(cloud); return cloud;
+        }
+
+        function createStratusCloud(scale) {
+            const cloud = new THREE.Group();
+            const geo = new THREE.SphereGeometry(1, 8, 8);
+            const mat = new THREE.MeshLambertMaterial({ color: 0xe5e7eb });
+            const positions = [];
+            for(let i=0; i<15; i++) {
+                positions.push([(Math.random()-0.5)*12, (Math.random()-0.5)*0.8, (Math.random()-0.5)*8]);
+            }
+            positions.forEach(pos => {
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(...pos); mesh.scale.set(1.5, 0.4, 1.5);
+                cloud.add(mesh);
+            });
+            cloud.scale.setScalar(scale);
+            scene.add(cloud); return cloud;
+        }
+
+        const clouds = [
+            createCumulusCloud(1.2), 
+            createCumulusCloud(1.5), 
+            createStratusCloud(1.3), 
+            createStratusCloud(1.6)  
+        ];
+        
+        function createCloudLabel(text, color) {
+            const cvs = document.createElement('canvas');
+            cvs.width = 400; cvs.height = 64;
+            const ctx = cvs.getContext('2d');
+            ctx.fillStyle = color; ctx.font = 'Bold 30px Pretendard, sans-serif';
+            ctx.textAlign = 'center'; ctx.fillText(text, 200, 45);
+            const tex = new THREE.CanvasTexture(cvs);
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(14, 2.2, 1);
+            scene.add(sprite); return sprite;
+        }
+        const lblCumulus = createCloudLabel("적운형 구름 (소나기)", "#1e3a8a");
+        const lblStratus = createCloudLabel("층운형 구름 (지속적인 비)", "#dc2626");
+
+        // --- 5. 수학적 파동 및 '기본 기울기' 계산 ---
+        let currentAmp = 0, targetAmp = 0;
+
+        function getWaveZ(x, amp) {
+            if (amp === 0) return 0;
+            if (x < 0) return -amp * Math.cos(x * 0.12); 
+            return -amp * Math.cos(x * 0.08);            
+        }
+        
+        // [핵심] 정체전선 기본 기울기 적용 로직
+        function getSlope(x, amp) {
+            const baseSlope = 0.55; // 1단계에서도 찬 공기(-Z) 쪽으로 살짝 누워있는 기본 기울기
+            const factor = Math.min(amp / 12, 1.0); // 파동이 발달하면서 동적 기울기로 전환
+            
+            let dynamicSlope = 0.55;
+            if (x < -2) dynamicSlope = 0.25;      // 4단계 한랭전선 (가파름)
+            else if (x > 2) dynamicSlope = 1.7;   // 4단계 온난전선 (완만함)
+            else {
+                let t = (x + 2) / 4;
+                dynamicSlope = 0.25 * (1 - t) + 1.7 * t;
+            }
+            return baseSlope * (1 - factor) + dynamicSlope * factor;
+        }
+
+        // --- 6. 애니메이션 루프 ---
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.03;
+            currentAmp += (targetAmp - currentAmp) * 0.05; 
+
+            // 1. 기단체 및 전선면 찌그러트리기 (기울기 포함)
+            const cPos = coldMesh.geometry.attributes.position.array;
+            for(let i=0; i<cPos.length; i+=3) {
+                let x = coldOrig[i]; let y = coldOrig[i+1]; let z = coldOrig[i+2];
+                // Y 높이에 비례하여 -Z 방향으로 밀어줌 (찬 공기 쪽으로 기욺)
+                if (z > -1) cPos[i+2] = getWaveZ(x, currentAmp) - (y * getSlope(x, currentAmp));
+            }
+            coldMesh.geometry.attributes.position.needsUpdate = true;
+            coldMesh.geometry.computeVertexNormals();
+
+            const wPos = warmMesh.geometry.attributes.position.array;
+            for(let i=0; i<wPos.length; i+=3) {
+                let x = warmOrig[i]; let y = warmOrig[i+1]; let z = warmOrig[i+2];
+                if (z < 1) wPos[i+2] = getWaveZ(x, currentAmp) - (y * getSlope(x, currentAmp));
+            }
+            warmMesh.geometry.attributes.position.needsUpdate = true;
+            warmMesh.geometry.computeVertexNormals();
+
+            const fPos = frontMesh.geometry.attributes.position.array;
+            for(let i=0; i<fPos.length; i+=3) {
+                let x = frontOrig[i]; let y = frontOrig[i+1];
+                fPos[i+2] = getWaveZ(x, currentAmp) - (y * getSlope(x, currentAmp));
+            }
+            frontMesh.geometry.attributes.position.needsUpdate = true;
+            frontMesh.geometry.computeVertexNormals();
+
+            // 2. 바닥 기준선(Tube) 그리기 (바닥이므로 y에 따른 기울기 이동량 적용)
+            const linePts = [];
+            const yLine = 0.4;
+            for(let i=-35; i<=35; i+=1) {
+                linePts.push(new THREE.Vector3(i, yLine, getWaveZ(i, currentAmp) - (yLine * getSlope(i, currentAmp))));
+            }
+            frontLineMesh.geometry.dispose();
+            frontLineMesh.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(linePts), 70, 0.25, 8, false);
+
+            // 3. 전선 기호(마커) 배치 및 밀착 회전 로직
+            frontMarkers.forEach(m => {
+                const yPos = 0.65; 
+                // 해당 위치의 기울기를 적용하여 선과 정확히 일치시킴
+                const slope = getSlope(m.x, currentAmp);
+                const z = getWaveZ(m.x, currentAmp) - (yPos * slope);
+                
+                const z1 = getWaveZ(m.x - 0.1, currentAmp) - (yPos * getSlope(m.x - 0.1, currentAmp));
+                const z2 = getWaveZ(m.x + 0.1, currentAmp) - (yPos * getSlope(m.x + 0.1, currentAmp));
+                const tangent = new THREE.Vector3(0.2, 0, z2 - z1).normalize();
+                
+                const normalCold = new THREE.Vector3(tangent.z, 0, -tangent.x); 
+                const normalWarm = new THREE.Vector3(-tangent.z, 0, tangent.x); 
+
+                m.coldMesh.position.set(m.x, yPos, z);
+                m.coldMesh.lookAt(m.x + normalCold.x, yPos, z + normalCold.z);
+                
+                m.warmMesh.position.set(m.x, yPos, z);
+                m.warmMesh.lookAt(m.x + normalWarm.x, yPos, z + normalWarm.z);
+
+                m.coldMesh.visible = false;
+                m.warmMesh.visible = false;
+
+                if (currentStage <= 2) {
+                    if (m.index % 2 === 0) m.coldMesh.visible = true;
+                    else m.warmMesh.visible = true;
+                } else {
+                    if (m.x < -1.5) m.coldMesh.visible = true;
+                    else if (m.x > 1.5) m.warmMesh.visible = true;
+                }
+            });
+
+            // 4. 제트기류 파동
+            const jetPts = [];
+            for(let i=-30; i<=30; i++) {
+                let x = i * 1.5;
+                let z = -currentAmp * 1.5 * Math.cos((x + 5) * 0.1); 
+                jetPts.push(new THREE.Vector3(x, 17, z));
+            }
+            jetMesh.geometry.dispose();
+            jetMesh.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(jetPts), 60, 0.6, 8, false);
+
+            const centerZ = getWaveZ(0, currentAmp);
+
+            // 5. 기타 화살표들
+            if (currentStage === 1) {
+                arrows.warmRight.position.set(-8 + (time*4)%16, 2, 6);
+                arrows.warmRight.lookAt(100, 2, 6);
+                arrows.coldLeft.position.set(8 - (time*4)%16, 2, -6);
+                arrows.coldLeft.lookAt(-100, 2, -6);
+            }
+
+            if (currentStage >= 2) {
+                const targetJetZ = -currentAmp * 1.5 * Math.cos(5 * 0.1); 
+                updraftGroup.children.forEach(p => {
+                    p.userData.offset += p.userData.speed;
+                    let t = (p.userData.offset % (Math.PI*2)) / (Math.PI*2);
+                    let px = Math.sin(p.userData.offset * 3) * 2; 
+                    let py = t * 17; 
+                    let pz = THREE.MathUtils.lerp(centerZ, targetJetZ, t) + Math.cos(p.userData.offset * 3) * 2;
+                    p.position.set(px, py, pz);
+                });
+                lblJet.position.z = targetJetZ - 2;
+            }
+
+            if (currentStage >= 3) {
+                const r = 5 + currentAmp * 0.2; 
+                const tSpeed = time * 1.5;
+                [[arrows.ccw1, 0], [arrows.ccw2, Math.PI/2], [arrows.ccw3, Math.PI], [arrows.ccw4, Math.PI*1.5]].forEach(([arrow, offset]) => {
+                    let angle = -tSpeed + offset; 
+                    let ax = Math.cos(angle) * r;
+                    let az = centerZ + Math.sin(angle) * r;
+                    arrow.position.set(ax, 1.5, az);
+                    let nextAngle = angle - 0.1;
+                    let nx = Math.cos(nextAngle) * r;
+                    let nz = centerZ + Math.sin(nextAngle) * r;
+                    arrow.lookAt(nx, 1.5, nz); 
+                });
+                lblL.position.z = centerZ + 1;
+            }
+
+            if (currentStage === 4) {
+                arrows.expandColdSW.position.set(-2, 1.5, centerZ - 5);
+                arrows.expandColdSW.lookAt(-16, 1.5, centerZ + 15);
+                arrows.expandWarmSE.position.set(0, 3, centerZ + 4);
+                arrows.expandWarmSE.lookAt(18, 5, centerZ - 8); 
+
+                // 구름 위치 갱신 (전선면 기울기에 맞춰 정확히 배치)
+                let c0x = -9, c0y = 2.5;
+                clouds[0].position.set(c0x, c0y, getWaveZ(c0x, currentAmp) - (c0y * getSlope(c0x, currentAmp)) - 1.5);
+                
+                let c1x = -15, c1y = 2.5;
+                clouds[1].position.set(c1x, c1y, getWaveZ(c1x, currentAmp) - (c1y * getSlope(c1x, currentAmp)) - 2.0);
+                
+                let c2x = 10, c2y = 5;
+                clouds[2].position.set(c2x, c2y, getWaveZ(c2x, currentAmp) - (c2y * getSlope(c2x, currentAmp)) - 2.5);
+                
+                let c3x = 22, c3y = 7;
+                clouds[3].position.set(c3x, c3y, getWaveZ(c3x, currentAmp) - (c3y * getSlope(c3x, currentAmp)) - 3.0);
+
+                lblCumulus.position.set(-12, 10, getWaveZ(-12, currentAmp) - (10 * getSlope(-12, currentAmp)));
+                lblStratus.position.set(16, 11, getWaveZ(16, currentAmp) - (11 * getSlope(16, currentAmp)));
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        const descriptions = [
+            "[1단계] 무거운 찬 공기가 따뜻한 공기 밑으로 파고들어, 전선면(보라색)이 찬 공기 쪽(뒤쪽)으로 비스듬히 기울어진 '쐐기 형태의 정체전선'을 보여줍니다.",
+            "[2단계] 제트기류 파동에 의해 중심부 공기가 상승하며 에너지가 전환됩니다. 정체전선의 일자 라인이 서서히 곡선을 띠기 시작합니다.",
+            "[3단계] 저기압 중심부(L)에서 거세게 회전합니다. 중심을 축으로 서쪽은 파란 기호(한랭전선)만, 동쪽은 둥근 기호(온난전선)만 깔끔하게 분리되어 정렬됩니다.",
+            "[4단계] 완벽한 전선의 세력 확장! 가파른 한랭전선면 위에는 적운형 구름이, 완만한 온난전선면 위에는 층운형 구름이 형성됩니다."
+        ];
+
+        window.setStage = function(stage) {
+            currentStage = stage;
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`btn${i}`);
+                if (i === stage) btn.classList.replace('btn-inactive', 'btn-active');
+                else btn.classList.replace('btn-active', 'btn-inactive');
+            }
+            document.getElementById('descText').innerText = descriptions[stage - 1];
+
+            targetAmp = [0, 0, 5, 10, 16][stage];
+
+            arrows.coldLeft.visible = (stage === 1);
+            arrows.warmRight.visible = (stage === 1);
+            
+            jetMesh.visible = (stage >= 2);
+            lblJet.visible = (stage >= 2);
+            updraftGroup.visible = (stage >= 2);
+
+            [arrows.ccw1, arrows.ccw2, arrows.ccw3, arrows.ccw4, lblL].forEach(el => el.visible = (stage >= 3));
+
+            arrows.expandColdSW.visible = (stage === 4);
+            arrows.expandWarmSE.visible = (stage === 4);
+            clouds.forEach(c => c.visible = (stage === 4));
+            lblCumulus.visible = (stage === 4);
+            lblStratus.visible = (stage === 4);
+        };
+
+        setStage(1);
+        animate();
+    </script>
+</body>
+</html>
