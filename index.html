@@ -8,7 +8,6 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap');
         
-        /* 전체 페이지 설정: 스크롤 및 바운스 원천 차단 */
         html, body { 
             font-family: 'Noto Sans KR', sans-serif; 
             overflow: hidden; 
@@ -21,7 +20,6 @@
             background-color: #ffffff;
         }
 
-        /* 헤더 영역 최소화 */
         header {
             height: 50px;
             display: flex;
@@ -32,7 +30,6 @@
             z-index: 50;
         }
 
-        /* 시뮬레이션 영역: 남은 공간 전체 차지 */
         .sim-container { 
             position: absolute;
             top: 50px;
@@ -40,7 +37,6 @@
             right: 0;
             bottom: 0;
             width: 100%;
-            /* 아이폰 하단 홈 바 영역 대응 */
             padding-bottom: env(safe-area-inset-bottom);
         }
 
@@ -51,7 +47,6 @@
             display: block;
         }
 
-        /* 버튼 스타일 최적화 */
         .btn-sim {
             padding: 6px 12px;
             background: #f1f5f9;
@@ -60,6 +55,7 @@
             font-weight: 700;
             color: #475569;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
         .btn-sim.active {
@@ -73,23 +69,23 @@
     <header>
         <div class="flex items-center justify-between w-full">
             <h1 class="text-sm font-bold text-indigo-600 truncate mr-4">
-                🔬 민규쌤의 과학 실험실
+                <span class="hidden sm:inline">🔬</span> 민규쌤의 과학 실험실
             </h1>
-            <div id="sim-menu" class="flex gap-2">
+            <div id="sim-menu" class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
                 <!-- 버튼 생성 영역 -->
             </div>
         </div>
     </header>
 
     <main class="sim-container">
-        <!-- 불필요한 내부 카드/창 구조 제거 -->
         <iframe id="sim-viewer" src="about:blank" allow="autoplay; fullscreen" scrolling="no"></iframe>
     </main>
 
     <script>
-        // 현재는 중위도 저기압만 유지
+        // 시뮬레이션 목록: 여기에 새로운 항목을 추가하면 자동으로 버튼이 생성됩니다.
         const simulations = [
-            { id: 'cyclone', name: '중위도 저기압', url: 'cyclone.html' }
+            { id: 'cyclone', name: '중위도 저기압', url: 'cyclone.html' },
+            { id: 'land', name: '지사학 법칙', url: 'land.html' }
         ];
 
         const menuContainer = document.getElementById('sim-menu');
@@ -102,14 +98,14 @@
             btn.onclick = () => {
                 viewer.src = sim.url; 
                 
-                // 버튼 상태 변경
+                // 모든 버튼에서 active 제거 후 클릭한 버튼에만 추가
                 Array.from(menuContainer.children).forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             };
             menuContainer.appendChild(btn);
         });
 
-        // 로드 시 자동 실행
+        // 로드 시 첫 번째 시뮬레이션 자동 실행
         window.addEventListener('load', () => {
             if(simulations.length > 0) {
                 setTimeout(() => {
@@ -119,7 +115,6 @@
             }
         });
 
-        // iOS 브라우저 튕김 방지 (iframe 내부는 허용)
         document.addEventListener('touchmove', function(e) {
             if (!e.target.closest('#sim-viewer')) {
                 e.preventDefault();
