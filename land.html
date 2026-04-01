@@ -133,7 +133,7 @@
         const layerC = createStratum(-4, 4, 0x6ee7b7);  
         const layerD = createStratum(0, 4, 0xfca5a5);   
 
-        // --- 3. 관입암, 심성암, 분출용암, 변성대 생성 ---
+        // --- 3. 관입암, 심성암, 분출용암, 변성대, 기저역암 생성 ---
         
         // 난정합용 심성암
         const plutonGeo = new THREE.BoxGeometry(50.2, 16, 30.2, 30, 5, 2).toNonIndexed();
@@ -143,7 +143,7 @@
         const plutonMesh = new THREE.Mesh(plutonGeo, plutonMat);
         scene.add(plutonMesh);
 
-        // 수직 암맥 (관입/분출 공통)
+        // 수직 암맥
         const magmaGeo = new THREE.BoxGeometry(6, 25, 8).toNonIndexed();
         magmaGeo.translate(0, 12.5, 0); 
         const magmaOrig = Float32Array.from(magmaGeo.attributes.position.array);
@@ -153,15 +153,15 @@
         magmaMesh.rotation.z = -0.15; 
         scene.add(magmaMesh);
 
-        // [추가] 수평 암상 (지층 사이로 퍼지는 마그마)
+        // 수평 암상
         const sillGeo = new THREE.BoxGeometry(26, 2.5, 8).toNonIndexed();
         const sillOrig = Float32Array.from(sillGeo.attributes.position.array);
         const sillMesh = new THREE.Mesh(sillGeo, magmaMat);
-        sillMesh.position.set(-6, -8.5, 11.1); // A층과 B층 사이에 퍼짐
+        sillMesh.position.set(-6, -8.5, 11.1); 
         sillMesh.visible = false;
         scene.add(sillMesh);
 
-        // [추가] 접촉 변성대 (Aura) - 뜨거운 마그마 주변이 붉게 변성됨
+        // 접촉 변성대 (Aura)
         const metaMat = new THREE.MeshLambertMaterial({ color: 0xffaa00, transparent: true, opacity: 0, emissive: 0xff4400, emissiveIntensity: 0.6 });
         const metaDikeGeo = new THREE.BoxGeometry(7.5, 25, 9).toNonIndexed();
         metaDikeGeo.translate(0, 12.5, 0);
@@ -179,17 +179,16 @@
         metaSillMesh.visible = false;
         scene.add(metaSillMesh);
 
-        // [추가] 분출 용암 하부 접촉 변성대 (용암대지 밑바닥만 붉게 달굼)
         const metaLavaGeo = new THREE.CylinderGeometry(20.5, 20.5, 1.5, 32).toNonIndexed();
-        metaLavaGeo.translate(0, -0.75, 0); // 로컬 Y -1.5 ~ 0 (B층 상단 아래쪽으로 파고듦)
+        metaLavaGeo.translate(0, -0.75, 0); 
         const metaLavaOrig = Float32Array.from(metaLavaGeo.attributes.position.array);
         const metaLavaMesh = new THREE.Mesh(metaLavaGeo, metaMat);
-        metaLavaMesh.position.set(5, -4, 11.1); // B층 상단 높이
+        metaLavaMesh.position.set(5, -4, 11.1); 
         metaLavaMesh.scale.set(0.001, 1, 0.001);
         metaLavaMesh.visible = false;
         scene.add(metaLavaMesh);
 
-        // 분출용 용암대지 (흐르는 용암)
+        // 분출용 용암대지
         const lavaGeo = new THREE.CylinderGeometry(20, 20, 1.5, 32).toNonIndexed();
         lavaGeo.translate(0, 0.75, 0); 
         const lavaOrig = Float32Array.from(lavaGeo.attributes.position.array);
@@ -211,6 +210,23 @@
         scene.add(eruptParticles);
         let isErupting = false;
 
+        // [추가] 기저역암 (Basal Conglomerate) 입자들 - 단면에만 크고 선명하게 배치
+        const pebblesGroup = new THREE.Group();
+        const pebbleGeo = new THREE.DodecahedronGeometry(0.7, 0); // 크기를 0.25에서 0.7로 대폭 확대
+        for(let i=0; i<45; i++) { // 앞면 단면에만 배치하므로 갯수를 줄임
+            let px = (Math.random() - 0.5) * (boxW - 2);
+            let pz = 15.3; // 단면(앞면)에서만 눈에 확 띄도록 z축 맨 앞으로 고정 돌출
+            
+            // [수정] 조약돌마다 고유의 재질(Material)을 가지도록 하여 위치별로 색상 동적 변경이 가능하게 함
+            let pebbleMat = new THREE.MeshLambertMaterial({color: 0x44403c}); 
+            let pebble = new THREE.Mesh(pebbleGeo, pebbleMat);
+            pebble.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+            pebble.userData = { x: px, z: pz };
+            pebblesGroup.add(pebble);
+        }
+        scene.add(pebblesGroup);
+        pebblesGroup.visible = false;
+
         // 바다 (해수면)
         const seaMesh = new THREE.Mesh(
             new THREE.PlaneGeometry(90, 70),
@@ -222,18 +238,22 @@
         // --- 4. UI 텍스트 & 화석 ---
         function createTextSprite(text, color, scale=10) {
             const cvs = document.createElement('canvas');
-            cvs.width = 256; cvs.height = 64;
+            cvs.width = 380; cvs.height = 70;
             const ctx = cvs.getContext('2d');
-            ctx.fillStyle = color; ctx.font = 'Bold 42px Pretendard, sans-serif';
-            ctx.textAlign = 'center'; ctx.fillText(text, 128, 48);
+            ctx.fillStyle = color; ctx.font = 'Bold 40px Pretendard, sans-serif';
+            ctx.textAlign = 'center'; ctx.fillText(text, 190, 48);
             const tex = new THREE.CanvasTexture(cvs);
             const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
             const sprite = new THREE.Sprite(mat);
-            sprite.scale.set(scale, scale*0.25, 1); 
+            sprite.scale.set(scale, scale*0.2, 1); 
             scene.add(sprite); return sprite;
         }
-        const lblOld = createTextSprite("가장 오래됨 ⬇️", "#ea580c");
-        const lblYoung = createTextSprite("가장 젊음 ⬆️", "#16a34a");
+        const lblOld = createTextSprite("가장 오래됨 ⬇️", "#ea580c", 10);
+        const lblYoung = createTextSprite("가장 젊음 ⬆️", "#16a34a", 10);
+        
+        // [추가] 부정합면 라벨
+        const lblUnconformity = createTextSprite("부정합면 (기저역암)", "#4338ca", 14);
+        lblUnconformity.visible = false;
 
         function createFossil(emoji, x, origY, bg) {
             const cvs = document.createElement('canvas');
@@ -271,15 +291,29 @@
         function getLayerY(origX, origY) {
             return origY + Math.sin(origX * 0.15) * c_foldAmp + origX * c_tiltAngle;
         }
-        function applyErosion(y) { return Math.min(y, c_erodeY); }
+        
+        // [수정] 구불구불한 침식면을 생성하는 로직
+        function getCutLevel(x, z) {
+            let cutLevel = c_erodeY;
+            // c_erodeY가 10 미만일 때(즉 실제로 깎일 때) 구불구불한 요철(노이즈)을 추가
+            if (c_erodeY < 10) {
+                cutLevel += Math.sin(x * 0.8) * 0.35 + Math.cos(z * 0.8) * 0.35;
+            }
+            return cutLevel;
+        }
+
+        function applyErosion(x, z, y) { 
+            return Math.min(y, getCutLevel(x, z)); 
+        }
 
         function updateLayerABC(layerObj) {
             if(!layerObj.mesh.visible) return;
             const pos = layerObj.mesh.geometry.attributes.position.array;
             const orig = layerObj.origArray;
             for(let i=0; i<pos.length; i+=3) {
-                let newY = getLayerY(orig[i], orig[i+1]);
-                pos[i+1] = applyErosion(newY);
+                let x = orig[i]; let z = orig[i+2];
+                let newY = getLayerY(x, orig[i+1]);
+                pos[i+1] = applyErosion(x, z, newY);
             }
             layerObj.mesh.geometry.attributes.position.needsUpdate = true;
             layerObj.mesh.geometry.computeVertexNormals();
@@ -290,19 +324,17 @@
             const pos = layerD.mesh.geometry.attributes.position.array;
             const orig = layerD.origArray;
             for(let i=0; i<pos.length; i+=3) {
-                let x = orig[i];
+                let x = orig[i]; let z = orig[i+2];
                 let origY = orig[i+1];
                 if (origY < 1) { 
                     let baseTopY = 0; 
                     if (currentStage === 5) baseTopY = 0; 
-                    if (currentStage === 8) {
-                        pos[i+1] = c_erodeY;
-                    } else {
-                        let topOfUnder = getLayerY(x, baseTopY); 
-                        pos[i+1] = applyErosion(topOfUnder);
-                    }
+                    if (currentStage === 8) baseTopY = -2; // B층 상단 기준
+                    
+                    let topOfUnder = getLayerY(x, baseTopY); 
+                    pos[i+1] = applyErosion(x, z, topOfUnder);
                 } else {
-                    pos[i+1] = c_erodeY + origY;
+                    pos[i+1] = c_erodeY + origY; // 윗면은 평행
                 }
             }
             layerD.mesh.geometry.attributes.position.needsUpdate = true;
@@ -314,16 +346,16 @@
             plutonMesh.visible = true;
             const pos = plutonMesh.geometry.attributes.position.array;
             for(let i=0; i<pos.length; i+=3) {
+                let x = plutonOrig[i]; let z = plutonOrig[i+2];
                 let localY = plutonOrig[i+1]; 
                 let globalY = -16 + localY * c_plutonScale;
-                pos[i+1] = applyErosion(globalY);
+                pos[i+1] = applyErosion(x, z, globalY);
             }
             plutonMesh.geometry.attributes.position.needsUpdate = true;
             plutonMesh.geometry.computeVertexNormals();
         }
 
         function updateMagmaSystem() {
-            // 수직 암맥(Dike)
             if(c_magmaHeight < 0.1) { magmaMesh.visible = false; }
             else {
                 magmaMesh.visible = true;
@@ -332,30 +364,32 @@
                     let localY = magmaOrig[i+1]; 
                     let h = (localY / 25) * c_magmaHeight;
                     let globalY = -15 + h; 
-                    if (globalY > c_erodeY) globalY = c_erodeY; // 침식 반영
+                    
+                    let globalX = magmaMesh.position.x + magmaOrig[i];
+                    let globalZ = magmaMesh.position.z + magmaOrig[i+2];
+                    
+                    globalY = Math.min(globalY, getCutLevel(globalX, globalZ));
                     pos[i+1] = globalY + 15; 
                 }
                 magmaMesh.geometry.attributes.position.needsUpdate = true;
                 magmaMesh.geometry.computeVertexNormals();
             }
 
-            // 수평 암상(Sill)
             if(c_sillScale < 0.01) { sillMesh.visible = false; }
             else {
                 sillMesh.visible = true;
                 const pos = sillMesh.geometry.attributes.position.array;
                 for(let i=0; i<pos.length; i+=3) {
                     let localX = sillOrig[i];
-                    pos[i] = localX * c_sillScale; // X축(좌우)으로 퍼짐
+                    pos[i] = localX * c_sillScale; 
                 }
                 sillMesh.geometry.attributes.position.needsUpdate = true;
                 sillMesh.geometry.computeVertexNormals();
             }
 
-            // 변성대(Metamorphic Aura)
             if(c_metaOpacity < 0.01) { metaDikeMesh.visible = false; metaSillMesh.visible = false; }
             else {
-                metaMat.opacity = c_metaOpacity * 0.6; // 최대 투명도 0.6
+                metaMat.opacity = c_metaOpacity * 0.6; 
                 
                 metaDikeMesh.visible = true;
                 const posD = metaDikeMesh.geometry.attributes.position.array;
@@ -363,7 +397,9 @@
                     let localY = metaDikeOrig[i+1]; 
                     let h = (localY / 25) * c_magmaHeight;
                     let globalY = -15 + h; 
-                    if (globalY > c_erodeY) globalY = c_erodeY;
+                    let globalX = metaDikeMesh.position.x + metaDikeOrig[i];
+                    let globalZ = metaDikeMesh.position.z + metaDikeOrig[i+2];
+                    globalY = Math.min(globalY, getCutLevel(globalX, globalZ));
                     posD[i+1] = globalY + 15; 
                 }
                 metaDikeMesh.geometry.attributes.position.needsUpdate = true;
@@ -376,7 +412,6 @@
                 }
                 metaSillMesh.geometry.attributes.position.needsUpdate = true;
                 
-                // [추가] 분출된 용암 하부의 접촉 변성대 (용암과 같이 퍼짐)
                 metaLavaMesh.visible = (c_lavaScale > 0.01);
                 if (metaLavaMesh.visible) {
                     let s = Math.max(c_lavaScale, 0.001);
@@ -385,7 +420,9 @@
                     for(let i=0; i<posL.length; i+=3) {
                         let localY = metaLavaOrig[i+1];
                         let globalY = -4 + localY;
-                        if(globalY > c_erodeY) globalY = c_erodeY;
+                        let globalX = metaLavaMesh.position.x + metaLavaOrig[i] * s;
+                        let globalZ = metaLavaMesh.position.z + metaLavaOrig[i+2] * s;
+                        globalY = Math.min(globalY, getCutLevel(globalX, globalZ));
                         posL[i+1] = globalY - (-4);
                     }
                     metaLavaMesh.geometry.attributes.position.needsUpdate = true;
@@ -406,11 +443,37 @@
             for(let i=0; i<pos.length; i+=3) {
                 let localY = lavaOrig[i+1];
                 let globalY = -4 + localY;
-                if(globalY > c_erodeY) globalY = c_erodeY;
+                let globalX = lavaMesh.position.x + lavaOrig[i] * s;
+                let globalZ = lavaMesh.position.z + lavaOrig[i+2] * s;
+                globalY = Math.min(globalY, getCutLevel(globalX, globalZ));
                 pos[i+1] = globalY - (-4);
             }
             lavaMesh.geometry.attributes.position.needsUpdate = true;
             lavaMesh.geometry.computeVertexNormals();
+        }
+
+        // [추가] 아래의 기반암 색상을 동적으로 판별하는 함수 (기저역암 색상 동기화용)
+        function getUnderlyingColor(x) {
+            if (currentStage === 3) return 0x6ee7b7; // 평행부정합: C층 (초록)
+            if (currentStage === 4) {
+                // 경사 부정합: 위치(x)마다 침식되어 드러난 지층이 다름!
+                let yTopA = getLayerY(x, -8);
+                let yTopB = getLayerY(x, -4);
+                
+                // 현재 깎인 면(c_erodeY)이 어느 지층 높이에 해당하는지 계산
+                if (c_erodeY < yTopA) return 0xfcd34d; // A층이 드러남 (노랑)
+                if (c_erodeY < yTopB) return 0x9ca3af; // B층이 드러남 (회색)
+                return 0x6ee7b7; // C층이 드러남 (초록)
+            }
+            if (currentStage === 5) return 0x4b5563; // 난정합: 심성암 (어두운 회색)
+            if (currentStage === 7) {
+                // 관입: 마그마(x=2~8 구간) 바로 위는 붉은색 마그마 파편
+                if (x > 2 && x < 8) return 0xef4444; 
+                return 0x6ee7b7; // 나머지는 C층
+            }
+            if (currentStage === 8) return 0x4b5563; // 분출: 식어버린 용암대지 (어두운 회색)
+            
+            return 0x6ee7b7; // 기본 C층
         }
 
         function animate() {
@@ -445,15 +508,34 @@
                 });
             } else { eruptParticles.visible = false; }
 
+            // [추가/수정] 기저역암 애니메이션 - 구불구불한 침식면 바로 위에 안착
+            if (pebblesGroup.visible) {
+                pebblesGroup.children.forEach(p => {
+                    let x = p.userData.x; let z = p.userData.z;
+                    let baseTopY = 0;
+                    if (currentStage === 5) baseTopY = 0;
+                    if (currentStage === 8) baseTopY = -2;
+                    let underlyingY = getLayerY(x, baseTopY);
+                    let finalY = applyErosion(x, z, underlyingY);
+                    p.position.set(x, finalY + 0.4, z); // 역암 크기가 커졌으므로 묻히지 않게 높이(offset) 조절
+                    
+                    // [핵심] 기저역암의 색상을 바로 밑에 있는 지층(기반암)의 색상으로 실시간 동기화
+                    p.material.color.setHex(getUnderlyingColor(x));
+                });
+            }
+
             if (lblOld.visible) {
                 let refX = -18;
-                lblOld.position.set(refX, applyErosion(getLayerY(refX, -10)), 16);
-                lblYoung.position.set(refX, applyErosion(getLayerY(refX, -2)), 16);
+                lblOld.position.set(refX, applyErosion(refX, 16, getLayerY(refX, -10)), 16);
+                lblYoung.position.set(refX, applyErosion(refX, 16, getLayerY(refX, -2)), 16);
             }
             if (fossils[0].visible) {
                 fossils.forEach(f => {
-                    f.position.y = applyErosion(getLayerY(f.userData.origX, f.userData.origY));
+                    f.position.y = applyErosion(f.userData.origX, 15.2, getLayerY(f.userData.origX, f.userData.origY));
                 });
+            }
+            if (lblUnconformity.visible) {
+                lblUnconformity.position.set(-15, c_erodeY + 2.5, 16);
             }
 
             controls.update();
@@ -500,17 +582,19 @@
             layerD.mesh.visible = false; magmaMesh.visible = false; sillMesh.visible = false; 
             metaDikeMesh.visible = false; metaSillMesh.visible = false; metaLavaMesh.visible = false; lavaMesh.visible = false;
             
-            lblOld.visible = false; lblYoung.visible = false;
+            lblOld.visible = false; lblYoung.visible = false; lblUnconformity.visible = false;
+            pebblesGroup.visible = false;
             fossils.forEach(f => f.visible = false);
             layerA.mesh.visible = true; layerB.mesh.visible = true; layerC.mesh.visible = true;
             
             lavaMat.color.copy(colorLavaHot); lavaMat.emissiveIntensity = 0.2;
         }
 
+        // 텍스트에서 '절반쯤 깎여나간' 표현 수정
         const descriptions = [
             "[수평 퇴적의 법칙] 물 밑에 퇴적물이 쌓일 때는 중력에 의해 지표면과 나란하게 '수평'으로 쌓입니다.",
             "[지층 누중의 법칙] 역전되지 않았다면, 아래에 있는 지층일수록 먼저 쌓인 '오래된' 암석입니다.",
-            "[평행 부정합] 융기되어 절반쯤 깎여나간 후, 다시 가라앉아 새로운 지층(D)이 평행하게 쌓였습니다.",
+            "[평행 부정합] 융기되어 침식된 후, 다시 가라앉아 새로운 지층(D)이 평행하게 쌓였습니다.",
             "[경사 부정합] 지각변동으로 구불구불해진 지층이 융기해 깎인 후, 푹 파인 계곡까지 완벽하게 새 지층이 메우며 퇴적됩니다.",
             "[난정합] 아래에 거대한 심성암이 있고, 깎인 후 그 위에 퇴적암이 쌓인 구조입니다.",
             "[동물군 천이] 아래에서 위 지층으로 갈수록 더 진화되고 복잡한 생물(삼엽충➡️암모나이트➡️공룡)의 화석이 발견됩니다.",
@@ -540,25 +624,25 @@
             else if (stage === 3) {
                 addSeq(500, "1. 해수면 아래 수평 퇴적", () => {});
                 addSeq(2000, "2. 융기 (지층이 바다 위로 상승)", () => { t_seaY = -12; });
-                addSeq(4000, "3. 침식 (절반 정도만 평행하게 깎임)", () => { t_erodeY = -2; }); 
+                addSeq(4000, "3. 침식 (구불구불한 부정합면 형성)", () => { t_erodeY = -2; }); 
                 addSeq(6000, "4. 침강 (다시 바다 밑으로 가라앉음)", () => { t_seaY = 2; });
-                addSeq(8000, "5. 부정합면 위 새로운 지층(D) 퇴적", () => { layerD.mesh.visible = true; });
-                addSeq(10000, "", () => { clearSeq(); }); 
+                addSeq(8000, "5. 부정합면 위 기저역암과 새 지층(D) 퇴적", () => { layerD.mesh.visible = true; pebblesGroup.visible = true; lblUnconformity.visible = true; });
+                addSeq(10500, "", () => { clearSeq(); }); 
             }
             else if (stage === 4) {
                 addSeq(500, "1. 해수면 아래 수평 퇴적", () => {});
                 addSeq(2000, "2. 지각 변동 (습곡 및 경사) + 융기", () => { t_seaY = -12; t_foldAmp = 4; t_tiltAngle = 0.15; });
-                addSeq(4500, "3. 침식 (향사/골짜기를 남기고 깎임)", () => { t_erodeY = -5; }); 
+                addSeq(4500, "3. 침식 (구불구불한 부정합면 형성)", () => { t_erodeY = -5; }); 
                 addSeq(6500, "4. 침강 (다시 물 속으로)", () => { t_seaY = 2; });
-                addSeq(8500, "5. 깎인 골짜기(빈공간)를 완벽히 채우며 수평 퇴적", () => { layerD.mesh.visible = true; });
+                addSeq(8500, "5. 부정합면 위 기저역암과 새 지층(D) 퇴적", () => { layerD.mesh.visible = true; pebblesGroup.visible = true; lblUnconformity.visible = true; });
                 addSeq(10500, "", () => { clearSeq(); });
             }
             else if (stage === 5) {
                 addSeq(500, "1. 해수면 아래 퇴적 지층", () => {});
                 addSeq(2000, "2. 심성암 대규모 관입 및 융기", () => { t_seaY = -12; t_plutonScale = 1; });
-                addSeq(4500, "3. 침식 (심성암 윗부분까지 깎임)", () => { t_erodeY = -2; });
+                addSeq(4500, "3. 침식 (구불구불한 부정합면 형성)", () => { t_erodeY = -2; });
                 addSeq(6500, "4. 침강 (다시 물 속으로)", () => { t_seaY = 2; });
-                addSeq(8500, "5. 심성암 위에 새 지층(D) 퇴적", () => { layerD.mesh.visible = true; });
+                addSeq(8500, "5. 부정합면 위 기저역암과 새 지층(D) 퇴적", () => { layerD.mesh.visible = true; pebblesGroup.visible = true; lblUnconformity.visible = true; });
                 addSeq(10500, "", () => { clearSeq(); });
             }
             else if (stage === 6) {
@@ -568,12 +652,11 @@
                 addSeq(6000, "", () => { clearSeq(); });
             }
             else if (stage === 7) {
-                // [관입 완벽 구현] 수직 암맥 + 수평 암상 + 접촉 변성대
                 addSeq(500, "1. A, B, C 지층 수평 퇴적", () => {});
                 addSeq(2000, "2. 마그마 수직 관입 (지표면 아래에서 멈춤)", () => { t_magmaHeight = 14; }); 
                 addSeq(4000, "3. 지층 틈새로 마그마 확산(수평 암상) 및 접촉 변성대 형성!", () => { t_sillScale = 1; t_metaOpacity = 1; }); 
-                addSeq(7000, "4. 융기 및 침식 (마그마와 변성대도 함께 평평하게 깎임)", () => { t_seaY = -12; t_erodeY = -2.5; }); 
-                addSeq(9500, "5. 침강 및 새 지층(D) 덮임", () => { t_seaY = 2; layerD.mesh.visible = true; });
+                addSeq(7000, "4. 융기 및 침식 (구불구불한 부정합면 형성)", () => { t_seaY = -12; t_erodeY = -2.5; }); 
+                addSeq(9500, "5. 부정합면 위 기저역암과 새 지층(D) 덮임", () => { t_seaY = 2; layerD.mesh.visible = true; pebblesGroup.visible = true; lblUnconformity.visible = true; });
                 addSeq(12500, "결론: D층엔 변성 작용이 없으니 마그마보다 나중에 쌓였다!", () => { clearSeq(); });
             }
             else if (stage === 8) {
@@ -582,8 +665,8 @@
                 addSeq(2000, "2. 마그마 상승 및 지표면(B층) 도달 (변성 작용 시작)", () => { t_magmaHeight = 11; t_metaOpacity = 1; }); 
                 addSeq(3500, "3. 펑! 마그마 지표 분출 및 용암 확산", () => { isErupting = true; t_lavaScale = 1; }); 
                 addSeq(6500, "4. 분출 종료 및 용암 냉각(화성암)", () => { isErupting = false; t_lavaColor = 1; }); 
-                addSeq(8500, "5. 융기 및 침식 (용암대지가 깎임)", () => { t_seaY = -12; t_erodeY = -3.5; }); 
-                addSeq(10500, "6. 침강 및 새 지층(D) 덮임", () => { t_seaY = 2; layerD.mesh.visible = true; });
+                addSeq(8500, "5. 융기 및 침식 (구불구불한 부정합면 형성)", () => { t_seaY = -12; t_erodeY = -3.5; }); 
+                addSeq(10500, "6. 부정합면 위 기저역암과 새 지층(D) 덮임", () => { t_seaY = 2; layerD.mesh.visible = true; pebblesGroup.visible = true; lblUnconformity.visible = true; });
                 addSeq(13000, "결론: D층은 변성 안 됨 = 용암 분출 후 쌓였다!", () => { clearSeq(); });
             }
         };
