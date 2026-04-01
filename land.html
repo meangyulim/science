@@ -422,8 +422,19 @@
                         let globalY = -4 + localY;
                         let globalX = metaLavaMesh.position.x + metaLavaOrig[i] * s;
                         let globalZ = metaLavaMesh.position.z + metaLavaOrig[i+2] * s;
+                        
+                        // [수정] 지층 바운더리 밖으로 변성대가 튀어나가지 않도록 제한 (Clamping)
+                        if(globalX > 25) globalX = 25;
+                        if(globalX < -25) globalX = -25;
+                        if(globalZ > 15.1) globalZ = 15.1; // 단면 앞쪽 끝
+                        if(globalZ < -15) globalZ = -15;
+
                         globalY = Math.min(globalY, getCutLevel(globalX, globalZ));
+                        
+                        // 다시 로컬 좌표로 변환하여 저장
+                        posL[i] = (globalX - metaLavaMesh.position.x) / s;
                         posL[i+1] = globalY - (-4);
+                        posL[i+2] = (globalZ - metaLavaMesh.position.z) / s;
                     }
                     metaLavaMesh.geometry.attributes.position.needsUpdate = true;
                 }
@@ -445,8 +456,19 @@
                 let globalY = -4 + localY;
                 let globalX = lavaMesh.position.x + lavaOrig[i] * s;
                 let globalZ = lavaMesh.position.z + lavaOrig[i+2] * s;
+                
+                // [수정] 지층 바운더리 밖으로 용암이 튀어나가지 않도록 제한 (Clamping)
+                if(globalX > 25) globalX = 25;
+                if(globalX < -25) globalX = -25;
+                if(globalZ > 15.1) globalZ = 15.1; // 단면 앞쪽 끝
+                if(globalZ < -15) globalZ = -15;
+
                 globalY = Math.min(globalY, getCutLevel(globalX, globalZ));
+                
+                // 다시 로컬 좌표로 변환하여 저장
+                pos[i] = (globalX - lavaMesh.position.x) / s;
                 pos[i+1] = globalY - (-4);
+                pos[i+2] = (globalZ - lavaMesh.position.z) / s;
             }
             lavaMesh.geometry.attributes.position.needsUpdate = true;
             lavaMesh.geometry.computeVertexNormals();
