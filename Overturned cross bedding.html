@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>사층리 역전 시뮬레이션</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -34,8 +34,8 @@
 </head>
 <body class="h-[100dvh] w-screen overflow-hidden flex flex-col text-slate-800">
 
-    <!-- Header -->
-    <header class="bg-white border-b border-slate-200 px-4 py-3 md:px-6 md:py-4 flex justify-between items-center z-10 shrink-0">
+    <!-- Header (Safe Area 적용) -->
+    <header class="bg-white border-b border-slate-200 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 md:px-6 md:pt-[max(env(safe-area-inset-top),1rem)] md:pb-4 flex justify-between items-center z-10 shrink-0">
         <div>
             <h1 class="text-lg md:text-2xl font-bold text-slate-800 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600 md:w-7 md:h-7"><path d="m2 12 5.25 5 5.25-11 5.25 11 4.25-4"/></svg>
@@ -63,7 +63,7 @@
 
         <!-- Control Panel (Sidebar) -->
         <aside class="h-[55%] md:h-full w-full md:w-[400px] glass-panel flex flex-col z-20 border-t md:border-t-0 md:border-l border-slate-200 overflow-y-auto shrink-0">
-            <div class="p-4 md:p-6 space-y-6 md:space-y-8">
+            <div class="p-4 md:p-6 pb-[max(env(safe-area-inset-bottom),1rem)] md:pb-[max(env(safe-area-inset-bottom),1.5rem)] space-y-6 md:space-y-8">
                 
                 <!-- 1. Flow Direction Control -->
                 <section>
@@ -432,8 +432,8 @@
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
 
-            // 화면 크기에 맞게 캔버스 스케일링 (여백 포함)
-            const scale = Math.min(1, canvas.width / (BLOCK_WIDTH + 60), canvas.height / (BLOCK_HEIGHT + 150));
+            // 화면 크기에 맞게 캔버스 스케일링 (위아래 여백을 더 확보)
+            const scale = Math.min(1, canvas.width / (BLOCK_WIDTH + 60), canvas.height / (BLOCK_HEIGHT + 220));
 
             ctx.save();
             ctx.translate(cx, cy);
