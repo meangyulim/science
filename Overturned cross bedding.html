@@ -32,16 +32,16 @@
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col text-slate-800">
+<body class="h-[100dvh] w-screen overflow-hidden flex flex-col text-slate-800">
 
     <!-- Header -->
-    <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10 shrink-0">
+    <header class="bg-white border-b border-slate-200 px-4 py-3 md:px-6 md:py-4 flex justify-between items-center z-10 shrink-0">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="m2 12 5.25 5 5.25-11 5.25 11 4.25-4"/></svg>
+            <h1 class="text-lg md:text-2xl font-bold text-slate-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600 md:w-7 md:h-7"><path d="m2 12 5.25 5 5.25-11 5.25 11 4.25-4"/></svg>
                 사층리 역전 시뮬레이션
             </h1>
-            <p class="text-sm text-slate-500 mt-1">지층의 구조를 통해 과거 유체의 흐름 방향과 역전 여부를 분석해보세요.</p>
+            <p class="hidden md:block text-sm text-slate-500 mt-1">지층의 구조를 통해 과거 유체의 흐름 방향과 역전 여부를 분석해보세요.</p>
         </div>
     </header>
 
@@ -49,21 +49,21 @@
     <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
         
         <!-- Canvas Area -->
-        <div class="flex-1 relative bg-slate-100 flex items-center justify-center overflow-hidden" id="canvas-container">
+        <div class="h-[45%] min-h-[250px] md:h-full md:flex-1 relative bg-slate-100 flex items-center justify-center overflow-hidden" id="canvas-container">
             <!-- Background Grid -->
             <div class="absolute inset-0" style="background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; opacity: 0.5;"></div>
             
             <canvas id="simCanvas" class="relative z-10"></canvas>
 
             <!-- Floating Status -->
-            <div id="statusBadge" class="absolute top-6 left-6 z-20 px-4 py-2 rounded-full text-sm font-bold shadow-md transition-colors duration-300 bg-emerald-100 text-emerald-700 border border-emerald-200">
+            <div id="statusBadge" class="absolute top-3 left-3 md:top-6 md:left-6 z-20 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-md transition-colors duration-300 bg-emerald-100 text-emerald-700 border border-emerald-200">
                 정상 상태 (Normal)
             </div>
         </div>
 
         <!-- Control Panel (Sidebar) -->
-        <aside class="w-full md:w-[400px] h-full glass-panel flex flex-col z-20 border-l border-slate-200 overflow-y-auto shrink-0">
-            <div class="p-6 space-y-8">
+        <aside class="h-[55%] md:h-full w-full md:w-[400px] glass-panel flex flex-col z-20 border-t md:border-t-0 md:border-l border-slate-200 overflow-y-auto shrink-0">
+            <div class="p-4 md:p-6 space-y-6 md:space-y-8">
                 
                 <!-- 1. Flow Direction Control -->
                 <section>
@@ -72,10 +72,10 @@
                         과거 유체 흐름 방향
                     </h2>
                     <div class="flex gap-2">
-                        <button id="btnFlowLeftRight" class="flex-1 btn-secondary py-3 rounded-lg font-medium border-2 border-blue-500 bg-blue-50 text-blue-700" onclick="setFlowDirection(1)">
+                        <button id="btnFlowLeftRight" class="flex-1 btn-secondary py-2 md:py-3 rounded-lg font-medium border-2 border-blue-500 bg-blue-50 text-blue-700" onclick="setFlowDirection(1)">
                             왼쪽 → 오른쪽
                         </button>
-                        <button id="btnFlowRightLeft" class="flex-1 btn-secondary py-3 rounded-lg font-medium" onclick="setFlowDirection(-1)">
+                        <button id="btnFlowRightLeft" class="flex-1 btn-secondary py-2 md:py-3 rounded-lg font-medium" onclick="setFlowDirection(-1)">
                             오른쪽 → 왼쪽
                         </button>
                     </div>
@@ -88,7 +88,7 @@
                         <span class="bg-amber-100 text-amber-700 w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span>
                         지각 변동 (지층 역전)
                     </h2>
-                    <button id="btnInvert" class="w-full btn-primary py-3 rounded-lg font-bold text-lg flex items-center justify-center gap-2" onclick="toggleInversion()">
+                    <button id="btnInvert" class="w-full btn-primary py-3 md:py-4 rounded-lg font-bold text-base md:text-lg flex items-center justify-center gap-2" onclick="toggleInversion()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
                         지층 뒤집기 (180° 회전)
                     </button>
@@ -158,11 +158,11 @@
             const btnRL = document.getElementById('btnFlowRightLeft');
             
             if (dir === 1) {
-                btnLR.className = "flex-1 btn-secondary py-3 rounded-lg font-medium border-2 border-blue-500 bg-blue-50 text-blue-700";
-                btnRL.className = "flex-1 btn-secondary py-3 rounded-lg font-medium border-2 border-transparent";
+                btnLR.className = "flex-1 btn-secondary py-2 md:py-3 rounded-lg font-medium border-2 border-blue-500 bg-blue-50 text-blue-700";
+                btnRL.className = "flex-1 btn-secondary py-2 md:py-3 rounded-lg font-medium border-2 border-transparent";
             } else {
-                btnRL.className = "flex-1 btn-secondary py-3 rounded-lg font-medium border-2 border-blue-500 bg-blue-50 text-blue-700";
-                btnLR.className = "flex-1 btn-secondary py-3 rounded-lg font-medium border-2 border-transparent";
+                btnRL.className = "flex-1 btn-secondary py-2 md:py-3 rounded-lg font-medium border-2 border-blue-500 bg-blue-50 text-blue-700";
+                btnLR.className = "flex-1 btn-secondary py-2 md:py-3 rounded-lg font-medium border-2 border-transparent";
             }
             updateExplanation();
         }
@@ -182,20 +182,20 @@
             const btn = document.getElementById('btnInvert');
             if (state.isInverted) {
                 btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> 정상 상태로 복구하기`;
-                btn.className = "w-full btn-secondary py-3 rounded-lg font-bold text-lg flex items-center justify-center gap-2 border-2 border-amber-500 text-amber-700 bg-amber-50";
+                btn.className = "w-full btn-secondary py-3 md:py-4 rounded-lg font-bold text-base md:text-lg flex items-center justify-center gap-2 border-2 border-amber-500 text-amber-700 bg-amber-50";
             } else {
                 btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> 지층 뒤집기 (180° 회전)`;
-                btn.className = "w-full btn-primary py-3 rounded-lg font-bold text-lg flex items-center justify-center gap-2";
+                btn.className = "w-full btn-primary py-3 md:py-4 rounded-lg font-bold text-base md:text-lg flex items-center justify-center gap-2";
             }
 
             // Update Status Badge
             const badge = document.getElementById('statusBadge');
             if (state.isInverted) {
                 badge.textContent = "역전 상태 (Inverted)";
-                badge.className = "absolute top-6 left-6 z-20 px-4 py-2 rounded-full text-sm font-bold shadow-md transition-colors duration-300 bg-rose-100 text-rose-700 border border-rose-200";
+                badge.className = "absolute top-3 left-3 md:top-6 md:left-6 z-20 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-md transition-colors duration-300 bg-rose-100 text-rose-700 border border-rose-200";
             } else {
                 badge.textContent = "정상 상태 (Normal)";
-                badge.className = "absolute top-6 left-6 z-20 px-4 py-2 rounded-full text-sm font-bold shadow-md transition-colors duration-300 bg-emerald-100 text-emerald-700 border border-emerald-200";
+                badge.className = "absolute top-3 left-3 md:top-6 md:left-6 z-20 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-md transition-colors duration-300 bg-emerald-100 text-emerald-700 border border-emerald-200";
             }
 
             updateExplanation();
@@ -251,7 +251,7 @@
             ctx.fill();
         }
 
-        function drawFluidAnimation(cx, cy) {
+        function drawFluidAnimation() {
             // Draw flowing lines above the block
             if (state.isInverted || state.isAnimating) return; // Don't show active fluid if inverted
 
@@ -260,9 +260,9 @@
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
 
-            const startX = cx - BLOCK_WIDTH/2;
-            const endX = cx + BLOCK_WIDTH/2;
-            const yLevel = cy - BLOCK_HEIGHT/2 - 30;
+            const startX = -BLOCK_WIDTH/2;
+            const endX = BLOCK_WIDTH/2;
+            const yLevel = -BLOCK_HEIGHT/2 - 30;
 
             // Flow speed
             const speed = state.flowDirection * 2;
@@ -290,15 +290,13 @@
             ctx.fillStyle = '#2563eb';
             ctx.font = 'bold 16px Pretendard';
             ctx.textAlign = 'center';
-            ctx.fillText('현재 유체 (물/바람) 흐름', cx, yLevel - 20);
+            ctx.fillText('현재 유체 (물/바람) 흐름', 0, yLevel - 20);
             ctx.restore();
         }
 
-        function drawCrossBeddingBlock(cx, cy) {
+        function drawCrossBeddingBlock() {
             ctx.save();
             
-            // Translate to center for rotation
-            ctx.translate(cx, cy);
             // Convert angle to radians
             ctx.rotate(state.angle * Math.PI / 180);
 
@@ -349,12 +347,12 @@
             ctx.restore();
         }
 
-        function drawHints(cx, cy) {
+        function drawHints() {
             if (!state.showHint) return;
 
             ctx.save();
-            const bx = cx - BLOCK_WIDTH / 2;
-            const by = cy - BLOCK_HEIGHT / 2;
+            const bx = -BLOCK_WIDTH / 2;
+            const by = -BLOCK_HEIGHT / 2;
 
             // Highlight Truncated (잘린 면) vs Tangential (수렴하는 면)
             const isFlipped = state.angle > 90;
@@ -372,43 +370,43 @@
                 ctx.fillStyle = 'rgba(239, 68, 68, 0.2)'; // Red-ish highlight
                 ctx.fillRect(bx, topY, BLOCK_WIDTH, 20);
                 ctx.fillStyle = '#ef4444';
-                ctx.fillText('윗면: 지층이 깎인 모양 (급경사, 간격 좁음)', cx, topY - 15);
+                ctx.fillText('윗면: 지층이 깎인 모양 (급경사, 간격 좁음)', 0, topY - 15);
 
                 // Bottom Highlight (Tangential)
                 ctx.fillStyle = 'rgba(16, 185, 129, 0.2)'; // Green-ish highlight
                 ctx.fillRect(bx, bottomY - 20, BLOCK_WIDTH, 20);
                 ctx.fillStyle = '#10b981';
-                ctx.fillText('아랫면: 기저면과 수렴하는 모양 (완만함, 간격 넓음)', cx, bottomY + 25);
+                ctx.fillText('아랫면: 기저면과 수렴하는 모양 (완만함, 간격 넓음)', 0, bottomY + 25);
             } else {
                 // INVERTED STATE
                 // Top Highlight (Actually the original bottom - Tangential)
                 ctx.fillStyle = 'rgba(16, 185, 129, 0.2)'; 
                 ctx.fillRect(bx, topY, BLOCK_WIDTH, 20);
                 ctx.fillStyle = '#10b981';
-                ctx.fillText('현재 윗면 (원래 아랫면): 수렴하는 모양이 위로 옴!', cx, topY - 15);
+                ctx.fillText('현재 윗면 (원래 아랫면): 수렴하는 모양이 위로 옴!', 0, topY - 15);
 
                 // Bottom Highlight (Actually the original top - Truncated)
                 ctx.fillStyle = 'rgba(239, 68, 68, 0.2)'; 
                 ctx.fillRect(bx, bottomY - 20, BLOCK_WIDTH, 20);
                 ctx.fillStyle = '#ef4444';
-                ctx.fillText('현재 아랫면 (원래 윗면): 깎인 모양이 아래로 옴!', cx, bottomY + 25);
+                ctx.fillText('현재 아랫면 (원래 윗면): 깎인 모양이 아래로 옴!', 0, bottomY + 25);
             }
 
             // Draw Big Arrow for Past Flow Direction
-            const arrowY = isFlipped ? by + BLOCK_HEIGHT / 2 : by + BLOCK_HEIGHT / 2;
-            const arrowStartX = cx - state.flowDirection * 150;
-            const arrowEndX = cx + state.flowDirection * 150;
+            const arrowY = 0; // Center Y
+            const arrowStartX = -state.flowDirection * 150;
+            const arrowEndX = state.flowDirection * 150;
             
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.fillRect(cx - 120, arrowY - 40, 240, 80);
+            ctx.fillRect(-120, arrowY - 40, 240, 80);
             ctx.strokeStyle = '#94a3b8';
-            ctx.strokeRect(cx - 120, arrowY - 40, 240, 80);
+            ctx.strokeRect(-120, arrowY - 40, 240, 80);
 
             drawArrow(ctx, arrowStartX, arrowY, arrowEndX, arrowY, 6, '#8b5cf6'); // Purple arrow
             
             ctx.fillStyle = '#7c3aed';
             ctx.font = 'bold 18px Pretendard';
-            ctx.fillText('과거 유체 흐름 방향', cx, arrowY - 15);
+            ctx.fillText('과거 유체 흐름 방향', 0, arrowY - 15);
             
             ctx.restore();
         }
@@ -434,10 +432,19 @@
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
 
+            // 화면 크기에 맞게 캔버스 스케일링 (여백 포함)
+            const scale = Math.min(1, canvas.width / (BLOCK_WIDTH + 60), canvas.height / (BLOCK_HEIGHT + 150));
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.scale(scale, scale);
+
             // Render
-            drawFluidAnimation(cx, cy);
-            drawCrossBeddingBlock(cx, cy);
-            drawHints(cx, cy);
+            drawFluidAnimation();
+            drawCrossBeddingBlock();
+            drawHints();
+
+            ctx.restore();
 
             requestAnimationFrame(animate);
         }
