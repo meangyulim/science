@@ -174,10 +174,12 @@
         const BLOCK_H = 200;
         const BLOCK_D = 200; // Depth for the top face
 
-        // Cached random data
+        // Cached random data (흔들림 방지를 위해 변수 추가)
         const cache = {
             gradedParticles: [],
+            gradedPlaneParticles: [],
             mudcrackLines: [],
+            sectionCracks: [],
             initialized: false
         };
 
@@ -245,6 +247,25 @@
                     });
                 }
             }
+
+            // 점이층리 층리면(위) 입자들의 위치를 미리 계산하여 저장 (흔들림 방지)
+            cache.gradedPlaneParticles = [];
+            for(let i=0; i<3000; i++) {
+                cache.gradedPlaneParticles.push({
+                    x: (Math.random() - 0.5) * BLOCK_W,
+                    y: (Math.random() - 0.5) * BLOCK_D,
+                    r: Math.random() * 1.5 + 0.5,
+                    color: `hsl(30, ${10 + Math.random()*10}%, ${60 + Math.random()*20}%)`
+                });
+            }
+
+            // 건열 단면의 깊이와 위치를 미리 계산하여 저장 (흔들림 방지)
+            cache.sectionCracks = [
+                { x: -150, d: 60 + Math.random() * 20 },
+                { x: -50, d: 60 + Math.random() * 20 },
+                { x: 30, d: 60 + Math.random() * 20 },
+                { x: 120, d: 60 + Math.random() * 20 }
+            ];
 
             cache.mudcrackLines = [];
             const pts = [];
@@ -393,7 +414,8 @@
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
             
-            const scale = Math.min(1, canvas.width / (BLOCK_W + 100), canvas.height / (BLOCK_H + BLOCK_D + 50));
+            // 화면 크기에 맞게 스케일 조정 (노트북/데스크탑에서 더 크게 보이도록 최댓값을 1에서 2.5로 상향)
+            const scale = Math.min(2.5, canvas.width / (BLOCK_W + 100), canvas.height / (BLOCK_H + BLOCK_D + 50));
 
             ctx.save();
             ctx.translate(cx, cy);
@@ -472,12 +494,13 @@
         // --- 2D 그리기 세부 로직 (클리핑 영역 내부) ---
         function drawPlaneStructure(struct, w, d, pitch) {
             if (struct === 'graded') {
-                for(let i=0; i<3000; i++) {
+                // 저장해둔 입자 캐시 사용
+                cache.gradedPlaneParticles.forEach(p => {
                     ctx.beginPath();
-                    ctx.arc((Math.random()-0.5)*w, (Math.random()-0.5)*d, Math.random()*1.5 + 0.5, 0, Math.PI*2);
-                    ctx.fillStyle = `hsl(30, ${10 + Math.random()*10}%, ${60 + Math.random()*20}%)`;
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                    ctx.fillStyle = p.color;
                     ctx.fill();
-                }
+                });
             } else if (struct === 'cross') {
                 ctx.strokeStyle = '#bfa58a';
                 ctx.lineWidth = 3;
@@ -568,12 +591,12 @@
                 ctx.strokeStyle = '#5c4b37';
                 ctx.lineWidth = 2;
 
-                const cracks = [-150, -50, 30, 120];
-                cracks.forEach(xPos => {
+                // 매 프레임 랜덤하게 그리지 않고 저장해둔 균열 데이터를 사용
+                cache.sectionCracks.forEach(crack => {
                     ctx.beginPath();
-                    ctx.moveTo(xPos - 15, -h/2);
-                    ctx.lineTo(xPos, -h/2 + 60 + Math.random()*20); 
-                    ctx.lineTo(xPos + 15, -h/2);
+                    ctx.moveTo(crack.x - 15, -h/2);
+                    ctx.lineTo(crack.x, -h/2 + crack.d); 
+                    ctx.lineTo(crack.x + 15, -h/2);
                     ctx.fill();
                     ctx.stroke();
                 });
