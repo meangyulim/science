@@ -10,115 +10,233 @@
         
         html, body { 
             font-family: 'Noto Sans KR', sans-serif; 
-            overflow: hidden; 
+            overflow: hidden; /* 전체 페이지 스크롤 방지 */
             position: fixed; 
             width: 100%; 
             height: 100%;
             margin: 0;
             padding: 0;
             overscroll-behavior: none;
-            background-color: #ffffff;
+            background-color: #f8fafc; /* 연한 배경색 */
+        }
+
+        /* 메인 컨테이너 (홈 화면 및 시뮬레이션 화면을 담는 공간) */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
         }
 
         header {
-            height: 50px;
+            height: 56px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             padding: 0 16px;
+            background: #ffffff;
             border-bottom: 1px solid #e2e8f0;
-            background: #fff;
             z-index: 50;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
 
-        .sim-container { 
+        /* 화면 전환 영역 */
+        .view-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 홈 뷰 (카드 목록) */
+        #home-view {
             position: absolute;
-            top: 50px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            padding-bottom: env(safe-area-inset-bottom);
+            inset: 0;
+            overflow-y: auto; /* 카드 목록이 많으면 내부 스크롤 허용 */
+            padding: 16px;
+            padding-bottom: 60px; /* 푸터 공간 확보 */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 시뮬레이션 뷰 */
+        #sim-view {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            background-color: #ffffff;
+        }
+
+        /* 시뮬레이션 내부 헤더 (뒤로가기 등) */
+        .sim-header {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 12px;
         }
 
         iframe { 
             border: none; 
+            flex: 1;
             width: 100%; 
             height: 100%; 
             display: block;
         }
 
-        .btn-sim {
-            padding: 6px 12px;
-            background: #f1f5f9;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 700;
-            color: #475569;
-            transition: all 0.2s;
-            white-space: nowrap;
+        /* 하단 푸터 (방문자 카운터) */
+        footer {
+            height: 40px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            z-index: 50;
         }
 
-        .btn-sim.active {
-            background: #4f46e5;
-            color: #fff;
-        }
+        /* 스크롤바 숨기기 (선택사항) */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="flex items-center justify-between w-full">
-            <h1 class="text-sm font-bold text-indigo-600 truncate mr-4">
-                <span class="hidden sm:inline">🔬</span> 민규쌤의 과학 실험실
-            </h1>
-            <div id="sim-menu" class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                <!-- 버튼 생성 영역 -->
+    <div class="app-container">
+        <!-- 공통 메인 헤더 -->
+        <header>
+            <div class="flex items-center cursor-pointer" onclick="goHome()">
+                <span class="text-xl mr-2">🔬</span>
+                <h1 class="text-base font-bold text-indigo-600">민규쌤의 과학 실험실</h1>
             </div>
-        </div>
-    </header>
+            <!-- 빈 공간 (필요시 우측 메뉴 추가) -->
+            <div></div>
+        </header>
 
-    <main class="sim-container">
-        <iframe id="sim-viewer" src="about:blank" allow="autoplay; fullscreen" scrolling="no"></iframe>
-    </main>
+        <div class="view-area">
+            <!-- 1. 메인 홈 화면 (시뮬레이션 선택) -->
+            <main id="home-view" class="no-scrollbar">
+                <div class="max-w-5xl mx-auto">
+                    <div class="mb-6 mt-4 px-2">
+                        <h2 class="text-lg md:text-xl font-bold text-slate-800">원하는 실험을 선택해보세요!</h2>
+                        <p class="text-sm text-slate-500 mt-1">카드를 터치하면 시뮬레이션이 시작됩니다.</p>
+                    </div>
+
+                    <!-- 반응형 그리드: 모바일 1열, 태블릿 2열, PC 3~4열 -->
+                    <div id="card-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <!-- 자바스크립트로 카드 생성 -->
+                    </div>
+                </div>
+            </main>
+
+            <!-- 2. 시뮬레이션 실행 화면 -->
+            <main id="sim-view">
+                <div class="sim-header shadow-sm">
+                    <button onclick="goHome()" class="flex items-center px-3 py-1.5 bg-white text-slate-700 text-sm font-semibold rounded shadow-sm border border-slate-200 active:bg-slate-50 active:scale-95 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        목록으로
+                    </button>
+                    <h3 id="current-sim-title" class="font-bold text-slate-800 text-sm truncate flex-1 text-center pr-10">
+                        시뮬레이션 제목
+                    </h3>
+                </div>
+                <iframe id="sim-viewer" src="about:blank" allow="autoplay; fullscreen" scrolling="no"></iframe>
+            </main>
+        </div>
+
+        <!-- 하단 방문자 카운터 -->
+        <footer>
+            <div class="flex items-center text-slate-500 gap-2">
+                <span>오늘의 방문자:</span>
+                <!-- Hits 서비스를 이용한 무료 카운터 배지 -->
+                <!-- url 파라미터에 자신의 github io 주소를 넣으면 고유 카운트가 측정됩니다. -->
+                <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fmingyu-science.github.io&count_bg=%234F46E5&title_bg=%231E293B&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="방문자 카운터">
+            </div>
+        </footer>
+    </div>
 
     <script>
-        // 시뮬레이션 목록: 여기에 새로운 항목을 추가하면 자동으로 버튼이 생성됩니다.
+        // 시뮬레이션 목록: 카드 디자인을 위해 아이콘과 배경색상 클래스(Tailwind) 추가
         const simulations = [
-            { id: 'sedimentary-structures', name: '퇴적구조의 수직단면 층리면', url: 'sedimentary-structures.html' },
-            { id: 'cyclone', name: '중위도 저기압', url: 'cyclone.html' },
-            { id: 'Overturned cross bedding', name: '사층리 역전', url: 'Overturned cross bedding.html' },
-            { id: 'land', name: '지사학 법칙', url: 'land.html' }
+            { 
+                id: 'sedimentary-structures', 
+                name: '퇴적구조의 수직단면 층리면', 
+                url: 'sedimentary-structures.html',
+                icon: '🏜️',
+                color: 'bg-orange-100 text-orange-700 border-orange-200'
+            },
+            { 
+                id: 'cyclone', 
+                name: '중위도 저기압', 
+                url: 'cyclone.html',
+                icon: '🌪️',
+                color: 'bg-blue-100 text-blue-700 border-blue-200'
+            },
+            { 
+                id: 'overturned-cross-bedding', 
+                name: '사층리 역전', 
+                url: 'Overturned cross bedding.html',
+                icon: '🔄',
+                color: 'bg-emerald-100 text-emerald-700 border-emerald-200'
+            },
+            { 
+                id: 'land', 
+                name: '지사학 법칙', 
+                url: 'land.html',
+                icon: '⛰️',
+                color: 'bg-purple-100 text-purple-700 border-purple-200'
+            }
         ];
 
-        const menuContainer = document.getElementById('sim-menu');
+        const homeView = document.getElementById('home-view');
+        const simView = document.getElementById('sim-view');
+        const cardContainer = document.getElementById('card-container');
         const viewer = document.getElementById('sim-viewer');
+        const currentSimTitle = document.getElementById('current-sim-title');
 
+        // 홈 화면에 카드 동적 생성
         simulations.forEach(sim => {
-            const btn = document.createElement('button');
-            btn.className = "btn-sim active:scale-95";
-            btn.innerText = sim.name;
-            btn.onclick = () => {
-                viewer.src = sim.url; 
-                
-                // 모든 버튼에서 active 제거 후 클릭한 버튼에만 추가
-                Array.from(menuContainer.children).forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            };
-            menuContainer.appendChild(btn);
+            const card = document.createElement('div');
+            card.className = `flex flex-col items-center justify-center p-6 rounded-2xl border-2 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg active:scale-95 ${sim.color} bg-opacity-50 hover:bg-opacity-100`;
+            card.innerHTML = `
+                <div class="text-4xl mb-3">${sim.icon}</div>
+                <h3 class="text-base font-bold text-center break-keep">${sim.name}</h3>
+                <div class="mt-4 px-4 py-1.5 bg-white bg-opacity-70 rounded-full text-xs font-semibold shadow-sm">
+                    실행하기 ▶
+                </div>
+            `;
+            
+            // 카드 클릭 이벤트
+            card.onclick = () => openSimulation(sim);
+            cardContainer.appendChild(card);
         });
 
-        // 로드 시 첫 번째 시뮬레이션 자동 실행
-        window.addEventListener('load', () => {
-            if(simulations.length > 0) {
-                setTimeout(() => {
-                    const firstBtn = menuContainer.firstElementChild;
-                    if (firstBtn) firstBtn.click();
-                }, 100);
-            }
-        });
+        // 시뮬레이션 열기 함수
+        function openSimulation(sim) {
+            currentSimTitle.innerText = sim.name;
+            viewer.src = sim.url;
+            
+            // 뷰 전환 (홈 숨기고, 시뮬레이션 보이기)
+            homeView.style.display = 'none';
+            simView.style.display = 'flex';
+        }
 
+        // 홈으로 돌아가기 함수
+        function goHome() {
+            viewer.src = 'about:blank'; // 메모리 확보를 위해 iframe 비우기
+            
+            // 뷰 전환 (시뮬레이션 숨기고, 홈 보이기)
+            simView.style.display = 'none';
+            homeView.style.display = 'block';
+        }
+
+        // iOS 등에서 화면 스크롤 시 빈 공간 스크롤 방지 (iframe 내부는 정상 작동)
         document.addEventListener('touchmove', function(e) {
-            if (!e.target.closest('#sim-viewer')) {
+            // 홈 화면 안에서는 스크롤 허용, 그 외(시뮬레이션 화면의 배경 등)는 스크롤 방지
+            if (!e.target.closest('#home-view') && !e.target.closest('#sim-viewer')) {
                 e.preventDefault();
             }
         }, { passive: false });
