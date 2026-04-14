@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>퇴적 구조 관찰 시뮬레이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+        canvas { touch-action: none; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 -4px 10px -1px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Radio Button Styling */
+        .struct-radio:checked + div {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        .view-radio:checked + div {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+</head>
+<body class="h-[100dvh] w-screen overflow-hidden flex flex-col text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 md:px-6 md:pt-[max(env(safe-area-inset-top),1rem)] md:pb-4 flex justify-between items-center z-10 shrink-0 shadow-sm">
+        <div>
+            <h1 class="text-lg md:text-2xl font-bold text-slate-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-600 md:w-7 md:h-7"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                퇴적 구조 관찰 (3D 시점 전환)
+            </h1>
+            <p class="hidden md:block text-sm text-slate-500 mt-1">💡 핵심 요약: 4가지 모두 수직 단면에서 관찰 가능하며, 그중 '연흔'과 '건열'은 층리면에서도 뚜렷하게 관찰됩니다.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
+        <!-- Canvas Area -->
+        <div class="h-[45%] min-h-[230px] md:h-full md:flex-1 relative bg-slate-100 flex items-center justify-center overflow-hidden" id="canvas-container">
+            <!-- Background Grid -->
+            <div class="absolute inset-0" style="background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; opacity: 0.5;"></div>
+            
+            <!-- View Indicator Badge -->
+            <div id="viewIndicator" class="absolute top-3 left-3 md:top-6 md:left-6 z-20 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-md transition-colors duration-300 bg-white text-slate-700 border border-slate-300 flex items-center gap-2">
+                <span id="viewIcon">🧱</span> <span id="viewText">옆에서 본 단면</span>
+            </div>
+
+            <canvas id="simCanvas" class="relative z-10"></canvas>
+        </div>
+
+        <!-- Control Panel -->
+        <aside class="h-[55%] md:h-full w-full md:w-[420px] glass-panel flex flex-col z-20 border-t md:border-t-0 md:border-l border-slate-200 overflow-y-auto shrink-0">
+            <div class="p-4 md:p-5 pb-[max(env(safe-area-inset-bottom),1rem)] md:pb-[max(env(safe-area-inset-bottom),1.5rem)] space-y-5 md:space-y-6">
+                
+                <!-- 1. Structure Selection (그룹화됨) -->
+                <section>
+                    <h2 class="text-base md:text-lg font-bold mb-3 text-slate-800 flex items-center gap-2">
+                        <span class="bg-amber-100 text-amber-700 w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span>
+                        퇴적 구조 선택 (관찰 기준)
+                    </h2>
+                    
+                    <div class="space-y-3">
+                        <!-- 단면에서만 관찰 그룹 -->
+                        <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-200">
+                            <div class="text-xs md:text-sm font-bold text-blue-700 mb-2 flex items-center gap-1">
+                                🧱 단면(측면)에서만 특징이 뚜렷한 구조
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="structure" value="cross" class="peer hidden struct-radio" checked onchange="checkAndSwitchView('cross'); updateState();">
+                                    <div class="border-2 border-slate-200 bg-white rounded-lg p-2 text-center font-bold text-slate-600 transition-colors">
+                                        사층리 (기울어짐)
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="structure" value="graded" class="peer hidden struct-radio" onchange="checkAndSwitchView('graded'); updateState();">
+                                    <div class="border-2 border-slate-200 bg-white rounded-lg p-2 text-center font-bold text-slate-600 transition-colors">
+                                        점이층리 (입자크기)
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 단면 & 층리면 모두 관찰 그룹 -->
+                        <div class="bg-amber-50/50 p-3 rounded-lg border border-amber-200">
+                            <div class="text-xs md:text-sm font-bold text-amber-700 mb-2 flex items-center gap-1">
+                                🌟 단면과 층리면 모두 뚜렷하게 관찰되는 구조
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="structure" value="ripple" class="peer hidden struct-radio" onchange="checkAndSwitchView('ripple'); updateState();">
+                                    <div class="border-2 border-slate-200 bg-white rounded-lg p-2 text-center font-bold text-slate-600 transition-colors">
+                                        연흔 (물결 자국)
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="structure" value="mudcrack" class="peer hidden struct-radio" onchange="checkAndSwitchView('mudcrack'); updateState();">
+                                    <div class="border-2 border-slate-200 bg-white rounded-lg p-2 text-center font-bold text-slate-600 transition-colors">
+                                        건열 (갈라진 자국)
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. View Selection -->
+                <section>
+                    <h2 class="text-base md:text-lg font-bold mb-3 text-slate-800 flex items-center gap-2">
+                        <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span>
+                        카메라 시점 전환 (3D)
+                    </h2>
+                    <div class="flex bg-slate-200 rounded-lg p-1 gap-1 relative">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="view" value="section" class="peer hidden view-radio" checked onchange="updateState()">
+                            <div class="text-center py-2 rounded-md font-bold text-slate-500 transition-all text-sm md:text-base">
+                                🧱 단면 (옆에서 보기)
+                            </div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="view" value="plane" class="peer hidden view-radio" onchange="updateState()">
+                            <div class="text-center py-2 rounded-md font-bold text-slate-500 transition-all text-sm md:text-base">
+                                🚁 층리면 (위에서 보기)
+                            </div>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Explanation Box -->
+                <div class="bg-indigo-50 p-4 md:p-5 rounded-xl border border-indigo-100 shadow-sm">
+                    <h3 class="font-bold text-indigo-900 mb-3 flex items-center gap-2" id="descTitle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        학습 포인트
+                    </h3>
+                    <div id="descContent" class="text-sm text-indigo-800 leading-relaxed space-y-2 transition-opacity duration-300">
+                        설명이 여기에 표시됩니다.
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+
+        // State Variables for 3D Animation
+        let currentStruct = 'cross'; // graded, cross, ripple, mudcrack
+        let currentView = 'section';  // section, plane
+        
+        let pitch = 0;       // 0 = section view (front), Math.PI/2 = plane view (top)
+        let targetPitch = 0;
+        let isAnimating = false;
+
+        // Block Dimensions
+        const BLOCK_W = 400;
+        const BLOCK_H = 200;
+        const BLOCK_D = 200; // Depth for the top face
+
+        // Cached random data
+        const cache = {
+            gradedParticles: [],
+            mudcrackLines: [],
+            initialized: false
+        };
+
+        // Explanations Dictionary
+        const descriptions = {
+            cross: {
+                section: `
+                    <div class="font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded inline-block mb-1">✅ 단면 관찰 가능</div>
+                    <p><b>사층리 (Cross-bedding) 특징:</b> 주된 층리면과 비스듬하게 기울어져(경사져) 엇갈리게 쌓인 층리입니다. 물이나 바람이 흘러가면서 퇴적물을 밀고 갈 때 생깁니다.</p>
+                    <p>👉 단면을 보면 <b>층리가 기울어진 방향</b>을 통해 과거 물이나 바람이 흘러간 방향을 알 수 있습니다.</p>
+                    <p class="text-xs text-indigo-500 mt-2">🌍 <b>퇴적 환경:</b> 수심이 얕은 물 밑, 하천, 바람이 많이 부는 사막</p>`,
+                plane: `
+                    <div class="font-bold text-slate-500 bg-slate-200 px-2 py-1 rounded inline-block mb-1">❌ 층리면에서는 특징 파악 어려움</div>
+                    <p>위에서 내려다보면 기울어진 지층의 단면이 노출되어 여러 겹의 선으로 보일 뿐, 사층리 특유의 기울어진 구조나 과거 흐름의 방향을 명확히 파악하기 어렵습니다.</p>
+                    <p class="font-bold text-blue-600 mt-2">👉 [단면] 버튼을 눌러 확인하세요!</p>`
+            },
+            graded: {
+                section: `
+                    <div class="font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded inline-block mb-1">✅ 단면 관찰 가능</div>
+                    <p><b>점이층리 (Graded Bedding) 특징:</b> 하나의 지층 단면을 보았을 때, 아래에서 위로 올라갈수록 퇴적물 입자의 크기가 점점 작아지는 구조입니다.</p>
+                    <p>👉 다양한 크기의 입자들이 물속에서 한꺼번에 가라앉을 때, 무겁고 큰 입자가 먼저 바닥에 쌓이고 가볍고 작은 입자가 나중에 쌓이면서 만들어집니다.</p>
+                    <p class="text-xs text-indigo-500 mt-2">🌍 <b>퇴적 환경:</b> 수심이 깊은 바다나 호수, 대륙대 (저탁류가 발생하는 곳)</p>`,
+                plane: `
+                    <div class="font-bold text-slate-500 bg-slate-200 px-2 py-1 rounded inline-block mb-1">❌ 층리면에서는 특징 파악 어려움</div>
+                    <p>위에서 내려다보면 가장 나중에 쌓인 아주 작고 고운 입자(진흙 등)들만 관찰됩니다. 층리면만 보아서는 내부의 크기 변화를 알기 어렵습니다.</p>
+                    <p class="font-bold text-blue-600 mt-2">👉 [단면] 버튼을 눌러 확인하세요!</p>`
+            },
+            ripple: {
+                section: `
+                    <div class="font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded inline-block mb-1">✅ 단면 관찰 가능</div>
+                    <p>단면에서는 지층의 윗부분이 물결 모양으로 구불구불하게 파여 있는 굴곡(파도 모양)을 뚜렷하게 확인할 수 있습니다.</p>
+                    <p class="font-bold text-amber-600 mt-2">👉 층리면의 입체적인 구불구불함을 보려면 [층리면] 버튼도 확인해 보세요!</p>`,
+                plane: `
+                    <div class="font-bold text-amber-700 bg-amber-100 px-2 py-1 rounded inline-block mb-1">✅ 층리면 관찰 가능</div>
+                    <p><b>연흔 (Ripple Marks) 특징:</b> 얕은 물 밑에서 물결의 작용으로 인해 모래층 표면에 생긴 입체적인 물결 모양의 자국입니다.</p>
+                    <p>👉 위에서 아래로 내려다본 표면(층리면)에 새겨진 나란한 물결 곡면을 통해 뚜렷하게 관찰할 수 있습니다.</p>
+                    <p class="text-xs text-indigo-500 mt-2">🌍 <b>퇴적 환경:</b> 수심이 얕은 바다나 호수, 하천</p>`
+            },
+            mudcrack: {
+                section: `
+                    <div class="font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded inline-block mb-1">✅ 단면 관찰 가능</div>
+                    <p>단면을 보면 지층 표면에서 아래쪽으로 갈수록 좁아지는 쐐기 모양(V자형)의 갈라진 틈이 뚜렷하게 관찰됩니다. 종종 이 틈이 다른 퇴적물로 채워져 있기도 합니다.</p>
+                    <p class="font-bold text-amber-600 mt-2">👉 표면의 다각형 무늬를 보려면 [층리면] 버튼도 확인해 보세요!</p>`,
+                plane: `
+                    <div class="font-bold text-amber-700 bg-amber-100 px-2 py-1 rounded inline-block mb-1">✅ 층리면 관찰 가능</div>
+                    <p><b>건열 (Mud Cracks) 특징:</b> 점토질 퇴적물이 수면 위로 노출되어 수분이 증발하면서 표면이 거북이 등껍질처럼 다각형 모양으로 갈라진 자국입니다.</p>
+                    <p>👉 위에서 아래로 내려다본 표면(층리면)에서 다각형 균열 그물망을 뚜렷하게 관찰할 수 있습니다.</p>
+                    <p class="text-xs text-indigo-500 mt-2">🌍 <b>퇴적 환경:</b> 건조한 기후, 얕은 호수나 갯벌 (물이 자주 마르는 곳)</p>`
+            }
+        };
+
+        function initCache() {
+            cache.gradedParticles = [];
+            for (let y = 0; y < BLOCK_H; y += 4) {
+                const yPercent = y / BLOCK_H;
+                const maxSize = 2 + (yPercent * 12); 
+                const count = Math.floor(20 / maxSize) * 3;
+                
+                for (let i = 0; i < count; i++) {
+                    cache.gradedParticles.push({
+                        x: Math.random() * BLOCK_W - BLOCK_W/2,
+                        y: y - BLOCK_H/2 + Math.random()*2,
+                        r: Math.random() * (maxSize - maxSize*0.3) + maxSize*0.3,
+                        color: `hsl(30, ${20 + Math.random()*20}%, ${40 + Math.random()*30}%)`
+                    });
+                }
+            }
+
+            cache.mudcrackLines = [];
+            const pts = [];
+            for(let i=0; i<30; i++) {
+                pts.push({
+                    x: (Math.random() - 0.5) * (BLOCK_W + 50),
+                    y: (Math.random() - 0.5) * (BLOCK_D + 50)
+                });
+            }
+            for(let i=0; i<pts.length; i++) {
+                let dists = pts.map((p, idx) => ({idx: idx, d: Math.hypot(p.x - pts[i].x, p.y - pts[i].y)}));
+                dists.sort((a,b) => a.d - b.d);
+                for(let j=1; j<=3; j++) {
+                    const target = pts[dists[j].idx];
+                    const midX = (pts[i].x + target.x)/2 + (Math.random()-0.5)*10;
+                    const midY = (pts[i].y + target.y)/2 + (Math.random()-0.5)*10;
+                    cache.mudcrackLines.push([pts[i].x, pts[i].y, midX, midY]);
+                    cache.mudcrackLines.push([midX, midY, target.x, target.y]);
+                }
+            }
+            cache.initialized = true;
+        }
+
+        function resize() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            if(!isAnimating) draw3D();
+        }
+
+        window.addEventListener('resize', resize);
+
+        function checkAndSwitchView(struct) {
+            if ((struct === 'cross' || struct === 'graded') && currentView === 'plane') {
+                document.querySelector('input[name="view"][value="section"]').checked = true;
+            }
+        }
+
+        function updateState() {
+            currentStruct = document.querySelector('input[name="structure"]:checked').value;
+            currentView = document.querySelector('input[name="view"]:checked').value;
+            
+            targetPitch = currentView === 'section' ? 0 : Math.PI / 2;
+            
+            // Description Fade
+            const descEl = document.getElementById('descContent');
+            descEl.style.opacity = '0';
+            setTimeout(() => {
+                descEl.innerHTML = descriptions[currentStruct][currentView];
+                descEl.style.opacity = '1';
+            }, 150);
+
+            if (!isAnimating) {
+                isAnimating = true;
+                animate();
+            }
+        }
+
+        function updateIndicator() {
+            const viewIndicator = document.getElementById('viewIndicator');
+            const viewIcon = document.getElementById('viewIcon');
+            const viewText = document.getElementById('viewText');
+
+            if (isAnimating) {
+                viewIcon.textContent = '🎥';
+                viewText.textContent = '카메라 이동 중...';
+                viewIndicator.className = "absolute top-3 left-3 md:top-6 md:left-6 z-20 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-md transition-colors duration-300 bg-indigo-100 text-indigo-700 border border-indigo-300 flex items-center gap-2";
+            } else {
+                if(currentView === 'section') {
+                    viewIcon.textContent = '🧱';
+                    viewText.textContent = '옆에서 본 단면';
+                    viewIndicator.className = "absolute top-3 left-3 md:top-6 md:left-6 z-20 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-md transition-colors duration-300 bg-white text-slate-700 border border-slate-300 flex items-center gap-2";
+                } else {
+                    viewIcon.textContent = '🚁';
+                    viewText.textContent = '위에서 본 표면 (층리면)';
+                    viewIndicator.className = "absolute top-3 left-3 md:top-6 md:left-6 z-20 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-md transition-colors duration-300 bg-amber-500 text-white border border-amber-600 flex items-center gap-2";
+                }
+            }
+        }
+
+        // --- 수학적 물결 함수 ---
+        function getWave(x) {
+            // 주기가 25이고 높낮이가 12인 사인 곡선 반환
+            return Math.sin(x / 20) * 12;
+        }
+
+        // --- 입체적인 외곽선 추적 함수 ---
+        // 연흔의 경우 윗면의 테두리가 물결 모양으로 구불구불하게 그려집니다.
+        function traceTopFace(struct, w, d, pitch) {
+            ctx.beginPath();
+            if (struct === 'ripple') {
+                // 3D 투영에 따른 높이(Y축) 왜곡 보정값 계산
+                let sinP = Math.max(0.01, Math.sin(pitch));
+                let cot = Math.cos(pitch) / sinP;
+                
+                // 뒷면 물결선
+                ctx.moveTo(-w/2, -d/2 - getWave(-w/2)*cot);
+                for(let x=-w/2; x<=w/2; x+=5) ctx.lineTo(x, -d/2 - getWave(x)*cot);
+                // 우측 직선
+                ctx.lineTo(w/2, d/2 - getWave(w/2)*cot);
+                // 앞면 물결선
+                for(let x=w/2; x>=-w/2; x-=5) ctx.lineTo(x, d/2 - getWave(x)*cot);
+                ctx.closePath();
+            } else {
+                ctx.rect(-w/2, -d/2, w, d);
+            }
+        }
+
+        function traceFrontFace(struct, w, h) {
+            ctx.beginPath();
+            if (struct === 'ripple') {
+                ctx.moveTo(-w/2, h/2);
+                ctx.lineTo(w/2, h/2);
+                ctx.lineTo(w/2, -h/2 - getWave(w/2));
+                // 앞면 상단 물결선
+                for(let x=w/2; x>=-w/2; x-=5) ctx.lineTo(x, -h/2 - getWave(x));
+                ctx.closePath();
+            } else {
+                ctx.rect(-w/2, -h/2, w, h);
+            }
+        }
+
+        // --- 3D Animation Engine ---
+        function animate() {
+            if (!isAnimating) return;
+
+            updateIndicator();
+
+            const diff = targetPitch - pitch;
+            pitch += diff * 0.08; // Easing speed
+
+            if (Math.abs(diff) < 0.005) {
+                pitch = targetPitch;
+                isAnimating = false;
+                updateIndicator(); 
+            }
+
+            draw3D();
+
+            if (isAnimating) {
+                requestAnimationFrame(animate);
+            }
+        }
+
+        function draw3D() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            
+            const scale = Math.min(1, canvas.width / (BLOCK_W + 100), canvas.height / (BLOCK_H + BLOCK_D + 50));
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.scale(scale, scale);
+
+            // 바닥 그림자 (고정)
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.beginPath();
+            const shadowY = (BLOCK_H/2) * Math.cos(pitch) + (BLOCK_D/2) * Math.sin(pitch) + 30;
+            const shadowWidth = BLOCK_W/2 + 20;
+            const shadowHeight = 15 + 15 * Math.sin(pitch);
+            ctx.ellipse(0, shadowY, shadowWidth, shadowHeight, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // 1. Render Top Face (층리면)
+            if (pitch > 0.001) {
+                ctx.save();
+                // 3D 투영: 회전 각도에 따라 Y축 이동 및 축소
+                ctx.translate(0, -BLOCK_H/2 * Math.cos(pitch));
+                ctx.scale(1, Math.sin(pitch));
+                
+                // 외곽선 모양 잡기 (연흔은 물결 모양)
+                traceTopFace(currentStruct, BLOCK_W, BLOCK_D, pitch);
+                ctx.fillStyle = '#eaddcf';
+                ctx.fill();
+
+                // 외곽선 안쪽으로만 렌더링되게 클리핑
+                ctx.save();
+                ctx.clip();
+                drawPlaneStructure(currentStruct, BLOCK_W, BLOCK_D, pitch);
+                ctx.restore();
+
+                // 테두리 선 & 음영 처리
+                traceTopFace(currentStruct, BLOCK_W, BLOCK_D, pitch);
+                ctx.strokeStyle = '#8b7355';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.fillStyle = `rgba(255,255,255,${0.15 * Math.cos(pitch)})`;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // 2. Render Front Face (단면)
+            if (pitch < Math.PI/2 - 0.001) {
+                ctx.save();
+                // 3D 투영
+                ctx.translate(0, BLOCK_D/2 * Math.sin(pitch));
+                ctx.scale(1, Math.cos(pitch));
+                
+                // 외곽선 모양 잡기
+                traceFrontFace(currentStruct, BLOCK_W, BLOCK_H);
+                ctx.fillStyle = '#eaddcf';
+                ctx.fill();
+
+                // 클리핑 후 내부 그리기
+                ctx.save();
+                ctx.clip();
+                drawSectionStructure(currentStruct, BLOCK_W, BLOCK_H);
+                ctx.restore();
+
+                // 테두리 선 & 음영 처리
+                traceFrontFace(currentStruct, BLOCK_W, BLOCK_H);
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                
+                ctx.fillStyle = `rgba(0,0,0,${0.2 * Math.sin(pitch)})`;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.restore();
+        }
+
+        // --- 2D 그리기 세부 로직 (클리핑 영역 내부) ---
+        function drawPlaneStructure(struct, w, d, pitch) {
+            if (struct === 'graded') {
+                for(let i=0; i<3000; i++) {
+                    ctx.beginPath();
+                    ctx.arc((Math.random()-0.5)*w, (Math.random()-0.5)*d, Math.random()*1.5 + 0.5, 0, Math.PI*2);
+                    ctx.fillStyle = `hsl(30, ${10 + Math.random()*10}%, ${60 + Math.random()*20}%)`;
+                    ctx.fill();
+                }
+            } else if (struct === 'cross') {
+                ctx.strokeStyle = '#bfa58a';
+                ctx.lineWidth = 3;
+                for (let x = -w; x < w; x += 15) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, -d/2);
+                    ctx.quadraticCurveTo(x + 20, 0, x + 10, d/2);
+                    ctx.stroke();
+                }
+            } else if (struct === 'ripple') {
+                // 연흔: 물결 높이에 따른 명암으로 3D 곡면처럼 보이게 처리
+                let sinP = Math.max(0.01, Math.sin(pitch));
+                let cot = Math.cos(pitch) / sinP;
+                
+                for(let x = -w/2; x <= w/2; x += 2) {
+                    const heightVal = Math.sin(x/20);
+                    const shade = 65 + (heightVal * 15); 
+                    ctx.fillStyle = `hsl(35, 30%, ${shade}%)`;
+                    // y축을 위아래로 넉넉하게 칠해두면 상위 클리핑 마스크가 잘라냄
+                    ctx.fillRect(x - 1, -d/2 - 100, 3, d + 200); 
+                }
+                
+                // 물결 마루(Crest)에 밝은 하이라이트 선 추가
+                ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+                ctx.lineWidth = 2;
+                for(let x = -w/2; x <= w/2; x += 5) {
+                    if (Math.sin(x/20) > 0.9) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, -d/2 - getWave(x)*cot);
+                        ctx.lineTo(x, d/2 - getWave(x)*cot);
+                        ctx.stroke();
+                    }
+                }
+            } else if (struct === 'mudcrack') {
+                ctx.fillStyle = '#bda58b';
+                ctx.fillRect(-w/2 - 50, -d/2 - 50, w + 100, d + 100);
+                ctx.strokeStyle = '#5c4b37';
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                cache.mudcrackLines.forEach(line => {
+                    ctx.beginPath();
+                    ctx.moveTo(line[0], line[1]);
+                    ctx.lineTo(line[2], line[3]);
+                    ctx.stroke();
+                });
+            }
+        }
+
+        function drawSectionStructure(struct, w, h) {
+            if (struct === 'graded') {
+                cache.gradedParticles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                });
+            } else if (struct === 'cross') {
+                ctx.strokeStyle = '#a88665';
+                ctx.lineWidth = 2;
+                for (let x = -w; x < w * 1.5; x += 25) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, -h/2);
+                    ctx.quadraticCurveTo(x, h/2, x + 150, h/2);
+                    ctx.stroke();
+                }
+            } else if (struct === 'ripple') {
+                // 연흔 단면 베이스 색상
+                ctx.fillStyle = '#d0b89f';
+                ctx.fillRect(-w/2 - 50, -h/2 - 50, w + 100, h + 100);
+                
+                // 내부 물결 무늬 (상단 곡선과 나란하게)
+                ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                ctx.lineWidth = 2;
+                for(let y = -h/2 + 20; y < h/2; y += 20) {
+                    ctx.beginPath();
+                    for(let x = -w/2; x <= w/2; x += 5) {
+                        ctx.lineTo(x, y - getWave(x));
+                    }
+                    ctx.stroke();
+                }
+            } else if (struct === 'mudcrack') {
+                ctx.fillStyle = '#bda58b';
+                ctx.fillRect(-w/2 - 50, -h/2 - 50, w + 100, h + 100);
+                
+                ctx.fillStyle = '#8b7355'; 
+                ctx.strokeStyle = '#5c4b37';
+                ctx.lineWidth = 2;
+
+                const cracks = [-150, -50, 30, 120];
+                cracks.forEach(xPos => {
+                    ctx.beginPath();
+                    ctx.moveTo(xPos - 15, -h/2);
+                    ctx.lineTo(xPos, -h/2 + 60 + Math.random()*20); 
+                    ctx.lineTo(xPos + 15, -h/2);
+                    ctx.fill();
+                    ctx.stroke();
+                });
+            }
+        }
+
+        // Initialize
+        if (!cache.initialized) initCache();
+        updateState();
+        draw3D(); 
+
+    </script>
+</body>
+</html>
