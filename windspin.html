@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D 기압 및 전향력 시뮬레이션</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #eef2f5; font-family: 'Pretendard', sans-serif; touch-action: none; /* 아이폰 화면 끌림 및 스크롤 방지 */ }
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        /* 모바일 최적화 미니멀 하단 패널 */
+        #ui-layer { 
+            position: absolute; 
+            bottom: 30px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 90%; 
+            max-width: 400px; 
+            pointer-events: none; 
+            z-index: 10; 
+            display: flex; 
+            justify-content: center; 
+        }
+        .control-panel { 
+            pointer-events: auto; 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px); 
+            padding: 16px 20px; 
+            border-radius: 32px; /* 알약 형태의 둥근 디자인 보정 */
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            flex-wrap: wrap; /* 요소가 많아지면 줄바꿈 되도록 설정 */
+            width: 100%;
+            gap: 12px;
+        }
+        
+        /* Custom Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #d1d5db; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(20px); }
+    </style>
+</head>
+<body>
+
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay (Minimal Bottom Bar) -->
+    <div id="ui-layer">
+        <div class="control-panel">
+            <div class="flex gap-1 flex-1 min-w-[140px]">
+                <button id="btn-high" class="flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-blue-500 text-white shadow-md">
+                    고기압
+                </button>
+                <button id="btn-low" class="flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    저기압
+                </button>
+            </div>
+
+            <div class="hidden sm:block w-px h-8 bg-gray-300 mx-1"></div>
+
+            <div class="flex gap-1 flex-1 min-w-[140px]">
+                <button id="btn-north" class="flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-teal-500 text-white shadow-md">
+                    북반구
+                </button>
+                <button id="btn-south" class="flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    남반구
+                </button>
+            </div>
+
+            <div class="hidden sm:block w-px h-8 bg-gray-300 mx-1"></div>
+
+            <div class="flex items-center justify-center gap-2 min-w-[100px]">
+                <span class="text-sm font-bold text-gray-700 whitespace-nowrap">전향력</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-coriolis">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js Library & OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // --- State Variables ---
+        let currentMode = 'H'; // 'H' for High Pressure, 'L' for Low Pressure
+        let hemisphere = 'N';  // 'N' for North, 'S' for South
+        let coriolisEnabled = false;
+
+        // --- Three.js Setup ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#eef2f5');
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+        camera.position.set(25, 20, 25);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2 + 0.1; // Restrict mostly above ground
+
+        // --- Environment ---
+        const gridHelper = new THREE.GridHelper(50, 25, 0x000000, 0x000000);
+        gridHelper.material.opacity = 0.1;
+        gridHelper.material.transparent = true;
+        scene.add(gridHelper);
+
+        const planeGeo = new THREE.PlaneGeometry(60, 60);
+        const planeMat = new THREE.MeshBasicMaterial({ color: 0xd4eed8, transparent: true, opacity: 0.5 });
+        const plane = new THREE.Mesh(planeGeo, planeMat);
+        plane.rotation.x = -Math.PI / 2;
+        scene.add(plane);
+
+        function createTextSprite(text, color) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(64, 64, 60, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = color;
+            ctx.stroke();
+
+            ctx.font = 'bold 60px sans-serif';
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 64, 64);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMat = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+            const sprite = new THREE.Sprite(spriteMat);
+            sprite.scale.set(4, 4, 1);
+            sprite.position.y = 0.5;
+            return sprite;
+        }
+
+        let centerLabel = createTextSprite('고', '#2563eb');
+        scene.add(centerLabel);
+
+        // --- Arrows Setup ---
+        const surfaceArrows = [];
+        const verticalArrows = [];
+        const surfaceArrowCount = 80;
+        const verticalArrowCount = 7;
+        const maxRadius = 25;
+        const maxHeight = 18;
+
+        for (let i = 0; i < surfaceArrowCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 2 + Math.random() * (maxRadius - 2);
+            const arrow = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0.1,0), 2.5, 0x2563eb, 0.8, 0.6);
+            scene.add(arrow);
+            surfaceArrows.push({ helper: arrow, angle: angle, radius: radius });
+        }
+
+        for (let i = 0; i < verticalArrowCount; i++) {
+            const y = Math.random() * maxHeight;
+            const arrow = new THREE.ArrowHelper(new THREE.Vector3(0,-1,0), new THREE.Vector3(0,y,0), 3, 0x2563eb, 1.0, 0.8);
+            scene.add(arrow);
+            verticalArrows.push({ helper: arrow, y: y });
+        }
+
+        function animateArrows() {
+            const isHigh = currentMode === 'H';
+            const color = isHigh ? 0x2563eb : 0xdc2626;
+            const speed = 0.12;
+            const rotationSpeed = 0.02;
+            const coriolisDir = hemisphere === 'N' ? 1 : -1; // 북반구는 1, 남반구는 -1 곱하기
+            
+            surfaceArrows.forEach(a => {
+                a.helper.setColor(color);
+                
+                if (isHigh) {
+                    a.radius += speed;
+                    if (coriolisEnabled) a.angle += rotationSpeed * coriolisDir; // 북반구 고기압: 시계 방향 회전(+)
+                    if (a.radius > maxRadius) a.radius = 2; 
+                } else {
+                    a.radius -= speed;
+                    if (coriolisEnabled) a.angle -= rotationSpeed * coriolisDir; // 북반구 저기압: 반시계 방향 회전(-)
+                    if (a.radius < 2) a.radius = maxRadius; 
+                }
+
+                const x = Math.cos(a.angle) * a.radius;
+                const z = Math.sin(a.angle) * a.radius;
+                a.helper.position.set(x, 0.1, z);
+
+                let dirX, dirZ;
+                if (isHigh) {
+                    dirX = Math.cos(a.angle);
+                    dirZ = Math.sin(a.angle);
+                    if (coriolisEnabled) {
+                        // 고기압 발산 휘어짐 방향
+                        dirX += -Math.sin(a.angle) * 0.8 * coriolisDir;
+                        dirZ += Math.cos(a.angle) * 0.8 * coriolisDir;
+                    }
+                } else {
+                    dirX = -Math.cos(a.angle);
+                    dirZ = -Math.sin(a.angle);
+                    if (coriolisEnabled) {
+                        // 저기압 수렴 휘어짐 방향
+                        dirX += Math.sin(a.angle) * 0.8 * coriolisDir;
+                        dirZ += -Math.cos(a.angle) * 0.8 * coriolisDir;
+                    }
+                }
+                a.helper.setDirection(new THREE.Vector3(dirX, 0, dirZ).normalize());
+                
+                let scale = 1;
+                if (a.radius < 4) scale = (a.radius - 2) / 2;
+                if (a.radius > maxRadius - 3) scale = (maxRadius - a.radius) / 3;
+                a.helper.scale.set(scale, scale, scale);
+            });
+
+            verticalArrows.forEach(a => {
+                a.helper.setColor(color);
+                
+                if (isHigh) {
+                    a.y -= speed * 1.5;
+                    if (a.y < 0.5) a.y = maxHeight;
+                    a.helper.setDirection(new THREE.Vector3(0, -1, 0));
+                } else {
+                    a.y += speed * 1.5;
+                    if (a.y > maxHeight) a.y = 0.5;
+                    a.helper.setDirection(new THREE.Vector3(0, 1, 0));
+                }
+
+                a.helper.position.set(0, a.y, 0);
+
+                let scale = 1;
+                if (a.y < 2) scale = (a.y - 0.5) / 1.5;
+                if (a.y > maxHeight - 3) scale = (maxHeight - a.y) / 3;
+                scale = Math.max(0.01, scale);
+                a.helper.scale.set(scale, scale, scale);
+            });
+        }
+
+        // --- Particle System ---
+        const particleCount = 2000;
+        const particlesGeo = new THREE.BufferGeometry();
+        const posArray = new Float32Array(particleCount * 3);
+        const colorArray = new Float32Array(particleCount * 3);
+        
+        const particleSpeeds = new Float32Array(particleCount);
+        const particleStates = new Float32Array(particleCount);
+
+        // 속성(Attribute)을 지오메트리에 한 번만 연결합니다.
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeo.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+
+        const particlesMat = new THREE.PointsMaterial({
+            size: 0.4,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particleMesh = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particleMesh);
+
+        function resetParticle(i) {
+            const isHigh = currentMode === 'H';
+            const isWhite = Math.random() < 0.35; // 35% 확률로 흰색 입자 생성
+            
+            if (isHigh) {
+                posArray[i*3] = (Math.random() - 0.5) * 6;
+                posArray[i*3+1] = 15 + Math.random() * 5; 
+                posArray[i*3+2] = (Math.random() - 0.5) * 6;
+                
+                if (isWhite) {
+                    colorArray[i*3] = 1.0;
+                    colorArray[i*3+1] = 1.0;
+                    colorArray[i*3+2] = 1.0;
+                } else {
+                    colorArray[i*3] = 0.4;
+                    colorArray[i*3+1] = 0.7;
+                    colorArray[i*3+2] = 1.0;
+                }
+                
+                particleStates[i] = 0;
+            } else {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 15 + Math.random() * 10;
+                posArray[i*3] = Math.cos(angle) * radius;
+                posArray[i*3+1] = Math.random() * 1; 
+                posArray[i*3+2] = Math.sin(angle) * radius;
+
+                if (isWhite) {
+                    colorArray[i*3] = 1.0;
+                    colorArray[i*3+1] = 1.0;
+                    colorArray[i*3+2] = 1.0;
+                } else {
+                    colorArray[i*3] = 1.0;
+                    colorArray[i*3+1] = 0.4;
+                    colorArray[i*3+2] = 0.4;
+                }
+
+                particleStates[i] = 1;
+            }
+
+            particleSpeeds[i] = 0.08 + Math.random() * 0.05;
+        }
+
+        function initParticles() {
+            for(let i=0; i<particleCount; i++) resetParticle(i);
+            // setAttribute 대신 위치와 색상의 업데이트 플래그만 켭니다.
+            particlesGeo.attributes.position.needsUpdate = true;
+            particlesGeo.attributes.color.needsUpdate = true;
+        }
+
+        // --- UI Interactions ---
+        const btnHigh = document.getElementById('btn-high');
+        const btnLow = document.getElementById('btn-low');
+        const btnNorth = document.getElementById('btn-north');
+        const btnSouth = document.getElementById('btn-south');
+        const toggleCoriolis = document.getElementById('toggle-coriolis');
+
+        function updateUIStyles() {
+            // 기압 버튼 스타일 업데이트
+            if (currentMode === 'H') {
+                btnHigh.className = "flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-blue-500 text-white shadow-md";
+                btnLow.className = "flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300";
+                scene.remove(centerLabel);
+                centerLabel = createTextSprite('고', '#2563eb');
+                scene.add(centerLabel);
+            } else {
+                btnLow.className = "flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-red-500 text-white shadow-md";
+                btnHigh.className = "flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300";
+                scene.remove(centerLabel);
+                centerLabel = createTextSprite('저', '#dc2626');
+                scene.add(centerLabel);
+            }
+
+            // 반구 버튼 스타일 업데이트
+            if (hemisphere === 'N') {
+                btnNorth.className = "flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-teal-500 text-white shadow-md";
+                btnSouth.className = "flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300";
+            } else {
+                btnSouth.className = "flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-teal-500 text-white shadow-md";
+                btnNorth.className = "flex-1 py-2 px-2 rounded-full font-bold text-sm transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300";
+            }
+            initParticles();
+        }
+
+        btnHigh.addEventListener('click', () => { currentMode = 'H'; updateUIStyles(); });
+        btnLow.addEventListener('click', () => { currentMode = 'L'; updateUIStyles(); });
+        btnNorth.addEventListener('click', () => { hemisphere = 'N'; updateUIStyles(); });
+        btnSouth.addEventListener('click', () => { hemisphere = 'S'; updateUIStyles(); });
+        toggleCoriolis.addEventListener('change', (e) => { coriolisEnabled = e.target.checked; });
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            animateArrows();
+
+            const positions = particlesGeo.attributes.position.array;
+            const isHigh = currentMode === 'H';
+            const coriolisDir = hemisphere === 'N' ? 1 : -1; // 입자 회전 방향 전환
+            let colorNeedsUpdate = false; // 색상 업데이트 여부 추적
+
+            for (let i = 0; i < particleCount; i++) {
+                let px = positions[i*3];
+                let py = positions[i*3+1];
+                let pz = positions[i*3+2];
+                let speed = particleSpeeds[i];
+                let r = Math.sqrt(px*px + pz*pz);
+
+                if (isHigh) {
+                    if (py > 0.5 && r < 5) {
+                        py -= speed * 1.5;
+                        px += (px/r || 0) * speed * 0.1;
+                        pz += (pz/r || 0) * speed * 0.1;
+                    } else {
+                        if (r === 0) r = 0.001; 
+                        
+                        let vx = (px/r) * speed;
+                        let vz = (pz/r) * speed;
+
+                        if (coriolisEnabled) {
+                            // 고기압 회전 방향 (북반구 시계, 남반구 반시계)
+                            vx += (-pz/r) * speed * 0.6 * coriolisDir;
+                            vz += (px/r) * speed * 0.6 * coriolisDir;
+                        }
+
+                        px += vx;
+                        pz += vz;
+                        py += (0.1 + Math.random()*0.4 - py) * 0.1; 
+                    }
+                    if (r > 25) {
+                        resetParticle(i);
+                        colorNeedsUpdate = true;
+                        continue; // 수정된 중심 좌표가 밖으로 나간 좌표로 덮어씌워지는 것을 방지
+                    }
+
+                } else {
+                    if (r > 2) {
+                        let vx = -(px/r) * speed;
+                        let vz = -(pz/r) * speed;
+
+                        if (coriolisEnabled) {
+                            // 저기압 회전 방향 (북반구 반시계, 남반구 시계)
+                            vx += (pz/r) * speed * 0.6 * coriolisDir;
+                            vz += (-px/r) * speed * 0.6 * coriolisDir;
+                        }
+
+                        px += vx;
+                        pz += vz;
+                        py += (0.1 + Math.random()*0.4 - py) * 0.1;
+                    } else {
+                        py += speed * 1.5;
+                        px -= px * 0.02;
+                        pz -= pz * 0.02;
+                    }
+                    if (py > 20) {
+                        resetParticle(i);
+                        colorNeedsUpdate = true;
+                        continue; // 수정된 중심 좌표가 밖으로 나간 좌표로 덮어씌워지는 것을 방지
+                    }
+                }
+
+                positions[i*3] = px;
+                positions[i*3+1] = py;
+                positions[i*3+2] = pz;
+            }
+
+            particlesGeo.attributes.position.needsUpdate = true;
+            if (colorNeedsUpdate) particlesGeo.attributes.color.needsUpdate = true; // 변경된 입자 색상 반영
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        window.onload = () => {
+            initParticles();
+            animate();
+        };
+    </script>
+</body>
+</html>
