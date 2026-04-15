@@ -605,8 +605,12 @@
 
         // Initialize
         if (!cache.initialized) initCache();
+        
+        // 브라우저 첫 로딩 시 캔버스 크기를 화면(컨테이너) 해상도에 맞게 즉시 설정
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        
         updateState();
-        draw3D(); 
 
     </script>
 </body>
