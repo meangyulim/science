@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>중위도 저기압 풍향 변화 시뮬레이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+        canvas { touch-action: none; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Custom slider */
+        input[type=range] {
+            -webkit-appearance: none; width: 100%; background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%;
+            background: #3b82f6; cursor: pointer; margin-top: -8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 8px; cursor: pointer; background: #cbd5e1; border-radius: 4px;
+        }
+        input[type=range]:focus { outline: none; }
+
+        .compass-circle {
+            position: relative; width: 120px; height: 120px; border-radius: 50%;
+            border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.5);
+        }
+        .compass-label { position: absolute; font-size: 11px; font-weight: bold; color: #64748b; }
+        .label-n { top: -22px; } .label-s { bottom: -22px; }
+        .label-w { left: -22px; } .label-e { right: -22px; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+</head>
+<body class="h-[100dvh] w-screen overflow-hidden flex flex-col text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 md:px-6 md:pt-[max(env(safe-area-inset-top),1rem)] md:pb-4 flex justify-between items-center z-10 shrink-0 shadow-sm">
+        <div>
+            <h1 class="text-lg md:text-2xl font-bold text-slate-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600 md:w-7 md:h-7"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                중위도 저기압 풍향 변화 시뮬레이션
+            </h1>
+            <p class="hidden md:block text-sm text-slate-500 mt-1">관측소의 위치(A/B)에 따라 풍향이 반시계 방향으로 바뀌는지, 시계 방향으로 바뀌는지 확인하세요.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
+        <!-- Canvas Area -->
+        <div class="h-[50%] min-h-[300px] md:h-full md:flex-1 relative bg-[#eef2f6] flex flex-col items-center justify-center overflow-hidden" id="canvas-container">
+            <!-- Background Grid -->
+            <div class="absolute inset-0" style="background-image: linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px); background-size: 40px 40px; opacity: 0.3;"></div>
+            
+            <canvas id="simCanvas" class="relative z-10"></canvas>
+
+            <!-- Bottom Controls on Canvas -->
+            <div class="absolute bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-8 z-20 glass-panel p-4 rounded-xl flex items-center gap-4">
+                <button id="btnPlay" class="w-12 h-12 shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95" onclick="togglePlay()">
+                    <svg id="iconPlay" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <svg id="iconPause" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                </button>
+                <div class="flex-1">
+                    <div class="flex justify-between text-xs font-bold text-slate-500 mb-2">
+                        <span>서쪽 (West)</span>
+                        <span>편서풍을 타고 동쪽으로 이동 👉</span>
+                        <span>동쪽 (East)</span>
+                    </div>
+                    <input type="range" id="timeSlider" min="0" max="100" value="10" oninput="manualSeek()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel (Sidebar) -->
+        <aside class="h-[50%] md:h-full w-full md:w-[450px] glass-panel flex flex-col z-20 border-t md:border-t-0 md:border-l border-slate-200 overflow-y-auto shrink-0 bg-white">
+            <div class="p-5 md:p-6 space-y-6">
+                
+                <h2 class="text-lg font-bold text-slate-800 border-b pb-2">관측소별 풍향 변화 기록</h2>
+
+                <!-- Station A (North) -->
+                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex gap-4 items-center">
+                    <div class="compass-wrapper mt-4">
+                        <div class="compass-circle">
+                            <span class="compass-label label-n">북(N)</span>
+                            <span class="compass-label label-s">남(S)</span>
+                            <span class="compass-label label-w">서(W)</span>
+                            <span class="compass-label label-e">동(E)</span>
+                            <canvas id="compassA" width="120" height="120" class="absolute inset-0"></canvas>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-indigo-900 text-lg flex items-center gap-2">
+                            <span class="w-4 h-4 rounded-full bg-indigo-600 inline-block"></span> 관측소 A (북쪽)
+                        </h3>
+                        <p class="text-[13px] text-indigo-800 mt-2 font-bold bg-indigo-100 p-2 rounded">
+                            A①(남동풍) → A②(북동풍) → A③(북서풍)
+                        </p>
+                        <p class="text-sm font-bold text-indigo-600 mt-2 text-right">↪ 반시계 방향 변화</p>
+                        <ul class="text-[13px] text-indigo-700 mt-3 space-y-1" id="logA">
+                            <li class="opacity-30">1. 저기압 접근 전 (A①)</li>
+                            <li class="opacity-30">2. 저기압 통과 중 (A②)</li>
+                            <li class="opacity-30">3. 저기압 통과 후 (A③)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Station B (South) -->
+                <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex gap-4 items-center">
+                    <div class="compass-wrapper mt-4">
+                        <div class="compass-circle">
+                            <span class="compass-label label-n">북(N)</span>
+                            <span class="compass-label label-s">남(S)</span>
+                            <span class="compass-label label-w">서(W)</span>
+                            <span class="compass-label label-e">동(E)</span>
+                            <canvas id="compassB" width="120" height="120" class="absolute inset-0"></canvas>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-amber-900 text-lg flex items-center gap-2">
+                            <span class="w-4 h-4 rounded-full bg-amber-500 inline-block"></span> 관측소 B (남쪽)
+                        </h3>
+                        <p class="text-[13px] text-amber-900 mt-2 font-bold bg-amber-100 p-2 rounded">
+                            B①(남동풍) → B②(남서풍) → B③(북서풍)
+                        </p>
+                        <p class="text-sm font-bold text-amber-600 mt-2 text-right">↻ 시계 방향 변화</p>
+                        <ul class="text-[13px] text-amber-800 mt-3 space-y-1" id="logB">
+                            <li class="opacity-30">1. 온난전선 통과 전 (B①)</li>
+                            <li class="opacity-30">2. 온난/한랭전선 사이 (B②)</li>
+                            <li class="opacity-30">3. 한랭전선 통과 후 (B③)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Explanation Box -->
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm leading-relaxed text-slate-700">
+                    <h4 class="font-bold mb-2">💡 핵심 원리</h4>
+                    <p>중위도 저기압이 <b>편서풍</b>을 타고 서에서 동으로 통과할 때, 저기압 중심 주변의 <b>반시계 방향</b> 바람 구조로 인해 <b>북쪽(A)은 풍향이 반시계 방향</b>으로, <b>남쪽(B)은 풍향이 시계 방향</b>으로 바뀝니다.</p>
+                </div>
+
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        // --- 1. Canvas Setup ---
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+
+        const compassA = document.getElementById('compassA');
+        const ctxA = compassA.getContext('2d');
+        const compassB = document.getElementById('compassB');
+        const ctxB = compassB.getContext('2d');
+
+        // --- 2. State Variables ---
+        let progress = 10; // 0 to 100
+        let isPlaying = false;
+        let animationId;
+
+        // Logical Coordinates 
+        const STATE = {
+            stationA: { x: 0, y: -120 }, // North station
+            stationB: { x: 0, y: 80 }    // South station
+        };
+
+        // --- 3. Resize and Setup ---
+        function resize() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            draw();
+        }
+        window.addEventListener('resize', resize);
+
+        // --- 4. Controls ---
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            document.getElementById('iconPlay').classList.toggle('hidden', isPlaying);
+            document.getElementById('iconPause').classList.toggle('hidden', !isPlaying);
+            if (isPlaying) loop();
+            else cancelAnimationFrame(animationId);
+        }
+
+        function manualSeek() {
+            progress = parseFloat(document.getElementById('timeSlider').value);
+            if (!isPlaying) draw();
+        }
+
+        function loop() {
+            if (!isPlaying) return;
+            progress += 0.3; // Speed
+            if (progress > 100) progress = 0; // Loop back
+            document.getElementById('timeSlider').value = progress;
+            draw();
+            animationId = requestAnimationFrame(loop);
+        }
+
+        // --- 5. Math & Perfect Wind Logic (for Compasses) ---
+        function getStationWindAngle(stationType, cycloneX, stationX) {
+            const relX = cycloneX - stationX;
+            let clampedRel = Math.max(-150, Math.min(150, relX));
+
+            if (stationType === 'A') {
+                // A (North): SE wind -> NE wind -> NW wind
+                let angleDeg = 225 - (clampedRel + 150) * (180 / 300);
+                return angleDeg * Math.PI / 180;
+            } else {
+                // B (South): SE wind -> SW wind -> NW wind
+                let angleDeg = 225 + (clampedRel + 150) * (180 / 300);
+                return angleDeg * Math.PI / 180;
+            }
+        }
+
+        function updateLogs() {
+            let stage = 1;
+            if (progress >= 40 && progress < 65) stage = 2;
+            else if (progress >= 65) stage = 3;
+
+            const logA = document.getElementById('logA').children;
+            logA[0].className = stage === 1 ? "font-bold text-indigo-700 bg-indigo-100 px-2 py-1 rounded inline-block" : "opacity-40 line-through";
+            logA[1].className = stage === 2 ? "font-bold text-indigo-700 bg-indigo-100 px-2 py-1 rounded inline-block" : "opacity-40";
+            logA[2].className = stage === 3 ? "font-bold text-indigo-700 bg-indigo-100 px-2 py-1 rounded inline-block" : "opacity-40";
+
+            const logB = document.getElementById('logB').children;
+            logB[0].className = stage === 1 ? "font-bold text-amber-800 bg-amber-100 px-2 py-1 rounded inline-block" : "opacity-40 line-through";
+            logB[1].className = stage === 2 ? "font-bold text-amber-800 bg-amber-100 px-2 py-1 rounded inline-block" : "opacity-40";
+            logB[2].className = stage === 3 ? "font-bold text-amber-800 bg-amber-100 px-2 py-1 rounded inline-block" : "opacity-40";
+            
+            return stage;
+        }
+
+        // --- 6. Drawing Routines ---
+        function drawArrow(ctx, fromX, fromY, toX, toY, color = '#333', width = 3) {
+            const headlen = 12;
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.lineTo(toX, toY);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        function drawWindVane(ctx, x, y, angleTo, label, color) {
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI*2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = color;
+            ctx.font = "bold 16px Pretendard";
+            ctx.textAlign = "center";
+            ctx.fillText(label, x, y - 15);
+
+            const length = 55;
+            const fromX = x - Math.cos(angleTo) * length;
+            const fromY = y - Math.sin(angleTo) * length;
+            
+            drawArrow(ctx, fromX, fromY, x - Math.cos(angleTo)*10, y - Math.sin(angleTo)*10, color, 5);
+        }
+
+        function drawCompassArrow(cCtx, angleTo, step, color, isActive) {
+            const cx = 60; const cy = 60;
+            const radius = 45;
+            const fromX = cx - Math.cos(angleTo) * radius;
+            const fromY = cy - Math.sin(angleTo) * radius;
+            const toX = cx - Math.cos(angleTo) * 10;
+            const toY = cy - Math.sin(angleTo) * 10;
+
+            cCtx.globalAlpha = isActive ? 1.0 : 0.15;
+            drawArrow(cCtx, fromX, fromY, toX, toY, color, isActive ? 4 : 2);
+
+            cCtx.fillStyle = color;
+            cCtx.font = "bold 12px Pretendard";
+            cCtx.textAlign = "center";
+            cCtx.textBaseline = "middle";
+            cCtx.fillText(step, fromX - Math.cos(angleTo)*12, fromY - Math.sin(angleTo)*12);
+            cCtx.globalAlpha = 1.0;
+        }
+
+        function drawFronts(cx, cy) {
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
+            ctx.lineWidth = 1.5;
+            for(let r=60; r<=300; r+=60) {
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, r, r * 0.9, 0, 0, Math.PI*2);
+                ctx.stroke();
+            }
+
+            // 1. 한랭전선 (Cold Front) - 중심부 기준 서쪽으로 회전
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            const coldEndX = cx - 240; 
+            const coldEndY = cy + 160; 
+            ctx.quadraticCurveTo(cx - 50, cy + 180, coldEndX, coldEndY);
+            ctx.strokeStyle = '#2563eb'; 
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.fillStyle = '#2563eb';
+            const coldCurve = { p0:{x:cx,y:cy}, p1:{x:cx-50,y:cy+180}, p2:{x:coldEndX,y:coldEndY} };
+            for (let t = 0.2; t <= 0.85; t += 0.2) {
+                const mt = 1-t;
+                const px = mt*mt*coldCurve.p0.x + 2*mt*t*coldCurve.p1.x + t*t*coldCurve.p2.x;
+                const py = mt*mt*coldCurve.p0.y + 2*mt*t*coldCurve.p1.y + t*t*coldCurve.p2.y;
+                const dx = 2*mt*(coldCurve.p1.x - coldCurve.p0.x) + 2*t*(coldCurve.p2.x - coldCurve.p1.x);
+                const dy = 2*mt*(coldCurve.p1.y - coldCurve.p0.y) + 2*t*(coldCurve.p2.y - coldCurve.p1.y);
+                
+                const tangentAngle = Math.atan2(dy, dx);
+                
+                ctx.save();
+                ctx.translate(px, py);
+                ctx.rotate(tangentAngle - Math.PI/2);
+                ctx.beginPath();
+                ctx.moveTo(0, -12);
+                ctx.lineTo(16, 0); 
+                ctx.lineTo(0, 12);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // 2. 온난전선 (Warm Front) - 완만하게 펴고 남쪽으로 밸런스 맞춤
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            const warmEndX = cx + 200; 
+            const warmEndY = cy + 140; 
+            ctx.quadraticCurveTo(cx + 120, cy + 30, warmEndX, warmEndY);
+            ctx.strokeStyle = '#dc2626'; 
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.fillStyle = '#dc2626';
+            const warmCurve = { p0:{x:cx,y:cy}, p1:{x:cx+120,y:cy+30}, p2:{x:warmEndX,y:warmEndY} };
+            for (let t = 0.2; t <= 0.85; t += 0.2) {
+                const mt = 1-t;
+                const px = mt*mt*warmCurve.p0.x + 2*mt*t*warmCurve.p1.x + t*t*warmCurve.p2.x;
+                const py = mt*mt*warmCurve.p0.y + 2*mt*t*warmCurve.p1.y + t*t*warmCurve.p2.y;
+                const dx = 2*mt*(warmCurve.p1.x - warmCurve.p0.x) + 2*t*(warmCurve.p2.x - warmCurve.p1.x);
+                const dy = 2*mt*(warmCurve.p1.y - warmCurve.p0.y) + 2*t*(warmCurve.p2.y - warmCurve.p1.y);
+                
+                const tangentAngle = Math.atan2(dy, dx);
+
+                ctx.save();
+                ctx.translate(px, py);
+                ctx.rotate(tangentAngle - Math.PI/2);
+                ctx.beginPath();
+                ctx.arc(0, 0, 12, -Math.PI/2, Math.PI/2, false); 
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Center L
+            ctx.beginPath();
+            ctx.arc(cx, cy, 20, 0, Math.PI*2);
+            ctx.fillStyle = '#ef4444';
+            ctx.fill();
+            ctx.fillStyle = 'white';
+            ctx.font = "bold 24px Pretendard";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("L", cx, cy + 2);
+        }
+
+        function drawWindFlows(cx, cy) {
+            const timeOffset = Date.now() / 25; 
+            
+            function drawFlowArrow(startX, startY, cpX, cpY, endX, endY, color) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.quadraticCurveTo(cpX, cpY, endX, endY);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 14;
+                ctx.lineCap = 'round';
+                ctx.setLineDash([25, 15]);
+                ctx.lineDashOffset = -timeOffset; 
+                ctx.stroke();
+
+                // 뚜렷하고 크게 만든 화살표 머리 
+                ctx.setLineDash([]);
+                const tx = endX - cpX;
+                const ty = endY - cpY;
+                const angle = Math.atan2(ty, tx);
+                
+                const headLen = 35; 
+                const headAngle = Math.PI / 5.5; 
+                
+                ctx.beginPath();
+                ctx.moveTo(endX + Math.cos(angle) * 8, endY + Math.sin(angle) * 8); 
+                ctx.lineTo(endX - headLen * Math.cos(angle - headAngle), endY - headLen * Math.sin(angle - headAngle));
+                ctx.lineTo(endX - headLen * 0.7 * Math.cos(angle), endY - headLen * 0.7 * Math.sin(angle));
+                ctx.lineTo(endX - headLen * Math.cos(angle + headAngle), endY - headLen * Math.sin(angle + headAngle));
+                ctx.closePath();
+                
+                const solidColor = color.replace(/[\d.]+\)$/g, '0.8)'); 
+                ctx.fillStyle = solidColor;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            const flowColor = 'rgba(100, 116, 139, 0.5)'; 
+            
+            drawFlowArrow(cx - 240, cy - 80, cx - 150, cy + 100, cx - 80, cy + 180, flowColor);
+            drawFlowArrow(cx - 20, cy + 240, cx + 80, cy + 160, cx + 160, cy + 80, flowColor);
+            drawFlowArrow(cx + 260, cy + 140, cx + 160, cy + 40, cx + 50, cy - 80, flowColor);
+            drawFlowArrow(cx + 120, cy - 120, cx, cy - 100, cx - 120, cy - 40, flowColor);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            const cycloneX = centerX - 250 + (progress / 100) * 500;
+            const cycloneY = centerY;
+
+            drawWindFlows(cycloneX, cycloneY);
+            drawFronts(cycloneX, cycloneY);
+
+            const stA_X = centerX + STATE.stationA.x;
+            const stA_Y = centerY + STATE.stationA.y;
+            const stB_X = centerX + STATE.stationB.x;
+            const stB_Y = centerY + STATE.stationB.y;
+
+            const windA = getStationWindAngle('A', cycloneX, stA_X);
+            const windB = getStationWindAngle('B', cycloneX, stB_X);
+
+            drawWindVane(ctx, stA_X, stA_Y, windA, "A (북쪽)", "#4f46e5"); 
+            drawWindVane(ctx, stB_X, stB_Y, windB, "B (남쪽)", "#d97706"); 
+
+            const stage = updateLogs();
+            
+            ctxA.clearRect(0, 0, 120, 120);
+            ctxB.clearRect(0, 0, 120, 120);
+
+            const A1_Ang = 225 * Math.PI / 180; 
+            const A2_Ang = 135 * Math.PI / 180; 
+            const A3_Ang = 45 * Math.PI / 180;  
+
+            const B1_Ang = 225 * Math.PI / 180; 
+            const B2_Ang = 315 * Math.PI / 180; 
+            const B3_Ang = 405 * Math.PI / 180; 
+
+            drawCompassArrow(ctxA, A1_Ang, '①', "#4f46e5", stage === 1);
+            drawCompassArrow(ctxA, A2_Ang, '②', "#4f46e5", stage === 2);
+            drawCompassArrow(ctxA, A3_Ang, '③', "#4f46e5", stage === 3);
+
+            ctxA.beginPath();
+            ctxA.arc(60, 60, 25, A1_Ang - 0.2, A3_Ang + 0.2, true); // CCW arc
+            ctxA.strokeStyle = 'rgba(79, 70, 229, 0.4)';
+            ctxA.lineWidth = 4;
+            ctxA.stroke();
+
+            drawCompassArrow(ctxB, B1_Ang, '①', "#d97706", stage === 1);
+            drawCompassArrow(ctxB, B2_Ang, '②', "#d97706", stage === 2);
+            drawCompassArrow(ctxB, B3_Ang, '③', "#d97706", stage === 3);
+
+            ctxB.beginPath();
+            ctxB.arc(60, 60, 25, B1_Ang + 0.2, B3_Ang - 0.2, false); // CW arc
+            ctxB.strokeStyle = 'rgba(217, 119, 6, 0.4)';
+            ctxB.lineWidth = 4;
+            ctxB.stroke();
+
+            requestAnimationFrame(() => {
+                if(isPlaying || !isPlaying) draw(); 
+            });
+        }
+
+        resize(); 
+
+    </script>
+</body>
+</html>
+```
