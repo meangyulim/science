@@ -166,7 +166,6 @@
         // --- 2. State Variables ---
         let progress = 10; // 0 to 100
         let isPlaying = false;
-        let animationId;
 
         // Logical Coordinates 
         const STATE = {
@@ -178,7 +177,6 @@
         function resize() {
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
-            draw();
         }
         window.addEventListener('resize', resize);
 
@@ -187,25 +185,26 @@
             isPlaying = !isPlaying;
             document.getElementById('iconPlay').classList.toggle('hidden', isPlaying);
             document.getElementById('iconPause').classList.toggle('hidden', !isPlaying);
-            if (isPlaying) loop();
-            else cancelAnimationFrame(animationId);
         }
 
         function manualSeek() {
             progress = parseFloat(document.getElementById('timeSlider').value);
-            if (!isPlaying) draw();
         }
 
-        function loop() {
-            if (!isPlaying) return;
-            progress += 0.3; // Speed
-            if (progress > 100) progress = 0; // Loop back
-            document.getElementById('timeSlider').value = progress;
+        // --- 5. Main Animation Loop (최적화됨) ---
+        // 재귀 호출 문제를 없애고 단일 루프만 실행하여 메모리 누수 방지
+        function mainLoop() {
+            if (isPlaying) {
+                progress += 0.3; // Speed
+                if (progress > 100) progress = 0; 
+                document.getElementById('timeSlider').value = progress;
+            }
+            
             draw();
-            animationId = requestAnimationFrame(loop);
+            requestAnimationFrame(mainLoop);
         }
 
-        // --- 5. Math & Perfect Wind Logic (for Compasses) ---
+        // --- 6. Math & Perfect Wind Logic (for Compasses) ---
         function getStationWindAngle(stationType, cycloneX, stationX) {
             const relX = cycloneX - stationX;
             let clampedRel = Math.max(-150, Math.min(150, relX));
@@ -239,7 +238,7 @@
             return stage;
         }
 
-        // --- 6. Drawing Routines ---
+        // --- 7. Drawing Routines ---
         function drawArrow(ctx, fromX, fromY, toX, toY, color = '#333', width = 3) {
             const headlen = 12;
             const angle = Math.atan2(toY - fromY, toX - fromX);
@@ -281,7 +280,8 @@
             drawArrow(ctx, fromX, fromY, x - Math.cos(angleTo)*10, y - Math.sin(angleTo)*10, color, 5);
         }
 
-        function drawCompassArrow(cCtx, angleTo, step, color, isActive) {
+        // 배경에 그리는 고정 궤적 화살표 (흐릿하게 표시)
+        function drawCompassTrajectoryArrow(cCtx, angleTo, step, color) {
             const cx = 60; const cy = 60;
             const radius = 45;
             const fromX = cx - Math.cos(angleTo) * radius;
@@ -289,8 +289,8 @@
             const toX = cx - Math.cos(angleTo) * 10;
             const toY = cy - Math.sin(angleTo) * 10;
 
-            cCtx.globalAlpha = isActive ? 1.0 : 0.15;
-            drawArrow(cCtx, fromX, fromY, toX, toY, color, isActive ? 4 : 2);
+            cCtx.globalAlpha = 0.15;
+            drawArrow(cCtx, fromX, fromY, toX, toY, color, 2);
 
             cCtx.fillStyle = color;
             cCtx.font = "bold 12px Pretendard";
@@ -298,6 +298,24 @@
             cCtx.textBaseline = "middle";
             cCtx.fillText(step, fromX - Math.cos(angleTo)*12, fromY - Math.sin(angleTo)*12);
             cCtx.globalAlpha = 1.0;
+        }
+
+        // 현재 풍향을 가리키는 굵고 진한 동적 화살표
+        function drawCurrentCompassArrow(cCtx, angleTo, color) {
+            const cx = 60; const cy = 60;
+            const radius = 48; // 고정 궤적보다 살짝 길게
+            const fromX = cx - Math.cos(angleTo) * radius;
+            const fromY = cy - Math.sin(angleTo) * radius;
+            const toX = cx - Math.cos(angleTo) * 8;
+            const toY = cy - Math.sin(angleTo) * 8;
+
+            drawArrow(cCtx, fromX, fromY, toX, toY, color, 4);
+
+            // 화살표 꼬리(바람이 불어오는 쪽)에 강조용 점
+            cCtx.beginPath();
+            cCtx.arc(fromX, fromY, 4, 0, Math.PI * 2);
+            cCtx.fillStyle = color;
+            cCtx.fill();
         }
 
         function drawFronts(cx, cy) {
@@ -309,7 +327,7 @@
                 ctx.stroke();
             }
 
-            // 1. 한랭전선 (Cold Front) - 중심부 기준 서쪽으로 회전
+            // 1. 한랭전선
             ctx.beginPath();
             ctx.moveTo(cx, cy);
             const coldEndX = cx - 240; 
@@ -342,7 +360,7 @@
                 ctx.restore();
             }
 
-            // 2. 온난전선 (Warm Front) - 완만하게 펴고 남쪽으로 밸런스 맞춤
+            // 2. 온난전선
             ctx.beginPath();
             ctx.moveTo(cx, cy);
             const warmEndX = cx + 200; 
@@ -400,7 +418,6 @@
                 ctx.lineDashOffset = -timeOffset; 
                 ctx.stroke();
 
-                // 뚜렷하고 크게 만든 화살표 머리 
                 ctx.setLineDash([]);
                 const tx = endX - cpX;
                 const ty = endY - cpY;
@@ -430,6 +447,7 @@
             drawFlowArrow(cx + 120, cy - 120, cx, cy - 100, cx - 120, cy - 40, flowColor);
         }
 
+        // Draw 호출 시 불필요한 rAF 제거 (최적화 완료)
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
@@ -466,9 +484,10 @@
             const B2_Ang = 315 * Math.PI / 180; 
             const B3_Ang = 405 * Math.PI / 180; 
 
-            drawCompassArrow(ctxA, A1_Ang, '①', "#4f46e5", stage === 1);
-            drawCompassArrow(ctxA, A2_Ang, '②', "#4f46e5", stage === 2);
-            drawCompassArrow(ctxA, A3_Ang, '③', "#4f46e5", stage === 3);
+            // 흐릿한 궤적 가이드라인 렌더링
+            drawCompassTrajectoryArrow(ctxA, A1_Ang, '①', "#4f46e5");
+            drawCompassTrajectoryArrow(ctxA, A2_Ang, '②', "#4f46e5");
+            drawCompassTrajectoryArrow(ctxA, A3_Ang, '③', "#4f46e5");
 
             ctxA.beginPath();
             ctxA.arc(60, 60, 25, A1_Ang - 0.2, A3_Ang + 0.2, true); // CCW arc
@@ -476,9 +495,13 @@
             ctxA.lineWidth = 4;
             ctxA.stroke();
 
-            drawCompassArrow(ctxB, B1_Ang, '①', "#d97706", stage === 1);
-            drawCompassArrow(ctxB, B2_Ang, '②', "#d97706", stage === 2);
-            drawCompassArrow(ctxB, B3_Ang, '③', "#d97706", stage === 3);
+            // A: 실시간 동적 화살표
+            drawCurrentCompassArrow(ctxA, windA, "#4f46e5");
+
+            // 흐릿한 궤적 가이드라인 렌더링
+            drawCompassTrajectoryArrow(ctxB, B1_Ang, '①', "#d97706");
+            drawCompassTrajectoryArrow(ctxB, B2_Ang, '②', "#d97706");
+            drawCompassTrajectoryArrow(ctxB, B3_Ang, '③', "#d97706");
 
             ctxB.beginPath();
             ctxB.arc(60, 60, 25, B1_Ang + 0.2, B3_Ang - 0.2, false); // CW arc
@@ -486,14 +509,14 @@
             ctxB.lineWidth = 4;
             ctxB.stroke();
 
-            requestAnimationFrame(() => {
-                if(isPlaying || !isPlaying) draw(); 
-            });
+            // B: 실시간 동적 화살표
+            drawCurrentCompassArrow(ctxB, windB, "#d97706");
         }
 
+        // --- 8. Init ---
         resize(); 
+        requestAnimationFrame(mainLoop); // 단일 애니메이션 루프 시작
 
     </script>
 </body>
 </html>
-```
