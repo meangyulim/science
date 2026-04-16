@@ -104,8 +104,8 @@
 <body>
 
     <div class="app-container">
-        <!-- 공통 메인 헤더 -->
-        <header>
+        <!-- 공통 메인 헤더: id="main-header" 추가 -->
+        <header id="main-header">
             <div class="flex items-center cursor-pointer" onclick="goHome()">
                 <span class="text-xl mr-2">🔬</span>
                 <h1 class="text-base font-bold text-indigo-600">민규쌤의 과학 실험실</h1>
@@ -147,8 +147,8 @@
             </main>
         </div>
 
-        <!-- 하단 방문자 카운터 -->
-        <footer>
+        <!-- 하단 방문자 카운터: id="main-footer" 추가 -->
+        <footer id="main-footer">
             <div class="flex items-center text-slate-500 gap-2">
                 <!-- Shields.io 스타일 방문자 카운터 (visitorbadge.io) -->
                 <!-- path= 뒤에 선생님의 사이트 주소를 고유하게 적어주세요. -->
@@ -208,6 +208,10 @@
         const cardContainer = document.getElementById('card-container');
         const viewer = document.getElementById('sim-viewer');
         const currentSimTitle = document.getElementById('current-sim-title');
+        
+        // 새로 추가됨: 숨김/표시 제어를 위한 헤더와 푸터 요소 가져오기
+        const mainHeader = document.getElementById('main-header');
+        const mainFooter = document.getElementById('main-footer');
 
         // 홈 화면에 카드 동적 생성
         simulations.forEach(sim => {
@@ -233,6 +237,9 @@
             
             // 뷰 전환 (홈 숨기고, 시뮬레이션 보이기)
             homeView.style.display = 'none';
+            // 시뮬레이션 진입 시 헤더와 푸터 숨기기
+            mainHeader.style.display = 'none'; 
+            mainFooter.style.display = 'none'; 
             simView.style.display = 'flex';
         }
 
@@ -243,6 +250,9 @@
             // 뷰 전환 (시뮬레이션 숨기고, 홈 보이기)
             simView.style.display = 'none';
             homeView.style.display = 'block';
+            // 홈 화면으로 돌아올 때 헤더와 푸터 다시 보이기
+            mainHeader.style.display = 'flex'; 
+            mainFooter.style.display = 'flex'; 
         }
 
         // iOS 등에서 화면 스크롤 시 빈 공간 스크롤 방지 (iframe 내부는 정상 작동)
