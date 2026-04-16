@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>엘니뇨와 라니냐 수직 단면 시뮬레이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+        canvas { touch-action: none; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Custom Radio Buttons for Mode Selection */
+        .mode-radio:checked + div {
+            transition: all 0.3s;
+        }
+        #mode-lanina:checked + div { background-color: #2563eb; color: white; border-color: #1d4ed8; }
+        #mode-normal:checked + div { background-color: #10b981; color: white; border-color: #047857; }
+        #mode-elnino:checked + div { background-color: #ef4444; color: white; border-color: #b91c1c; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+</head>
+<body class="h-[100dvh] w-screen overflow-hidden flex flex-col text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 md:px-6 md:pt-[max(env(safe-area-inset-top),1rem)] md:pb-4 flex justify-between items-center z-10 shrink-0 shadow-sm">
+        <div>
+            <h1 class="text-lg md:text-2xl font-bold text-slate-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500 md:w-7 md:h-7"><path d="M2 12h20"/><path d="M12 2v20"/><path d="M4.93 4.93l14.14 14.14"/><path d="M4.93 19.07L19.07 4.93"/></svg>
+                엘니뇨 & 라니냐 워커 순환 및 단면 시뮬레이션
+            </h1>
+            <p class="hidden md:block text-sm text-slate-500 mt-1">무역풍의 변화에 따른 대양의 수직 단면 구조 변화와 각 해역의 특징을 비교해 보세요.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
+        <!-- Canvas Area -->
+        <div class="h-[45%] min-h-[300px] md:h-full md:flex-1 relative bg-slate-50 flex flex-col items-center justify-center overflow-hidden" id="canvas-container">
+            <!-- Background Sky Gradient -->
+            <div class="absolute inset-0 bg-gradient-to-b from-[#e0f2fe] to-slate-50 pointer-events-none" style="height: 50%;"></div>
+
+            <canvas id="simCanvas" class="relative z-10 w-full h-full"></canvas>
+
+            <!-- Floating Badges on Canvas -->
+            <div class="absolute top-4 left-4 z-20 bg-white/80 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-300 font-bold text-slate-700 text-sm shadow-sm pointer-events-none">
+                서태평양 (인도네시아)
+            </div>
+            <div class="absolute top-4 right-4 z-20 bg-white/80 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-300 font-bold text-slate-700 text-sm shadow-sm pointer-events-none">
+                동태평양 (페루)
+            </div>
+        </div>
+
+        <!-- Control Panel (Sidebar) -->
+        <aside class="h-[55%] md:h-full w-full md:w-[450px] glass-panel flex flex-col z-20 border-t md:border-t-0 md:border-l border-slate-200 overflow-y-auto shrink-0 bg-white">
+            <div class="p-3 md:p-5 pb-[max(env(safe-area-inset-bottom),1rem)] md:pb-[max(env(safe-area-inset-bottom),1.5rem)] space-y-4 md:space-y-5">
+                
+                <!-- 1. Mode Selection -->
+                <section>
+                    <h2 class="text-base font-bold mb-2 text-slate-800 flex items-center gap-2">
+                        <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span>
+                        기후 상태 선택
+                    </h2>
+                    <div class="flex gap-2">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="enso_mode" id="mode-lanina" value="lanina" class="peer hidden mode-radio" onchange="setMode('lanina')">
+                            <div class="border-2 border-slate-200 bg-slate-50 rounded-xl py-2 md:py-3 text-center font-bold text-slate-500 shadow-sm hover:bg-slate-100 transition-colors text-sm md:text-base">
+                                ❄️ 라니냐
+                            </div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="enso_mode" id="mode-normal" value="normal" class="peer hidden mode-radio" checked onchange="setMode('normal')">
+                            <div class="border-2 border-slate-200 bg-slate-50 rounded-xl py-2 md:py-3 text-center font-bold text-slate-500 shadow-sm hover:bg-slate-100 transition-colors text-sm md:text-base">
+                                🌿 평상시
+                            </div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="enso_mode" id="mode-elnino" value="elnino" class="peer hidden mode-radio" onchange="setMode('elnino')">
+                            <div class="border-2 border-slate-200 bg-slate-50 rounded-xl py-2 md:py-3 text-center font-bold text-slate-500 shadow-sm hover:bg-slate-100 transition-colors text-sm md:text-base">
+                                🔥 엘니뇨
+                            </div>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- 2. Data Dashboard (Table UI) -->
+                <section class="bg-slate-50 p-3 md:p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 class="font-bold text-slate-800 border-b border-slate-200 pb-2 flex justify-between items-center">
+                        <span>해양-대기 변화 요약표</span>
+                        <span id="status-title" class="text-emerald-600 text-sm">평상시</span>
+                    </h3>
+                    
+                    <!-- Global Stats -->
+                    <div class="grid grid-cols-3 gap-2 text-xs md:text-[13px] text-center font-medium">
+                        <div class="bg-white p-1.5 md:p-2 rounded border border-slate-200">
+                            <span class="text-slate-500 block mb-0.5">무역풍 세기</span>
+                            <span id="val-wind" class="text-slate-800 font-bold tracking-tight"></span>
+                        </div>
+                        <div class="bg-white p-1.5 md:p-2 rounded border border-slate-200">
+                            <span class="text-slate-500 block mb-0.5">물의 흐름</span>
+                            <span id="val-flow" class="text-slate-800 font-bold tracking-tight"></span>
+                        </div>
+                        <div class="bg-white p-1.5 md:p-2 rounded border border-slate-200">
+                            <span class="text-slate-500 block mb-0.5">해수면 기울기</span>
+                            <span id="val-slope" class="text-slate-800 font-bold tracking-tight"></span>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Table -->
+                    <div class="overflow-hidden rounded-lg border border-slate-200 bg-white text-[11px] md:text-xs">
+                        <table class="w-full text-center table-fixed">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 border-b border-slate-200">
+                                    <th class="py-2 px-1 font-medium w-[36%] border-r border-slate-200">구분</th>
+                                    <th class="py-2 px-1 font-bold w-[32%] text-blue-700">서태평양</th>
+                                    <th class="py-2 px-1 font-bold w-[32%] text-amber-700">동태평양</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="py-1.5 bg-slate-50 text-slate-600 font-medium border-r border-slate-200">표층 수온 편차</td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-sstAnom_w"></td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-sstAnom_e"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 bg-slate-50 text-slate-600 font-medium border-r border-slate-200">상승/하강 기류</td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-air_w"></td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-air_e"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 bg-slate-50 text-slate-600 font-medium border-r border-slate-200">기압</td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-pressure_w"></td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-pressure_e"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 bg-slate-50 text-slate-600 font-medium border-r border-slate-200">강수량</td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-rain_w"></td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-rain_e"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 bg-slate-50 text-slate-600 font-medium border-r border-slate-200">주요 피해</td>
+                                    <td class="py-1.5 font-bold text-red-600" id="val-damage_w"></td>
+                                    <td class="py-1.5 font-bold text-red-600" id="val-damage_e"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 bg-slate-50 text-slate-600 font-medium border-r border-slate-200">따뜻한 해수층 두께</td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-warm_w"></td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-warm_e"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 bg-slate-50 text-slate-600 font-medium border-r border-slate-200">수온 약층 깊이</td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-therm_w"></td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-therm_e"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 bg-slate-50 text-slate-600 font-medium border-r border-slate-200">해수면 높이</td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-sea_w"></td>
+                                    <td class="py-1.5 font-bold text-slate-800" id="val-sea_e"></td>
+                                </tr>
+                                <tr class="bg-blue-50/30">
+                                    <td class="py-1.5 bg-slate-50 text-slate-600 font-medium border-r border-slate-200">용승</td>
+                                    <td class="py-1.5 text-slate-400">-</td>
+                                    <td class="py-1.5 font-bold text-blue-600" id="val-upwell_e"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Explanation Box -->
+                <div class="bg-indigo-50 p-3 md:p-4 rounded-xl border border-indigo-100">
+                    <p id="explanation-text" class="text-[12px] md:text-[13px] text-indigo-800 leading-relaxed font-medium">
+                        <!-- JS injects description here -->
+                    </p>
+                </div>
+
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+
+        // --- Physical Constants & States ---
+        const TARGETS = {
+            lanina: {
+                windSpeed: 4.5,            
+                cloudX: 0.15,
+                cell1_downX: 0.85, cell1_alpha: 1.0,
+                cell2_downX: 0.85, cell2_alpha: 0.0, 
+                seaLevelWest: -35, seaLevelEast: 15, 
+                thermoDepthWest: 220, thermoDepthEast: 20, 
+                upwellingPower: 1.0
+            },
+            normal: {
+                windSpeed: 2.0,            
+                cloudX: 0.25,
+                cell1_downX: 0.8, cell1_alpha: 1.0,
+                cell2_downX: 0.8, cell2_alpha: 0.0, 
+                seaLevelWest: -15, seaLevelEast: 5,  
+                thermoDepthWest: 150, thermoDepthEast: 60, 
+                upwellingPower: 0.5
+            },
+            elnino: {
+                windSpeed: 0.4,            
+                cloudX: 0.85,              
+                cell1_downX: 0.15, cell1_alpha: 1.0, 
+                cell2_downX: 0.95, cell2_alpha: 0.0, 
+                seaLevelWest: -5, seaLevelEast: -1, 
+                thermoDepthWest: 110, thermoDepthEast: 90, 
+                upwellingPower: 0.0
+            }
+        };
+
+        // 교재 표 완벽 반영 딕셔너리
+        const TEXT_CONTENT = {
+            lanina: {
+                title: "라니냐 (La Niña)", titleColor: "text-blue-600",
+                wind: "무역풍 강화", flow: "←-----", slope: "커짐",
+                sstAnom_w: "높다", sstAnom_e: "낮다",
+                air_w: "상승", air_e: "하강",
+                pressure_w: "저기압", pressure_e: "고기압",
+                rain_w: "많다", rain_e: "적다",
+                damage_w: "홍수", damage_e: "가뭄",
+                warm_w: "두껍다", warm_e: "얇다",
+                therm_w: "깊다", therm_e: "얕다",
+                sea_w: "높아진다", sea_e: "낮아진다",
+                upwell_e: "활발",
+                desc: "평상시보다 무역풍이 더욱 강해져 워커 순환이 강화됩니다. 따뜻한 해수가 서쪽으로 극심하게 쏠리면서 <b>서태평양은 강수량이 폭증(홍수)</b>하고, 동태평양은 표층 수온 편차가 낮아지며 <b>가뭄과 냉해</b> 피해를 입습니다."
+            },
+            normal: {
+                title: "평상시 (Normal)", titleColor: "text-emerald-600",
+                wind: "정상 (동풍)", flow: "←---", slope: "일정함",
+                sstAnom_w: "높다", sstAnom_e: "낮다",
+                air_w: "상승", air_e: "하강",
+                pressure_w: "저기압", pressure_e: "고기압",
+                rain_w: "많다", rain_e: "적다",
+                damage_w: "(기후 적응)", damage_e: "(어장 발달)",
+                warm_w: "두껍다", warm_e: "얇다",
+                therm_w: "깊다", therm_e: "얕다",
+                sea_w: "높다", sea_e: "낮다",
+                upwell_e: "활발",
+                desc: "무역풍이 따뜻한 표층 해수를 서쪽으로 밀어내어 서태평양의 수온 약층이 깊고 해수면이 높습니다. 각 해역은 이 평년 상태의 강수량과 기후에 적응되어 있습니다."
+            },
+            elnino: {
+                title: "엘니뇨 (El Niño)", titleColor: "text-red-600",
+                wind: "무역풍 약화", flow: "----→", slope: "작아짐",
+                sstAnom_w: "낮다", sstAnom_e: "높다",
+                air_w: "하강", air_e: "상승",
+                pressure_w: "고기압", pressure_e: "저기압",
+                rain_w: "적다", rain_e: "많다",
+                damage_w: "가뭄", damage_e: "홍수",
+                warm_w: "얇다", warm_e: "두껍다",
+                therm_w: "얕다", therm_e: "깊다",
+                sea_w: "낮아진다", sea_e: "높아진다",
+                upwell_e: "억제",
+                desc: "무역풍이 약해지면서 서쪽의 따뜻한 해수가 동쪽으로 이동하여 <b>해면과 수온약층 경사가 완만해집니다</b>. 상승기류가 동쪽으로 이동하여 평년에 없던 <b>동태평양 홍수, 서태평양 가뭄</b>이 발생합니다."
+            }
+        };
+
+        // Current Animated Values
+        let current = { ...TARGETS.normal };
+        let currentMode = 'normal';
+        let time = 0;
+
+        // --- Core Functions ---
+        function resize() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        window.addEventListener('resize', resize);
+
+        function setMode(mode) {
+            currentMode = mode;
+            const data = TEXT_CONTENT[mode];
+            
+            const titleEl = document.getElementById('status-title');
+            titleEl.textContent = data.title;
+            titleEl.className = `${data.titleColor} text-sm font-bold`;
+            
+            const keys = [
+                'wind', 'flow', 'slope', 
+                'sstAnom_w', 'sstAnom_e', 'air_w', 'air_e', 
+                'pressure_w', 'pressure_e', 'rain_w', 'rain_e', 
+                'damage_w', 'damage_e', 'warm_w', 'warm_e', 
+                'therm_w', 'therm_e', 'sea_w', 'sea_e', 'upwell_e'
+            ];
+
+            keys.forEach(key => {
+                const el = document.getElementById(`val-${key}`);
+                if(el) {
+                    el.textContent = data[key];
+                    
+                    // 엘니뇨 시 비정상 상태 강조 (빨간색) - 교재 표 참고
+                    if (mode === 'elnino' && (key === 'sstAnom_w' || key === 'sstAnom_e')) {
+                        el.className = "py-1.5 font-bold text-red-600";
+                    } else if (key.includes('damage')) {
+                        el.className = mode === 'normal' ? "py-1.5 font-medium text-slate-400 text-[11px]" : "py-1.5 font-bold text-red-600";
+                    } else if (key === 'upwell_e') {
+                        el.className = "py-1.5 font-bold text-blue-600";
+                    } else {
+                        el.className = "py-1.5 font-bold text-slate-800";
+                    }
+                }
+            });
+
+            document.getElementById('explanation-text').innerHTML = data.desc;
+        }
+
+        function lerp(start, end, factor) {
+            return start + (end - start) * factor;
+        }
+
+        function updatePhysics() {
+            time += 0.05;
+            const target = TARGETS[currentMode];
+            const easing = 0.03; 
+
+            Object.keys(TARGETS.normal).forEach(key => {
+                current[key] = lerp(current[key], target[key], easing);
+            });
+        }
+
+        // --- Drawing Functions ---
+        function drawLand(w, h) {
+            ctx.fillStyle = '#78716c'; 
+            
+            ctx.beginPath();
+            ctx.moveTo(0, h);
+            ctx.lineTo(w * 0.1, h);
+            ctx.lineTo(w * 0.08, h * 0.5);
+            ctx.lineTo(0, h * 0.5);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(w, h);
+            ctx.lineTo(w * 0.9, h);
+            ctx.lineTo(w * 0.92, h * 0.5);
+            ctx.lineTo(w, h * 0.5);
+            ctx.fill();
+        }
+
+        function drawOcean(w, h) {
+            const seaBaseY = h * 0.55; 
+            const bottomY = h;
+            
+            const startX = w * 0.08;
+            const endX = w * 0.92;
+            const oceanW = endX - startX;
+
+            // 해면 고도 계산
+            const seaY_W = seaBaseY + current.seaLevelWest;
+            const seaY_E = seaBaseY + current.seaLevelEast;
+
+            // 수온약층 깊이 계산
+            const thermoY_W = seaY_W + current.thermoDepthWest;
+            const thermoY_E = seaY_E + current.thermoDepthEast;
+
+            // --- Draw Mixed Layer (Warm Water) ---
+            ctx.beginPath();
+            ctx.moveTo(startX, seaY_W);
+            ctx.bezierCurveTo(startX + oceanW * 0.5, seaY_W, startX + oceanW * 0.5, seaY_E, endX, seaY_E);
+            ctx.lineTo(endX, thermoY_E);
+            ctx.bezierCurveTo(startX + oceanW * 0.5, thermoY_E, startX + oceanW * 0.5, thermoY_W, startX, thermoY_W);
+            ctx.closePath();
+            
+            const gradWarm = ctx.createLinearGradient(0, seaBaseY - 50, 0, seaBaseY + 200);
+            gradWarm.addColorStop(0, '#fca5a5'); 
+            gradWarm.addColorStop(1, '#fde047'); 
+            ctx.fillStyle = gradWarm;
+            
+            ctx.shadowColor = 'rgba(0,0,0,0.1)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 5;
+            ctx.fill();
+            ctx.shadowColor = 'transparent';
+
+            // 수온 약층(경계선) 그리기
+            ctx.beginPath();
+            ctx.moveTo(startX, thermoY_W);
+            ctx.bezierCurveTo(startX + oceanW * 0.5, thermoY_W, startX + oceanW * 0.5, thermoY_E, endX, thermoY_E);
+            ctx.strokeStyle = '#eab308'; 
+            ctx.lineWidth = 3;
+            ctx.setLineDash([10, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]); 
+
+            // 해수면 그리기
+            ctx.beginPath();
+            ctx.moveTo(startX, seaY_W);
+            ctx.bezierCurveTo(startX + oceanW * 0.5, seaY_W, startX + oceanW * 0.5, seaY_E, endX, seaY_E);
+            ctx.strokeStyle = '#0284c7'; 
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // --- 용승 애니메이션 ---
+            if (current.upwellingPower > 0.05) {
+                ctx.save();
+                ctx.globalAlpha = current.upwellingPower;
+                ctx.strokeStyle = '#0ea5e9'; 
+                ctx.lineWidth = 3;
+                const upX = endX - w * 0.1;
+                const upBaseY = thermoY_E + 60; 
+                const flowOffset = (time * 20) % 25; 
+                
+                for(let i=0; i<3; i++) {
+                    const yPos = upBaseY - flowOffset - (i*25);
+                    if(yPos > thermoY_E - 20) { 
+                        ctx.beginPath();
+                        ctx.moveTo(upX, yPos);
+                        ctx.lineTo(upX, yPos - 15);
+                        ctx.lineTo(upX - 6, yPos - 8);
+                        ctx.moveTo(upX, yPos - 15);
+                        ctx.lineTo(upX + 6, yPos - 8);
+                        ctx.stroke();
+                    }
+                }
+                ctx.fillStyle = '#0369a1';
+                ctx.font = 'bold 14px Pretendard';
+                ctx.textAlign = 'center';
+                ctx.fillText("용승", upX, upBaseY + 20);
+                ctx.restore();
+            }
+
+            // --- 라벨 ---
+            ctx.fillStyle = '#991b1b'; 
+            ctx.font = 'bold 16px Pretendard';
+            ctx.textAlign = 'center';
+            ctx.fillText("혼합층 (따뜻한 표층 해수)", w/2, (seaY_W + thermoY_W + seaY_E + thermoY_E)/4 );
+            
+            ctx.fillStyle = '#a16207'; 
+            ctx.font = 'bold 14px Pretendard';
+            ctx.fillText("수온 약층 시작 깊이", w*0.35, thermoY_W + 20);
+
+            // 평균 해수면 가이드라인
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath(); ctx.moveTo(startX, seaBaseY); ctx.lineTo(endX, seaBaseY); ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.fillStyle = '#475569';
+            ctx.font = '12px Pretendard';
+            ctx.fillText("평균 해면", w/2, seaBaseY - 8);
+        }
+
+        // 워커 순환 보조 함수 (방향 화살표)
+        function drawTriangle(ctx, x, y, angle, color) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(8, 0);
+            ctx.lineTo(-6, 6);
+            ctx.lineTo(-6, -6);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // 워커 순환 렌더링
+        function drawWalkerCell(ctx, upX, downX, topY, bottomY, alpha, timeOffset) {
+            if(alpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#94a3b8'; 
+            
+            const r = 25; 
+            const dir = Math.sign(downX - upX);
+            if (dir === 0) { ctx.restore(); return; }
+
+            ctx.beginPath();
+            ctx.moveTo(upX, bottomY - r);
+            ctx.lineTo(upX, topY + r); 
+            ctx.arcTo(upX, topY, upX + dir*r, topY, r);
+            ctx.lineTo(downX - dir*r, topY); 
+            ctx.arcTo(downX, topY, downX, topY + r, r);
+            ctx.lineTo(downX, bottomY - r); 
+            ctx.arcTo(downX, bottomY, downX - dir*r, bottomY, r);
+            ctx.lineTo(upX + dir*r, bottomY); 
+            ctx.arcTo(upX, bottomY, upX, bottomY - r, r);
+            
+            ctx.setLineDash([15, 15]);
+            ctx.lineDashOffset = -timeOffset * 30; 
+            ctx.stroke();
+
+            ctx.setLineDash([]);
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = alpha * 0.2;
+            ctx.stroke();
+            
+            ctx.globalAlpha = alpha;
+            const midTopX = (upX + downX) / 2;
+            const midBotX = (upX + downX) / 2;
+            
+            drawTriangle(ctx, midTopX, topY, dir > 0 ? 0 : Math.PI, '#64748b'); 
+            drawTriangle(ctx, midBotX, bottomY, dir > 0 ? Math.PI : 0, '#64748b'); 
+            
+            drawTriangle(ctx, upX, (topY + bottomY)/2, -Math.PI/2, '#ef4444'); 
+            drawTriangle(ctx, downX, (topY + bottomY)/2, Math.PI/2, '#3b82f6'); 
+
+            ctx.restore();
+        }
+
+        // 직관적인 표층 무역풍 애니메이션 (크고 굵은 화살표)
+        function drawTradeWinds(ctx, startX, endX, y, speed, alpha) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            
+            const arrowSpacing = 150;
+            const baseLen = 40;
+            const arrowLen = baseLen + (speed * 15);
+            const offset = (time * Math.abs(speed) * 15) % arrowSpacing;
+
+            ctx.strokeStyle = '#334155';
+            ctx.fillStyle = '#334155';
+            ctx.lineWidth = Math.max(2, Math.abs(speed) * 1.5); 
+            
+            for(let x = endX + arrowSpacing; x > startX; x -= arrowSpacing) {
+                const px = x - offset;
+                if(px > startX && px < endX) {
+                    ctx.beginPath();
+                    ctx.moveTo(px, y);
+                    ctx.lineTo(px - arrowLen, y); // 동에서 서로 (동풍)
+                    ctx.stroke();
+                    
+                    // 화살촉
+                    ctx.beginPath();
+                    ctx.moveTo(px - arrowLen - 4, y);
+                    ctx.lineTo(px - arrowLen + 10, y - 6);
+                    ctx.lineTo(px - arrowLen + 10, y + 6);
+                    ctx.fill();
+                }
+            }
+            
+            ctx.font = 'bold 15px Pretendard';
+            ctx.textAlign = 'center';
+            if (speed > 0) {
+                ctx.fillText("표층 무역풍 (동풍)", (startX + endX)/2, y - 15);
+            }
+            ctx.restore();
+        }
+
+        function drawAtmosphere(w, h) {
+            const startX = w * 0.08;
+            const endX = w * 0.92;
+            const oceanW = endX - startX;
+            
+            const skyY = h * 0.15; 
+            const seaBaseY = h * 0.55;
+            const bottomY = seaBaseY - 20;
+            const windArrowY = bottomY + 10; // 바다 표면 바로 위
+
+            const cX = startX + oceanW * current.cloudX;
+            const c1DownX = startX + oceanW * current.cell1_downX;
+            const c2DownX = startX + oceanW * current.cell2_downX;
+
+            // Draw Walker Cells
+            drawWalkerCell(ctx, cX, c1DownX, skyY, bottomY, current.cell1_alpha, time);
+            drawWalkerCell(ctx, cX, c2DownX, skyY, bottomY, current.cell2_alpha, time);
+
+            // Draw Prominent Surface Trade Winds
+            if (currentMode !== 'elnino') {
+                drawTradeWinds(ctx, startX + 20, endX - 20, windArrowY, current.windSpeed, 1.0);
+            } else {
+                // 엘니뇨 시기: 약화된 무역풍 (투명도 낮춤)
+                drawTradeWinds(ctx, startX + 20, endX - 20, windArrowY, current.windSpeed, 0.4);
+            }
+
+            // --- Clouds and Precipitation at Updraft (cX) ---
+            const cY = h * 0.25;
+
+            // Rain
+            ctx.strokeStyle = '#60a5fa'; 
+            ctx.lineWidth = 2;
+            const rainOffset = (time * 20) % 20;
+            for(let rx = -40; rx <= 40; rx += 15) {
+                ctx.beginPath();
+                ctx.moveTo(cX + rx, cY + 20 + rainOffset);
+                ctx.lineTo(cX + rx - 10, cY + 60 + rainOffset); 
+                ctx.stroke();
+            }
+
+            // Cloud
+            ctx.fillStyle = '#fff'; 
+            ctx.shadowColor = 'rgba(0,0,0,0.1)';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(cX, cY, 30, Math.PI, 0);
+            ctx.arc(cX + 25, cY + 10, 25, -Math.PI/2, Math.PI/2);
+            ctx.arc(cX, cY + 20, 20, 0, Math.PI);
+            ctx.arc(cX - 25, cY + 10, 25, Math.PI/2, -Math.PI/2);
+            ctx.fill();
+            ctx.shadowColor = 'transparent';
+
+            // Weather Text (기상 라벨 처리)
+            ctx.font = 'bold 14px Pretendard';
+            ctx.textAlign = 'center';
+            if (currentMode === 'normal') {
+                // 평상시엔 극단적인 홍수/가뭄 라벨 제거
+                ctx.fillStyle = '#475569';
+                ctx.fillText("강수 (적란운 형성)", cX, skyY - 15);
+            } else {
+                // 엘니뇨/라니냐 발생 시에만 이상 기후 라벨 표출
+                ctx.fillStyle = '#b91c1c'; // Red for anomalous extreme weather
+                ctx.fillText("홍수 (폭우)", cX, skyY - 15);
+                
+                ctx.fillStyle = '#9a3412'; // Orange/Brown for drought
+                ctx.fillText("가뭄", c1DownX, skyY - 15);
+            }
+        }
+
+        // --- Main Loop ---
+        function animate() {
+            updatePhysics();
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawAtmosphere(canvas.width, canvas.height);
+            drawOcean(canvas.width, canvas.height);
+            drawLand(canvas.width, canvas.height);
+
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize
+        resize();
+        setMode('normal');
+        requestAnimationFrame(animate);
+
+    </script>
+</body>
+</html>
