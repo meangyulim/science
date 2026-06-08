@@ -64,6 +64,8 @@
             display: none;
             flex-direction: column;
             background-color: #ffffff;
+            overflow-y: auto; 
+    -webkit-overflow-scrolling: touch;
         }
 
         /* 시뮬레이션 내부 헤더 (뒤로가기 등) */
@@ -143,7 +145,7 @@
                         시뮬레이션 제목
                     </h3>
                 </div>
-                <iframe id="sim-viewer" src="about:blank" allow="autoplay; fullscreen" scrolling="no"></iframe>
+                <iframe id="sim-viewer" src="about:blank" allow="autoplay; fullscreen" scrolling="auto"></iframe>
             </main>
         </div>
 
