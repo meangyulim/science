@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>탄젠트 소각 근사 기하학적 시각화 도구</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        /* 수학 변수 전용 스타일 */
+        .math-var {
+            font-family: 'Times New Roman', Times, Georgia, serif;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+    <header class="bg-gradient-to-r from-indigo-700 to-blue-800 text-white shadow-md py-6 px-4">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-2">
+                    <span>📐</span> 탄젠트 소각 근사 비주얼라이저
+                </h1>
+                <p class="text-indigo-100 text-sm mt-1">왜 작은 각도에서 <span class="math-var">tan θ ≈ θ</span>가 성립하는가?</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="switchTab('visualizer')" id="tab-visualizer" class="px-4 py-2 rounded-lg text-sm font-bold bg-white text-indigo-700 transition duration-150">시각화 도구</button>
+                <button onclick="switchTab('proof')" id="tab-proof" class="px-4 py-2 rounded-lg text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition duration-150">기하학적 증명</button>
+                <button onclick="switchTab('astronomy')" id="tab-astronomy" class="px-4 py-2 rounded-lg text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition duration-150">천문학적 적용</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        
+        <!-- SECTION 1: VISUALIZER TAB -->
+        <div id="content-visualizer" class="space-y-8">
+            <!-- 안내 카드 -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span class="text-indigo-600">💡</span> 기하학적 의미 알아보기
+                </h2>
+                <div class="text-slate-600 text-sm mt-2 leading-relaxed space-y-1">
+                    <p>
+                        반지름이 1인 <strong>단위 원</strong>에서, 각도 <span class="math-var font-semibold text-slate-900">θ</span> (라디안)는 <strong>부채꼴 호의 길이(파란색)</strong>와 같습니다.
+                    </p>
+                    <p>
+                        이때 <strong>사인(<span class="math-var">sin θ</span>, 녹색)</strong>은 원 내부의 수직 선분이고, <strong>탄젠트(<span class="math-var">tan θ</span>, 빨간색)</strong>는 원 밖 접선에서 연장선과 만나는 선분의 길이입니다.
+                    </p>
+                    <p class="text-indigo-600 font-semibold mt-2">각도를 줄여서 10도 이하로 설정해 보세요. 세 선분의 길이가 기적처럼 거의 일치하게 됩니다.</p>
+                </div>
+            </div>
+
+            <!-- 메인 조작 패널 & 시각화 Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- 슬라이더 및 제어판 (좌측/상단) -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-sm font-bold text-slate-700">각도 조정 (<span class="math-var">θ</span>)</label>
+                                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full" id="angle-badge">15.0°</span>
+                            </div>
+                            <input type="range" id="angle-slider" min="0.1" max="45" step="0.1" value="15" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                            <div class="flex justify-between text-xs text-slate-400 mt-1">
+                                <span>0.1°</span>
+                                <span>10° (실용 한계)</span>
+                                <span>30°</span>
+                                <span>45°</span>
+                            </div>
+                        </div>
+
+                        <!-- 퀵 프리셋 버튼 -->
+                        <div>
+                            <span class="text-xs font-bold text-slate-500 block mb-2">주요 기준각 프리셋</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="setAngle(0.5)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
+                                    0.5° (우주 관측급)
+                                </button>
+                                <button onclick="setAngle(5)" class="px-3 py-2 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold rounded-lg transition">
+                                    5° (정밀 공학 한계)
+                                </button>
+                                <button onclick="setAngle(10)" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold rounded-lg transition">
+                                    10° (물리 근사 한계)
+                                </button>
+                                <button onclick="setAngle(30)" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-lg transition">
+                                    30° (눈에 띄는 오차)
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-100">
+
+                        <!-- 실시간 수치 데이터 판 -->
+                        <div class="space-y-3">
+                            <span class="text-xs font-bold text-slate-500 block">실시간 물리량 비교</span>
+                            
+                            <!-- 호의 길이 θ -->
+                            <div class="flex justify-between items-center bg-blue-50/50 p-2.5 rounded-lg border border-blue-100">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                                    <span class="text-xs font-bold text-blue-900">호의 길이 (<span class="math-var text-xs">θ</span> rad)</span>
+                                </div>
+                                <span class="font-mono text-sm font-bold text-blue-700" id="val-rad">0.2618</span>
+                            </div>
+
+                            <!-- 사인 sin θ -->
+                            <div class="flex justify-between items-center bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                    <span class="text-xs font-bold text-emerald-900">사인 (<span class="math-var text-xs">sin θ</span>)</span>
+                                </div>
+                                <span class="font-mono text-sm font-bold text-emerald-700" id="val-sin">0.2588</span>
+                            </div>
+
+                            <!-- 탄젠트 tan θ -->
+                            <div class="flex justify-between items-center bg-rose-50/50 p-2.5 rounded-lg border border-rose-100">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                                    <span class="text-xs font-bold text-rose-900">탄젠트 (<span class="math-var text-xs">tan θ</span>)</span>
+                                </div>
+                                <span class="font-mono text-sm font-bold text-rose-700" id="val-tan">0.2679</span>
+                            </div>
+
+                            <!-- 오차율 분석 -->
+                            <div class="mt-4 p-3 bg-slate-900 text-white rounded-xl space-y-2">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-400">탄젠트 근사 오차율</span>
+                                    <span class="text-slate-400">|<span class="math-var text-slate-300">tan θ - θ</span>| / <span class="math-var text-slate-300">θ</span></span>
+                                </div>
+                                <div class="flex justify-between items-end">
+                                    <span class="text-lg font-black text-white" id="error-rate">1.02 %</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded font-bold" id="safety-label">안전 (적합)</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                    <div id="error-bar" class="bg-indigo-500 h-full transition-all duration-300" style="width: 10%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 그래픽 캔버스 영역 (우측/하단) -->
+                <div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 캔버스 1: 기하학적 단위 원 기하 -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
+                        <div class="w-full flex justify-between items-center mb-3">
+                            <span class="text-sm font-bold text-slate-800">단위 원 기하학 모델</span>
+                            <span class="text-[10px] text-slate-400">반지름 = 1인 원</span>
+                        </div>
+                        <div class="relative w-full aspect-square bg-slate-50 rounded-xl overflow-hidden border border-slate-100 flex items-center justify-center">
+                            <canvas id="circle-canvas" class="w-full h-full"></canvas>
+                        </div>
+                        <div class="flex justify-center gap-4 mt-3 text-xs">
+                            <span class="flex items-center gap-1.5 text-blue-600 font-semibold">
+                                <span class="w-3 h-0.5 bg-blue-500 inline-block"></span> 호 (<span class="math-var">θ</span>)
+                            </span>
+                            <span class="flex items-center gap-1.5 text-emerald-600 font-semibold">
+                                <span class="w-3 h-0.5 bg-emerald-500 inline-block"></span> 사인 (<span class="math-var">sin θ</span>)
+                            </span>
+                            <span class="flex items-center gap-1.5 text-rose-600 font-semibold">
+                                <span class="w-3 h-0.5 bg-rose-500 inline-block"></span> 탄젠트 (<span class="math-var">tan θ</span>)
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 캔버스 2: 실시간 비교 그래프 -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
+                        <div class="w-full flex justify-between items-center mb-3">
+                            <span class="text-sm font-bold text-slate-800">함수 곡선 비교 그래프</span>
+                            <span class="text-[10px] text-slate-400">구간: 0° ~ 45°</span>
+                        </div>
+                        <div class="relative w-full aspect-square bg-slate-50 rounded-xl overflow-hidden border border-slate-100 flex items-center justify-center">
+                            <canvas id="graph-canvas" class="w-full h-full"></canvas>
+                        </div>
+                        <div class="flex justify-center gap-4 mt-3 text-xs">
+                            <span class="flex items-center gap-1.5 text-slate-500">
+                                <span class="w-2.5 h-2.5 border-l-2 border-dashed border-slate-400 inline-block"></span> 현재 위치
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SECTION 2: PROOF TAB -->
+        <div id="content-proof" class="hidden space-y-8">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                <h2 class="text-2xl font-black text-slate-900 border-b border-slate-100 pb-4">
+                    📚 기하학적 면적 관계를 통한 수학적 증명
+                </h2>
+                
+                <p class="text-slate-600 leading-relaxed text-sm">
+                    작은 각도에서 <span class="math-var font-semibold text-slate-800">sin θ ≈ θ ≈ tan θ</span>가 성립하는 수학적 근거는 고등학교 수학에서 배우는 <strong>샌드위치 정리(조임 정리)</strong>로 아주 명쾌하게 증명됩니다. 
+                    단위 원 위의 면적 대소 관계를 이용해 증명하는 흐름은 다음과 같습니다.
+                </p>
+
+                <!-- 면적 비교 시각화 카드 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
+                    <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                        <h3 class="text-xs font-bold text-emerald-800 mb-1">1. 안쪽 삼각형 <span class="math-var">OAC</span></h3>
+                        <div class="text-lg font-black text-emerald-950 mb-2 flex items-center gap-1">
+                            <span>면적 = </span>
+                            <span class="math-var">½ · sin θ</span>
+                        </div>
+                        <p class="text-[11px] text-emerald-700 leading-relaxed">
+                            밑변 <span class="math-var">OA(=1)</span>와 높이 <span class="math-var">h(=sin θ)</span>로 이루어진 직각삼각형의 면적입니다.
+                        </p>
+                    </div>
+
+                    <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        <h3 class="text-xs font-bold text-blue-800 mb-1">2. 중간 부채꼴 <span class="math-var">OAC</span></h3>
+                        <div class="text-lg font-black text-blue-950 mb-2 flex items-center gap-1">
+                            <span>면적 = </span>
+                            <span class="math-var">½ · θ</span>
+                        </div>
+                        <p class="text-[11px] text-blue-700 leading-relaxed">
+                            반지름이 1이고 중심각이 <span class="math-var">θ</span> (라디안)인 부채꼴의 기하학적 실제 면적입니다.
+                        </p>
+                    </div>
+
+                    <div class="p-4 bg-rose-50 rounded-xl border border-rose-100">
+                        <h3 class="text-xs font-bold text-rose-800 mb-1">3. 바깥쪽 삼각형 <span class="math-var">OAD</span></h3>
+                        <div class="text-lg font-black text-rose-950 mb-2 flex items-center gap-1">
+                            <span>면적 = </span>
+                            <span class="math-var">½ · tan θ</span>
+                        </div>
+                        <p class="text-[11px] text-rose-700 leading-relaxed">
+                            원 밖의 수직 접선 <span class="math-var">AD(=tan θ)</span>를 높이로 가지는 더 큰 외접 삼각형입니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 증명 텍스트 -->
+                <div class="space-y-4 text-slate-700 leading-relaxed text-sm bg-slate-50 p-6 rounded-xl border border-slate-100">
+                    <h3 class="font-bold text-slate-900 text-base">증명 순서</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <p class="font-semibold text-slate-800">단계 1: 세 기하학적 도형의 포함 관계에 따라 면적의 대소 관계가 성립합니다.</p>
+                            <div class="bg-white py-3 px-4 rounded-xl border border-slate-150 text-center text-sm font-bold my-2 text-indigo-700">
+                                삼각형 <span class="math-var">OAC</span>의 면적 &lt; 부채꼴 <span class="math-var">OAC</span>의 면적 &lt; 삼각형 <span class="math-var">OAD</span>의 면적
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="font-semibold text-slate-800">단계 2: 구한 면적 공식들을 식에 대입해 줍니다.</p>
+                            <div class="bg-white py-3 px-4 rounded-xl border border-slate-150 flex items-center justify-center gap-2 font-bold my-2 text-slate-800">
+                                <span class="math-var">½ sin θ</span>
+                                <span class="text-slate-400">&lt;</span>
+                                <span class="math-var">½ θ</span>
+                                <span class="text-slate-400">&lt;</span>
+                                <span class="math-var">½ tan θ</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="font-semibold text-slate-800">단계 3: 식 전체를 <span class="math-var">½ sin θ</span> 로 나누어 단순화합니다.</p>
+                            <div class="text-xs text-slate-400 italic mb-1 flex items-center gap-1">
+                                (참고: <span class="math-var text-slate-500">tan θ = sin θ / cos θ</span>)
+                            </div>
+                            <div class="bg-white py-3 px-4 rounded-xl border border-slate-150 flex items-center justify-center gap-3 font-bold my-2 text-slate-800">
+                                <span>1</span>
+                                <span class="text-slate-400">&lt;</span>
+                                <div class="flex flex-col items-center justify-center text-xs math-var">
+                                    <span class="border-b border-slate-400 px-2">θ</span>
+                                    <span>sin θ</span>
+                                </div>
+                                <span class="text-slate-400">&lt;</span>
+                                <div class="flex flex-col items-center justify-center text-xs math-var">
+                                    <span class="border-b border-slate-400 px-2">1</span>
+                                    <span>cos θ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="font-semibold text-slate-800">단계 4: 각 항에 극한(<span class="math-var">θ → 0</span>)을 가합니다. 이 때 <span class="math-var">cos 0 = 1</span> 입니다.</p>
+                            <div class="bg-white py-3 px-4 rounded-xl border border-slate-150 flex items-center justify-center gap-3 font-bold my-2 text-emerald-600">
+                                <span>1</span>
+                                <span class="text-slate-400">&lt;</span>
+                                <div class="flex items-center gap-1">
+                                    <div class="flex flex-col items-center justify-center text-[10px]">
+                                        <span class="font-bold text-xs leading-none">lim</span>
+                                        <span class="text-[8px] text-slate-400 leading-none math-var">θ → 0</span>
+                                    </div>
+                                    <div class="flex flex-col items-center justify-center text-xs math-var">
+                                        <span class="border-b border-emerald-400 px-1">θ</span>
+                                        <span>sin θ</span>
+                                    </div>
+                                </div>
+                                <span class="text-slate-400">&lt;</span>
+                                <span>1</span>
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-200">
+
+                        <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-100 space-y-4">
+                            <p class="text-sm text-indigo-950 leading-relaxed">
+                                <strong>조임 정리(샌드위치 정리)</strong>에 의해, 양쪽 끝이 1로 수렴하므로 중간에 갇힌 값도 무조건 1이 될 수밖에 없습니다.
+                            </p>
+                            
+                            <!-- 리미트 분수 최종 유도 공식 (HTML/CSS) -->
+                            <div class="bg-white p-4 rounded-lg border border-indigo-200 shadow-sm flex flex-col md:flex-row items-center justify-center gap-6">
+                                <div class="flex items-center gap-1 font-bold text-indigo-600">
+                                    <div class="flex items-center gap-1">
+                                        <div class="flex flex-col items-center justify-center text-xs">
+                                            <span class="font-black text-sm leading-none">lim</span>
+                                            <span class="text-[9px] text-slate-400 leading-none math-var">θ → 0</span>
+                                        </div>
+                                        <div class="flex flex-col items-center justify-center text-sm math-var">
+                                            <span class="border-b-2 border-indigo-400 px-1.5 leading-tight">θ</span>
+                                            <span class="leading-tight">sin θ</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-bold ml-1">= 1</span>
+                                </div>
+
+                                <div class="hidden md:block text-slate-400 font-bold">⟹</div>
+
+                                <div class="text-indigo-900 font-black text-sm flex items-center gap-1">
+                                    <span class="math-var">sin θ ≈ θ</span>
+                                </div>
+                            </div>
+
+                            <p class="text-sm text-indigo-950 leading-relaxed">
+                                같은 방식으로, <span class="math-var">cos θ</span>의 극한값이 1이므로 탄젠트도 아래와 같이 심플하게 수렴합니다.
+                            </p>
+                            
+                            <div class="bg-white p-3 rounded-lg border border-indigo-200 shadow-sm flex items-center justify-center text-rose-600 font-black text-sm">
+                                <span class="math-var">tan θ ≈ θ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: ASTRONOMY TAB -->
+        <div id="content-astronomy" class="hidden space-y-8">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                <h2 class="text-2xl font-black text-slate-900 border-b border-slate-100 pb-4">
+                    🌌 지구과학/천문학: 우주 거리를 재는 연주시차 공식의 비밀
+                </h2>
+
+                <p class="text-slate-600 leading-relaxed text-sm">
+                    지구과학 교과서에서 배우는 연주시차 공식 <span class="math-var font-bold text-slate-800">d = 1 / p</span>는 사실 이 <strong>탄젠트 소각 근사</strong>가 숨겨져 있었기 때문에 가능했던 아주 단순화된 공식입니다. 
+                    그 실체와 유도 과정을 교과 수준에 맞추어 명확하게 짚어 드릴게요.
+                </p>
+
+                <!-- 천문학적 관측 기하학 구조 시각화 -->
+                <div class="p-6 bg-slate-950 text-white rounded-2xl relative overflow-hidden">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.15),transparent)]"></div>
+                    <h3 class="text-sm font-bold text-indigo-400 mb-4">지구-태양-별의 기하학적 직각삼각형</h3>
+                    
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+                        <div class="space-y-3 max-w-md text-sm text-slate-300">
+                            <p>
+                                지구는 태양을 돌고 있고, 지구와 태양 사이의 거리는 <strong class="text-white">1 AU</strong>로 아주 길지만 우주 전체 크기에 비하면 먼지 크기입니다.
+                            </p>
+                            <p>
+                                지구에서 별을 관측할 때 생기는 각도인 <strong>연주시차 <span class="math-var">p</span> (단위: 초, <span class="math-var">''</span>)</strong>는 현실적으로 너무 멀기 때문에 언제나 1초보다도 훨씬 작습니다. (1초는 3600분의 1도)
+                            </p>
+                            <p>
+                                이 아주 미세하고 길쭉한 직각삼각형에서 삼각함수를 써보면 다음과 같은 탄젠트 공식이 세워집니다.
+                            </p>
+                            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800 flex items-center justify-center gap-2 font-mono text-white text-sm">
+                                <span class="math-var">tan p =</span>
+                                <div class="flex flex-col items-center justify-center text-xs">
+                                    <span class="border-b border-slate-600 px-2 pb-0.5">1 AU</span>
+                                    <span class="pt-0.5 math-var">d (거리)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 단순화된 기하학 모식도 (CSS 아트) -->
+                        <div class="w-full md:w-64 h-48 bg-slate-900 rounded-xl border border-slate-800 flex flex-col justify-between p-4 font-mono text-xs text-slate-400">
+                            <div class="flex justify-between items-center">
+                                <span>[지구] 🌍</span>
+                                <span class="text-indigo-400">1 AU (밑변)</span>
+                                <span>[태양] ☀️</span>
+                            </div>
+                            <div class="flex justify-center h-20 items-center relative">
+                                <div class="w-0.5 bg-dashed bg-slate-700 h-full absolute"></div>
+                                <div class="text-[10px] bg-slate-900 px-1 relative z-10">별까지의 거리 d (높이)</div>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-yellow-400">⭐ [별] (꼭짓점 각도 = 연주시차 p)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 단계별 유도 과정 -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-slate-900 text-base">왜 복잡한 삼각함수 없이 역수식(<span class="math-var">1/p</span>)이 될까?</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-600">
+                        <div class="p-5 bg-slate-50 rounded-xl border border-slate-150 space-y-2">
+                            <h4 class="font-bold text-slate-800">1. 탄젠트 떼어내기 (라디안 근사)</h4>
+                            <p class="leading-relaxed">
+                                각도 <span class="math-var">p</span>가 매우 작으므로 탄젠트를 떼어내고 라디안 단위로 근사화할 수 있습니다.
+                            </p>
+                            <div class="bg-white py-2 px-3 rounded-lg border border-slate-200 flex items-center justify-center gap-2 font-bold text-slate-800">
+                                <span class="math-var">d ≈</span>
+                                <div class="flex flex-col items-center justify-center text-xs math-var">
+                                    <span class="border-b border-slate-400 px-2">1</span>
+                                    <span>p (rad)</span>
+                                </div>
+                                <span>AU</span>
+                            </div>
+                        </div>
+
+                        <div class="p-5 bg-slate-50 rounded-xl border border-slate-150 space-y-2">
+                            <h4 class="font-bold text-slate-800">2. 라디안을 초(arcsec)로 바꾸기</h4>
+                            <p class="leading-relaxed">
+                                관측 단위인 초(<span class="math-var">''</span>)로 바꾸면 라디안 변환 상수(<span class="math-var">206,265</span>)가 생깁니다.
+                            </p>
+                            <div class="bg-white py-2 px-3 rounded-lg border border-slate-200 flex items-center justify-center gap-2 font-bold text-slate-800">
+                                <span class="math-var">d ≈</span>
+                                <div class="flex flex-col items-center justify-center text-xs math-var">
+                                    <span class="border-b border-slate-400 px-2">206,265</span>
+                                    <span>p (초)</span>
+                                </div>
+                                <span>AU</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-5 bg-indigo-50 text-indigo-950 rounded-xl border border-indigo-100 space-y-3">
+                        <h4 class="font-bold text-sm">3. 파섹(pc) 단위의 똑똑한 기획</h4>
+                        <p class="text-sm leading-relaxed">
+                            매번 <span class="math-var">206,265</span>를 곱해주는 계산이 지극히 귀찮았던 천문학자들은 새로운 단위를 창조해 냅니다.
+                        </p>
+                        <div class="bg-white py-3 px-4 rounded-xl border border-indigo-150 text-center text-sm font-extrabold text-indigo-900 my-2">
+                            "연주시차 <span class="math-var text-base">p</span>가 딱 1초(1<span class="math-var">''</span>)인 별까지의 거리를 '1 파섹(pc)'이라 부르자!"
+                        </div>
+                        <p class="text-sm leading-relaxed">
+                            즉, <span class="math-var">1 pc = 206,265 AU</span>로 치환해 버리면서 수치 상수가 완벽히 약분되어 사라집니다. 그 덕분에 중등 교육과정에서 아주 단순하고 예쁜 공식으로 우주 정복을 시작할 수 있게 되었습니다.
+                        </p>
+                        
+                        <div class="bg-indigo-900 text-white p-4 rounded-lg font-mono text-center text-lg font-black tracking-widest flex items-center justify-center gap-3">
+                            <span class="math-var">d</span> (pc) = 
+                            <div class="flex flex-col items-center justify-center text-xs font-bold font-mono">
+                                <span class="border-b border-indigo-400 px-3 pb-0.5">1</span>
+                                <span class="pt-0.5"><span class="math-var">p</span> (초)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 px-4 mt-16 border-t border-slate-800 text-center">
+        <div class="max-w-6xl mx-auto space-y-2">
+            <p class="text-sm">탄젠트 소각 근사 비주얼라이저 - 기하학 및 천문학 교육을 위해 제작되었습니다.</p>
+            <p class="text-xs text-slate-600">© 2026 Interactive Math Visualizer. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript For Interactivity and Canvas Rendering -->
+    <script>
+        // DOM Elements
+        const angleSlider = document.getElementById('angle-slider');
+        const angleBadge = document.getElementById('angle-badge');
+        const valRad = document.getElementById('val-rad');
+        const valSin = document.getElementById('val-sin');
+        const valTan = document.getElementById('val-tan');
+        const errorRateEl = document.getElementById('error-rate');
+        const safetyLabel = document.getElementById('safety-label');
+        const errorBar = document.getElementById('error-bar');
+
+        const circleCanvas = document.getElementById('circle-canvas');
+        const graphCanvas = document.getElementById('graph-canvas');
+
+        const ctxCircle = circleCanvas.getContext('2d');
+        const ctxGraph = graphCanvas.getContext('2d');
+
+        // State variables
+        let angleDeg = 15.0;
+
+        // Event Listeners
+        angleSlider.addEventListener('input', (e) => {
+            angleDeg = parseFloat(e.target.value);
+            updateAll();
+        });
+
+        // Initialize Canvases with correct High-DPI sizing
+        function resizeCanvas(canvas) {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+        }
+
+        function setAngle(deg) {
+            angleDeg = deg;
+            angleSlider.value = deg;
+            updateAll();
+        }
+
+        function switchTab(tabName) {
+            const tabs = ['visualizer', 'proof', 'astronomy'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const content = document.getElementById(`content-${t}`);
+                if (t === tabName) {
+                    btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500', 'text-white');
+                    btn.classList.add('bg-white', 'text-indigo-700');
+                    content.classList.remove('hidden');
+                } else {
+                    btn.classList.remove('bg-white', 'text-indigo-700');
+                    btn.classList.add('bg-indigo-600', 'hover:bg-indigo-500', 'text-white');
+                    content.classList.add('hidden');
+                }
+            });
+            // Force redraw of canvases when tab switches back to visualizer
+            if (tabName === 'visualizer') {
+                setTimeout(initCanvases, 50);
+            }
+        }
+
+        // Main update function
+        function updateAll() {
+            // Convert to radians
+            const angleRad = (angleDeg * Math.PI) / 180;
+            const sinVal = Math.sin(angleRad);
+            const tanVal = Math.tan(angleRad);
+
+            // Calculate error rate
+            const errorRate = Math.abs(tanVal - angleRad) / angleRad * 100;
+
+            // Update UI texts
+            angleBadge.textContent = `${angleDeg.toFixed(1)}°`;
+            valRad.textContent = angleRad.toFixed(5);
+            valSin.textContent = sinVal.toFixed(5);
+            valTan.textContent = tanVal.toFixed(5);
+            errorRateEl.textContent = `${errorRate.toFixed(2)} %`;
+
+            // Safety classification based on error rate
+            if (angleDeg <= 5) {
+                safetyLabel.textContent = "정밀 한계 (오차 0.25% 미만)";
+                safetyLabel.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-emerald-500 text-white";
+                errorBar.className = "bg-emerald-500 h-full transition-all duration-300";
+            } else if (angleDeg <= 10) {
+                safetyLabel.textContent = "물리 근사 한계 (오차 1% 미만)";
+                safetyLabel.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-green-500 text-white";
+                errorBar.className = "bg-green-500 h-full transition-all duration-300";
+            } else if (angleDeg <= 15) {
+                safetyLabel.textContent = "실용 한계선 초과";
+                safetyLabel.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-amber-500 text-white";
+                errorBar.className = "bg-amber-500 h-full transition-all duration-300";
+            } else {
+                safetyLabel.textContent = "근사 부적합 (오차 과다)";
+                safetyLabel.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-rose-500 text-white";
+                errorBar.className = "bg-rose-500 h-full transition-all duration-300";
+            }
+
+            // Update error bar width (logarithmic representation for scaling)
+            const barWidth = Math.min(100, Math.max(1, errorRate * 10));
+            errorBar.style.width = `${barWidth}%`;
+
+            // Draw visualizations
+            drawCircleGeometry(angleRad);
+            drawGraph(angleRad);
+        }
+
+        // Drawing Geometric Circle Model
+        function drawCircleGeometry(rad) {
+            const width = circleCanvas.width;
+            const height = circleCanvas.height;
+            const dpr = window.devicePixelRatio;
+
+            ctxCircle.clearRect(0, 0, width, height);
+
+            // Establish coordinate mapping (centered around left-bottom area)
+            const cx = width * 0.25;
+            const cy = height * 0.75;
+            const r = Math.min(width, height) * 0.55; // scale radius
+
+            // 1. Draw Grid Axis Lines
+            ctxCircle.strokeStyle = '#e2e8f0';
+            ctxCircle.lineWidth = 1 * dpr;
+            ctxCircle.beginPath();
+            ctxCircle.moveTo(0, cy);
+            ctxCircle.lineTo(width, cy);
+            ctxCircle.moveTo(cx, 0);
+            ctxCircle.lineTo(cx, height);
+            ctxCircle.stroke();
+
+            // 2. Draw Arc (the complete circle outline)
+            ctxCircle.strokeStyle = '#cbd5e1';
+            ctxCircle.lineWidth = 1 * dpr;
+            ctxCircle.beginPath();
+            ctxCircle.arc(cx, cy, r, 0, -Math.PI / 2, true); // draw first quadrant arc
+            ctxCircle.stroke();
+
+            // Coordinate helper
+            const px = cx + r * Math.cos(rad);
+            const py = cy - r * Math.sin(rad);
+
+            // 3. Draw Triangle Base/Hypotenuse line
+            ctxCircle.strokeStyle = '#64748b';
+            ctxCircle.lineWidth = 1.5 * dpr;
+            ctxCircle.beginPath();
+            ctxCircle.moveTo(cx, cy);
+            ctxCircle.lineTo(px, py); // radius line to the point on circle
+            ctxCircle.lineTo(cx + r, cy - r * Math.tan(rad)); // extend line to the tangent point
+            ctxCircle.stroke();
+
+            // 4. Draw Sine Line (Emerald green)
+            ctxCircle.strokeStyle = '#10b981';
+            ctxCircle.lineWidth = 3 * dpr;
+            ctxCircle.beginPath();
+            ctxCircle.moveTo(px, cy);
+            ctxCircle.lineTo(px, py);
+            ctxCircle.stroke();
+
+            // 5. Draw Tangent Line (Rose red)
+            ctxCircle.strokeStyle = '#f43f5e';
+            ctxCircle.lineWidth = 3 * dpr;
+            ctxCircle.beginPath();
+            ctxCircle.moveTo(cx + r, cy);
+            ctxCircle.lineTo(cx + r, cy - r * Math.tan(rad));
+            ctxCircle.stroke();
+
+            // 6. Draw Arc Segment representing θ in Radians (Blue)
+            ctxCircle.strokeStyle = '#3b82f6';
+            ctxCircle.lineWidth = 3.5 * dpr;
+            ctxCircle.beginPath();
+            ctxCircle.arc(cx, cy, r, 0, -rad, true);
+            ctxCircle.stroke();
+
+            // 7. Label key points
+            ctxCircle.fillStyle = '#1e293b';
+            ctxCircle.font = `bold ${10 * dpr}px 'Noto Sans KR'`;
+            ctxCircle.fillText("O (원점)", cx - 40 * dpr, cy + 20 * dpr);
+            ctxCircle.fillText("1.0", cx + r - 5 * dpr, cy + 20 * dpr);
+
+            // Points indicator dot
+            ctxCircle.fillStyle = '#3b82f6';
+            ctxCircle.beginPath();
+            ctxCircle.arc(px, py, 4 * dpr, 0, 2 * Math.PI);
+            ctxCircle.fill();
+        }
+
+        // Drawing Graph comparing θ, sin θ, tan θ
+        function drawGraph(activeRad) {
+            const width = graphCanvas.width;
+            const height = graphCanvas.height;
+            const dpr = window.devicePixelRatio;
+
+            ctxGraph.clearRect(0, 0, width, height);
+
+            const padding = 40 * dpr;
+            const graphWidth = width - 2 * padding;
+            const graphHeight = height - 2 * padding;
+
+            // X-axis: 0° to 45°
+            // Y-axis: 0 to 1.1 (since tan(45°) = 1.0)
+            const maxDeg = 45;
+            const maxY = 1.1;
+
+            function getCanvasX(deg) {
+                return padding + (deg / maxDeg) * graphWidth;
+            }
+
+            function getCanvasY(yVal) {
+                return padding + graphHeight - (yVal / maxY) * graphHeight;
+            }
+
+            // 1. Draw Grid System
+            ctxGraph.strokeStyle = '#f1f5f9';
+            ctxGraph.lineWidth = 1 * dpr;
+            for (let i = 0; i <= 4; i++) {
+                // Vertical grid lines
+                const deg = (maxDeg / 4) * i;
+                const gx = getCanvasX(deg);
+                ctxGraph.beginPath();
+                ctxGraph.moveTo(gx, padding);
+                ctxGraph.lineTo(gx, padding + graphHeight);
+                ctxGraph.stroke();
+
+                // Horizontal grid lines
+                const yVal = (maxY / 4) * i;
+                const gy = getCanvasY(yVal);
+                ctxGraph.beginPath();
+                ctxGraph.moveTo(padding, gy);
+                ctxGraph.lineTo(padding + graphWidth, gy);
+                ctxGraph.stroke();
+            }
+
+            // 2. Axis Outline
+            ctxGraph.strokeStyle = '#94a3b8';
+            ctxGraph.lineWidth = 1.5 * dpr;
+            ctxGraph.beginPath();
+            ctxGraph.moveTo(padding, padding);
+            ctxGraph.lineTo(padding, padding + graphHeight);
+            ctxGraph.lineTo(padding + graphWidth, padding + graphHeight);
+            ctxGraph.stroke();
+
+            // 3. Draw Curves
+            const steps = 100;
+            const drawCurve = (color, func) => {
+                ctxGraph.strokeStyle = color;
+                ctxGraph.lineWidth = 2.5 * dpr;
+                ctxGraph.beginPath();
+                for (let i = 0; i <= steps; i++) {
+                    const deg = (maxDeg / steps) * i;
+                    const rad = (deg * Math.PI) / 180;
+                    const val = func(rad);
+                    
+                    const gx = getCanvasX(deg);
+                    const gy = getCanvasY(val);
+
+                    if (i === 0) ctxGraph.moveTo(gx, gy);
+                    else ctxGraph.lineTo(gx, gy);
+                }
+                ctxGraph.stroke();
+            };
+
+            // Draw y = θ (Blue)
+            drawCurve('#3b82f6', (r) => r);
+            // Draw y = sin θ (Green)
+            drawCurve('#10b981', (r) => Math.sin(r));
+            // Draw y = tan θ (Red)
+            drawCurve('#f43f5e', (r) => Math.tan(r));
+
+            // 4. Draw active vertical dotted line indicator
+            const activeDeg = (activeRad * 180) / Math.PI;
+            const ax = getCanvasX(activeDeg);
+            ctxGraph.strokeStyle = '#94a3b8';
+            ctxGraph.lineWidth = 1.5 * dpr;
+            ctxGraph.setLineDash([4 * dpr, 4 * dpr]);
+            ctxGraph.beginPath();
+            ctxGraph.moveTo(ax, padding);
+            ctxGraph.lineTo(ax, padding + graphHeight);
+            ctxGraph.stroke();
+            ctxGraph.setLineDash([]); // reset to solid
+
+            // Draw intersection points
+            const drawDot = (yVal, color) => {
+                const ay = getCanvasY(yVal);
+                ctxGraph.fillStyle = color;
+                ctxGraph.beginPath();
+                ctxGraph.arc(ax, ay, 4 * dpr, 0, 2 * Math.PI);
+                ctxGraph.fill();
+            };
+
+            drawDot(activeRad, '#3b82f6'); // θ point
+            drawDot(Math.sin(activeRad), '#10b981'); // sin θ point
+            drawDot(Math.tan(activeRad), '#f43f5e'); // tan θ point
+
+            // 5. Labels on Graph Axes
+            ctxGraph.fillStyle = '#64748b';
+            ctxGraph.font = `${8 * dpr}px sans-serif`;
+            
+            // X labels (degrees)
+            for (let i = 0; i <= 3; i++) {
+                const deg = [0, 15, 30, 45][i];
+                ctxGraph.fillText(`${deg}°`, getCanvasX(deg) - 8 * dpr, padding + graphHeight + 15 * dpr);
+            }
+            // Y labels (values)
+            for (let i = 0; i <= 2; i++) {
+                const yVal = [0.0, 0.5, 1.0][i];
+                ctxGraph.fillText(yVal.toFixed(1), padding - 22 * dpr, getCanvasY(yVal) + 3 * dpr);
+            }
+        }
+
+        // Initialize canves dimensions on load and resize
+        function initCanvases() {
+            resizeCanvas(circleCanvas);
+            resizeCanvas(graphCanvas);
+            updateAll();
+        }
+
+        window.onload = initCanvases;
+        window.onresize = initCanvases;
+    </script>
+</body>
+</html>
