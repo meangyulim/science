@@ -16,9 +16,13 @@
             font-family: 'Times New Roman', Times, Georgia, serif;
             font-style: italic;
         }
+        /* 모바일/태블릿에서 캔버스 드래그 시 화면 스크롤(위아래 드래그)이 막히는 현상 방지 */
+        canvas {
+            touch-action: pan-y;
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body class="bg-slate-50 text-slate-800 pb-16"> <!-- min-h-screen 제거하여 iframe 스크롤 충돌 방지 -->
 
     <header class="bg-gradient-to-r from-indigo-700 to-blue-800 text-white shadow-md py-6 px-4">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -683,8 +687,8 @@
             ctxGraph.lineWidth = 1 * dpr;
             for (let i = 0; i <= 4; i++) {
                 // Vertical grid lines
-                const deg = (maxDeg / 4) * i;
-                const gx = getCanvasX(deg);
+                const fontValue = (maxDeg / 4) * i;
+                const gx = getCanvasX(fontValue);
                 ctxGraph.beginPath();
                 ctxGraph.moveTo(gx, padding);
                 ctxGraph.lineTo(gx, padding + graphHeight);
