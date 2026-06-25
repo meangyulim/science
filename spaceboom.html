@@ -19,6 +19,7 @@
         /* Top Tabs */
         .mode-tab {
             transition: all 0.3s ease; border-bottom: 3px solid transparent; opacity: 0.6;
+            white-space: nowrap;
         }
         .mode-tab.active {
             border-bottom-color: #38bdf8; opacity: 1; color: #38bdf8;
@@ -27,8 +28,8 @@
 
         /* Theory Toggle */
         .theory-toggle { transition: all 0.3s; }
-        .theory-toggle.active-standard { background-color: #ef4444; color: white; border-color: #f87171; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        .theory-toggle.active-inflation { background-color: #10b981; color: white; border-color: #34d399; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+        .theory-toggle.active-standard { background-color: #ef4444; color: white; border-color: #f87171; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+        .theory-toggle.active-inflation { background-color: #10b981; color: white; border-color: #34d399; box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
 
         /* Curvature Buttons */
         .curv-btn { transition: all 0.2s; border: 1px solid #475569; background: rgba(30,41,59,0.8); color: #94a3b8; }
@@ -40,26 +41,30 @@
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: #334155; border-radius: 4px; }
         input[type=range]:focus { outline: none; }
         
-        ::-webkit-scrollbar { width: 6px; }
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="h-[100dvh] w-screen flex flex-col">
 
     <!-- Top Navigation Header -->
     <header class="bg-[#0b1120] border-b border-slate-800 shrink-0 z-20">
-        <div class="px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-2">
-                    <span class="text-sky-400">🌌 우주론의 한계 극복:</span> 급팽창 이론 (Inflation)
+        <div class="px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
+            <div class="w-full md:w-auto">
+                <h1 class="text-base md:text-2xl font-black text-white flex items-center gap-2">
+                    <span class="text-sky-400">🌌 우주론의 한계:</span> 급팽창 이론
                 </h1>
             </div>
-            <!-- Theme Tabs -->
-            <div class="flex gap-6 font-bold text-sm md:text-base">
-                <button class="mode-tab active pb-2" onclick="setMode('flatness')" id="tab-flatness">1. 우주 평탄성 문제</button>
-                <button class="mode-tab pb-2" onclick="setMode('horizon')" id="tab-horizon">2. 지평선 문제</button>
-                <button class="mode-tab pb-2" onclick="setMode('monopole')" id="tab-monopole">3. 자기 홀극 문제</button>
+            <!-- Theme Tabs (가로 스크롤 허용) -->
+            <div class="flex gap-4 md:gap-6 font-bold text-xs md:text-base overflow-x-auto w-full md:w-auto hide-scrollbar pb-1">
+                <button class="mode-tab active pb-1 md:pb-2" onclick="setMode('flatness')" id="tab-flatness">1. 우주 평탄성 문제</button>
+                <button class="mode-tab pb-1 md:pb-2" onclick="setMode('horizon')" id="tab-horizon">2. 지평선 문제</button>
+                <button class="mode-tab pb-1 md:pb-2" onclick="setMode('monopole')" id="tab-monopole">3. 자기 홀극 문제</button>
             </div>
         </div>
     </header>
@@ -67,57 +72,58 @@
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative bg-[#020617]">
         
-        <!-- Canvas Section (Left) -->
-        <div class="h-[50%] md:h-full md:flex-1 relative flex flex-col items-center justify-center overflow-hidden shrink-0 cursor-move" id="canvas-container">
+        <!-- Canvas Section (Left/Top) -->
+        <!-- 높이를 모바일에서는 55%로 확보하여 캔버스가 너무 좁아지지 않게 조정 -->
+        <div class="h-[55%] md:h-full w-full md:flex-1 relative flex flex-col items-center justify-center overflow-hidden shrink-0 cursor-move" id="canvas-container">
             <canvas id="bgCanvas" class="absolute inset-0 z-0 opacity-40"></canvas>
             <canvas id="simCanvas" class="absolute inset-0 z-10 w-full h-full"></canvas>
 
             <!-- 3D Rotation Hint (Only for flatness) -->
-            <div id="drag-hint" class="absolute top-6 left-6 z-20 bg-slate-800/80 border border-slate-600 px-4 py-2 rounded-full flex items-center gap-2 text-sky-400 font-bold text-sm shadow-lg animate-pulse pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15l-3-3 3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/></svg>
-                화면을 드래그하여 3D 시점을 회전해보세요
+            <div id="drag-hint" class="absolute top-2 left-2 md:top-6 md:left-6 z-20 bg-slate-800/80 border border-slate-600 px-3 py-1.5 md:px-4 md:py-2 rounded-full flex items-center gap-1 md:gap-2 text-sky-400 font-bold text-[10px] md:text-sm shadow-lg animate-pulse pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 md:w-[18px] md:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15l-3-3 3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/></svg>
+                <span class="hidden sm:inline">화면을 드래그하여 </span>3D 회전
             </div>
 
             <!-- Theory Toggle Buttons (Overlay) -->
-            <div class="absolute top-6 right-6 z-20 flex bg-slate-900/80 p-1 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-sm">
-                <button class="theory-toggle active-standard px-4 py-2 text-sm font-bold rounded-md" id="btn-theory-std" onclick="setTheory('standard')">
-                    ⚠️ 대폭발 우주론
+            <div class="absolute top-2 right-2 md:top-6 md:right-6 z-20 flex bg-slate-900/80 p-1 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-sm">
+                <button class="theory-toggle active-standard px-2 py-1 md:px-4 md:py-2 text-[10px] md:text-sm font-bold rounded-md" id="btn-theory-std" onclick="setTheory('standard')">
+                    ⚠️ 대폭발<span class="hidden sm:inline"> 우주론</span>
                 </button>
-                <button class="theory-toggle text-slate-400 px-4 py-2 text-sm font-bold rounded-md" id="btn-theory-inf" onclick="setTheory('inflation')">
-                    ✅ 급팽창 이론
+                <button class="theory-toggle text-slate-400 px-2 py-1 md:px-4 md:py-2 text-[10px] md:text-sm font-bold rounded-md" id="btn-theory-inf" onclick="setTheory('inflation')">
+                    ✅ 급팽창<span class="hidden sm:inline"> 이론</span>
                 </button>
             </div>
 
             <!-- Curvature Controls (Only for Flatness) -->
-            <div id="curvature-controls" class="absolute bottom-6 left-6 z-20 bg-slate-900/80 border border-slate-700 p-3 rounded-xl shadow-xl backdrop-blur-sm">
-                <p class="text-xs font-bold text-slate-400 mb-2 text-center">우주 초기 공간의 곡률</p>
-                <div class="flex gap-2">
-                    <button class="curv-btn px-3 py-1.5 rounded font-bold text-xs" id="curv-positive" onclick="setCurvature(0.006)">곡률 &gt; 0 (닫힌 우주)</button>
-                    <button class="curv-btn active px-3 py-1.5 rounded font-bold text-xs" id="curv-zero" onclick="setCurvature(0)">곡률 = 0 (평탄 우주)</button>
-                    <button class="curv-btn px-3 py-1.5 rounded font-bold text-xs" id="curv-negative" onclick="setCurvature(-0.006)">곡률 &lt; 0 (열린 우주)</button>
+            <div id="curvature-controls" class="absolute bottom-2 left-2 right-2 md:bottom-6 md:left-6 md:right-auto z-20 bg-slate-900/80 border border-slate-700 p-2 md:p-3 rounded-xl shadow-xl backdrop-blur-sm flex flex-col items-center md:items-start">
+                <p class="text-[10px] md:text-xs font-bold text-slate-400 mb-1.5 md:mb-2 text-center md:text-left w-full">우주 초기 공간의 곡률</p>
+                <div class="flex gap-1.5 md:gap-2 w-full justify-between md:justify-start">
+                    <button class="curv-btn px-2 py-1 md:px-3 md:py-1.5 rounded font-bold text-[9px] sm:text-[10px] md:text-xs flex-1 md:flex-none text-center" id="curv-positive" onclick="setCurvature(0.006)">k &gt; 0 <span class="hidden sm:inline">(닫힌)</span></button>
+                    <button class="curv-btn active px-2 py-1 md:px-3 md:py-1.5 rounded font-bold text-[9px] sm:text-[10px] md:text-xs flex-1 md:flex-none text-center" id="curv-zero" onclick="setCurvature(0)">k = 0 <span class="hidden sm:inline">(평탄)</span></button>
+                    <button class="curv-btn px-2 py-1 md:px-3 md:py-1.5 rounded font-bold text-[9px] sm:text-[10px] md:text-xs flex-1 md:flex-none text-center" id="curv-negative" onclick="setCurvature(-0.006)">k &lt; 0 <span class="hidden sm:inline">(열린)</span></button>
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar Control & Info Panel (Right) -->
-        <aside class="h-[50%] md:h-full w-full md:w-[400px] lg:w-[450px] border-t md:border-t-0 md:border-l border-slate-700 bg-[#0f172a] flex flex-col relative z-30 shrink-0 shadow-2xl">
+        <!-- Sidebar Control & Info Panel (Right/Bottom) -->
+        <aside class="flex-1 md:h-full w-full md:w-[400px] lg:w-[450px] border-t md:border-t-0 md:border-l border-slate-700 bg-[#0f172a] flex flex-col relative z-30 shrink-0 shadow-2xl">
             
             <!-- Explanation Text -->
-            <div class="flex-1 overflow-y-auto p-6 text-slate-300 space-y-4 text-[15px] leading-relaxed" id="info-panel">
+            <div class="flex-1 overflow-y-auto p-5 md:p-6 text-slate-300 space-y-3 md:space-y-4 text-sm md:text-[15px] leading-relaxed" id="info-panel">
                 <!-- Javascript injects content -->
             </div>
 
             <!-- Timeline Controller -->
-            <div class="p-6 bg-slate-800 border-t border-slate-700 pb-[max(env(safe-area-inset-bottom),1.5rem)]">
-                <div class="flex items-center gap-4">
-                    <button id="btnPlay" class="w-14 h-14 shrink-0 bg-sky-500 hover:bg-sky-400 text-white rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95" onclick="togglePlay()">
-                        <svg id="iconPlay" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        <svg id="iconPause" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            <div class="p-4 md:p-6 bg-slate-800 border-t border-slate-700 pb-[max(env(safe-area-inset-bottom),1rem)] md:pb-[max(env(safe-area-inset-bottom),1.5rem)]">
+                <div class="flex items-center gap-3 md:gap-4">
+                    <button id="btnPlay" class="w-10 h-10 md:w-14 md:h-14 shrink-0 bg-sky-500 hover:bg-sky-400 text-white rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95" onclick="togglePlay()">
+                        <svg id="iconPlay" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <svg id="iconPause" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 md:w-6 md:h-6 hidden" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
                     </button>
                     <div class="flex-1">
-                        <div class="flex justify-between items-end mb-2">
-                            <span class="font-bold text-sky-400" id="time-status-label">시간 흐름</span>
-                            <span class="text-xs font-mono bg-slate-900 px-2 py-1 rounded border border-slate-700">Time: <span id="time-val">0</span></span>
+                        <div class="flex justify-between items-end mb-1.5 md:mb-2">
+                            <span class="font-bold text-sky-400 text-sm md:text-base" id="time-status-label">시간 흐름</span>
+                            <span class="text-[10px] md:text-xs font-mono bg-slate-900 px-2 py-1 rounded border border-slate-700">Time: <span id="time-val">0</span></span>
                         </div>
                         <input type="range" id="timeSlider" min="0" max="100" value="0" step="0.5" oninput="manualSeek()">
                     </div>
@@ -147,8 +153,7 @@
         // Pointer Events for 3D Rotation
         container.addEventListener('pointerdown', (e) => {
             if (currentMode !== 'flatness') return;
-            // 버튼 조작 시 회전 방지
-            if(e.target.closest('button') || e.target.closest('input')) return;
+            if(e.target.closest('button') || e.target.closest('input') || e.target.closest('#curvature-controls')) return;
             
             isDragging = true;
             lastMouseX = e.clientX;
@@ -208,65 +213,65 @@
             bgCtx.globalAlpha = 1.0;
         }
 
-        // --- 4. Content Dictionary (수식 오류 수정) ---
+        // --- 4. Content Dictionary (모바일 텍스트 최적화 적용) ---
         const content = {
             flatness: {
                 standard: `
-                    <h3 class="text-xl font-black text-red-400 mb-4 pb-2 border-b border-red-500/30">우주 평탄성의 문제</h3>
+                    <h3 class="text-lg md:text-xl font-black text-red-400 mb-3 md:mb-4 pb-2 border-b border-red-500/30">우주 평탄성의 문제</h3>
                     <p>현재 관측 결과, 우주는 곡률이 0인 <b>평탄한 우주</b>입니다.</p>
-                    <p class="mt-3">하지만 기존 대폭발 우주론에 따르면, 우주 초기에 곡률이 아주 조금이라도 0이 아니었다면 팽창할수록 곡률이 극단적으로 커졌을 것입니다. <b>현재처럼 평탄하려면 초기 우주 밀도가 10<sup>-60</sup> 수준의 오차도 없이 완벽하게 임계 밀도와 같았어야 한다는 확률적 모순</b>이 발생합니다.</p>
-                    <div class="mt-5 p-4 bg-red-950/40 rounded-xl border border-red-500/30">
-                        <span class="text-red-400 font-bold text-sm tracking-wide">⚠️ 3D 관찰 포인트:</span><br>
-                        좌측 하단의 곡률 버튼을 누른 후 화면을 돌려보세요. 팽창(재생) 후에도 우주 공간의 휨이 그대로 유지되어 빛(레이저)이 직진하지 못하고 휩니다.
+                    <p class="mt-2 md:mt-3">하지만 기존 대폭발 우주론에 따르면, 우주 초기에 곡률이 아주 조금이라도 0이 아니었다면 팽창할수록 곡률이 극단적으로 커졌을 것입니다. <b>현재처럼 평탄하려면 초기 밀도가 10<sup>-60</sup> 수준의 오차도 없이 완벽하게 임계 밀도와 같았어야 한다는 모순</b>이 발생합니다.</p>
+                    <div class="mt-4 p-3 md:p-4 bg-red-950/40 rounded-xl border border-red-500/30 text-xs md:text-sm">
+                        <span class="text-red-400 font-bold tracking-wide">⚠️ 3D 관찰 포인트:</span><br>
+                        좌측 하단의 곡률 버튼을 누른 후 화면을 돌려보세요. 팽창(재생) 후에도 휨이 유지되어 빛(레이저)이 직진하지 못합니다.
                     </div>
                 `,
                 inflation: `
-                    <h3 class="text-xl font-black text-emerald-400 mb-4 pb-2 border-b border-emerald-500/30">급팽창을 통한 평탄성 해결</h3>
-                    <p>급팽창 이론에 따르면 우주는 탄생 직후 빛보다 빠른 속도로 <b>지수함수적 급팽창</b>을 겪었습니다.</p>
-                    <p class="mt-3">우주 공간 자체가 무한히 뻗어나가며 커지면서, <b>초기 공간이 어떻게 휘어져 있었든 상관없이 표면의 곡률 반경이 무한대에 가까워져 국부적으로는 완벽하게 평탄(k=0)해집니다.</b></p>
-                    <div class="mt-5 p-4 bg-emerald-950/40 rounded-xl border border-emerald-500/30">
-                        <span class="text-emerald-400 font-bold text-sm tracking-wide">✅ 3D 해결 포인트:</span><br>
-                        어떤 곡률을 선택하든, 재생 버튼을 눌러 <b>급팽창</b>이 일어나는 순간 휘어졌던 3D 공간 격자가 폭발적으로 펴지며 곡률이 0이 되고 빛이 완벽하게 직진합니다!
+                    <h3 class="text-lg md:text-xl font-black text-emerald-400 mb-3 md:mb-4 pb-2 border-b border-emerald-500/30">급팽창을 통한 평탄성 해결</h3>
+                    <p>우주는 탄생 직후 빛보다 빠른 속도로 <b>지수함수적 급팽창</b>을 겪었습니다.</p>
+                    <p class="mt-2 md:mt-3">우주 공간 자체가 무한히 뻗어나가며 커지면서, <b>초기 공간이 어떻게 휘어져 있었든 표면의 곡률 반경이 무한대에 가까워져 국부적으로는 완벽하게 평탄(k=0)해집니다.</b></p>
+                    <div class="mt-4 p-3 md:p-4 bg-emerald-950/40 rounded-xl border border-emerald-500/30 text-xs md:text-sm">
+                        <span class="text-emerald-400 font-bold tracking-wide">✅ 3D 해결 포인트:</span><br>
+                        재생 버튼을 눌러보세요. <b>급팽창</b> 순간 휘어졌던 격자가 폭발적으로 펴지며 빛이 직진합니다!
                     </div>
                 `
             },
             horizon: {
                 standard: `
-                    <h3 class="text-xl font-black text-red-400 mb-4 pb-2 border-b border-red-500/30">지평선 문제</h3>
-                    <p>우주 배경 복사를 관측하면, 우주 반대편 끝에 있는 가장 먼 은하들의 온도가 완벽히 같습니다.</p>
-                    <p class="mt-3">우주가 한 점에서 탄생했더라도 <b>팽창 속도가 빛보다 빨랐다면, 두 지역이 한 번도 빛이나 물질을 교환하여 서로의 온도를 맞출(열평형) 시간이 없었습니다.</b> 정보 교환 없이 어떻게 온도가 똑같을 수 있을까요?</p>
-                    <div class="mt-5 p-4 bg-red-950/40 rounded-xl border border-red-500/30">
-                        <span class="text-red-400 font-bold text-sm tracking-wide">⚠️ 관찰 포인트:</span><br>
-                        시뮬레이션 초기, 한 점에서 팽창을 시작함에도 붉은색과 푸른색 정보 전달 반경(빛의 원뿔)이 닿기도 전에 은하가 더 빨리 멀어집니다. 물리적으로 온도 교환이 불가능합니다.
+                    <h3 class="text-lg md:text-xl font-black text-red-400 mb-3 md:mb-4 pb-2 border-b border-red-500/30">지평선 문제</h3>
+                    <p>우주 반대편 끝에 있는 가장 먼 은하들의 배경 복사 온도가 완벽히 같습니다.</p>
+                    <p class="mt-2 md:mt-3"><b>팽창 속도가 빛보다 빨랐다면, 두 지역이 서로의 온도를 맞출(열평형) 시간이 없었습니다.</b> 정보 교환 없이 어떻게 온도가 똑같을 수 있을까요?</p>
+                    <div class="mt-4 p-3 md:p-4 bg-red-950/40 rounded-xl border border-red-500/30 text-xs md:text-sm">
+                        <span class="text-red-400 font-bold tracking-wide">⚠️ 관찰 포인트:</span><br>
+                        팽창을 시작할 때 정보 전달 반경(빛의 원뿔)이 닿기도 전에 은하가 더 빨리 멀어집니다. 물리적으로 온도 교환이 불가합니다.
                     </div>
                 `,
                 inflation: `
-                    <h3 class="text-xl font-black text-emerald-400 mb-4 pb-2 border-b border-emerald-500/30">급팽창을 통한 지평선 해결</h3>
-                    <p>급팽창 이론은 해결책을 제시합니다. 급팽창 이전 초기의 아주 작은 우주에서는 은하들이 멀어지는 속도가 빛보다 느려 <b>서로 빛이 닿을 수 있는 매우 가까운 거리</b>에 모여 있었습니다.</p>
-                    <p class="mt-3">이때 <b>미리 에너지를 교환하여 완벽히 똑같은 온도를 맞춘 후, 급팽창을 통해 순식간에 우주 양 끝으로 멀어진 것</b>입니다.</p>
-                    <div class="mt-5 p-4 bg-emerald-950/40 rounded-xl border border-emerald-500/30">
-                        <span class="text-emerald-400 font-bold text-sm tracking-wide">✅ 해결 포인트:</span><br>
-                        초기 팽창 전, 빛이 혼합(노란색 구역)되어 열평형에 도달하고 직후 <b>급팽창</b>에 의해 빛의 이동 속도보다 훨씬 빠르게 지평선 밖으로 밀려납니다.
+                    <h3 class="text-lg md:text-xl font-black text-emerald-400 mb-3 md:mb-4 pb-2 border-b border-emerald-500/30">급팽창을 통한 지평선 해결</h3>
+                    <p>초기의 아주 작은 우주에서는 은하들이 <b>서로 빛이 닿을 수 있는 가까운 거리</b>에 모여 있었습니다.</p>
+                    <p class="mt-2 md:mt-3">이때 <b>미리 에너지를 교환하여 온도를 맞춘 후, 급팽창을 통해 순식간에 우주 양 끝으로 멀어진 것</b>입니다.</p>
+                    <div class="mt-4 p-3 md:p-4 bg-emerald-950/40 rounded-xl border border-emerald-500/30 text-xs md:text-sm">
+                        <span class="text-emerald-400 font-bold tracking-wide">✅ 해결 포인트:</span><br>
+                        빛이 혼합(노란색)되어 열평형에 도달한 직후, <b>급팽창</b>에 의해 초고속으로 지평선 밖으로 밀려납니다.
                     </div>
                 `
             },
             monopole: {
                 standard: `
-                    <h3 class="text-xl font-black text-red-400 mb-4 pb-2 border-b border-red-500/30">자기 홀극 문제</h3>
-                    <p>대통일 이론에 따르면 우주 초기 초고온 상태에서 <b>N극 또는 S극만 가진 '자기 홀극' 입자</b>가 대량 생성되었습니다.</p>
-                    <p class="mt-3">기존 대폭발 우주론의 일관된 팽창 속도라면 <b>현재 관측 가능한 우주 내에서도 충분히 많은 수의 자기 홀극이 발견되어야 합니다.</b> 하지만 실제로는 전혀 관측되지 않습니다.</p>
-                    <div class="mt-5 p-4 bg-red-950/40 rounded-xl border border-red-500/30">
-                        <span class="text-red-400 font-bold text-sm tracking-wide">⚠️ 관찰 포인트:</span><br>
-                        우주 팽창에도 불구하고 관측 카메라 앵글 안(관측 가능한 우주)에 수많은 N/S 입자가 바글거리며 남아있습니다.
+                    <h3 class="text-lg md:text-xl font-black text-red-400 mb-3 md:mb-4 pb-2 border-b border-red-500/30">자기 홀극 문제</h3>
+                    <p>초고온 상태에서 <b>N극 또는 S극만 가진 '자기 홀극' 입자</b>가 대량 생성되었습니다.</p>
+                    <p class="mt-2 md:mt-3">기존의 완만한 팽창 속도라면 <b>관측 가능한 우주 내에서도 자기 홀극이 발견되어야 합니다.</b> 하지만 실제로는 관측되지 않습니다.</p>
+                    <div class="mt-4 p-3 md:p-4 bg-red-950/40 rounded-xl border border-red-500/30 text-xs md:text-sm">
+                        <span class="text-red-400 font-bold tracking-wide">⚠️ 관찰 포인트:</span><br>
+                        우주 팽창에도 불구하고 카메라 앵글 안(관측 가능한 우주)에 N/S 입자가 바글거리며 남아있습니다.
                     </div>
                 `,
                 inflation: `
-                    <h3 class="text-xl font-black text-emerald-400 mb-4 pb-2 border-b border-emerald-500/30">급팽창을 통한 자기 홀극 해결</h3>
-                    <p>초기에 자기 홀극이 생성된 것은 맞으나, 그 직후 우주가 <b>부피 기준으로 10<sup>78</sup>배 이상 급격하게 팽창</b>해버렸습니다.</p>
-                    <p class="mt-3">우주 공간이 상상 이상으로 넓어지면서 <b>단위 부피당 자기 홀극의 밀도가 0에 수렴할 정도로 희박하게 흩어졌기 때문</b>에 우리가 관측 가능한 우주 내에서는 찾을 수 없는 것입니다.</p>
-                    <div class="mt-5 p-4 bg-emerald-950/40 rounded-xl border border-emerald-500/30">
-                        <span class="text-emerald-400 font-bold text-sm tracking-wide">✅ 해결 포인트:</span><br>
-                        급팽창이 발생하는 순간 수많은 입자들이 관측 가능한 영역 밖으로 폭발적으로 멀어지며 밀도가 0이 되는 모습을 확인하세요.
+                    <h3 class="text-lg md:text-xl font-black text-emerald-400 mb-3 md:mb-4 pb-2 border-b border-emerald-500/30">급팽창을 통한 자기 홀극 해결</h3>
+                    <p>우주가 <b>부피 기준으로 10<sup>78</sup>배 이상 급격하게 팽창</b>해버렸습니다.</p>
+                    <p class="mt-2 md:mt-3">우주 공간이 극도로 넓어지면서 <b>단위 부피당 자기 홀극의 밀도가 0에 수렴할 정도로 흩어졌기 때문</b>에 우리가 관측 가능한 범위 내에서는 찾을 수 없습니다.</p>
+                    <div class="mt-4 p-3 md:p-4 bg-emerald-950/40 rounded-xl border border-emerald-500/30 text-xs md:text-sm">
+                        <span class="text-emerald-400 font-bold tracking-wide">✅ 해결 포인트:</span><br>
+                        급팽창이 발생하는 순간 입자들이 관측 영역 밖으로 폭발적으로 밀려나며 밀도가 0이 되는 것을 확인하세요.
                     </div>
                 `
             }
@@ -277,7 +282,7 @@
             currentMode = mode;
             ['flatness', 'horizon', 'monopole'].forEach(m => {
                 const tab1 = document.getElementById(`tab-${m}`);
-                if (tab1) tab1.className = m === mode ? "mode-tab active pb-2" : "mode-tab pb-2";
+                if (tab1) tab1.className = m === mode ? "mode-tab active whitespace-nowrap pb-1 md:pb-2" : "mode-tab whitespace-nowrap pb-1 md:pb-2";
             });
 
             const dragHint = document.getElementById('drag-hint');
@@ -288,7 +293,7 @@
             
             const curvControls = document.getElementById('curvature-controls');
             if (curvControls) {
-                curvControls.style.display = mode === 'flatness' ? 'block' : 'none';
+                curvControls.style.display = mode === 'flatness' ? 'flex' : 'none';
             }
 
             resetSim();
@@ -299,12 +304,15 @@
             const btnStd = document.getElementById('btn-theory-std');
             const btnInf = document.getElementById('btn-theory-inf');
             
+            const baseStd = "theory-toggle px-2 py-1 md:px-4 md:py-2 text-[10px] md:text-sm font-bold rounded-md ";
+            const baseInf = "theory-toggle px-2 py-1 md:px-4 md:py-2 text-[10px] md:text-sm font-bold rounded-md ";
+
             if(theory === 'standard') {
-                btnStd.className = "theory-toggle active-standard px-4 py-2 text-sm font-bold rounded-md";
-                btnInf.className = "theory-toggle text-slate-400 px-4 py-2 text-sm font-bold rounded-md border border-transparent";
+                btnStd.className = baseStd + "active-standard";
+                btnInf.className = baseInf + "text-slate-400 border border-transparent";
             } else {
-                btnStd.className = "theory-toggle text-slate-400 px-4 py-2 text-sm font-bold rounded-md border border-transparent";
-                btnInf.className = "theory-toggle active-inflation px-4 py-2 text-sm font-bold rounded-md";
+                btnStd.className = baseStd + "text-slate-400 border border-transparent";
+                btnInf.className = baseInf + "active-inflation";
             }
             resetSim();
         }
@@ -313,12 +321,13 @@
             initialCurvature = val;
             ['positive', 'zero', 'negative'].forEach(id => {
                 const btn = document.getElementById(`curv-${id}`);
-                if (btn) btn.className = "curv-btn px-3 py-1.5 rounded font-bold text-xs";
+                if (btn) btn.className = "curv-btn px-2 py-1 md:px-3 md:py-1.5 rounded font-bold text-[9px] sm:text-[10px] md:text-xs flex-1 md:flex-none text-center";
             });
             
-            if(val > 0) document.getElementById('curv-positive').className = "curv-btn active px-3 py-1.5 rounded font-bold text-xs";
-            else if(val === 0) document.getElementById('curv-zero').className = "curv-btn active px-3 py-1.5 rounded font-bold text-xs";
-            else document.getElementById('curv-negative').className = "curv-btn active px-3 py-1.5 rounded font-bold text-xs";
+            let activeClass = "curv-btn active px-2 py-1 md:px-3 md:py-1.5 rounded font-bold text-[9px] sm:text-[10px] md:text-xs flex-1 md:flex-none text-center";
+            if(val > 0) document.getElementById('curv-positive').className = activeClass;
+            else if(val === 0) document.getElementById('curv-zero').className = activeClass;
+            else document.getElementById('curv-negative').className = activeClass;
             
             resetSim();
         }
@@ -383,20 +392,20 @@
         // --- 7. Render Routines ---
         
         function drawFlatness() {
-            const cx = cw / 2 - (cw > 1024 ? 150 : 0); 
-            const cy = ch / 2 + 50;
+            const cx = cw / 2; 
+            const cy = ch / 2;
             
             let scale = getScaleFactor(time, currentTheory);
+            // 모바일 화면 비율에 맞춰 스케일 조정
+            if (cw < 768) scale *= 0.7; 
             
-            // 핵심: 평탄성 직진성 확보
-            // 인플레이션 이후(time > 35)에는 곡률(currentCurv)을 강제로 0으로 만들어 직진을 완벽하게 보장합니다.
             let currentCurv = initialCurvature; 
             if (currentTheory === 'inflation') {
                 if (time > 20 && time <= 35) {
                     let flattenFactor = (time - 20) / 15;
                     currentCurv = initialCurvature * Math.pow(1 - flattenFactor, 3); 
                 } else if (time > 35) {
-                    currentCurv = 0; // 완벽한 평탄!
+                    currentCurv = 0; 
                 }
             }
 
@@ -428,8 +437,8 @@
                 ctx.stroke();
             }
 
-            // Lasers (Light Paths) - 직진성 완벽 보장
-            ctx.lineWidth = 4;
+            // Lasers
+            ctx.lineWidth = cw < 768 ? 3 : 4;
             ctx.shadowBlur = 20;
             const rayOffset = 80 * scale; 
             
@@ -438,7 +447,7 @@
                 ctx.beginPath();
                 for(let lx = -offset; lx <= offset; lx += 15) {
                     let bend = 0;
-                    if(Math.abs(currentCurv) > 0.000001) { // 0이 아닐 때만 휨 적용
+                    if(Math.abs(currentCurv) > 0.000001) {
                         bend = (lx * lx) * currentCurv * 0.4 * Math.sign(yPos);
                     }
                     let ly = yPos - bend;
@@ -450,71 +459,70 @@
                 ctx.stroke();
             };
 
-            // Draw Red Lasers
             drawRay(-rayOffset, '#ef4444'); 
             drawRay(rayOffset, '#ef4444');  
             ctx.shadowBlur = 0;
 
             // Center Label
+            const boxW = cw < 768 ? 180 : 240;
+            const boxH = cw < 768 ? 50 : 70;
+            const yOffset = ch < 400 ? 50 : 80;
+
             ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-            ctx.beginPath(); ctx.roundRect(cx - 120, 80, 240, 70, 8); ctx.fill();
+            ctx.beginPath(); ctx.roundRect(cx - boxW/2, yOffset, boxW, boxH, 8); ctx.fill();
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; ctx.lineWidth = 1; ctx.stroke();
-            ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = 'bold 18px Pretendard';
-            ctx.fillText(`현재 곡률 (k)`, cx, 110);
             
-            ctx.font = 'bold 14px Pretendard';
-            if (Math.abs(currentCurv) < 0.00001) {
-                ctx.fillStyle = '#34d399'; ctx.fillText("k ≈ 0 (빛이 완벽히 직진)", cx, 135);
-            } else if (currentCurv > 0) {
-                ctx.fillStyle = '#f87171'; ctx.fillText("k > 0 (빛이 휘어지며 모임)", cx, 135);
+            ctx.textAlign = 'center'; 
+            
+            if(cw < 768) {
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 14px Pretendard';
+                ctx.fillText(`현재 곡률 (k)`, cx, yOffset + 20);
+                ctx.font = 'bold 12px Pretendard';
+                if (Math.abs(currentCurv) < 0.00001) { ctx.fillStyle = '#34d399'; ctx.fillText("k ≈ 0 (완벽히 직진)", cx, yOffset + 38); }
+                else if (currentCurv > 0) { ctx.fillStyle = '#f87171'; ctx.fillText("k > 0 (휘어지며 모임)", cx, yOffset + 38); }
+                else { ctx.fillStyle = '#f87171'; ctx.fillText("k < 0 (휘어지며 퍼짐)", cx, yOffset + 38); }
             } else {
-                ctx.fillStyle = '#f87171'; ctx.fillText("k < 0 (빛이 휘어지며 퍼짐)", cx, 135);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 18px Pretendard';
+                ctx.fillText(`현재 곡률 (k)`, cx, yOffset + 30);
+                ctx.font = 'bold 14px Pretendard';
+                if (Math.abs(currentCurv) < 0.00001) { ctx.fillStyle = '#34d399'; ctx.fillText("k ≈ 0 (빛이 완벽히 직진)", cx, yOffset + 55); }
+                else if (currentCurv > 0) { ctx.fillStyle = '#f87171'; ctx.fillText("k > 0 (빛이 휘어지며 모임)", cx, yOffset + 55); }
+                else { ctx.fillStyle = '#f87171'; ctx.fillText("k < 0 (빛이 휘어지며 퍼짐)", cx, yOffset + 55); }
             }
         }
 
-        // 지평선 문제: 한 점에서 시작하는 우주 줌-아웃 연출
         function drawHorizon() {
-            const cx = cw / 2 - (cw > 1024 ? 150 : 0); 
-            const cy = ch / 2 - 30;
+            const cx = cw / 2; 
+            const cy = ch / 2 - (cw < 768 ? 20 : 30);
             
-            // "한 점에서 시작하는" 빅뱅 효과 (Zoom-in from tiny dot)
             let uniScale = 1.0;
-            if (time < 5) {
-                uniScale = Math.max(0.01, time / 5); // 0.01에서 1.0으로 스케일업
-            }
+            if (time < 5) uniScale = Math.max(0.01, time / 5); 
             
             const obsRadius = Math.min(cw, ch) * 0.35;
 
             ctx.save();
             ctx.translate(cx, cy);
-            
-            // 한 점 스케일 애니메이션 적용
             ctx.scale(uniScale, uniScale);
 
-            // 관측 가능한 우주 테두리
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
             ctx.lineWidth = 2 / uniScale; ctx.setLineDash([5, 5]);
             ctx.beginPath(); ctx.arc(0, 0, obsRadius, 0, Math.PI*2); ctx.stroke();
             ctx.setLineDash([]);
             
             ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.font = `${14/uniScale}px Pretendard`; ctx.textAlign = 'center';
-            ctx.fillText('현재 관측 가능한 우주 지평선', 0, -obsRadius - 15/uniScale);
+            ctx.font = `${(cw < 768 ? 11 : 14)/uniScale}px Pretendard`; ctx.textAlign = 'center';
+            ctx.fillText('현재 관측 가능한 우주 지평선', 0, -obsRadius - (cw < 768 ? 10 : 15)/uniScale);
 
-            // Galaxy A, B positions & Expansion
             let distA, lightRadius;
 
             if (currentTheory === 'standard') {
-                // 은하가 멀어지는 속도(3.0)가 빛의 속도(1.5)보다 항상 빨라 만나지 못함
                 distA = time * 3.0;
                 lightRadius = time * 1.5; 
             } else {
-                // 초기에 팽창이 느려 빛이 만남
-                if (time <= 20) {
-                    distA = time * 0.5; // 느린 팽창
-                } else if (time <= 35) {
+                if (time <= 20) { distA = time * 0.5; }
+                else if (time <= 35) {
                     let phase = (time - 20) / 15;
-                    distA = 20 * 0.5 + Math.pow(phase, 3) * obsRadius * 1.5; // 급팽창으로 우주 끝까지 던져짐
+                    distA = 20 * 0.5 + Math.pow(phase, 3) * obsRadius * 1.5; 
                 } else {
                     distA = 20 * 0.5 + obsRadius * 1.5 + ((time - 35) / 65) * 20;
                 }
@@ -524,39 +532,33 @@
             const ax = -distA; const ay = 0;
             const bx = distA;  const by = 0;
 
-            // Thermal Equilibrium (Information overlap)
             if (currentTheory === 'inflation' && time > 0 && time <= 20) {
                 ctx.fillStyle = 'rgba(250, 204, 21, 0.5)'; 
                 ctx.beginPath(); ctx.arc(0, 0, lightRadius * 1.6, 0, Math.PI*2); ctx.fill();
                 
-                ctx.fillStyle = '#fde047'; ctx.font = `bold ${13/uniScale}px Pretendard`;
-                ctx.fillText('빛과 에너지 교환 완료 (온도 같아짐!)', 0, -40/uniScale);
+                ctx.fillStyle = '#fde047'; ctx.font = `bold ${(cw<768?10:13)/uniScale}px Pretendard`;
+                ctx.fillText('빛/에너지 교환 완료 (온도 같아짐!)', 0, -(cw<768?30:40)/uniScale);
             }
 
-            // Light from A (Red)
             ctx.fillStyle = 'rgba(239, 68, 68, 0.35)'; 
             ctx.beginPath(); ctx.arc(ax, ay, lightRadius, 0, Math.PI*2); ctx.fill();
             ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5/uniScale; ctx.stroke();
 
-            // Light from B (Blue)
             ctx.fillStyle = 'rgba(56, 189, 248, 0.35)'; 
             ctx.beginPath(); ctx.arc(bx, by, lightRadius, 0, Math.PI*2); ctx.fill();
             ctx.strokeStyle = '#38bdf8'; ctx.stroke();
 
-            // Draw Galaxies
             ctx.fillStyle = '#fca5a5'; ctx.beginPath(); ctx.arc(ax, ay, 6/uniScale, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.font=`bold ${14/uniScale}px Pretendard`; ctx.fillText('A 은하', ax, ay + 25/uniScale);
+            ctx.fillStyle = '#fff'; ctx.font=`bold ${(cw<768?11:14)/uniScale}px Pretendard`; ctx.fillText('A 은하', ax, ay + (cw<768?18:25)/uniScale);
             
             ctx.fillStyle = '#7dd3fc'; ctx.beginPath(); ctx.arc(bx, by, 6/uniScale, 0, Math.PI*2); ctx.fill();
-            ctx.fillText('B 은하', bx, by + 25/uniScale);
+            ctx.fillText('B 은하', bx, by + (cw<768?18:25)/uniScale);
 
-            // Draw Earth
             ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.arc(0, 0, 4/uniScale, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.fillText('지구 (우리)', 0, 20/uniScale);
+            ctx.fillStyle = '#fff'; ctx.fillText('지구 (우리)', 0, (cw<768?15:20)/uniScale);
 
-            ctx.restore(); // 스케일 원래대로
+            ctx.restore(); 
 
-            // 한 점 폭발 특수효과
             if (time < 2) {
                 ctx.fillStyle = '#fff';
                 ctx.beginPath(); ctx.arc(cx, cy, 20 - time*10, 0, Math.PI*2); ctx.fill();
@@ -565,12 +567,13 @@
                 ctx.shadowBlur = 0;
             }
 
-            // Dynamic Conclusion Label
+            // Bottom Label
+            const boxW = cw < 768 ? 260 : 320;
             ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-            ctx.beginPath(); ctx.roundRect(cx - 160, cy + obsRadius + 20, 320, 50, 8); ctx.fill();
+            ctx.beginPath(); ctx.roundRect(cx - boxW/2, cy + obsRadius + 20, boxW, 50, 8); ctx.fill();
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; ctx.stroke();
             
-            ctx.font = 'bold 15px Pretendard';
+            ctx.font = `bold ${cw < 768 ? 12 : 15}px Pretendard`;
             if (time < 2) {
                 ctx.fillStyle = '#fff'; ctx.fillText('빅뱅 직후 한 점에서 출발', cx, cy + obsRadius + 50);
             } else if (currentTheory === 'standard') {
@@ -586,7 +589,6 @@
             }
         }
 
-        // 3. Monopole Problem
         function initMonopoles() {
             monopoles.length = 0;
             for(let i=0; i<150; i++) {
@@ -599,18 +601,19 @@
         }
 
         function drawMonopole() {
-            const cx = cw / 2 - (cw > 1024 ? 150 : 0); 
-            const cy = ch / 2 - 20;
+            const cx = cw / 2; 
+            const cy = ch / 2 - (cw < 768 ? 10 : 20);
             
             let scale = getScaleFactor(time, currentTheory);
+            if(cw < 768) scale *= 0.8;
 
-            const obsRadius = Math.min(cw, ch) * 0.4;
+            const obsRadius = Math.min(cw, ch) * 0.35;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
             ctx.lineWidth = 2;
             ctx.strokeRect(cx - obsRadius, cy - obsRadius, obsRadius*2, obsRadius*2);
             
             ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.font = '12px Pretendard'; ctx.textAlign = 'center';
+            ctx.font = `${cw < 768 ? 10 : 12}px Pretendard`; ctx.textAlign = 'center';
             ctx.fillText('우리의 관측 가능한 우주 한계선', cx, cy - obsRadius - 10);
 
             let visibleCount = 0;
@@ -623,7 +626,7 @@
                     visibleCount++;
                     
                     ctx.beginPath();
-                    ctx.arc(x, y, 6, 0, Math.PI*2);
+                    ctx.arc(x, y, cw < 768 ? 5 : 6, 0, Math.PI*2);
                     ctx.fillStyle = m.type === 'N' ? '#ef4444' : '#3b82f6';
                     ctx.fill();
                     
@@ -632,7 +635,6 @@
                     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                     ctx.fillText(m.type, x, y);
                 } else if (currentTheory === 'inflation' && time > 20 && time < 40) {
-                    // Streaking lines
                     ctx.beginPath();
                     ctx.moveTo(x, y);
                     ctx.lineTo(cx + m.baseX * (scale - 5), cy + m.baseY * (scale - 5));
@@ -642,24 +644,24 @@
                 }
             });
 
-            // Analysis Text
+            const boxW = cw < 768 ? 240 : 280;
             ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-            ctx.beginPath(); ctx.roundRect(cx - 140, cy + obsRadius + 20, 280, 50, 8); ctx.fill();
+            ctx.beginPath(); ctx.roundRect(cx - boxW/2, cy + obsRadius + 15, boxW, 50, 8); ctx.fill();
             ctx.strokeStyle = '#475569'; ctx.stroke();
             
-            ctx.fillStyle = '#fff'; ctx.font = 'bold 14px Pretendard';
-            ctx.fillText(`관측 영역 내 홀극 개수: ${visibleCount} 개`, cx, cy + obsRadius + 40);
+            ctx.fillStyle = '#fff'; ctx.font = `bold ${cw < 768 ? 12 : 14}px Pretendard`;
+            ctx.fillText(`관측 영역 내 홀극 개수: ${visibleCount} 개`, cx, cy + obsRadius + 35);
             
+            ctx.font = `${cw < 768 ? 10 : 12}px Pretendard`;
             if (currentTheory === 'inflation' && visibleCount <= 1 && time > 30) {
-                ctx.fillStyle = '#34d399'; ctx.font = '12px Pretendard';
-                ctx.fillText('부피 폭증으로 밀도가 0에 수렴함 (해결)', cx, cy + obsRadius + 60);
+                ctx.fillStyle = '#34d399'; 
+                ctx.fillText('부피 폭증으로 밀도가 0에 수렴함 (해결)', cx, cy + obsRadius + 55);
             } else if (currentTheory === 'standard' && time > 50) {
-                ctx.fillStyle = '#f87171'; ctx.font = '12px Pretendard';
-                ctx.fillText('높은 밀도가 계속 관측되어야 함 (모순)', cx, cy + obsRadius + 60);
+                ctx.fillStyle = '#f87171';
+                ctx.fillText('높은 밀도가 계속 관측되어야 함 (모순)', cx, cy + obsRadius + 55);
             }
         }
 
-        // --- 6. Main Loop ---
         function draw() {
             ctx.clearRect(0, 0, cw, ch);
             
@@ -669,9 +671,9 @@
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
                 ctx.fillRect(0, 0, cw, ch);
                 ctx.fillStyle = '#fff';
-                ctx.font = 'bold 36px Pretendard';
+                ctx.font = `bold ${cw < 768 ? 24 : 36}px Pretendard`;
                 ctx.textAlign = 'center';
-                ctx.fillText('🚀 급팽창 발생 (Inflation) 🚀', cw/2, ch/2 - 100);
+                ctx.fillText('🚀 급팽창 발생 (Inflation) 🚀', cw/2, ch/2 - (cw<768?60:100));
             }
 
             if (currentMode === 'flatness') drawFlatness();
@@ -681,7 +683,7 @@
 
         function animate() {
             if (isPlaying) {
-                time += 0.1; // 재생 속도를 기존 대비 1/3로 늦춰 매우 부드러움
+                time += 0.1;
                 if (time > 100) {
                     time = 0;
                     if(currentMode === 'monopole') initMonopoles();
@@ -692,10 +694,13 @@
             requestAnimationFrame(animate);
         }
 
-        // Init
-        resizeCanvas();
-        requestAnimationFrame(animate);
-
+        // Init Setup
+        // 브라우저 렌더링 완료 후 UI 및 내용 초기화
+        window.onload = function() {
+            resizeCanvas();
+            setMode('flatness'); // 여기서 초기 데이터 로드 및 정보 창 출력 수행
+            requestAnimationFrame(animate);
+        };
     </script>
 </body>
 </html>
