@@ -309,7 +309,7 @@
                                 <i class="fa-regular fa-circle-check"></i>
                             </div>
                             <h3 id="alertTitle" class="text-lg font-bold text-white mb-2">알림 타이틀</h3>
-                            <p id="alertMsg" class="text-xs text-gray-400 leading-relaxed mb-6">메시지 내용</p>
+                            <p id="alertMsg" class="text-xs text-gray-400 leading-relaxed mb-6 whitespace-pre-wrap">메시지 내용</p>
                             <button onclick="window.closeAlert()" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 rounded-xl font-bold text-sm text-white transition">
                                 확인
                             </button>
@@ -326,13 +326,37 @@
 
     <!-- Firebase SDK Modules via ESM -->
     <script type="module">
+        // 🚨 자가 진단 에러 출력 함수 먼저 등록
+        window.showAlert = function(title, msg, type = 'success') {
+            const modal = document.getElementById('customAlert');
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMsg').innerText = msg;
+            const iconEl = document.getElementById('alertIcon');
+
+            if (type === 'success') {
+                iconEl.className = "w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xl flex items-center justify-center mx-auto mb-4";
+                iconEl.innerHTML = `<i class="fa-regular fa-circle-check"></i>`;
+            } else {
+                iconEl.className = "w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xl flex items-center justify-center mx-auto mb-4";
+                iconEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i>`;
+            }
+            modal.classList.remove('hidden');
+        };
+
+        window.closeAlert = function() {
+            document.getElementById('customAlert').classList.add('hidden');
+            playSynthSound(400, 'sine', 0.05);
+        };
+
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
         // Globals provided by environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'geological-era-sehwa';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+        const appId = 'geological-era-sehwa';
+        
+        // 🚨 선생님의 실제 DB 강제 연결
+        const firebaseConfig = {
             apiKey: "AIzaSyDyscbvZ4d9dCKHa4EcKEKEKFJJeJTPets",
             authDomain: "sehwa-f2f95.firebaseapp.com",
             projectId: "sehwa-f2f95",
@@ -341,7 +365,6 @@
             appId: "1:538221310192:web:c0c949065d362562cad235",
             measurementId: "G-XJW5TGB6RH"
         };
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // DB & Auth services
         let app, auth, db;
@@ -363,21 +386,16 @@
             auth = getAuth(app);
             db = getFirestore(app);
         } catch (e) {
-            console.warn("Firebase 초기화 우회 (로컬 개발 모드)");
+            window.showAlert("파이어베이스 초기화 에러", `코드 내 키 값을 다시 확인해주세요.\n오류내용: ${e.message}`, "error");
         }
 
-        // Auth Sequence (RULE 3)
+        // Auth Sequence
         const initAuth = async () => {
             if (!auth) return;
             try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                await signInAnonymously(auth);
             } catch (error) {
-                console.warn("인증 실패, 익명 모드로 재시도:", error);
-                try { await signInAnonymously(auth); } catch(err) { }
+                window.showAlert("파이어베이스 연결 실패", `파이어베이스 콘솔 -> Authentication -> Sign-in method 에서 [익명 로그인]을 켜주세요!\n\n오류: ${error.message}`, "error");
             }
         };
 
@@ -406,6 +424,17 @@
                 window.showAlert('닉네임 입력 필요', '친구나 경쟁자가 나를 구별할 수 있도록 멋진 닉네임을 설정해주세요!', 'error');
                 return;
             }
+
+            // 비속어 및 부적절한 단어 필터링 배열 (필요시 단어 추가 가능)
+            const badWords = ["씨발", "시발", "병신", "존나", "좆", "개새", "창녀", "섹스", "보지", "자지", "애미", "느금마", "지랄", "미친", "새끼", "엠창", "애비", "썅", "ㅂㅅ", "ㅅㅂ", "ㅈㄴ", "야동"];
+            const sanitizedInput = nicknameVal.replace(/\s/g, ""); // 띄어쓰기 꼼수 방지용 공백 제거
+            const isBadWord = badWords.some(word => sanitizedInput.includes(word));
+
+            if (isBadWord) {
+                window.showAlert('부적절한 닉네임', '바르고 고운 말을 사용해주세요! (비속어 또는 부적절한 단어가 감지되었습니다)', 'error');
+                return; // 로그인 중단
+            }
+
             userNickname = nicknameVal;
             
             // UI 전환
@@ -422,7 +451,6 @@
             if (currentUser) {
                 await syncUserDataToFirestore();
             } else {
-                // 파이어베이스가 없는 환경에서도 리더보드 테스트를 위한 목업 데이터 렌더
                 setupMockLeaderboard();
             }
         };
@@ -441,8 +469,9 @@
         async function loadUserProfile() {
             if (!currentUser) return;
             try {
-                // Rule 1: Custom Path /artifacts/{appId}/users/{userId}/{collectionName} for private user data
-                const profileDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile');
+                // 🚨 수정사항: Firestore 문서는 반드시 짝수 단계(폴더->문서->폴더->문서)를 가져야 합니다.
+                // 기존 코드는 'profile' 폴더(5단계)에서 끝나서 에러가 났으므로 마지막에 'data' 문서 이름(6단계)을 붙여주었습니다.
+                const profileDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'data');
                 const docSnap = await getDoc(profileDocRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -457,8 +486,8 @@
         async function syncUserDataToFirestore() {
             if (!currentUser) return;
             try {
-                // Private Profile Sync
-                const profileDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile');
+                // Private Profile Sync (6단계 경로로 수정완료)
+                const profileDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'data');
                 await setDoc(profileDocRef, {
                     nickname: userNickname,
                     avatar: userAvatar,
@@ -467,7 +496,7 @@
                     updatedAt: new Date().toISOString()
                 }, { merge: true });
 
-                // Public Leaderboard Registry (Rule 1)
+                // Public Leaderboard Registry
                 const scoreDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', currentUser.uid);
                 await setDoc(scoreDocRef, {
                     uid: currentUser.uid,
@@ -479,7 +508,7 @@
                 }, { merge: true });
 
             } catch (err) {
-                console.error("데이터 동기화 실패:", err);
+                window.showAlert("데이터 저장 실패", `상세: ${err.message}`, "error");
             }
         }
 
@@ -488,21 +517,20 @@
             if (!currentUser) return;
             try {
                 const leaderboardCol = getLeaderboardColRef();
-                // Rule 2: Fetch all, sort in memory
                 onSnapshot(leaderboardCol, (snapshot) => {
                     const boardData = [];
                     snapshot.forEach(docSnap => boardData.push(docSnap.data()));
                     cachedLeaderboardData = boardData;
                     renderLeaderboard();
                 }, (error) => {
-                    console.error("랭킹 수신 에러:", error);
+                    window.showAlert("리더보드 로드 에러", `상세: ${error.message}`, "error");
                 });
             } catch (e) {
                 console.error("Listener init fail:", e);
             }
         }
 
-        // 파이어베이스 오프라인 시 임시 목업 (Bot 데이터)
+        // 파이어베이스 오프라인 시 임시 목업
         function setupMockLeaderboard() {
             cachedLeaderboardData = [
                 { uid: 'bot1', avatar: '🦕', nickname: '지학1등급', matchScore: 120, quizScore: 110 },
@@ -534,14 +562,12 @@
         function renderLeaderboard() {
             const listContainer = document.getElementById('leaderboardList');
             
-            // 현재 모드에 맞게 정렬 (점수가 없으면 0 처리)
             let sortedData = [...cachedLeaderboardData].sort((a, b) => {
                 let scoreA = currentLeaderboardMode === 'match' ? (a.matchScore || 0) : (a.quizScore || 0);
                 let scoreB = currentLeaderboardMode === 'match' ? (b.matchScore || 0) : (b.quizScore || 0);
                 return scoreB - scoreA;
             });
 
-            // 점수가 0인 사람은 순위에서 제외
             sortedData = sortedData.filter(item => {
                 let s = currentLeaderboardMode === 'match' ? (item.matchScore || 0) : (item.quizScore || 0);
                 return s > 0;
@@ -553,7 +579,6 @@
             }
 
             listContainer.innerHTML = sortedData.slice(0, 15).map((item, index) => {
-                // 목업 환경 대응 (uid === 'local' 이면 본인)
                 const isMe = (currentUser && item.uid === currentUser.uid) || (!currentUser && item.uid === 'local');
                 let medal = `${index + 1}위`;
                 if (index === 0) medal = '🥇';
@@ -593,7 +618,6 @@
                 if (currentUser) {
                     await syncUserDataToFirestore();
                 } else {
-                    // 로컬 업데이트
                     const idx = cachedLeaderboardData.findIndex(u => u.uid === 'local');
                     if(idx > -1) {
                         cachedLeaderboardData[idx].matchScore = userHighScoreMatch;
@@ -640,7 +664,7 @@
             if (tabId === 'matchGame') {
                 activeBtn.className = "w-full text-left p-3.5 rounded-xl border border-purple-500 bg-purple-500/10 text-purple-400 flex items-center gap-3 transition";
                 playSynthSound(520, 'sine', 0.1);
-                window.setLeaderboardMode('match'); // 자동으로 관련 랭킹 탭 전환
+                window.setLeaderboardMode('match');
             } else if (tabId === 'quizSurvival') {
                 activeBtn.className = "w-full text-left p-3.5 rounded-xl border border-blue-500 bg-blue-500/10 text-blue-400 flex items-center gap-3 transition";
                 playSynthSound(580, 'sine', 0.1);
@@ -650,15 +674,12 @@
 
         // --- 1. SPEED MATCHING GAME LOGIC (PDF 35개 전문) ---
         const matchingItems = [
-            // 선캄브리아 시대 (시생누대 + 원생누대)
             { name: "빙퇴석과 빙하 역암", era: "precambrian", cat: "고기후", hint: "가장 오래된 초기 지층에서 발견되어 당시에도 혹독한 추위(빙하기)가 있었음을 증명하는 암석 흔적" },
             { name: "오존층 부재 환경", era: "precambrian", cat: "고환경", hint: "태양의 치명적인 자외선이 여과 없이 지표에 내리쬐어 생명체가 오직 바다 속에서만 머물러야 했던 혹독한 기후 조건" },
             { name: "시아노 박테리아 (남세균)", era: "precambrian", cat: "생물", hint: "시생누대에 등장하여 최초로 광합성을 시작해 원시 바다와 대기에 산소를 뿜어낸 원핵생물" },
             { name: "스트로마톨라이트", era: "precambrian", cat: "표준화석", hint: "초기 광합성 세균의 활동으로 인해 형성된 거대한 층상 퇴적 구조 화석" },
             { name: "진핵생물의 출현", era: "precambrian", cat: "생물", hint: "원생누대(약 7억 년 전)에 이르러 다세포 생물로 진화하기 시작한 생물군의 등장" },
             { name: "에디아카라 동물군", era: "precambrian", cat: "표준화석", hint: "원생누대 후반부 바다에서 번성했던 단단한 뼈나 껍데기가 없는 다세포 연체 생물들의 화석군" },
-
-            // 고생대
             { name: "캄브리아기 대폭발", era: "paleozoic", cat: "생물", hint: "해양 무척추동물의 종수가 폭발적으로 급증하여 생태계가 극도로 다양해진 진화적 사건" },
             { name: "삼엽충", era: "paleozoic", cat: "표준화석", hint: "대폭발 시기부터 바다 밑을 휩쓸며 기어다녔던 세 개의 엽을 가진 대표적 외골격 무척추동물" },
             { name: "완족류", era: "paleozoic", cat: "생물", hint: "캄브리아기부터 폭발적으로 급증한 조개와 비슷하게 생긴 해양 무척추동물" },
@@ -674,8 +695,6 @@
             { name: "겉씨식물 최초 등장", era: "paleozoic", cat: "식물", hint: "페름기에 육상에 등장하여 번성하기 시작한 은행나무와 소철 같은 씨방 없는 식물류" },
             { name: "판게아 (초대륙) 형성", era: "paleozoic", cat: "지각변동", hint: "말기(페름기)에 흩어졌던 대륙들이 완벽히 하나로 뭉치며 얕은 바다(천해) 면적을 극도로 급감시킨 대규모 지각 사건" },
             { name: "3차 대멸종 (역사상 최대 규모)", era: "paleozoic", cat: "대멸종", hint: "초대륙 형성 및 극한의 환경 변화로 삼엽충을 비롯한 해양 생물의 95% 이상이 전멸한 가장 참혹한 생태계 붕괴 사건" },
-
-            // 중생대
             { name: "빙하기 없는 온난 기후", era: "mesozoic", cat: "고기후", hint: "이 시대 전 기간에 걸쳐 빙하의 흔적이 단 한 번도 관측되지 않은 매우 따뜻했던 기후 특성" },
             { name: "판게아의 분리 개시", era: "mesozoic", cat: "지각변동", hint: "초기에 하나였던 초대륙이 다시 쪼개지고 멀어지며 대서양과 인도양 바다가 출현하기 시작한 현상" },
             { name: "로키 산맥과 안데스 산맥", era: "mesozoic", cat: "지각변동", hint: "판게아가 분리되고 이동하는 과정에서 거대한 압력에 의해 아메리카 대륙 연안에 거대하게 솟아오른 조산대" },
@@ -685,8 +704,6 @@
             { name: "시조새", era: "mesozoic", cat: "표준화석", hint: "쥐라기 지층에서 발견되었으며 깃털과 이빨을 동시에 지녀 파충류와 조류의 진화적 가교 역할을 한 생물" },
             { name: "속씨식물 최초 출현", era: "mesozoic", cat: "식물", hint: "백악기에 처음 육상에 등장하여 예쁜 꽃을 피우고 씨방 속에 씨앗을 품도록 진화한 발달된 식물 형태" },
             { name: "운석 충돌과 5차 대멸종", era: "mesozoic", cat: "대멸종", hint: "백악기 말기에 소행성 충돌과 화산 폭발로 거대 육식 생물들과 해양 생물들이 지표면에서 완전히 사라진 사건" },
-
-            // 신생대
             { name: "빙하기와 간빙기의 반복", era: "cenozoic", cat: "고기후", hint: "제4기(말기)에 접어들며 주기적으로 대륙이 얼음으로 뒤덮이는 극한의 추위와 따뜻해지는 시기가 교차한 현상" },
             { name: "히말라야 산맥 형성", era: "cenozoic", cat: "지각변동", hint: "인도 대륙판이 유라시아 대륙판과 정면으로 맹렬하게 충돌하면서 만들어진 거대 산맥" },
             { name: "알프스 산맥 형성", era: "cenozoic", cat: "지각변동", hint: "아프리카판과 유라시아판의 강력한 충돌로 인하여 유럽 남부에 거대하게 솟아오른 지형" },
@@ -698,7 +715,7 @@
 
         let matchGameTimer = null;
         let matchScore = 0;
-        let matchRemainingTime = 45; // 변경: 45초
+        let matchRemainingTime = 45;
         let currentMatchDeck = [];
         let activeMatchItem = null;
 
@@ -711,7 +728,6 @@
             document.getElementById('gameScore').innerText = matchScore;
             document.getElementById('gameTimer').innerText = matchRemainingTime;
 
-            // 변경: 전체 35종 중 15개 출제
             currentMatchDeck = [...matchingItems].sort(() => Math.random() - 0.5).slice(0, 15);
             document.getElementById('remainingCards').innerText = currentMatchDeck.length;
 
@@ -752,7 +768,6 @@
             if (!activeMatchItem) return;
 
             if (activeMatchItem.era === eraId) {
-                // Correct Answer
                 matchScore += 10;
                 document.getElementById('gameScore').innerText = matchScore;
                 
@@ -762,7 +777,6 @@
                 setTimeout(() => card.classList.remove('border-green-500'), 150);
 
             } else {
-                // Wrong Answer
                 matchScore = Math.max(0, matchScore - 5);
                 document.getElementById('gameScore').innerText = matchScore;
                 
@@ -783,7 +797,6 @@
             
             updateLeaderboardScore('match', matchScore);
 
-            // Win Sound Fanfare
             playSynthSound(440, 'triangle', 0.15);
             setTimeout(() => playSynthSound(554, 'triangle', 0.15), 150);
             setTimeout(() => playSynthSound(659, 'triangle', 0.15), 300);
@@ -1026,29 +1039,6 @@
 
             window.showAlert('서바이벌 퀴즈 클리어!', `최종 점수: ${cumulativeQuizScore}점! 독립된 퀴즈 랭킹에 기록되었습니다.`, 'success');
         }
-
-        // --- CUSTOM ALERT LOGIC ---
-        window.showAlert = function(title, msg, type = 'success') {
-            const modal = document.getElementById('customAlert');
-            document.getElementById('alertTitle').innerText = title;
-            document.getElementById('alertMsg').innerText = msg;
-            const iconEl = document.getElementById('alertIcon');
-
-            if (type === 'success') {
-                iconEl.className = "w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xl flex items-center justify-center mx-auto mb-4";
-                iconEl.innerHTML = `<i class="fa-regular fa-circle-check"></i>`;
-            } else {
-                iconEl.className = "w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xl flex items-center justify-center mx-auto mb-4";
-                iconEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i>`;
-            }
-            modal.classList.remove('hidden');
-        };
-
-        window.closeAlert = function() {
-            document.getElementById('customAlert').classList.add('hidden');
-            playSynthSound(400, 'sine', 0.05);
-        };
-
     </script>
 </body>
 </html>
