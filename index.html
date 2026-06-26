@@ -106,18 +106,15 @@
 <body>
 
     <div class="app-container">
-        <!-- 공통 메인 헤더: id="main-header" 추가 -->
         <header id="main-header">
             <div class="flex items-center cursor-pointer" onclick="goHome()">
                 <span class="text-xl mr-2">🔬</span>
                 <h1 class="text-base font-bold text-indigo-600">민규쌤의 과학 실험실</h1>
             </div>
-            <!-- 빈 공간 (필요시 우측 메뉴 추가) -->
             <div></div>
         </header>
 
         <div class="view-area">
-            <!-- 1. 메인 홈 화면 (시뮬레이션 선택) -->
             <main id="home-view" class="no-scrollbar">
                 <div class="max-w-5xl mx-auto">
                     <div class="mb-6 mt-4 px-2">
@@ -125,14 +122,11 @@
                         <p class="text-sm text-slate-500 mt-1">카드를 터치하면 시뮬레이션이 시작됩니다.</p>
                     </div>
 
-                    <!-- 반응형 그리드: 모바일 1열, 태블릿 2열, PC 3~4열 -->
                     <div id="card-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        <!-- 자바스크립트로 카드 생성 -->
-                    </div>
+                        </div>
                 </div>
             </main>
 
-            <!-- 2. 시뮬레이션 실행 화면 -->
             <main id="sim-view">
                 <div class="sim-header shadow-sm">
                     <button onclick="goHome()" class="flex items-center px-3 py-1.5 bg-white text-slate-700 text-sm font-semibold rounded shadow-sm border border-slate-200 active:bg-slate-50 active:scale-95 transition-all">
@@ -149,11 +143,8 @@
             </main>
         </div>
 
-        <!-- 하단 방문자 카운터: id="main-footer" 추가 -->
         <footer id="main-footer">
             <div class="flex items-center text-slate-500 gap-2">
-                <!-- Shields.io 스타일 방문자 카운터 (visitorbadge.io) -->
-                <!-- path= 뒤에 선생님의 사이트 주소를 고유하게 적어주세요. -->
                 <img src="https://api.visitorbadge.io/api/visitors?path=mingyu-science.github.io&label=방문자수&labelColor=%231e293b&countColor=%234f46e5&style=flat" alt="방문자 카운터">
             </div>
         </footer>
@@ -165,11 +156,11 @@
             { 
                 id: '지질시대 온라인 게임', 
                 name: '지질시대 온라인 게임', 
-                url: 'test.html',
+                url: 'test/index.html', // ★ 이 부분이 text 폴더 안의 index.html 경로로 변경되었습니다.
                 icon: '🏜️',
                 color: 'bg-yellow-100 text-yellow-700 border-yellow-200'
             },
-                        { 
+            { 
                 id: 'sedimentary-structures', 
                 name: '퇴적구조의 수직단면 층리면', 
                 url: 'sedimentary-structures.html',
@@ -248,7 +239,7 @@
                 <div class="text-4xl mb-3">${sim.icon}</div>
                 <h3 class="text-base font-bold text-center break-keep">${sim.name}</h3>
                 <div class="mt-4 px-4 py-1.5 bg-white bg-opacity-70 rounded-full text-xs font-semibold shadow-sm">
-                    실행하기 ▶
+                    実行하기 ▶
                 </div>
             `;
             
