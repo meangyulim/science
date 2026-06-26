@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지질시대 서바이벌 배틀 피디아</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="text-gray-100 min-h-screen flex flex-col overflow-x-hidden">
+
+    <header class="border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-gem text-lg text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-wider bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">세화여고 지구과학</h1>
+                    <p class="text-xs text-gray-400 font-semibold">지질시대 서바이벌 피디아</p>
+                </div>
+            </div>
+            
+            <div id="userHeaderBadge" class="hidden flex items-center gap-3 bg-gray-800/80 px-3 py-1.5 rounded-lg border border-gray-700/50">
+                <span id="userAvatarBadge" class="text-lg">🦕</span>
+                <span id="userNicknameBadge" class="font-semibold text-sm text-emerald-400">지구인</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 flex flex-col gap-6">
+        
+        <section id="authSection" class="flex-1 flex flex-col items-center justify-center my-8">
+            <div class="w-full max-w-md bg-gray-900/60 border border-gray-800 p-8 rounded-3xl panel-glow text-center">
+                <div class="inline-block px-4 py-1.5 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-full mb-4 border border-emerald-500/20">
+                    지질시대 완벽 마스터 프로젝트
+                </div>
+                <h2 class="text-3xl font-extrabold mb-2 text-white">동료들과 경쟁하며<br>학습하는 지구과학 챌린지</h2>
+                <p class="text-gray-400 text-sm mb-6 leading-relaxed">프린트의 핵심 내용(화석, 기후, 5대 대멸종)을 마스터하고 실시간 실력 대결을 시작해 보세요!</p>
+
+                <div class="space-y-4 text-left">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">대표 닉네임</label>
+                        <input type="text" id="nicknameInput" maxlength="10" placeholder="멋진 세화인 (최대 10자)" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 text-sm transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">나의 원시 마스코트</label>
+                        <div class="grid grid-cols-4 gap-3">
+                            <button onclick="window.selectAvatar('🦕', '공룡')" class="avatar-btn border-emerald-500 bg-emerald-500/10 py-3 border-2 rounded-xl hover:border-emerald-500/50 transition text-center focus:outline-none">
+                                <div class="text-2xl mb-1">🦕</div>
+                                <span class="text-[10px] text-gray-400 block font-semibold">아기공룡</span>
+                            </button>
+                            <button onclick="window.selectAvatar('🪲', '삼엽충')" class="avatar-btn py-3 bg-gray-950 border-2 border-emerald-500/20 rounded-xl hover:border-emerald-500/50 transition text-center focus:outline-none">
+                                <div class="text-2xl mb-1">🪲</div>
+                                <span class="text-[10px] text-gray-400 block font-semibold">삼엽충</span>
+                            </button>
+                            <button onclick="window.selectAvatar('🐘', '매머드')" class="avatar-btn py-3 bg-gray-950 border-2 border-emerald-500/20 rounded-xl hover:border-emerald-500/50 transition text-center focus:outline-none">
+                                <div class="text-2xl mb-1">🐘</div>
+                                <span class="text-[10px] text-gray-400 block font-semibold">매머드</span>
+                            </button>
+                            <button onclick="window.selectAvatar('🐚', '암모나이트')" class="avatar-btn py-3 bg-gray-950 border-2 border-emerald-500/20 rounded-xl hover:border-emerald-500/50 transition text-center focus:outline-none">
+                                <div class="text-2xl mb-1">🐚</div>
+                                <span class="text-[10px] text-gray-400 block font-semibold">암모</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button onclick="window.joinLobby()" class="w-full mt-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 py-3.5 px-4 rounded-xl font-bold text-white shadow-lg shadow-emerald-500/20 active:scale-95 transition flex items-center justify-center gap-2">
+                        <span>학습 및 랭킹전 시작</span>
+                        <i class="fa-solid fa-arrow-right text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="gameHub" class="hidden flex-col gap-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1 flex flex-col gap-4">
+                    <div class="bg-gray-900/60 border border-gray-800 p-5 rounded-2xl panel-glow flex flex-col">
+                        <h3 class="text-sm font-bold text-gray-400 tracking-wider mb-3">학습 및 게임 목록</h3>
+                        
+                        <div class="space-y-2">
+                            <button onclick="window.switchTab('matchGame')" id="tab-matchGame" class="w-full text-left p-3.5 rounded-xl border border-purple-500 bg-purple-500/10 text-purple-400 flex items-center gap-3 transition">
+                                <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><i class="fa-solid fa-puzzle-piece"></i></div>
+                                <div>
+                                    <div class="font-bold text-sm">스피드 시대 매칭 게임</div>
+                                    <div class="text-[10px] text-gray-300">화석과 대륙을 시대로 매칭!</div>
+                                </div>
+                            </button>
+
+                            <button onclick="window.switchTab('quizSurvival')" id="tab-quizSurvival" class="w-full text-left p-3.5 rounded-xl border border-gray-800 hover:border-gray-700 hover:bg-gray-800/40 text-gray-300 flex items-center gap-3 transition">
+                                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><i class="fa-solid fa-graduation-cap text-blue-400"></i></div>
+                                <div>
+                                    <div class="font-bold text-sm">서바이벌 퀴즈 (10문항)</div>
+                                    <div class="text-[10px] text-gray-400">세화여고 프린트 저격 실력평가</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-900/60 border border-gray-800 p-5 rounded-2xl panel-glow flex flex-col flex-1 min-h-[300px]">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                                <i class="fa-solid fa-crown text-amber-400"></i>
+                                실시간 명예의 전당
+                            </h3>
+                            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-bold">LIVE</span>
+                        </div>
+
+                        <div class="flex rounded-lg bg-gray-950 p-1 mb-3 border border-gray-800">
+                            <button onclick="window.setLeaderboardMode('match')" id="lbTab-match" class="flex-1 py-1.5 text-[10px] font-bold rounded-md bg-purple-500/20 text-purple-300 transition">매칭 랭킹</button>
+                            <button onclick="window.setLeaderboardMode('quiz')" id="lbTab-quiz" class="flex-1 py-1.5 text-[10px] font-bold rounded-md text-gray-500 hover:text-gray-300 transition">퀴즈 랭킹</button>
+                        </div>
+                        
+                        <div id="leaderboardList" class="flex-1 space-y-2 overflow-y-auto max-h-[350px] pr-1">
+                            <div class="text-center py-8 text-xs text-gray-500">불러오는 중...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 flex flex-col gap-6">
+                    
+                    <div id="content-matchGame" class="content-panel bg-gray-900/40 border border-gray-800 p-6 rounded-3xl panel-glow flex flex-col gap-5">
+                        <div class="border-b border-gray-800 pb-4 flex justify-between items-center flex-wrap gap-2">
+                            <div>
+                                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-puzzle-piece text-purple-400"></i>
+                                    스피드 지질 시대 매칭
+                                </h2>
+                                <p class="text-xs text-gray-400 mt-1">지질학적 주요 화석과 환경 요소를 올바른 지질시대로 신속하게 드롭해 점수를 획득하세요!</p>
+                            </div>
+                            <div class="bg-purple-500/10 text-purple-400 font-mono text-sm px-3 py-1 rounded-lg border border-purple-500/20">
+                                제한 시간: <span id="gameTimer" class="font-bold">45</span>초
+                            </div>
+                        </div>
+
+                        <div id="matchingActiveArea" class="hidden flex flex-col gap-6">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">현재 점수: <span id="gameScore" class="font-extrabold text-purple-400">0</span>점</span>
+                                <span class="text-xs text-gray-400">남은 키워드: <span id="remainingCards" class="font-bold">15</span>개</span>
+                            </div>
+
+                            <div class="flex justify-center my-4">
+                                <div id="currentMatchCard" class="w-72 bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-purple-500 rounded-2xl p-6 text-center shadow-xl animate-pulse cursor-pointer">
+                                    <span id="currentCardCategory" class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">화석</span>
+                                    <h4 id="currentCardName" class="text-2xl font-black text-white mt-3 break-keep">삼엽충</h4>
+                                    <p id="currentCardHint" class="text-xs text-gray-400 mt-3 leading-relaxed break-keep">대폭발 시기부터 바다 밑을 휩쓸며 기어다녔던 세 개의 엽을 가진 외골격 생물</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <button onclick="window.selectMatchEra('precambrian')" class="py-4 bg-emerald-950/30 border border-emerald-500/30 hover:border-emerald-400 hover:bg-emerald-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-emerald-300">
+                                    선캄브리아 시대
+                                </button>
+                                <button onclick="window.selectMatchEra('paleozoic')" class="py-4 bg-blue-950/30 border border-blue-500/30 hover:border-blue-400 hover:bg-blue-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-blue-300">
+                                    고생대
+                                </button>
+                                <button onclick="window.selectMatchEra('mesozoic')" class="py-4 bg-amber-950/30 border border-amber-500/30 hover:border-amber-400 hover:bg-amber-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-amber-300">
+                                    중생대
+                                </button>
+                                <button onclick="window.selectMatchEra('cenozoic')" class="py-4 bg-red-950/30 border border-red-500/30 hover:border-red-400 hover:bg-red-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-red-300">
+                                    신생대
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="matchIntroArea" class="flex flex-col items-center justify-center py-8 text-center gap-4">
+                            <div class="w-16 h-16 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-2xl text-purple-400">
+                                <i class="fa-solid fa-gamepad"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">스피드 매칭 챌린지 (프린트 전범위)</h3>
+                                <p class="text-xs text-gray-400 max-w-md mx-auto mt-2 leading-relaxed">프린트에 수록된 35개의 핵심 개념 중 무작위 15개가 출제됩니다. 스포일러가 제거된 힌트를 보고 가장 빠르게 시대를 매칭하세요! (맞추면 +10점, 틀리면 -5점)</p>
+                            </div>
+                            <button onclick="window.startMatchGame()" class="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-sm text-white shadow-lg shadow-purple-500/20 transition active:scale-95 mt-2">
+                                게임 시작하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="content-quizSurvival" class="content-panel hidden bg-gray-900/40 border border-gray-800 p-6 rounded-3xl panel-glow flex flex-col gap-5">
+                        <div class="border-b border-gray-800 pb-4 flex justify-between items-center flex-wrap gap-2">
+                            <div>
+                                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-graduation-cap text-blue-400"></i>
+                                    실시간 서바이벌 퀴즈 배틀
+                                </h2>
+                                <p class="text-xs text-gray-400 mt-1">지구과학 프린트 내용에서 출제되는 수능/내신 실전 10문항으로 성적을 업그레이드 하세요.</p>
+                            </div>
+                            <div class="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-lg text-xs font-mono">
+                                <i class="fa-regular fa-clock text-blue-400 animate-spin"></i>
+                                보너스 타임: <span id="quizTimer" class="font-bold text-blue-300">15</span>초
+                            </div>
+                        </div>
+
+                        <div id="quizPlayingArea" class="hidden flex flex-col gap-5">
+                            <div class="w-full bg-gray-800 rounded-full h-2">
+                                <div id="quizProgressBar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 10%;"></div>
+                            </div>
+
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-gray-400">문제 <span id="currentQuizIdx" class="font-bold text-white">1</span> / 10</span>
+                                <span class="text-gray-400">현재 누적 점수: <span id="quizScoreUI" class="font-bold text-blue-400">0</span>점</span>
+                            </div>
+
+                            <div class="bg-gray-950 p-6 rounded-2xl border border-gray-800">
+                                <span id="quizQuestionCategory" class="text-[9px] bg-blue-500/20 text-blue-300 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">표준화석</span>
+                                <h3 id="quizQuestionText" class="text-lg font-bold text-white mt-3 leading-relaxed break-keep">고생대 석탄기 후기에서 페름기까지 크게 번성하였으며, 완벽한 구분기준이 되는 표준 화석의 명칭은 무엇인가?</h3>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-3" id="quizOptionsContainer">
+                                </div>
+                        </div>
+
+                        <div id="quizFeedbackArea" class="hidden bg-gray-950/80 border border-gray-800 p-5 rounded-2xl flex flex-col gap-3">
+                            <div class="flex items-center gap-3">
+                                <div id="quizResultBadge" class="w-10 h-10 rounded-full flex items-center justify-center text-lg font-extrabold">O</div>
+                                <div>
+                                    <h4 id="quizFeedbackTitle" class="font-bold text-sm text-white">정답입니다! (+12점 획득)</h4>
+                                    <p class="text-xs text-gray-400">학습 해설을 확인하고 실력을 한 단계 올려보세요.</p>
+                                </div>
+                            </div>
+                            <div class="bg-gray-900 p-4 rounded-xl text-xs leading-relaxed text-gray-300 border border-gray-800/50">
+                                <strong class="text-emerald-400 block mb-1">💡 해설 노트:</strong>
+                                <span id="quizExplanationText">해설 내용</span>
+                            </div>
+                            <button onclick="window.nextQuiz()" class="ml-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-xs text-white transition active:scale-95">
+                                다음 문제로 <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+
+                        <div id="quizIntroArea" class="flex flex-col items-center justify-center py-8 text-center gap-4">
+                            <div class="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-2xl text-blue-400 animate-bounce">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">내신형 서바이벌 퀴즈 10</h3>
+                                <p class="text-xs text-gray-400 max-w-sm mx-auto mt-1 leading-relaxed">세화여자고등학교의 내신 기출과 학평 고난도 선지를 기반으로 제작되었습니다. 문제를 빨리 맞추면 보너스 타임 점수가 합산됩니다!</p>
+                            </div>
+                            <button onclick="window.startQuiz()" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-sm text-white shadow-lg shadow-blue-500/20 transition active:scale-95 mt-2">
+                                퀴즈 배틀 시작
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="customAlert" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div class="w-full max-w-sm bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center panel-glow">
+                            <div id="alertIcon" class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xl flex items-center justify-center mx-auto mb-4">
+                                <i class="fa-regular fa-circle-check"></i>
+                            </div>
+                            <h3 id="alertTitle" class="text-lg font-bold text-white mb-2">알림 타이틀</h3>
+                            <p id="alertMsg" class="text-xs text-gray-400 leading-relaxed mb-6 whitespace-pre-wrap">메시지 내용</p>
+                            <button onclick="window.closeAlert()" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 rounded-xl font-bold text-sm text-white transition">
+                                확인
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center py-6 text-xs text-gray-500 border-t border-gray-900 bg-gray-950/40 w-full mt-auto">
+            <p>© 2026 Sehwa Girls' High School Earth Science. Built with Interactive Engine.</p>
+        </footer>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
