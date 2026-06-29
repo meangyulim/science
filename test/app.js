@@ -383,11 +383,26 @@ import { badWords, matchingItems, allQuizPool } from './data.js';
             document.getElementById('matchIntroArea').classList.add('hidden');
             document.getElementById('matchingActiveArea').classList.remove('hidden');
             
+            // 하드모드 토글 여부 확인
+            const isHardMode = document.getElementById('hardModeToggle').checked;
+
+            // 모드에 따라 UI 버튼 변경
+            if (isHardMode) {
+                document.getElementById('normalModeBtns').classList.add('hidden');
+                document.getElementById('hardModeBtns').classList.remove('hidden');
+                document.getElementById('hardModeBtns').classList.add('grid');
+            } else {
+                document.getElementById('hardModeBtns').classList.add('hidden');
+                document.getElementById('hardModeBtns').classList.remove('grid');
+                document.getElementById('normalModeBtns').classList.remove('hidden');
+            }
+            
             matchScore = 0;
             matchRemainingTime = 45;
             document.getElementById('gameScore').innerText = matchScore;
             document.getElementById('gameTimer').innerText = matchRemainingTime;
 
+            // 모드 상관없이 모든 문제가 가능하므로 랜덤 15개 추출
             currentMatchDeck = [...matchingItems].sort(() => Math.random() - 0.5).slice(0, 15);
             document.getElementById('remainingCards').innerText = currentMatchDeck.length;
 
@@ -424,11 +439,18 @@ import { badWords, matchingItems, allQuizPool } from './data.js';
             document.getElementById('currentCardHint').innerText = activeMatchItem.hint;
         }
 
-        window.selectMatchEra = function(eraId) {
+        window.selectMatchEra = function(clickedId) {
             if (!activeMatchItem) return;
 
-            if (activeMatchItem.era === eraId) {
-                matchScore += 10;
+            const isHardMode = document.getElementById('hardModeToggle').checked;
+            
+            // 노말 모드면 'era'(대)를, 하드 모드면 'period'(기)를 정답으로 체크
+            const targetAnswer = isHardMode ? activeMatchItem.period : activeMatchItem.era;
+
+            if (targetAnswer === clickedId) {
+                // 정답! (하드 모드는 점수 2배: +20점)
+                const earnedPoints = isHardMode ? 20 : 10;
+                matchScore += earnedPoints;
                 document.getElementById('gameScore').innerText = matchScore;
                 
                 const card = document.getElementById('currentMatchCard');
@@ -437,7 +459,9 @@ import { badWords, matchingItems, allQuizPool } from './data.js';
                 setTimeout(() => card.classList.remove('border-green-500'), 150);
 
             } else {
-                matchScore = Math.max(0, matchScore - 5);
+                // 오답! (하드 모드는 감점도 2배: -10점)
+                const lostPoints = isHardMode ? 10 : 5;
+                matchScore = Math.max(0, matchScore - lostPoints);
                 document.getElementById('gameScore').innerText = matchScore;
                 
                 const card = document.getElementById('currentMatchCard');
