@@ -152,19 +152,32 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <button onclick="window.selectMatchEra('precambrian')" class="py-4 bg-emerald-950/30 border border-emerald-500/30 hover:border-emerald-400 hover:bg-emerald-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-emerald-300">
-                                    선캄브리아 시대
-                                </button>
-                                <button onclick="window.selectMatchEra('paleozoic')" class="py-4 bg-blue-950/30 border border-blue-500/30 hover:border-blue-400 hover:bg-blue-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-blue-300">
-                                    고생대
-                                </button>
-                                <button onclick="window.selectMatchEra('mesozoic')" class="py-4 bg-amber-950/30 border border-amber-500/30 hover:border-amber-400 hover:bg-amber-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-amber-300">
-                                    중생대
-                                </button>
-                                <button onclick="window.selectMatchEra('cenozoic')" class="py-4 bg-red-950/30 border border-red-500/30 hover:border-red-400 hover:bg-red-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-red-300">
-                                    신생대
-                                </button>
+                            <!-- Drop Era / Period Buttons -->
+                            <div id="dropButtonsArea" class="w-full">
+                                <!-- 노말 모드 (대 단위 - 기존 4개) -->
+                                <div id="normalModeBtns" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <button onclick="window.selectMatchEra('precambrian')" class="py-4 bg-emerald-950/30 border border-emerald-500/30 hover:border-emerald-400 hover:bg-emerald-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-emerald-300">선캄브리아 시대</button>
+                                    <button onclick="window.selectMatchEra('paleozoic')" class="py-4 bg-blue-950/30 border border-blue-500/30 hover:border-blue-400 hover:bg-blue-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-blue-300">고생대</button>
+                                    <button onclick="window.selectMatchEra('mesozoic')" class="py-4 bg-amber-950/30 border border-amber-500/30 hover:border-amber-400 hover:bg-amber-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-amber-300">중생대</button>
+                                    <button onclick="window.selectMatchEra('cenozoic')" class="py-4 bg-red-950/30 border border-red-500/30 hover:border-red-400 hover:bg-red-950/60 rounded-xl font-bold text-sm transition active:scale-95 text-red-300">신생대</button>
+                                </div>
+
+                                <!-- 하드 모드 (기 단위 - 13개) -->
+                                <div id="hardModeBtns" class="hidden grid-cols-3 md:grid-cols-5 gap-2">
+                                    <button onclick="window.selectMatchEra('sisaeng')" class="py-2.5 bg-emerald-950/50 border border-emerald-500/30 hover:border-emerald-400 rounded-lg font-bold text-xs text-emerald-300 transition active:scale-95">시생누대</button>
+                                    <button onclick="window.selectMatchEra('wonsaeng')" class="py-2.5 bg-emerald-950/50 border border-emerald-500/30 hover:border-emerald-400 rounded-lg font-bold text-xs text-emerald-300 transition active:scale-95">원생누대</button>
+                                    <button onclick="window.selectMatchEra('cambrian')" class="py-2.5 bg-blue-950/50 border border-blue-500/30 hover:border-blue-400 rounded-lg font-bold text-xs text-blue-300 transition active:scale-95">캄브리아기</button>
+                                    <button onclick="window.selectMatchEra('ordovician')" class="py-2.5 bg-blue-950/50 border border-blue-500/30 hover:border-blue-400 rounded-lg font-bold text-xs text-blue-300 transition active:scale-95">오르도비스기</button>
+                                    <button onclick="window.selectMatchEra('silurian')" class="py-2.5 bg-blue-950/50 border border-blue-500/30 hover:border-blue-400 rounded-lg font-bold text-xs text-blue-300 transition active:scale-95">실루리아기</button>
+                                    <button onclick="window.selectMatchEra('devonian')" class="py-2.5 bg-blue-950/50 border border-blue-500/30 hover:border-blue-400 rounded-lg font-bold text-xs text-blue-300 transition active:scale-95">데본기</button>
+                                    <button onclick="window.selectMatchEra('carboniferous')" class="py-2.5 bg-blue-950/50 border border-blue-500/30 hover:border-blue-400 rounded-lg font-bold text-xs text-blue-300 transition active:scale-95">석탄기</button>
+                                    <button onclick="window.selectMatchEra('permian')" class="py-2.5 bg-blue-950/50 border border-blue-500/30 hover:border-blue-400 rounded-lg font-bold text-xs text-blue-300 transition active:scale-95">페름기</button>
+                                    <button onclick="window.selectMatchEra('triassic')" class="py-2.5 bg-amber-950/50 border border-amber-500/30 hover:border-amber-400 rounded-lg font-bold text-xs text-amber-300 transition active:scale-95">트라이아스기</button>
+                                    <button onclick="window.selectMatchEra('jurassic')" class="py-2.5 bg-amber-950/50 border border-amber-500/30 hover:border-amber-400 rounded-lg font-bold text-xs text-amber-300 transition active:scale-95">쥐라기</button>
+                                    <button onclick="window.selectMatchEra('cretaceous')" class="py-2.5 bg-amber-950/50 border border-amber-500/30 hover:border-amber-400 rounded-lg font-bold text-xs text-amber-300 transition active:scale-95">백악기</button>
+                                    <button onclick="window.selectMatchEra('paleogene')" class="py-2.5 bg-red-950/50 border border-red-500/30 hover:border-red-400 rounded-lg font-bold text-xs text-red-300 transition active:scale-95">팔레오/네오기</button>
+                                    <button onclick="window.selectMatchEra('quaternary')" class="py-2.5 bg-red-950/50 border border-red-500/30 hover:border-red-400 rounded-lg font-bold text-xs text-red-300 transition active:scale-95">제4기</button>
+                                </div>
                             </div>
                         </div>
 
@@ -175,6 +188,15 @@
                             <div>
                                 <h3 class="text-lg font-bold text-white">스피드 매칭 챌린지 (프린트 전범위)</h3>
                                 <p class="text-xs text-gray-400 max-w-md mx-auto mt-2 leading-relaxed">프린트에 수록된 35개의 핵심 개념 중 무작위 15개가 출제됩니다. 스포일러가 제거된 힌트를 보고 가장 빠르게 시대를 매칭하세요! (맞추면 +10점, 틀리면 -5점)</p>
+                            </div>
+                            <!-- 하드 모드 토글 -->
+                            <div class="mt-4 mb-6 flex items-center justify-center gap-3 bg-gray-950 px-5 py-3 rounded-xl border border-red-500/30">
+                                <i class="fa-solid fa-fire text-red-500"></i>
+                                <span class="text-sm font-bold text-gray-300">하드 모드 <span class="text-[10px] text-gray-500">(기 단위 매칭 / 점수 2배)</span></span>
+                                <label class="relative inline-flex items-center cursor-pointer ml-2">
+                                    <input type="checkbox" id="hardModeToggle" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500 shadow-lg shadow-red-500/20"></div>
+                                </label>
                             </div>
                             <button onclick="window.startMatchGame()" class="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-sm text-white shadow-lg shadow-purple-500/20 transition active:scale-95 mt-2">
                                 게임 시작하기
