@@ -390,8 +390,8 @@ import { badWords, matchingItems, allQuizPool } from './data.js?v=4';
             isHellMode = document.getElementById('hellModeToggle').checked;
             isInputLocked = false;
 
-            // 모드에 따라 UI 버튼 변경
-            if (isHardMode) {
+            // 모드에 따라 UI 버튼 변경 (하드모드 또는 헬모드일 때 기(Period) 단위 13개 버튼 노출)
+            if (isHardMode || isHellMode) {
                 document.getElementById('normalModeBtns').classList.add('hidden');
                 document.getElementById('hardModeBtns').classList.remove('hidden');
                 document.getElementById('hardModeBtns').classList.add('grid');
@@ -458,16 +458,16 @@ import { badWords, matchingItems, allQuizPool } from './data.js?v=4';
 
             const isHardMode = document.getElementById('hardModeToggle').checked;
             
-            // 노말 모드면 'era'(대)를, 하드 모드면 'period'(기)를 정답으로 체크
-            const targetAnswer = isHardMode ? activeMatchItem.period : activeMatchItem.era;
+            // 하드모드 또는 헬모드면 'period'(기)를, 노말 모드면 'era'(대)를 정답으로 체크
+            const targetAnswer = (isHardMode || isHellMode) ? activeMatchItem.period : activeMatchItem.era;
 
             const isCorrect = Array.isArray(targetAnswer)
                 ? targetAnswer.includes(clickedId)
                 : targetAnswer === clickedId;
 
             if (isCorrect) {
-                // 정답! (하드 모드는 점수 2배: +20점)
-                const earnedPoints = isHardMode ? 20 : 10;
+                // 정답! (하드 모드 & 헬모드는 점수 2배: +20점)
+                const earnedPoints = (isHardMode || isHellMode) ? 20 : 10;
                 matchScore += earnedPoints;
                 document.getElementById('gameScore').innerText = matchScore;
                 
@@ -477,8 +477,8 @@ import { badWords, matchingItems, allQuizPool } from './data.js?v=4';
                 setTimeout(() => card.classList.remove('border-green-500'), 150);
 
             } else {
-                // 오답! (하드 모드는 감점도 2배: -10점)
-                const lostPoints = isHardMode ? 10 : 5;
+                // 오답! (하드 모드 & 헬모드는 감점도 2배: -10점)
+                const lostPoints = (isHardMode || isHellMode) ? 10 : 5;
                 matchScore = Math.max(0, matchScore - lostPoints);
                 document.getElementById('gameScore').innerText = matchScore;
                 
