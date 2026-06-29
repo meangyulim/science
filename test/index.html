@@ -189,14 +189,26 @@
                                 <h3 class="text-lg font-bold text-white">스피드 매칭 챌린지 (프린트 전범위)</h3>
                                 <p class="text-xs text-gray-400 max-w-md mx-auto mt-2 leading-relaxed">프린트에 수록된 35개의 핵심 개념 중 무작위 15개가 출제됩니다. 스포일러가 제거된 힌트를 보고 가장 빠르게 시대를 매칭하세요! (맞추면 +10점, 틀리면 -5점)</p>
                             </div>
-                            <!-- 하드 모드 토글 -->
-                            <div class="mt-4 mb-6 flex items-center justify-center gap-3 bg-gray-950 px-5 py-3 rounded-xl border border-red-500/30">
-                                <i class="fa-solid fa-fire text-red-500"></i>
-                                <span class="text-sm font-bold text-gray-300">하드 모드 <span class="text-[10px] text-gray-500">(기 단위 매칭 / 점수 2배)</span></span>
-                                <label class="relative inline-flex items-center cursor-pointer ml-2">
-                                    <input type="checkbox" id="hardModeToggle" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500 shadow-lg shadow-red-500/20"></div>
-                                </label>
+                            <!-- 난이도 및 진행 모드 선택 (가로/세로 반응형 컨테이너) -->
+                            <div class="mt-4 mb-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <!-- 하드 모드 토글 -->
+                                <div class="flex items-center justify-center gap-3 bg-gray-950 px-5 py-3 rounded-xl border border-red-500/30 w-full sm:w-auto">
+                                    <i class="fa-solid fa-fire text-red-500 animate-pulse"></i>
+                                    <span class="text-sm font-bold text-gray-300">하드 모드 <span class="text-[10px] text-gray-500">(기 단위 매칭 / 점수 2배)</span></span>
+                                    <label class="relative inline-flex items-center cursor-pointer ml-2">
+                                        <input type="checkbox" id="hardModeToggle" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500 shadow-lg shadow-red-500/20"></div>
+                                    </label>
+                                </div>
+                                <!-- 헬모드 토글 -->
+                                <div class="flex items-center justify-center gap-3 bg-gray-950 px-5 py-3 rounded-xl border border-purple-500/30 w-full sm:w-auto">
+                                    <i class="fa-solid fa-skull-crossbones text-purple-500 animate-pulse"></i>
+                                    <span class="text-sm font-bold text-gray-300">헬모드 <span class="text-[10px] text-gray-500">(개수 무제한 / 시간 감산 패널티)</span></span>
+                                    <label class="relative inline-flex items-center cursor-pointer ml-2">
+                                        <input type="checkbox" id="hellModeToggle" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600 shadow-lg shadow-purple-500/20"></div>
+                                    </label>
+                                </div>
                             </div>
                             <button onclick="window.startMatchGame()" class="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-sm text-white shadow-lg shadow-purple-500/20 transition active:scale-95 mt-2">
                                 게임 시작하기
@@ -290,6 +302,6 @@
             <p>© 2026 Sehwa Girls' High School Earth Science. Built with Interactive Engine.</p>
         </footer>
 
-    <script type="module" src="app.js?v=3"></script>
+    <script type="module" src="app.js?v=4"></script>
 </body>
 </html>
