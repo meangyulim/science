@@ -106,6 +106,22 @@ import { badWords, matchingItems, allQuizPool } from './data.js';
 
             let savedAvatar = localStorage.getItem('userAvatar') || '🦕';
             window.selectAvatar(savedAvatar, null, true); // 저장된 아바타도 복구
+
+            // 🌟 하드모드 업데이트 공지 팝업 노출 여부 확인
+            const hideNotice = localStorage.getItem('hideHardModeUpdateNotice_v1');
+            if (hideNotice !== 'true') {
+                document.getElementById('updateNoticeModal').classList.remove('hidden');
+            }
+        };
+
+        // 🌟 업데이트 공지 닫기 및 다시 보지 않기 처리
+        window.closeUpdateNotice = function() {
+            const dontShow = document.getElementById('dontShowNoticeCheckbox').checked;
+            if (dontShow) {
+                localStorage.setItem('hideHardModeUpdateNotice_v1', 'true');
+            }
+            document.getElementById('updateNoticeModal').classList.add('hidden');
+            playSynthSound(440, 'sine', 0.05);
         };
 
         // --- LOBBY & USER PROFILE ---
