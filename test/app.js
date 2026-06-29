@@ -447,11 +447,7 @@ import { badWords, matchingItems, allQuizPool } from './data.js';
             // 노말 모드면 'era'(대)를, 하드 모드면 'period'(기)를 정답으로 체크
             const targetAnswer = isHardMode ? activeMatchItem.period : activeMatchItem.era;
 
-            const isCorrect = Array.isArray(targetAnswer)
-                ? targetAnswer.includes(clickedId)
-                : targetAnswer === clickedId;
-
-            if (isCorrect) {
+            if (targetAnswer === clickedId) {
                 // 정답! (하드 모드는 점수 2배: +20점)
                 const earnedPoints = isHardMode ? 20 : 10;
                 matchScore += earnedPoints;
