@@ -1,4 +1,4 @@
-import { badWords, matchingItems, allQuizPool } from './data.js';
+import { badWords, matchingItems, allQuizPool } from './data.js?v=2';
 
 // 🚨 자가 진단 에러 출력 함수 먼저 등록
         window.showAlert = function(title, msg, type = 'success') {
