@@ -3,46 +3,39 @@ export const badWords = [
 
 export const matchingItems = [
     // --- 선캄브리아 시대 ---
-    { name: "빙퇴석과 빙하 역암", era: "precambrian", period: ["sisaeng", "wonsaeng"], cat: "고기후", hint: "가장 오래된 초기 지층에서 발견되어 혹독한 추위가 있었음을 증명하는 흔적 (하드: 선캄브리아 아무 기나 선택)" },
-    { name: "오존층 부재 환경", era: "precambrian", period: ["sisaeng", "wonsaeng"], cat: "고환경", hint: "자외선이 여과 없이 내리쬐어 생명체가 바다 속에서만 머물러야 했던 환경 (하드: 선캄브리아 아무 기나 선택)" },
-    { name: "시아노 박테리아 (남세균)", era: "precambrian", period: ["sisaeng"], cat: "생물", hint: "최초로 광합성을 시작해 바다와 대기에 산소를 뿜어낸 원핵생물" },
-    { name: "스트로마톨라이트", era: "precambrian", period: ["sisaeng"], cat: "표준화석", hint: "초기 광합성 세균의 활동으로 인해 형성된 거대한 층상 퇴적 구조 화석" },
-    { name: "진핵생물의 출현", era: "precambrian", period: ["wonsaeng"], cat: "생물", hint: "약 7억 년 전 바다에 등장하여 다세포 생물로 진화하기 시작한 생물군" },
-    { name: "에디아카라 동물군", era: "precambrian", period: ["wonsaeng"], cat: "표준화석", hint: "이 시대 후반부 바다에서 번성했던 뼈나 껍데기가 없는 다세포 연체 생물들의 화석군" },
+    { name: "시아노 박테리아 (남세균)", era: "precambrian", period: "sisaeng", cat: "생물", hint: "이 시기에 등장하여 최초로 광합성을 시작해 바다와 대기에 산소를 뿜어낸 원핵생물" },
+    { name: "스트로마톨라이트", era: "precambrian", period: "sisaeng", cat: "표준화석", hint: "초기 광합성 세균의 활동으로 인해 형성된 거대한 층상 퇴적 구조 화석" },
+    { name: "진핵생물의 출현", era: "precambrian", period: "wonsaeng", cat: "생물", hint: "약 7억 년 전 바다에 등장하여 다세포 생물로 진화하기 시작한 생물군" },
+    { name: "에디아카라 동물군", era: "precambrian", period: "wonsaeng", cat: "표준화석", hint: "이 시대 후반부 바다에서 번성했던 뼈나 껍데기가 없는 다세포 연체 생물들의 화석군" },
 
     // --- 고생대 ---
-    { name: "캄브리아기 대폭발", era: "paleozoic", period: ["cambrian"], cat: "생물", hint: "해양 무척추동물의 종수가 폭발적으로 급증하여 생태계가 극도로 다양해진 진화적 사건" },
-    { name: "삼엽충과 완족류", era: "paleozoic", period: ["cambrian", "ordovician", "silurian", "devonian", "carboniferous", "permian"], cat: "표준화석", hint: "대폭발 시기부터 고생대 전반에 걸쳐 바다 밑을 휩쓸며 번성한 대표적 생물 (하드: 고생대 아무 기나 선택)" },
-    { name: "필석", era: "paleozoic", period: ["ordovician", "silurian"], cat: "표준화석", hint: "이 시기와 다음 시기에 걸쳐 바다 표면을 무리지어 떠다녔던 깃털 모양 군체 생물" },
-    { name: "최초의 척추동물 (어류) 출현", era: "paleozoic", period: ["ordovician"], cat: "생물", hint: "이 시기 바다에 최초로 등장한 등뼈를 가진 원시 생물의 등장 사건" },
-    { name: "오존층의 형성", era: "paleozoic", period: ["silurian"], cat: "환경변화", hint: "이 시기 대기에 완전하게 축적되어 생물들의 지상 진출을 가능케 한 요소" },
-    { name: "최초의 육상 식물", era: "paleozoic", period: ["silurian"], cat: "생물", hint: "자외선이 차단되자 물 밖으로 처음 진출하여 뿌리를 내린 식물군" },
-    { name: "갑주어", era: "paleozoic", period: ["devonian"], cat: "표준화석", hint: "어류의 시대라 불리는 이 시기에 번성했던, 단단한 골판 껍데기를 두른 원시 어류" },
-    { name: "양서류 최초 출현", era: "paleozoic", period: ["devonian"], cat: "생물", hint: "어류에서 진화하여 물과 뭍을 오가며 생활하기 시작한 최초의 네발 척추동물" },
-    { name: "푸줄리나 (방추충)", era: "paleozoic", period: ["carboniferous", "permian"], cat: "표준화석", hint: "고생대 후기의 얕고 따뜻한 바다를 뒤덮었던 쌀알 모양의 대형 유공충" },
-    { name: "거대 양치식물 삼림", era: "paleozoic", period: ["carboniferous"], cat: "식물", hint: "온난 다습한 육지 환경에서 거대하게 번성하여 오늘날의 막대한 석탄층을 형성한 고사리류 숲" },
-    { name: "파충류 최초 출현", era: "paleozoic", period: ["carboniferous"], cat: "생물", hint: "이 시기에 나타나 점차 뭍에서의 완전한 생활에 적응해 나간 양막류 동물" },
-    { name: "겉씨식물 최초 등장", era: "paleozoic", period: ["permian"], cat: "식물", hint: "고생대 마지막 시기에 육상에 등장하여 번성하기 시작한 은행나무와 소철" },
-    { name: "판게아 (초대륙) 형성", era: "paleozoic", period: ["permian"], cat: "지각변동", hint: "고생대 말기에 흩어졌던 대륙들이 완벽히 하나로 뭉치며 천해 면적을 급감시킨 사건" },
-    { name: "3차 대멸종", era: "paleozoic", period: ["permian"], cat: "대멸종", hint: "초대륙 형성 및 화산 폭발로 해양 생물의 95% 이상이 전멸한 역사상 최대 규모의 멸종" },
+    { name: "캄브리아기 대폭발", era: "paleozoic", period: "cambrian", cat: "생물", hint: "해양 무척추동물의 종수가 폭발적으로 급증하여 생태계가 극도로 다양해진 진화적 사건" },
+    { name: "삼엽충과 완족류", era: "paleozoic", period: "cambrian", cat: "표준화석", hint: "대폭발 시기부터 바다 밑을 휩쓸며 번성한 대표적 외골격 무척추동물" },
+    { name: "필석", era: "paleozoic", period: "ordovician", cat: "표준화석", hint: "이 시기와 다음 시기(실루리아기)에 걸쳐 바다 표면을 무리지어 떠다녔던 깃털 모양 군체 생물" },
+    { name: "최초의 척추동물 (어류) 출현", era: "paleozoic", period: "ordovician", cat: "생물", hint: "이 시기 바다에 최초로 등장한 등뼈를 가진 원시 생물의 등장 사건" },
+    { name: "오존층의 형성", era: "paleozoic", period: "silurian", cat: "환경변화", hint: "이 시기 대기에 완전하게 축적되어 생물들의 지상 진출을 가능케 한 요소" },
+    { name: "최초의 육상 식물", era: "paleozoic", period: "silurian", cat: "생물", hint: "자외선이 차단되자 물 밖으로 처음 진출하여 뿌리를 내린 식물군" },
+    { name: "갑주어", era: "paleozoic", period: "devonian", cat: "표준화석", hint: "어류의 시대라 불리는 이 시기에 번성했던, 단단한 골판 껍데기를 두른 원시 어류" },
+    { name: "양서류 최초 출현", era: "paleozoic", period: "devonian", cat: "생물", hint: "어류에서 진화하여 물과 뭍을 오가며 생활하기 시작한 최초의 네발 척추동물" },
+    { name: "푸줄리나 (방추충) 번성", era: "paleozoic", period: "carboniferous", cat: "표준화석", hint: "이 시기와 페름기의 얕고 따뜻한 바다를 뒤덮었던 쌀알 모양의 대형 유공충" },
+    { name: "거대 양치식물 삼림", era: "paleozoic", period: "carboniferous", cat: "식물", hint: "온난 다습한 육지 환경에서 거대하게 번성하여 오늘날의 막대한 석탄층을 형성한 고사리류 숲" },
+    { name: "파충류 최초 출현", era: "paleozoic", period: "carboniferous", cat: "생물", hint: "이 시기에 나타나 점차 뭍에서의 완전한 생활에 적응해 나간 양막류 동물" },
+    { name: "겉씨식물 최초 등장", era: "paleozoic", period: "permian", cat: "식물", hint: "고생대 마지막 시기에 육상에 등장하여 번성하기 시작한 은행나무와 소철" },
+    { name: "판게아 (초대륙) 형성", era: "paleozoic", period: "permian", cat: "지각변동", hint: "고생대 말기에 흩어졌던 대륙들이 완벽히 하나로 뭉치며 천해 면적을 급감시킨 사건" },
+    { name: "3차 대멸종", era: "paleozoic", period: "permian", cat: "대멸종", hint: "초대륙 형성 및 화산 폭발로 해양 생물의 95% 이상이 전멸한 가장 참혹한 생태계 붕괴 사건" },
 
     // --- 중생대 ---
-    { name: "빙하기 없는 온난 기후", era: "mesozoic", period: ["triassic", "jurassic", "cretaceous"], cat: "고기후", hint: "전 기간에 걸쳐 빙하의 흔적이 단 한 번도 관측되지 않은 기후 특성 (하드: 중생대 아무 기나 선택)" },
-    { name: "로키 산맥과 안데스 산맥", era: "mesozoic", period: ["triassic", "jurassic", "cretaceous"], cat: "지각변동", hint: "판게아가 분리되고 이동하는 과정 전반에 걸쳐 아메리카 대륙 연안에 솟아오른 조산대 (하드: 중생대 아무 기나 선택)" },
-    { name: "암모나이트와 공룡 번성", era: "mesozoic", period: ["triassic", "jurassic", "cretaceous"], cat: "표준화석", hint: "중생대 전 기간에 걸쳐 바다와 육지를 완전히 지배한 생물들 (하드: 중생대 아무 기나 선택)" },
-    { name: "판게아의 분리 개시", era: "mesozoic", period: ["triassic"], cat: "지각변동", hint: "초기에 하나였던 초대륙이 다시 쪼개지기 시작한 현상" },
-    { name: "원시 포유류 출현", era: "mesozoic", period: ["triassic"], cat: "생물", hint: "중생대 첫 시기에 거대 지배자들을 피해 밤에 활동했던 털 달린 동물" },
-    { name: "시조새", era: "mesozoic", period: ["jurassic"], cat: "표준화석", hint: "중생대 중반 지층에서 발견되었으며 깃털และ 이빨을 동시에 지닌 파충류/조류 가교 생물" },
-    { name: "속씨식물과 영장류 출현", era: "mesozoic", period: ["cretaceous"], cat: "식물/생물", hint: "중생대 마지막 시기에 처음 육상에 등장하여 씨방 속에 씨앗을 품은 식물과 지능형 동물" },
-    { name: "운석 충돌과 5차 대멸종", era: "mesozoic", period: ["cretaceous"], cat: "대멸종", hint: "중생대 말기에 공룡과 암모나이트를 지표면에서 완전히 사라지게 한 사건" },
+    { name: "판게아의 분리 개시", era: "mesozoic", period: "triassic", cat: "지각변동", hint: "초기에 하나였던 초대륙이 다시 쪼개지기 시작한 현상" },
+    { name: "원시 포유류 출현", era: "mesozoic", period: "triassic", cat: "생물", hint: "중생대 첫 시기에 거대 지배자들을 피해 밤에 활동했던 털 달린 동물" },
+    { name: "시조새", era: "mesozoic", period: "jurassic", cat: "표준화석", hint: "중생대 중반 지층에서 발견되었으며 깃털과 이빨을 동시에 지닌 파충류/조류 가교 생물" },
+    { name: "속씨식물과 영장류 출현", era: "mesozoic", period: "cretaceous", cat: "식물/생물", hint: "중생대 마지막 시기에 처음 육상에 등장하여 예쁜 꽃을 피우고 씨방 속에 씨앗을 품은 식물과 지능형 동물" },
+    { name: "운석 충돌과 5차 대멸종", era: "mesozoic", period: "cretaceous", cat: "대멸종", hint: "중생대 말기에 공룡과 암모나이트를 지표면에서 완전히 사라지게 한 사건" },
 
     // --- 신생대 ---
-    { name: "히말라야, 알프스 산맥 형성", era: "cenozoic", period: ["paleogene", "quaternary"], cat: "지각변동", hint: "대륙판의 충돌로 인하여 거대하게 솟아올라 현재의 수륙 분포가 완성되는 과정 (하드: 신생대 아무 기나 선택)" },
-    { name: "속씨식물의 대번성", era: "cenozoic", period: ["paleogene", "quaternary"], cat: "식물", hint: "단풍나무, 참나무 등이 전 기간에 걸쳐 넓은 초원 지대를 형성 (하드: 신생대 아무 기나 선택)" },
-    { name: "화폐석", era: "cenozoic", period: ["paleogene"], cat: "표준화석", hint: "신생대 초중기(팔레오기~네오기)의 따뜻한 얕은 바다 바닥을 덮었던 동전 모양의 거대 유공충" },
-    { name: "빙하기와 간빙기의 반복", era: "cenozoic", period: ["quaternary"], cat: "고기후", hint: "신생대 마지막 시기(후기)에 주기적으로 얼음이 뒤덮이는 추위와 따뜻함이 교차한 현상" },
-    { name: "매머드", era: "cenozoic", period: ["quaternary"], cat: "표준화석", hint: "이 시기의 빙하기 추위에 완벽히 적응하기 위해 두꺼운 피하지방과 긴 털을 기른 거대 동물" },
-    { name: "인류의 조상 출현", era: "cenozoic", period: ["quaternary"], cat: "생물", hint: "가장 최근의 시기에 지상에 나타나 도구를 제작하기 시작한 유인원" }
+    { name: "화폐석", era: "cenozoic", period: "paleogene", cat: "표준화석", hint: "신생대 초중기(팔레오기~네오기)의 따뜻한 얕은 바다 바닥을 덮었던 동전 모양의 거대 유공충" },
+    { name: "빙하기와 간빙기의 반복", era: "cenozoic", period: "quaternary", cat: "고기후", hint: "신생대 마지막 시기(후기)에 주기적으로 얼음이 뒤덮이는 추위와 따뜻함이 교차한 현상" },
+    { name: "매머드", era: "cenozoic", period: "quaternary", cat: "표준화석", hint: "이 시기의 빙하기 추위에 완벽히 적응하기 위해 두꺼운 피하지방과 긴 털을 기른 거대 동물" },
+    { name: "인류의 조상 출현", era: "cenozoic", period: "quaternary", cat: "생물", hint: "가장 최근의 시기에 지상에 나타나 도구를 제작하기 시작한 유인원" }
 ];
 
 export const allQuizPool = [
