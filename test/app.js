@@ -1,4 +1,4 @@
-import { badWords, matchingItems, allQuizPool } from './data.js?v=3';
+import { badWords, matchingItems, allQuizPool } from './data.js?v=4';
 
 // 🚨 자가 진단 에러 출력 함수 먼저 등록
         window.showAlert = function(title, msg, type = 'success') {
@@ -378,13 +378,17 @@ import { badWords, matchingItems, allQuizPool } from './data.js?v=3';
         let matchRemainingTime = 45;
         let currentMatchDeck = [];
         let activeMatchItem = null;
+        let isHellMode = false;
+        let isInputLocked = false;
 
         window.startMatchGame = function() {
             document.getElementById('matchIntroArea').classList.add('hidden');
             document.getElementById('matchingActiveArea').classList.remove('hidden');
             
-            // 하드모드 토글 여부 확인
+            // 하드모드 및 헬모드 토글 여부 확인
             const isHardMode = document.getElementById('hardModeToggle').checked;
+            isHellMode = document.getElementById('hellModeToggle').checked;
+            isInputLocked = false;
 
             // 모드에 따라 UI 버튼 변경
             if (isHardMode) {
@@ -398,13 +402,19 @@ import { badWords, matchingItems, allQuizPool } from './data.js?v=3';
             }
             
             matchScore = 0;
-            matchRemainingTime = 45;
+            matchRemainingTime = isHellMode ? 30 : 45;
             document.getElementById('gameScore').innerText = matchScore;
             document.getElementById('gameTimer').innerText = matchRemainingTime;
 
-            // 모드 상관없이 모든 문제가 가능하므로 랜덤 15개 추출
-            currentMatchDeck = [...matchingItems].sort(() => Math.random() - 0.5).slice(0, 15);
-            document.getElementById('remainingCards').innerText = currentMatchDeck.length;
+            if (isHellMode) {
+                // 헬모드: 개수 제한 없는 무제한 덱 구성
+                currentMatchDeck = [...matchingItems].sort(() => Math.random() - 0.5);
+                document.getElementById('remainingCards').innerText = "무제한";
+            } else {
+                // 일반/하드: 기존 15개 제한
+                currentMatchDeck = [...matchingItems].sort(() => Math.random() - 0.5).slice(0, 15);
+                document.getElementById('remainingCards').innerText = currentMatchDeck.length;
+            }
 
             loadNextMatchItem();
 
@@ -428,19 +438,23 @@ import { badWords, matchingItems, allQuizPool } from './data.js?v=3';
 
         function loadNextMatchItem() {
             if (currentMatchDeck.length === 0) {
-                endMatchGame();
-                return;
+                if (isHellMode) {
+                    currentMatchDeck = [...matchingItems].sort(() => Math.random() - 0.5);
+                } else {
+                    endMatchGame();
+                    return;
+                }
             }
 
             activeMatchItem = currentMatchDeck.pop();
-            document.getElementById('remainingCards').innerText = currentMatchDeck.length + 1;
+            document.getElementById('remainingCards').innerText = isHellMode ? "무제한" : (currentMatchDeck.length + 1);
             document.getElementById('currentCardName').innerText = activeMatchItem.name;
             document.getElementById('currentCardCategory').innerText = activeMatchItem.cat;
             document.getElementById('currentCardHint').innerText = activeMatchItem.hint;
         }
 
         window.selectMatchEra = function(clickedId) {
-            if (!activeMatchItem) return;
+            if (!activeMatchItem || isInputLocked) return;
 
             const isHardMode = document.getElementById('hardModeToggle').checked;
             
@@ -468,10 +482,38 @@ import { badWords, matchingItems, allQuizPool } from './data.js?v=3';
                 matchScore = Math.max(0, matchScore - lostPoints);
                 document.getElementById('gameScore').innerText = matchScore;
                 
-                const card = document.getElementById('currentMatchCard');
-                card.classList.add('border-red-500');
-                playSynthSound(150, 'sawtooth', 0.2);
-                setTimeout(() => card.classList.remove('border-red-500'), 150);
+                if (isHellMode) {
+                    // 헬모드 페널티: 시간 3초 차감 및 0.3초 입력 스턴
+                    matchRemainingTime = Math.max(0, matchRemainingTime - 3);
+                    document.getElementById('gameTimer').innerText = matchRemainingTime;
+                    
+                    const card = document.getElementById('currentMatchCard');
+                    card.classList.add('border-red-500', 'bg-red-500/20');
+                    playSynthSound(100, 'sawtooth', 0.3);
+                    
+                    isInputLocked = true;
+                    
+                    if (matchRemainingTime <= 0) {
+                        setTimeout(() => {
+                            card.classList.remove('border-red-500', 'bg-red-500/20');
+                            isInputLocked = false;
+                            endMatchGame();
+                        }, 300);
+                        return;
+                    }
+                    
+                    setTimeout(() => {
+                        card.classList.remove('border-red-500', 'bg-red-500/20');
+                        isInputLocked = false;
+                        loadNextMatchItem();
+                    }, 300);
+                    return; // 0.3초 스턴 후 복구 시점에 리로드
+                } else {
+                    const card = document.getElementById('currentMatchCard');
+                    card.classList.add('border-red-500');
+                    playSynthSound(150, 'sawtooth', 0.2);
+                    setTimeout(() => card.classList.remove('border-red-500'), 150);
+                }
             }
 
             loadNextMatchItem();
