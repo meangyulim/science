@@ -97,30 +97,7 @@ import { badWords, matchingItems, allQuizPool } from './data.js';
             return `${prefixes[Math.floor(Math.random() * prefixes.length)]}${Math.floor(1000 + Math.random() * 9000)}`;
         }
 
-        // 🌟 앱 실행 시 초기화 (DOM 로드 완료 시점 제어)
-        function initApp() {
-            let savedName = localStorage.getItem('userNickname');
-            if (!savedName) savedName = generateRandomNickname();
-            
-            const nicknameInput = document.getElementById('nicknameInput');
-            if (nicknameInput) nicknameInput.value = savedName; // 입력창에 미리 적어두기
 
-            let savedAvatar = localStorage.getItem('userAvatar') || '🦕';
-            window.selectAvatar(savedAvatar, null, true); // 저장된 아바타도 복구
-
-            // 🌟 하드모드 업데이트 공지 팝업 노출 여부 확인
-            const hideNotice = localStorage.getItem('hideHardModeUpdateNotice_v1');
-            const noticeModal = document.getElementById('updateNoticeModal');
-            if (hideNotice !== 'true' && noticeModal) {
-                noticeModal.classList.remove('hidden');
-            }
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            initApp();
-        }
 
         // 🌟 업데이트 공지 닫기 및 다시 보지 않기 처리
         window.closeUpdateNotice = function() {
@@ -630,4 +607,29 @@ import { badWords, matchingItems, allQuizPool } from './data.js';
             setTimeout(() => playSynthSound(800, 'sine', 0.3), 150);
 
             window.showAlert('서바이벌 퀴즈 클리어!', `최종 점수: ${cumulativeQuizScore}점! 독립된 퀴즈 랭킹에 기록되었습니다.`, 'success');
+        }
+
+        // 🌟 앱 실행 시 초기화 (DOM 로드 완료 시점 제어 - 모든 window 함수 선언 완료 후 실행)
+        function initApp() {
+            let savedName = localStorage.getItem('userNickname');
+            if (!savedName) savedName = generateRandomNickname();
+            
+            const nicknameInput = document.getElementById('nicknameInput');
+            if (nicknameInput) nicknameInput.value = savedName; // 입력창에 미리 적어두기
+
+            let savedAvatar = localStorage.getItem('userAvatar') || '🦕';
+            window.selectAvatar(savedAvatar, null, true); // 저장된 아바타도 복구
+
+            // 🌟 하드모드 업데이트 공지 팝업 노출 여부 확인
+            const hideNotice = localStorage.getItem('hideHardModeUpdateNotice_v1');
+            const noticeModal = document.getElementById('updateNoticeModal');
+            if (hideNotice !== 'true' && noticeModal) {
+                noticeModal.classList.remove('hidden');
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
         }
