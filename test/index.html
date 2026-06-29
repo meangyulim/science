@@ -269,6 +269,46 @@
                         </div>
                     </div>
 
+                    <!-- 업데이트 공지 모달 -->
+                    <div id="updateNoticeModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div class="w-full max-w-md bg-gray-900 border border-gray-800 rounded-3xl p-6 text-center panel-glow relative overflow-hidden">
+                            <div class="absolute -top-12 -left-12 w-24 h-24 bg-purple-500/10 rounded-full blur-xl"></div>
+                            <div class="absolute -bottom-12 -right-12 w-24 h-24 bg-red-500/10 rounded-full blur-xl"></div>
+                            
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-500 to-red-500 text-white text-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/20">
+                                <i class="fa-solid fa-bullhorn animate-bounce"></i>
+                            </div>
+                            
+                            <h3 class="text-xl font-extrabold text-white mb-2">🔥 지질시대 매칭 하드모드 업데이트!</h3>
+                            <p class="text-xs text-gray-300 font-bold mb-4 bg-gray-950 px-3 py-1 rounded-full inline-block border border-red-500/20">대(Era) 매칭에서 더 세분화된 기(Period) 매칭 출시</p>
+                            
+                            <div class="text-left text-xs space-y-2.5 text-gray-400 bg-gray-950/50 p-4 rounded-xl border border-gray-800/50 mb-6 leading-relaxed">
+                                <div class="flex items-start gap-2">
+                                    <span class="text-red-400 font-bold">1.</span>
+                                    <span>이제 선캄브리아 시생누대부터 신생대 제4기까지 **총 13개 기(Period) 단위**의 초정밀 매칭 플레이를 지원합니다.</span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-red-400 font-bold">2.</span>
+                                    <span>하드 모드로 게임 시작 시 정답을 맞추면 **점수 2배(+20점)**를 받지만, 틀려도 **감점 2배(-10점)**가 적용됩니다!</span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-red-400 font-bold">3.</span>
+                                    <span>여러 시기에 걸쳐 생존/형성된 항목(예: 삼엽충, 빙퇴석 등)은 해당하는 기 중 어떤 것을 눌러도 정답으로 처리됩니다.</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-400 hover:text-gray-200">
+                                    <input type="checkbox" id="dontShowNoticeCheckbox" class="rounded border-gray-800 bg-gray-950 text-purple-600 focus:ring-0 focus:ring-offset-0">
+                                    <span>다시 보지 않기</span>
+                                </label>
+                                <button onclick="window.closeUpdateNotice()" class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-red-500 hover:from-purple-500 hover:to-red-400 rounded-xl font-bold text-xs text-white shadow-md active:scale-95 transition">
+                                    닫기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="customAlert" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
                         <div class="w-full max-w-sm bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center panel-glow">
                             <div id="alertIcon" class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xl flex items-center justify-center mx-auto mb-4">
