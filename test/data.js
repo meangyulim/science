@@ -17,7 +17,7 @@ export const matchingItems = [
     { name: "최초의 척추동물 (어류) 출현", era: "paleozoic", period: ["ordovician"], cat: "생물", hint: "이 시기 바다에 최초로 등장한 등뼈를 가진 원시 생물의 등장 사건" },
     { name: "오존층의 형성", era: "paleozoic", period: ["silurian"], cat: "환경변화", hint: "이 시기 대기에 완전하게 축적되어 생물들의 지상 진출을 가능케 한 요소" },
     { name: "최초의 육상 식물", era: "paleozoic", period: ["silurian"], cat: "생물", hint: "자외선이 차단되자 물 밖으로 처음 진출하여 뿌리를 내린 식물군" },
-    { name: "갑주어", era: "paleozoic", period: ["devonian"], cat: "표준화석", hint: "어류의 시대라 불리는 이 시기에 번성했던, 단단한 골판 껍데기를 두른 원시 어류" },
+    { name: "갑주어", era: "paleozoic", period: ["devonian","silurian"], cat: "표준화석", hint: "어류의 시대라 불리는 이 시기에 번성했던, 단단한 골판 껍데기를 두른 원시 어류" },
     { name: "양서류 최초 출현", era: "paleozoic", period: ["devonian"], cat: "생물", hint: "어류에서 진화하여 물과 뭍을 오가며 생활하기 시작한 최초의 네발 척추동물" },
     { name: "푸줄리나 (방추충)", era: "paleozoic", period: ["carboniferous", "permian"], cat: "표준화석", hint: "고생대 후기의 얕고 따뜻한 바다를 뒤덮었던 쌀알 모양의 대형 유공충" },
     { name: "거대 양치식물 삼림", era: "paleozoic", period: ["carboniferous"], cat: "식물", hint: "온난 다습한 육지 환경에서 거대하게 번성하여 오늘날의 막대한 석탄층을 형성한 고사리류 숲" },
