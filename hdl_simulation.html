@@ -629,6 +629,7 @@
         state.selectedSoups = state.selectedSoups.slice(0, state.selectedPotType);
       }
       updateSoupCountsAndUI();
+      renderSoupOverlayInPot();
     }
 
     function updateSoupCountsAndUI() {
@@ -650,7 +651,7 @@
         if (!qtyContainer) return;
 
         if (count === 0) {
-          qtyContainer.innerHTML = `<img src="data:image/png;base64,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" class="iconCount___szsjr" style="cursor: pointer;">`;
+          qtyContainer.innerHTML = `<img src="${state.plusImageSrc}" class="iconCount___szsjr" style="width: 6.154vw; height: 6.154vw; cursor: pointer;">`;
           qtyContainer.querySelector('img').onclick = (e) => {
             e.stopPropagation();
             if (state.selectedSoups.length >= state.selectedPotType) {
@@ -691,6 +692,7 @@
       tempTotalPrice = state.selectedSoups.reduce((sum, s) => sum + s.price, 0);
       const bottomPriceEl = document.querySelector('#soupOverlay .cartPopCom___pXvlj .priceShowCom___lxHJM span:last-child');
       if (bottomPriceEl) bottomPriceEl.textContent = tempTotalPrice.toLocaleString();
+      renderSoupOverlayInPot();
     }
 
     // Connect Main Pot click to show overlay
@@ -732,6 +734,7 @@
           if (potImgEl) potImgEl.src = potImgMap[activeType];
         }
 
+        renderMainMenuPotOverlay();
         updateTotals();
       });
     }
@@ -865,8 +868,11 @@
       state.selectedSoups = [];
       const potTitleEl = potDetailBox.querySelector('.potDetailTitle___IC_Bm');
       const potCountEl = potDetailBox.querySelector('.potCountBox___FdKTo');
-      potTitleEl.innerHTML = '육수를 선택해 주세요';
-      potCountEl.innerHTML = '<div class="tipLabel___LjYRZ"></div>육수 · 11';
+      if (potTitleEl) potTitleEl.innerHTML = '육수를 선택해 주세요';
+      if (potCountEl) potCountEl.innerHTML = '<div class="tipLabel___LjYRZ"></div>육수 · 11';
+      const potImgEl = potDetailBox.querySelector('.potTipImg___NSeJf');
+      if (potImgEl) potImgEl.src = './hdlpreorder.superhi-tech.com_files/pot_4.b607196a.png';
+      renderMainMenuPotOverlay();
 
       updateTotals();
     });
@@ -1023,6 +1029,199 @@
           setActiveTab(activeTabIdx);
         }
       });
+
+    // === Soup Rendering Overlays ===
+    function renderSoupOverlayInPot() {
+      const activeSlide = document.querySelector('#soupOverlay .adm-swiper-slide-active');
+      if (!activeSlide) return;
+      
+      const container = activeSlide.querySelector('.activeContent___VWgda, .content___oFKEu');
+      if (!container) return;
+      
+      document.querySelectorAll('#soupOverlay .potTypeImgsBox___XTS0l').forEach(el => el.remove());
+      
+      if (state.selectedSoups.length === 0) return;
+      
+      const box = document.createElement('div');
+      box.className = 'potTypeImgsBox___XTS0l';
+      box.style.borderRadius = '50%';
+      box.style.overflow = 'hidden';
+      box.style.pointerEvents = 'none';
+      box.style.zIndex = '1';
+      
+      container.style.position = 'relative';
+      const potImg = container.querySelector('.hdlSwiperImg___l12ys');
+      if (potImg) {
+        potImg.style.position = 'relative';
+        potImg.style.zIndex = '2';
+      }
+      
+      const soupImgMap = {
+        '토마토탕훠궈': './hdlpreorder.superhi-tech.com_files/c9c72182-e325-409d-9ee9-6a7685492806_1722394026768.jpg',
+        '쏸차이훠궈': './hdlpreorder.superhi-tech.com_files/427869ef-91f9-48d2-a937-8a47d9481da4_1715562189784.jpg',
+        '우유마라훠궈': './hdlpreorder.superhi-tech.com_files/SEVEN_FORBID_DOC_895_20230417124034_bea7f39781aa41bfbe155e72294c46ff.jpg',
+        '청유마라훠궈(오리지널)': './hdlpreorder.superhi-tech.com_files/SEVEN_FORBID_DOC_677_20220601173528_d87ad42b7cba490fbae8ea44866af921-550-464-159873.jpg',
+        '소기름훠궈': './hdlpreorder.superhi-tech.com_files/SEVEN_FORBID_DOC_33_20230825093327_577f078194c0434287c2bcd3aaf883fc.jpg',
+        '똠양꿍탕훠궈': './hdlpreorder.superhi-tech.com_files/eee3477e-501d-40db-92a2-5512dbe2d6ad.jpg',
+        '삼선탕훠궈': './hdlpreorder.superhi-tech.com_files/7f48f470-68c3-4278-bdb7-e522cf21d816.jpg',
+        '후추탕훠궈': './hdlpreorder.superhi-tech.com_files/SEVEN_FORBID_DOC_648_20220530192624_230a61d3e5a64c1eb6a76794c78eac29-550-464-146003.jpg',
+        '삼계탕훠궈': './hdlpreorder.superhi-tech.com_files/054137c3-ee7a-4b4c-a661-79d3eefceb6f.jpg',
+        '버섯탕훠궈': './hdlpreorder.superhi-tech.com_files/SEVEN_FORBID_DOC_1359_20230220105737_83dc2872b7de491587e0509664b84c2b.jpg',
+        '맑은 탕': './hdlpreorder.superhi-tech.com_files/8e7f33ab-7a95-4129-aaaf-307c5edfbc3e.jpg'
+      };
+      
+      const numGrid = state.selectedPotType;
+      
+      if (numGrid === 4) {
+        box.style.display = 'grid';
+        box.style.gridTemplateColumns = '1fr 1fr';
+        box.style.gridTemplateRows = '1fr 1fr';
+        
+        for (let i = 0; i < 4; i++) {
+          const cell = document.createElement('div');
+          cell.style.width = '100%';
+          cell.style.height = '100%';
+          cell.style.overflow = 'hidden';
+          cell.style.position = 'relative';
+          
+          if (state.selectedSoups[i]) {
+            const imgSrc = soupImgMap[state.selectedSoups[i].name] || '';
+            cell.innerHTML = `<img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: cover;">`;
+          } else {
+            cell.style.background = '#f2f2f7';
+          }
+          box.appendChild(cell);
+        }
+      } else if (numGrid === 2) {
+        box.style.display = 'grid';
+        box.style.gridTemplateColumns = '1fr 1fr';
+        box.style.gridTemplateRows = '1fr';
+        
+        for (let i = 0; i < 2; i++) {
+          const cell = document.createElement('div');
+          cell.style.width = '100%';
+          cell.style.height = '100%';
+          cell.style.overflow = 'hidden';
+          cell.style.position = 'relative';
+          
+          if (state.selectedSoups[i]) {
+            const imgSrc = soupImgMap[state.selectedSoups[i].name] || '';
+            cell.innerHTML = `<img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: cover;">`;
+          } else {
+            cell.style.background = '#f2f2f7';
+          }
+          box.appendChild(cell);
+        }
+      } else {
+        box.style.display = 'block';
+        if (state.selectedSoups[0]) {
+          const imgSrc = soupImgMap[state.selectedSoups[0].name] || '';
+          box.innerHTML = `<img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        } else {
+          box.style.background = '#f2f2f7';
+        }
+      }
+      
+      container.insertBefore(box, container.firstChild);
+    }
+
+    function renderMainMenuPotOverlay() {
+      if (!potDetailBox) return;
+      
+      potDetailBox.querySelectorAll('.potTypeImgsBox___XTS0l').forEach(el => el.remove());
+      
+      if (state.selectedSoups.length === 0) return;
+      
+      const box = document.createElement('div');
+      box.className = 'potTypeImgsBox___XTS0l';
+      box.style.borderRadius = '50%';
+      box.style.overflow = 'hidden';
+      box.style.pointerEvents = 'none';
+      box.style.zIndex = '1';
+      
+      potDetailBox.style.position = 'relative';
+      const potImg = potDetailBox.querySelector('.potTipImg___NSeJf');
+      if (potImg) {
+        potImg.style.position = 'relative';
+        potImg.style.zIndex = '2';
+      }
+      
+      box.style.width = '14.102564vw';
+      box.style.height = '14.102564vw';
+      box.style.position = 'absolute';
+      box.style.top = '50%';
+      box.style.left = '50%';
+      box.style.transform = 'translate(-50%, -50%)';
+      
+      const soupImgMap = {
+        '토마토탕훠궈': './hdlpreorder.superhi-tech.com_files/c9c72182-e325-409d-9ee9-6a7685492806_1722394026768.jpg',
+        '쏸차이훠궈': './hdlpreorder.superhi-tech.com_files/427869ef-91f9-48d2-a937-8a47d9481da4_1715562189784.jpg',
+        '우유마라훠궈': './hdlpreorder.superhi-tech.com_files/SEVEN_FORBID_DOC_895_20230417124034_bea7f39781aa41bfbe155e72294c46ff.jpg',
+        '청유마라훠궈(오리지널)': './hdlpreorder.superhi-tech.com_files/SEVEN_FORBID_DOC_677_20220601173528_d87ad42b7cba490fbae8ea44866af921-550-464-159873.jpg',
+        '소기름훠궈': './hdlpreorder.superhi-tech.com_files/SEVEN_FORBID_DOC_33_20230825093327_577f078194c0434287c2bcd3aaf883fc.jpg',
+        '똠양꿍탕훠궈': './hdlpreorder.superhi-tech.com_files/eee3477e-501d-40db-92a2-5512dbe2d6ad.jpg',
+        '삼선탕훠궈': './hdlpreorder.superhi-tech.com_files/7f48f470-68c3-4278-bdb7-e522cf21d816.jpg',
+        '후추탕훠궈': './hdlpreorder.superhi-tech.com_files/SEVEN_FORBID_DOC_648_20220530192624_230a61d3e5a64c1eb6a76794c78eac29-550-464-146003.jpg',
+        '삼계탕훠궈': './hdlpreorder.superhi-tech.com_files/054137c3-ee7a-4b4c-a661-79d3eefceb6f.jpg',
+        '버섯탕훠궈': './hdlpreorder.superhi-tech.com_files/SEVEN_FORBID_DOC_1359_20230220105737_83dc2872b7de491587e0509664b84c2b.jpg',
+        '맑은 탕': './hdlpreorder.superhi-tech.com_files/8e7f33ab-7a95-4129-aaaf-307c5edfbc3e.jpg'
+      };
+      
+      const numGrid = state.selectedSoups.length > state.selectedPotType ? state.selectedPotType : (state.selectedPotType || 4);
+      
+      if (numGrid === 4) {
+        box.style.display = 'grid';
+        box.style.gridTemplateColumns = '1fr 1fr';
+        box.style.gridTemplateRows = '1fr 1fr';
+        
+        for (let i = 0; i < 4; i++) {
+          const cell = document.createElement('div');
+          cell.style.width = '100%';
+          cell.style.height = '100%';
+          cell.style.overflow = 'hidden';
+          cell.style.position = 'relative';
+          
+          if (state.selectedSoups[i]) {
+            const imgSrc = soupImgMap[state.selectedSoups[i].name] || '';
+            cell.innerHTML = `<img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: cover;">`;
+          } else {
+            cell.style.background = '#f2f2f7';
+          }
+          box.appendChild(cell);
+        }
+      } else if (numGrid === 2) {
+        box.style.display = 'grid';
+        box.style.gridTemplateColumns = '1fr 1fr';
+        box.style.gridTemplateRows = '1fr';
+        
+        for (let i = 0; i < 2; i++) {
+          const cell = document.createElement('div');
+          cell.style.width = '100%';
+          cell.style.height = '100%';
+          cell.style.overflow = 'hidden';
+          cell.style.position = 'relative';
+          
+          if (state.selectedSoups[i]) {
+            const imgSrc = soupImgMap[state.selectedSoups[i].name] || '';
+            cell.innerHTML = `<img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: cover;">`;
+          } else {
+            cell.style.background = '#f2f2f7';
+          }
+          box.appendChild(cell);
+        }
+      } else {
+        box.style.display = 'block';
+        if (state.selectedSoups[0]) {
+          const imgSrc = soupImgMap[state.selectedSoups[0].name] || '';
+          box.innerHTML = `<img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        } else {
+          box.style.background = '#f2f2f7';
+        }
+      }
+      
+      potDetailBox.insertBefore(box, potDetailBox.firstChild);
+    }
+
     });
   });
 </script>
