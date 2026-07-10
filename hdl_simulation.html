@@ -792,7 +792,6 @@
 
     overlay.addEventListener('click', () => {
       if (cartModal.classList.contains('active')) closeModal(cartModal);
-      if (soupModal.classList.contains('active')) closeModal(soupModal);
       if (receiptModal.classList.contains('active')) closeModal(receiptModal);
     });
 
@@ -1029,6 +1028,7 @@
           setActiveTab(activeTabIdx);
         }
       });
+    });
 
     // === Soup Rendering Overlays ===
     function renderSoupOverlayInPot() {
@@ -1222,8 +1222,7 @@
       potDetailBox.insertBefore(box, potDetailBox.firstChild);
     }
 
-    });
-  });
+      });
 </script>
 
 </body></html>
