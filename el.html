@@ -275,9 +275,17 @@
         let time = 0;
 
         // --- Core Functions ---
+        // 고해상도 디스플레이 대응: 백버퍼는 dpr배로, 그리기 좌표는 CSS 픽셀로 유지
+        let viewW = 0, viewH = 0;
         function resize() {
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            viewW = container.clientWidth;
+            viewH = container.clientHeight;
+            canvas.style.width = viewW + 'px';
+            canvas.style.height = viewH + 'px';
+            canvas.width = Math.round(viewW * dpr);
+            canvas.height = Math.round(viewH * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         }
         window.addEventListener('resize', resize);
 
@@ -322,10 +330,11 @@
             return start + (end - start) * factor;
         }
 
-        function updatePhysics() {
-            time += 0.05;
+        function updatePhysics(dt) {
+            time += 0.05 * dt;
             const target = TARGETS[currentMode];
-            const easing = 0.03; 
+            // 프레임당 3% 감쇠를 주사율과 무관한 등가 비율로 환산
+            const easing = 1 - Math.pow(1 - 0.03, dt);
 
             Object.keys(TARGETS.normal).forEach(key => {
                 current[key] = lerp(current[key], target[key], easing);
@@ -624,14 +633,21 @@
         }
 
         // --- Main Loop ---
-        function animate() {
-            updatePhysics();
+        // 주사율(60Hz/120Hz)과 무관하게 같은 속도로 재생하기 위한 델타 타임
+        let lastFrame = performance.now();
+        function animate(now) {
+            if (now === undefined) now = performance.now();
+            // 60fps 한 프레임을 1.0으로 보는 배율. 탭 복귀 시 튀지 않도록 상한을 둔다
+            const dt = Math.min((now - lastFrame) / (1000 / 60), 4);
+            lastFrame = now;
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            drawAtmosphere(canvas.width, canvas.height);
-            drawOcean(canvas.width, canvas.height);
-            drawLand(canvas.width, canvas.height);
+            updatePhysics(dt);
+
+            ctx.clearRect(0, 0, viewW, viewH);
+
+            drawAtmosphere(viewW, viewH);
+            drawOcean(viewW, viewH);
+            drawLand(viewW, viewH);
 
             requestAnimationFrame(animate);
         }

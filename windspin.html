@@ -108,7 +108,8 @@
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        // DPR 3인 단말에서 픽셀 부하가 9배가 되는 것을 막기 위해 2로 제한 (cyclone/land와 동일)
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         container.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -182,11 +183,11 @@
             verticalArrows.push({ helper: arrow, y: y });
         }
 
-        function animateArrows() {
+        function animateArrows(dt) {
             const isHigh = currentMode === 'H';
             const color = isHigh ? 0x2563eb : 0xdc2626;
-            const speed = 0.12;
-            const rotationSpeed = 0.02;
+            const speed = 0.12 * dt;
+            const rotationSpeed = 0.02 * dt;
             const coriolisDir = hemisphere === 'N' ? 1 : -1; // 북반구는 1, 남반구는 -1 곱하기
             
             surfaceArrows.forEach(a => {
@@ -371,21 +372,31 @@
         toggleCoriolis.addEventListener('change', (e) => { coriolisEnabled = e.target.checked; });
 
         // --- Animation Loop ---
-        function animate() {
+        // 주사율(60Hz/120Hz)과 무관하게 같은 속도로 재생하기 위한 델타 타임
+        let lastFrame = performance.now();
+        function animate(now) {
             requestAnimationFrame(animate);
 
-            animateArrows();
+            if (now === undefined) now = performance.now();
+            // 60fps 한 프레임을 1.0으로 보는 배율. 탭 복귀 시 튀지 않도록 상한을 둔다
+            const dt = Math.min((now - lastFrame) / (1000 / 60), 4);
+            lastFrame = now;
+
+            animateArrows(dt);
 
             const positions = particlesGeo.attributes.position.array;
             const isHigh = currentMode === 'H';
             const coriolisDir = hemisphere === 'N' ? 1 : -1; // 입자 회전 방향 전환
             let colorNeedsUpdate = false; // 색상 업데이트 여부 추적
+            // 프레임당 감쇠율을 주사율과 무관한 등가 비율로 환산
+            const heightEase = 1 - Math.pow(1 - 0.1, dt);
+            const inwardEase = 1 - Math.pow(1 - 0.02, dt);
 
             for (let i = 0; i < particleCount; i++) {
                 let px = positions[i*3];
                 let py = positions[i*3+1];
                 let pz = positions[i*3+2];
-                let speed = particleSpeeds[i];
+                let speed = particleSpeeds[i] * dt;
                 let r = Math.sqrt(px*px + pz*pz);
 
                 if (isHigh) {
@@ -407,7 +418,7 @@
 
                         px += vx;
                         pz += vz;
-                        py += (0.1 + Math.random()*0.4 - py) * 0.1; 
+                        py += (0.1 + Math.random()*0.4 - py) * heightEase;
                     }
                     if (r > 25) {
                         resetParticle(i);
@@ -428,11 +439,11 @@
 
                         px += vx;
                         pz += vz;
-                        py += (0.1 + Math.random()*0.4 - py) * 0.1;
+                        py += (0.1 + Math.random()*0.4 - py) * heightEase;
                     } else {
                         py += speed * 1.5;
-                        px -= px * 0.02;
-                        pz -= pz * 0.02;
+                        px -= px * inwardEase;
+                        pz -= pz * inwardEase;
                     }
                     if (py > 20) {
                         resetParticle(i);

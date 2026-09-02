@@ -512,21 +512,32 @@
             return 0x6ee7b7; // 기본 C층
         }
 
-        function animate() {
+        // 주사율(60Hz/120Hz)과 무관하게 같은 속도로 재생하기 위한 델타 타임
+        let lastFrame = performance.now();
+        function animate(now) {
             requestAnimationFrame(animate);
-            
-            c_seaY += (t_seaY - c_seaY) * 0.05;
-            c_erodeY += (t_erodeY - c_erodeY) * 0.05;
-            c_foldAmp += (t_foldAmp - c_foldAmp) * 0.05;
-            c_tiltAngle += (t_tiltAngle - c_tiltAngle) * 0.05;
-            c_plutonScale += (t_plutonScale - c_plutonScale) * 0.05;
-            
-            c_magmaHeight += (t_magmaHeight - c_magmaHeight) * 0.05;
-            c_sillScale += (t_sillScale - c_sillScale) * 0.05;
-            c_metaOpacity += (t_metaOpacity - c_metaOpacity) * 0.05;
 
-            c_lavaScale += (t_lavaScale - c_lavaScale) * 0.05;
-            c_lavaColor += (t_lavaColor - c_lavaColor) * 0.03; 
+            if (now === undefined) now = performance.now();
+            // 60fps 한 프레임을 1.0으로 보는 배율. 탭 복귀 시 튀지 않도록 상한을 둔다
+            const dt = Math.min((now - lastFrame) / (1000 / 60), 4);
+            lastFrame = now;
+
+            // 프레임당 감쇠율을 주사율과 무관한 등가 비율로 환산
+            const ease05 = 1 - Math.pow(1 - 0.05, dt);
+            const ease03 = 1 - Math.pow(1 - 0.03, dt);
+
+            c_seaY += (t_seaY - c_seaY) * ease05;
+            c_erodeY += (t_erodeY - c_erodeY) * ease05;
+            c_foldAmp += (t_foldAmp - c_foldAmp) * ease05;
+            c_tiltAngle += (t_tiltAngle - c_tiltAngle) * ease05;
+            c_plutonScale += (t_plutonScale - c_plutonScale) * ease05;
+            
+            c_magmaHeight += (t_magmaHeight - c_magmaHeight) * ease05;
+            c_sillScale += (t_sillScale - c_sillScale) * ease05;
+            c_metaOpacity += (t_metaOpacity - c_metaOpacity) * ease05;
+
+            c_lavaScale += (t_lavaScale - c_lavaScale) * ease05;
+            c_lavaColor += (t_lavaColor - c_lavaColor) * ease03; 
 
             updateLayerABC(layerA); updateLayerABC(layerB); updateLayerABC(layerC);
             
@@ -544,8 +555,8 @@
             if (isErupting) {
                 eruptParticles.visible = true;
                 eruptParticles.children.forEach(p => {
-                    p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
-                    p.userData.vy -= 0.03; p.userData.age += 0.02;
+                    p.position.x += p.userData.vx * dt; p.position.y += p.userData.vy * dt; p.position.z += p.userData.vz * dt;
+                    p.userData.vy -= 0.03 * dt; p.userData.age += 0.02 * dt;
                     if(p.userData.age > 1.0 || p.position.y < -4) {
                         p.position.set(0,0,0); p.userData.vy = Math.random()*0.8 + 0.6; p.userData.age = 0;
                     }

@@ -154,7 +154,7 @@
         // 시뮬레이션 목록: 카드 디자인을 위해 아이콘과 배경색상 클래스(Tailwind) 추가
         const simulations = [
             { 
-                id: '지질시대 온라인 게임', 
+                id: 'geologic-time-game', 
                 name: '지질시대 온라인 게임', 
                 url: 'test/index.html', // ★ 이 부분이 text 폴더 안의 index.html 경로로 변경되었습니다.
                 icon: '🏜️',
@@ -254,11 +254,28 @@
             cardContainer.appendChild(card);
         });
 
-        // 시뮬레이션 열기 함수
-        function openSimulation(sim) {
+        // --- 화면 전환 (실제 렌더링) ---
+        const HOME_TITLE = document.title;
+        let currentUrl = 'about:blank';
+
+        // iframe 의 src 속성을 직접 바꾸면 브라우저 세션 히스토리에 항목이 하나 더 쌓인다.
+        // 그러면 뒤로가기가 '목록'이 아니라 'iframe 의 이전 문서'로 가버리므로,
+        // 히스토리에 남지 않는 location.replace 로 이동시킨다.
+        function setViewerUrl(url) {
+            if (currentUrl === url) return;
+            currentUrl = url;
+            try {
+                viewer.contentWindow.location.replace(url);
+            } catch (e) {
+                viewer.src = url; // 접근이 막히는 환경에서는 원래 방식으로 대체
+            }
+        }
+
+        function showSim(sim) {
             currentSimTitle.innerText = sim.name;
-            viewer.src = sim.url;
-            
+            setViewerUrl(sim.url);
+            document.title = `${sim.name} · ${HOME_TITLE}`;
+
             // 뷰 전환 (홈 숨기고, 시뮬레이션 보이기)
             homeView.style.display = 'none';
             // 시뮬레이션 진입 시 헤더와 푸터 숨기기
@@ -267,10 +284,10 @@
             simView.style.display = 'flex';
         }
 
-        // 홈으로 돌아가기 함수
-        function goHome() {
-            viewer.src = 'about:blank'; // 메모리 확보를 위해 iframe 비우기
-            
+        function showHome() {
+            setViewerUrl('about:blank'); // 메모리 확보를 위해 iframe 비우기
+            document.title = HOME_TITLE;
+
             // 뷰 전환 (시뮬레이션 숨기고, 홈 보이기)
             simView.style.display = 'none';
             homeView.style.display = 'block';
@@ -278,6 +295,46 @@
             mainHeader.style.display = 'flex'; 
             mainFooter.style.display = 'flex'; 
         }
+
+        // --- 해시 라우팅 ---
+        // 주소창의 #아이디가 곧 현재 화면이다. 덕분에
+        //  (1) 휴대폰 뒤로가기가 사이트를 벗어나지 않고 목록으로 돌아오고
+        //  (2) 특정 시뮬레이션 링크를 그대로 공유할 수 있다.
+
+        // 목록에서 직접 들어온 경우에만 history.back()으로 되돌릴 수 있다.
+        // (링크를 타고 시뮬레이션으로 바로 진입했다면 이전 항목은 우리 페이지가 아니다)
+        let pushedByUs = false;
+
+        function applyRoute() {
+            const id = decodeURIComponent(location.hash.replace(/^#/, ''));
+            const sim = simulations.find(s => s.id === id);
+            if (sim) {
+                showSim(sim);
+            } else {
+                pushedByUs = false;
+                showHome();
+            }
+        }
+
+        // 시뮬레이션 열기 함수 (해시만 바꾸고 실제 전환은 applyRoute가 담당)
+        function openSimulation(sim) {
+            pushedByUs = true;
+            location.hash = encodeURIComponent(sim.id);
+        }
+
+        // 홈으로 돌아가기 함수
+        function goHome() {
+            if (pushedByUs) {
+                history.back(); // 뒤로가기 버튼과 동작을 일치시킨다
+            } else {
+                // 딥링크로 바로 진입한 경우: 히스토리를 늘리지 않고 홈으로 교체
+                location.replace(location.pathname + location.search);
+                showHome();
+            }
+        }
+
+        window.addEventListener('hashchange', applyRoute);
+        applyRoute(); // 최초 진입 시 주소의 해시를 반영 (딥링크 포함)
 
         // iOS 등에서 화면 스크롤 시 빈 공간 스크롤 방지 (iframe 내부는 정상 작동)
         document.addEventListener('touchmove', function(e) {

@@ -140,10 +140,18 @@
         const BLOCK_HEIGHT = 200;
         const BEDDING_SPACING = 30;
 
-        // Resize Canvas
+        // Resize Canvas (고해상도 디스플레이 대응)
+        let viewW = 0, viewH = 0;
         function resize() {
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            viewW = container.clientWidth;
+            viewH = container.clientHeight;
+            canvas.style.width = viewW + 'px';
+            canvas.style.height = viewH + 'px';
+            canvas.width = Math.round(viewW * dpr);
+            canvas.height = Math.round(viewH * dpr);
+            // 이후 그리기는 모두 CSS 픽셀 좌표계로 수행된다
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         }
         window.addEventListener('resize', resize);
         resize();
@@ -412,9 +420,16 @@
         }
 
         // Main Animation Loop
-        function animate() {
+        // 주사율(60Hz/120Hz)과 무관하게 같은 속도로 재생하기 위한 델타 타임
+        let lastFrame = performance.now();
+        function animate(now) {
+            if (now === undefined) now = performance.now();
+            // 60fps 한 프레임을 1.0으로 보는 배율. 탭 복귀 시 튀지 않도록 상한을 둔다
+            const dt = Math.min((now - lastFrame) / (1000 / 60), 4);
+            lastFrame = now;
+
             // Logic Update
-            state.time++;
+            state.time += dt;
 
             if (state.isAnimating) {
                 const diff = state.targetAngle - state.angle;
@@ -422,18 +437,18 @@
                     state.angle = state.targetAngle;
                     state.isAnimating = false;
                 } else {
-                    state.angle += diff * 0.05; // Ease out
+                    state.angle += diff * (1 - Math.pow(1 - 0.05, dt)); // Ease out
                 }
             }
 
             // Clear Canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, viewW, viewH);
 
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
+            const cx = viewW / 2;
+            const cy = viewH / 2;
 
             // 화면 크기에 맞게 캔버스 스케일링 (위아래 여백을 더 확보)
-            const scale = Math.min(1, canvas.width / (BLOCK_WIDTH + 60), canvas.height / (BLOCK_HEIGHT + 220));
+            const scale = Math.min(1, viewW / (BLOCK_WIDTH + 60), viewH / (BLOCK_HEIGHT + 220));
 
             ctx.save();
             ctx.translate(cx, cy);

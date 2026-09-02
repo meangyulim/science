@@ -174,9 +174,23 @@
         };
 
         // --- 3. Resize and Setup ---
+        // 고해상도 디스플레이 대응: 백버퍼는 dpr배로, 그리기 좌표는 CSS 픽셀로 유지
+        let viewW = 0, viewH = 0;
+        function scaleForDpr(el, c, cssW, cssH) {
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            el.style.width = cssW + 'px';
+            el.style.height = cssH + 'px';
+            el.width = Math.round(cssW * dpr);
+            el.height = Math.round(cssH * dpr);
+            c.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
         function resize() {
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
+            viewW = container.clientWidth;
+            viewH = container.clientHeight;
+            scaleForDpr(canvas, ctx, viewW, viewH);
+            // 나침반은 120x120 CSS 픽셀 고정 (그리기 좌표는 그대로 유지된다)
+            scaleForDpr(compassA, ctxA, 120, 120);
+            scaleForDpr(compassB, ctxB, 120, 120);
         }
         window.addEventListener('resize', resize);
 
@@ -193,9 +207,16 @@
 
         // --- 5. Main Animation Loop (최적화됨) ---
         // 재귀 호출 문제를 없애고 단일 루프만 실행하여 메모리 누수 방지
-        function mainLoop() {
+        // 주사율(60Hz/120Hz)과 무관하게 같은 속도로 재생하기 위한 델타 타임
+        let lastFrame = performance.now();
+        function mainLoop(now) {
+            if (now === undefined) now = performance.now();
+            // 60fps 한 프레임을 1.0으로 보는 배율. 탭 복귀 시 튀지 않도록 상한을 둔다
+            const dt = Math.min((now - lastFrame) / (1000 / 60), 4);
+            lastFrame = now;
+
             if (isPlaying) {
-                progress += 0.3; // Speed
+                progress += 0.3 * dt; // Speed
                 if (progress > 100) progress = 0; 
                 document.getElementById('timeSlider').value = progress;
             }
@@ -449,10 +470,10 @@
 
         // Draw 호출 시 불필요한 rAF 제거 (최적화 완료)
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
+            ctx.clearRect(0, 0, viewW, viewH);
+
+            const centerX = viewW / 2;
+            const centerY = viewH / 2;
 
             const cycloneX = centerX - 250 + (progress / 100) * 500;
             const cycloneY = centerY;
