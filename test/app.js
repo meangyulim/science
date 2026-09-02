@@ -259,47 +259,80 @@ import { badWords, matchingItems, allQuizPool } from './data.js?v=5';
             renderLeaderboard();
         };
 
+        // 🔒 리더보드의 닉네임·아바타·점수는 공개 컬렉션(/artifacts/{appId}/public/data/leaderboard)
+        //    에서 오므로 익명 로그인한 누구나 값을 써 넣을 수 있다.
+        //    문자열을 이어 붙여 innerHTML 로 넣으면 그 값이 그대로 HTML 로 해석되어,
+        //    한 명이 심어 둔 스크립트가 리더보드를 여는 모든 학생 브라우저에서 실행된다.
+        //    그래서 이 아래로는 사용자 값을 textContent 로만 넣는다. (innerHTML 금지)
+
+        // 점수도 숫자라는 보장이 없다. 정렬·표시 양쪽에서 같은 함수를 써 항상 숫자로 만든다.
+        function safeScore(item) {
+            const raw = currentLeaderboardMode === 'match' ? item.matchScore : item.quizScore;
+            const n = Number(raw);
+            return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+        }
+
+        // 아바타는 화면에서 고를 수 있는 네 가지뿐이다. 그 밖의 값은 기본값으로 되돌린다.
+        const ALLOWED_AVATARS = ['🦕', '🪲', '🐘', '🐚'];
+
+        function buildLeaderboardRow(item, index, isMe) {
+            const row = document.createElement('div');
+            row.className = "flex items-center justify-between p-2.5 rounded-xl border "
+                + (isMe ? 'border-emerald-500 bg-emerald-500/10' : 'border-gray-800/40 bg-gray-950/20')
+                + " text-xs";
+
+            const left = document.createElement('div');
+            left.className = "flex items-center gap-2";
+
+            const medalEl = document.createElement('span');
+            medalEl.className = "font-mono text-[10px] w-6 text-center text-gray-400 font-bold";
+            medalEl.textContent = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`;
+
+            const avatarEl = document.createElement('span');
+            avatarEl.className = "text-base";
+            avatarEl.textContent = ALLOWED_AVATARS.includes(item.avatar) ? item.avatar : '🦕';
+
+            const nameEl = document.createElement('span');
+            nameEl.className = "font-bold truncate max-w-[100px] text-gray-200";
+            // 입력창의 maxlength 는 브라우저에서만 걸리므로 여기서 다시 자른다.
+            nameEl.textContent = String(item.nickname || '이름 없음').slice(0, 20);
+
+            left.append(medalEl, avatarEl, nameEl);
+
+            const scoreEl = document.createElement('span');
+            scoreEl.className = "font-mono font-bold "
+                + (isMe ? 'text-emerald-400'
+                        : (currentLeaderboardMode === 'match' ? 'text-purple-300' : 'text-blue-300'));
+            scoreEl.textContent = `${safeScore(item)}점`;
+
+            row.append(left, scoreEl);
+            return row;
+        }
+
         function renderLeaderboard() {
             const listContainer = document.getElementById('leaderboardList');
-            
-            let sortedData = [...cachedLeaderboardData].sort((a, b) => {
-                let scoreA = currentLeaderboardMode === 'match' ? (a.matchScore || 0) : (a.quizScore || 0);
-                let scoreB = currentLeaderboardMode === 'match' ? (b.matchScore || 0) : (b.quizScore || 0);
-                return scoreB - scoreA;
-            });
 
-            sortedData = sortedData.filter(item => {
-                let s = currentLeaderboardMode === 'match' ? (item.matchScore || 0) : (item.quizScore || 0);
-                return s > 0;
-            });
+            const sortedData = [...cachedLeaderboardData]
+                .filter(item => safeScore(item) > 0)
+                .sort((a, b) => safeScore(b) - safeScore(a));
+
+            listContainer.textContent = '';   // 기존 목록 비우기
 
             if (sortedData.length === 0) {
-                listContainer.innerHTML = `<div class="text-center py-8 text-xs text-gray-500">아직 해당 분야의 랭킹 기록이 없습니다.<br>첫 전당에 도전하세요!</div>`;
+                const empty = document.createElement('div');
+                empty.className = "text-center py-8 text-xs text-gray-500";
+                empty.append('아직 해당 분야의 랭킹 기록이 없습니다.',
+                             document.createElement('br'),
+                             '첫 전당에 도전하세요!');
+                listContainer.appendChild(empty);
                 return;
             }
 
-            listContainer.innerHTML = sortedData.slice(0, 15).map((item, index) => {
-                const isMe = (currentUser && item.uid === currentUser.uid) || (!currentUser && item.uid === 'local');
-                let medal = `${index + 1}위`;
-                if (index === 0) medal = '🥇';
-                else if (index === 1) medal = '🥈';
-                else if (index === 2) medal = '🥉';
-
-                let displayScore = currentLeaderboardMode === 'match' ? (item.matchScore || 0) : (item.quizScore || 0);
-                let colorClass = currentLeaderboardMode === 'match' ? 'text-purple-300' : 'text-blue-300';
-                if (isMe) colorClass = 'text-emerald-400';
-
-                return `
-                    <div class="flex items-center justify-between p-2.5 rounded-xl border ${isMe ? 'border-emerald-500 bg-emerald-500/10' : 'border-gray-800/40 bg-gray-950/20'} text-xs">
-                        <div class="flex items-center gap-2">
-                            <span class="font-mono text-[10px] w-6 text-center text-gray-400 font-bold">${medal}</span>
-                            <span class="text-base">${item.avatar || '🦕'}</span>
-                            <span class="font-bold truncate max-w-[100px] text-gray-200">${item.nickname}</span>
-                        </div>
-                        <span class="font-mono font-bold ${colorClass}">${displayScore}점</span>
-                    </div>
-                `;
-            }).join('');
+            sortedData.slice(0, 15).forEach((item, index) => {
+                const isMe = (currentUser && item.uid === currentUser.uid)
+                          || (!currentUser && item.uid === 'local');
+                listContainer.appendChild(buildLeaderboardRow(item, index, isMe));
+            });
         }
 
         async function updateLeaderboardScore(gameType, newScore) {
