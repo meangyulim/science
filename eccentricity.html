@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>이심률과 궤도 — 행성우주과학</title>
+<style>
+  :root{
+    --navy:#12263F; --slate:#3D5A80; --ice:#CADCFC; --gold:#B9791F;
+    --green:#2E7D5B; --brick:#8C3A2B; --gray:#5B6B80; --line:#D3DCE7;
+    --panel:#F5F7FA; --bg:#FFFFFF; --ink:#22303F;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:"Pretendard","Malgun Gothic","맑은 고딕","Apple SD Gothic Neo",system-ui,sans-serif;
+    -webkit-text-size-adjust:100%}
+  .wrap{max-width:1120px;margin:0 auto;padding:20px 16px 56px}
+  header{border-top:5px solid var(--navy);padding-top:16px;margin-bottom:18px}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--slate)}
+  h1{margin:6px 0 4px;font-size:clamp(22px,4.4vw,32px);color:var(--navy);letter-spacing:-.01em}
+  .sub{font-size:clamp(13px,2.6vw,15px);color:var(--gray);line-height:1.6}
+
+  .stage{position:relative;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;overflow:hidden}
+  canvas{display:block;width:100%;height:auto;touch-action:manipulation}
+
+  .ctrl{margin-top:16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+  .erow{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .elabel{font-size:14px;font-weight:700;color:var(--slate)}
+  .eval{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:clamp(28px,6vw,40px);
+    font-weight:700;color:var(--navy);line-height:1}
+  .shape{margin-left:auto;font-size:14px;font-weight:700;padding:5px 12px;border-radius:999px;
+    background:var(--ice);color:var(--navy)}
+  input[type=range]{width:100%;margin:14px 0 4px;height:34px;accent-color:#12263F}
+  .ticks{display:flex;justify-content:space-between;font-size:11px;color:#9AA7B6}
+
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .presets button{font:inherit;font-size:13px;padding:8px 12px;border-radius:9px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:var(--slate);white-space:nowrap}
+  .presets button:hover{border-color:var(--slate)}
+  .presets button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+
+  .toggles{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;padding-top:14px;
+    border-top:1px solid var(--line);font-size:14px;color:var(--slate)}
+  .toggles label{display:flex;align-items:center;gap:7px;cursor:pointer}
+  .toggles input{width:17px;height:17px;accent-color:#3D5A80}
+  .play{font:inherit;font-size:14px;font-weight:700;padding:8px 16px;border-radius:9px;
+    border:1px solid var(--navy);background:var(--navy);color:#fff;cursor:pointer}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff}
+  .card .k{font-size:12px;color:var(--gray);margin-bottom:6px}
+  .card .v{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:22px;font-weight:700}
+  .card .u{font-size:12px;color:var(--gray);font-weight:400;font-family:inherit}
+  .c-peri{border-left:4px solid var(--gold)} .c-peri .v{color:var(--gold)}
+  .c-apo {border-left:4px solid var(--slate)} .c-apo .v{color:var(--slate)}
+  .c-ratio{border-left:4px solid var(--brick)} .c-ratio .v{color:var(--brick)}
+  .c-c   {border-left:4px solid var(--green)} .c-c .v{color:var(--green)}
+
+  .note{margin-top:18px;border-left:4px solid var(--brick);padding:2px 0 2px 14px;
+    font-size:14px;line-height:1.75;color:#44536A}
+  footer{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);
+    font-size:12px;color:#9AA7B6;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">PLANETARY &amp; SPACE SCIENCE · KEPLER'S FIRST LAW</div>
+    <h1>이심률을 바꾸면 궤도는 어떻게 변할까</h1>
+    <p class="sub">슬라이더를 움직여 보자. 긴반지름 <b>a = 1 AU</b> 는 고정이고, 이심률 <b>e</b> 만 변한다.<br>
+       태양은 항상 <b>초점</b>에 있다. 중심이 아니다.</p>
+  </header>
+
+  <div class="stage"><canvas id="cv" width="1120" height="700"></canvas></div>
+
+  <div class="ctrl">
+    <div class="erow">
+      <span class="elabel">이심률 e</span>
+      <span class="eval" id="eText">0.00</span>
+      <span class="shape" id="shape">원</span>
+    </div>
+    <input id="e" type="range" min="0" max="0.97" step="0.001" value="0">
+    <div class="ticks"><span>0 · 원</span><span>0.5</span><span>0.97 · 극단적 타원</span></div>
+
+    <div class="presets" id="presets"></div>
+
+    <div class="toggles">
+      <label><input type="checkbox" id="showCircle"> 같은 a 의 원과 겹쳐 보기</label>
+      <label><input type="checkbox" id="showArea" checked> 같은 시간에 쓸고 간 면적</label>
+      <button class="play" id="play">▶ 공전 시작</button>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card c-peri"><div class="k">근일점 거리 &nbsp;a(1−e)</div><div class="v"><span id="peri">1.00</span> <span class="u">AU</span></div></div>
+    <div class="card c-apo"><div class="k">원일점 거리 &nbsp;a(1+e)</div><div class="v"><span id="apo">1.00</span> <span class="u">AU</span></div></div>
+    <div class="card c-ratio"><div class="k">원일점 ÷ 근일점</div><div class="v"><span id="ratio">1.0</span> <span class="u">배</span></div></div>
+    <div class="card c-c"><div class="k">중심 → 초점 &nbsp;c = ae</div><div class="v"><span id="cc">0.00</span> <span class="u">AU</span></div></div>
+  </div>
+
+  <p class="note">
+    <b>확인해 볼 것</b><br>
+    ① e 가 0.2 정도까지는 눈으로 원과 잘 구분되지 않는다. 지구(0.017)와 수성(0.206)이 여기에 있다.<br>
+    ② 그런데 근일점·원일점 거리는 그보다 훨씬 크게 벌어진다. 모양보다 <b>거리</b>가 먼저 달라진다.<br>
+    ③ 공전을 시작해 보면, 태양에 가까울수록 빨라진다. 같은 시간에 쓸고 간 면적은 언제나 같다.
+  </p>
+
+  <footer>
+    행성우주과학 5차시 · Ⅰ. 우주 탐사와 행성계 — 02. 태양계 천체들의 운동<br>
+    궤도 운동은 케플러 방정식 M = E − e sin E 를 뉴턴법으로 풀어 그린다.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var C = {navy:"#12263F", slate:"#3D5A80", ice:"#CADCFC", gold:"#B9791F",
+           green:"#2E7D5B", brick:"#8C3A2B", gray:"#5B6B80", line:"#C9D3E0",
+           sun:"#F5A81C", sunGlow:"rgba(245,178,31,.30)"};
+
+  var PRESETS = [
+    {n:"금성",   e:0.007}, {n:"지구",  e:0.017}, {n:"목성", e:0.049},
+    {n:"화성",   e:0.093}, {n:"수성",  e:0.206}, {n:"명왕성", e:0.249},
+    {n:"템펠 1", e:0.519}, {n:"핼리 혜성", e:0.967}
+  ];
+
+  var cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+  var eIn = document.getElementById("e");
+  var elText = document.getElementById("eText"), elShape = document.getElementById("shape");
+  var elPeri = document.getElementById("peri"), elApo = document.getElementById("apo");
+  var elRatio = document.getElementById("ratio"), elCc = document.getElementById("cc");
+  var cbCircle = document.getElementById("showCircle"), cbArea = document.getElementById("showArea");
+  var btnPlay = document.getElementById("play"), box = document.getElementById("presets");
+
+  var e = 0, playing = false, M = 0, last = 0;
+  var W = 1120, H = 700, dpr = 1;
+
+  PRESETS.forEach(function(p){
+    var b = document.createElement("button");
+    b.type = "button"; b.textContent = p.n + "  " + p.e.toFixed(3);
+    b.setAttribute("aria-pressed","false");
+    b.addEventListener("click", function(){ eIn.value = p.e; setE(p.e); });
+    box.appendChild(b);
+  });
+
+  function resize(){
+    var w = cv.parentNode.clientWidth;
+    var h = Math.max(320, Math.min(Math.round(w * 0.625), 700));
+    dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    cv.style.height = h + "px";
+    W = w; H = h;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    draw();
+  }
+
+  function shapeName(v){
+    if (v < 0.005) return "원";
+    if (v < 0.1)   return "거의 원";
+    if (v < 0.35)  return "타원";
+    if (v < 0.7)   return "뚜렷한 타원";
+    return "극단적으로 납작한 타원";
+  }
+
+  function setE(v){
+    e = Math.max(0, Math.min(0.97, +v));
+    elText.textContent = e.toFixed(3);
+    elShape.textContent = shapeName(e);
+    elPeri.textContent  = (1 - e).toFixed(3);
+    elApo.textContent   = (1 + e).toFixed(3);
+    elRatio.textContent = ((1 + e) / (1 - e)).toFixed(e > 0.9 ? 0 : 1);
+    elCc.textContent    = e.toFixed(3);
+    var t = e.toFixed(3);
+    Array.prototype.forEach.call(box.children, function(b, i){
+      b.setAttribute("aria-pressed", PRESETS[i].e.toFixed(3) === t ? "true" : "false");
+    });
+    draw();
+  }
+
+  // 케플러 방정식 M = E - e sinE
+  function solveE(M, e){
+    var E = M, i;
+    for (i = 0; i < 60; i++){
+      var f = E - e * Math.sin(E) - M;
+      var d = 1 - e * Math.cos(E);
+      var dE = f / d;
+      E -= dE;
+      if (Math.abs(dE) < 1e-12) break;
+    }
+    return E;
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = "#F5F7FA"; ctx.fillRect(0,0,W,H);
+
+    var pad = Math.max(56, W*0.075);
+    var a = (W/2 - pad);                 // 화면상의 긴반지름
+    var b = a * Math.sqrt(1 - e*e);
+    var maxB = (H/2 - pad*0.72);
+    if (b > maxB){ var k = maxB/b; a *= k; b *= k; }
+    var cx = W/2, cy = H/2, c = a*e;
+    var sx = cx - c;                     // 태양(초점)
+
+    // 원 겹쳐 보기
+    if (cbCircle.checked){
+      ctx.save(); ctx.setLineDash([7,7]); ctx.strokeStyle = "#AEBACA"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, a, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+    }
+
+    // 같은 시간에 쓸고 간 면적 (8등분)
+    if (cbArea.checked){
+      var N = 8, j, s;
+      for (j = 0; j < N; j++){
+        ctx.beginPath(); ctx.moveTo(sx, cy);
+        for (s = 0; s <= 26; s++){
+          var Mi = 2*Math.PI*(j + s/26)/N;
+          var Ei = solveE(Mi, e);
+          ctx.lineTo(cx + a*Math.cos(Ei), cy + b*Math.sin(Ei));
+        }
+        ctx.closePath();
+        ctx.fillStyle = (j % 2 === 0) ? "rgba(174,203,247,.92)" : "rgba(233,240,251,.95)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(61,90,128,.45)"; ctx.lineWidth = 1.2; ctx.stroke();
+      }
+    }
+
+    // 궤도
+    ctx.beginPath(); ctx.ellipse(cx, cy, a, b, 0, 0, Math.PI*2);
+    ctx.strokeStyle = C.navy; ctx.lineWidth = 3.5; ctx.stroke();
+
+    // 장축 · 중심 · 두 초점
+    ctx.save(); ctx.setLineDash([6,7]); ctx.strokeStyle = "#9FADBE"; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(cx-a, cy); ctx.lineTo(cx+a, cy); ctx.stroke(); ctx.restore();
+
+    dot(cx, cy, 4.5, C.gray);
+    dot(cx + c, cy, 5.5, "#7C8CA0");
+    // c 표시
+    if (e > 0.02){
+      ctx.strokeStyle = C.green; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(sx, cy+0); ctx.lineTo(cx, cy+0); ctx.stroke();
+      label("c = ae", (sx+cx)/2, cy - 14, C.green, 13, "center", true);
+    }
+
+    // 근일점 · 원일점
+    dot(cx-a, cy, 6, C.gold); dot(cx+a, cy, 6, C.slate);
+    label("근일점", cx-a, cy + 42, C.gold, 13, "center", true);
+    label((1-e).toFixed(2) + " AU", cx-a, cy + 61, C.gold, 12, "center");
+    label("원일점", cx+a, cy + 42, C.slate, 13, "center", true);
+    label((1+e).toFixed(2) + " AU", cx+a, cy + 61, C.slate, 12, "center");
+
+    // 태양
+    var g = ctx.createRadialGradient(sx, cy, 2, sx, cy, 44);
+    g.addColorStop(0, "rgba(245,178,31,.55)"); g.addColorStop(1, "rgba(245,178,31,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, cy, 44, 0, Math.PI*2); ctx.fill();
+    dot(sx, cy, 11, C.sun);
+    label("태양 (초점)", sx, cy - 36, "#8F620A", 13, "center", true);
+
+    // 행성
+    var E = solveE(M, e);
+    var px = cx + a*Math.cos(E), py = cy + b*Math.sin(E);
+    ctx.strokeStyle = "rgba(61,90,128,.55)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(sx, cy); ctx.lineTo(px, py); ctx.stroke();
+    dot(px, py, 9, "#2C5A8F");
+
+    // 좌상단 요약
+    label("a = 1 AU  ·  e = " + e.toFixed(3), 16, 26, C.navy, 14, "left", true);
+  }
+
+  function dot(x,y,r,col){ ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+  function label(t,x,y,col,size,align,bold){
+    ctx.fillStyle = col; ctx.textAlign = align || "left"; ctx.textBaseline = "alphabetic";
+    ctx.font = (bold?"700 ":"500 ") + (size||13) + 'px "Pretendard","Malgun Gothic","맑은 고딕",system-ui,sans-serif';
+    ctx.fillText(t, x, y);
+  }
+
+  function tick(ts){
+    if (!playing) return;
+    if (!last) last = ts;
+    var dt = Math.min((ts - last)/1000, 0.05); last = ts;
+    M = (M + dt * 2*Math.PI/6) % (2*Math.PI);   // 공전 주기 6초
+    draw();
+    requestAnimationFrame(tick);
+  }
+
+  eIn.addEventListener("input", function(){ setE(this.value); });
+  cbCircle.addEventListener("change", draw);
+  cbArea.addEventListener("change", draw);
+  btnPlay.addEventListener("click", function(){
+    playing = !playing;
+    this.textContent = playing ? "❚❚ 멈춤" : "▶ 공전 시작";
+    last = 0;
+    if (playing) requestAnimationFrame(tick);
+  });
+  window.addEventListener("resize", resize);
+
+  // 링크로 초기 이심률 지정 :  ....html#e=0.6
+  var h = (location.hash || "").match(/e=([0-9.]+)/);
+  var e0 = h ? Math.max(0, Math.min(0.97, parseFloat(h[1]))) : 0;
+  resize(); eIn.value = e0; setE(e0);
+})();
+</script>
+</body>
+</html>
