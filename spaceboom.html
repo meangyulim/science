@@ -188,11 +188,20 @@
         let initialCurvature = 0;
         const monopoles = [];
 
+        // 고해상도 디스플레이 대응: 백버퍼는 dpr배로, 그리기 좌표(cw/ch)는 CSS 픽셀로 유지
+        function scaleForDpr(el, c, cssW, cssH) {
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            el.style.width = cssW + 'px';
+            el.style.height = cssH + 'px';
+            el.width = Math.round(cssW * dpr);
+            el.height = Math.round(cssH * dpr);
+            c.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
         function resizeCanvas() {
             cw = container.clientWidth;
             ch = container.clientHeight;
-            canvas.width = cw;
-            canvas.height = ch;
+            scaleForDpr(canvas, ctx, cw, ch);
             drawBackgroundStars();
             if (monopoles.length === 0) initMonopoles();
             draw();
@@ -200,7 +209,7 @@
         window.addEventListener('resize', resizeCanvas);
 
         function drawBackgroundStars() {
-            bgCanvas.width = cw; bgCanvas.height = ch;
+            scaleForDpr(bgCanvas, bgCtx, cw, ch);
             bgCtx.clearRect(0,0,cw,ch);
             bgCtx.fillStyle = '#ffffff';
             for(let i=0; i<200; i++) {
@@ -673,9 +682,16 @@
             else if (currentMode === 'monopole') drawMonopole();
         }
 
-        function animate() {
+        // 주사율(60Hz/120Hz)과 무관하게 같은 속도로 재생하기 위한 델타 타임
+        let lastFrame = performance.now();
+        function animate(now) {
+            if (now === undefined) now = performance.now();
+            // 60fps 한 프레임을 1.0으로 보는 배율. 탭 복귀 시 튀지 않도록 상한을 둔다
+            const dt = Math.min((now - lastFrame) / (1000 / 60), 4);
+            lastFrame = now;
+
             if (isPlaying) {
-                time += 0.1;
+                time += 0.1 * dt;
                 if (time > 100) {
                     time = 0;
                     if(currentMode === 'monopole') initMonopoles();

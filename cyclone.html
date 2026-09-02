@@ -319,44 +319,71 @@
 
         // --- 6. 애니메이션 루프 ---
         let time = 0;
-        function animate() {
+        // 형상을 마지막으로 만들어 둔 진폭. NaN이라 첫 프레임에는 반드시 한 번 생성된다
+        let lastBuiltAmp = NaN;
+        // 주사율(60Hz/120Hz)과 무관하게 같은 속도로 재생하기 위한 델타 타임
+        let lastFrame = performance.now();
+        function animate(now) {
             requestAnimationFrame(animate);
-            time += 0.03;
-            currentAmp += (targetAmp - currentAmp) * 0.05; 
 
-            // 기단 변형
-            const cPos = coldMesh.geometry.attributes.position.array;
-            for(let i=0; i<cPos.length; i+=3) {
-                let x = coldOrig[i]; let y = coldOrig[i+1]; let z = coldOrig[i+2];
-                if (z > -1) cPos[i+2] = getWaveZ(x, currentAmp) - (y * getSlope(x, currentAmp));
-            }
-            coldMesh.geometry.attributes.position.needsUpdate = true;
-            coldMesh.geometry.computeVertexNormals();
+            if (now === undefined) now = performance.now();
+            // 60fps 한 프레임을 1.0으로 보는 배율. 탭 복귀 시 튀지 않도록 상한을 둔다
+            const dt = Math.min((now - lastFrame) / (1000 / 60), 4);
+            lastFrame = now;
 
-            const wPos = warmMesh.geometry.attributes.position.array;
-            for(let i=0; i<wPos.length; i+=3) {
-                let x = warmOrig[i]; let y = warmOrig[i+1]; let z = warmOrig[i+2];
-                if (z < 1) wPos[i+2] = getWaveZ(x, currentAmp) - (y * getSlope(x, currentAmp));
-            }
-            warmMesh.geometry.attributes.position.needsUpdate = true;
-            warmMesh.geometry.computeVertexNormals();
+            time += 0.03 * dt;
+            currentAmp += (targetAmp - currentAmp) * (1 - Math.pow(1 - 0.05, dt));
+            // 점근 수렴이라 그냥 두면 영원히 끝나지 않는다. 충분히 가까우면 목표값에 붙여 정지시킨다
+            if (Math.abs(targetAmp - currentAmp) < 1e-3) currentAmp = targetAmp;
 
-            const fPos = frontMesh.geometry.attributes.position.array;
-            for(let i=0; i<fPos.length; i+=3) {
-                let x = frontOrig[i]; let y = frontOrig[i+1];
-                fPos[i+2] = getWaveZ(x, currentAmp) - (y * getSlope(x, currentAmp));
-            }
-            frontMesh.geometry.attributes.position.needsUpdate = true;
-            frontMesh.geometry.computeVertexNormals();
+            // 진폭이 실제로 변한 프레임에만 지오메트리를 다시 만든다.
+            // (정지 상태에서 매 프레임 TubeGeometry 2개를 새로 할당하던 것을 막는다)
+            if (currentAmp !== lastBuiltAmp) {
+                lastBuiltAmp = currentAmp;
 
-            // 바닥 선
-            const linePts = [];
-            const yLine = 0.4;
-            for(let i=-40; i<=40; i+=1) {
-                linePts.push(new THREE.Vector3(i, yLine, getWaveZ(i, currentAmp) - (yLine * getSlope(i, currentAmp))));
+                // 기단 변형
+                const cPos = coldMesh.geometry.attributes.position.array;
+                for(let i=0; i<cPos.length; i+=3) {
+                    let x = coldOrig[i]; let y = coldOrig[i+1]; let z = coldOrig[i+2];
+                    if (z > -1) cPos[i+2] = getWaveZ(x, currentAmp) - (y * getSlope(x, currentAmp));
+                }
+                coldMesh.geometry.attributes.position.needsUpdate = true;
+                coldMesh.geometry.computeVertexNormals();
+
+                const wPos = warmMesh.geometry.attributes.position.array;
+                for(let i=0; i<wPos.length; i+=3) {
+                    let x = warmOrig[i]; let y = warmOrig[i+1]; let z = warmOrig[i+2];
+                    if (z < 1) wPos[i+2] = getWaveZ(x, currentAmp) - (y * getSlope(x, currentAmp));
+                }
+                warmMesh.geometry.attributes.position.needsUpdate = true;
+                warmMesh.geometry.computeVertexNormals();
+
+                const fPos = frontMesh.geometry.attributes.position.array;
+                for(let i=0; i<fPos.length; i+=3) {
+                    let x = frontOrig[i]; let y = frontOrig[i+1];
+                    fPos[i+2] = getWaveZ(x, currentAmp) - (y * getSlope(x, currentAmp));
+                }
+                frontMesh.geometry.attributes.position.needsUpdate = true;
+                frontMesh.geometry.computeVertexNormals();
+
+                // 바닥 선
+                const linePts = [];
+                const yLine = 0.4;
+                for(let i=-40; i<=40; i+=1) {
+                    linePts.push(new THREE.Vector3(i, yLine, getWaveZ(i, currentAmp) - (yLine * getSlope(i, currentAmp))));
+                }
+                frontLineMesh.geometry.dispose();
+                frontLineMesh.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(linePts), 70, 0.35, 8, false);
+                // 제트기류
+                const jetPts = [];
+                for(let i=-35; i<=35; i++) {
+                    let x = i * 1.5;
+                    let z = -currentAmp * 1.5 * Math.cos((x + 5) * 0.1); 
+                    jetPts.push(new THREE.Vector3(x, 20, z)); 
+                }
+                jetMesh.geometry.dispose();
+                jetMesh.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(jetPts), 70, 0.8, 8, false);
             }
-            frontLineMesh.geometry.dispose();
-            frontLineMesh.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(linePts), 70, 0.35, 8, false);
 
             // 기호 배치
             frontMarkers.forEach(m => {
@@ -386,16 +413,6 @@
                 }
             });
 
-            // 제트기류
-            const jetPts = [];
-            for(let i=-35; i<=35; i++) {
-                let x = i * 1.5;
-                let z = -currentAmp * 1.5 * Math.cos((x + 5) * 0.1); 
-                jetPts.push(new THREE.Vector3(x, 20, z)); 
-            }
-            jetMesh.geometry.dispose();
-            jetMesh.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(jetPts), 70, 0.8, 8, false);
-
             const centerZ = getWaveZ(0, currentAmp);
 
             if (currentStage === 1) {
@@ -414,7 +431,7 @@
                     let dynamicSpeed = 0.3 + 0.2 * Math.sin((px_current + 5) * 0.15);
                     if (dynamicSpeed < 0.1) dynamicSpeed = 0.1; // 최소 속도 보장
                     
-                    arrow.userData.offset += dynamicSpeed;
+                    arrow.userData.offset += dynamicSpeed * dt;
                     
                     let px = (arrow.userData.offset % 70) - 35; 
                     let spread = 0;
@@ -449,7 +466,7 @@
                 });
 
                 updraftGroup.children.forEach(p => {
-                    p.userData.offset += p.userData.speed;
+                    p.userData.offset += p.userData.speed * dt;
                     let t = (p.userData.offset % (Math.PI*2)) / (Math.PI*2);
                     let px = Math.sin(p.userData.offset * 3) * 2.5; 
                     let py = t * 21; 
