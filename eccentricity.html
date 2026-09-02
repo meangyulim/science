@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>이심률과 원뿔 곡선 — 행성우주과학</title>
+<style>
+  :root{
+    --navy:#12263F; --slate:#3D5A80; --ice:#CADCFC; --gold:#B9791F;
+    --green:#2E7D5B; --brick:#8C3A2B; --gray:#5B6B80; --line:#D3DCE7;
+    --panel:#F5F7FA; --bg:#FFFFFF; --ink:#22303F;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:"Pretendard","Malgun Gothic","맑은 고딕","Apple SD Gothic Neo",system-ui,sans-serif;
+    -webkit-text-size-adjust:100%}
+  .wrap{max-width:1120px;margin:0 auto;padding:20px 16px 56px}
+  header{border-top:5px solid var(--navy);padding-top:16px;margin-bottom:18px}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--slate)}
+  h1{margin:6px 0 4px;font-size:clamp(22px,4.4vw,32px);color:var(--navy);letter-spacing:-.01em}
+  .sub{font-size:clamp(13px,2.6vw,15px);color:var(--gray);line-height:1.6}
+
+  .stage{position:relative;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;overflow:hidden}
+  canvas{display:block;width:100%;height:auto;touch-action:manipulation}
+
+  .ctrl{margin-top:16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+  .erow{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .elabel{font-size:14px;font-weight:700;color:var(--slate)}
+  .eval{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:clamp(28px,6vw,40px);
+    font-weight:700;color:var(--navy);line-height:1}
+  .shape{margin-left:auto;font-size:14px;font-weight:700;padding:5px 12px;border-radius:999px;
+    background:var(--ice);color:var(--navy);transition:background .18s,color .18s}
+  input[type=range]{width:100%;margin:14px 0 4px;height:34px;accent-color:#12263F}
+
+  /* e = 1 이 어디인지 슬라이더 위에 표시 */
+  .scale{position:relative;height:16px;font-size:11px;color:#9AA7B6}
+  .scale span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+  .scale .edge-l{transform:none;left:0} .scale .edge-r{transform:none;right:0}
+  .scale .one{color:var(--gold);font-weight:700}
+  .scale .one::before{content:"";position:absolute;left:50%;top:-20px;width:2px;height:16px;
+    background:var(--gold);opacity:.55}
+
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .presets button{font:inherit;font-size:13px;padding:8px 12px;border-radius:9px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:var(--slate);white-space:nowrap}
+  .presets button:hover{border-color:var(--slate)}
+  .presets button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+
+  .toggles{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:14px;
+    border-top:1px solid var(--line);font-size:14px;color:var(--slate)}
+  .toggles label{display:flex;align-items:center;gap:7px;cursor:pointer}
+  .toggles input{width:17px;height:17px;accent-color:#3D5A80}
+  .play{font:inherit;font-size:14px;font-weight:700;padding:8px 16px;border-radius:9px;
+    border:1px solid var(--navy);background:var(--navy);color:#fff;cursor:pointer}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff}
+  .card .k{font-size:12px;color:var(--gray);margin-bottom:6px}
+  .card .v{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:22px;font-weight:700}
+  .card .u{font-size:12px;color:var(--gray);font-weight:400;font-family:inherit}
+  .c-peri{border-left:4px solid var(--gold)} .c-peri .v{color:var(--gold)}
+  .c-apo {border-left:4px solid var(--slate)} .c-apo .v{color:var(--slate)}
+  .c-a   {border-left:4px solid var(--brick)} .c-a .v{color:var(--brick)}
+  .c-kind{border-left:4px solid var(--green)} .c-kind .v{color:var(--green);font-size:19px}
+
+  .note{margin-top:18px;border-left:4px solid var(--brick);padding:2px 0 2px 14px;
+    font-size:14px;line-height:1.75;color:#44536A}
+  .note b{color:var(--navy)}
+  footer{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);
+    font-size:12px;color:#9AA7B6;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">PLANETARY &amp; SPACE SCIENCE · CONIC SECTIONS</div>
+    <h1>이심률을 0에서 1 너머까지 바꿔 보자</h1>
+    <p class="sub">근일점 거리를 <b>1로 고정</b>하고 이심률 <b>e</b> 만 바꾼다. 태양은 언제나 <b>초점</b>에 있다.<br>
+       e 가 커지면 궤도는 <b>원 → 타원 → 포물선 → 쌍곡선</b> 으로 이어진다.</p>
+  </header>
+
+  <div class="stage"><canvas id="cv" width="1120" height="700"></canvas></div>
+
+  <div class="ctrl">
+    <div class="erow">
+      <span class="elabel">이심률 e</span>
+      <span class="eval" id="eText">0.000</span>
+      <span class="shape" id="shape">원</span>
+    </div>
+    <input id="e" type="range" min="0" max="2" step="0.001" value="0">
+    <div class="scale">
+      <span class="edge-l">0 · 원</span>
+      <span class="one" style="left:50%">1 · 포물선</span>
+      <span class="edge-r">2 · 쌍곡선</span>
+    </div>
+
+    <div class="presets" id="presets"></div>
+
+    <div class="toggles">
+      <label><input type="checkbox" id="showGhosts"> 다른 이심률과 겹쳐 보기</label>
+      <label><input type="checkbox" id="showArea" checked> 같은 시간에 쓸고 간 면적</label>
+      <label><input type="checkbox" id="showGuide"> 준선 · 점근선</label>
+      <button class="play" id="play">▶ 공전 시작</button>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card c-peri"><div class="k">근일점 거리 &nbsp;q</div><div class="v">1.000 <span class="u">(고정)</span></div></div>
+    <div class="card c-apo"><div class="k">원일점 거리 &nbsp;q(1+e)/(1−e)</div><div class="v"><span id="apo">1.000</span></div></div>
+    <div class="card c-a"><div class="k">긴반지름 &nbsp;a = q/(1−e)</div><div class="v"><span id="aa">1.000</span></div></div>
+    <div class="card c-kind"><div class="k">궤도의 종류</div><div class="v"><span id="kindText">원 · 닫힘</span></div></div>
+  </div>
+
+  <p class="note">
+    <b>확인해 볼 것</b><br>
+    ① <b>e = 0</b> 은 원, <b>0 &lt; e &lt; 1</b> 은 타원이다. 여기까지는 태양에 묶여 되돌아오는 <b>닫힌 궤도</b>다.<br>
+    ② e 를 1 에 가깝게 밀어 보자. 근일점은 그대로인데 원일점만 저 멀리 달아난다. <b>e = 1</b> 에서 타원은 끝내 닫히지 못하고 <b>포물선</b>이 된다.<br>
+    ③ <b>e &gt; 1</b> 은 <b>쌍곡선</b>. 태양을 한 번 스쳐 지나가고 다시는 돌아오지 않는다. 2017년에 발견된 성간 천체 오무아무아(e ≈ 1.20)가 실제로 이런 궤도였다.<br>
+    ④ 네 곡선 모두 원뿔을 비스듬히 자른 단면이라 <b>원뿔 곡선</b>이라 부른다. 어떤 모양이든 태양은 늘 초점에 있고, 같은 시간에 쓸고 간 면적은 언제나 같다.<br>
+    ⑤ 슬라이더로 e = 1 을 정확히 맞추기는 거의 불가능하다. 실제 자연에서도 정확한 포물선 궤도는 사실상 존재하지 않는다. <b>포물선 버튼</b>을 눌러 보자.
+  </p>
+
+  <footer>
+    행성우주과학 5차시 · Ⅰ. 우주 탐사와 행성계 — 02. 태양계 천체들의 운동<br>
+    모든 곡선은 초점을 원점으로 한 극좌표식 r = q(1+e) / (1 + e·cos ν) 로 그린다.<br>
+    궤도 운동은 타원이면 케플러 방정식 M = E − e sin E, 포물선이면 바커 방정식,
+    쌍곡선이면 M = e sinh H − H 를 뉴턴법으로 풀어 그린다.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var C = {navy:"#12263F", slate:"#3D5A80", ice:"#CADCFC", gold:"#B9791F",
+           green:"#2E7D5B", brick:"#8C3A2B", gray:"#5B6B80", line:"#C9D3E0",
+           sun:"#F5A81C"};
+
+  // 근일점 거리. 모든 곡선을 이 값으로 맞춰 겹쳐 놓기 때문에 고정이다.
+  // (긴반지름을 고정하면 포물선에서 a 가 무한대가 되어 e ≥ 1 을 그릴 수 없다)
+  var Q = 1;
+
+  var KIND = {
+    circle   : {name:"원",      color:C.green, closed:"닫힘"},
+    ellipse  : {name:"타원",    color:C.navy,  closed:"닫힘"},
+    parabola : {name:"포물선",  color:C.gold,  closed:"열림"},
+    hyperbola: {name:"쌍곡선",  color:C.brick, closed:"열림"}
+  };
+  function kindOf(e){
+    if (e < 1e-9) return "circle";
+    if (Math.abs(e - 1) < 1e-9) return "parabola";
+    return e < 1 ? "ellipse" : "hyperbola";
+  }
+
+  var PRESETS = [
+    {n:"원",         e:0},
+    {n:"지구",       e:0.017},
+    {n:"수성",       e:0.206},
+    {n:"핼리 혜성",  e:0.967},
+    {n:"포물선",     e:1},
+    {n:"오무아무아", e:1.201},
+    {n:"쌍곡선",     e:1.6}
+  ];
+
+  var cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+  var eIn = document.getElementById("e");
+  var elText = document.getElementById("eText"), elShape = document.getElementById("shape");
+  var elApo = document.getElementById("apo"), elA = document.getElementById("aa");
+  var elKind = document.getElementById("kindText");
+  var cbGhosts = document.getElementById("showGhosts"), cbArea = document.getElementById("showArea");
+  var cbGuide = document.getElementById("showGuide");
+  var btnPlay = document.getElementById("play"), box = document.getElementById("presets");
+
+  var e = 0, playing = false, tNow = 0, last = 0;
+  var W = 1120, H = 700, dpr = 1;
+  var S = 100, sunX = 0, sunY = 0;      // 축척(길이 1 이 몇 픽셀인가)과 태양의 화면 좌표
+
+  PRESETS.forEach(function(p){
+    var b = document.createElement("button");
+    b.type = "button"; b.textContent = p.n + "  " + p.e.toFixed(3);
+    b.setAttribute("aria-pressed","false");
+    b.addEventListener("click", function(){ eIn.value = p.e; setE(p.e); });
+    box.appendChild(b);
+  });
+
+  // ---------- 원뿔 곡선의 수학 ----------
+
+  // 초점을 원점으로 한 극좌표식. ν = 0 이 근일점이다.
+  function radius(nu, ec){ return Q*(1+ec) / (1 + ec*Math.cos(nu)); }
+
+  // r 이 rMax 가 되는 진근점이각 ν. 타원처럼 그만큼 멀어지지 않으면 π 를 준다.
+  function nuAtRadius(rMax, ec){
+    if (ec < 1e-9) return Math.PI;
+    var c = (Q*(1+ec)/rMax - 1) / ec;
+    if (c <= -1) return Math.PI;
+    if (c >=  1) return 0;
+    return Math.acos(c);
+  }
+
+  function solveKepler(M, ec){            // 타원 : M = E − e sinE
+    // M 을 −π..π 로 접어 넣는다. E − e sinE 는 단조증가하므로 그 안에 해가 하나뿐이다.
+    var TAU = Math.PI*2;
+    M = M % TAU;
+    if (M >  Math.PI) M -= TAU;
+    if (M < -Math.PI) M += TAU;
+
+    // e 가 1 에 가까우면 순수 뉴턴법은 엉뚱한 해로 튄다(핼리 혜성 e=0.967 등).
+    // 해를 구간 안에 가두고, 뉴턴이 구간을 벗어나면 이분법으로 되돌린다.
+    var lo = -Math.PI, hi = Math.PI, E = M, i, f, d, En;
+    for (i = 0; i < 100; i++){
+      f = E - ec*Math.sin(E) - M;
+      if (f > 0) hi = E; else lo = E;
+      d = 1 - ec*Math.cos(E);
+      En = (d > 1e-12) ? (E - f/d) : (lo + hi)/2;
+      if (!(En > lo && En < hi)) En = (lo + hi)/2;
+      if (Math.abs(En - E) < 1e-14){ E = En; break; }
+      E = En;
+    }
+    return E;
+  }
+
+  function solveHyper(M, ec){             // 쌍곡선 : M = e sinhH − H
+    var H0 = Math.asinh(M/ec), i, dH;
+    if (!isFinite(H0)) H0 = 0;
+    for (i = 0; i < 120; i++){
+      dH = (ec*Math.sinh(H0) - H0 - M) / (ec*Math.cosh(H0) - 1);
+      if (dH >  1) dH =  1;               // 초기 추정이 나쁠 때 발산 방지
+      if (dH < -1) dH = -1;
+      H0 -= dH;
+      if (Math.abs(dH) < 1e-13) break;
+    }
+    return H0;
+  }
+
+  // 중력 상수를 1 로 둔 평균 운동. 포물선만 정의가 다르다.
+  function meanMotion(ec){
+    if (Math.abs(ec - 1) < 1e-9) return Math.sqrt(1/(2*Q*Q*Q));
+    return Math.pow(Q/Math.abs(1 - ec), -1.5);
+  }
+
+  function nuAtTime(t, ec){
+    var M = meanMotion(ec) * t;
+    if (Math.abs(ec - 1) < 1e-9){         // 바커 방정식 : D³/3 + D = M
+      var A = 1.5*M;
+      var B = Math.cbrt(A + Math.sqrt(A*A + 1));
+      return 2*Math.atan(B - 1/B);
+    }
+    if (ec < 1){
+      var E = solveKepler(M, ec);
+      return 2*Math.atan2(Math.sqrt(1+ec)*Math.sin(E/2), Math.sqrt(1-ec)*Math.cos(E/2));
+    }
+    var Hh = solveHyper(M, ec);
+    return 2*Math.atan2(Math.sqrt(ec+1)*Math.sinh(Hh/2), Math.sqrt(ec-1)*Math.cosh(Hh/2));
+  }
+
+  function timeAtNu(nu, ec){
+    var n = meanMotion(ec);
+    if (Math.abs(ec - 1) < 1e-9){
+      var D = Math.tan(nu/2);
+      return (D + D*D*D/3) / n;
+    }
+    if (ec < 1){
+      var E = 2*Math.atan2(Math.sqrt(1-ec)*Math.sin(nu/2), Math.sqrt(1+ec)*Math.cos(nu/2));
+      return (E - ec*Math.sin(E)) / n;
+    }
+    var th = Math.sqrt((ec-1)/(ec+1)) * Math.tan(nu/2);
+    th = Math.max(-0.9999999999, Math.min(0.9999999999, th));
+    var Hh = 2*Math.atanh(th);
+    return (ec*Math.sinh(Hh) - Hh) / n;
+  }
+
+  // 화면에 담기는 만큼의 시간 구간. 닫힌 궤도는 한 주기, 열린 궤도는 화면 밖으로 나갈 때까지.
+  function timeSpan(ec){
+    if (ec < 1) return timeAtNu(Math.PI, ec) * 2;      // 한 주기
+    return timeAtNu(nuAtRadius(worldRMax(), ec) * 0.999, ec) * 2;
+  }
+
+  // ---------- 화면 배치 ----------
+
+  function layout(){
+    // 담을 범위를 e 에 따라 정한다. 근일점은 늘 곡선의 가장 왼쪽 끝이므로 왼쪽 기준점으로 두고,
+    // 오른쪽과 위아래로 얼마나 담을지만 달라진다. 세 식 모두 e 에 대해 연속이라
+    // 슬라이더를 끌 때 그림이 튀지 않는다.
+    var CAP = 3.2;                                        // 열린 궤도에서 담아 둘 범위
+    var xR, R;
+    if (e < 1 - 1e-9){
+      xR = Math.min(Q*(1+e)/(1-e), CAP*Q);                // 원일점 (너무 멀면 잘라 낸다)
+      R  = Math.min(Q*Math.sqrt((1+e)/(1-e)), CAP*Q);     // 짧은반지름
+    } else {
+      xR = CAP*Q; R = CAP*Q;                              // 포물선 · 쌍곡선
+    }
+    S = Math.min(W*0.80/(xR + Q), H*0.84/(2*R));
+    sunX = W*0.10 + Q*S;                                  // 근일점이 화면 왼쪽 10% 에 오도록
+    sunY = H*0.50;
+  }
+  function px(wx){ return sunX + wx*S; }
+  function py(wy){ return sunY + wy*S; }
+
+  // 태양에서 화면 구석까지의 거리(월드 단위)
+  function worldRMax(){
+    var dx = Math.max(sunX, W - sunX), dy = Math.max(sunY, H - sunY);
+    return Math.sqrt(dx*dx + dy*dy) / S * 1.15;
+  }
+
+  function resize(){
+    var w = cv.parentNode.clientWidth;
+    var h = Math.max(320, Math.min(Math.round(w * 0.625), 700));
+    dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    cv.style.height = h + "px";
+    W = w; H = h;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    layout();
+    draw();
+  }
+
+  // ---------- 값 갱신 ----------
+
+  function setE(v){
+    e = Math.max(0, Math.min(2, +v));
+    var k = kindOf(e), info = KIND[k];
+
+    elText.textContent = e.toFixed(3);
+    elShape.textContent = info.name;
+    elShape.style.background = info.color;
+    elShape.style.color = "#fff";
+    elKind.textContent = info.name + " · " + info.closed;
+    elKind.style.color = info.color;
+
+    if (e < 1 - 1e-9){
+      elApo.textContent = (Q*(1+e)/(1-e)).toFixed(e > 0.9 ? 1 : 3);
+      elA.textContent   = (Q/(1-e)).toFixed(e > 0.9 ? 1 : 3);
+    } else {
+      elApo.textContent = "∞";                       // 열린 궤도 — 돌아오지 않는다
+      elA.textContent   = (Math.abs(e-1) < 1e-9) ? "∞" : "—";
+    }
+
+    var t = e.toFixed(3);
+    Array.prototype.forEach.call(box.children, function(b, i){
+      b.setAttribute("aria-pressed", PRESETS[i].e.toFixed(3) === t ? "true" : "false");
+    });
+
+    tNow = 0; last = 0;                              // 궤도가 바뀌면 시간도 근일점부터 다시
+    draw();
+  }
+
+  // ---------- 그리기 ----------
+
+  function conicPath(ec, nuLim, steps){
+    ctx.beginPath();
+    for (var i = 0; i <= steps; i++){
+      var nu = -nuLim + 2*nuLim*i/steps;
+      var r = radius(nu, ec);
+      var x = px(-r*Math.cos(nu)), y = py(r*Math.sin(nu));
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    if (ec < 1) ctx.closePath();
+  }
+
+  function draw(){
+    layout();                                   // 축척은 e 에 따라 달라지므로 매번 다시 잡는다
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = "#F5F7FA"; ctx.fillRect(0,0,W,H);
+
+    var kind = kindOf(e), info = KIND[kind];
+    var rMax = worldRMax();
+    var nuLim = nuAtRadius(rMax, e);
+
+    // 같은 시간에 쓸고 간 면적 (시간을 8등분)
+    if (cbArea.checked){
+      var span = timeSpan(e), N = 8, j, s;
+      for (j = 0; j < N; j++){
+        ctx.beginPath(); ctx.moveTo(sunX, sunY);
+        for (s = 0; s <= 26; s++){
+          var ti = -span/2 + span*(j + s/26)/N;
+          var nj = nuAtTime(ti, e);
+          var rj = radius(nj, e);
+          ctx.lineTo(px(-rj*Math.cos(nj)), py(rj*Math.sin(nj)));
+        }
+        ctx.closePath();
+        ctx.fillStyle = (j % 2 === 0) ? "rgba(174,203,247,.92)" : "rgba(233,240,251,.95)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(61,90,128,.45)"; ctx.lineWidth = 1.2; ctx.stroke();
+      }
+    }
+
+    // 다른 이심률 겹쳐 보기 — 같은 초점, 같은 근일점에서 어떻게 벌어지는지.
+    // 면적 음영에 덮이지 않도록 음영을 칠한 뒤에 그린다.
+    if (cbGhosts.checked){
+      ctx.save(); ctx.lineWidth = 2; ctx.setLineDash([7,5]);
+      [0, 0.4, 0.8, 1, 1.4].forEach(function(g){
+        if (Math.abs(g - e) < 0.03) return;
+        ctx.strokeStyle = KIND[kindOf(g)].color; ctx.globalAlpha = 0.42;
+        conicPath(g, nuAtRadius(rMax, g), 480); ctx.stroke();
+      });
+      ctx.restore();
+    }
+
+    // 장축(대칭축)
+    ctx.save(); ctx.setLineDash([6,7]); ctx.strokeStyle = "#9FADBE"; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(0, sunY); ctx.lineTo(W, sunY); ctx.stroke(); ctx.restore();
+
+    // 준선과 점근선
+    if (cbGuide.checked) drawGuides(kind);
+
+    // 닫힌 궤도의 중심 · 제2초점 · 원일점
+    if (kind === "ellipse" || kind === "circle"){
+      var a = Q/(1-e), cc = a*e, ctrX = -Q + a;
+      dot(px(ctrX), sunY, 4.5, C.gray);
+      if (e > 0.02){
+        dot(px(2*(a-Q)), sunY, 5.5, "#7C8CA0");
+        label("제2초점", px(2*(a-Q)), sunY - 16, "#7C8CA0", 12, "center", true);
+        ctx.strokeStyle = C.green; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(sunX, sunY); ctx.lineTo(px(ctrX), sunY); ctx.stroke();
+        label("c = ae", (sunX + px(ctrX))/2, sunY - 14, C.green, 13, "center", true);
+      }
+      var Qd = Q*(1+e)/(1-e);
+      if (px(Qd) < W - 6){
+        dot(px(Qd), sunY, 6, C.slate);
+        label("원일점", px(Qd), sunY + 42, C.slate, 13, "center", true);
+        label(Qd.toFixed(2), px(Qd), sunY + 61, C.slate, 12, "center");
+      } else {
+        label("원일점 → 화면 밖", W - 12, sunY + 42, C.slate, 13, "right", true);
+      }
+    }
+
+    // 궤도 곡선 — 종류에 따라 색이 바뀐다
+    conicPath(e, nuLim, 900);
+    ctx.strokeStyle = info.color; ctx.lineWidth = 3.5; ctx.stroke();
+
+    // 근일점 (모든 곡선이 공유하는 고정점)
+    dot(px(-Q), sunY, 6, C.gold);
+    label("근일점", px(-Q), sunY + 42, C.gold, 13, "center", true);
+    label("1.00 (고정)", px(-Q), sunY + 61, C.gold, 12, "center");
+
+    // 태양
+    var g = ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, 44);
+    g.addColorStop(0, "rgba(245,178,31,.55)"); g.addColorStop(1, "rgba(245,178,31,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sunX, sunY, 44, 0, Math.PI*2); ctx.fill();
+    dot(sunX, sunY, 11, C.sun);
+    label("태양 (초점)", sunX, sunY - 36, "#8F620A", 13, "center", true);
+
+    // 행성 / 천체
+    var nu = nuAtTime(tNow, e), r = radius(nu, e);
+    var pxx = px(-r*Math.cos(nu)), pyy = py(r*Math.sin(nu));
+    ctx.strokeStyle = "rgba(61,90,128,.55)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(sunX, sunY); ctx.lineTo(pxx, pyy); ctx.stroke();
+    dot(pxx, pyy, 9, "#2C5A8F");
+
+    // 좌상단 요약 — 준선·점근선 위에 겹쳐도 읽히도록 바탕을 깔고 맨 마지막에 그린다
+    var open = (kind === "parabola" || kind === "hyperbola");
+    var sum = "근일점 q = 1 (고정)  ·  e = " + e.toFixed(3) + "  ·  " + info.name;
+    var sub = "돌아오지 않는 궤도 — 곡선은 화면 밖으로 계속 뻗어 나간다";
+    ctx.font = '700 14px "Pretendard","Malgun Gothic","맑은 고딕",system-ui,sans-serif';
+    var bw = ctx.measureText(sum).width;
+    if (open){
+      ctx.font = '500 12px "Pretendard","Malgun Gothic","맑은 고딕",system-ui,sans-serif';
+      bw = Math.max(bw, ctx.measureText(sub).width);
+    }
+    ctx.fillStyle = "rgba(245,247,250,.88)";
+    ctx.fillRect(8, 8, bw + 16, open ? 48 : 28);
+
+    label(sum, 16, 26, info.color, 14, "left", true);
+    if (open) label(sub, 16, 46, C.gray, 12, "left");
+  }
+
+  function drawGuides(kind){
+    ctx.save();
+    ctx.setLineDash([5,6]); ctx.lineWidth = 1.8;
+
+    // 준선 : 초점까지의 거리 ÷ 준선까지의 거리 = e (원뿔 곡선의 정의)
+    if (e > 0.05){
+      var xd = -Q*(1+e)/e;
+      if (px(xd) > 2){
+        ctx.strokeStyle = "rgba(140,58,43,.65)";
+        ctx.beginPath(); ctx.moveTo(px(xd), 0); ctx.lineTo(px(xd), H); ctx.stroke();
+        ctx.setLineDash([]);
+        label("준선", px(xd) + 6, H - 12, C.brick, 12, "left", true);   // 좌상단 요약과 겹치지 않게 아래쪽에
+        ctx.setLineDash([5,6]);
+      }
+    }
+
+    // 점근선 : 쌍곡선이 무한히 멀어질 때 다가가는 직선
+    if (kind === "hyperbola"){
+      var ah = Q/(e-1), bh = ah*Math.sqrt(e*e - 1), ctr = -Q - ah;
+      var slope = bh/ah;
+      ctx.strokeStyle = "rgba(140,58,43,.55)";
+      [1,-1].forEach(function(sgn){
+        ctx.beginPath();
+        ctx.moveTo(px(ctr) - W, py(-sgn*slope*(W/S)));
+        ctx.lineTo(px(ctr) + W, py( sgn*slope*(W/S)));
+        ctx.stroke();
+      });
+      dot(px(ctr), sunY, 4.5, "#B08A82");
+      // 중심이 화면 밖으로 나가는 경우가 많아, 점근선 위의 보이는 지점에 이름을 붙인다
+      var lx = Math.max(px(ctr) + 12, 14);
+      label("점근선", lx, py(slope*(lx - px(ctr))/S) - 8, C.brick, 12, "left", true);
+    }
+    ctx.restore();
+  }
+
+  function dot(x,y,r,col){ ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+  function label(t,x,y,col,size,align,bold){
+    ctx.fillStyle = col; ctx.textAlign = align || "left"; ctx.textBaseline = "alphabetic";
+    ctx.font = (bold?"700 ":"500 ") + (size||13) + 'px "Pretendard","Malgun Gothic","맑은 고딕",system-ui,sans-serif';
+    ctx.fillText(t, x, y);
+  }
+
+  // ---------- 애니메이션 ----------
+  // 화면 주사율(60Hz/120Hz)과 무관하게 같은 속도로 돌도록 벽시계 시간을 쓴다.
+  function tick(ts){
+    if (!playing) return;
+    if (!last) last = ts;
+    var dt = Math.min((ts - last)/1000, 0.05); last = ts;
+
+    var span = timeSpan(e);
+    tNow += dt * span / 6;                 // 화면을 한 번 가로지르는 데 6초
+    if (tNow > span/2) tNow = -span/2;     // 열린 궤도는 다시 멀리서 다가온다
+    draw();
+    requestAnimationFrame(tick);
+  }
+
+  eIn.addEventListener("input", function(){ setE(this.value); });
+  cbGhosts.addEventListener("change", draw);
+  cbArea.addEventListener("change", draw);
+  cbGuide.addEventListener("change", draw);
+  btnPlay.addEventListener("click", function(){
+    playing = !playing;
+    this.textContent = playing ? "❚❚ 멈춤" : "▶ 공전 시작";
+    last = 0;
+    if (playing) requestAnimationFrame(tick);
+  });
+  window.addEventListener("resize", resize);
+
+  // 링크로 초기 이심률 지정 :  ....html#e=1.2
+  var h = (location.hash || "").match(/e=([0-9.]+)/);
+  var e0 = h ? Math.max(0, Math.min(2, parseFloat(h[1]))) : 0;
+  resize(); eIn.value = e0; setE(e0);
+})();
+</script>
+</body>
+</html>

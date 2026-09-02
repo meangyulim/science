@@ -220,6 +220,12 @@
                 icon: '🌌',
                 color: 'bg-black-100 text-black-700 border-black-200'},
             { 
+                id: 'eccentricity', 
+                name: '이심률에 따른 궤도 형태', 
+                url: 'eccentricity.html',
+                icon: '🪐',
+                color: 'bg-indigo-100 text-indigo-700 border-indigo-200'},
+            { 
                 id: 'haidilao-preorder', 
                 name: '하이디라오 주문 시뮬레이터', 
                 url: 'hdl_simulation.html',
@@ -327,8 +333,11 @@
             if (pushedByUs) {
                 history.back(); // 뒤로가기 버튼과 동작을 일치시킨다
             } else {
-                // 딥링크로 바로 진입한 경우: 히스토리를 늘리지 않고 홈으로 교체
-                location.replace(location.pathname + location.search);
+                // 딥링크로 바로 진입한 경우: 뒤로 갈 곳이 우리 페이지가 아니므로
+                // 히스토리를 늘리지 않고 주소의 해시만 지운다.
+                // location.replace 는 문서를 통째로 다시 불러오므로 쓰지 않는다
+                // (replaceState 는 hashchange 를 발생시키지 않아 showHome 을 직접 호출한다).
+                history.replaceState(null, '', location.pathname + location.search);
                 showHome();
             }
         }
