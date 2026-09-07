@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>학습지 내려받기 — 민규쌤의 과학 실험실</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+  html, body { font-family: 'Noto Sans KR', sans-serif; background: #f8fafc; margin: 0; }
+
+  /* 학교망에서 Tailwind CDN 이 막히는 경우가 있다. 그때도 학습지를 받을 수 있도록
+     꼭 필요한 모양은 Tailwind 클래스가 아니라 아래 규칙으로 직접 잡아 둔다. */
+  .ws-card   { background:#fff; border:1px solid #e2e8f0; border-radius:16px;
+               padding:16px; margin-bottom:12px; }
+  .ws-btns   { display:flex; gap:8px; margin-top:16px; }
+  .ws-btn    { flex:1; text-align:center; padding:11px 0; border-radius:12px;
+               font-weight:700; font-size:14px; text-decoration:none; display:block; }
+  .ws-btn-dl { background:#4f46e5; color:#fff; }
+  .ws-btn-vw { background:#fff; color:#334155; border:1px solid #cbd5e1; }
+</style>
+</head>
+<body class="min-h-screen">
+
+  <div class="max-w-3xl mx-auto px-4 py-6 pb-16">
+
+    <header class="mb-6">
+      <div class="text-xs font-bold tracking-[0.16em] text-indigo-500">WORKSHEETS</div>
+      <h1 class="mt-1.5 text-xl md:text-2xl font-bold text-slate-800">학습지 내려받기</h1>
+      <p class="mt-1.5 text-sm text-slate-500 leading-relaxed">
+        수업에서 쓴 학습지를 PDF로 받을 수 있습니다.<br class="hidden sm:block">
+        휴대폰에서는 <b>내려받기</b>를 누르면 저장되고, <b>바로 보기</b>를 누르면 화면에서 바로 열립니다.
+      </p>
+    </header>
+
+    <div id="list" class="flex flex-col gap-3"></div>
+
+    <p id="empty" hidden class="text-center text-sm text-slate-400 py-16">
+      아직 올라온 학습지가 없습니다.
+    </p>
+
+    <footer class="mt-10 pt-4 border-t border-slate-200 text-xs text-slate-400 leading-relaxed">
+      파일이 열리지 않으면 학교 와이파이 대신 데이터로 다시 시도해 보세요.<br>
+      PDF 뷰어가 없는 기기에서는 내려받은 뒤 파일 앱에서 열어야 할 수 있습니다.
+    </footer>
+  </div>
+
+<script>
+  // 학습지 목록. 자료를 추가할 때는 이 배열에 한 줄만 더 쓰면 된다.
+  //   file      : 저장소 안의 실제 경로 (영문 이름 — 서버·브라우저에서 안전하다)
+  //   saveAs    : 학생이 저장할 때 보이는 파일 이름 (한글로 써도 된다)
+  const worksheets = [
+    {
+      unit:   'Ⅰ. 우주 탐사와 행성계',
+      title:  '태양계 탐사와 우주 위험 감시',
+      note:   '소단원 내용 정리',
+      file:   'worksheets/01-solar-system-exploration.pdf',
+      saveAs: '행성우주과학_태양계 탐사와 우주 위험 감시.pdf',
+      pages:  3,
+      bytes:  417231
+    }
+  ];
+
+  const listEl = document.getElementById('list');
+  const emptyEl = document.getElementById('empty');
+
+  function formatSize(bytes) {
+    if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    return Math.round(bytes / 1024) + ' KB';
+  }
+
+  // 목록은 우리가 직접 쓰는 값이지만, 렌더링 방식은 리더보드와 같은 규칙을 따른다.
+  // 문자열을 이어 붙여 innerHTML 로 넣지 않고 textContent 로만 넣는다.
+  function buildCard(w, index) {
+    const card = document.createElement('div');
+    card.className = "ws-card sm:p-5 shadow-sm";
+
+    const top = document.createElement('div');
+    top.className = "flex items-start gap-3";
+
+    const icon = document.createElement('div');
+    icon.className = "shrink-0 w-11 h-11 rounded-xl bg-indigo-50 border border-indigo-100 "
+                   + "flex items-center justify-center text-xl";
+    icon.textContent = '📄';
+
+    const meta = document.createElement('div');
+    meta.className = "flex-1 min-w-0";
+
+    const unit = document.createElement('div');
+    unit.className = "text-[11px] font-bold text-indigo-500 tracking-wide";
+    unit.textContent = w.unit;
+
+    const title = document.createElement('h2');
+    title.className = "text-base font-bold text-slate-800 break-keep leading-snug mt-0.5";
+    title.textContent = `${index + 1}. ${w.title}`;
+
+    const sub = document.createElement('div');
+    sub.className = "text-xs text-slate-500 mt-1";
+    sub.textContent = [w.note, `${w.pages}쪽`, formatSize(w.bytes)]
+                        .filter(Boolean).join('  ·  ');
+
+    meta.append(unit, title, sub);
+    top.append(icon, meta);
+
+    const actions = document.createElement('div');
+    actions.className = "ws-btns";
+
+    const dl = document.createElement('a');
+    dl.href = w.file;
+    dl.setAttribute('download', w.saveAs || '');
+    dl.className = "ws-btn ws-btn-dl active:scale-95 transition-transform";
+    dl.textContent = '내려받기';
+
+    const view = document.createElement('a');
+    view.href = w.file;
+    view.target = '_blank';
+    view.rel = 'noopener';
+    view.className = "ws-btn ws-btn-vw active:scale-95 transition-transform";
+    view.textContent = '바로 보기';
+
+    actions.append(dl, view);
+    card.append(top, actions);
+    return card;
+  }
+
+  if (worksheets.length === 0) {
+    emptyEl.hidden = false;
+  } else {
+    worksheets.forEach((w, i) => listEl.appendChild(buildCard(w, i)));
+  }
+</script>
+</body>
+</html>
