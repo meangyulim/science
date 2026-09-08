@@ -152,14 +152,19 @@
 
     <script>
         // 시뮬레이션 목록: 카드 디자인을 위해 아이콘과 배경색상 클래스(Tailwind) 추가
-        const simulations = [
-            { 
+        // 학습지는 언제나 목록 맨 위에 고정한다.
+        // 시뮬레이션 배열과 따로 두어, 새 시뮬을 추가해도 자리가 밀리지 않는다.
+        const pinnedItem = { 
                 id: 'worksheets', 
                 name: '학습지 내려받기', 
                 url: 'worksheets.html',
                 icon: '📄',
                 color: 'bg-slate-100 text-slate-700 border-slate-300'
-            },
+            };
+
+        // 시뮬레이션 목록 — 만들어진 순서대로 둔다.
+        // 새로 만든 시뮬레이션은 이 배열 맨 아래에 추가하면 된다.
+        const simulations = [
             { 
                 id: 'geologic-time-game', 
                 name: '지질시대 온라인 게임', 
@@ -227,18 +232,21 @@
                 icon: '🌌',
                 color: 'bg-black-100 text-black-700 border-black-200'},
             { 
-                id: 'eccentricity', 
-                name: '이심률에 따른 궤도 형태', 
-                url: 'eccentricity.html',
-                icon: '🪐',
-                color: 'bg-indigo-100 text-indigo-700 border-indigo-200'},
-            { 
                 id: 'haidilao-preorder', 
                 name: '하이디라오 주문 시뮬레이터', 
                 url: 'hdl_simulation.html',
                 icon: '🍲',
-                color: 'bg-red-100 text-red-700 border-red-200'}
+                color: 'bg-red-100 text-red-700 border-red-200'},
+            { 
+                id: 'eccentricity', 
+                name: '이심률에 따른 궤도 형태', 
+                url: 'eccentricity.html',
+                icon: '🪐',
+                color: 'bg-indigo-100 text-indigo-700 border-indigo-200'}
         ];
+
+        // 화면에 실제로 뿌리는 목록 (학습지 + 시뮬레이션)
+        const items = [pinnedItem, ...simulations];
 
         const homeView = document.getElementById('home-view');
         const simView = document.getElementById('sim-view');
@@ -251,7 +259,7 @@
         const mainFooter = document.getElementById('main-footer');
 
         // 홈 화면에 카드 동적 생성
-        simulations.forEach(sim => {
+        items.forEach(sim => {
             const card = document.createElement('div');
             card.className = `flex flex-col items-center justify-center p-6 rounded-2xl border-2 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg active:scale-95 ${sim.color} bg-opacity-50 hover:bg-opacity-100`;
             card.innerHTML = `
@@ -320,7 +328,7 @@
 
         function applyRoute() {
             const id = decodeURIComponent(location.hash.replace(/^#/, ''));
-            const sim = simulations.find(s => s.id === id);
+            const sim = items.find(s => s.id === id);
             if (sim) {
                 showSim(sim);
             } else {
