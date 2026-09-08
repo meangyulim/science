@@ -162,7 +162,7 @@
                 color: 'bg-slate-100 text-slate-700 border-slate-300'
             };
 
-        // 시뮬레이션 목록 — 만들어진 순서대로 둔다.
+        // 시뮬레이션 목록 — 만들어진 순서(오래된 것 → 최근 것)로 둔다.
         // 새로 만든 시뮬레이션은 이 배열 맨 아래에 추가하면 된다.
         const simulations = [
             { 
@@ -245,8 +245,11 @@
                 color: 'bg-indigo-100 text-indigo-700 border-indigo-200'}
         ];
 
-        // 화면에 실제로 뿌리는 목록 (학습지 + 시뮬레이션)
-        const items = [pinnedItem, ...simulations];
+        // 화면에 실제로 뿌리는 목록.
+        // 학습지를 맨 위에 두고, 시뮬레이션은 최근에 만든 것부터 보여 준다.
+        // (배열은 만든 순서 그대로 두고 여기서 뒤집는다 — 새 시뮬을 배열 아래에
+        //  추가하기만 하면 화면 맨 위에 뜬다)
+        const items = [pinnedItem, ...[...simulations].reverse()];
 
         const homeView = document.getElementById('home-view');
         const simView = document.getElementById('sim-view');
