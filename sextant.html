@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>육분의(Sextant) 대화형 광학 시뮬레이터</title>
+  <title>육분의(Sextant) 2D 대화형 광학 시뮬레이터</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,6 @@
       font-family: 'Inter', monospace;
       font-variant-numeric: tabular-nums;
     }
-    /* Hide scrollbars for slick tab scrolling on small screens */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -27,1159 +26,1674 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-    /* Ergonomic Touch Range Sliders */
+    /* Touch sliders styling */
     input[type=range] {
       -webkit-appearance: none;
       background: transparent;
     }
     input[type=range]::-webkit-slider-runnable-track {
       width: 100%;
-      height: 10px;
+      height: 8px;
       cursor: pointer;
       background: #334155;
       border-radius: 9999px;
     }
     input[type=range]::-webkit-slider-thumb {
-      height: 26px;
-      width: 26px;
+      height: 24px;
+      width: 24px;
       border-radius: 50%;
       background: #f59e0b;
       cursor: pointer;
       -webkit-appearance: none;
       margin-top: -8px;
-      box-shadow: 0 0 12px rgba(245, 158, 11, 0.7);
-      border: 2.5px solid #ffffff;
-      transition: transform 0.1s, background-color 0.15s;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+      border: 2px solid #ffffff;
+      transition: transform 0.1s;
     }
     input[type=range]::-webkit-slider-thumb:active {
       transform: scale(1.2);
-      background: #fbbf24;
     }
-    /* Touch canvas protection to prevent scroll interference */
-    .touch-canvas {
+    canvas {
       touch-action: none;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-2 sm:p-4 md:p-6 antialiased">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-2 sm:p-3 md:p-4 antialiased">
 
-  <!-- Header & Responsive Tabs -->
-  <header class="w-full max-w-6xl mb-2 sm:mb-3 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 border-b border-slate-800 pb-2.5 sm:pb-3">
+  <!-- Header & Tab Navigation -->
+  <header class="w-full max-w-6xl mb-2 sm:mb-3 flex flex-col sm:flex-row items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
     <div class="flex items-center justify-between w-full sm:w-auto">
       <div class="flex items-center gap-2">
-        <span class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
           </svg>
         </span>
         <div>
-          <h1 class="text-base sm:text-lg md:text-xl font-bold tracking-tight text-white leading-tight">육분의 광학 시뮬레이터</h1>
-          <p class="text-[11px] sm:text-xs text-slate-400 hidden xs:block sm:block">"거울 $\theta$ 회전 시 반사광 $2\theta$ 편향과 수평선 일치 원리"</p>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white leading-tight">육분의(Sextant) 2D 정밀 광학 시뮬레이터</h1>
+          <p class="text-[11px] sm:text-xs text-slate-400 hidden xs:block">거울 회전(θ)과 광선 2배 꺾임(2θ) 물리 정합 시뮬레이션</p>
         </div>
       </div>
     </div>
 
-    <!-- Scrollable Tab Container on Mobile -->
-    <div class="w-full sm:w-auto flex items-center overflow-x-auto no-scrollbar bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs font-medium gap-1 shrink-0">
-      <button id="tab-btn-observation" class="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg transition-all bg-amber-500 text-slate-950 font-bold whitespace-nowrap shadow-sm" onclick="switchTab('observation')">
-        🔭 종합 관측
+    <!-- Mode Selector Tabs -->
+    <div class="w-full sm:w-auto flex items-center overflow-x-auto no-scrollbar bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs font-semibold gap-1 shrink-0">
+      <button id="tab-btn-obs" class="px-3 py-1.5 rounded-lg transition-all bg-amber-500 text-slate-950 font-bold whitespace-nowrap shadow-sm" onclick="switchTab('obs')">
+        🔭 2D 종합 관측
       </button>
-      <button id="tab-btn-doubleReflection" class="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg transition-all text-slate-400 hover:text-white whitespace-nowrap" onclick="switchTab('doubleReflection')">
-        📐 2배(2θ) 원리
+      <button id="tab-btn-double" class="px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white whitespace-nowrap" onclick="switchTab('double')">
+        📐 2D 2배각(2θ) 원리
       </button>
-      <button id="tab-btn-horizonMirror" class="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg transition-all text-slate-400 hover:text-white whitespace-nowrap" onclick="switchTab('horizonMirror')">
-        🪞 반반 거울
+      <button id="tab-btn-mirror" class="px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white whitespace-nowrap" onclick="switchTab('mirror')">
+        🪞 2D 반반 수평경
       </button>
     </div>
   </header>
 
-  <main class="w-full max-w-6xl flex-1 flex flex-col">
+  <main class="w-full max-w-6xl flex-1 flex flex-col gap-2.5">
+    
+    <!-- Real-time Measurement HUD Banner -->
+    <div id="status-card" class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 sm:p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 transition-all">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div id="status-dot" class="w-3.5 h-3.5 rounded-full bg-amber-500 animate-pulse shrink-0"></div>
+        <div class="min-w-0">
+          <div id="status-title" class="text-xs sm:text-sm font-bold text-amber-400 truncate">조절 중: 인덱스 암을 돌려 태양을 수평선에 안착시키세요</div>
+          <div id="status-desc" class="text-[10px] sm:text-xs text-slate-400 truncate">캔버스의 인덱스 암을 직접 터치·드래그하거나 하단 슬라이더로 조절하세요.</div>
+        </div>
+      </div>
 
-    <!-- TAB 1: COMPREHENSIVE OBSERVATION SIMULATION -->
-    <section id="tab-observation" class="space-y-2.5 sm:space-y-3.5">
+      <!-- Quick Metrics & Align Button -->
+      <div class="flex items-center justify-between md:justify-end gap-1.5 sm:gap-2 text-[11px] sm:text-xs shrink-0">
+        <div class="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar">
+          <div class="bg-slate-800/80 px-2 py-1 rounded-lg border border-slate-700/60 whitespace-nowrap">
+            <span class="text-slate-400">태양고도:</span>
+            <span id="val-sun-alt" class="font-bold text-amber-300 font-mono-nums ml-0.5">44.0°</span>
+          </div>
+          <div class="bg-slate-800/80 px-2 py-1 rounded-lg border border-slate-700/60 whitespace-nowrap">
+            <span class="text-slate-400">거울회전(θ):</span>
+            <span id="val-arm-theta" class="font-bold text-sky-300 font-mono-nums ml-0.5">15.0°</span>
+          </div>
+          <div class="bg-slate-800/80 px-2 py-1 rounded-lg border border-slate-700/60 whitespace-nowrap">
+            <span class="text-slate-400">읽는눈금(2θ):</span>
+            <span id="val-read-2theta" class="font-bold text-emerald-300 font-mono-nums ml-0.5">30.0°</span>
+          </div>
+        </div>
+
+        <button onclick="autoAlignSextant()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg font-semibold active:scale-95 transition whitespace-nowrap flex items-center gap-1">
+          <span>✨ 자동 맞춤</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 1: 2D OBSERVATION -->
+    <div id="tab-obs" class="grid grid-cols-1 md:grid-cols-12 gap-2.5 sm:gap-3.5">
       
-      <!-- Compact Responsive Status Card -->
-      <div id="status-card" class="bg-slate-900/95 border border-slate-800 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 sm:gap-3 transition-colors">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div id="status-indicator-dot" class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-amber-500 animate-pulse shrink-0"></div>
-          <div class="min-w-0">
-            <div id="status-headline" class="text-xs sm:text-sm font-bold text-amber-400 truncate">조절 중: 태양을 수평선에 안착시키세요</div>
-            <div id="status-detail" class="text-[10px] sm:text-xs text-slate-400 truncate">막대를 돌려 반사된 태양(우)을 실제 수평선(좌)에 맞춥니다.</div>
+      <!-- Left: 2D Interactive Sextant Diagram Canvas -->
+      <div class="md:col-span-8 bg-slate-900 border border-slate-800 rounded-xl p-2.5 sm:p-3 flex flex-col relative overflow-hidden">
+        <div class="flex items-center justify-between mb-1.5 px-0.5">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+            <h2 class="text-xs font-semibold text-slate-200">2D 엄밀 광학 경로 추적 (Exact 2D Ray Tracing)</h2>
           </div>
+          <span class="text-[10px] text-slate-400">👆 인덱스 암 끝을 직접 터치 드래그 가능</span>
         </div>
 
-        <!-- Metric Badges & Auto-align Button -->
-        <div class="flex items-center justify-between md:justify-end gap-1.5 sm:gap-2 text-[11px] sm:text-xs shrink-0">
-          <div class="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar">
-            <div class="bg-slate-800 px-2 py-1 rounded-lg border border-slate-700/60 whitespace-nowrap">
-              <span class="text-slate-400">태양:</span>
-              <span id="label-target-alt" class="font-bold text-amber-300 font-mono-nums ml-0.5">45.0°</span>
+        <!-- Canvas Container -->
+        <div id="container-canvas-main" class="w-full aspect-[16/10] sm:aspect-[16/9] md:aspect-[16/10] bg-slate-950 rounded-lg overflow-hidden border border-slate-800 relative">
+          <canvas id="canvas-main" class="w-full h-full block"></canvas>
+
+          <!-- Ray Color Legend Overlay -->
+          <div class="absolute bottom-2 left-2 bg-slate-900/90 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-slate-800 text-[10px] text-slate-300 pointer-events-none flex flex-col gap-0.5">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-1 bg-amber-400 rounded-sm"></span>
+              <span class="text-amber-300 font-medium">태양광 (황색)</span>: 태양 → 동경(1차반사) → 수평경(2차반사) → 망원경
             </div>
-            <div class="bg-slate-800 px-2 py-1 rounded-lg border border-slate-700/60 whitespace-nowrap">
-              <span class="text-slate-400">암(θ):</span>
-              <span id="label-mirror-theta" class="font-bold text-sky-300 font-mono-nums ml-0.5">12.5°</span>
-            </div>
-            <div class="bg-slate-800 px-2 py-1 rounded-lg border border-slate-700/60 whitespace-nowrap">
-              <span class="text-slate-400">눈금(2θ):</span>
-              <span id="label-measured-2theta" class="font-bold text-emerald-300 font-mono-nums ml-0.5">25.0°</span>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-1 bg-sky-400 rounded-sm"></span>
+              <span class="text-sky-300 font-medium">수평선광 (청색)</span>: 수평선 → 수평경 투명창 직진 통과 → 망원경
             </div>
           </div>
-
-          <button onclick="autoAlign()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-1 sm:px-3 sm:py-1 rounded-lg font-semibold active:scale-95 transition whitespace-nowrap flex items-center gap-1 shrink-0">
-            <span>✨ 자동 맞춤</span>
-          </button>
         </div>
       </div>
 
-      <!-- Adaptive Layout:
-           Mobile portrait: Stacked cleanly, compact telescope alongside controls
-           Tablet landscape (md/lg): Side-by-side balanced 7:5 ratio to fit within viewport height -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 sm:gap-3.5 items-start">
-        
-        <!-- Left: Sextant Machine Ray Tracing Canvas -->
-        <div class="md:col-span-7 bg-slate-900 border border-slate-800 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 flex flex-col relative overflow-hidden">
-          <div class="flex items-center justify-between mb-1.5 px-0.5">
-            <h2 class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-sky-400"></span>
-              육분의 광선 추적 (Ray Tracing)
-            </h2>
-            <span class="text-[10px] sm:text-[11px] text-amber-400/90 font-medium">🖐️ 노란 암 직접 드래그 가능</span>
-          </div>
-
-          <div class="relative w-full aspect-[16/10] sm:aspect-[16/9] md:aspect-[16/10] bg-slate-950 rounded-lg sm:rounded-xl overflow-hidden border border-slate-800/80">
-            <canvas id="canvas-sextant" class="w-full h-full block cursor-ew-resize touch-canvas"></canvas>
-            
-            <!-- Compact visual ray cues -->
-            <div class="absolute bottom-1.5 left-1.5 pointer-events-none bg-slate-900/85 backdrop-blur-sm px-2 py-1 rounded-md border border-slate-800 text-[10px] text-slate-300 flex flex-col gap-0.5">
-              <div class="flex items-center"><span class="w-2 h-1 bg-amber-400 rounded-sm mr-1"></span><span class="text-amber-300">태양광 (황색)</span>: 동경 → 수평경(반사) → 망원경</div>
-              <div class="flex items-center"><span class="w-2 h-1 bg-sky-400 rounded-sm mr-1"></span><span class="text-sky-300">수평선 (청색)</span>: 바다 수평선 → 수평경(투과) → 망원경</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right: Telescope Eyepiece & Ergonomic Controls -->
-        <div class="md:col-span-5 flex flex-col gap-2.5 sm:gap-3">
+      <!-- Right: Split Eyepiece View & Controls Card -->
+      <div class="md:col-span-4 flex flex-col gap-2.5">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col gap-3">
           
-          <!-- Mobile-Optimized Combined Card: Eyepiece + Controls -->
-          <div class="bg-slate-900 border border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-3.5 flex flex-col gap-3">
-            
-            <!-- Eyepiece Area -->
-            <div class="flex flex-col sm:flex-row md:flex-col items-center justify-center gap-2.5 sm:gap-4 border-b border-slate-800/80 pb-3">
-              <div class="w-full flex items-center justify-between sm:w-auto md:w-full">
-                <h2 class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  망원경 시야 (Telescope View)
-                </h2>
-                <span id="badge-match" class="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-400 border border-rose-500/30">
-                  오차 -20.0°
-                </span>
-              </div>
-
-              <!-- Round Telescope Eyepiece Canvas -->
-              <div class="relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 rounded-full p-1.5 bg-gradient-to-b from-slate-700 via-slate-800 to-slate-950 shadow-xl border-4 border-slate-700 flex items-center justify-center shrink-0">
-                <canvas id="canvas-telescope" width="220" height="220" class="w-full h-full rounded-full block bg-slate-900"></canvas>
-                
-                <div class="absolute bottom-2.5 left-4 text-[9px] text-sky-200/90 font-bold bg-slate-950/70 px-1 py-0.5 rounded pointer-events-none">
-                  [좌] 실제수평선
-                </div>
-                <div class="absolute bottom-2.5 right-4 text-[9px] text-amber-200/90 font-bold bg-slate-950/70 px-1 py-0.5 rounded pointer-events-none">
-                  [우] 반사된태양
-                </div>
-              </div>
-
-              <div class="text-[11px] text-slate-400 text-center sm:text-left md:text-center">
-                태양 하단이 왼쪽 수평선에 <span class="text-amber-400 font-bold">딱 걸치도록(하연 일치)</span> 맞추세요.
-              </div>
+          <!-- Round Telescope View -->
+          <div class="flex flex-col items-center justify-center gap-2 border-b border-slate-800/80 pb-3">
+            <div class="w-full flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                접안렌즈 분할 시야 (Eyepiece)
+              </span>
+              <span id="badge-diff" class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                오차 -14.0°
+              </span>
             </div>
 
-            <!-- Primary Control: Index Arm Angle Slider (θ) -->
-            <div>
-              <div class="flex justify-between items-center text-xs mb-1">
-                <span class="font-medium text-slate-200 flex items-center gap-1">
-                  <span>동경 회전각</span>
-                  <span class="text-sky-400 font-bold">($\theta$)</span>
-                </span>
-                <span class="text-[11px] text-slate-400">
-                  읽는 눈금: <span id="display-slider-2theta" class="text-emerald-400 font-bold font-mono-nums">25.0°</span>
-                </span>
-                <span id="display-slider-theta" class="text-amber-400 font-bold font-mono-nums text-sm bg-slate-800 px-2 py-0.5 rounded border border-slate-700">12.5°</span>
-              </div>
-              <input id="slider-mirror" type="range" min="0" max="45" step="0.1" value="12.5" class="w-full py-1.5" oninput="onMirrorSlider(this.value)">
+            <!-- Round Eyepiece Canvas -->
+            <div class="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-1 bg-gradient-to-b from-slate-700 via-slate-800 to-slate-950 shadow-xl border-4 border-slate-700 flex items-center justify-center shrink-0">
+              <canvas id="canvas-eyepiece" width="220" height="220" class="w-full h-full rounded-full block bg-slate-950"></canvas>
               
-              <!-- Scale Ticks -->
-              <div class="flex justify-between text-[10px] text-slate-500 font-mono-nums mt-0.5">
-                <span>0° (눈금0°)</span>
-                <span>15° (30°)</span>
-                <span>30° (60°)</span>
-                <span>45° (90°)</span>
+              <div class="absolute bottom-2 left-3 text-[9px] text-sky-200 font-bold bg-slate-950/70 px-1 py-0.5 rounded pointer-events-none">
+                [좌] 실제 수평선
+              </div>
+              <div class="absolute bottom-2 right-3 text-[9px] text-amber-200 font-bold bg-slate-950/70 px-1 py-0.5 rounded pointer-events-none">
+                [우] 반사된 태양
               </div>
             </div>
 
-            <!-- Fine Angle Adjust Buttons (Generous Touch Targets) -->
-            <div class="flex items-center justify-between gap-1 pt-1">
-              <span class="text-[11px] text-slate-400 font-medium shrink-0">미세 조절:</span>
-              <div class="grid grid-cols-4 gap-1.5 flex-1 max-w-[260px]">
-                <button onclick="adjustTheta(-1.0)" class="h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-xs font-mono-nums font-bold border border-slate-700 text-slate-200 transition">-1°</button>
-                <button onclick="adjustTheta(-0.1)" class="h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-xs font-mono-nums font-bold border border-slate-700 text-amber-300 transition">-0.1°</button>
-                <button onclick="adjustTheta(0.1)" class="h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-xs font-mono-nums font-bold border border-slate-700 text-amber-300 transition">+0.1°</button>
-                <button onclick="adjustTheta(1.0)" class="h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-xs font-mono-nums font-bold border border-slate-700 text-slate-200 transition">+1°</button>
-              </div>
-            </div>
+            <p class="text-[11px] text-slate-400 text-center">
+              태양 하단이 왼쪽 수평선에 <span class="text-amber-300 font-bold">딱 닿도록</span> 각도를 맞추세요.
+            </p>
+          </div>
 
-            <!-- Target Sun Altitude Environment -->
-            <div class="pt-2 border-t border-slate-800/80">
-              <div class="flex justify-between items-center text-xs mb-1">
-                <span class="text-slate-400">환경 설정: 실제 태양 고도</span>
-                <span id="display-target-alt" class="text-amber-300 font-mono-nums font-bold">45.0°</span>
-              </div>
-              <input id="slider-target-alt" type="range" min="15" max="75" step="1" value="45" class="w-full py-1" oninput="onTargetAltitudeSlider(this.value)">
-              
-              <!-- Quick Preset Altitude Buttons -->
-              <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1.5">
-                <span>고도 프리셋:</span>
-                <div class="flex gap-1.5">
-                  <button onclick="setTargetAltitude(30)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded text-[11px] text-slate-300 border border-slate-700 font-mono-nums">30°</button>
-                  <button onclick="setTargetAltitude(45)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded text-[11px] text-slate-300 border border-slate-700 font-mono-nums">45°</button>
-                  <button onclick="setTargetAltitude(60)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded text-[11px] text-slate-300 border border-slate-700 font-mono-nums">60°</button>
-                </div>
-              </div>
+          <!-- Index Arm Rotation Slider -->
+          <div>
+            <div class="flex justify-between items-center text-xs mb-1">
+              <span class="font-medium text-slate-200">인덱스 암(동경) 회전 <span class="text-sky-400 font-bold">(θ)</span></span>
+              <span class="text-[11px] text-slate-400">눈금판: <strong id="lbl-2theta" class="text-emerald-400 font-mono-nums font-bold">30.0°</strong></span>
+              <span id="lbl-theta" class="text-amber-400 font-mono-nums font-bold text-xs bg-slate-800 px-2 py-0.5 rounded border border-slate-700">15.0°</span>
             </div>
+            <input id="slider-arm" type="range" min="0" max="45" step="0.1" value="15" class="w-full" oninput="onArmSliderChange(this.value)">
+            <div class="flex justify-between text-[10px] text-slate-500 font-mono-nums mt-0.5">
+              <span>0° (눈금 0°)</span>
+              <span>15° (30°)</span>
+              <span>30° (60°)</span>
+              <span>45° (90°)</span>
+            </div>
+          </div>
 
-            <!-- Wave Rocking Checkbox -->
-            <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between">
-              <label for="check-wave" class="text-xs text-slate-300 flex items-center gap-2 cursor-pointer select-none">
-                <input id="check-wave" type="checkbox" class="w-4 h-4 rounded text-amber-500 focus:ring-0 bg-slate-800 border-slate-700" onchange="toggleWaveMotion(this.checked)">
-                <span>🌊 파도 요동 (흔들림 보정 관찰)</span>
-              </label>
-              <span class="text-[10px] text-slate-500">배가 흔들려도 일치 유지</span>
+          <!-- Fine Adjust Buttons -->
+          <div class="flex items-center justify-between gap-1 pt-0.5">
+            <span class="text-[11px] text-slate-400 font-medium">미세 회전:</span>
+            <div class="grid grid-cols-4 gap-1.5 flex-1 max-w-[240px]">
+              <button onclick="nudgeTheta(-1.0)" class="h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-xs font-mono-nums font-bold border border-slate-700 text-slate-200">-1°</button>
+              <button onclick="nudgeTheta(-0.1)" class="h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-xs font-mono-nums font-bold border border-slate-700 text-amber-300">-0.1°</button>
+              <button onclick="nudgeTheta(0.1)" class="h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-xs font-mono-nums font-bold border border-slate-700 text-amber-300">+0.1°</button>
+              <button onclick="nudgeTheta(1.0)" class="h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-xs font-mono-nums font-bold border border-slate-700 text-slate-200">+1°</button>
             </div>
+          </div>
+
+          <!-- Sky Environment: Celestial Altitude -->
+          <div class="pt-2 border-t border-slate-800/80">
+            <div class="flex justify-between items-center text-xs mb-1">
+              <span class="text-slate-400">환경 설정: 실제 태양 고도</span>
+              <span id="lbl-sun-alt" class="text-amber-300 font-mono-nums font-bold">44.0°</span>
+            </div>
+            <input id="slider-sun" type="range" min="15" max="75" step="1" value="44" class="w-full" oninput="onSunSliderChange(this.value)">
+            <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1.5">
+              <span>빠른 고도 프리셋:</span>
+              <div class="flex gap-1">
+                <button onclick="setSunAlt(30)" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 font-mono-nums text-slate-200">30°</button>
+                <button onclick="setSunAlt(44)" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 font-mono-nums text-slate-200">44°</button>
+                <button onclick="setSunAlt(60)" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 font-mono-nums text-slate-200">60°</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ship Rocking Checkbox -->
+          <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+            <label for="check-rocking" class="text-xs text-slate-300 flex items-center gap-2 cursor-pointer select-none">
+              <input id="check-rocking" type="checkbox" class="w-4 h-4 rounded text-amber-500 bg-slate-800 border-slate-700" onchange="toggleShipRocking(this.checked)">
+              <span>🌊 파도 롤링 (배 요동 시 일치 유지)</span>
+            </label>
+            <span class="text-[10px] text-slate-500">대항해시대 혁신 기술</span>
           </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- TAB 2: WHY 2-THETA SANDBOX -->
-    <section id="tab-doubleReflection" class="hidden space-y-3 sm:space-y-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl sm:rounded-2xl p-3.5 sm:p-5">
-        <div class="max-w-3xl mb-3">
-          <span class="text-[11px] sm:text-xs font-bold text-amber-400 uppercase tracking-wider">기초 광학 법칙 증명</span>
-          <h2 class="text-base sm:text-lg font-bold text-white mt-0.5">거울을 $\theta$ 돌리면, 반사광은 왜 정확히 $2\theta$ 꺾일까?</h2>
-          <p class="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
-            거울의 수직선인 <strong>법선(Normal)</strong>이 함께 돌아가면서 입사각과 반사각이 동시에 커지기 때문입니다.
+    <!-- TAB 2: 2D DOUBLE REFLECTION PRINCIPLE -->
+    <div id="tab-double" class="hidden grid grid-cols-1 md:grid-cols-12 gap-3.5">
+      <div class="md:col-span-8 bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col">
+        <div class="flex items-center justify-between mb-1.5">
+          <h2 class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+            2D 단일 거울 회전 법칙과 2θ 광선 편향 (물리 정합)
+          </h2>
+          <span class="text-[10px] text-slate-400">거울 회전(θ) ➔ 법선 회전(θ) ➔ 광선 꺾임(2θ)</span>
+        </div>
+        <div id="container-canvas-double" class="w-full aspect-[16/10] bg-slate-950 rounded-lg overflow-hidden border border-slate-800 relative">
+          <canvas id="canvas-double" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+
+      <div class="md:col-span-4 bg-slate-900 border border-slate-800 rounded-xl p-3.5 flex flex-col justify-between space-y-3 text-xs">
+        <div>
+          <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">광학 법칙 기하학적 증명</span>
+          <h3 class="text-sm font-bold text-white mt-0.5">왜 거울을 θ 돌리면 빛은 2θ 꺾일까?</h3>
+          <p class="text-slate-300 mt-1 leading-relaxed text-[11px]">
+            거울 면에 수직인 <strong>법선(Normal)</strong>이 함께 회전하면서 <strong>입사각과 반사각이 동시에 똑같이 커지기 때문</strong>입니다.
+          </p>
+
+          <div class="mt-3 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+            <div class="flex justify-between items-center text-slate-300 mb-1">
+              <span>거울 회전각 (<strong class="text-sky-400 font-mono-nums">θ</strong>)</span>
+              <span id="lbl-sm-theta" class="text-amber-400 font-mono-nums font-bold">15.0°</span>
+            </div>
+            <input id="slider-sm-theta" type="range" min="0" max="35" step="0.5" value="15" class="w-full" oninput="onSingleMirrorAngle(this.value)">
+            <div class="flex justify-between text-[11px] mt-2 text-slate-300">
+              <span>거울 각도: <strong class="text-sky-300 font-mono-nums" id="badge-sm-theta">15.0°</strong></span>
+              <span>광선 꺾임: <strong class="text-emerald-400 font-mono-nums" id="badge-sm-2theta">30.0° (2배)</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2 bg-slate-950 p-3 rounded-lg border border-slate-800 text-[11px]">
+          <div class="font-bold text-slate-200 border-b border-slate-800 pb-1">기하학적 3단계 메커니즘:</div>
+          <div class="flex items-start gap-1.5">
+            <span class="w-4 h-4 rounded bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+            <div>거울이 시계 방향으로 <strong class="text-sky-300">θ</strong> 기울어지면, 법선도 같은 방향으로 <strong class="text-sky-300">θ</strong> 기울어집니다.</div>
+          </div>
+          <div class="flex items-start gap-1.5">
+            <span class="w-4 h-4 rounded bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+            <div>들어오는 빛은 고정이므로 새 법선과의 <strong>입사각</strong>이 <strong class="text-amber-300">+θ</strong> 증가합니다.</div>
+          </div>
+          <div class="flex items-start gap-1.5">
+            <span class="w-4 h-4 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
+            <div>반사의 법칙(입사각=반사각)에 의해 <strong>반사각</strong>도 똑같이 <strong class="text-emerald-300">+θ</strong> 증가합니다.</div>
+          </div>
+          <div class="p-2 rounded bg-slate-900 border border-slate-700 text-center font-bold text-emerald-300">
+            총 광선 꺾인 각도 = θ + θ = 2θ
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+          💡 <strong>회색 점선</strong>은 거울이 수평(θ=0°)일 때의 원래 법선과 반사 경로입니다. 거울이 아래로 θ 기울어질 때 반사광선도 같은 방향으로 <strong>정확히 2배(2θ)</strong> 꺾여 내려가는 모습을 확인하세요.
+        </p>
+      </div>
+    </div>
+
+    <!-- TAB 3: 2D SPLIT HORIZON GLASS DETAIL -->
+    <div id="tab-mirror" class="hidden grid grid-cols-1 md:grid-cols-12 gap-3.5">
+      <div class="md:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col">
+        <div class="flex items-center justify-between mb-1.5">
+          <h2 class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            2D 수평경(Horizon Glass) 광학 분해
+          </h2>
+          <span class="text-[10px] text-slate-400">투명 유리창과 은막 반사경의 이중 시야 결합</span>
+        </div>
+        <div id="container-canvas-mirror" class="w-full aspect-[16/11] bg-slate-950 rounded-lg overflow-hidden border border-slate-800 relative">
+          <canvas id="canvas-mirror" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+
+      <div class="md:col-span-5 flex flex-col justify-between space-y-2.5 text-xs bg-slate-900 p-3.5 rounded-xl border border-slate-800">
+        <div>
+          <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">독창적인 광학 기구</span>
+          <h3 class="text-sm font-bold text-white mt-0.5">반반 거울: 투명 유리와 은막 거울의 융합</h3>
+          <p class="text-slate-300 mt-1 leading-relaxed text-[11px]">
+            수평경은 <strong>'반투과 코팅'</strong>이 아니라, <strong>'좌측은 순수 투명 유리, 우측은 완전 반사 거울'</strong>로 공간을 반씩 물리적으로 나눠놓은 구조입니다.
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-5">
-          <!-- Interactive Single Mirror Canvas -->
-          <div class="md:col-span-7 bg-slate-950 border border-slate-800 rounded-xl overflow-hidden aspect-[16/10] relative">
-            <canvas id="canvas-single-mirror" class="w-full h-full block"></canvas>
+        <div class="space-y-2">
+          <div class="bg-slate-950 p-3 rounded-lg border border-sky-500/30">
+            <div class="font-bold text-sky-400 flex items-center gap-1.5 mb-0.5">
+              <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+              좌측: 투명 유리 (Clear Glass)
+            </div>
+            <p class="text-slate-300 text-[11px] leading-relaxed">
+              수평선에서 날아온 빛이 아무런 굴절 없이 <strong>그대로 직진 투과</strong>하여 망원경 왼쪽 시야에 실제 바다 수평선을 맺습니다.
+            </p>
           </div>
 
-          <!-- Proof Explanation Column -->
-          <div class="md:col-span-5 flex flex-col justify-between bg-slate-950/60 p-3 sm:p-4 rounded-xl border border-slate-800/80 text-xs space-y-3">
-            <div>
-              <div class="flex justify-between items-center text-slate-300 mb-1">
-                <span class="font-medium">거울 경사각 ($\theta$) 조절</span>
-                <span class="text-amber-400 font-mono-nums font-bold" id="label-sm-theta">15.0°</span>
-              </div>
-              <input id="slider-single-mirror" type="range" min="0" max="40" step="0.5" value="15" class="w-full" oninput="onSingleMirrorSlider(this.value)">
-              
-              <div class="flex justify-between text-xs mt-2 bg-slate-900 p-2 rounded-lg border border-slate-800">
-                <span class="text-slate-400">거울 회전 ($\theta$): <strong class="text-sky-300 font-mono-nums">15.0°</strong></span>
-                <span class="text-slate-400">광선 꺾임 (<strong class="text-emerald-400">2θ</strong>): <strong id="label-sm-2theta" class="text-emerald-400 font-mono-nums">30.0°</strong></span>
-              </div>
+          <div class="bg-slate-950 p-3 rounded-lg border border-amber-500/30">
+            <div class="font-bold text-amber-400 flex items-center gap-1.5 mb-0.5">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              우측: 은도금 반사경 (Silvered Mirror)
             </div>
-
-            <!-- Mathematical Step Cards -->
-            <div class="space-y-2 bg-slate-900 p-2.5 sm:p-3 rounded-lg border border-slate-800 text-[11px] sm:text-xs">
-              <div class="font-bold text-slate-200 border-b border-slate-800 pb-1">기하학적 3단계 증명:</div>
-              <div class="flex items-start gap-2">
-                <span class="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
-                <div>거울이 <strong class="text-sky-300">$\theta$</strong> 돌면, 법선도 똑같이 <strong class="text-sky-300">$\theta$</strong> 회전합니다.</div>
-              </div>
-              <div class="flex items-start gap-2">
-                <span class="w-4 h-4 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
-                <div>빛의 입사 방향은 고정이므로, 새로운 법선과의 <strong>입사각($i$)</strong>이 <strong class="text-amber-300">$\theta$</strong> 증가합니다.</div>
-              </div>
-              <div class="flex items-start gap-2">
-                <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
-                <div>반사의 법칙에 따라 <strong>반사각($r$)</strong>도 똑같이 <strong class="text-emerald-300">$\theta$</strong> 증가합니다.</div>
-              </div>
-              <div class="p-1.5 sm:p-2 rounded bg-slate-800 border border-slate-700 font-bold text-emerald-300 text-center">
-                총 꺾인 각도 = $\Delta i + \Delta r = \theta + \theta = \mathbf{2\theta}$
-              </div>
-            </div>
-
-            <p class="text-[11px] text-slate-400">
-              💡 따라서 육분의는 <strong>60° 부채꼴(원의 1/6)</strong>로 <strong>120°</strong>까지 측정이 가능합니다.
+            <p class="text-slate-300 text-[11px] leading-relaxed">
+              상단 동경에서 꺾여 내려온 태양 광선이 이곳에서 <strong>한 번 더 반사</strong>되어 망원경 오른쪽 시야에 반사된 태양을 맺습니다.
             </p>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- TAB 3: SPLIT HORIZON GLASS DETAIL -->
-    <section id="tab-horizonMirror" class="hidden space-y-3 sm:space-y-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl sm:rounded-2xl p-3.5 sm:p-5">
-        <div class="max-w-3xl mb-3">
-          <span class="text-[11px] sm:text-xs font-bold text-amber-400 uppercase tracking-wider">독창적인 광학 기구</span>
-          <h2 class="text-base sm:text-lg font-bold text-white mt-0.5">수평경(Horizon Glass): "거울인데 어떻게 수평선이 투과될까?"</h2>
-          <p class="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
-            수평경은 <strong>'반은 투명 유리, 반은 반사 거울'</strong>로 이루어져 있어 두 시야를 하나로 합쳐줍니다.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-5 items-center">
-          <div class="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden aspect-[4/3] sm:aspect-square relative">
-            <canvas id="canvas-split-mirror-detail" class="w-full h-full block"></canvas>
-          </div>
-
-          <div class="space-y-2.5 sm:space-y-3 text-xs">
-            <div class="bg-slate-950/70 p-3 sm:p-4 rounded-xl border border-sky-500/30">
-              <div class="flex items-center gap-2 font-bold text-sky-400 text-sm mb-1">
-                <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
-                좌측: 투명 유리 영역 (Clear Glass)
-              </div>
-              <p class="text-slate-300 leading-relaxed text-[11px] sm:text-xs">
-                빛이 방해받지 않고 그대로 직진 통과합니다. 관측자가 망원경을 보면 <strong>실제 바다 수평선</strong>이 시야의 왼쪽에 선명하게 나타납니다.
-              </p>
-            </div>
-
-            <div class="bg-slate-950/70 p-3 sm:p-4 rounded-xl border border-amber-500/30">
-              <div class="flex items-center gap-2 font-bold text-amber-400 text-sm mb-1">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                우측: 은도금 반사 거울 영역 (Silvered Mirror)
-              </div>
-              <p class="text-slate-300 leading-relaxed text-[11px] sm:text-xs">
-                상단의 동경(Index Mirror)에서 꺾여 내려온 태양/별빛이 이곳에서 한 번 더 꺾여 관측자의 눈으로 들어옵니다.
-              </p>
-            </div>
-
-            <div class="bg-amber-500/10 p-3 sm:p-3.5 rounded-xl border border-amber-500/20 text-slate-200 text-[11px] sm:text-xs">
-              <strong class="text-amber-400 block mb-1">🌟 대항해시대의 혁명: 요동치는 파도 보정</strong>
-              배가 파도에 흔들려 관측자의 손이나 시선이 요동쳐도, 수평선과 태양이 <strong>기구 안에서 똑같이 함께 움직이므로</strong> 망망대해에서도 흔들리지 않고 정확한 측정이 가능했습니다.
-            </div>
-          </div>
+        <div class="bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20 text-slate-200 text-[11px]">
+          <strong class="text-amber-300 block mb-0.5">🌟 흔들림 상쇄의 핵심 원리:</strong>
+          배가 요동쳐 관측자의 손이나 시선이 흔들려도, 망원경 시야 내부에서 <strong>수평선과 태양이 같은 비율로 함께 흔들리므로</strong> 완벽한 일치 관측이 가능합니다.
         </div>
       </div>
-    </section>
-
-    <!-- Educational Context Footer Cards -->
-    <section class="mt-3 sm:mt-4 grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3.5 text-xs">
-      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 sm:p-3.5">
-        <div class="font-bold text-amber-400 mb-1">❓ 왜 이름이 '육분의(Sextant)'일까?</div>
-        <p class="text-slate-400 leading-relaxed text-[11px] sm:text-xs">
-          몸체 프레임이 원($360^\circ$)의 6분의 1인 <strong>$60^\circ$ 부채꼴 호</strong>이기 때문입니다. 이중 반사로 2배 각을 재므로 $60^\circ$ 호로 머리 위 너머인 <strong>$120^\circ$</strong>까지 측정합니다.
-        </p>
-      </div>
-
-      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 sm:p-3.5">
-        <div class="font-bold text-sky-400 mb-1">🔭 티코 브라헤 vs 해양 육분의</div>
-        <p class="text-slate-400 leading-relaxed text-[11px] sm:text-xs">
-          티코 브라헤의 육분의는 거울이 없는 <strong>초대형 기구(반경 2m)</strong>로 맨눈 조준했습니다. 반면 18세기 존 해들리의 <strong>해양 육분의</strong>는 거울 두 개를 결합해 한 손에 들 수 있게 소형화한 것입니다.
-        </p>
-      </div>
-
-      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 sm:p-3.5">
-        <div class="font-bold text-emerald-400 mb-1">🧭 고도로 내 위도 찾는 법</div>
-        <p class="text-slate-400 leading-relaxed text-[11px] sm:text-xs">
-          정오의 태양 남중고도를 재면:
-          <span class="block text-slate-200 font-mono-nums font-semibold mt-0.5">위도 = 90° - 남중고도 + 태양적위</span>
-          공식으로 망망대해에서 배의 위도를 즉각 산출할 수 있었습니다.
-        </p>
-      </div>
-    </section>
+    </div>
   </main>
 
   <script>
     // State management
-    const state = {
-      currentTab: 'observation',
-      targetAltitude: 45.0,
-      mirrorAngle: 12.5,
-      measuredAngle: 25.0,
-      waveMotion: false,
+    const simState = {
+      currentTab: 'obs',
+      sunAltitude: 44.0,
+      armTheta: 15.0,
+      read2Theta: 30.0,
       singleMirrorTheta: 15.0,
-      time: 0
+      rocking: false,
+      time: 0,
+      rockingAngle: 0,
+      isDraggingArm: false,
+      isMirrorHit: false
     };
 
-    // DOM Elements
-    const labelTargetAlt = document.getElementById('label-target-alt');
-    const labelMirrorTheta = document.getElementById('label-mirror-theta');
-    const labelMeasured2Theta = document.getElementById('label-measured-2theta');
-    const displaySliderTheta = document.getElementById('display-slider-theta');
-    const displaySlider2Theta = document.getElementById('display-slider-2theta');
-    const displayTargetAlt = document.getElementById('display-target-alt');
-    const sliderMirror = document.getElementById('slider-mirror');
-    const sliderTargetAlt = document.getElementById('slider-target-alt');
-    const statusHeadline = document.getElementById('status-headline');
-    const statusDetail = document.getElementById('status-detail');
-    const statusIndicatorDot = document.getElementById('status-indicator-dot');
+    // DOM References
+    const valSunAlt = document.getElementById('val-sun-alt');
+    const valArmTheta = document.getElementById('val-arm-theta');
+    const valRead2Theta = document.getElementById('val-read-2theta');
+    const lblTheta = document.getElementById('lbl-theta');
+    const lbl2Theta = document.getElementById('lbl-2theta');
+    const lblSunAlt = document.getElementById('lbl-sun-alt');
+    const sliderArm = document.getElementById('slider-arm');
+    const sliderSun = document.getElementById('slider-sun');
+    const badgeDiff = document.getElementById('badge-diff');
+    const statusDot = document.getElementById('status-dot');
+    const statusTitle = document.getElementById('status-title');
+    const statusDesc = document.getElementById('status-desc');
     const statusCard = document.getElementById('status-card');
-    const badgeMatch = document.getElementById('badge-match');
 
-    // Canvases and contexts
-    const canvasSextant = document.getElementById('canvas-sextant');
-    const ctxSextant = canvasSextant.getContext('2d');
+    // Canvas References & Contexts
+    const canvasMain = document.getElementById('canvas-main');
+    const ctxMain = canvasMain.getContext('2d');
 
-    const canvasTelescope = document.getElementById('canvas-telescope');
-    const ctxTelescope = canvasTelescope.getContext('2d');
+    const canvasEyepiece = document.getElementById('canvas-eyepiece');
+    const ctxEyepiece = canvasEyepiece.getContext('2d');
 
-    const canvasSingleMirror = document.getElementById('canvas-single-mirror');
-    const ctxSingleMirror = canvasSingleMirror.getContext('2d');
+    const canvasDouble = document.getElementById('canvas-double');
+    const ctxDouble = canvasDouble.getContext('2d');
 
-    const canvasSplitDetail = document.getElementById('canvas-split-mirror-detail');
-    const ctxSplitDetail = canvasSplitDetail.getContext('2d');
+    const canvasMirror = document.getElementById('canvas-mirror');
+    const ctxMirror = canvasMirror.getContext('2d');
 
-    // Tab Switching
-    function switchTab(tabId) {
-      state.currentTab = tabId;
-      const tabs = ['observation', 'doubleReflection', 'horizonMirror'];
-      tabs.forEach(t => {
-        const section = document.getElementById(`tab-${t}`);
-        const btn = document.getElementById(`tab-btn-${t}`);
-        if (t === tabId) {
-          section.classList.remove('hidden');
-          btn.className = "px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg transition-all bg-amber-500 text-slate-950 font-bold whitespace-nowrap shadow-sm";
-        } else {
-          section.classList.add('hidden');
-          btn.className = "px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg transition-all text-slate-400 hover:text-white whitespace-nowrap";
-        }
-      });
-      resizeAllCanvases();
+    function resizeCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (canvas.width !== Math.round(rect.width * dpr) || canvas.height !== Math.round(rect.height * dpr)) {
+        canvas.width = Math.round(rect.width * dpr);
+        canvas.height = Math.round(rect.height * dpr);
+      }
+      return { width: rect.width, height: rect.height, dpr };
     }
 
-    // Controls
-    function onMirrorSlider(val) {
-      state.mirrorAngle = parseFloat(val);
+    function handleWindowResize() {
+      resizeCanvas(canvasMain);
+      resizeCanvas(canvasDouble);
+      resizeCanvas(canvasMirror);
       updateReadings();
     }
-
-    function adjustTheta(delta) {
-      let next = state.mirrorAngle + delta;
-      next = Math.max(0, Math.min(45, next));
-      state.mirrorAngle = Math.round(next * 10) / 10;
-      sliderMirror.value = state.mirrorAngle;
-      updateReadings();
-    }
-
-    function onTargetAltitudeSlider(val) {
-      state.targetAltitude = parseFloat(val);
-      updateReadings();
-    }
-
-    function setTargetAltitude(alt) {
-      state.targetAltitude = alt;
-      sliderTargetAlt.value = alt;
-      updateReadings();
-    }
-
-    function autoAlign() {
-      state.mirrorAngle = state.targetAltitude / 2;
-      sliderMirror.value = state.mirrorAngle;
-      updateReadings();
-    }
-
-    function toggleWaveMotion(checked) {
-      state.waveMotion = checked;
-    }
-
-    function onSingleMirrorSlider(val) {
-      state.singleMirrorTheta = parseFloat(val);
-      document.getElementById('label-sm-theta').textContent = `${state.singleMirrorTheta.toFixed(1)}°`;
-      document.getElementById('label-sm-2theta').textContent = `${(state.singleMirrorTheta * 2).toFixed(1)}°`;
-    }
+    window.addEventListener('resize', handleWindowResize);
 
     function updateReadings() {
-      state.measuredAngle = state.mirrorAngle * 2;
+      simState.read2Theta = simState.armTheta * 2;
 
-      labelTargetAlt.textContent = `${state.targetAltitude.toFixed(1)}°`;
-      displayTargetAlt.textContent = `${state.targetAltitude.toFixed(1)}°`;
-      labelMirrorTheta.textContent = `${state.mirrorAngle.toFixed(1)}°`;
-      displaySliderTheta.textContent = `${state.mirrorAngle.toFixed(1)}°`;
-      displaySlider2Theta.textContent = `${state.measuredAngle.toFixed(1)}°`;
-      labelMeasured2Theta.textContent = `${state.measuredAngle.toFixed(1)}°`;
+      valSunAlt.textContent = `${simState.sunAltitude.toFixed(1)}°`;
+      lblSunAlt.textContent = `${simState.sunAltitude.toFixed(1)}°`;
+      valArmTheta.textContent = `${simState.armTheta.toFixed(1)}°`;
+      lblTheta.textContent = `${simState.armTheta.toFixed(1)}°`;
+      valRead2Theta.textContent = `${simState.read2Theta.toFixed(1)}°`;
+      lbl2Theta.textContent = `${simState.read2Theta.toFixed(1)}°`;
 
-      const diff = state.measuredAngle - state.targetAltitude;
-      const isAligned = Math.abs(diff) < 0.4;
+      const diff = simState.read2Theta - simState.sunAltitude;
+      const absDiff = Math.abs(diff);
+      const isAligned = absDiff < 0.4;
+      const inEyepieceFov = absDiff <= 8.5; // 접안렌즈 원형 시야 내부 범위
+      const isHit = simState.isMirrorHit;
 
       if (isAligned) {
-        statusHeadline.textContent = "✨ 관측 성공! 수평선과 태양이 완벽히 일치";
-        statusHeadline.className = "text-xs sm:text-sm font-bold text-emerald-400 truncate";
-        statusDetail.textContent = `눈금 2θ = ${state.measuredAngle.toFixed(1)}° = 태양 고도 일치 (오차 0.1° 이내)`;
-        statusIndicatorDot.className = "w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)] shrink-0";
-        statusCard.className = "bg-slate-900/95 border border-emerald-500/50 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 sm:gap-3 transition-colors";
+        statusTitle.textContent = "✨ 관측 성공! 태양 하단이 수평선에 완벽 안착 (Kissing the Horizon)";
+        statusTitle.className = "text-xs sm:text-sm font-bold text-emerald-400 truncate";
+        statusDesc.textContent = `눈금 2θ = ${simState.read2Theta.toFixed(1)}° = 태양 고도 일치 (오차 0.1° 이내)`;
+        statusDot.className = "w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)] shrink-0";
+        statusCard.className = "bg-slate-900/90 border border-emerald-500/50 rounded-xl p-2.5 sm:p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 transition-all";
 
-        badgeMatch.textContent = "일치 완료 (Matched!)";
-        badgeMatch.className = "text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
-      } else {
+        badgeDiff.textContent = "수평선 안착 (Aligned!)";
+        badgeDiff.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+      } else if (inEyepieceFov) {
         const sign = diff > 0 ? "+" : "";
-        statusHeadline.textContent = diff > 0 ? "태양이 수평선 아래로 너무 내려왔습니다" : "태양이 아직 수평선보다 위에 떠 있습니다";
-        statusHeadline.className = "text-xs sm:text-sm font-bold text-amber-400 truncate";
-        statusDetail.textContent = `거울각을 ${Math.abs(diff / 2).toFixed(1)}° ${diff > 0 ? '줄여서' : '늘려서'} 맞추세요 (현재 오차: ${sign}${diff.toFixed(1)}°)`;
-        statusIndicatorDot.className = "w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-amber-400 animate-pulse shrink-0";
-        statusCard.className = "bg-slate-900/95 border border-slate-800 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 sm:gap-3 transition-colors";
+        const posText = diff < 0 ? "수평선 위에 떠 있습니다 (아래로 내리세요)" : "수평선 아래로 가라앉았습니다 (위로 올리세요)";
+        statusTitle.textContent = `🔭 접안렌즈 시야 포착! 태양이 ${posText}`;
+        statusTitle.className = "text-xs sm:text-sm font-bold text-amber-400 truncate";
+        statusDesc.textContent = `인덱스 암을 ${Math.abs(diff / 2).toFixed(1)}° ${diff > 0 ? '줄여서' : '밀어서'} 태양 밑면을 수평선에 맞추세요 (오차: ${sign}${diff.toFixed(1)}°)`;
+        statusDot.className = "w-3.5 h-3.5 rounded-full bg-amber-400 animate-pulse shrink-0";
+        statusCard.className = "bg-slate-900/90 border border-amber-500/40 rounded-xl p-2.5 sm:p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 transition-all";
 
-        badgeMatch.textContent = `오차 ${sign}${diff.toFixed(1)}°`;
-        badgeMatch.className = "text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-400 border border-rose-500/30";
+        badgeDiff.textContent = `시야 내 이동중 (${sign}${diff.toFixed(1)}°)`;
+        badgeDiff.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40";
+      } else if (absDiff <= 16.0) {
+        const sign = diff > 0 ? "+" : "";
+        const dirGuide = diff < 0 ? "위쪽에 있습니다 ➔ 인덱스 암을 더 밀어 태양을 끌어내리세요" : "아래로 지나쳤습니다 ➔ 인덱스 암을 당겨 올리세요";
+        statusTitle.textContent = `태양이 접안렌즈 ${diff < 0 ? '상단 위' : '하단 아래'}에 근접해 있습니다`;
+        statusTitle.className = "text-xs sm:text-sm font-bold text-sky-400 truncate";
+        statusDesc.textContent = dirGuide;
+        statusDot.className = "w-3.5 h-3.5 rounded-full bg-sky-400 shrink-0";
+        statusCard.className = "bg-slate-900/90 border border-sky-500/40 rounded-xl p-2.5 sm:p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 transition-all";
+
+        badgeDiff.textContent = diff < 0 ? "시야 위쪽 대기" : "시야 아래 이탈";
+        badgeDiff.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30";
+      } else {
+        statusTitle.textContent = "시야 이탈: 인덱스 암을 돌려 태양을 망원경 시야로 끌어내리세요";
+        statusTitle.className = "text-xs sm:text-sm font-bold text-slate-400 truncate";
+        statusDesc.textContent = `현재 오차: ${diff > 0 ? '+' : ''}${diff.toFixed(1)}° (우측 상단 '✨ 자동 맞춤'을 누르거나 슬라이더를 약 ${(simState.sunAltitude / 2).toFixed(1)}° 근처로 돌리세요)`;
+        statusDot.className = "w-3.5 h-3.5 rounded-full bg-slate-500 shrink-0";
+        statusCard.className = "bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 sm:p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 transition-all";
+
+        badgeDiff.textContent = "시야 밖 (Out of FOV)";
+        badgeDiff.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700";
       }
     }
 
-    // High-DPI canvas resizing
-    function resizeCanvasToDisplaySize(canvas) {
-      const dpr = window.devicePixelRatio || 1;
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
-      if (width === 0 || height === 0) return false;
-
-      if (canvas.width !== Math.floor(width * dpr) || canvas.height !== Math.floor(height * dpr)) {
-        canvas.width = Math.floor(width * dpr);
-        canvas.height = Math.floor(height * dpr);
-        const ctx = canvas.getContext('2d');
-        ctx.resetTransform();
-        ctx.scale(dpr, dpr);
-        return true;
-      }
-      return false;
+    function onArmSliderChange(val) {
+      simState.armTheta = parseFloat(val);
+      updateReadings();
     }
 
-    function resizeAllCanvases() {
-      resizeCanvasToDisplaySize(canvasSextant);
-      resizeCanvasToDisplaySize(canvasTelescope);
-      resizeCanvasToDisplaySize(canvasSingleMirror);
-      resizeCanvasToDisplaySize(canvasSplitDetail);
-    }
-    window.addEventListener('resize', resizeAllCanvases);
-    window.addEventListener('orientationchange', () => setTimeout(resizeAllCanvases, 100));
-
-    // Interactive Touch & Mouse Drag on the Sextant Arm
-    let isDraggingArm = false;
-
-    function getCanvasCoords(e, canvas) {
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      return {
-        x: clientX - rect.left,
-        y: clientY - rect.top,
-        w: rect.width,
-        h: rect.height
-      };
+    function nudgeTheta(delta) {
+      let next = simState.armTheta + delta;
+      next = Math.max(0, Math.min(45, next));
+      simState.armTheta = Math.round(next * 10) / 10;
+      sliderArm.value = simState.armTheta;
+      updateReadings();
     }
 
-    function handleArmDrag(e) {
-      const { x, y, w, h } = getCanvasCoords(e, canvasSextant);
-      const pivotX = w * 0.25;
-      const pivotY = h * 0.22;
-
-      const dx = x - pivotX;
-      const dy = y - pivotY;
-      const angleRad = Math.atan2(dy, dx);
-      
-      const startArc = 0.50; // ~28.6 deg
-      const endArc = 1.62;   // ~92.8 deg
-
-      if (angleRad >= startArc - 0.1 && angleRad <= endArc + 0.15) {
-        const ratio = (angleRad - startArc) / (endArc - startArc);
-        const theta = Math.max(0, Math.min(45, ratio * 45));
-        state.mirrorAngle = Math.round(theta * 10) / 10;
-        sliderMirror.value = state.mirrorAngle;
-        updateReadings();
-      }
+    function onSunSliderChange(val) {
+      simState.sunAltitude = parseFloat(val);
+      updateReadings();
     }
 
-    canvasSextant.addEventListener('mousedown', (e) => { isDraggingArm = true; handleArmDrag(e); });
-    window.addEventListener('mousemove', (e) => { if (isDraggingArm) handleArmDrag(e); });
-    window.addEventListener('mouseup', () => { isDraggingArm = false; });
+    function setSunAlt(alt) {
+      simState.sunAltitude = alt;
+      sliderSun.value = alt;
+      updateReadings();
+    }
 
-    canvasSextant.addEventListener('touchstart', (e) => {
-      isDraggingArm = true;
-      handleArmDrag(e);
-      if (e.cancelable) e.preventDefault();
-    }, { passive: false });
+    function autoAlignSextant() {
+      simState.armTheta = simState.sunAltitude / 2;
+      sliderArm.value = simState.armTheta;
+      updateReadings();
+    }
 
-    window.addEventListener('touchmove', (e) => {
-      if (isDraggingArm) {
-        handleArmDrag(e);
-        if (e.cancelable) e.preventDefault();
-      }
-    }, { passive: false });
+    function toggleShipRocking(checked) {
+      simState.rocking = checked;
+    }
 
-    window.addEventListener('touchend', () => { isDraggingArm = false; });
+    function onSingleMirrorAngle(val) {
+      simState.singleMirrorTheta = parseFloat(val);
+      document.getElementById('lbl-sm-theta').textContent = `${simState.singleMirrorTheta.toFixed(1)}°`;
+      document.getElementById('badge-sm-theta').textContent = `${simState.singleMirrorTheta.toFixed(1)}°`;
+      document.getElementById('badge-sm-2theta').textContent = `${(simState.singleMirrorTheta * 2).toFixed(1)}° (2배)`;
+    }
 
-    function drawSextantFrame(w, h, theta, alt) {
-      ctxSextant.clearRect(0, 0, w, h);
+    function switchTab(tabId) {
+      simState.currentTab = tabId;
+      ['obs', 'double', 'mirror'].forEach(id => {
+        const pane = document.getElementById(`tab-${id}`);
+        const btn = document.getElementById(`tab-btn-${id}`);
+        if (id === tabId) {
+          pane.classList.remove('hidden');
+          btn.className = "px-3 py-1.5 rounded-lg transition-all bg-amber-500 text-slate-950 font-bold whitespace-nowrap shadow-sm";
+        } else {
+          pane.classList.add('hidden');
+          btn.className = "px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white whitespace-nowrap";
+        }
+      });
+      handleWindowResize();
+    }
 
-      const rocking = state.waveMotion ? Math.sin(state.time * 2.2) * 2.5 : 0;
-      ctxSextant.save();
-      ctxSextant.translate(0, rocking * 1.8);
+    function drawMainSextantView() {
+      const { width: w, height: h, dpr } = resizeCanvas(canvasMain);
+      ctxMain.save();
+      ctxMain.scale(dpr, dpr);
+      ctxMain.clearRect(0, 0, w, h);
 
-      // Relative scale factor ensuring layout never breaks on mobile or tablet
-      const s = Math.min(w / 480, h / 300);
+      const waveOffset = simState.rocking ? Math.sin(simState.time * 2.5) * 8 : 0;
+      const rockAngle = simState.rocking ? Math.sin(simState.time * 2.5) * 0.04 : 0;
 
-      const pivotX = w * 0.25;
-      const pivotY = h * 0.22;
-      const arcRadius = Math.min(w * 0.58, h * 0.65);
-      const arcStart = Math.PI * 0.16; 
-      const arcEnd = Math.PI * 0.52;   
+      // Coordinate Anchors scaled dynamically to canvas
+      // Pivot (Index Mirror) is at top-right of the frame
+      const cx = w * 0.58;
+      const cy = h * 0.25 + waveOffset * 0.5;
+      const scale = Math.min(w / 460, h / 310);
 
-      const horizonMirrorX = pivotX + arcRadius * 0.65;
-      const horizonMirrorY = pivotY + arcRadius * 0.36;
-      const telescopeX = horizonMirrorX + 35 * s;
-      const telescopeY = horizonMirrorY;
-      const eyeX = Math.min(w - 18 * s, telescopeX + 45 * s);
-      const eyeY = horizonMirrorY;
+      ctxMain.save();
+      ctxMain.translate(cx, cy);
+      ctxMain.rotate(rockAngle);
 
-      // 1. Background Sky & Sea Horizon
-      const seaY = horizonMirrorY;
-      ctxSextant.save();
-      ctxSextant.fillStyle = '#0f172a';
-      ctxSextant.fillRect(0, 0, w, seaY);
-      ctxSextant.fillStyle = '#0284c7';
-      ctxSextant.fillRect(0, seaY, w, h - seaY);
+      // --- 1. Brass Arc (Limb) & Markings ---
+      const arcR = 175 * scale;
+      // Arc sweeps from lower-right (arcStart) to lower-left (arcEnd)
+      const arcStart = Math.PI * 0.44; // ~79°
+      const arcEnd = Math.PI * 0.82;   // ~148° (~68° total arc for 120° reading)
 
-      // Sea Horizon dashed line
-      ctxSextant.beginPath();
-      ctxSextant.moveTo(6, seaY);
-      ctxSextant.lineTo(w - 6, seaY);
-      ctxSextant.setLineDash([3 * s, 3 * s]);
-      ctxSextant.strokeStyle = '#38bdf8';
-      ctxSextant.lineWidth = 1.5;
-      ctxSextant.stroke();
-      ctxSextant.setLineDash([]);
-      ctxSextant.fillStyle = '#38bdf8';
-      ctxSextant.font = `${Math.max(9, 10 * s)}px sans-serif`;
-      ctxSextant.fillText('진짜 바다 수평선', 10, seaY - 6);
-      ctxSextant.restore();
+      // Brass Arc Body
+      ctxMain.beginPath();
+      ctxMain.arc(0, 0, arcR, arcStart, arcEnd);
+      ctxMain.lineWidth = 16 * scale;
+      ctxMain.strokeStyle = '#b45309';
+      ctxMain.stroke();
 
-      // 2. Sextant Limb / Arc
-      ctxSextant.beginPath();
-      ctxSextant.arc(pivotX, pivotY, arcRadius, arcStart, arcEnd);
-      ctxSextant.lineWidth = 14 * s;
-      ctxSextant.strokeStyle = '#92400e';
-      ctxSextant.stroke();
+      ctxMain.beginPath();
+      ctxMain.arc(0, 0, arcR, arcStart, arcEnd);
+      ctxMain.lineWidth = 11 * scale;
+      ctxMain.strokeStyle = '#d97706';
+      ctxMain.stroke();
 
-      ctxSextant.beginPath();
-      ctxSextant.arc(pivotX, pivotY, arcRadius, arcStart, arcEnd);
-      ctxSextant.lineWidth = 10 * s;
-      ctxSextant.strokeStyle = '#d97706';
-      ctxSextant.stroke();
+      // Arc Degree Notches (2:1 scale reading)
+      ctxMain.textAlign = 'center';
+      ctxMain.textBaseline = 'middle';
+      for (let deg = 0; deg <= 90; deg += 5) {
+        const rad = arcStart + (deg / 90) * (arcEnd - arcStart);
+        const isMajor = deg % 15 === 0;
+        const nLen = isMajor ? 10 * scale : 5 * scale;
+        const x1 = Math.cos(rad) * (arcR - nLen);
+        const y1 = Math.sin(rad) * (arcR - nLen);
+        const x2 = Math.cos(rad) * (arcR + 4 * scale);
+        const y2 = Math.sin(rad) * (arcR + 4 * scale);
 
-      // Arc Degree Markings (0° to 90°)
-      ctxSextant.save();
-      ctxSextant.fillStyle = '#fef3c7';
-      ctxSextant.font = `${Math.max(8, 9 * s)}px sans-serif`;
-      ctxSextant.textAlign = 'center';
-      for (let d = 0; d <= 90; d += 10) {
-        const rad = arcStart + (d / 90) * (arcEnd - arcStart);
-        const x1 = pivotX + Math.cos(rad) * (arcRadius - 6 * s);
-        const y1 = pivotY + Math.sin(rad) * (arcRadius - 6 * s);
-        const x2 = pivotX + Math.cos(rad) * (arcRadius + 6 * s);
-        const y2 = pivotY + Math.sin(rad) * (arcRadius + 6 * s);
+        ctxMain.beginPath();
+        ctxMain.moveTo(x1, y1);
+        ctxMain.lineTo(x2, y2);
+        ctxMain.lineWidth = isMajor ? 2 : 1;
+        ctxMain.strokeStyle = isMajor ? '#fef3c7' : '#78350f';
+        ctxMain.stroke();
 
-        ctxSextant.beginPath();
-        ctxSextant.moveTo(x1, y1);
-        ctxSextant.lineTo(x2, y2);
-        ctxSextant.lineWidth = d % 30 === 0 ? 1.8 : 1;
-        ctxSextant.strokeStyle = '#78350f';
-        ctxSextant.stroke();
-
-        if (d % 30 === 0) {
-          const tx = pivotX + Math.cos(rad) * (arcRadius + 14 * s);
-          const ty = pivotY + Math.sin(rad) * (arcRadius + 14 * s);
-          ctxSextant.fillText(`${d}°`, tx, ty + 3);
+        if (isMajor) {
+          const tx = Math.cos(rad) * (arcR + 15 * scale);
+          const ty = Math.sin(rad) * (arcR + 15 * scale);
+          ctxMain.fillStyle = '#cbd5e1';
+          ctxMain.font = `bold ${Math.round(8.5 * scale)}px Inter`;
+          ctxMain.fillText(`${deg * 2}°`, tx, ty);
         }
       }
-      ctxSextant.restore();
 
-      // Frame Support Struts
-      ctxSextant.beginPath();
-      ctxSextant.moveTo(pivotX, pivotY);
-      ctxSextant.lineTo(horizonMirrorX - 8, horizonMirrorY - 10);
-      ctxSextant.lineTo(pivotX + Math.cos(arcStart) * arcRadius, pivotY + Math.sin(arcStart) * arcRadius);
-      ctxSextant.moveTo(pivotX, pivotY);
-      ctxSextant.lineTo(pivotX + Math.cos(arcEnd) * arcRadius, pivotY + Math.sin(arcEnd) * arcRadius);
-      ctxSextant.lineWidth = 3.5 * s;
-      ctxSextant.strokeStyle = '#b45309';
-      ctxSextant.stroke();
+      // Sextant Radial Frame Struts
+      ctxMain.beginPath();
+      ctxMain.moveTo(0, 0);
+      ctxMain.lineTo(Math.cos(arcStart) * arcR, Math.sin(arcStart) * arcR);
+      ctxMain.moveTo(0, 0);
+      ctxMain.lineTo(Math.cos(arcEnd) * arcR, Math.sin(arcEnd) * arcR);
+      ctxMain.lineWidth = 4 * scale;
+      ctxMain.strokeStyle = '#78350f';
+      ctxMain.stroke();
 
-      // Rotating Index Arm
-      const armRad = arcStart + (theta / 45) * (arcEnd - arcStart);
-      const armTipX = pivotX + Math.cos(armRad) * (arcRadius + 10 * s);
-      const armTipY = pivotY + Math.sin(armRad) * (arcRadius + 10 * s);
+      // --- 2. Fixed Horizon Glass & Telescope ---
+      // Horizon glass is positioned in front of telescope (down-left from index mirror)
+      const hgx = -105 * scale;
+      const hgy = 85 * scale;
 
-      ctxSextant.beginPath();
-      ctxSextant.moveTo(pivotX, pivotY);
-      ctxSextant.lineTo(armTipX, armTipY);
-      ctxSextant.lineWidth = 5 * s;
-      ctxSextant.strokeStyle = '#f59e0b';
-      ctxSextant.stroke();
+      // Telescope Barrel pointing from right to Horizon Glass
+      const scopeLen = 105 * scale;
+      const scopeX1 = hgx + 22 * scale;
+      const scopeX2 = scopeX1 + scopeLen;
+      const scopeY = hgy;
 
-      // Vernier Clamp Head
-      ctxSextant.beginPath();
-      ctxSextant.arc(armTipX, armTipY, 7 * s, 0, Math.PI * 2);
-      ctxSextant.fillStyle = '#fbbf24';
-      ctxSextant.fill();
-      ctxSextant.strokeStyle = '#78350f';
-      ctxSextant.lineWidth = 2;
-      ctxSextant.stroke();
+      ctxMain.fillStyle = '#334155';
+      ctxMain.strokeStyle = '#94a3b8';
+      ctxMain.lineWidth = 2 * scale;
+      ctxMain.fillRect(scopeX1, scopeY - 8 * scale, scopeLen, 16 * scale);
+      ctxMain.strokeRect(scopeX1, scopeY - 8 * scale, scopeLen, 16 * scale);
 
-      // Index Mirror (Mounted on pivot)
-      const mirrorLen = 30 * s;
-      const mirrorAngleRad = armRad - Math.PI * 0.15;
-      const mx1 = pivotX - Math.cos(mirrorAngleRad) * (mirrorLen / 2);
-      const my1 = pivotY - Math.sin(mirrorAngleRad) * (mirrorLen / 2);
-      const mx2 = pivotX + Math.cos(mirrorAngleRad) * (mirrorLen / 2);
-      const my2 = pivotY + Math.sin(mirrorAngleRad) * (mirrorLen / 2);
+      // Eyepiece ring
+      ctxMain.fillStyle = '#d97706';
+      ctxMain.fillRect(scopeX2 - 4 * scale, scopeY - 11 * scale, 8 * scale, 22 * scale);
 
-      ctxSextant.beginPath();
-      ctxSextant.moveTo(mx1, my1);
-      ctxSextant.lineTo(mx2, my2);
-      ctxSextant.lineWidth = 4.5 * s;
-      ctxSextant.strokeStyle = '#38bdf8';
-      ctxSextant.stroke();
+      ctxMain.fillStyle = '#94a3b8';
+      ctxMain.font = `${Math.round(9 * scale)}px sans-serif`;
+      ctxMain.textAlign = 'center';
+      ctxMain.fillText("망원경 (Telescope)", scopeX1 + scopeLen * 0.5, scopeY - 13 * scale);
 
-      // Pivot knob
-      ctxSextant.beginPath();
-      ctxSextant.arc(pivotX, pivotY, 5 * s, 0, Math.PI * 2);
-      ctxSextant.fillStyle = '#d97706';
-      ctxSextant.fill();
+      // Horizon Mirror Tilt: Normal bisects ray from (0,0) and outgoing ray along +X
+      // Direction from (0,0) to (hgx, hgy) is (-105, 85). Outgoing ray is (1, 0).
+      // Bisector normal angle is approx -19.5°, so mirror tangent is 70.5°
+      const hgTilt = 70.5 * Math.PI / 180;
+      const hgLen = 34 * scale;
+      const hgCos = Math.cos(hgTilt) * (hgLen / 2);
+      const hgSin = Math.sin(hgTilt) * (hgLen / 2);
+      const hgx1 = hgx - hgCos;
+      const hgy1 = hgy - hgSin;
+      const hgx2 = hgx + hgCos;
+      const hgy2 = hgy + hgSin;
 
-      // Horizon Glass (Fixed angle, split mirror)
-      const hGlassLen = 26 * s;
-      const hGlassAngle = Math.PI * 0.32;
-      const hx1 = horizonMirrorX - Math.cos(hGlassAngle) * (hGlassLen / 2);
-      const hy1 = horizonMirrorY - Math.sin(hGlassAngle) * (hGlassLen / 2);
-      const hx2 = horizonMirrorX + Math.cos(hGlassAngle) * (hGlassLen / 2);
-      const hy2 = horizonMirrorY + Math.sin(hGlassAngle) * (hGlassLen / 2);
+      // Horizon Mirror Normal Vector (Pointing UP-RIGHT towards (0,0) - front face)
+      const hgNormX = Math.sin(hgTilt);
+      const hgNormY = -Math.cos(hgTilt);
 
-      // Silvered half
-      ctxSextant.beginPath();
-      ctxSextant.moveTo(hx1, hy1);
-      ctxSextant.lineTo(horizonMirrorX, horizonMirrorY);
-      ctxSextant.lineWidth = 4.5 * s;
-      ctxSextant.strokeStyle = '#38bdf8';
-      ctxSextant.stroke();
+      // Upper Half: Silvered Mirror (Front reflective face & Dark Brass Backing)
+      // Backing Plate (down-left side)
+      ctxMain.beginPath();
+      ctxMain.moveTo(hgx1 - hgNormX * 3.5 * scale, hgy1 - hgNormY * 3.5 * scale);
+      ctxMain.lineTo(hgx - hgNormX * 3.5 * scale, hgy - hgNormY * 3.5 * scale);
+      ctxMain.lineWidth = 5 * scale;
+      ctxMain.strokeStyle = '#78350f';
+      ctxMain.stroke();
 
-      // Clear glass half
-      ctxSextant.beginPath();
-      ctxSextant.moveTo(horizonMirrorX, horizonMirrorY);
-      ctxSextant.lineTo(hx2, hy2);
-      ctxSextant.lineWidth = 2 * s;
-      ctxSextant.strokeStyle = '#94a3b8';
-      ctxSextant.stroke();
+      // Front Reflective Surface (up-right side facing incoming ray from index mirror)
+      ctxMain.beginPath();
+      ctxMain.moveTo(hgx1, hgy1);
+      ctxMain.lineTo(hgx, hgy);
+      ctxMain.lineWidth = 4 * scale;
+      ctxMain.strokeStyle = '#f8fafc';
+      ctxMain.stroke();
 
-      // Telescope Barrel
-      ctxSextant.fillStyle = '#1e293b';
-      ctxSextant.strokeStyle = '#64748b';
-      ctxSextant.lineWidth = 1.5;
-      ctxSextant.fillRect(telescopeX - 18 * s, telescopeY - 6 * s, 42 * s, 12 * s);
-      ctxSextant.strokeRect(telescopeX - 18 * s, telescopeY - 6 * s, 42 * s, 12 * s);
+      // Lower Half: Clear Transparent Glass Window (passes sea light through)
+      ctxMain.beginPath();
+      ctxMain.moveTo(hgx, hgy);
+      ctxMain.lineTo(hgx2, hgy2);
+      ctxMain.lineWidth = 3 * scale;
+      ctxMain.strokeStyle = 'rgba(56, 189, 248, 0.85)';
+      ctxMain.stroke();
 
-      // Observer Eye
-      ctxSextant.beginPath();
-      ctxSextant.arc(eyeX, eyeY, 7 * s, 0, Math.PI * 2);
-      ctxSextant.fillStyle = '#334155';
-      ctxSextant.fill();
+      ctxMain.fillStyle = '#38bdf8';
+      ctxMain.font = `bold ${Math.round(8.5 * scale)}px sans-serif`;
+      ctxMain.textAlign = 'right';
+      ctxMain.fillText("수평경 (Horizon Glass)", hgx - 12 * scale, hgy + 20 * scale);
 
-      // 4. Optical Rays Trace
-      // Direct Horizon Ray
-      ctxSextant.beginPath();
-      ctxSextant.moveTo(10, seaY);
-      ctxSextant.lineTo(eyeX - 8 * s, seaY);
-      ctxSextant.strokeStyle = '#38bdf8';
-      ctxSextant.lineWidth = 1.8;
-      ctxSextant.stroke();
+      // --- 3. Rotating Index Arm & Index Mirror ---
+      // Index arm swings from arcStart (theta=0) to arcEnd (theta=45)
+      const armRad = arcStart + (simState.armTheta / 45) * (arcEnd - arcStart);
+      const armTipX = Math.cos(armRad) * (arcR + 12 * scale);
+      const armTipY = Math.sin(armRad) * (arcR + 12 * scale);
 
-      // Celestial Sun in Sky
-      const altRad = (alt * Math.PI) / 180;
-      const sunDist = Math.min(w * 0.32, 130 * s);
-      const sunX = pivotX - Math.cos(altRad) * sunDist;
-      const sunY = pivotY - Math.sin(altRad) * sunDist;
+      // Index Arm Bar
+      ctxMain.beginPath();
+      ctxMain.moveTo(0, 0);
+      ctxMain.lineTo(armTipX, armTipY);
+      ctxMain.lineWidth = 6 * scale;
+      ctxMain.strokeStyle = '#f59e0b';
+      ctxMain.stroke();
 
-      // Draw Sun
-      ctxSextant.save();
-      ctxSextant.beginPath();
-      ctxSextant.arc(sunX, sunY, 11 * s, 0, Math.PI * 2);
-      ctxSextant.fillStyle = '#f59e0b';
-      ctxSextant.shadowColor = '#fbbf24';
-      ctxSextant.shadowBlur = 14;
-      ctxSextant.fill();
-      ctxSextant.restore();
+      // Index Clamp at limb
+      ctxMain.fillStyle = '#78350f';
+      ctxMain.fillRect(armTipX - 6 * scale, armTipY - 6 * scale, 12 * scale, 12 * scale);
 
-      ctxSextant.fillStyle = '#fbbf24';
-      ctxSextant.font = `bold ${Math.max(9, 10 * s)}px sans-serif`;
-      ctxSextant.fillText(`태양(${alt.toFixed(0)}°)`, sunX - 18 * s, sunY - 14 * s);
+      // Index Mirror (Pivot at 0,0)
+      // At theta=0, Index Mirror is parallel to Horizon Mirror (hgTilt = 70.5°)
+      // As theta increases, mirror rotates clockwise (+theta)
+      const imTilt = hgTilt + (simState.armTheta * Math.PI) / 180;
+      const imLen = 38 * scale;
+      const imCos = Math.cos(imTilt) * (imLen / 2);
+      const imSin = Math.sin(imTilt) * (imLen / 2);
+      const imx1 = -imCos;
+      const imy1 = -imSin;
+      const imx2 = imCos;
+      const imy2 = imSin;
 
-      // Incoming Ray: Sun -> Index Mirror
-      ctxSextant.beginPath();
-      ctxSextant.moveTo(sunX, sunY);
-      ctxSextant.lineTo(pivotX, pivotY);
-      ctxSextant.strokeStyle = '#f59e0b';
-      ctxSextant.lineWidth = 2;
-      ctxSextant.stroke();
+      // Index Mirror Normal (Front reflective face pointing UP-LEFT towards incoming Sun)
+      const imNormX = -Math.sin(imTilt);
+      const imNormY = Math.cos(imTilt);
 
-      // Reflected Ray 1: Index Mirror -> Horizon Mirror
-      ctxSextant.beginPath();
-      ctxSextant.moveTo(pivotX, pivotY);
-      ctxSextant.lineTo(horizonMirrorX, horizonMirrorY);
-      ctxSextant.strokeStyle = '#fbbf24';
-      ctxSextant.lineWidth = 1.8;
-      ctxSextant.stroke();
+      // Brass Backing Mount (facing down-right)
+      ctxMain.beginPath();
+      ctxMain.moveTo(imx1 - imNormX * 4 * scale, imy1 - imNormY * 4 * scale);
+      ctxMain.lineTo(imx2 - imNormX * 4 * scale, imy2 - imNormY * 4 * scale);
+      ctxMain.lineWidth = 6 * scale;
+      ctxMain.strokeStyle = '#78350f';
+      ctxMain.stroke();
 
-      // Reflected Ray 2: Horizon Mirror -> Telescope Eye
-      ctxSextant.beginPath();
-      ctxSextant.moveTo(horizonMirrorX, horizonMirrorY);
-      ctxSextant.lineTo(eyeX - 8 * s, eyeY);
-      ctxSextant.strokeStyle = '#fde047';
-      ctxSextant.lineWidth = 2;
-      ctxSextant.stroke();
+      // Front Reflective Surface (facing up-left directly at Sun light)
+      ctxMain.beginPath();
+      ctxMain.moveTo(imx1, imy1);
+      ctxMain.lineTo(imx2, imy2);
+      ctxMain.lineWidth = 4 * scale;
+      ctxMain.strokeStyle = '#f8fafc';
+      ctxMain.stroke();
 
-      // Compact Component Labels
-      ctxSextant.fillStyle = '#f8fafc';
-      ctxSextant.font = `${Math.max(9, 10 * s)}px sans-serif`;
-      ctxSextant.fillText('동경(Index)', pivotX - 35 * s, pivotY - 10 * s);
-      ctxSextant.fillText('수평경(Horizon)', horizonMirrorX - 35 * s, horizonMirrorY - 16 * s);
+      // Pivot Pin Hub
+      ctxMain.beginPath();
+      ctxMain.arc(0, 0, 9 * scale, 0, Math.PI * 2);
+      ctxMain.fillStyle = '#d97706';
+      ctxMain.fill();
+      ctxMain.lineWidth = 2 * scale;
+      ctxMain.strokeStyle = '#ffffff';
+      ctxMain.stroke();
 
-      ctxSextant.restore();
+      ctxMain.fillStyle = '#f59e0b';
+      ctxMain.font = `bold ${Math.round(9 * scale)}px sans-serif`;
+      ctxMain.textAlign = 'left';
+      ctxMain.fillText("동경 (Index Mirror)", 12 * scale, -12 * scale);
+
+      // --- 4. Exact 2D Optical Ray Tracing (Strict Front-Surface Reflections) ---
+      // (1) Sea Horizon Ray (Blue line): Straight through lower clear glass into telescope
+      const seaStartX = -cx + 10;
+      const seaY = hgy;
+
+      ctxMain.beginPath();
+      ctxMain.moveTo(seaStartX, seaY);
+      ctxMain.lineTo(scopeX2, seaY);
+      ctxMain.strokeStyle = '#38bdf8';
+      ctxMain.lineWidth = 2.5;
+      ctxMain.stroke();
+      drawRayArrow(ctxMain, seaStartX + 40 * scale, seaY, hgx - 25 * scale, seaY, '#38bdf8');
+      drawRayArrow(ctxMain, hgx + 10 * scale, seaY, scopeX2 - 20 * scale, seaY, '#38bdf8');
+
+      // (2) Celestial Sun Ray (Amber line):
+      // Sun is positioned up in the celestial sky to the left at altitude h
+      const altRad = (simState.sunAltitude * Math.PI) / 180;
+      const sunDist = 185 * scale;
+      const sunX = -Math.cos(altRad) * sunDist;
+      const sunY = -Math.sin(altRad) * sunDist;
+
+      // Draw Sun Symbol
+      ctxMain.beginPath();
+      ctxMain.arc(sunX, sunY, 14 * scale, 0, Math.PI * 2);
+      ctxMain.fillStyle = '#f59e0b';
+      ctxMain.shadowColor = '#fbbf24';
+      ctxMain.shadowBlur = 15;
+      ctxMain.fill();
+      ctxMain.strokeStyle = '#fde047';
+      ctxMain.lineWidth = 2;
+      ctxMain.stroke();
+      ctxMain.shadowBlur = 0;
+
+      ctxMain.fillStyle = '#fbbf24';
+      ctxMain.font = `bold ${Math.round(10 * scale)}px sans-serif`;
+      ctxMain.textAlign = 'center';
+      ctxMain.fillText(`태양 (${simState.sunAltitude.toFixed(0)}°)`, sunX, sunY - 20 * scale);
+
+      // Ray 1: Sun -> Index Mirror FRONT Surface (0, 0)
+      ctxMain.beginPath();
+      ctxMain.moveTo(sunX, sunY);
+      ctxMain.lineTo(0, 0);
+      ctxMain.strokeStyle = '#f59e0b';
+      ctxMain.lineWidth = 2.5;
+      ctxMain.stroke();
+      drawRayArrow(ctxMain, sunX, sunY, 0, 0, '#f59e0b');
+
+      // --- DYNAMIC RAY 2: Index Mirror FRONT Surface (0,0) -> Rotating 2θ Ray ---
+      // 망원경 및 수평경의 실제 수광각(광학적 허용 시야각)을 반영하여 넓은 범위에서 광선 추적
+      const targetHgX = hgx - hgCos * 0.5;
+      const targetHgY = hgy - hgSin * 0.5;
+      const baseRayAngle = Math.atan2(targetHgY, targetHgX);
+      const deltaThetaRad = (simState.armTheta - simState.sunAltitude / 2) * Math.PI / 180;
+      const reflRayAngle = baseRayAngle + 2 * deltaThetaRad;
+
+      const rayDirX = Math.cos(reflRayAngle);
+      const rayDirY = Math.sin(reflRayAngle);
+
+      // 수평경 은막 거울 [hgx, hgy] ~ [hgx1, hgy1] 선분과의 광선 교차 검사
+      const segVx = hgx1 - hgx;
+      const segVy = hgy1 - hgy;
+      const denom = rayDirX * segVy - rayDirY * segVx;
+
+      let isHit = false;
+      let hitX = 0;
+      let hitY = 0;
+
+      if (Math.abs(denom) > 1e-5) {
+        const t = (hgx * segVy - hgy * segVx) / denom;
+        const s = (hgx * rayDirY - hgy * rayDirX) / denom;
+        // 망원경 시야각(FOV)을 포괄하는 실제 광학적 수광 마진 허용 (-0.4 ~ 1.4)
+        if (t > 0 && s >= -0.35 && s <= 1.35) {
+          isHit = true;
+          hitX = t * rayDirX;
+          hitY = t * rayDirY;
+        }
+      }
+
+      simState.isMirrorHit = isHit;
+
+      if (isHit) {
+        // [CASE 1: HIT] 광선이 수평경에 도달하여 망원경으로 진입
+        ctxMain.beginPath();
+        ctxMain.moveTo(0, 0);
+        ctxMain.lineTo(hitX, hitY);
+        ctxMain.strokeStyle = '#fbbf24';
+        ctxMain.lineWidth = 2.8;
+        ctxMain.stroke();
+        drawRayArrow(ctxMain, 0, 0, hitX, hitY, '#fbbf24');
+
+        // 반사 지점 스파크
+        ctxMain.beginPath();
+        ctxMain.arc(hitX, hitY, 4.5 * scale, 0, Math.PI * 2);
+        ctxMain.fillStyle = '#ffffff';
+        ctxMain.shadowColor = '#f59e0b';
+        ctxMain.shadowBlur = 12;
+        ctxMain.fill();
+        ctxMain.shadowBlur = 0;
+
+        // 망원경 내부로 진입하는 2차 반사광선
+        // 각도 오차(diff)에 따라 망원경 경통 내부를 기울어져 통과
+        const diff = simState.read2Theta - simState.sunAltitude;
+        const reflScopeEndY = seaY - (diff * 0.45 * scale);
+
+        ctxMain.beginPath();
+        ctxMain.moveTo(hitX, hitY);
+        ctxMain.lineTo(scopeX2, reflScopeEndY);
+        ctxMain.strokeStyle = '#fef08a';
+        ctxMain.lineWidth = 2.5;
+        ctxMain.stroke();
+        drawRayArrow(ctxMain, hitX, hitY, scopeX2, reflScopeEndY, '#fef08a');
+
+        // 상태 표시
+        ctxMain.fillStyle = '#34d399';
+        ctxMain.font = `bold ${Math.round(8 * scale)}px sans-serif`;
+        ctxMain.textAlign = 'right';
+        ctxMain.fillText("● 망원경 시야 진입", hitX - 8 * scale, hitY - 6 * scale);
+      } else {
+        // [CASE 2: MISS] 시야각을 크게 벗어나 허공으로 지나침
+        const missRayLen = 210 * scale;
+        const missEndX = rayDirX * missRayLen;
+        const missEndY = rayDirY * missRayLen;
+
+        ctxMain.beginPath();
+        ctxMain.moveTo(0, 0);
+        ctxMain.lineTo(missEndX, missEndY);
+        ctxMain.strokeStyle = 'rgba(251, 191, 36, 0.35)';
+        ctxMain.lineWidth = 1.8;
+        ctxMain.setLineDash([5, 4]);
+        ctxMain.stroke();
+        ctxMain.setLineDash([]);
+        drawRayArrow(ctxMain, 0, 0, missEndX, missEndY, 'rgba(251, 191, 36, 0.5)');
+
+        ctxMain.fillStyle = '#94a3b8';
+        ctxMain.font = `bold ${Math.round(8 * scale)}px sans-serif`;
+        ctxMain.textAlign = 'center';
+        ctxMain.fillText("시야각 이탈 광선", missEndX, missEndY + 12 * scale);
+      }
+
+      ctxMain.restore();
+      ctxMain.restore();
     }
 
-    function drawTelescopeView(diff) {
-      const w = canvasTelescope.width / (window.devicePixelRatio || 1);
-      const h = canvasTelescope.height / (window.devicePixelRatio || 1);
+    function drawRayArrow(ctx, x1, y1, x2, y2, color) {
+      const midX = (x1 + x2) / 2;
+      const midY = (y1 + y2) / 2;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const head = 8;
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(midX, midY);
+      ctx.lineTo(midX - head * Math.cos(angle - Math.PI / 6), midY - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(midX - head * Math.cos(angle + Math.PI / 6), midY - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawEyepieceView(diff) {
+      const w = canvasEyepiece.width;
+      const h = canvasEyepiece.height;
       const cx = w / 2;
       const cy = h / 2;
-      const r = w / 2 - 3;
+      const r = w / 2 - 4;
 
-      ctxTelescope.clearRect(0, 0, w, h);
-      ctxTelescope.save();
+      ctxEyepiece.clearRect(0, 0, w, h);
+      ctxEyepiece.save();
 
-      const rocking = state.waveMotion ? Math.sin(state.time * 2.2) * (w * 0.06) : 0;
+      const waveOffset = simState.rocking ? Math.sin(simState.time * 2.5) * (w * 0.07) : 0;
+      const horizonY = cy + waveOffset;
 
-      // Eyepiece circular clip mask
-      ctxTelescope.beginPath();
-      ctxTelescope.arc(cx, cy, r, 0, Math.PI * 2);
-      ctxTelescope.clip();
+      // Circular clip mask for entire eyepiece
+      ctxEyepiece.beginPath();
+      ctxEyepiece.arc(cx, cy, r, 0, Math.PI * 2);
+      ctxEyepiece.clip();
 
-      // LEFT HALF: Direct Real World (Sea Horizon through transparent glass)
-      ctxTelescope.save();
-      ctxTelescope.beginPath();
-      ctxTelescope.rect(0, 0, cx, h);
-      ctxTelescope.clip();
+      // LEFT HALF: Clear Glass View (Real Sea Horizon)
+      ctxEyepiece.save();
+      ctxEyepiece.beginPath();
+      ctxEyepiece.rect(0, 0, cx, h);
+      ctxEyepiece.clip();
 
-      // Sky Left
-      ctxTelescope.fillStyle = '#38bdf8';
-      ctxTelescope.fillRect(0, 0, cx, cy + rocking);
+      // True Sky
+      ctxEyepiece.fillStyle = '#38bdf8';
+      ctxEyepiece.fillRect(0, 0, cx, horizonY);
 
-      // Sea Left
-      ctxTelescope.fillStyle = '#0369a1';
-      ctxTelescope.fillRect(0, cy + rocking, cx, h);
+      // True Sea
+      ctxEyepiece.fillStyle = '#0284c7';
+      ctxEyepiece.fillRect(0, horizonY, cx, h);
 
-      // True Sea Horizon Line
-      ctxTelescope.beginPath();
-      ctxTelescope.moveTo(0, cy + rocking);
-      ctxTelescope.lineTo(cx, cy + rocking);
-      ctxTelescope.strokeStyle = '#ffffff';
-      ctxTelescope.lineWidth = 2.5;
-      ctxTelescope.stroke();
-      ctxTelescope.restore();
+      // Real Horizon line
+      ctxEyepiece.beginPath();
+      ctxEyepiece.moveTo(0, horizonY);
+      ctxEyepiece.lineTo(cx, horizonY);
+      ctxEyepiece.strokeStyle = '#ffffff';
+      ctxEyepiece.lineWidth = 2.5;
+      ctxEyepiece.stroke();
+      ctxEyepiece.restore();
 
-      // RIGHT HALF: Reflected World (from mirrors)
-      ctxTelescope.save();
-      ctxTelescope.beginPath();
-      ctxTelescope.rect(cx, 0, cx, h);
-      ctxTelescope.clip();
+      // RIGHT HALF: Reflected Mirror View
+      ctxEyepiece.save();
+      ctxEyepiece.beginPath();
+      ctxEyepiece.rect(cx, 0, cx, h);
+      ctxEyepiece.clip();
 
-      // Tinted Reflected Sky & Sea
-      ctxTelescope.fillStyle = '#0284c7';
-      ctxTelescope.fillRect(cx, 0, cx, cy + rocking);
-      ctxTelescope.fillStyle = '#075985';
-      ctxTelescope.fillRect(cx, cy + rocking, cx, h);
+      // Tinted reflected sky & sea
+      ctxEyepiece.fillStyle = '#0369a1';
+      ctxEyepiece.fillRect(cx, 0, cx, horizonY);
+      ctxEyepiece.fillStyle = '#075985';
+      ctxEyepiece.fillRect(cx, horizonY, cx, h);
 
-      // Reflected Horizon guide line
-      ctxTelescope.beginPath();
-      ctxTelescope.moveTo(cx, cy + rocking);
-      ctxTelescope.lineTo(w, cy + rocking);
-      ctxTelescope.strokeStyle = '#94a3b8';
-      ctxTelescope.lineWidth = 1;
-      ctxTelescope.setLineDash([3, 3]);
-      ctxTelescope.stroke();
-      ctxTelescope.setLineDash([]);
+      // Horizon guide dash line on reflected half
+      ctxEyepiece.beginPath();
+      ctxEyepiece.moveTo(cx, horizonY);
+      ctxEyepiece.lineTo(w, horizonY);
+      ctxEyepiece.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctxEyepiece.lineWidth = 1;
+      ctxEyepiece.setLineDash([3, 3]);
+      ctxEyepiece.stroke();
+      ctxEyepiece.setLineDash([]);
 
-      // Reflected Sun Object
+      // =========================================================================
+      // [연속적인 태양 끌어내리기 (Bringing Down the Sun)]
+      // 태양이 원형 렌즈 맨 위에서부터 서서히 진입하여 수평선을 거쳐 바닥으로 내려감
+      // diff = 0 일 때: 태양의 하단(Bottom Limb)이 정확히 수평선(horizonY)에 안착
+      // diff < 0 일 때: 태양이 수평선 위 하늘 높은 곳에 위치
+      // diff > 0 일 때: 태양이 수평선 아래 바다 속으로 잠김
+      // =========================================================================
       const sunRadius = w * 0.095;
-      const sunCenterY = (cy + rocking) + (diff * (w * 0.015)) - sunRadius;
-      const sunCenterX = cx + (cx * 0.46);
+      const degToPx = (r * 0.78) / 8.0; // 8° 오차 시 렌즈 가장자리에 도달하는 비례 상수
+      const sunY = (horizonY - sunRadius) + (diff * degToPx);
+      const sunX = cx + (cx * 0.48);
 
-      // Sun Glow & Disk
-      ctxTelescope.beginPath();
-      ctxTelescope.arc(sunCenterX, sunCenterY, sunRadius, 0, Math.PI * 2);
-      ctxTelescope.fillStyle = '#f59e0b';
-      ctxTelescope.shadowColor = '#fbbf24';
-      ctxTelescope.shadowBlur = 12;
-      ctxTelescope.fill();
-      ctxTelescope.lineWidth = 1.5;
-      ctxTelescope.strokeStyle = '#fef3c7';
-      ctxTelescope.stroke();
-      ctxTelescope.shadowBlur = 0;
+      // 태양이 렌즈 화각(FOV) 부근에 걸쳐 있을 때 렌즈 원형 클리핑을 통해 자연스럽게 통과
+      if (sunY + sunRadius > -20 && sunY - sunRadius < h + 20) {
+        ctxEyepiece.beginPath();
+        ctxEyepiece.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
+        ctxEyepiece.fillStyle = '#f59e0b';
+        ctxEyepiece.shadowColor = '#fbbf24';
+        ctxEyepiece.shadowBlur = 14;
+        ctxEyepiece.fill();
+        ctxEyepiece.lineWidth = 1.5;
+        ctxEyepiece.strokeStyle = '#fef08a';
+        ctxEyepiece.stroke();
+        ctxEyepiece.shadowBlur = 0;
 
-      // Sun Core
-      ctxTelescope.beginPath();
-      ctxTelescope.arc(sunCenterX, sunCenterY, sunRadius * 0.65, 0, Math.PI * 2);
-      ctxTelescope.fillStyle = '#fde047';
-      ctxTelescope.fill();
+        // Sun Core
+        ctxEyepiece.beginPath();
+        ctxEyepiece.arc(sunX, sunY, sunRadius * 0.6, 0, Math.PI * 2);
+        ctxEyepiece.fillStyle = '#fde047';
+        ctxEyepiece.fill();
 
-      ctxTelescope.restore();
-
-      // Center Divider Line
-      ctxTelescope.beginPath();
-      ctxTelescope.moveTo(cx, 0);
-      ctxTelescope.lineTo(cx, h);
-      ctxTelescope.strokeStyle = '#f8fafc';
-      ctxTelescope.lineWidth = 1.8;
-      ctxTelescope.stroke();
-
-      // Crosshairs
-      ctxTelescope.beginPath();
-      ctxTelescope.moveTo(cx - 12, cy);
-      ctxTelescope.lineTo(cx + 12, cy);
-      ctxTelescope.moveTo(cx, cy - 12);
-      ctxTelescope.lineTo(cx, cy + 12);
-      ctxTelescope.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-      ctxTelescope.lineWidth = 1;
-      ctxTelescope.stroke();
-
-      ctxTelescope.restore();
-
-      // Eyepiece Outer Border Ring
-      ctxTelescope.beginPath();
-      ctxTelescope.arc(cx, cy, r, 0, Math.PI * 2);
-      const isAligned = Math.abs(diff) < 0.4;
-      ctxTelescope.lineWidth = isAligned ? 5 : 2.5;
-      ctxTelescope.strokeStyle = isAligned ? '#10b981' : '#475569';
-      ctxTelescope.stroke();
-    }
-
-    function drawSingleMirrorDiagram(w, h, theta) {
-      ctxSingleMirror.clearRect(0, 0, w, h);
-
-      const cx = w * 0.5;
-      const cy = h * 0.56;
-      const mirrorLen = Math.min(w * 0.55, h * 0.55, 220);
-      const thetaRad = (theta * Math.PI) / 180;
-      const rayLen = mirrorLen * 0.85;
-      const incAngle = Math.PI * 0.25; 
-      const rayStartX = cx - Math.cos(incAngle) * rayLen;
-      const rayStartY = cy - Math.sin(incAngle) * rayLen;
-
-      // 1. Horizontal Reference Baseline (theta = 0)
-      ctxSingleMirror.beginPath();
-      ctxSingleMirror.moveTo(cx - mirrorLen / 2, cy);
-      ctxSingleMirror.lineTo(cx + mirrorLen / 2, cy);
-      ctxSingleMirror.strokeStyle = '#334155';
-      ctxSingleMirror.lineWidth = 1.5;
-      ctxSingleMirror.setLineDash([4, 4]);
-      ctxSingleMirror.stroke();
-      ctxSingleMirror.setLineDash([]);
-
-      // 2. Rotated Mirror Line
-      const mx1 = cx - Math.cos(thetaRad) * (mirrorLen / 2);
-      const my1 = cy + Math.sin(thetaRad) * (mirrorLen / 2);
-      const mx2 = cx + Math.cos(thetaRad) * (mirrorLen / 2);
-      const my2 = cy - Math.sin(thetaRad) * (mirrorLen / 2);
-
-      ctxSingleMirror.beginPath();
-      ctxSingleMirror.moveTo(mx1, my1);
-      ctxSingleMirror.lineTo(mx2, my2);
-      ctxSingleMirror.strokeStyle = '#38bdf8';
-      ctxSingleMirror.lineWidth = 5;
-      ctxSingleMirror.stroke();
-
-      // Pivot knob
-      ctxSingleMirror.beginPath();
-      ctxSingleMirror.arc(cx, cy, 4, 0, Math.PI * 2);
-      ctxSingleMirror.fillStyle = '#f59e0b';
-      ctxSingleMirror.fill();
-
-      // 3. Mirror Angle Arc (theta)
-      ctxSingleMirror.beginPath();
-      ctxSingleMirror.arc(cx, cy, mirrorLen * 0.42, 0, -thetaRad, true);
-      ctxSingleMirror.strokeStyle = '#f59e0b';
-      ctxSingleMirror.lineWidth = 2;
-      ctxSingleMirror.stroke();
-      ctxSingleMirror.fillStyle = '#f59e0b';
-      ctxSingleMirror.font = 'bold 11px sans-serif';
-      ctxSingleMirror.fillText(`θ = ${theta.toFixed(1)}°`, cx + mirrorLen * 0.44, cy - 6);
-
-      // 4. Normal Line
-      const normalAngle = thetaRad + Math.PI * 0.5;
-      const normalLen = rayLen * 0.7;
-      const nx = cx - Math.cos(normalAngle) * normalLen;
-      const ny = cy - Math.sin(normalAngle) * normalLen;
-
-      ctxSingleMirror.beginPath();
-      ctxSingleMirror.moveTo(cx, cy);
-      ctxSingleMirror.lineTo(nx, ny);
-      ctxSingleMirror.strokeStyle = '#94a3b8';
-      ctxSingleMirror.lineWidth = 1.5;
-      ctxSingleMirror.setLineDash([3, 3]);
-      ctxSingleMirror.stroke();
-      ctxSingleMirror.setLineDash([]);
-      ctxSingleMirror.fillStyle = '#94a3b8';
-      ctxSingleMirror.font = '10px sans-serif';
-      ctxSingleMirror.fillText('법선', nx - 22, ny - 4);
-
-      // 5. Incident Ray
-      ctxSingleMirror.beginPath();
-      ctxSingleMirror.moveTo(rayStartX, rayStartY);
-      ctxSingleMirror.lineTo(cx, cy);
-      ctxSingleMirror.strokeStyle = '#fbbf24';
-      ctxSingleMirror.lineWidth = 2.5;
-      ctxSingleMirror.stroke();
-      ctxSingleMirror.fillStyle = '#fbbf24';
-      ctxSingleMirror.fillText('입사광', rayStartX, rayStartY - 6);
-
-      // 6. Reflected Rays
-      const baseReflAngle = incAngle;
-      const baseOutX = cx + Math.cos(baseReflAngle) * rayLen;
-      const baseOutY = cy - Math.sin(baseReflAngle) * rayLen;
-
-      ctxSingleMirror.beginPath();
-      ctxSingleMirror.moveTo(cx, cy);
-      ctxSingleMirror.lineTo(baseOutX, baseOutY);
-      ctxSingleMirror.strokeStyle = '#475569';
-      ctxSingleMirror.lineWidth = 1.5;
-      ctxSingleMirror.setLineDash([3, 3]);
-      ctxSingleMirror.stroke();
-      ctxSingleMirror.setLineDash([]);
-
-      // Active Deflected Ray (Deflected by 2 * theta)
-      const twoThetaRad = (2 * theta * Math.PI) / 180;
-      const activeReflAngle = incAngle - twoThetaRad;
-      const activeOutX = cx + Math.cos(activeReflAngle) * rayLen;
-      const activeOutY = cy - Math.sin(activeReflAngle) * rayLen;
-
-      ctxSingleMirror.beginPath();
-      ctxSingleMirror.moveTo(cx, cy);
-      ctxSingleMirror.lineTo(activeOutX, activeOutY);
-      ctxSingleMirror.strokeStyle = '#10b981';
-      ctxSingleMirror.lineWidth = 2.8;
-      ctxSingleMirror.stroke();
-      ctxSingleMirror.fillStyle = '#10b981';
-      ctxSingleMirror.font = 'bold 11px sans-serif';
-      ctxSingleMirror.fillText(`반사광 (2θ = ${(theta * 2).toFixed(1)}°)`, activeOutX - 35, activeOutY + 16);
-
-      // Angle arc between rays
-      ctxSingleMirror.beginPath();
-      ctxSingleMirror.arc(cx, cy, rayLen * 0.72, -incAngle, -activeReflAngle, false);
-      ctxSingleMirror.strokeStyle = '#10b981';
-      ctxSingleMirror.lineWidth = 2;
-      ctxSingleMirror.stroke();
-    }
-
-    function drawSplitMirrorDetail(w, h) {
-      ctxSplitDetail.clearRect(0, 0, w, h);
-
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-      const glassW = Math.min(w * 0.65, h * 0.65, 180);
-      const glassH = glassW * 0.85;
-
-      // Left Half: Clear Glass
-      ctxSplitDetail.fillStyle = 'rgba(56, 189, 248, 0.2)';
-      ctxSplitDetail.fillRect(cx - glassW / 2, cy - glassH / 2, glassW / 2, glassH);
-      ctxSplitDetail.strokeStyle = '#38bdf8';
-      ctxSplitDetail.lineWidth = 2;
-      ctxSplitDetail.strokeRect(cx - glassW / 2, cy - glassH / 2, glassW / 2, glassH);
-
-      // Right Half: Silvered Mirror
-      ctxSplitDetail.fillStyle = 'rgba(245, 158, 11, 0.25)';
-      ctxSplitDetail.fillRect(cx, cy - glassH / 2, glassW / 2, glassH);
-      ctxSplitDetail.strokeStyle = '#f59e0b';
-      ctxSplitDetail.lineWidth = 2;
-      ctxSplitDetail.strokeRect(cx, cy - glassH / 2, glassW / 2, glassH);
-
-      // Hatch pattern on mirror half
-      ctxSplitDetail.save();
-      ctxSplitDetail.strokeStyle = 'rgba(245, 158, 11, 0.4)';
-      ctxSplitDetail.lineWidth = 1;
-      for (let y = cy - glassH / 2 + 10; y < cy + glassH / 2; y += 12) {
-        ctxSplitDetail.beginPath();
-        ctxSplitDetail.moveTo(cx + 5, y);
-        ctxSplitDetail.lineTo(cx + glassW / 2 - 5, y);
-        ctxSplitDetail.stroke();
+        // 수평선 안착 순간 보조 지표선
+        if (Math.abs(diff) < 0.4) {
+          ctxEyepiece.beginPath();
+          ctxEyepiece.arc(sunX, horizonY, 3, 0, Math.PI * 2);
+          ctxEyepiece.fillStyle = '#10b981';
+          ctxEyepiece.fill();
+        }
       }
-      ctxSplitDetail.restore();
 
-      // Center separator
-      ctxSplitDetail.beginPath();
-      ctxSplitDetail.moveTo(cx, cy - glassH / 2 - 8);
-      ctxSplitDetail.lineTo(cx, cy + glassH / 2 + 8);
-      ctxSplitDetail.strokeStyle = '#ffffff';
-      ctxSplitDetail.lineWidth = 2;
-      ctxSplitDetail.stroke();
+      ctxEyepiece.restore(); // Exit right half clip
 
-      // Rays
-      // Direct Horizon Ray (Straight through left)
-      ctxSplitDetail.beginPath();
-      ctxSplitDetail.moveTo(cx - glassW * 0.75, cy);
-      ctxSplitDetail.lineTo(cx - glassW * 0.25, cy);
-      ctxSplitDetail.strokeStyle = '#38bdf8';
-      ctxSplitDetail.lineWidth = 2.5;
-      ctxSplitDetail.stroke();
+      // 태양이 렌즈 원형 시야 바깥에 완전히 벗어나 있을 때 나타나는 부드러운 유도 비콘
+      if (sunY + sunRadius < 10) {
+        // [시야 상단 위 대기] 태양이 위에 있으므로 암을 더 밀라는 화살표
+        ctxEyepiece.save();
+        ctxEyepiece.fillStyle = 'rgba(251, 191, 36, 0.9)';
+        ctxEyepiece.font = 'bold 9.5px sans-serif';
+        ctxEyepiece.textAlign = 'center';
+        ctxEyepiece.fillText("▲ 태양이 위에 있음", cx + cx * 0.5, 20);
+        ctxEyepiece.font = '8px sans-serif';
+        ctxEyepiece.fillStyle = '#cbd5e1';
+        ctxEyepiece.fillText("(암을 밀어 내리세요)", cx + cx * 0.5, 31);
+        ctxEyepiece.restore();
+      } else if (sunY - sunRadius > h - 10) {
+        // [시야 하단 아래 이탈] 태양이 아래로 지나쳤으므로 암을 당기라는 화살표
+        ctxEyepiece.save();
+        ctxEyepiece.fillStyle = 'rgba(251, 191, 36, 0.9)';
+        ctxEyepiece.font = 'bold 9.5px sans-serif';
+        ctxEyepiece.textAlign = 'center';
+        ctxEyepiece.fillText("▼ 태양이 아래에 있음", cx + cx * 0.5, h - 22);
+        ctxEyepiece.font = '8px sans-serif';
+        ctxEyepiece.fillStyle = '#cbd5e1';
+        ctxEyepiece.fillText("(암을 당겨 올리세요)", cx + cx * 0.5, h - 12);
+        ctxEyepiece.restore();
+      }
 
-      ctxSplitDetail.beginPath();
-      ctxSplitDetail.moveTo(cx - glassW * 0.25, cy);
-      ctxSplitDetail.lineTo(cx + glassW * 0.75, cy);
-      ctxSplitDetail.strokeStyle = '#38bdf8';
-      ctxSplitDetail.setLineDash([4, 4]);
-      ctxSplitDetail.stroke();
-      ctxSplitDetail.setLineDash([]);
+      // Vertical Split Line (경계 분할선)
+      ctxEyepiece.beginPath();
+      ctxEyepiece.moveTo(cx, 0);
+      ctxEyepiece.lineTo(cx, h);
+      ctxEyepiece.strokeStyle = '#f8fafc';
+      ctxEyepiece.lineWidth = 2;
+      ctxEyepiece.stroke();
 
-      // Sun ray from above reflecting off right mirror
-      const sunInX = cx + glassW * 0.25 - 40;
-      const sunInY = cy - glassH * 0.65;
-      ctxSplitDetail.beginPath();
-      ctxSplitDetail.moveTo(sunInX, sunInY);
-      ctxSplitDetail.lineTo(cx + glassW * 0.25, cy);
-      ctxSplitDetail.lineTo(cx + glassW * 0.75, cy + 35);
-      ctxSplitDetail.strokeStyle = '#fbbf24';
-      ctxSplitDetail.lineWidth = 2.5;
-      ctxSplitDetail.stroke();
+      // Crosshair lines
+      ctxEyepiece.beginPath();
+      ctxEyepiece.moveTo(cx - 15, cy);
+      ctxEyepiece.lineTo(cx + 15, cy);
+      ctxEyepiece.moveTo(cx, cy - 15);
+      ctxEyepiece.lineTo(cx, cy + 15);
+      ctxEyepiece.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+      ctxEyepiece.lineWidth = 1;
+      ctxEyepiece.stroke();
 
-      // Labels
-      ctxSplitDetail.fillStyle = '#38bdf8';
-      ctxSplitDetail.font = 'bold 11px sans-serif';
-      ctxSplitDetail.textAlign = 'center';
-      ctxSplitDetail.fillText('투명 유리 (투과)', cx - glassW * 0.25, cy - glassH / 2 - 12);
+      ctxEyepiece.restore(); // Exit circular clip
 
-      ctxSplitDetail.fillStyle = '#fbbf24';
-      ctxSplitDetail.fillText('반사 거울 (반사)', cx + glassW * 0.25, cy - glassH / 2 - 12);
+      // Eyepiece Outer Ring
+      ctxEyepiece.beginPath();
+      ctxEyepiece.arc(cx, cy, r, 0, Math.PI * 2);
+      const isAligned = Math.abs(diff) < 0.4;
+      ctxEyepiece.lineWidth = isAligned ? 5 : 2.5;
+      ctxEyepiece.strokeStyle = isAligned ? '#10b981' : '#475569';
+      ctxEyepiece.stroke();
+    }
 
-      ctxSplitDetail.fillStyle = '#f8fafc';
-      ctxSplitDetail.font = '10px sans-serif';
-      ctxSplitDetail.fillText('바다 수평선 직진 통과 →', cx - glassW * 0.3, cy + 22);
-      ctxSplitDetail.fillText('태양광 반사 ↘', cx + glassW * 0.3, cy + 55);
+    function drawDoublePrincipleView() {
+      const { width: w, height: h, dpr } = resizeCanvas(canvasDouble);
+      ctxDouble.save();
+      ctxDouble.scale(dpr, dpr);
+      ctxDouble.clearRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h * 0.52;
+      const r = Math.min(w * 0.38, h * 0.42);
+      const theta = simState.singleMirrorTheta;
+      const thetaRad = (theta * Math.PI) / 180;
+
+      // 1. Horizontal Baseline (theta = 0 mirror position)
+      ctxDouble.beginPath();
+      ctxDouble.moveTo(cx - r * 0.9, cy);
+      ctxDouble.lineTo(cx + r * 0.9, cy);
+      ctxDouble.strokeStyle = '#475569';
+      ctxDouble.lineWidth = 1.5;
+      ctxDouble.setLineDash([4, 4]);
+      ctxDouble.stroke();
+      ctxDouble.setLineDash([]);
+
+      ctxDouble.fillStyle = '#64748b';
+      ctxDouble.font = '10px sans-serif';
+      ctxDouble.textAlign = 'right';
+      ctxDouble.fillText("수평 기준선 (θ=0°)", cx - r * 0.9 - 5, cy + 3);
+
+      // 2. Original Normal Line at theta = 0 (Vertical dashed line)
+      ctxDouble.beginPath();
+      ctxDouble.moveTo(cx, cy);
+      ctxDouble.lineTo(cx, cy - r * 0.85);
+      ctxDouble.strokeStyle = '#475569';
+      ctxDouble.lineWidth = 1.5;
+      ctxDouble.setLineDash([4, 4]);
+      ctxDouble.stroke();
+      ctxDouble.setLineDash([]);
+
+      ctxDouble.fillText("원래 법선 (θ=0°)", cx - 8, cy - r * 0.85);
+
+      // 3. Original Reflected Ray at theta = 0 (45° dashed gray ray)
+      const incRad = Math.PI * 0.25; // 45°
+      const origReflX = cx + Math.cos(incRad) * r;
+      const origReflY = cy - Math.sin(incRad) * r;
+
+      ctxDouble.beginPath();
+      ctxDouble.moveTo(cx, cy);
+      ctxDouble.lineTo(origReflX, origReflY);
+      ctxDouble.strokeStyle = '#475569';
+      ctxDouble.lineWidth = 1.5;
+      ctxDouble.setLineDash([4, 4]);
+      ctxDouble.stroke();
+      ctxDouble.setLineDash([]);
+
+      ctxDouble.textAlign = 'left';
+      ctxDouble.fillText("원래 반사선 (θ=0°)", origReflX + 5, origReflY);
+
+      // 4. Fixed Incident Ray (from top-left at 45°)
+      const incX = cx - Math.cos(incRad) * r;
+      const incY = cy - Math.sin(incRad) * r;
+
+      ctxDouble.beginPath();
+      ctxDouble.moveTo(incX, incY);
+      ctxDouble.lineTo(cx, cy);
+      ctxDouble.strokeStyle = '#f59e0b';
+      ctxDouble.lineWidth = 3;
+      ctxDouble.stroke();
+      drawRayArrow(ctxDouble, incX, incY, cx, cy, '#f59e0b');
+
+      ctxDouble.fillStyle = '#f59e0b';
+      ctxDouble.font = 'bold 11px sans-serif';
+      ctxDouble.textAlign = 'right';
+      ctxDouble.fillText("고정 입사광선", incX - 8, incY);
+
+      // 5. Tilted Mirror Plate (Rotating CLOCKWISE by thetaRad in exact match with deflection)
+      // When theta increases, mirror right side tilts DOWN (clockwise)
+      const mLen = r * 1.3;
+      const mx1 = cx - Math.cos(thetaRad) * (mLen / 2);
+      const my1 = cy - Math.sin(thetaRad) * (mLen / 2);
+      const mx2 = cx + Math.cos(thetaRad) * (mLen / 2);
+      const my2 = cy + Math.sin(thetaRad) * (mLen / 2);
+
+      // Mirror back mount
+      ctxDouble.beginPath();
+      ctxDouble.moveTo(mx1, my1 + 3);
+      ctxDouble.lineTo(mx2, my2 + 3);
+      ctxDouble.lineWidth = 8;
+      ctxDouble.strokeStyle = '#92400e';
+      ctxDouble.stroke();
+
+      // Mirror reflection surface
+      ctxDouble.beginPath();
+      ctxDouble.moveTo(mx1, my1);
+      ctxDouble.lineTo(mx2, my2);
+      ctxDouble.lineWidth = 5;
+      ctxDouble.strokeStyle = '#38bdf8';
+      ctxDouble.stroke();
+
+      // Center pivot pin
+      ctxDouble.beginPath();
+      ctxDouble.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctxDouble.fillStyle = '#f59e0b';
+      ctxDouble.fill();
+
+      // 6. Current Normal Line (Perpendicular to tilted mirror, tilted clockwise by theta)
+      const normRad = -Math.PI * 0.5 + thetaRad;
+      const normX = cx + Math.cos(normRad) * (r * 0.75);
+      const normY = cy + Math.sin(normRad) * (r * 0.75);
+
+      ctxDouble.beginPath();
+      ctxDouble.moveTo(cx, cy);
+      ctxDouble.lineTo(normX, normY);
+      ctxDouble.strokeStyle = '#94a3b8';
+      ctxDouble.lineWidth = 2;
+      ctxDouble.stroke();
+      drawRayArrow(ctxDouble, cx, cy, normX, normY, '#94a3b8');
+
+      ctxDouble.fillStyle = '#94a3b8';
+      ctxDouble.font = 'bold 10px sans-serif';
+      ctxDouble.textAlign = 'center';
+      ctxDouble.fillText(`새 법선 (+${theta.toFixed(1)}°)`, normX + 12, normY - 8);
+
+      // 7. Reflected Ray (Deflected clockwise by exactly 2 * theta)
+      // Original reflected ray angle from horizontal right is -45° (up-right).
+      // Tilting mirror down by theta increases incident angle to (45° + theta).
+      // Reflected ray angle increases by theta, so total deflection is 2 * theta downwards.
+      const currentReflAngle = -incRad + 2 * thetaRad;
+      const reflX = cx + Math.cos(currentReflAngle) * r;
+      const reflY = cy + Math.sin(currentReflAngle) * r;
+
+      ctxDouble.beginPath();
+      ctxDouble.moveTo(cx, cy);
+      ctxDouble.lineTo(reflX, reflY);
+      ctxDouble.strokeStyle = '#10b981';
+      ctxDouble.lineWidth = 3.5;
+      ctxDouble.stroke();
+      drawRayArrow(ctxDouble, cx, cy, reflX, reflY, '#10b981');
+
+      ctxDouble.fillStyle = '#10b981';
+      ctxDouble.font = 'bold 11px sans-serif';
+      ctxDouble.textAlign = 'left';
+      ctxDouble.fillText(`반사광선 (+${(theta * 2).toFixed(1)}°)`, reflX + 8, reflY + 4);
+
+      // 8. Visual Angle Arcs with labels
+      // Arc A: Mirror tilt angle theta (between horizontal baseline and mirror)
+      if (theta > 1) {
+        ctxDouble.beginPath();
+        ctxDouble.arc(cx, cy, r * 0.5, 0, thetaRad, false);
+        ctxDouble.strokeStyle = '#38bdf8';
+        ctxDouble.lineWidth = 2;
+        ctxDouble.stroke();
+
+        ctxDouble.fillStyle = '#38bdf8';
+        ctxDouble.font = 'bold 10px Inter';
+        ctxDouble.textAlign = 'left';
+        ctxDouble.fillText(`θ = ${theta.toFixed(1)}°`, cx + r * 0.52, cy + (r * 0.25 * Math.sin(thetaRad)));
+
+        // Arc B: Reflected ray deflection angle 2 * theta (between original refl ray and current refl ray)
+        ctxDouble.beginPath();
+        ctxDouble.arc(cx, cy, r * 0.65, -incRad, currentReflAngle, false);
+        ctxDouble.strokeStyle = '#10b981';
+        ctxDouble.lineWidth = 2.5;
+        ctxDouble.stroke();
+
+        ctxDouble.fillStyle = '#10b981';
+        ctxDouble.font = 'bold 11px Inter';
+        ctxDouble.textAlign = 'left';
+        ctxDouble.fillText(`2θ = ${(theta * 2).toFixed(1)}° (2배!)`, cx + r * 0.68, cy - r * 0.25);
+      }
+
+      ctxDouble.restore();
+    }
+
+    function drawSplitMirrorDetail() {
+      const { width: w, height: h, dpr } = resizeCanvas(canvasMirror);
+      ctxMirror.save();
+      ctxMirror.scale(dpr, dpr);
+      ctxMirror.clearRect(0, 0, w, h);
+
+      const s = Math.min(w / 480, h / 290);
+      const time = simState.time;
+
+      // =========================================================================
+      // [VIEW A: LEFT COLUMN] 망원경에서 본 수평경 정면 구조 & 접안렌즈 연결 (Face-On View)
+      // =========================================================================
+      const leftColW = w * 0.40;
+      
+      // 1. Title for Left Section
+      ctxMirror.fillStyle = '#94a3b8';
+      ctxMirror.font = `bold ${Math.round(9.5 * s)}px sans-serif`;
+      ctxMirror.textAlign = 'center';
+      ctxMirror.fillText("① 망원경 조준 정면도 (Face-On)", leftColW * 0.5, 16 * s);
+
+      // Frame Dimensions
+      const plateW = 100 * s;
+      const plateH = 80 * s;
+      const plateX = leftColW * 0.5 - plateW * 0.5;
+      const plateY = 26 * s;
+
+      // Outer Brass Mount Frame
+      ctxMirror.fillStyle = '#78350f';
+      ctxMirror.strokeStyle = '#b45309';
+      ctxMirror.lineWidth = 3 * s;
+      ctxMirror.fillRect(plateX - 3 * s, plateY - 3 * s, plateW + 6 * s, plateH + 6 * s);
+      ctxMirror.strokeRect(plateX - 3 * s, plateY - 3 * s, plateW + 6 * s, plateH + 6 * s);
+
+      // Left Half: Transparent Optical Glass (Clear Window)
+      // Shows real sea and sky behind it
+      ctxMirror.save();
+      ctxMirror.beginPath();
+      ctxMirror.rect(plateX, plateY, plateW * 0.5, plateH);
+      ctxMirror.clip();
+      ctxMirror.fillStyle = '#38bdf8'; // Real Sky
+      ctxMirror.fillRect(plateX, plateY, plateW * 0.5, plateH * 0.55);
+      ctxMirror.fillStyle = '#0284c7'; // Real Sea
+      ctxMirror.fillRect(plateX, plateY + plateH * 0.55, plateW * 0.5, plateH * 0.45);
+      // Real Horizon Line
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(plateX, plateY + plateH * 0.55);
+      ctxMirror.lineTo(plateX + plateW * 0.5, plateY + plateH * 0.55);
+      ctxMirror.strokeStyle = '#ffffff';
+      ctxMirror.lineWidth = 2 * s;
+      ctxMirror.stroke();
+      ctxMirror.restore();
+
+      // Right Half: Silvered Reflecting Mirror
+      // Shows reflected solar image inside
+      ctxMirror.save();
+      ctxMirror.beginPath();
+      ctxMirror.rect(plateX + plateW * 0.5, plateY, plateW * 0.5, plateH);
+      ctxMirror.clip();
+      ctxMirror.fillStyle = '#0369a1'; // Reflected sky tint
+      ctxMirror.fillRect(plateX + plateW * 0.5, plateY, plateW * 0.5, plateH * 0.55);
+      ctxMirror.fillStyle = '#075985'; // Reflected sea tint
+      ctxMirror.fillRect(plateX + plateW * 0.5, plateY + plateH * 0.55, plateW * 0.5, plateH * 0.45);
+      
+      // Reflected Sun Image
+      const sunRefX = plateX + plateW * 0.75;
+      const sunRefY = plateY + plateH * 0.42;
+      ctxMirror.beginPath();
+      ctxMirror.arc(sunRefX, sunRefY, 10 * s, 0, Math.PI * 2);
+      ctxMirror.fillStyle = '#f59e0b';
+      ctxMirror.shadowColor = '#fbbf24';
+      ctxMirror.shadowBlur = 8;
+      ctxMirror.fill();
+      ctxMirror.strokeStyle = '#fef08a';
+      ctxMirror.lineWidth = 1.5;
+      ctxMirror.stroke();
+      ctxMirror.shadowBlur = 0;
+      ctxMirror.restore();
+
+      // Glass and Mirror Borders
+      ctxMirror.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+      ctxMirror.lineWidth = 1.5 * s;
+      ctxMirror.strokeRect(plateX, plateY, plateW * 0.5, plateH);
+      ctxMirror.strokeStyle = '#cbd5e1';
+      ctxMirror.strokeRect(plateX + plateW * 0.5, plateY, plateW * 0.5, plateH);
+
+      // Central Vertical Split Line
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(plateX + plateW * 0.5, plateY - 2 * s);
+      ctxMirror.lineTo(plateX + plateW * 0.5, plateY + plateH + 2 * s);
+      ctxMirror.strokeStyle = '#ffffff';
+      ctxMirror.lineWidth = 2.5 * s;
+      ctxMirror.stroke();
+
+      // Sub-labels for the two halves
+      ctxMirror.fillStyle = '#38bdf8';
+      ctxMirror.font = `bold ${Math.round(8 * s)}px sans-serif`;
+      ctxMirror.textAlign = 'center';
+      ctxMirror.fillText("[좌] 투명창", plateX + plateW * 0.25, plateY + plateH + 11 * s);
+      ctxMirror.fillStyle = '#fef08a';
+      ctxMirror.fillText("[우] 은막경", plateX + plateW * 0.75, plateY + plateH + 11 * s);
+
+      // 2. Downward Flow to Eyepiece View
+      const eyeR = 25 * s;
+      const eyeCx = leftColW * 0.5;
+      const eyeCy = plateY + plateH + 22 * s + eyeR;
+
+      // Connecting guide dashed arrows
+      ctxMirror.setLineDash([3, 3]);
+      ctxMirror.strokeStyle = '#64748b';
+      ctxMirror.lineWidth = 1.2;
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(plateX + plateW * 0.25, plateY + plateH + 14 * s);
+      ctxMirror.lineTo(eyeCx - eyeR * 0.5, eyeCy - eyeR - 3 * s);
+      ctxMirror.moveTo(plateX + plateW * 0.75, plateY + plateH + 14 * s);
+      ctxMirror.lineTo(eyeCx + eyeR * 0.5, eyeCy - eyeR - 3 * s);
+      ctxMirror.stroke();
+      ctxMirror.setLineDash([]);
+
+      // Eyepiece Circle
+      ctxMirror.save();
+      ctxMirror.beginPath();
+      ctxMirror.arc(eyeCx, eyeCy, eyeR, 0, Math.PI * 2);
+      ctxMirror.clip();
+      // Left side: Real Sea
+      ctxMirror.fillStyle = '#38bdf8';
+      ctxMirror.fillRect(eyeCx - eyeR, eyeCy - eyeR, eyeR, eyeR);
+      ctxMirror.fillStyle = '#0284c7';
+      ctxMirror.fillRect(eyeCx - eyeR, eyeCy, eyeR, eyeR);
+      // Right side: Reflected Sun
+      ctxMirror.fillStyle = '#0369a1';
+      ctxMirror.fillRect(eyeCx, eyeCy - eyeR, eyeR, eyeR);
+      ctxMirror.fillStyle = '#075985';
+      ctxMirror.fillRect(eyeCx, eyeCy, eyeR, eyeR);
+      // Horizon line
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(eyeCx - eyeR, eyeCy);
+      ctxMirror.lineTo(eyeCx, eyeCy);
+      ctxMirror.strokeStyle = '#ffffff';
+      ctxMirror.lineWidth = 2;
+      ctxMirror.stroke();
+      // Reflected Sun on horizon
+      ctxMirror.beginPath();
+      ctxMirror.arc(eyeCx + eyeR * 0.48, eyeCy - 6 * s, 6 * s, 0, Math.PI * 2);
+      ctxMirror.fillStyle = '#f59e0b';
+      ctxMirror.fill();
+      // Divider
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(eyeCx, eyeCy - eyeR);
+      ctxMirror.lineTo(eyeCx, eyeCy + eyeR);
+      ctxMirror.strokeStyle = '#ffffff';
+      ctxMirror.lineWidth = 2;
+      ctxMirror.stroke();
+      ctxMirror.restore();
+
+      ctxMirror.beginPath();
+      ctxMirror.arc(eyeCx, eyeCy, eyeR, 0, Math.PI * 2);
+      ctxMirror.lineWidth = 2 * s;
+      ctxMirror.strokeStyle = '#10b981';
+      ctxMirror.stroke();
+
+      ctxMirror.fillStyle = '#10b981';
+      ctxMirror.font = `bold ${Math.round(8.5 * s)}px sans-serif`;
+      ctxMirror.textAlign = 'center';
+      ctxMirror.fillText("▼ 접안렌즈 분할 합성 시야", eyeCx, eyeCy + eyeR + 12 * s);
+
+      // Section Separator Line
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(leftColW, 10 * s);
+      ctxMirror.lineTo(leftColW, h - 10 * s);
+      ctxMirror.strokeStyle = '#334155';
+      ctxMirror.lineWidth = 1;
+      ctxMirror.stroke();
+
+      // =========================================================================
+      // [VIEW B: RIGHT COLUMN] 2D 평면 엄밀 광학 경로 추적 (Top-Down Exact Ray Tracing)
+      // =========================================================================
+      const rightColX = leftColW + 12 * s;
+      const rightColW = w - rightColX;
+
+      ctxMirror.fillStyle = '#94a3b8';
+      ctxMirror.font = `bold ${Math.round(9.5 * s)}px sans-serif`;
+      ctxMirror.textAlign = 'center';
+      ctxMirror.fillText("② 위에서 본 2D 광선 추적 평면도 (Top-Down View)", rightColX + rightColW * 0.5, 16 * s);
+
+      // Optical Anchors
+      const hgCenterX = rightColX + rightColW * 0.44;
+      const hgCenterY = h * 0.50;
+      const hgTilt = 70.5 * Math.PI / 180; // True Horizon Mirror Tangent
+      const hgPlateLen = 110 * s;
+
+      const hgCos = Math.cos(hgTilt) * (hgPlateLen * 0.5);
+      const hgSin = Math.sin(hgTilt) * (hgPlateLen * 0.5);
+
+      const hgTopX = hgCenterX - hgCos;
+      const hgTopY = hgCenterY - hgSin;
+      const hgBotX = hgCenterX + hgCos;
+      const hgBotY = hgCenterY + hgSin;
+
+      // Normal Vector pointing UP-RIGHT (faces incoming Sun light & telescope)
+      const hgNormX = Math.sin(hgTilt);
+      const hgNormY = -Math.cos(hgTilt);
+
+      // 1. Telescope Barrel on the right (horizontal axis to +X)
+      const scopeX1 = rightColX + rightColW * 0.72;
+      const scopeX2 = rightColX + rightColW * 0.96;
+      const scopeY = hgCenterY;
+      const scopeH = 46 * s;
+
+      ctxMirror.fillStyle = '#1e293b';
+      ctxMirror.strokeStyle = '#64748b';
+      ctxMirror.lineWidth = 1.5 * s;
+      ctxMirror.fillRect(scopeX1, scopeY - scopeH * 0.5, scopeX2 - scopeX1, scopeH);
+      ctxMirror.strokeRect(scopeX1, scopeY - scopeH * 0.5, scopeX2 - scopeX1, scopeH);
+
+      // Eyepiece ring
+      ctxMirror.fillStyle = '#d97706';
+      ctxMirror.fillRect(scopeX2 - 4 * s, scopeY - scopeH * 0.6, 6 * s, scopeH * 1.2);
+
+      ctxMirror.fillStyle = '#94a3b8';
+      ctxMirror.font = `${Math.round(8.5 * s)}px sans-serif`;
+      ctxMirror.textAlign = 'center';
+      ctxMirror.fillText("망원경 (Telescope)", (scopeX1 + scopeX2) * 0.5, scopeY - scopeH * 0.5 - 5 * s);
+
+      // 2. Horizon Glass - Upper Half: Silvered Reflecting Mirror
+      // Front Reflective Surface (Facing UP-RIGHT)
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(hgTopX, hgTopY);
+      ctxMirror.lineTo(hgCenterX, hgCenterY);
+      ctxMirror.lineWidth = 4.5 * s;
+      ctxMirror.strokeStyle = '#f8fafc'; // Shiny silver front
+      ctxMirror.stroke();
+
+      // Backing Plate (Brown brass backing on DOWN-LEFT side - prevents ray penetration)
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(hgTopX - hgNormX * 4 * s, hgTopY - hgNormY * 4 * s);
+      ctxMirror.lineTo(hgCenterX - hgNormX * 4 * s, hgCenterY - hgNormY * 4 * s);
+      ctxMirror.lineWidth = 5 * s;
+      ctxMirror.strokeStyle = '#78350f';
+      ctxMirror.stroke();
+
+      // 3. Horizon Glass - Lower Half: Transparent Glass Window
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(hgCenterX, hgCenterY);
+      ctxMirror.lineTo(hgBotX, hgBotY);
+      ctxMirror.lineWidth = 3.5 * s;
+      ctxMirror.strokeStyle = 'rgba(56, 189, 248, 0.9)'; // Clear glass
+      ctxMirror.stroke();
+
+      // Center Divider Pin
+      ctxMirror.beginPath();
+      ctxMirror.arc(hgCenterX, hgCenterY, 3 * s, 0, Math.PI * 2);
+      ctxMirror.fillStyle = '#ffffff';
+      ctxMirror.fill();
+
+      // Component Labels on Plate
+      ctxMirror.fillStyle = '#f8fafc';
+      ctxMirror.font = `bold ${Math.round(8 * s)}px sans-serif`;
+      ctxMirror.textAlign = 'left';
+      ctxMirror.fillText("은막 거울 (2차 반사)", hgTopX - 10 * s, hgTopY - 8 * s);
+
+      ctxMirror.fillStyle = '#38bdf8';
+      ctxMirror.fillText("투명 유리 (직진 투과)", hgBotX - 25 * s, hgBotY + 14 * s);
+
+      // 4. Optical Path 1: Sea Horizon Ray (청색) - 100% Straight Pass-through
+      // Passes strictly through lower clear glass into lower half of telescope
+      const seaY = hgCenterY + 12 * s;
+      const seaStartX = rightColX + 5 * s;
+      const passX = hgCenterX + (seaY - hgCenterY) / Math.tan(hgTilt);
+
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(seaStartX, seaY);
+      ctxMirror.lineTo(scopeX2, seaY);
+      ctxMirror.strokeStyle = '#38bdf8';
+      ctxMirror.lineWidth = 2.5 * s;
+      ctxMirror.stroke();
+      drawRayArrow(ctxMirror, seaStartX + 20 * s, seaY, passX - 15 * s, seaY, '#38bdf8');
+      drawRayArrow(ctxMirror, passX + 15 * s, seaY, scopeX1 + 25 * s, seaY, '#38bdf8');
+
+      // Animated photons along sea ray
+      const seaPulse = (time * 1.5) % 1;
+      const photonSeaX = seaStartX + seaPulse * (scopeX2 - seaStartX);
+      ctxMirror.beginPath();
+      ctxMirror.arc(photonSeaX, seaY, 3 * s, 0, Math.PI * 2);
+      ctxMirror.fillStyle = '#ffffff';
+      ctxMirror.shadowColor = '#38bdf8';
+      ctxMirror.shadowBlur = 6;
+      ctxMirror.fill();
+      ctxMirror.shadowBlur = 0;
+
+      ctxMirror.fillStyle = '#38bdf8';
+      ctxMirror.font = `bold ${Math.round(8 * s)}px sans-serif`;
+      ctxMirror.textAlign = 'left';
+      ctxMirror.fillText("수평선 광선 ➔ 투명창 직진 통과 (거울 관통 없음)", seaStartX + 2 * s, seaY + 12 * s);
+
+      // 5. Optical Path 2: Sun Ray from Index Mirror (황색) - Strict Front-Surface Reflection
+      // Hits upper silvered mirror front surface, bounces into upper half of telescope
+      const hitX = hgCenterX - hgCos * 0.5;
+      const hitY = hgCenterY - hgSin * 0.5;
+
+      // Incoming direction from Index Mirror (UP and RIGHT, angle ~141° incoming towards hitX, hitY)
+      const sunDist = 85 * s;
+      const incRad = 141 * Math.PI / 180;
+      const sunInX = hitX - Math.cos(incRad) * sunDist; // up-right
+      const sunInY = hitY - Math.sin(incRad) * sunDist;
+
+      // Outgoing ray is HORIZONTAL to the right into the telescope!
+      const reflOutX = scopeX2;
+      const reflOutY = hitY;
+
+      // Incident Ray (Sun -> Mirror Front Surface)
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(sunInX, sunInY);
+      ctxMirror.lineTo(hitX, hitY);
+      ctxMirror.strokeStyle = '#f59e0b';
+      ctxMirror.lineWidth = 2.5 * s;
+      ctxMirror.stroke();
+      drawRayArrow(ctxMirror, sunInX, sunInY, hitX, hitY, '#f59e0b');
+
+      // Reflected Ray (Mirror Front Surface -> Telescope)
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(hitX, hitY);
+      ctxMirror.lineTo(reflOutX, reflOutY);
+      ctxMirror.strokeStyle = '#fef08a';
+      ctxMirror.lineWidth = 2.5 * s;
+      ctxMirror.stroke();
+      drawRayArrow(ctxMirror, hitX, hitY, scopeX1 + 25 * s, reflOutY, '#fef08a');
+
+      // Animated photons along sun reflection path
+      const sunPulse = (time * 1.5) % 1;
+      let photonSunX, photonSunY;
+      if (sunPulse < 0.5) {
+        const t = sunPulse * 2;
+        photonSunX = sunInX + t * (hitX - sunInX);
+        photonSunY = sunInY + t * (hitY - sunInY);
+      } else {
+        const t = (sunPulse - 0.5) * 2;
+        photonSunX = hitX + t * (reflOutX - hitX);
+        photonSunY = hitY + t * (reflOutY - hitY);
+      }
+      ctxMirror.beginPath();
+      ctxMirror.arc(photonSunX, photonSunY, 3 * s, 0, Math.PI * 2);
+      ctxMirror.fillStyle = '#ffffff';
+      ctxMirror.shadowColor = '#f59e0b';
+      ctxMirror.shadowBlur = 6;
+      ctxMirror.fill();
+      ctxMirror.shadowBlur = 0;
+
+      // Normal Line (법선) at reflection point
+      const normLen = 32 * s;
+      const normTipX = hitX + hgNormX * normLen;
+      const normTipY = hitY + hgNormY * normLen;
+
+      ctxMirror.beginPath();
+      ctxMirror.moveTo(hitX, hitY);
+      ctxMirror.lineTo(normTipX, normTipY);
+      ctxMirror.strokeStyle = '#94a3b8';
+      ctxMirror.lineWidth = 1.2 * s;
+      ctxMirror.setLineDash([3, 3]);
+      ctxMirror.stroke();
+      ctxMirror.setLineDash([]);
+
+      ctxMirror.fillStyle = '#94a3b8';
+      ctxMirror.font = `${Math.round(7.5 * s)}px sans-serif`;
+      ctxMirror.textAlign = 'center';
+      ctxMirror.fillText("법선 (Normal)", normTipX + 10 * s, normTipY - 4 * s);
+
+      // Reflection Law Badge
+      ctxMirror.fillStyle = '#fef08a';
+      ctxMirror.font = `bold ${Math.round(8 * s)}px sans-serif`;
+      ctxMirror.textAlign = 'left';
+      ctxMirror.fillText("입사각(θi) = 반사각(θr) = 19.5° 엄밀 전면 반사", rightColX + 5 * s, 34 * s);
+      ctxMirror.fillStyle = '#94a3b8';
+      ctxMirror.fillText("(동경에서 온 빛은 은막 앞면에서만 반사되며 내부로 침투하지 않음)", rightColX + 5 * s, 46 * s);
+
+      ctxMirror.restore();
+    }
+
+    function setupTouchInteraction() {
+      function getCanvasCoord(e) {
+        const rect = canvasMain.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: clientX - rect.left,
+          y: clientY - rect.top,
+          w: rect.width,
+          h: rect.height
+        };
+      }
+
+      function onPointerDown(e) {
+        if (simState.currentTab !== 'obs') return;
+        const p = getCanvasCoord(e);
+        const pivotX = p.w * 0.58;
+        const pivotY = p.h * 0.25;
+        const dist = Math.hypot(p.x - pivotX, p.y - pivotY);
+        const scale = Math.min(p.w / 460, p.h / 310);
+        const arcR = 175 * scale;
+
+        if (dist > 40 && dist < arcR + 50) {
+          simState.isDraggingArm = true;
+          onPointerMove(e);
+        }
+      }
+
+      function onPointerMove(e) {
+        if (!simState.isDraggingArm) return;
+        const p = getCanvasCoord(e);
+        const pivotX = p.w * 0.58;
+        const pivotY = p.h * 0.25;
+        const angle = Math.atan2(p.y - pivotY, p.x - pivotX);
+
+        const arcStart = Math.PI * 0.44;
+        const arcEnd = Math.PI * 0.82;
+        const norm = (angle - arcStart) / (arcEnd - arcStart);
+        let theta = norm * 45;
+        theta = Math.max(0, Math.min(45, theta));
+        simState.armTheta = Math.round(theta * 10) / 10;
+        sliderArm.value = simState.armTheta;
+        updateReadings();
+      }
+
+      function onPointerUp() {
+        simState.isDraggingArm = false;
+      }
+
+      canvasMain.addEventListener('mousedown', onPointerDown);
+      window.addEventListener('mousemove', onPointerMove);
+      window.addEventListener('mouseup', onPointerUp);
+
+      canvasMain.addEventListener('touchstart', onPointerDown, { passive: false });
+      window.addEventListener('touchmove', onPointerMove, { passive: false });
+      window.addEventListener('touchend', onPointerUp);
     }
 
     function animationLoop(timestamp) {
-      state.time = timestamp * 0.001;
+      simState.time = timestamp * 0.001;
 
-      if (state.currentTab === 'observation') {
-        const diff = state.measuredAngle - state.targetAltitude;
-        drawSextantFrame(canvasSextant.clientWidth, canvasSextant.clientHeight, state.mirrorAngle, state.targetAltitude);
-        drawTelescopeView(diff);
-      } else if (state.currentTab === 'doubleReflection') {
-        drawSingleMirrorDiagram(canvasSingleMirror.clientWidth, canvasSingleMirror.clientHeight, state.singleMirrorTheta);
-      } else if (state.currentTab === 'horizonMirror') {
-        drawSplitMirrorDetail(canvasSplitDetail.clientWidth, canvasSplitDetail.clientHeight);
+      if (simState.currentTab === 'obs') {
+        drawMainSextantView();
+        const diff = simState.read2Theta - simState.sunAltitude;
+        drawEyepieceView(diff);
+      } else if (simState.currentTab === 'double') {
+        drawDoublePrincipleView();
+      } else if (simState.currentTab === 'mirror') {
+        drawSplitMirrorDetail();
       }
 
       requestAnimationFrame(animationLoop);
     }
 
+    // Window Load Initialization
     window.onload = function() {
-      resizeAllCanvases();
+      setupTouchInteraction();
+      handleWindowResize();
       updateReadings();
       requestAnimationFrame(animationLoop);
     };
