@@ -196,12 +196,13 @@
               <span class="text-[11px] text-slate-400">눈금판: <strong id="lbl-2theta" class="text-emerald-400 font-mono-nums font-bold">30.0°</strong></span>
               <span id="lbl-theta" class="text-amber-400 font-mono-nums font-bold text-xs bg-slate-800 px-2 py-0.5 rounded border border-slate-700">15.0°</span>
             </div>
-            <input id="slider-arm" type="range" min="0" max="45" step="0.1" value="15" class="w-full" oninput="onArmSliderChange(this.value)">
+            <input id="slider-arm" type="range" min="0" max="60" step="0.1" value="15" class="w-full" oninput="onArmSliderChange(this.value)">
             <div class="flex justify-between text-[10px] text-slate-500 font-mono-nums mt-0.5">
-              <span>0° (눈금 0°)</span>
+              <span>0° (0°)</span>
               <span>15° (30°)</span>
               <span>30° (60°)</span>
               <span>45° (90°)</span>
+              <span>60° (120°)</span>
             </div>
           </div>
 
@@ -487,7 +488,7 @@
 
     function nudgeTheta(delta) {
       let next = simState.armTheta + delta;
-      next = Math.max(0, Math.min(45, next));
+      next = Math.max(0, Math.min(60, next));
       simState.armTheta = Math.round(next * 10) / 10;
       sliderArm.value = simState.armTheta;
       updateReadings();
@@ -558,30 +559,46 @@
 
       // --- 1. Brass Arc (Limb) & Markings ---
       const arcR = 175 * scale;
-      // Arc sweeps from lower-right (arcStart) to lower-left (arcEnd)
-      const arcStart = Math.PI * 0.44; // ~79°
-      const arcEnd = Math.PI * 0.82;   // ~148° (~68° total arc for 120° reading)
+      // Physical arc angles:
+      // arcZero is the physical angle at theta = 0° (parallel mirrors)
+      const arcZero = 78 * Math.PI / 180; // ~1.361 rad (78°)
+      // True Sextant: physical 60° frame arc measures 0° to 120° (with -4° index error reserve)
+      const limbMinDeg = -4;
+      const limbMaxDeg = 63;
+      const limbStartAngle = arcZero + (limbMinDeg * Math.PI) / 180;
+      const limbEndAngle = arcZero + (limbMaxDeg * Math.PI) / 180;
 
-      // Brass Arc Body
+      // Brass Arc Body (Rim)
       ctxMain.beginPath();
-      ctxMain.arc(0, 0, arcR, arcStart, arcEnd);
-      ctxMain.lineWidth = 16 * scale;
+      ctxMain.arc(0, 0, arcR, limbStartAngle, limbEndAngle);
+      ctxMain.lineWidth = 18 * scale;
       ctxMain.strokeStyle = '#b45309';
       ctxMain.stroke();
 
       ctxMain.beginPath();
-      ctxMain.arc(0, 0, arcR, arcStart, arcEnd);
-      ctxMain.lineWidth = 11 * scale;
+      ctxMain.arc(0, 0, arcR, limbStartAngle, limbEndAngle);
+      ctxMain.lineWidth = 12 * scale;
       ctxMain.strokeStyle = '#d97706';
       ctxMain.stroke();
 
-      // Arc Degree Notches (2:1 scale reading)
+      // Silvered graduation inlay strip where degree ticks are engraved
+      ctxMain.beginPath();
+      ctxMain.arc(0, 0, arcR, limbStartAngle, limbEndAngle);
+      ctxMain.lineWidth = 3.5 * scale;
+      ctxMain.strokeStyle = '#fef3c7';
+      ctxMain.stroke();
+
+      // Arc Degree Notches: Strict 2:1 ratio (Each 1° physical = 2° reading)
       ctxMain.textAlign = 'center';
       ctxMain.textBaseline = 'middle';
-      for (let deg = 0; deg <= 90; deg += 5) {
-        const rad = arcStart + (deg / 90) * (arcEnd - arcStart);
-        const isMajor = deg % 15 === 0;
-        const nLen = isMajor ? 10 * scale : 5 * scale;
+      for (let readDeg = 0; readDeg <= 120; readDeg += 2) {
+        const physDeg = readDeg / 2; // Physical angle from zero
+        const rad = arcZero + (physDeg * Math.PI) / 180;
+        
+        const isMajor = readDeg % 10 === 0;
+        const isMid = readDeg % 5 === 0 && !isMajor;
+        const nLen = isMajor ? 10 * scale : (isMid ? 6.5 * scale : 4 * scale);
+
         const x1 = Math.cos(rad) * (arcR - nLen);
         const y1 = Math.sin(rad) * (arcR - nLen);
         const x2 = Math.cos(rad) * (arcR + 4 * scale);
@@ -590,26 +607,34 @@
         ctxMain.beginPath();
         ctxMain.moveTo(x1, y1);
         ctxMain.lineTo(x2, y2);
-        ctxMain.lineWidth = isMajor ? 2 : 1;
-        ctxMain.strokeStyle = isMajor ? '#fef3c7' : '#78350f';
+        ctxMain.lineWidth = isMajor ? 1.8 : (isMid ? 1.1 : 0.7);
+        ctxMain.strokeStyle = isMajor ? '#451a03' : '#78350f';
         ctxMain.stroke();
 
-        if (isMajor) {
+        // Print labels at major reading intervals (0°, 20°, 40°, 60°, 80°, 100°, 120°)
+        if (readDeg % 20 === 0) {
           const tx = Math.cos(rad) * (arcR + 15 * scale);
           const ty = Math.sin(rad) * (arcR + 15 * scale);
           ctxMain.fillStyle = '#cbd5e1';
           ctxMain.font = `bold ${Math.round(8.5 * scale)}px Inter`;
-          ctxMain.fillText(`${deg * 2}°`, tx, ty);
+          ctxMain.fillText(`${readDeg}°`, tx, ty);
         }
       }
 
-      // Sextant Radial Frame Struts
+      // Sextant Radial Frame Struts & Cross Lattice
       ctxMain.beginPath();
       ctxMain.moveTo(0, 0);
-      ctxMain.lineTo(Math.cos(arcStart) * arcR, Math.sin(arcStart) * arcR);
+      ctxMain.lineTo(Math.cos(limbStartAngle) * arcR, Math.sin(limbStartAngle) * arcR);
       ctxMain.moveTo(0, 0);
-      ctxMain.lineTo(Math.cos(arcEnd) * arcR, Math.sin(arcEnd) * arcR);
+      ctxMain.lineTo(Math.cos(limbEndAngle) * arcR, Math.sin(limbEndAngle) * arcR);
       ctxMain.lineWidth = 4 * scale;
+      ctxMain.strokeStyle = '#78350f';
+      ctxMain.stroke();
+
+      // Middle reinforcement arc
+      ctxMain.beginPath();
+      ctxMain.arc(0, 0, arcR * 0.55, limbStartAngle, limbEndAngle);
+      ctxMain.lineWidth = 3 * scale;
       ctxMain.strokeStyle = '#78350f';
       ctxMain.stroke();
 
@@ -686,12 +711,12 @@
       ctxMain.fillText("수평경 (Horizon Glass)", hgx - 12 * scale, hgy + 20 * scale);
 
       // --- 3. Rotating Index Arm & Index Mirror ---
-      // Index arm swings from arcStart (theta=0) to arcEnd (theta=45)
-      const armRad = arcStart + (simState.armTheta / 45) * (arcEnd - arcStart);
+      // Index arm physically rotates by exactly theta from arcZero
+      const armRad = arcZero + (simState.armTheta * Math.PI) / 180;
       const armTipX = Math.cos(armRad) * (arcR + 12 * scale);
       const armTipY = Math.sin(armRad) * (arcR + 12 * scale);
 
-      // Index Arm Bar
+      // Index Arm Bar (Rigid brass bar connecting pivot to limb)
       ctxMain.beginPath();
       ctxMain.moveTo(0, 0);
       ctxMain.lineTo(armTipX, armTipY);
@@ -699,9 +724,28 @@
       ctxMain.strokeStyle = '#f59e0b';
       ctxMain.stroke();
 
-      // Index Clamp at limb
+      // Vernier Index Clamp at limb (with indicator hairline)
+      ctxMain.save();
+      ctxMain.translate(armTipX, armTipY);
+      ctxMain.rotate(armRad + Math.PI / 2);
       ctxMain.fillStyle = '#78350f';
-      ctxMain.fillRect(armTipX - 6 * scale, armTipY - 6 * scale, 12 * scale, 12 * scale);
+      ctxMain.strokeStyle = '#f59e0b';
+      ctxMain.lineWidth = 1.5 * scale;
+      ctxMain.fillRect(-9 * scale, -13 * scale, 18 * scale, 15 * scale);
+      ctxMain.strokeRect(-9 * scale, -13 * scale, 18 * scale, 15 * scale);
+
+      // Glass Reading Window
+      ctxMain.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctxMain.fillRect(-5 * scale, -10 * scale, 10 * scale, 8 * scale);
+
+      // Red Vernier Index Hairline (Points directly at the reading tick)
+      ctxMain.strokeStyle = '#ef4444';
+      ctxMain.lineWidth = 1.6 * scale;
+      ctxMain.beginPath();
+      ctxMain.moveTo(0, -12 * scale);
+      ctxMain.lineTo(0, -2 * scale);
+      ctxMain.stroke();
+      ctxMain.restore();
 
       // Index Mirror (Pivot at 0,0)
       // At theta=0, Index Mirror is parallel to Horizon Mirror (hgTilt = 70.5°)
@@ -1638,7 +1682,7 @@
         const scale = Math.min(p.w / 460, p.h / 310);
         const arcR = 175 * scale;
 
-        if (dist > 40 && dist < arcR + 50) {
+        if (dist > 35 && dist < arcR + 55) {
           simState.isDraggingArm = true;
           onPointerMove(e);
         }
@@ -1651,11 +1695,10 @@
         const pivotY = p.h * 0.25;
         const angle = Math.atan2(p.y - pivotY, p.x - pivotX);
 
-        const arcStart = Math.PI * 0.44;
-        const arcEnd = Math.PI * 0.82;
-        const norm = (angle - arcStart) / (arcEnd - arcStart);
-        let theta = norm * 45;
-        theta = Math.max(0, Math.min(45, theta));
+        // Arc zero angle matches arcZero in drawMainSextantView (78°)
+        const arcZero = 78 * Math.PI / 180;
+        let theta = (angle - arcZero) * 180 / Math.PI;
+        theta = Math.max(0, Math.min(60, theta));
         simState.armTheta = Math.round(theta * 10) / 10;
         sliderArm.value = simState.armTheta;
         updateReadings();
