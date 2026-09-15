@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#102d40">
   <title>별빛에 남은 흔적 · 외계행성 탐사 실험실</title>
   <link rel="stylesheet" href="exoplanets.css">
-  <script defer src="exoplanets-model.js"></script>
-  <script defer src="exoplanets.js"></script>
+  <script defer src="exoplanets-model.js?v=20260915-plane-angle"></script>
+  <script defer src="exoplanets.js?v=20260915-plane-angle"></script>
 </head>
 <body>
 <main class="app">
@@ -42,7 +42,7 @@
   <section class="limitation" aria-labelledby="limit-title"><div class="limit-heading"><span class="limit-icon">!</span><div><p class="eyebrow">한계가 생기는 이유</p><h3 id="limit-title"></h3></div><button id="limit-toggle" aria-pressed="false">한계 확인 ↗</button></div><p id="limit-explanation" aria-live="polite"></p><div class="limit-meter"><span>관측 신호</span><div><i id="limit-bar"></i></div><strong id="limit-meter-label"></strong></div></section>
   <section class="takeaways"><div><span>무엇의 단서일까?</span><strong id="clue"></strong><p id="clue-note"></p></div><div><span>직접 해보는 탐구</span><strong id="challenge"></strong><p id="challenge-note"></p></div></section>
   </details>
-  <details class="model-details"><summary>모형의 가정과 참고 자료</summary><div><p>수업 자료 「행성우주과학 7차시-1」의 네 가지 관측 원리를 바탕으로 만든 교육용 모형입니다. 천체 크기와 궤도, 별의 흔들림, 스펙트럼 이동은 이해를 돕기 위해 확대했습니다.</p><p id="model-note"></p><p>궤도 경사각 i는 궤도면의 법선과 시선 사이의 각도입니다. i = 0°는 궤도를 정면으로, i = 90°는 옆면으로 보는 경우입니다.</p><p>원리 참고: <a href="https://science.nasa.gov/exoplanets/how-we-find-and-characterize/" target="_blank" rel="noopener">NASA · 외계행성 탐사</a> / <a href="https://www.microlensing-source.org/theory/estimating-parameters/" target="_blank" rel="noopener">Microlensing Source · 렌즈 모형</a></p></div></details>
+  <details class="model-details"><summary>모형의 가정과 참고 자료</summary><div><p>수업 자료 「행성우주과학 7차시-1」의 네 가지 관측 원리를 바탕으로 만든 교육용 모형입니다. 천체 크기와 궤도, 별의 흔들림, 스펙트럼 이동은 이해를 돕기 위해 확대했습니다.</p><p id="model-note"></p><p>이 모형의 각도 θ는 시선과 궤도면 사이의 각도입니다. θ = 0°는 시선과 궤도면이 나란한 옆면 관측으로 시선 속도 진폭이 최대이고, θ = 90°는 시선이 궤도면에 수직인 정면 관측으로 시선 속도 변화가 없습니다. 진폭은 cos θ에 비례합니다. 천문학에서 흔히 쓰는 궤도면 법선과 시선 사이의 경사각 i와는 θ = 90° − i 관계입니다.</p><p>원리 참고: <a href="https://science.nasa.gov/exoplanets/how-we-find-and-characterize/" target="_blank" rel="noopener">NASA · 외계행성 탐사</a> / <a href="https://www.microlensing-source.org/theory/estimating-parameters/" target="_blank" rel="noopener">Microlensing Source · 렌즈 모형</a></p></div></details>
   <footer>작은 움직임을 바꾸고, 별빛의 변화를 읽어보세요.<span>별빛에 남은 흔적 · 2026</span></footer>
 </main>
 </body>
