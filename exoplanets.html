@@ -11,6 +11,7 @@
 </head>
 <body>
 <main class="app">
+<div class="observation-workspace">
   <header class="page-header">
     <div><p class="eyebrow">행성우주과학 / OBSERVATION LAB</p><h1>별빛에 남은 흔적<span class="title-dot">.</span></h1><p class="subtitle">보이지 않는 행성, 네 가지 방법으로 찾아보세요.</p></div>
     <span class="lesson-badge">7차시 <span>외계 행성계 탐사</span></span>
@@ -24,17 +25,23 @@
   <section class="intro" aria-labelledby="method-title"><div><p class="eyebrow" id="method-kicker"></p><h2 id="method-title"></h2><p id="method-desc"></p></div><div class="target"><span>지금 관측하는 대상</span><strong id="target-name"></strong></div></section>
   <div class="dashboard">
     <section class="panel scene-panel"><div class="panel-heading"><h3><span class="step">1</span> 우주에서 일어나는 일</h3><span class="micro" id="scene-view-label"></span></div><svg id="scene" class="space-view interactive" viewBox="0 0 600 320" role="img" aria-label="천체 배치와 운동 모형"></svg><p class="panel-note" id="scene-note"></p></section>
-    <section class="panel observer-panel"><div class="panel-heading"><h3><span class="step">2</span> 관측자에게 보이는 것</h3><span class="live-dot">동기화</span></div><svg id="observation" class="space-view" viewBox="0 0 440 215" role="img" aria-label="관측되는 빛의 변화"></svg><div class="readout"><div><span id="value-label"></span><strong id="current-value"></strong></div><span class="status" id="signal-status"></span></div><p class="panel-note" id="observation-note"></p></section>
+    <section class="panel sky-panel" id="sky-panel"><div class="panel-heading"><h3><span class="step">2</span> 내 시선에서 본 모습</h3><span class="micro">별의 흔들림 확대</span></div><svg id="sky" class="space-view" viewBox="0 0 440 215" role="img" aria-label="관측자의 시선에 투영한 별과 행성의 공전"></svg></section>
+    <section class="panel observer-panel"><div class="panel-heading"><h3><span class="step" id="observation-step">3</span> <span id="observation-title">별빛의 스펙트럼</span></h3><span class="live-dot">동기화</span></div><svg id="observation" class="space-view" viewBox="0 0 440 215" role="img" aria-label="관측되는 빛의 변화"></svg><div class="readout"><div><span id="value-label"></span><strong id="current-value"></strong></div><span class="status" id="signal-status"></span></div><p class="panel-note" id="observation-note"></p></section>
     <section class="transport" aria-label="시간과 재생 조절">
       <div class="play-actions"><button id="play" class="primary">▶ 재생</button><button id="reset" class="icon-button" aria-label="현재 방법 처음부터 다시 설정" title="처음 설정으로">↺</button></div>
       <div class="timeline"><div class="range-heading"><label for="time">시간을 움직여 관측하기</label><output id="time-value" for="time"></output></div><input id="time" type="range" min="0" max="1000" step="1" value="0"><div class="range-ends"><span id="time-start"></span><span id="time-end"></span></div></div>
       <label class="speed">재생 속도<select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+      <button id="quick-limit" class="compact" aria-pressed="false">한계 확인</button>
     </section>
-    <section class="panel graph-panel"><div class="panel-heading"><h3><span class="step">3</span> 변화가 남긴 그래프</h3><button id="zoom-transit" class="compact" hidden aria-pressed="false">식 구간 확대</button><span class="micro" id="graph-hint">터치하여 시간 이동</span></div><div class="graph-legend" id="graph-legend"></div><svg id="graph" class="interactive" viewBox="0 0 620 290" role="img" aria-label="시간에 따른 관측 신호 그래프"></svg><p class="graph-insight" id="graph-insight"></p></section>
-    <section class="panel settings-panel"><div class="panel-heading"><h3>조건을 바꿔 보세요</h3><span class="micro">즉시 반영</span></div><div id="parameters"></div><div class="presets"><p>한 번에 비교하기</p><div id="presets"></div></div></section>
+    <section class="panel graph-panel"><div class="panel-heading"><h3><span class="step" id="graph-step">4</span> 변화가 남긴 그래프</h3><button id="zoom-transit" class="compact" hidden aria-pressed="false">식 구간 확대</button><span class="micro" id="graph-hint">터치하여 시간 이동</span></div><div class="graph-legend" id="graph-legend"></div><svg id="graph" class="interactive" viewBox="0 0 620 290" role="img" aria-label="시간에 따른 관측 신호 그래프"></svg><p class="graph-insight" id="graph-insight"></p></section>
   </div>
+</div>
+  <details class="experiment-options" open><summary>조건 조절 · 자세한 설명 <span>질량, 궤도 경사, 거리 등을 바꿔 보세요</span></summary>
+    <section class="panel settings-panel"><div class="panel-heading"><h3>조건을 바꿔 보세요</h3><span class="micro">즉시 반영</span></div><div id="parameters"></div><div class="presets"><p>한 번에 비교하기</p><div id="presets"></div></div></section>
+    <div class="reading-guide"><p id="scene-guide"></p><p id="observation-guide"></p><p id="graph-guide"></p></div>
   <section class="limitation" aria-labelledby="limit-title"><div class="limit-heading"><span class="limit-icon">!</span><div><p class="eyebrow">한계가 생기는 이유</p><h3 id="limit-title"></h3></div><button id="limit-toggle" aria-pressed="false">한계 확인 ↗</button></div><p id="limit-explanation" aria-live="polite"></p><div class="limit-meter"><span>관측 신호</span><div><i id="limit-bar"></i></div><strong id="limit-meter-label"></strong></div></section>
   <section class="takeaways"><div><span>무엇의 단서일까?</span><strong id="clue"></strong><p id="clue-note"></p></div><div><span>직접 해보는 탐구</span><strong id="challenge"></strong><p id="challenge-note"></p></div></section>
+  </details>
   <details class="model-details"><summary>모형의 가정과 참고 자료</summary><div><p>수업 자료 「행성우주과학 7차시-1」의 네 가지 관측 원리를 바탕으로 만든 교육용 모형입니다. 천체 크기와 궤도, 별의 흔들림, 스펙트럼 이동은 이해를 돕기 위해 확대했습니다.</p><p id="model-note"></p><p>궤도 경사각 i는 궤도면의 법선과 시선 사이의 각도입니다. i = 0°는 궤도를 정면으로, i = 90°는 옆면으로 보는 경우입니다.</p><p>원리 참고: <a href="https://science.nasa.gov/exoplanets/how-we-find-and-characterize/" target="_blank" rel="noopener">NASA · 외계행성 탐사</a> / <a href="https://www.microlensing-source.org/theory/estimating-parameters/" target="_blank" rel="noopener">Microlensing Source · 렌즈 모형</a></p></div></details>
   <footer>작은 움직임을 바꾸고, 별빛의 변화를 읽어보세요.<span>별빛에 남은 흔적 · 2026</span></footer>
 </main>
