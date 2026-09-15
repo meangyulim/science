@@ -7,3 +7,60 @@
 @media(max-width:900px){#graph text{font-size:17px}.space-view text{font-size:18px}.space-view .subtext{font-size:15px}}
 @media(max-width:640px){.dashboard{grid-template-areas:"scene" "observer" "transport" "graph" "settings"}.transport{position:static;box-shadow:none}.graph-panel svg{min-height:205px}.limit-heading{display:grid;grid-template-columns:35px 1fr}.limit-heading button{grid-column:2;justify-self:start;margin-left:0}.limit-heading h3{overflow-wrap:anywhere}.graph-panel .panel-heading{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* Keep the linked views inside the actual iframe viewport, including Safari's bars. */
+.sky-panel{grid-area:sky;display:flex;flex-direction:column}
+.sky-panel[hidden]{display:none}
+.dashboard{grid-template-areas:"scene sky" "observer graph" "transport transport";grid-template-columns:repeat(2,minmax(0,1fr))}
+body[data-active-method]:not([data-active-method="rv"]) .dashboard{grid-template-areas:"scene observer" "graph graph" "transport transport"}
+.experiment-options{margin-top:14px;border-top:1px solid var(--line)}
+.experiment-options>summary{cursor:pointer;padding:12px 2px;min-height:48px;font-weight:700}
+.experiment-options>summary span{font-size:11px;font-weight:400;color:var(--muted);margin-left:12px}
+.experiment-options #parameters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.reading-guide{font-size:12px;color:var(--muted);line-height:1.8;padding:12px 4px}
+#quick-limit{white-space:nowrap;border-color:#cbb99d;color:#765632;background:#fffaf1}
+#quick-limit[aria-pressed="true"]{background:#765632;color:white}
+@media(min-width:641px){
+  .app{max-width:1480px;padding:10px 14px 24px}
+  .observation-workspace{height:calc(100vh - 20px);height:calc(100svh - 20px);min-height:490px;max-height:1100px;display:flex;flex-direction:column;gap:8px}
+  .page-header{margin:0;flex-shrink:0;min-height:29px}
+  .page-header .eyebrow,.page-header .subtitle,.lesson-badge{display:none}
+  .page-header h1{font-size:21px;margin:0;line-height:1.3}
+  .methods{flex-shrink:0;gap:7px}
+  .methods button{padding:5px 12px;min-height:44px;gap:8px;font-size:13px}
+  .methods small{display:none}.methods svg{display:block;width:28px}
+  .intro{padding:0 2px;min-height:31px;gap:10px;flex-shrink:0}
+  .intro .eyebrow,.intro #method-desc,.target>span{display:none}
+  .intro h2{font-size:15px;margin:0}.target{padding-left:10px}.target strong{font-size:11px;margin:0}
+  .dashboard{flex:1;min-height:0;gap:8px;grid-template-rows:minmax(0,1fr) minmax(0,1.08fr) 62px;align-items:stretch}
+  .dashboard .panel{display:flex;flex-direction:column;min-height:0;align-self:stretch}
+  .dashboard .panel[hidden]{display:none}
+  .dashboard .panel-heading{padding:5px 12px;min-height:32px;flex:0 0 auto;flex-wrap:nowrap}
+  .dashboard .panel-heading h3{font-size:12px}.dashboard .panel-heading .micro{font-size:10px}
+  .dashboard .space-view,.dashboard #graph{flex:1 1 0;min-height:0;max-height:none;width:100%;height:0}
+  .dashboard .panel-note,.dashboard .graph-insight{display:none}
+  .dashboard .space-view text{font-size:17px}.dashboard .space-view .subtext{font-size:14px}
+  .dashboard #graph text{font-size:var(--graph-font,16px)}
+  .graph-legend{padding:0 12px;font-size:10px;gap:12px;flex-shrink:0}
+  .readout{padding:4px 12px;flex-shrink:0;min-height:41px}
+  .readout>div{display:flex;align-items:baseline;gap:10px}.readout>div>span{font-size:10px}
+  .readout strong{font-size:21px}.status{font-size:10px;padding:3px 7px}
+  .transport{padding:5px 12px;gap:12px;flex-wrap:nowrap;min-height:0}
+  .transport input[type=range]{height:24px}.transport .range-heading{font-size:11px}
+  .speed{flex-direction:row;align-items:center;gap:6px}.speed select{min-height:44px}
+  body[data-active-method]:not([data-active-method="rv"]) .dashboard{grid-template-rows:minmax(0,1fr) minmax(0,1fr) 62px}
+  body[data-active-method]:not([data-active-method="rv"]) #graph{max-width:900px;margin:0 auto}
+}
+@media(min-width:641px) and (max-width:850px){
+  .methods svg{display:none}.target{display:none}.readout>div{display:block}.readout strong{font-size:19px}
+  .dashboard .panel-heading .micro{display:none}.dashboard .panel-heading{padding:5px 8px}
+  .speed{font-size:0}.speed select{font-size:12px}.readout{min-height:56px}
+}
+@media(max-width:640px){
+  .dashboard{grid-template-columns:minmax(0,1fr);grid-template-areas:"scene" "sky" "observer" "transport" "graph"}
+  body[data-active-method]:not([data-active-method="rv"]) .dashboard{grid-template-areas:"scene" "observer" "transport" "graph"}
+  .experiment-options #parameters{grid-template-columns:1fr}
+  .experiment-options>summary span{display:block;margin:0;font-size:11px}
+  .transport #quick-limit{flex-basis:100%}.reading-guide{display:none}
+  body[data-active-method="rv"] #observation{max-height:155px}
+}

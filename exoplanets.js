@@ -83,10 +83,17 @@
   function displayParam(key,value,unit){return key==='radius'?fmt(value):key==='impact'||key==='offset'?fmt(value):`${Number.isInteger(value)?value:fmt(value,1)}${unit==='°'?'°':unit?' '+unit:''}`;}
   function chooseMethod(next){
     method=next;p={...M.defaults[next]};progress=configs[next].start;limitSaved=null;transitZoom=false;setPlaying(false);
+    document.body.dataset.activeMethod=next;
+    $('sky-panel').hidden=next!=='rv';
+    $('observation').setAttribute('viewBox',next==='rv'?'0 0 440 155':'0 0 440 215');
+    $('observation-step').textContent=next==='rv'?'3':'2';
+    $('graph-step').textContent=next==='rv'?'4':'3';
+    $('observation-title').textContent=next==='rv'?'별빛의 스펙트럼':'내 시선에서 본 모습';
     $('zoom-transit').hidden=next!=='transit';$('zoom-transit').setAttribute('aria-pressed','false');$('zoom-transit').textContent='식 구간 확대';$('graph-hint').hidden=next==='transit';
     document.querySelectorAll('[data-method]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.method===next)));
     const c=configs[next];
     for(const [id,key] of Object.entries({'method-kicker':'kicker','method-title':'title','method-desc':'desc','target-name':'target','scene-view-label':'sceneLabel','scene-note':'sceneNote','observation-note':'obsNote','value-label':'valueLabel','limit-title':'limitTitle','limit-explanation':'limitText','clue':'clue','clue-note':'clueNote','challenge':'challenge','challenge-note':'challengeNote','model-note':'modelNote'}))$(id).textContent=c[key];
+    $('scene-guide').textContent=c.sceneNote;$('observation-guide').textContent=c.obsNote;
     $('parameters').innerHTML=c.sliders.map(([key,label,min,max,step,unit,left,right])=>`<div class="parameter"><div class="range-heading"><label for="param-${key}">${label}</label><output id="out-${key}" for="param-${key}">${displayParam(key,p[key],unit)}</output></div><input id="param-${key}" data-key="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${p[key]}"><div class="range-ends"><span>${left}</span><span>${right}</span></div></div>`).join('')+(c.checkbox?`<label class="switch-row"><input type="checkbox" id="param-${c.checkbox[0]}" data-key="${c.checkbox[0]}" ${p[c.checkbox[0]]?'checked':''}>${c.checkbox[1]}</label>`:'');
     $('presets').innerHTML=c.presets.map((item,i)=>`<button data-preset="${i}">${item[0]}</button>`).join('');
     $('graph-legend').innerHTML=`<span class="legend-line">${c.legend}</span><span class="legend-line dashed">${c.baseline}</span>`;
@@ -96,11 +103,13 @@
     for(const [key,,,,,unit] of configs[method].sliders){$('param-'+key).value=p[key];$('out-'+key).textContent=displayParam(key,p[key],unit);}
     const check=configs[method].checkbox;if(check)$('param-'+check[0]).checked=p[check[0]];
     $('limit-toggle').setAttribute('aria-pressed',String(!!limitSaved));$('limit-toggle').textContent=limitSaved?'원래 조건으로 ↩':'한계 확인 ↗';
+    $('quick-limit').setAttribute('aria-pressed',String(!!limitSaved));$('quick-limit').textContent=limitSaved?'조건 복원':'한계 확인';
     const d=domain(),unit=method==='direct'?'년':'일';
     $('time-start').textContent=fmt(d[0],transitZoom?2:0)+unit;$('time-end').textContent=fmt(d[1],transitZoom?2:method==='direct'?1:0)+unit;
     graphCache='';buildGraph();render();
   }
   function drawOrbit(s){
+    if(window.matchMedia('(min-width:641px)').matches)return drawCompactOrbit(s);
     const cx=292,cy=140,rx=180,ry=91;
     const th=s.theta,px=cx+rx*Math.cos(th),py=cy+ry*Math.sin(th);
     const wobble=method==='rv'?10+9*p.mass:0;
@@ -144,14 +153,42 @@
     return out;
   }
   function rvObservation(s){
-    const shift=s.value/450*38,proj=Math.max(.03,Math.cos(M.rad(p.inclination)));
+    const shift=s.value/450*38;
     let out=defs('o')+text(22,26,'별빛을 펼친 스펙트럼','bright');
     out+=text(22,48,'짧은 파장 · 청색 쪽','subtext')+text(418,48,'긴 파장 · 적색 쪽','subtext','end');
     out+=`<rect x="24" y="62" width="392" height="40" rx="5" fill="url(#spectrum)"/>`;
     for(const x of [112,196,270,344])out+=`<rect x="${x+shift-2}" y="62" width="4" height="40" fill="#132030"/>`+line(x,108,x,124,'#b9c9d5','3 3');
     out+=text(220,145,'점선: 정지한 별의 흡수선 위치','subtext','middle');
-    out+=`<ellipse cx="61" cy="181" rx="24" ry="${24*proj}" fill="none" stroke="#758d9e"/>`+star(61-12*s.x,181-12*s.y,5,'o');
-    out+=text(99,183,`시선에서 본 별의 궤도 · i = ${p.inclination}°`,'subtext');
+    return out;
+  }
+  function drawCompactOrbit(s){
+    const cx=300,cy=100,rx=205,ry=55,wobble=method==='rv'?10+9*p.mass:0;
+    const px=cx+rx*Math.cos(s.theta),py=cy+ry*Math.sin(s.theta);
+    const sx=cx-wobble*Math.cos(s.theta),sy=cy-wobble*.5*Math.sin(s.theta);
+    let out=defs('s')+`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="#5d7387" stroke-dasharray="4 6"/>`;
+    out+=line(cx,34,cx,170,'#42586b','3 6');
+    if(method==='rv')out+=`<ellipse cx="${cx}" cy="${cy}" rx="${wobble}" ry="${wobble*.5}" fill="none" stroke="#9e8b69" stroke-dasharray="3 4"/>`+line(sx,sy,px,py,'#3f5c69','3 5');
+    out+=star(sx,sy,16,'s')+planet(px,py,9,'s');
+    out+=text(sx+25,sy+7,'중심별','gold')+text(px+(px>cx?-16:16),py-13,'행성','aqua',px>cx?'end':'start');
+    if(method==='rv')out+=line(cx-4,cy,cx+4,cy,'#fff')+line(cx,cy-4,cx,cy+4,'#fff')+arrow(sx,sy,wobble*Math.sin(s.theta),-wobble*.5*Math.cos(s.theta),'#efc66e');
+    out+=text(24,26,method==='rv'?'공통 질량 중심 주위를 함께 공전':'행성의 공전 위치','subtext');
+    out+=arrow(cx,170,0,20*Math.sin(M.rad(p.inclination)),'#9dbbd0')+circle(cx,201,7,'#459dc9')+text(cx+15,206,'관측자 방향','bright');
+    out+=text(24,204,`i = ${p.inclination}° · ${p.inclination===0?'정면':p.inclination===90?'옆면':'기울임'}`,'subtext');
+    return out;
+  }
+  function rvSky(s){
+    const cx=220,cy=100,flatten=Math.cos(M.rad(p.inclination));
+    const wobble=10+9*p.mass,sx=cx-wobble*s.x,sy=cy-wobble*s.y;
+    let out=defs('v')+text(18,24,`궤도 경사 i = ${p.inclination}° · ${p.inclination===0?'정면':p.inclination===90?'옆면':'기울어진 모습'}`,'subtext');
+    out+=`<ellipse cx="${cx}" cy="${cy}" rx="155" ry="${Math.max(.3,70*flatten)}" fill="none" stroke="#59788b" stroke-dasharray="4 5"/>`;
+    out+=`<ellipse cx="${cx}" cy="${cy}" rx="${wobble}" ry="${Math.max(.3,wobble*flatten)}" fill="none" stroke="#b59c6d" stroke-dasharray="3 4"/>`;
+    const planetSvg=planet(cx+155*s.x,cy+70*s.y,8,'v');
+    if(s.z<=0)out+=planetSvg;
+    out+=star(sx,sy,13,'v');
+    if(s.z>0)out+=planetSvg;
+    out+=line(cx-4,cy,cx+4,cy,'#fff')+line(cx,cy-4,cx,cy+4,'#fff');
+    out+=text(18,184,'주황: 중심별 · 초록: 행성 · +: 질량 중심','subtext');
+    out+=text(220,207,p.inclination===0?'좌우·상하 운동만 보임 → 시선 속도 0':'화면에 수직인 앞뒤 운동 → 스펙트럼 편이','aqua','middle');
     return out;
   }
   function transitObservation(s){
@@ -199,9 +236,15 @@
     if(method==='transit'){min=95;max=100.6;baseline=100;}
     if(method==='lens'){min=.8;max=Math.max(3,Math.max(...points.map(s=>s.value))*1.12);baseline=1;}
     if(method==='direct'){min=0;max=Math.max(.3,p.orbit/p.distance*1.12);baseline=.15;}
-    const left=65,right=596,top=32,bottom=239;
+    const box=$('graph').getBoundingClientRect();
+    const wide=window.matchMedia('(min-width:641px)').matches;
+    const canvasWidth=wide&&box.height>0?Math.max(620,box.width/box.height*290):620;
+    const font=wide&&box.height>0?Math.max(16,12*290/box.height):17;
+    $('graph').setAttribute('viewBox',`0 0 ${canvasWidth} 290`);
+    $('graph').style.setProperty('--graph-font',font+'px');
+    const left=Math.max(65,font*3),right=canvasWidth-24,top=32,bottom=239;
     const gx=t=>left+(t-t0)/(t1-t0)*(right-left),gy=v=>bottom-(v-min)/(max-min)*(bottom-top);
-    graphScale={min,max,left,right,top,bottom,t0,t1,gx,gy};
+    graphScale={min,max,left,right,top,bottom,t0,t1,gx,gy,font};
     let out=text(left,17,c.graphLabel,'','start');
     if(method==='direct')out+=`<rect x="${left}" y="${gy(.15)}" width="${right-left}" height="${bottom-gy(.15)}" fill="#fff3e2"/>`;
     for(let j=0;j<=4;j++){
@@ -231,9 +274,10 @@
     const path=past.map((pt,i)=>`${i?'L':'M'}${g.gx(pt.t).toFixed(1)},${g.gy(pt.value).toFixed(1)}`).join(' ');
     out=out.replace('id="curve-progress"',`id="curve-progress" d="${path}"`);
     out+=line(x,g.top,x,g.bottom,'#3c7371','4 5')+circle(x,y,7,'#fff','stroke="#087f80" stroke-width="2.5"');
-    const labelX=M.clamp(x,g.left+67,g.right-67),labelY=y<65?y+12:y-35;
-    out+=`<rect x="${labelX-61}" y="${labelY}" width="122" height="24" rx="6" fill="#0d6d6c"/>`;
-    out+=`<text x="${labelX}" y="${labelY+16}" text-anchor="middle" fill="white" font-size="11">${fmt(s.value,method==='rv'?1:2)} ${configs[method].unit}</text>`;
+    const labelHalf=Math.max(61,g.font*3.6),labelHeight=Math.max(24,g.font+9);
+    const labelX=M.clamp(x,g.left+labelHalf+5,g.right-labelHalf-5),labelY=y<65?y+12:y-labelHeight-8;
+    out+=`<rect x="${labelX-labelHalf}" y="${labelY}" width="${labelHalf*2}" height="${labelHeight}" rx="6" fill="#0d6d6c"/>`;
+    out+=`<text x="${labelX}" y="${labelY+labelHeight-6}" text-anchor="middle" fill="white" font-size="11">${fmt(s.value,method==='rv'?1:2)} ${configs[method].unit}</text>`;
     $('graph').innerHTML=out;
   }
   function statusAndInsights(s){
@@ -262,14 +306,17 @@
     }
     $('signal-status').textContent=status;$('signal-status').classList.toggle('warning',warning);
     $('graph-insight').textContent=insight;$('limit-bar').style.width=`${M.clamp(quality,0,1)*100}%`;
+    $('graph-guide').textContent=insight;
     $('limit-bar').style.background=warning?'#b87939':'#087f80';$('limit-meter-label').textContent=meter;
     $('current-value').textContent=`${method==='rv'&&s.value>.05?'+':''}${fmt(s.value,method==='rv'?1:method==='direct'?3:2)} ${configs[method].unit}`;
   }
   function render(){
     const t=timeValue(),s=M[method](t,p);
+    $('scene').setAttribute('viewBox',method!=='lens'&&window.matchMedia('(min-width:641px)').matches?'0 0 600 220':'0 0 600 320');
     $('time').value=Math.round(progress*1000);$('time-value').textContent=`${fmt(t,method==='direct'?1:2)} ${method==='direct'?'년':'일'}`;
     $('time').setAttribute('aria-valuetext',$('time-value').textContent);
     $('scene').innerHTML=method==='lens'?drawLens(s):drawOrbit(s);
+    if(method==='rv')$('sky').innerHTML=rvSky(s);
     $('observation').innerHTML=({rv:rvObservation,transit:transitObservation,lens:lensObservation,direct:directObservation})[method](s);
     $('observation').setAttribute('aria-label',`${configs[method].target}: ${fmt(s.value)} ${configs[method].unit}`);
     statusAndInsights(s);drawGraph(s,t);
@@ -288,6 +335,7 @@
     if(limitSaved){p={...limitSaved};limitSaved=null;}else{limitSaved={...p};Object.assign(p,configs[method].limit);}
     setPlaying(false);updateParameters();
   });
+  $('quick-limit').addEventListener('click',()=>$('limit-toggle').click());
   $('play').addEventListener('click',()=>{if(progress>=1)progress=0;setPlaying(!playing);render();});
   $('reset').addEventListener('click',()=>chooseMethod(method));
   $('speed').addEventListener('change',e=>{speed=Number(e.target.value);});
@@ -301,12 +349,14 @@
   function addScrubbing(svg,kind){
     let start=null;
     function seek(e){
-      const rect=svg.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*svg.viewBox.baseVal.width,y=(e.clientY-rect.top)/rect.height*svg.viewBox.baseVal.height;
+      // SVGs may be letterboxed when the tablet viewport changes height.
+      const point=new DOMPoint(e.clientX,e.clientY).matrixTransform(svg.getScreenCTM().inverse()),x=point.x,y=point.y;
       setPlaying(false);
-      if(kind==='graph')progress=M.clamp((x-65)/(596-65),0,1);
+      if(kind==='graph')progress=M.clamp((x-graphScale.left)/(graphScale.right-graphScale.left),0,1);
       else if(method==='lens')progress=M.clamp(((x-295)/52+4)/8,0,1);
       else{
-        const angle=(Math.atan2((y-140)/91,(x-292)/180)+M.TAU)%M.TAU;
+        const compact=window.matchMedia('(min-width:641px)').matches;
+        const angle=(Math.atan2((y-(compact?100:140))/(compact?55:91),(x-(compact?300:292))/(compact?205:180))+M.TAU)%M.TAU;
         const period=method==='direct'?p.orbit**1.5:p.period,[a,b]=domain(),t=timeValue();
         const cycle=Math.floor(Math.max(0,t-1e-8)/period);
         progress=M.clamp((cycle*period+angle/M.TAU*period-a)/(b-a),0,1);
@@ -328,5 +378,7 @@
     }
     requestAnimationFrame(tick);
   }
-  chooseMethod('rv');requestAnimationFrame(tick);
+  chooseMethod('rv');
+  new ResizeObserver(()=>{buildGraph();render();}).observe($('graph'));
+  requestAnimationFrame(tick);
 })();
