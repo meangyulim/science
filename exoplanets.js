@@ -10,12 +10,12 @@
       obsNote:'흡수선의 좌우 이동을 확대했습니다. 파란색·빨간색은 편이 방향이며 별 자체의 색 변화가 아닙니다.',
       valueLabel:'중심별의 시선 속도',unit:'m/s',graphLabel:'시선 속도 (m/s)',legend:'중심별 시선 속도',baseline:'속도 0',
       limitTitle:'정면에서 보면, 앞뒤 움직임이 사라집니다.',
-      limitText:'궤도 경사각을 0°로 바꿔 보세요. 별은 계속 공전하지만 시선에 수직으로 움직이므로 도플러 편이가 없습니다. 그래프가 수평이 되는 것은 행성이 없어서가 아닙니다.',
+      limitText:'시선과 궤도면 사이의 각도 θ를 90°로 바꿔 보세요. 별은 계속 공전하지만 시선에 수직으로 움직이므로 도플러 편이가 없습니다. 0°에서는 궤도면이 시선과 나란하여 시선 속도 진폭이 최대입니다.',
       clue:'진폭은 질량의 단서, 반복 간격은 공전 주기',clueNote:'별의 질량·주기·궤도 경사 등 다른 조건이 같을 때, 무거운 행성일수록 별의 시선 속도 진폭이 큽니다. 경사각을 모르면 최소 질량을 구합니다.',
-      challenge:'질량을 두 배로 바꾸면 무엇이 달라질까요?',challengeNote:'주기는 그대로 두고 질량만 1 → 2 목성 질량으로 바꿔 보세요. 이어서 경사각도 낮춰 보세요.',
+      challenge:'질량을 두 배로 바꾸면 무엇이 달라질까요?',challengeNote:'주기는 그대로 두고 질량만 1 → 2 목성 질량으로 바꿔 보세요. 이어서 시선과 궤도면 사이의 각도를 0°에서 90°로 높여 보세요.',
       modelNote:'태양 질량의 별과 원궤도를 가정합니다. 시선 속도 진폭은 질량·주기·경사각에 따른 원궤도 식으로 계산합니다. 양수는 멀어짐, 음수는 다가옴입니다. 화면 속 별의 궤도는 확대된 도식이며 실제 거리 척도가 아닙니다.',
-      sliders:[['mass','행성 질량',0.2,3,0.1,'목성 질량','가벼움','무거움'],['period','공전 주기',1,12,0.5,'일','빠른 공전','느린 공전'],['inclination','궤도 경사각 i',0,90,1,'°','0° 정면','90° 옆면']],
-      presets:[['질량 2배',{mass:2}],['옆면에서 보기',{inclination:90}],['정면에서 보기',{inclination:0}]],limit:{inclination:0},start:0.125
+      sliders:[['mass','행성 질량',0.2,3,0.1,'목성 질량','가벼움','무거움'],['period','공전 주기',1,12,0.5,'일','빠른 공전','느린 공전'],['inclination','시선과 궤도면 사이의 각도 θ',0,90,1,'°','0° 나란 · 옆면','90° 수직 · 정면']],
+      presets:[['질량 2배',{mass:2}],['옆면에서 보기',{inclination:0}],['정면에서 보기',{inclination:90}]],limit:{inclination:90},start:0.125
     },
     transit:{
       kicker:'02 / TRANSIT',title:'별 앞을 지날 때, 별빛이 줄어듭니다.',
@@ -24,12 +24,12 @@
       obsNote:'관측 화면은 별 반지름에 대한 행성 크기·위치 비율을 반영합니다. 별 뒤를 지날 때는 별빛을 가리지 않습니다.',
       valueLabel:'중심별의 상대 밝기',unit:'%',graphLabel:'상대 밝기 (%)',legend:'중심별 밝기',baseline:'평상시 밝기 100%',
       limitTitle:'행성이 있어도, 시선에서 빗나가면 가리지 못합니다.',
-      limitText:'경사각을 75°로 낮춰 보세요. 공전은 계속되지만 관측 화면에서는 행성이 별 위쪽을 비켜 갑니다. 식현상은 궤도를 거의 옆면에서 볼 때만 나타납니다.',
+      limitText:'시선과 궤도면 사이의 각도를 0°에서 15°로 높여 보세요. 공전은 계속되지만 관측 화면에서는 행성이 별 위쪽을 비켜 갑니다. 식현상은 궤도를 거의 옆면에서 볼 때, 즉 이 각도가 0°에 가까울 때 나타납니다.',
       clue:'감소 깊이는 반지름의 단서',clueNote:'완전히 들어온 행성의 밝기 감소율 ≈ (행성 반지름 ÷ 별 반지름)². 이 밝기 곡선만으로 행성의 질량은 알 수 없습니다.',
-      challenge:'반지름이 두 배면, 감소 깊이는 몇 배일까요?',challengeNote:'반지름 비 0.10과 0.20을 비교하면 1%와 4%의 감소를 확인할 수 있습니다. 두 경우 모두 옆면(90°)으로 맞추세요.',
+      challenge:'반지름이 두 배면, 감소 깊이는 몇 배일까요?',challengeNote:'반지름 비 0.10과 0.20을 비교하면 1%와 4%의 감소를 확인할 수 있습니다. 두 경우 모두 시선과 궤도면이 나란한 옆면(0°)으로 맞추세요.',
       modelNote:'태양과 같은 질량·반지름의 별, 원궤도, 균일한 별 표면 밝기를 가정합니다. 겹친 두 원의 면적으로 밝기 감소를 계산하며 주연 감광·행성 자체의 빛·이차 식은 생략합니다. 공전 주기에 따라 궤도 반지름도 케플러 법칙으로 바뀝니다.',
-      sliders:[['radius','행성 반지름 / 별 반지름',0.03,0.2,0.01,'','작은 행성','큰 행성'],['period','공전 주기',1,12,0.5,'일','빠른 공전','느린 공전'],['inclination','궤도 경사각 i',0,90,1,'°','0° 정면','90° 옆면']],
-      presets:[['1% 감소',{radius:0.1,inclination:90}],['4% 감소',{radius:0.2,inclination:90}],['별을 비켜 가기',{inclination:75}]],limit:{inclination:75,period:3},start:0.0625
+      sliders:[['radius','행성 반지름 / 별 반지름',0.03,0.2,0.01,'','작은 행성','큰 행성'],['period','공전 주기',1,12,0.5,'일','빠른 공전','느린 공전'],['inclination','시선과 궤도면 사이의 각도 θ',0,90,1,'°','0° 나란 · 옆면','90° 수직 · 정면']],
+      presets:[['1% 감소',{radius:0.1,inclination:0}],['4% 감소',{radius:0.2,inclination:0}],['별을 비켜 가기',{inclination:15}]],limit:{inclination:15,period:3},start:0.0625
     },
     lens:{
       kicker:'03 / MICROLENSING',title:'앞쪽의 중력이, 뒤쪽 별빛을 모읍니다.',
@@ -57,7 +57,7 @@
       clue:'행성의 빛과 위치를 직접 측정',clueNote:'같은 지구 거리라면 별에서 멀리 떨어진 행성은 분리하기 쉽습니다. 젊고 뜨거운 행성은 스스로 내는 적외선이 강해 유리합니다.',
       challenge:'멀어지는 두 종류의 거리를 비교해 보세요.',challengeNote:'‘별–행성 거리’를 늘린 뒤 ‘지구–항성계 거리’를 늘려 보세요. 관측 화면의 간격은 각각 어떻게 달라질까요?',
       modelNote:'태양 질량의 별과 원궤도를 가정해 P² = a³ (년·AU)를 사용합니다. 각거리는 투영된 별–행성 거리(AU) / 지구 거리(pc)로 계산합니다. 0.15″ 분리 한계·별빛 잔광·적외선 밝기는 가상의 장비에 대한 교육용 기준이며 실제 관측 성능이나 검출 확률을 나타내지 않습니다. 적외선 밝기는 같은 별에 대한 상대 세기로 두며 거리 증가에 따른 전체 광자 수 감소는 생략합니다.',
-      sliders:[['orbit','별–행성 거리',2,12,0.5,'AU','별 가까이','별에서 멀리'],['distance','지구–항성계 거리',10,100,5,'pc','우리와 가까움','우리와 멂'],['inclination','궤도 경사각 i',0,90,1,'°','0° 정면','90° 옆면'],['brightness','행성의 적외선 밝기',0.1,3,0.1,'상대값','어두움','밝음']],
+      sliders:[['orbit','별–행성 거리',2,12,0.5,'AU','별 가까이','별에서 멀리'],['distance','지구–항성계 거리',10,100,5,'pc','우리와 가까움','우리와 멂'],['inclination','시선과 궤도면 사이의 각도 θ',0,90,1,'°','0° 나란 · 옆면','90° 수직 · 정면'],['brightness','행성의 적외선 밝기',0.1,3,0.1,'상대값','어두움','밝음']],
       checkbox:['mask','별빛 가리개 켜기'],
       presets:[['가리개 끄기',{mask:false}],['먼 항성계',{distance:100}],['어두운 행성',{brightness:0.1}]],limit:{distance:100},start:0
     }
@@ -126,10 +126,10 @@
     out+=planet(px,py,method==='transit'?8+p.radius*30:10,'s');
     out+=text(px+(px>cx?-18:18),py-17,'행성','aqua',px>cx?'end':'start');
     out+=text(sx+29,sy+7,'중심별','gold');
-    const tilt=p.inclination,projection=Math.sin(M.rad(tilt));
+    const tilt=p.inclination,projection=M.projection(tilt).sight;
     out+=arrow(cx,253,0,34*projection,'#9dbbd0')+circle(cx,297,9,'#459dc9')+text(cx+17,301,'관측자 방향','bright');
-    out+=text(26,294,`i = ${tilt}°${tilt===0?' · 정면':tilt===90?' · 옆면':''}`,'subtext');
-    if(tilt===0)out+=text(392,291,'시선은 궤도면에 수직','subtext');
+    out+=text(26,294,`θ = ${tilt}°${tilt===0?' · 옆면':tilt===90?' · 정면':''}`,'subtext');
+    if(tilt===90)out+=text(392,291,'시선은 궤도면에 수직','subtext');
     else out+=text(405,291,'아래 = 가까운 쪽','subtext');
     return out;
   }
@@ -172,14 +172,14 @@
     out+=text(sx+25,sy+7,'중심별','gold')+text(px+(px>cx?-16:16),py-13,'행성','aqua',px>cx?'end':'start');
     if(method==='rv')out+=line(cx-4,cy,cx+4,cy,'#fff')+line(cx,cy-4,cx,cy+4,'#fff')+arrow(sx,sy,wobble*Math.sin(s.theta),-wobble*.5*Math.cos(s.theta),'#efc66e');
     out+=text(24,26,method==='rv'?'공통 질량 중심 주위를 함께 공전':'행성의 공전 위치','subtext');
-    out+=arrow(cx,170,0,20*Math.sin(M.rad(p.inclination)),'#9dbbd0')+circle(cx,201,7,'#459dc9')+text(cx+15,206,'관측자 방향','bright');
-    out+=text(24,204,`i = ${p.inclination}° · ${p.inclination===0?'정면':p.inclination===90?'옆면':'기울임'}`,'subtext');
+    out+=arrow(cx,170,0,20*M.projection(p.inclination).sight,'#9dbbd0')+circle(cx,201,7,'#459dc9')+text(cx+15,206,'관측자 방향','bright');
+    out+=text(24,204,`θ = ${p.inclination}° · ${p.inclination===0?'옆면':p.inclination===90?'정면':'기울임'}`,'subtext');
     return out;
   }
   function rvSky(s){
-    const cx=220,cy=100,flatten=Math.cos(M.rad(p.inclination));
+    const cx=220,cy=100,flatten=M.projection(p.inclination).sky;
     const wobble=10+9*p.mass,sx=cx-wobble*s.x,sy=cy-wobble*s.y;
-    let out=defs('v')+text(18,24,`궤도 경사 i = ${p.inclination}° · ${p.inclination===0?'정면':p.inclination===90?'옆면':'기울어진 모습'}`,'subtext');
+    let out=defs('v')+text(18,24,`시선–궤도면 θ = ${p.inclination}° · ${p.inclination===0?'옆면':p.inclination===90?'정면':'기울어진 모습'}`,'subtext');
     out+=`<ellipse cx="${cx}" cy="${cy}" rx="155" ry="${Math.max(.3,70*flatten)}" fill="none" stroke="#59788b" stroke-dasharray="4 5"/>`;
     out+=`<ellipse cx="${cx}" cy="${cy}" rx="${wobble}" ry="${Math.max(.3,wobble*flatten)}" fill="none" stroke="#b59c6d" stroke-dasharray="3 4"/>`;
     const planetSvg=planet(cx+155*s.x,cy+70*s.y,8,'v');
@@ -188,7 +188,7 @@
     if(s.z>0)out+=planetSvg;
     out+=line(cx-4,cy,cx+4,cy,'#fff')+line(cx,cy-4,cx,cy+4,'#fff');
     out+=text(18,184,'주황: 중심별 · 초록: 행성 · +: 질량 중심','subtext');
-    out+=text(220,207,p.inclination===0?'좌우·상하 운동만 보임 → 시선 속도 0':'화면에 수직인 앞뒤 운동 → 스펙트럼 편이','aqua','middle');
+    out+=text(220,207,p.inclination===90?'좌우·상하 운동만 보임 → 시선 속도 0':'화면에 수직인 앞뒤 운동 → 스펙트럼 편이','aqua','middle');
     return out;
   }
   function transitObservation(s){
@@ -283,9 +283,9 @@
   function statusAndInsights(s){
     let status='',insight='',quality=1,meter='',warning=false;
     if(method==='rv'){
-      warning=p.inclination===0;
+      warning=p.inclination===90;
       status=warning?'편이 없음':Math.abs(s.value)<.1?'방향 전환 · 시선 속도 0':s.value>0?'멀어짐 · 적색 편이':'다가옴 · 청색 편이';
-      quality=Math.sin(M.rad(p.inclination));
+      quality=M.projection(p.inclination).sight;
       insight=warning?'별은 계속 움직여도 시선 방향 성분이 0이므로 그래프가 수평입니다.':`주기 ${p.period}일 · 속도 진폭 ${fmt(s.k,1)} m/s. 현재 별은 ${Math.abs(s.value)<.1?'시선 방향 속도가 0인 위치입니다.':s.value>0?'우리에게서 멀어지고 있습니다.':'우리에게 다가오고 있습니다.'}`;
       meter=warning?'시선 성분 0':`옆면 대비 ${Math.round(quality*100)}%`;
     }else if(method==='transit'){

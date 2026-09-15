@@ -5,10 +5,10 @@
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const rad = d => d * Math.PI / 180;
   const defaults = {
-    rv: {mass:1, period:3, inclination:90},
-    transit: {radius:0.1, period:3, inclination:90},
+    rv: {mass:1, period:3, inclination:0},
+    transit: {radius:0.1, period:3, inclination:0},
     lens: {impact:0.25, mass:1, offset:0.9, planet:true},
-    direct: {orbit:8, distance:20, inclination:60, brightness:2, mask:true}
+    direct: {orbit:8, distance:20, inclination:30, brightness:2, mask:true}
   };
   function overlap(d, r, R=1) {
     if (d >= R+r) return 0;
@@ -17,12 +17,18 @@
     const b = Math.acos(clamp((d*d + R*R-r*r)/(2*d*R), -1, 1));
     return r*r*a + R*R*b - 0.5*Math.sqrt(Math.max(0,(-d+r+R)*(d+r-R)*(d-r+R)*(d+r+R)));
   }
+  // Classroom angle: line of sight to orbital PLANE (0° edge-on, 90° face-on).
+  // The usual astronomical normal-to-sight inclination is its complement.
+  function projection(inclination) {
+    return {sky:inclination===0?0:Math.sin(rad(inclination)), sight:inclination===90?0:Math.cos(rad(inclination))};
+  }
   function orbit(t, period, inclination) {
     const theta = TAU*t/period;
-    return {theta, x:Math.cos(theta), y:Math.sin(theta)*Math.cos(rad(inclination)), z:Math.sin(theta)*Math.sin(rad(inclination))};
+    const axes=projection(inclination);
+    return {theta, x:Math.cos(theta), y:Math.sin(theta)*axes.sky, z:Math.sin(theta)*axes.sight};
   }
   function rv(t,p) {
-    const k = 28.4329*p.mass*(p.period/365.25)**(-1/3)/(1+0.0009546*p.mass)**(2/3)*Math.sin(rad(p.inclination));
+    const k = 28.4329*p.mass*(p.period/365.25)**(-1/3)/(1+0.0009546*p.mass)**(2/3)*projection(p.inclination).sight;
     return {...orbit(t,p.period,p.inclination), k, value:k*Math.cos(TAU*t/p.period)};
   }
   function transit(t,p) {
@@ -30,7 +36,7 @@
     const a = 215.032*(p.period/365.25)**(2/3); // a / R_sun for a solar-mass primary
     const separation = a*Math.hypot(pos.x,pos.y);
     const loss = pos.z > 0 ? overlap(separation,p.radius)/Math.PI : 0;
-    return {...pos, a, separation, loss, value:100*(1-loss), canTransit:a*Math.cos(rad(p.inclination)) < 1+p.radius};
+    return {...pos, a, separation, loss, value:100*(1-loss), canTransit:a*projection(p.inclination).sky < 1+p.radius};
   }
   function lens(t,p) {
     const tau=t/10, u=Math.hypot(tau,p.impact);
@@ -50,7 +56,7 @@
     return {...pos,period,separation,threshold,detectable:separation>0.15 && p.brightness>threshold,value:separation};
   }
   function domain(method,p) { return method==='lens' ? [-40,40] : method==='direct' ? [0,2*p.orbit**1.5] : [0,12]; }
-  const api={TAU,clamp,rad,defaults,overlap,orbit,rv,transit,lens,direct,domain};
+  const api={TAU,clamp,rad,defaults,projection,overlap,orbit,rv,transit,lens,direct,domain};
   if(typeof module!=='undefined' && module.exports) module.exports=api;
   else root.ExoplanetModel=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
