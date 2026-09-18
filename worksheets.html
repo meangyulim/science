@@ -18,6 +18,18 @@
                font-weight:700; font-size:14px; text-decoration:none; display:block; }
   .ws-btn-dl { background:#4f46e5; color:#fff; }
   .ws-btn-vw { background:#fff; color:#334155; border:1px solid #cbd5e1; }
+
+  .ws-notice      { background:#eef2ff; border:1px solid #c7d2fe; border-radius:16px;
+                    padding:14px 16px; margin-bottom:16px; }
+  .ws-notice-head { margin:0 0 9px; font-size:13px; font-weight:700; color:#4338ca; }
+  .ws-notice-list { margin:0; padding:0; list-style:none; }
+  .ws-notice-item { display:flex; gap:10px; font-size:13px; color:#3730a3;
+                    line-height:1.55; padding:2px 0; word-break:keep-all; }
+  .ws-notice-date { flex:none; font-weight:700; color:#6366f1;
+                    font-variant-numeric:tabular-nums; }
+  .ws-new         { display:inline-block; margin-left:7px; padding:1px 7px; border-radius:999px;
+                    background:#4f46e5; color:#fff; font-size:10px; font-weight:700;
+                    vertical-align:middle; letter-spacing:.04em; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -33,6 +45,11 @@
       </p>
     </header>
 
+    <section id="notices" class="ws-notice" hidden>
+      <h2 class="ws-notice-head">📢 공지 및 변경사항</h2>
+      <ul id="noticeList" class="ws-notice-list"></ul>
+    </section>
+
     <div id="list" class="flex flex-col gap-3"></div>
 
     <p id="empty" hidden class="text-center text-sm text-slate-400 py-16">
@@ -46,15 +63,27 @@
   </div>
 
 <script>
+  // 직접 알릴 공지. 학습지 업로드 소식은 아래 worksheets 의 added 날짜로 자동
+  // 만들어지므로 여기 적지 않아도 된다. 그 밖의 안내만 한 줄씩 쓰면 된다.
+  //   { date: '2026-09-20', text: '다음 주 수행평가는 3단원까지입니다.' }
+  const notices = [];
+
+  // 올린 지 이 기간 안이면 목록에 NEW 표시가 붙는다.
+  // 주 단위 수업에 맞춰 7일로 둔다. 너무 길면 전부 NEW 가 되어 표시가 의미를 잃는다.
+  const NEW_DAYS = 7;
+
   // 학습지 목록. 자료를 추가할 때는 이 배열에 한 줄만 더 쓰면 된다.
   //   file      : 저장소 안의 실제 경로 (영문 이름 — 서버·브라우저에서 안전하다)
   //   saveAs    : 학생이 저장할 때 보이는 파일 이름 (한글로 써도 된다)
+  //   added     : 올린 날짜 (YYYY-MM-DD). 이 날짜로 위쪽 '공지 및 변경사항' 이
+  //               자동으로 만들어지고, 최근 항목에는 NEW 표시가 붙는다.
   const worksheets = [
     {
       unit:   'Ⅰ. 우주 탐사와 행성계',
       title:  '태양계 탐사와 우주 위험 감시',
       note:   '소단원 내용 정리',
       file:   'worksheets/01-solar-system-exploration.pdf',
+      added:  '2026-09-07',
       saveAs: '행성우주과학_태양계 탐사와 우주 위험 감시.pdf',
       pages:  3,
       bytes:  417231
@@ -64,6 +93,7 @@
       title:  '케플러 법칙 — 궤도의 모양과 속도',
       note:   '02. 태양계 천체들의 운동 · 케플러 1·2법칙',
       file:   'worksheets/02-kepler-laws.pdf',
+      added:  '2026-09-08',
       saveAs: '행성우주과학_케플러 법칙 궤도의 모양과 속도.pdf',
       pages:  5,
       bytes:  919738
@@ -73,6 +103,7 @@
       title:  '조화 법칙과 태양의 중력',
       note:   '02. 태양계 천체들의 운동 · 케플러 3법칙, 만유인력',
       file:   'worksheets/03-harmonic-law-gravity.pdf',
+      added:  '2026-09-09',
       saveAs: '행성우주과학_조화 법칙과 태양의 중력.pdf',
       pages:  5,
       bytes:  556832
@@ -82,14 +113,100 @@
       title:  '외계 행성계 탐사 방법',
       note:   '소단원 내용 정리',
       file:   'worksheets/04-exoplanet-detection.pdf',
+      added:  '2026-09-15',
       saveAs: '행성우주과학_외계 행성계 탐사 방법.pdf',
       pages:  4,
       bytes:  551067
+    },
+    {
+      unit:   'Ⅰ. 우주 탐사와 행성계',
+      title:  '생명 가능 지대와 생명체',
+      note:   '소단원 내용 정리',
+      file:   'worksheets/05-habitable-zone.pdf',
+      added:  '2026-09-18',
+      saveAs: '행성우주과학_생명 가능 지대와 생명체.pdf',
+      pages:  4,
+      bytes:  360901
     }
   ];
 
   const listEl = document.getElementById('list');
   const emptyEl = document.getElementById('empty');
+
+  // 'YYYY-MM-DD' 를 그 날 자정으로 읽는다. 문자열을 그대로 Date 에 넘기면
+  // UTC 로 해석되어 한국 시간 기준 하루가 어긋나므로 숫자로 나눠서 만든다.
+  function parseDay(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+  }
+
+  function daysSince(iso) {
+    const d = parseDay(iso);
+    if (!d) return Infinity;
+    const today = new Date();
+    const midnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return (midnight - d) / 86400000;
+  }
+
+  function isNew(w) {
+    const gap = daysSince(w.added);
+    return gap >= 0 && gap < NEW_DAYS;
+  }
+
+  function formatDay(iso) {
+    const d = parseDay(iso);
+    return d ? `${d.getMonth() + 1}월 ${d.getDate()}일` : String(iso || '');
+  }
+
+  // 제목 끝 글자의 받침에 따라 목적격 조사를 고른다 ('방법을', '생명체를').
+  function objectParticle(word) {
+    const ch = String(word || '').trim().slice(-1);
+    const code = ch.charCodeAt(0);
+    if (code >= 0xAC00 && code <= 0xD7A3) {
+      return (code - 0xAC00) % 28 === 0 ? '를' : '을';
+    }
+    return '를';
+  }
+
+  // 직접 쓴 공지와 학습지 업로드 소식을 합쳐 최근 것부터 보여 준다.
+  function buildNoticeFeed() {
+    const uploads = worksheets
+      .filter(w => w.added)
+      .map(w => ({
+        date: w.added,
+        text: `새 학습지 「${w.title}」${objectParticle(w.title)} 올렸습니다.`
+      }));
+
+    return notices.concat(uploads)
+      .filter(n => n.date && n.text)
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+      .slice(0, 5);
+  }
+
+  function renderNotices() {
+    const box = document.getElementById('notices');
+    const list = document.getElementById('noticeList');
+    const feed = buildNoticeFeed();
+
+    list.textContent = '';
+    // Tailwind 가 막혀도 확실히 숨겨지도록 클래스가 아니라 hidden 속성을 쓴다.
+    box.hidden = feed.length === 0;
+
+    feed.forEach(n => {
+      const li = document.createElement('li');
+      li.className = 'ws-notice-item';
+
+      const when = document.createElement('span');
+      when.className = 'ws-notice-date';
+      when.textContent = formatDay(n.date);
+
+      const what = document.createElement('span');
+      what.textContent = n.text;
+
+      li.append(when, what);
+      list.appendChild(li);
+    });
+  }
 
   function formatSize(bytes) {
     if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
@@ -120,6 +237,12 @@
     const title = document.createElement('h2');
     title.className = "text-base font-bold text-slate-800 break-keep leading-snug mt-0.5";
     title.textContent = `${index + 1}. ${w.title}`;
+    if (isNew(w)) {
+      const badge = document.createElement('span');
+      badge.className = 'ws-new';
+      badge.textContent = 'NEW';
+      title.appendChild(badge);
+    }
 
     const sub = document.createElement('div');
     sub.className = "text-xs text-slate-500 mt-1";
@@ -149,6 +272,8 @@
     card.append(top, actions);
     return card;
   }
+
+  renderNotices();
 
   if (worksheets.length === 0) {
     emptyEl.hidden = false;
