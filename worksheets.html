@@ -30,6 +30,12 @@
   .ws-new         { display:inline-block; margin-left:7px; padding:1px 7px; border-radius:999px;
                     background:#4f46e5; color:#fff; font-size:10px; font-weight:700;
                     vertical-align:middle; letter-spacing:.04em; }
+  .ws-revised     { background:#b45309; }
+  .ws-notice-body { flex:1; min-width:0; }
+  .ws-notice-sub  { margin:5px 0 0; padding:0; list-style:none; }
+  .ws-notice-sub li { position:relative; padding-left:12px; font-size:12.5px;
+                      color:#4338ca; line-height:1.5; margin-top:2px; }
+  .ws-notice-sub li::before { content:"·"; position:absolute; left:3px; font-weight:700; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -77,6 +83,10 @@
   //   saveAs    : 학생이 저장할 때 보이는 파일 이름 (한글로 써도 된다)
   //   added     : 올린 날짜 (YYYY-MM-DD). 이 날짜로 위쪽 '공지 및 변경사항' 이
   //               자동으로 만들어지고, 최근 항목에는 NEW 표시가 붙는다.
+  //   updated   : 자료를 고쳐 올린 날짜. 넣으면 공지에 개정 소식이 자동으로 생기고,
+  //               목록에 '개정' 배지가 붙으며, 내려받기 주소 뒤에 ?v=날짜 가 붙어
+  //               학생이 캐시된 옛 파일을 받지 않는다.
+  //   updateNotes : 무엇을 고쳤는지 한 줄씩. 공지에 그대로 펼쳐진다.
   //   no        : 학습지 번호. 화면에는 이 번호로 표시하고 이 번호 순으로 줄 세운다.
   //               아직 안 올린 번호를 건너뛰어도 되고, 나중에 그 번호를 추가하면
   //               배열 어디에 적든 제자리에 끼어 들어간다.
@@ -121,9 +131,14 @@
       no:     4,
       file:   'worksheets/04-exoplanet-detection.pdf',
       added:  '2026-09-15',
+      updated: '2026-09-22',
+      updateNotes: [
+        '식 현상의 「한계」에 “행성의 공전 궤도면이 시선 방향과 수직일 때는 관측할 수 없음” 문장을 더했습니다.',
+        '탐사 방법 비교표 아래에 있던 ★시험 대비 상자(수직이면 어렵다 ↔ 나란해야 한다)를 뺐습니다. 위 문장과 표에 같은 내용이 들어가 중복이었습니다.'
+      ],
       saveAs: '행성우주과학_외계 행성계 탐사 방법.pdf',
       pages:  4,
-      bytes:  551067
+      bytes:  569478
     },
     {
       unit:   'Ⅰ. 우주 탐사와 행성계',
@@ -172,6 +187,17 @@
     return gap >= 0 && gap < NEW_DAYS;
   }
 
+  function isRevised(w) {
+    const gap = daysSince(w.updated);
+    return gap >= 0 && gap < NEW_DAYS;
+  }
+
+  // 고쳐 올린 자료는 주소 뒤에 수정 날짜를 붙인다.
+  // 파일 이름이 그대로면 브라우저가 캐시해 둔 옛 파일을 계속 줄 수 있다.
+  function fileHref(w) {
+    return w.updated ? `${w.file}?v=${w.updated}` : w.file;
+  }
+
   function formatDay(iso) {
     const d = parseDay(iso);
     return d ? `${d.getMonth() + 1}월 ${d.getDate()}일` : String(iso || '');
@@ -196,7 +222,15 @@
         text: `새 학습지 「${w.title}」${objectParticle(w.title)} 올렸습니다.`
       }));
 
-    return notices.concat(uploads)
+    const revisions = worksheets
+      .filter(w => w.updated)
+      .map(w => ({
+        date: w.updated,
+        text: `${w.no}번 「${w.title}」${objectParticle(w.title)} 개정했습니다. 다시 내려받아 주세요.`,
+        details: w.updateNotes || []
+      }));
+
+    return notices.concat(uploads, revisions)
       .filter(n => n.date && n.text)
       .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
       .slice(0, 5);
@@ -219,10 +253,22 @@
       when.className = 'ws-notice-date';
       when.textContent = formatDay(n.date);
 
-      const what = document.createElement('span');
-      what.textContent = n.text;
+      const body = document.createElement('div');
+      body.className = 'ws-notice-body';
+      body.textContent = n.text;
 
-      li.append(when, what);
+      if (n.details && n.details.length) {
+        const sub = document.createElement('ul');
+        sub.className = 'ws-notice-sub';
+        n.details.forEach(d => {
+          const item = document.createElement('li');
+          item.textContent = d;
+          sub.appendChild(item);
+        });
+        body.appendChild(sub);
+      }
+
+      li.append(when, body);
       list.appendChild(li);
     });
   }
@@ -256,10 +302,11 @@
     const title = document.createElement('h2');
     title.className = "text-base font-bold text-slate-800 break-keep leading-snug mt-0.5";
     title.textContent = `${w.no}. ${w.title}`;
-    if (isNew(w)) {
+    if (isRevised(w) || isNew(w)) {
       const badge = document.createElement('span');
-      badge.className = 'ws-new';
-      badge.textContent = 'NEW';
+      const revised = isRevised(w);
+      badge.className = revised ? 'ws-new ws-revised' : 'ws-new';
+      badge.textContent = revised ? '개정' : 'NEW';
       title.appendChild(badge);
     }
 
@@ -275,13 +322,13 @@
     actions.className = "ws-btns";
 
     const dl = document.createElement('a');
-    dl.href = w.file;
+    dl.href = fileHref(w);
     dl.setAttribute('download', w.saveAs || '');
     dl.className = "ws-btn ws-btn-dl active:scale-95 transition-transform";
     dl.textContent = '내려받기';
 
     const view = document.createElement('a');
-    view.href = w.file;
+    view.href = fileHref(w);
     view.target = '_blank';
     view.rel = 'noopener';
     view.className = "ws-btn ws-btn-vw active:scale-95 transition-transform";
