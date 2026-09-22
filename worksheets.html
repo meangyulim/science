@@ -99,7 +99,7 @@
   //   updated   : 자료를 고쳐 올린 날짜. 넣으면 공지에 개정 소식이 자동으로 생기고,
   //               목록에 '개정' 배지가 붙으며, 내려받기 주소 뒤에 ?v=날짜 가 붙어
   //               학생이 캐시된 옛 파일을 받지 않는다.
-  //   updateNotes : 무엇을 고쳤는지 한 줄씩. 공지에 그대로 펼쳐진다.
+  //               무엇을 고쳤는지는 여기 적지 않고 notices.txt 에 쓴다.
   //   no        : 학습지 번호. 화면에는 이 번호로 표시하고 이 번호 순으로 줄 세운다.
   //               아직 안 올린 번호를 건너뛰어도 되고, 나중에 그 번호를 추가하면
   //               배열 어디에 적든 제자리에 끼어 들어간다.
@@ -145,10 +145,6 @@
       file:   'worksheets/04-exoplanet-detection.pdf',
       added:  '2026-09-15',
       updated: '2026-09-22',
-      updateNotes: [
-        '식 현상의 「한계」에 “행성의 공전 궤도면이 시선 방향과 수직일 때는 관측할 수 없음” 문장을 더했습니다.',
-        '탐사 방법 비교표 아래에 있던 ★시험 대비 상자(수직이면 어렵다 ↔ 나란해야 한다)를 뺐습니다. 위 문장과 표에 같은 내용이 들어가 중복이었습니다.'
-      ],
       saveAs: '행성우주과학_외계 행성계 탐사 방법.pdf',
       pages:  4,
       bytes:  569478
@@ -278,8 +274,7 @@
       .filter(w => w.updated)
       .map(w => ({
         date: w.updated,
-        text: `${w.no}번 「${w.title}」${objectParticle(w.title)} 개정했습니다. 다시 내려받아 주세요.`,
-        details: w.updateNotes || []
+        text: `${w.no}번 「${w.title}」${objectParticle(w.title)} 개정했습니다. 다시 내려받아 주세요.`
       }));
 
     return recent(uploads.concat(revisions));
