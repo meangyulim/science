@@ -77,11 +77,15 @@
   //   saveAs    : 학생이 저장할 때 보이는 파일 이름 (한글로 써도 된다)
   //   added     : 올린 날짜 (YYYY-MM-DD). 이 날짜로 위쪽 '공지 및 변경사항' 이
   //               자동으로 만들어지고, 최근 항목에는 NEW 표시가 붙는다.
+  //   no        : 학습지 번호. 화면에는 이 번호로 표시하고 이 번호 순으로 줄 세운다.
+  //               아직 안 올린 번호를 건너뛰어도 되고, 나중에 그 번호를 추가하면
+  //               배열 어디에 적든 제자리에 끼어 들어간다.
   const worksheets = [
     {
       unit:   'Ⅰ. 우주 탐사와 행성계',
       title:  '태양계 탐사와 우주 위험 감시',
       note:   '소단원 내용 정리',
+      no:     1,
       file:   'worksheets/01-solar-system-exploration.pdf',
       added:  '2026-09-07',
       saveAs: '행성우주과학_태양계 탐사와 우주 위험 감시.pdf',
@@ -92,6 +96,7 @@
       unit:   'Ⅰ. 우주 탐사와 행성계',
       title:  '케플러 법칙 — 궤도의 모양과 속도',
       note:   '02. 태양계 천체들의 운동 · 케플러 1·2법칙',
+      no:     2,
       file:   'worksheets/02-kepler-laws.pdf',
       added:  '2026-09-08',
       saveAs: '행성우주과학_케플러 법칙 궤도의 모양과 속도.pdf',
@@ -102,6 +107,7 @@
       unit:   'Ⅰ. 우주 탐사와 행성계',
       title:  '조화 법칙과 태양의 중력',
       note:   '02. 태양계 천체들의 운동 · 케플러 3법칙, 만유인력',
+      no:     3,
       file:   'worksheets/03-harmonic-law-gravity.pdf',
       added:  '2026-09-09',
       saveAs: '행성우주과학_조화 법칙과 태양의 중력.pdf',
@@ -112,6 +118,7 @@
       unit:   'Ⅰ. 우주 탐사와 행성계',
       title:  '외계 행성계 탐사 방법',
       note:   '소단원 내용 정리',
+      no:     4,
       file:   'worksheets/04-exoplanet-detection.pdf',
       added:  '2026-09-15',
       saveAs: '행성우주과학_외계 행성계 탐사 방법.pdf',
@@ -122,11 +129,23 @@
       unit:   'Ⅰ. 우주 탐사와 행성계',
       title:  '생명 가능 지대와 생명체',
       note:   '소단원 내용 정리',
+      no:     5,
       file:   'worksheets/05-habitable-zone.pdf',
       added:  '2026-09-18',
       saveAs: '행성우주과학_생명 가능 지대와 생명체.pdf',
       pages:  4,
       bytes:  360901
+    },
+    {
+      no:     7,
+      unit:   'Ⅰ. 우주 탐사와 행성계',
+      title:  '1단원 심화 개념 정리',
+      note:   '심화 개념 정리',
+      file:   'worksheets/07-unit1-advanced-concepts.pdf',
+      added:  '2026-09-22',
+      saveAs: '행성우주과학_1단원 심화 개념 정리.pdf',
+      pages:  2,
+      bytes:  652695
     }
   ];
 
@@ -215,7 +234,7 @@
 
   // 목록은 우리가 직접 쓰는 값이지만, 렌더링 방식은 리더보드와 같은 규칙을 따른다.
   // 문자열을 이어 붙여 innerHTML 로 넣지 않고 textContent 로만 넣는다.
-  function buildCard(w, index) {
+  function buildCard(w) {
     const card = document.createElement('div');
     card.className = "ws-card sm:p-5 shadow-sm";
 
@@ -236,7 +255,7 @@
 
     const title = document.createElement('h2');
     title.className = "text-base font-bold text-slate-800 break-keep leading-snug mt-0.5";
-    title.textContent = `${index + 1}. ${w.title}`;
+    title.textContent = `${w.no}. ${w.title}`;
     if (isNew(w)) {
       const badge = document.createElement('span');
       badge.className = 'ws-new';
@@ -278,7 +297,10 @@
   if (worksheets.length === 0) {
     emptyEl.hidden = false;
   } else {
-    worksheets.forEach((w, i) => listEl.appendChild(buildCard(w, i)));
+    // 배열에 적은 순서와 무관하게 번호 순으로 보여 준다.
+    worksheets.slice()
+      .sort((a, b) => a.no - b.no)
+      .forEach(w => listEl.appendChild(buildCard(w)));
   }
 </script>
 </body>
