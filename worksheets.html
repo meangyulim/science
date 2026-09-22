@@ -31,6 +31,11 @@
                     background:#4f46e5; color:#fff; font-size:10px; font-weight:700;
                     vertical-align:middle; letter-spacing:.04em; }
   .ws-revised     { background:#b45309; }
+  .ws-changes                 { background:#f8fafc; border-color:#e2e8f0; }
+  .ws-changes .ws-notice-head { color:#475569; }
+  .ws-changes .ws-notice-item { color:#475569; }
+  .ws-changes .ws-notice-date { color:#64748b; }
+  .ws-changes .ws-notice-sub li { color:#64748b; }
   .ws-notice-body { flex:1; min-width:0; }
   .ws-notice-sub  { margin:5px 0 0; padding:0; list-style:none; }
   .ws-notice-sub li { position:relative; padding-left:12px; font-size:12.5px;
@@ -51,9 +56,16 @@
       </p>
     </header>
 
+    <!-- 선생님이 직접 쓰는 공지. 내용은 notices.txt 에서 읽어 온다. -->
     <section id="notices" class="ws-notice" hidden>
-      <h2 class="ws-notice-head">📢 공지 및 변경사항</h2>
+      <h2 class="ws-notice-head">📢 공지사항</h2>
       <ul id="noticeList" class="ws-notice-list"></ul>
+    </section>
+
+    <!-- 학습지를 올리거나 고치면 자동으로 쌓이는 기록. 손으로 적지 않는다. -->
+    <section id="changes" class="ws-notice ws-changes" hidden>
+      <h2 class="ws-notice-head">🔄 학습지 변경사항</h2>
+      <ul id="changeList" class="ws-notice-list"></ul>
     </section>
 
     <div id="list" class="flex flex-col gap-3"></div>
@@ -69,10 +81,11 @@
   </div>
 
 <script>
-  // 직접 알릴 공지. 학습지 업로드 소식은 아래 worksheets 의 added 날짜로 자동
-  // 만들어지므로 여기 적지 않아도 된다. 그 밖의 안내만 한 줄씩 쓰면 된다.
-  //   { date: '2026-09-20', text: '다음 주 수행평가는 3단원까지입니다.' }
-  const notices = [];
+  // 직접 알릴 공지는 notices.txt 에 적는다. 이 파일을 코드와 떼어 둔 이유는,
+  // 배열 안에서 쉼표나 따옴표가 하나 어긋나면 페이지 전체가 멈추기 때문이다.
+  // 텍스트 파일은 한 줄이 잘못돼도 그 줄만 건너뛴다.
+  // 학습지 업로드·개정 소식은 아래 worksheets 에서 자동으로 만들어진다.
+  let notices = [];
 
   // 올린 지 이 기간 안이면 목록에 NEW 표시가 붙는다.
   // 주 단위 수업에 맞춰 7일로 둔다. 너무 길면 전부 NEW 가 되어 표시가 의미를 잃는다.
@@ -171,7 +184,12 @@
   // UTC 로 해석되어 한국 시간 기준 하루가 어긋나므로 숫자로 나눠서 만든다.
   function parseDay(iso) {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
-    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+    if (!m) return null;
+    const d = new Date(+m[1], +m[2] - 1, +m[3]);
+    // 2026-13-99 처럼 없는 날짜를 넘기면 Date 가 조용히 다음 달로 넘겨 버린다.
+    // 만든 날짜를 다시 읽어 값이 달라지면 잘못 적은 것으로 본다.
+    if (d.getFullYear() !== +m[1] || d.getMonth() !== +m[2] - 1 || d.getDate() !== +m[3]) return null;
+    return d;
   }
 
   function daysSince(iso) {
@@ -213,8 +231,42 @@
     return '를';
   }
 
-  // 직접 쓴 공지와 학습지 업로드 소식을 합쳐 최근 것부터 보여 준다.
-  function buildNoticeFeed() {
+  // notices.txt 한 줄씩 읽기.
+  //   '# ...'        주석, 건너뛴다
+  //   '날짜 | 내용'   공지 한 건
+  //   '- 내용'        바로 위 공지의 세부 항목
+  // 형식이 어긋난 줄은 조용히 건너뛴다. 한 줄 때문에 공지 전체가 사라지면 안 된다.
+  function parseNotices(text) {
+    const out = [];
+    String(text || '').split(/\r?\n/).forEach(raw => {
+      const line = raw.trim();
+      if (!line || line.startsWith('#')) return;
+
+      if (line.startsWith('-')) {
+        const detail = line.slice(1).trim();
+        if (detail && out.length) {
+          const last = out[out.length - 1];
+          (last.details = last.details || []).push(detail);
+        }
+        return;
+      }
+
+      const m = /^(\d{4}-\d{2}-\d{2})\s*\|\s*(.+)$/.exec(line);
+      if (m && parseDay(m[1])) out.push({ date: m[1], text: m[2].trim(), details: [] });
+    });
+    return out;
+  }
+
+  // 최근 것부터, 많아야 다섯 건까지만 보여 준다.
+  function recent(list) {
+    return list
+      .filter(n => n.date && n.text && parseDay(n.date))
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+      .slice(0, 5);
+  }
+
+  // 학습지를 올리거나 고치면 저절로 쌓이는 기록. 손으로 적지 않는다.
+  function buildChangeFeed() {
     const uploads = worksheets
       .filter(w => w.added)
       .map(w => ({
@@ -230,47 +282,51 @@
         details: w.updateNotes || []
       }));
 
-    return notices.concat(uploads, revisions)
-      .filter(n => n.date && n.text)
-      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
-      .slice(0, 5);
+    return recent(uploads.concat(revisions));
   }
 
-  function renderNotices() {
-    const box = document.getElementById('notices');
-    const list = document.getElementById('noticeList');
-    const feed = buildNoticeFeed();
+  function noticeItem(n) {
+    const li = document.createElement('li');
+    li.className = 'ws-notice-item';
+
+    const when = document.createElement('span');
+    when.className = 'ws-notice-date';
+    when.textContent = formatDay(n.date);
+
+    const body = document.createElement('div');
+    body.className = 'ws-notice-body';
+    body.textContent = n.text;
+
+    if (n.details && n.details.length) {
+      const sub = document.createElement('ul');
+      sub.className = 'ws-notice-sub';
+      n.details.forEach(d => {
+        const item = document.createElement('li');
+        item.textContent = d;
+        sub.appendChild(item);
+      });
+      body.appendChild(sub);
+    }
+
+    li.append(when, body);
+    return li;
+  }
+
+  // 목록이 비면 그 칸만 접는다. 두 칸은 서로 상관없이 뜨고 진다.
+  function renderFeed(boxId, listId, feed) {
+    const box = document.getElementById(boxId);
+    const list = document.getElementById(listId);
+    if (!box || !list) return;
 
     list.textContent = '';
     // Tailwind 가 막혀도 확실히 숨겨지도록 클래스가 아니라 hidden 속성을 쓴다.
     box.hidden = feed.length === 0;
+    feed.forEach(n => list.appendChild(noticeItem(n)));
+  }
 
-    feed.forEach(n => {
-      const li = document.createElement('li');
-      li.className = 'ws-notice-item';
-
-      const when = document.createElement('span');
-      when.className = 'ws-notice-date';
-      when.textContent = formatDay(n.date);
-
-      const body = document.createElement('div');
-      body.className = 'ws-notice-body';
-      body.textContent = n.text;
-
-      if (n.details && n.details.length) {
-        const sub = document.createElement('ul');
-        sub.className = 'ws-notice-sub';
-        n.details.forEach(d => {
-          const item = document.createElement('li');
-          item.textContent = d;
-          sub.appendChild(item);
-        });
-        body.appendChild(sub);
-      }
-
-      li.append(when, body);
-      list.appendChild(li);
-    });
+  function renderNotices() {
+    renderFeed('notices', 'noticeList', recent(notices));
+    renderFeed('changes', 'changeList', buildChangeFeed());
   }
 
   function formatSize(bytes) {
@@ -339,7 +395,19 @@
     return card;
   }
 
+  // 학습지에서 자동으로 만들어지는 공지를 먼저 보여 주고,
+  // notices.txt 를 읽어 오면 합쳐서 다시 그린다. 파일을 못 읽어도 페이지는 그대로 돈다.
   renderNotices();
+
+  // no-cache 는 '캐시를 쓰되 서버에 먼저 물어본다' 는 뜻이다.
+  // 공지를 고쳤는데 학생 화면에 한참 안 뜨는 일을 막는다.
+  fetch('notices.txt', { cache: 'no-cache' })
+    .then(res => (res.ok ? res.text() : ''))
+    .then(text => {
+      const parsed = parseNotices(text);
+      if (parsed.length) { notices = parsed; renderNotices(); }
+    })
+    .catch(() => { /* 공지 파일을 못 읽어도 학습지 목록은 그대로 쓴다 */ });
 
   if (worksheets.length === 0) {
     emptyEl.hidden = false;
