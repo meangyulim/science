@@ -84,7 +84,7 @@
   // 직접 알릴 공지는 notices.txt 에 적는다. 이 파일을 코드와 떼어 둔 이유는,
   // 배열 안에서 쉼표나 따옴표가 하나 어긋나면 페이지 전체가 멈추기 때문이다.
   // 텍스트 파일은 한 줄이 잘못돼도 그 줄만 건너뛴다.
-  // 학습지 업로드·개정 소식은 아래 worksheets 에서 자동으로 만들어진다.
+  // 학습지 업로드·수정 소식은 아래 worksheets 에서 자동으로 만들어진다.
   let notices = [];
 
   // 올린 지 이 기간 안이면 목록에 NEW 표시가 붙는다.
@@ -96,8 +96,10 @@
   //   saveAs    : 학생이 저장할 때 보이는 파일 이름 (한글로 써도 된다)
   //   added     : 올린 날짜 (YYYY-MM-DD). 이 날짜로 위쪽 '공지 및 변경사항' 이
   //               자동으로 만들어지고, 최근 항목에는 NEW 표시가 붙는다.
-  //   updated   : 자료를 고쳐 올린 날짜. 넣으면 공지에 개정 소식이 자동으로 생기고,
-  //               목록에 '개정' 배지가 붙으며, 내려받기 주소 뒤에 ?v=날짜 가 붙어
+  //   updates   : 고쳐 올린 날짜를 하나씩 덧붙이는 목록 (예: ['2026-09-22']).
+  //               개수가 곧 차수다. 두 번째로 고치면 날짜를 하나 더 적기만 하면
+  //               '2차 수정' 이 된다. 목록에 '1차 수정' 배지가 붙고, 변경사항에
+  //               소식이 자동으로 생기며, 내려받기 주소 뒤에 ?v=날짜 가 붙어
   //               학생이 캐시된 옛 파일을 받지 않는다.
   //               무엇을 고쳤는지는 여기 적지 않고 notices.txt 에 쓴다.
   //   no        : 학습지 번호. 화면에는 이 번호로 표시하고 이 번호 순으로 줄 세운다.
@@ -144,7 +146,7 @@
       no:     4,
       file:   'worksheets/04-exoplanet-detection.pdf',
       added:  '2026-09-15',
-      updated: '2026-09-22',
+      updates: ['2026-09-22'],
       saveAs: '행성우주과학_외계 행성계 탐사 방법.pdf',
       pages:  4,
       bytes:  569478
@@ -201,15 +203,25 @@
     return gap >= 0 && gap < NEW_DAYS;
   }
 
+  // 고쳐 올린 날짜 목록. 적은 순서가 뒤바뀌어도 되도록 날짜순으로 세운다.
+  function updateDays(w) {
+    return (w.updates || []).filter(d => parseDay(d)).sort();
+  }
+  function lastUpdate(w) {
+    const days = updateDays(w);
+    return days.length ? days[days.length - 1] : null;
+  }
+
   function isRevised(w) {
-    const gap = daysSince(w.updated);
+    const gap = daysSince(lastUpdate(w));
     return gap >= 0 && gap < NEW_DAYS;
   }
 
   // 고쳐 올린 자료는 주소 뒤에 수정 날짜를 붙인다.
   // 파일 이름이 그대로면 브라우저가 캐시해 둔 옛 파일을 계속 줄 수 있다.
   function fileHref(w) {
-    return w.updated ? `${w.file}?v=${w.updated}` : w.file;
+    const last = lastUpdate(w);
+    return last ? `${w.file}?v=${last}` : w.file;
   }
 
   function formatDay(iso) {
@@ -270,12 +282,15 @@
         text: `새 학습지 「${w.title}」${objectParticle(w.title)} 올렸습니다.`
       }));
 
-    const revisions = worksheets
-      .filter(w => w.updated)
-      .map(w => ({
-        date: w.updated,
-        text: `${w.no}번 「${w.title}」${objectParticle(w.title)} 개정했습니다. 다시 내려받아 주세요.`
-      }));
+    const revisions = [];
+    worksheets.forEach(w => {
+      updateDays(w).forEach((day, i) => {
+        revisions.push({
+          date: day,
+          text: `${w.no}번 「${w.title}」 ${i + 1}차 수정본을 올렸습니다. 다시 내려받아 주세요.`
+        });
+      });
+    });
 
     return recent(uploads.concat(revisions));
   }
@@ -357,7 +372,7 @@
       const badge = document.createElement('span');
       const revised = isRevised(w);
       badge.className = revised ? 'ws-new ws-revised' : 'ws-new';
-      badge.textContent = revised ? '개정' : 'NEW';
+      badge.textContent = revised ? `${updateDays(w).length}차 수정` : 'NEW';
       title.appendChild(badge);
     }
 
