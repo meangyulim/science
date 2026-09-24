@@ -18,6 +18,9 @@
                font-weight:700; font-size:14px; text-decoration:none; display:block; }
   .ws-btn-dl { background:#4f46e5; color:#fff; }
   .ws-btn-vw { background:#fff; color:#334155; border:1px solid #cbd5e1; }
+  .ws-btns-video { margin-top:8px; }
+  .ws-btn-video  { background:#fff7ed; color:#c2410c; border:1px solid #fed7aa;
+                   font-size:13px; padding:9px 0; }
 
   .ws-notice      { background:#eef2ff; border:1px solid #c7d2fe; border-radius:16px;
                     padding:14px 16px; margin-bottom:16px; }
@@ -41,6 +44,9 @@
   .ws-notice-sub li { position:relative; padding-left:12px; font-size:12.5px;
                       color:#4338ca; line-height:1.5; margin-top:2px; }
   .ws-notice-sub li::before { content:"·"; position:absolute; left:3px; font-weight:700; }
+  .ws-notice-links { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .ws-link { display:inline-block; padding:7px 12px; border-radius:10px; background:#4f46e5;
+             color:#fff; font-size:12.5px; font-weight:700; text-decoration:none; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -102,6 +108,8 @@
   //               소식이 자동으로 생기며, 내려받기 주소 뒤에 ?v=날짜 가 붙어
   //               학생이 캐시된 옛 파일을 받지 않는다.
   //               무엇을 고쳤는지는 여기 적지 않고 notices.txt 에 쓴다.
+  //   videos    : 영상 수업 링크 (없으면 빼도 된다). 카드에 버튼으로 붙는다.
+  //               예: [{ label: 'Teams 영상', url: 'https://...' }]
   //   no        : 학습지 번호. 화면에는 이 번호로 표시하고 이 번호 순으로 줄 세운다.
   //               아직 안 올린 번호를 건너뛰어도 되고, 나중에 그 번호를 추가하면
   //               배열 어디에 적든 제자리에 끼어 들어간다.
@@ -250,10 +258,31 @@
     return '를';
   }
 
+  // 주소는 http(s) 만 받는다. javascript: 같은 주소가 섞여도 링크로 만들지 않는다.
+  function safeUrl(raw) {
+    try {
+      const u = new URL(String(raw || '').trim());
+      return (u.protocol === 'https:' || u.protocol === 'http:') ? u.href : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function linkButton(label, url, className) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.className = className;
+    a.textContent = label;
+    return a;
+  }
+
   // notices.txt 한 줄씩 읽기.
   //   '# ...'        주석, 건너뛴다
   //   '날짜 | 내용'   공지 한 건
   //   '- 내용'        바로 위 공지의 세부 항목
+  //   '- 이름 | 주소'  바로 위 공지에 붙는 링크 버튼
   // 형식이 어긋난 줄은 조용히 건너뛴다. 한 줄 때문에 공지 전체가 사라지면 안 된다.
   function parseNotices(text) {
     const out = [];
@@ -265,7 +294,10 @@
         const detail = line.slice(1).trim();
         if (detail && out.length) {
           const last = out[out.length - 1];
-          (last.details = last.details || []).push(detail);
+          const link = /^(.+?)\s*\|\s*(\S+)$/.exec(detail);
+          const url = link && safeUrl(link[2]);
+          if (url) (last.links = last.links || []).push({ label: link[1].trim(), url });
+          else (last.details = last.details || []).push(detail);
         }
         return;
       }
@@ -327,6 +359,13 @@
         sub.appendChild(item);
       });
       body.appendChild(sub);
+    }
+
+    if (n.links && n.links.length) {
+      const row = document.createElement('div');
+      row.className = 'ws-notice-links';
+      n.links.forEach(l => row.appendChild(linkButton(l.label, l.url, 'ws-link')));
+      body.appendChild(row);
     }
 
     li.append(when, body);
@@ -413,6 +452,17 @@
 
     actions.append(dl, view);
     card.append(top, actions);
+
+    const videos = (w.videos || [])
+      .map(v => ({ label: String(v.label || '').trim(), url: safeUrl(v.url) }))
+      .filter(v => v.label && v.url);
+    if (videos.length) {
+      const row = document.createElement('div');
+      row.className = 'ws-btns ws-btns-video';
+      videos.forEach(v => row.appendChild(
+        linkButton(`▶ ${v.label}`, v.url, 'ws-btn ws-btn-video active:scale-95 transition-transform')));
+      card.append(row);
+    }
     return card;
   }
 
