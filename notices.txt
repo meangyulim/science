@@ -34,3 +34,7 @@
 2026-09-22 | 4번 「외계 행성계 탐사 방법」 학습지를 고쳤습니다. 바뀐 내용은 다음과 같습니다.
 - 식 현상의 「한계」에 “행성의 공전 궤도면이 시선 방향과 수직일 때는 관측할 수 없음” 문장을 더했습니다.
 - 탐사 방법 비교표 아래에 있던 ★시험 대비 상자(수직이면 어렵다 ↔ 나란해야 한다)를 뺐습니다.
+
+2026-09-24 | 소천체 파트 영상 수업을 올렸습니다. 6번 학습지 「행성과 소천체의 특징과 탐사」와 함께 보세요. 두 링크는 같은 영상이니 열리는 쪽으로 보면 됩니다.
+- Teams로 보기 | https://sen1347.sharepoint.com/:v:/s/msteams_c3a52c/IQDc8b8o1iDfQZWISXBoWpbqAVnv2bwmEE7zVowDyiEKFcE
+- 구글 드라이브로 보기 | https://drive.google.com/file/d/1yYMatQ2h9VI41Rha4wC_44QntCJDT1CT/view?usp=drivesdk
