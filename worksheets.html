@@ -44,6 +44,14 @@
   .ws-notice-sub li { position:relative; padding-left:12px; font-size:12.5px;
                       color:#4338ca; line-height:1.5; margin-top:2px; }
   .ws-notice-sub li::before { content:"·"; position:absolute; left:3px; font-weight:700; }
+  .ws-archive { margin-top:20px; border:1px solid #e2e8f0; border-radius:16px; background:#f8fafc; }
+  .ws-archive > summary { cursor:pointer; padding:14px 16px; font-weight:700; font-size:14px;
+                          color:#475569; list-style:none; }
+  .ws-archive > summary::-webkit-details-marker { display:none; }
+  .ws-archive > summary::before { content:"▸"; display:inline-block; width:1.1em; transition:transform .15s; }
+  .ws-archive[open] > summary::before { transform:rotate(90deg); }
+  .ws-archive-count { font-weight:400; color:#94a3b8; }
+  .ws-archive-list  { padding:0 12px 1px; }
   .ws-notice-links { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
   .ws-link { display:inline-block; padding:7px 12px; border-radius:10px; background:#4f46e5;
              color:#fff; font-size:12.5px; font-weight:700; text-decoration:none; }
@@ -80,6 +88,9 @@
       아직 올라온 학습지가 없습니다.
     </p>
 
+    <!-- 지난 시험 범위 학습지. 눌러야 펼쳐진다. -->
+    <div id="archive"></div>
+
     <footer class="mt-10 pt-4 border-t border-slate-200 text-xs text-slate-400 leading-relaxed">
       파일이 열리지 않으면 학교 와이파이 대신 데이터로 다시 시도해 보세요.<br>
       PDF 뷰어가 없는 기기에서는 내려받은 뒤 파일 앱에서 열어야 할 수 있습니다.
@@ -97,6 +108,11 @@
   // 주 단위 수업에 맞춰 7일로 둔다. 너무 길면 전부 NEW 가 되어 표시가 의미를 잃는다.
   const NEW_DAYS = 7;
 
+  // 지금 진도의 시험 범위. 이 이름과 exam 이 같은 학습지만 펼쳐 보이고,
+  // 나머지는 맨 아래 '지난 학습지' 에 시험별로 접어 둔다.
+  // 다음 시험 범위로 넘어가면 이 한 줄을 바꾸고, 새 학습지의 exam 에 같은 이름을 적는다.
+  const CURRENT_EXAM = '기말고사';
+
   // 학습지 목록. 자료를 추가할 때는 이 배열에 한 줄만 더 쓰면 된다.
   //   file      : 저장소 안의 실제 경로 (영문 이름 — 서버·브라우저에서 안전하다)
   //   saveAs    : 학생이 저장할 때 보이는 파일 이름 (한글로 써도 된다)
@@ -110,7 +126,9 @@
   //               무엇을 고쳤는지는 여기 적지 않고 notices.txt 에 쓴다.
   //   videos    : 영상 수업 링크 (없으면 빼도 된다). 카드에 버튼으로 붙는다.
   //               예: [{ label: 'Teams 영상', url: 'https://...' }]
-  //   no        : 학습지 번호. 화면에는 이 번호로 표시하고 이 번호 순으로 줄 세운다.
+  //   exam      : 어느 시험 범위인지 (예: '중간고사'). 빼면 지금 범위로 본다.
+  //   no        : 학습지 번호. 시험 범위마다 1번부터 센다.
+  //               화면에는 이 번호로 표시하고 이 번호 순으로 줄 세운다.
   //               아직 안 올린 번호를 건너뛰어도 되고, 나중에 그 번호를 추가하면
   //               배열 어디에 적든 제자리에 끼어 들어간다.
   const worksheets = [
@@ -119,6 +137,7 @@
       title:  '태양계 탐사와 우주 위험 감시',
       note:   '소단원 내용 정리',
       no:     1,
+      exam:   '중간고사',
       file:   'worksheets/01-solar-system-exploration.pdf',
       added:  '2026-09-07',
       saveAs: '행성우주과학_태양계 탐사와 우주 위험 감시.pdf',
@@ -130,6 +149,7 @@
       title:  '케플러 법칙 — 궤도의 모양과 속도',
       note:   '02. 태양계 천체들의 운동 · 케플러 1·2법칙',
       no:     2,
+      exam:   '중간고사',
       file:   'worksheets/02-kepler-laws.pdf',
       added:  '2026-09-08',
       saveAs: '행성우주과학_케플러 법칙 궤도의 모양과 속도.pdf',
@@ -141,6 +161,7 @@
       title:  '조화 법칙과 태양의 중력',
       note:   '02. 태양계 천체들의 운동 · 케플러 3법칙, 만유인력',
       no:     3,
+      exam:   '중간고사',
       file:   'worksheets/03-harmonic-law-gravity.pdf',
       added:  '2026-09-09',
       saveAs: '행성우주과학_조화 법칙과 태양의 중력.pdf',
@@ -152,6 +173,7 @@
       title:  '외계 행성계 탐사 방법',
       note:   '소단원 내용 정리',
       no:     4,
+      exam:   '중간고사',
       file:   'worksheets/04-exoplanet-detection.pdf',
       added:  '2026-09-15',
       updates: ['2026-09-22'],
@@ -164,6 +186,7 @@
       title:  '생명 가능 지대와 생명체',
       note:   '소단원 내용 정리',
       no:     5,
+      exam:   '중간고사',
       file:   'worksheets/05-habitable-zone.pdf',
       added:  '2026-09-18',
       saveAs: '행성우주과학_생명 가능 지대와 생명체.pdf',
@@ -175,6 +198,7 @@
       title:  '행성과 소천체의 특징과 탐사',
       note:   '소단원 내용 정리',
       no:     6,
+      exam:   '중간고사',
       file:   'worksheets/06-planets-small-bodies.pdf',
       videos: [
         { label: 'Teams 영상',   url: 'https://sen1347.sharepoint.com/:v:/s/msteams_c3a52c/IQDc8b8o1iDfQZWISXBoWpbqAVnv2bwmEE7zVowDyiEKFcE' },
@@ -187,6 +211,7 @@
     },
     {
       no:     7,
+      exam:   '중간고사',
       unit:   'Ⅰ. 우주 탐사와 행성계',
       title:  '1단원 심화 개념 정리',
       note:   '심화 개념 정리',
@@ -195,11 +220,28 @@
       saveAs: '행성우주과학_1단원 심화 개념 정리.pdf',
       pages:  2,
       bytes:  652695
+    },
+    {
+      unit:   'Ⅱ. 태양과 별의 관측',
+      title:  '태양의 광구와 대기 관측',
+      note:   '소단원 내용 정리',
+      no:     1,
+      exam:   '기말고사',
+      file:   'worksheets/final-01-sun-photosphere.pdf',
+      added:  '2026-10-18',
+      saveAs: '행성우주과학_태양의 광구와 대기 관측.pdf',
+      pages:  3,
+      bytes:  281868
     }
   ];
 
+  function isCurrent(w) {
+    return !w.exam || w.exam === CURRENT_EXAM;
+  }
+
   const listEl = document.getElementById('list');
   const emptyEl = document.getElementById('empty');
+  const archiveEl = document.getElementById('archive');
 
   // 'YYYY-MM-DD' 를 그 날 자정으로 읽는다. 문자열을 그대로 Date 에 넘기면
   // UTC 로 해석되어 한국 시간 기준 하루가 어긋나므로 숫자로 나눠서 만든다.
@@ -322,15 +364,16 @@
 
   // 학습지를 올리거나 고치면 저절로 쌓이는 기록. 손으로 적지 않는다.
   function buildChangeFeed() {
+    // 지난 시험 범위의 소식은 접어 둔 학습지와 함께 물러난다.
     const uploads = worksheets
-      .filter(w => w.added)
+      .filter(w => isCurrent(w) && w.added)
       .map(w => ({
         date: w.added,
         text: `새 학습지 「${w.title}」${objectParticle(w.title)} 올렸습니다.`
       }));
 
     const revisions = [];
-    worksheets.forEach(w => {
+    worksheets.filter(isCurrent).forEach(w => {
       updateDays(w).forEach((day, i) => {
         revisions.push({
           date: day,
@@ -484,14 +527,40 @@
     })
     .catch(() => { /* 공지 파일을 못 읽어도 학습지 목록은 그대로 쓴다 */ });
 
-  if (worksheets.length === 0) {
-    emptyEl.hidden = false;
-  } else {
-    // 배열에 적은 순서와 무관하게 번호 순으로 보여 준다.
-    worksheets.slice()
-      .sort((a, b) => a.no - b.no)
-      .forEach(w => listEl.appendChild(buildCard(w)));
-  }
+  // 배열에 적은 순서와 무관하게 번호 순으로 보여 준다.
+  const byNo = (a, b) => a.no - b.no;
+  const current = worksheets.filter(isCurrent).sort(byNo);
+  current.forEach(w => listEl.appendChild(buildCard(w)));
+  emptyEl.hidden = current.length > 0;
+
+  // 지난 시험 범위는 시험별로 하나씩 접어 맨 아래에 둔다. 최근에 올린 범위가 위.
+  const pastGroups = [];
+  worksheets.filter(w => !isCurrent(w)).forEach(w => {
+    let g = pastGroups.find(x => x.exam === w.exam);
+    if (!g) pastGroups.push(g = { exam: w.exam, items: [], latest: '' });
+    g.items.push(w);
+    if ((w.added || '') > g.latest) g.latest = w.added || '';
+  });
+  pastGroups
+    .sort((a, b) => (a.latest < b.latest ? 1 : a.latest > b.latest ? -1 : 0))
+    .forEach(g => {
+      const box = document.createElement('details');
+      box.className = 'ws-archive';
+
+      const head = document.createElement('summary');
+      head.textContent = `지난 학습지 — ${g.exam} `;
+      const count = document.createElement('span');
+      count.className = 'ws-archive-count';
+      count.textContent = `(${g.items.length}개)`;
+      head.appendChild(count);
+
+      const inner = document.createElement('div');
+      inner.className = 'ws-archive-list';
+      g.items.sort(byNo).forEach(w => inner.appendChild(buildCard(w)));
+
+      box.append(head, inner);
+      archiveEl.appendChild(box);
+    });
 </script>
 </body>
 </html>
