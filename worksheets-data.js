@@ -134,5 +134,17 @@ var worksheets = [
     saveAs: '행성우주과학_태양의 광구와 대기 관측.pdf',
     pages:  3,
     bytes:  281868
+  },
+  {
+    unit:   'Ⅱ. 태양과 별의 관측',
+    title:  '별까지의 거리 측정',
+    note:   '소단원 내용 정리',
+    no:     2,
+    exam:   '기말고사',
+    file:   'worksheets/final-02-star-distance.pdf',
+    added:  '2026-10-19',
+    saveAs: '행성우주과학_별까지의 거리 측정.pdf',
+    pages:  4,
+    bytes:  158431
   }
 ];
