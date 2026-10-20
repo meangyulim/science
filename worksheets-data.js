@@ -146,5 +146,17 @@ var worksheets = [
     saveAs: '행성우주과학_별까지의 거리 측정.pdf',
     pages:  4,
     bytes:  158431
+  },
+  {
+    unit:   'Ⅱ. 태양과 별의 관측',
+    title:  '별의 공간 운동',
+    note:   '소단원 내용 정리',
+    no:     3,
+    exam:   '기말고사',
+    file:   'worksheets/final-03-stellar-motion.pdf',
+    added:  '2026-10-20',
+    saveAs: '행성우주과학_별의 공간 운동.pdf',
+    pages:  3,
+    bytes:  225280
   }
 ];
