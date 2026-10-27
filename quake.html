@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14283a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>캠퍼스 지진 · 진앙을 찾아라</title>
+  <link rel="stylesheet" href="quake.css?v=20261027">
+  <script defer src="quake-model.js?v=20261027"></script>
+  <script defer src="quake.js?v=20261027"></script>
+</head>
+<body data-screen="entry">
+<div class="shake-root" id="shake-root">
+
+<!-- ───────────── 처음 화면 ───────────── -->
+<section class="screen entry" id="screen-entry" aria-labelledby="entry-title">
+  <div class="entry-inner">
+    <p class="eyebrow">지구과학 야외수업 / CAMPUS QUAKE</p>
+    <h1 id="entry-title">캠퍼스 지진<span class="title-dot">.</span><br><span class="sub-title">진앙을 찾아라</span></h1>
+    <p class="lede">모두의 휴대폰이 지진 관측소가 됩니다. 운동장에 흩어져 지진파를 기록하고, PS시로 원을 그려 숨겨진 진앙을 찾아내세요.</p>
+
+    <svg class="entry-art" viewBox="0 0 360 120" aria-hidden="true">
+      <g class="art-rings"><circle cx="180" cy="60" r="14"/><circle cx="180" cy="60" r="34"/><circle cx="180" cy="60" r="56"/></g>
+      <path class="art-trace" d="M0 60 H70 l3-4 3 7 3-9 3 8 3-3 3 2 H120 l4-14 4 26 4-30 4 34 4-24 4 16 4-10 4 6 H190 l5-30 5 58 5-50 5 44 5-36 5 26 5-18 5 12 5-8 5 4 H360"/>
+      <circle class="art-epi" cx="180" cy="60" r="5"/>
+    </svg>
+
+    <div class="entry-actions">
+      <form class="join-card" id="join-form" autocomplete="off">
+        <h2>학생으로 참여</h2>
+        <label class="field">
+          <span>방 번호</span>
+          <input id="join-code" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000" aria-describedby="join-hint">
+        </label>
+        <div class="field">
+          <span>모둠</span>
+          <div class="team-picker" id="team-picker" role="radiogroup" aria-label="모둠 고르기"></div>
+        </div>
+        <label class="field">
+          <span>이름 (번호도 좋아요)</span>
+          <input id="join-name" maxlength="10" placeholder="예: 12 김민지">
+        </label>
+        <button class="primary big" id="join-btn" type="submit">관측소 열기</button>
+        <p class="hint" id="join-hint">위치와 소리를 써요. 묻는 창이 뜨면 <b>허용</b>을 눌러 주세요.</p>
+        <p class="error" id="join-error" role="alert" hidden></p>
+      </form>
+
+      <div class="teacher-card">
+        <h2>선생님</h2>
+        <p>방을 열면 QR 코드가 나옵니다. 학생들은 카메라로 찍어서 들어와요.</p>
+        <button class="dark big" id="open-room">수업 열기</button>
+        <button class="ghost" id="open-demo">가상 학생 24명과 미리 해 보기</button>
+        <p class="hint" id="server-note"></p>
+      </div>
+    </div>
+
+    <details class="how">
+      <summary>어떻게 진행하나요?</summary>
+      <ol>
+        <li><b>관측망 깔기</b> — QR로 들어와 운동장 곳곳에 흩어집니다. 선생님 화면에 모두의 위치가 실시간으로 보여요.</li>
+        <li><b>지진 발생</b> — 선생님이 숨겨 둔 진앙에서 지진이 납니다. 진앙에서 가까운 폰부터 차례로 P파, S파가 도착해 흔들려요.</li>
+        <li><b>판독</b> — 내 지진 기록에서 P파와 S파가 도착한 순간을 찍으면 PS시와 진원 거리가 나옵니다.</li>
+        <li><b>진앙 레이스</b> — 반 전체의 원이 지도에 겹칩니다. 원들이 만나는 곳으로 달려가 모둠의 추정 진앙을 제출하세요.</li>
+        <li><b>정답 공개</b> — 진앙과 파면이 펼쳐지고, 우리 반 데이터로 주시 곡선과 진도 분포를 확인합니다.</li>
+      </ol>
+    </details>
+  </div>
+</section>
+
+<!-- ───────────── 학생 화면 ───────────── -->
+<section class="screen student" id="screen-student" aria-label="관측소">
+  <header class="bar">
+    <div class="bar-id">
+      <span class="team-dot" id="st-team-dot"></span>
+      <div><strong id="st-name">관측소</strong><small id="st-room">방 ----</small></div>
+    </div>
+    <div class="bar-status">
+      <span class="pill" id="st-gps" title="GPS 정확도">GPS …</span>
+      <span class="conn" id="st-conn" title="연결 상태"></span>
+    </div>
+  </header>
+
+  <div class="toast" id="st-toast" role="status" aria-live="polite" hidden></div>
+
+  <main class="st-body">
+    <div class="st-card" id="st-card" aria-live="polite"></div>
+
+    <div class="st-tabs" id="st-tabs" role="tablist" hidden>
+      <button role="tab" data-tab="map" aria-selected="true">지도</button>
+      <button role="tab" data-tab="seis" aria-selected="false">내 지진 기록</button>
+    </div>
+
+    <div class="st-map-wrap" id="st-map-wrap">
+      <svg class="field-map" id="st-map" aria-label="관측망 지도"></svg>
+      <div class="map-tools">
+        <button class="icon" data-fit="st" title="모두 보기" aria-label="모두 보기">⤢</button>
+        <button class="icon" data-sat="st" title="위성 사진" aria-label="위성 사진 켜고 끄기">🛰</button>
+      </div>
+      <p class="map-credit" id="st-credit"></p>
+    </div>
+
+    <div class="drum-wrap" id="drum-wrap" hidden>
+      <div class="drum-head">
+        <span class="rec"><i></i>REC</span>
+        <span id="drum-clock">0.0 s</span>
+      </div>
+      <canvas class="drum" id="drum" aria-label="실시간 지진 기록"></canvas>
+      <p class="drum-note" id="drum-note">움직이지 말고 기다리세요. 관측소는 땅에 붙어 있어요.</p>
+    </div>
+
+    <div class="pick-wrap" id="pick-wrap" hidden>
+      <div class="pick-steps" id="pick-steps">
+        <button class="pick-step p" data-pick="p" aria-pressed="true"><b>P</b><span>P파 도착 찍기</span><em id="pick-p-val">—</em></button>
+        <button class="pick-step s" data-pick="s" aria-pressed="false"><b>S</b><span>S파 도착 찍기</span><em id="pick-s-val">—</em></button>
+      </div>
+      <canvas class="seis" id="seis" aria-label="내 지진 기록 판독"></canvas>
+      <div class="pick-tools">
+        <div class="segmented" role="group" aria-label="확대">
+          <button data-zoom="all" aria-pressed="true">전체</button>
+          <button data-zoom="near" aria-pressed="false">확대</button>
+        </div>
+        <div class="segmented" role="group" aria-label="증폭">
+          <button data-gain="1" aria-pressed="true">×1</button>
+          <button data-gain="4" aria-pressed="false">×4</button>
+          <button data-gain="16" aria-pressed="false">×16</button>
+        </div>
+        <div class="nudge">
+          <button data-nudge="-0.1" aria-label="0.1초 앞으로">◀</button>
+          <button data-nudge="0.1" aria-label="0.1초 뒤로">▶</button>
+        </div>
+      </div>
+      <div class="formula" id="pick-formula"></div>
+    </div>
+  </main>
+
+  <footer class="st-action" id="st-action"></footer>
+</section>
+
+<!-- ───────────── 선생님 화면 ───────────── -->
+<section class="screen teacher" id="screen-teacher" aria-label="선생님 화면">
+  <header class="t-bar">
+    <div class="t-brand">
+      <p class="eyebrow">CAMPUS QUAKE</p>
+      <strong>캠퍼스 지진<span class="title-dot">.</span></strong>
+    </div>
+    <button class="room-code" id="t-code" title="QR 코드 크게 보기"><small>방 번호</small><b>----</b></button>
+    <div class="t-stats">
+      <div><b id="t-count">0</b><small>접속</small></div>
+      <div><b id="t-gpsok">0</b><small>GPS 양호</small></div>
+      <div><b id="t-round">1</b><small>판</small></div>
+    </div>
+    <span class="conn" id="t-conn" title="연결 상태"></span>
+  </header>
+
+  <div class="t-main">
+    <div class="t-map-wrap">
+      <svg class="field-map" id="t-map" aria-label="관측망 지도"></svg>
+      <div class="map-tools">
+        <button class="icon" data-fit="t" title="모두 보기" aria-label="모두 보기">⤢</button>
+        <button class="icon" data-sat="t" title="위성 사진" aria-label="위성 사진 켜고 끄기">🛰</button>
+        <button class="icon" id="t-eye" title="진앙 가리기" aria-label="진앙 보이기/가리기" aria-pressed="true">👁</button>
+      </div>
+      <div class="map-legend" id="t-legend"></div>
+      <div class="countdown" id="countdown" hidden></div>
+      <p class="map-credit" id="t-credit"></p>
+    </div>
+
+    <aside class="t-side" id="t-side">
+      <section class="t-step" data-step="network">
+        <h3><span class="step">1</span> 관측망</h3>
+        <div class="team-bars" id="t-teams"></div>
+        <div class="msg-row">
+          <button class="chip" data-msg="운동장 곳곳으로 흩어지세요! 친구와 너무 붙어 있지 말기">흩어지세요</button>
+          <button class="chip" data-msg="그 자리에 멈추세요. 곧 지진이 납니다">멈추세요</button>
+          <button class="chip" data-msg="선생님 쪽으로 모이세요">모이세요</button>
+          <button class="chip" id="t-msg-custom">직접 쓰기…</button>
+        </div>
+      </section>
+
+      <section class="t-step" data-step="setup">
+        <h3><span class="step">2</span> 지진 설정</h3>
+        <div class="setting">
+          <span>축척</span>
+          <div class="segmented wide" id="t-scale" role="group" aria-label="축척"></div>
+          <small class="micro" id="t-scale-note"></small>
+        </div>
+        <div class="setting">
+          <label for="t-mag">규모 <b id="t-mag-val">5.0</b></label>
+          <input type="range" id="t-mag" min="3" max="7" step="0.1" value="5">
+        </div>
+        <div class="setting">
+          <span>진원 깊이</span>
+          <div class="segmented wide" id="t-depth" role="group" aria-label="진원 깊이">
+            <button data-depth="0" aria-pressed="true">0 m</button>
+            <button data-depth="20" aria-pressed="false">20 m</button>
+            <button data-depth="40" aria-pressed="false">40 m</button>
+          </div>
+        </div>
+        <div class="setting">
+          <span>진앙 정하기</span>
+          <div class="epi-row">
+            <button id="t-epi-tap" aria-pressed="false">🗺 지도에서</button>
+            <button id="t-epi-me">🧍 내 자리</button>
+            <button id="t-epi-rand">🎲 무작위</button>
+          </div>
+          <small class="micro" id="t-epi-note">아직 진앙이 없습니다.</small>
+        </div>
+        <button class="quake-btn" id="t-quake" disabled>지진 발생</button>
+      </section>
+
+      <section class="t-step" data-step="live">
+        <h3><span class="step">3</span> 판독과 레이스</h3>
+        <div class="progress"><i id="t-pick-bar"></i></div>
+        <p class="micro" id="t-quake-sum"></p>
+        <p class="micro" id="t-pick-note">지진이 나면 판독 제출 현황이 여기에 보입니다.</p>
+        <div class="live-row">
+          <button id="t-race" disabled>🏃 레이스 시작</button>
+          <button class="dark" id="t-reveal" disabled>정답 공개</button>
+        </div>
+      </section>
+
+      <section class="t-step" data-step="result" id="t-result" hidden>
+        <h3><span class="step">4</span> 결과</h3>
+        <div id="t-ranking"></div>
+        <div class="segmented wide" id="t-view" role="group" aria-label="지도에 보일 것">
+          <button data-view="circles" aria-pressed="true">원과 공통현</button>
+          <button data-view="intensity" aria-pressed="false">진도 분포</button>
+          <button data-view="waves" aria-pressed="false">파면 다시 보기</button>
+        </div>
+        <figure class="tt-figure">
+          <svg id="t-tt" viewBox="0 0 360 230" role="img" aria-label="우리 반 주시 곡선"></svg>
+          <figcaption id="t-tt-cap"></figcaption>
+        </figure>
+        <div class="live-row">
+          <button id="t-csv">CSV 저장</button>
+          <button class="primary" id="t-next">다음 판</button>
+        </div>
+      </section>
+
+      <section class="t-step quiet">
+        <div class="live-row">
+          <button class="ghost" id="t-close">방 닫기</button>
+        </div>
+      </section>
+    </aside>
+  </div>
+</section>
+
+<!-- QR 크게 보기 -->
+<dialog class="qr-dialog" id="qr-dialog">
+  <div class="qr-body">
+    <p class="eyebrow">휴대폰 카메라로 찍으세요</p>
+    <div class="qr" id="qr"></div>
+    <p class="qr-code">방 번호 <b id="qr-code">----</b></p>
+    <p class="qr-url" id="qr-url"></p>
+    <form method="dialog"><button class="primary">닫기</button></form>
+  </div>
+</dialog>
+
+</div>
+</body>
+</html>
