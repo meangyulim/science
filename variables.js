@@ -97,26 +97,30 @@
   const numTicks = (lo, hi, n, d) => ticks(lo, hi, n).map(v => ({v, label: num(v, d === undefined ? decimals(niceStep(Math.abs(hi - lo), n)) : d)}));
 
   // 두 개의 시간 커서(A·B). 누른 곳에서 가까운 커서가 따라온다.
-  function cursorPair(xs, box, getSnaps) {
-    const st = {a: 0, b: 0, grab: null};
+  // snapRange(시간 단위) 안으로 극대 근처에 놓으면 자석처럼 극대에 붙는다 — 손가락으로도 얼추 맞추면 된다.
+  function cursorPair(xs, box, getSnaps, snapRange) {
+    const st = {a: 0, b: 0, grab: null, snapped: {a: false, b: false}};
     st.handle = (p, phase) => {
       if (phase === 'end') { st.grab = null; return false; }
       if (p.x < box.l - 10 || p.x > box.r + 10) return false;
       let t = xs.inv(Math.max(box.l, Math.min(box.r, p.x)));
-      const snaps = getSnaps ? getSnaps() : [];
-      const tol = Math.abs(xs.inv(box.l + 14) - xs.inv(box.l));
-      for (const s of snaps) if (Math.abs(s - t) < tol) { t = s; break; }
       if (phase === 'start') st.grab = Math.abs(t - st.a) <= Math.abs(t - st.b) ? 'a' : 'b';
-      st[st.grab] = t;
+      const snaps = getSnaps ? getSnaps() : [];
+      const tol = snapRange ? snapRange() : Math.abs(xs.inv(box.l + 14) - xs.inv(box.l));
+      let best = null;
+      for (const s of snaps) if (Math.abs(s - t) < tol && (best === null || Math.abs(s - t) < Math.abs(best - t))) best = s;
+      st.snapped[st.grab] = best !== null;
+      st[st.grab] = best !== null ? best : t;
       return true;
     };
     st.draw = (svg, color) => {
       const g = el('g', {}, svg), xa = xs(st.a), xb = xs(st.b);
       el('rect', {x: Math.min(xa, xb), y: box.t, width: Math.abs(xb - xa), height: box.b - box.t, fill: color, opacity: 0.07}, g);
       const k = small() ? 1.5 : 1;
-      [['A', xa], ['B', xb]].forEach(([n, x]) => {
-        el('line', {x1: x, x2: x, y1: box.t - 4, y2: box.b, stroke: color, 'stroke-width': 2 * k}, g);
-        el('rect', {x: x - 11 * k, y: box.t - 4 - 20 * k, width: 22 * k, height: 19 * k, rx: 5, fill: color}, g);
+      [['A', xa, st.snapped.a], ['B', xb, st.snapped.b]].forEach(([n, x, on]) => {
+        const c = on ? '#0b7f9a' : color;   // 극대에 붙으면 청록색
+        el('line', {x1: x, x2: x, y1: box.t - 4, y2: box.b, stroke: c, 'stroke-width': 2 * k}, g);
+        el('rect', {x: x - 11 * k, y: box.t - 4 - 20 * k, width: 22 * k, height: 19 * k, rx: 5, fill: c}, g);
         el('text', {x, y: box.t - 4 - 6 * k, 'text-anchor': 'middle', fill: '#fff', 'font-size': 12 * k, 'font-weight': 800}, g, n);
       });
       const y = box.t + 12, l = Math.min(xa, xb), r = Math.max(xa, xb);
@@ -198,7 +202,8 @@
       box.l = tall ? 100 : 70;
       xs = lin(t0, t1, box.l, box.r);
       if (st.cursorsFor !== s) {
-        cur = cursorPair(xs, box);
+        // 맥동 변광성이면 극대에 붙는다(주기의 20% 안). 폭발 변광성은 극대가 하나뿐이라 붙이지 않는다.
+        cur = s.group === 'pulse' ? cursorPair(xs, box, () => M.maxima(s, t0, t1), () => 0.2 * s.period) : cursorPair(xs, box);
         cur.a = t0 + (t1 - t0) * 0.18; cur.b = t0 + (t1 - t0) * 0.5;
         st.cursorsFor = s;
       }
@@ -527,7 +532,7 @@
     document.querySelectorAll('#ruler-pop [data-pop]').forEach(b => b.addEventListener('click', () => { st.pop = b.dataset.pop; st.checked = false; render(); }));
     $('ruler-snap').addEventListener('click', () => {
       const mx = M.maxima(spec, xs.d[0], xs.d[1]);
-      cur.a = mx[0]; cur.b = mx[1]; st.checked = false; render();
+      cur.a = mx[0]; cur.b = mx[1]; cur.snapped.a = cur.snapped.b = true; st.checked = false; render();
     });
     $('ruler-check').addEventListener('click', () => { st.checked = true; render(); });
 
@@ -536,7 +541,7 @@
       lbox.l = small() ? 100 : 64;
       const [t0, t1] = M.domain(spec);
       xs = lin(t0, t1, lbox.l, lbox.r);
-      cur = cursorPair(xs, lbox, () => M.maxima(spec, t0, t1));
+      cur = cursorPair(xs, lbox, () => M.maxima(spec, t0, t1), () => 0.2 * spec.period);
       cur.a = a; cur.b = b;
     }
     function load(t) {
@@ -551,7 +556,7 @@
 
     function measured() {
       const dt = Math.abs(cur.b - cur.a), n = Math.round(dt / spec.period);
-      const multi = n >= 2 && Math.abs(dt / spec.period - n) < 0.06;
+      const multi = n >= 2 && Math.abs(dt / spec.period - n) < 0.12;
       return {dt, n: multi ? n : 1, P: multi ? dt / n : dt};
     }
 
@@ -625,16 +630,17 @@
       if (st.pop === 'rr' && m.P > 1.05) warn = 'RR형의 주기는 1일보다 짧습니다. 이 별에 RR형 관계를 써도 될까요?';
       if (st.pop !== 'rr' && m.P < 0.95) warn = '세페이드의 주기는 1일보다 깁니다. 관계선 밖을 늘려 읽은 값입니다.';
       $('ruler-steps').innerHTML = `
-        <div class="s"><div class="k">① 주기 P (광도 곡선)</div><div class="v">${fmtDays(m.P)}</div><div class="w">커서 A·B를 이웃한 두 극대에</div></div>
+        <div class="s"><div class="k">① 주기 P (광도 곡선)</div><div class="v">${fmtDays(m.P)}</div><div class="w">커서 A·B를 이웃한 두 극대 근처에 (자석처럼 붙음)</div></div>
         <div class="s"><div class="k">② 절대 등급 M (${M.PL[st.pop].name})</div><div class="v">${num(Mabs, 2)}</div><div class="w">${warn || (st.pop === 'rr' ? '주기와 관계없이 약 +0.5' : `주기가 길수록 M이 작다(밝다)`)}</div></div>
         <div class="s"><div class="k">③ 거리 지수 m − M</div><div class="v">${num(mu, 2)}</div><div class="w">${num(mMean, 2)} − (${num(Mabs, 2)}) = ${num(mu, 2)}</div></div>
         <div class="s final"><div class="k">④ 거리 r</div><div class="v">${fmtPc(r)}</div><div class="w">m − M = 5 log r − 5<br>log r = (${num(mu, 2)} + 5) ÷ 5 = ${num(lr, 2)}<br>r = 10<sup>${num(lr, 2)}</sup> pc · ${fmtLy(r)}</div></div>`;
       const v = $('ruler-verdict');
       v.hidden = !st.checked;
       if (st.checked) {
-        const t = st.target, ratio = r / t.r, popOk = st.pop === t.pop, pOk = Math.abs(m.P / t.P - 1) < 0.05;
-        const ok = popOk && Math.abs(ratio - 1) < 0.1;
-        let msg = `<b>${ok ? '정확합니다!' : '다시 살펴보세요.'}</b> 정답 거리 ${fmtPc(t.r)} (${M.PL[t.pop].name}) · 내 답 ${fmtPc(r)} → ${Math.abs(ratio - 1) < 0.02 ? '거의 같게' : ratio >= 1 ? `${num(ratio, 2)}배 멀게` : `${num(1 / ratio, 2)}배 가깝게`} 계산했습니다.`;
+        const t = st.target, ratio = r / t.r, popOk = st.pop === t.pop, pOk = Math.abs(m.P / t.P - 1) < 0.1;
+        // 손으로 읽은 값이니 15% 안이면 맞은 것으로 본다.
+        const ok = popOk && pOk && Math.abs(ratio - 1) < 0.15;
+        let msg = `<b>${ok ? (Math.abs(ratio - 1) < 0.02 ? '정확합니다!' : '잘 맞혔어요! 손으로 읽은 값이라 이 정도 차이는 괜찮습니다.') : '다시 살펴보세요.'}</b> 정답 거리 ${fmtPc(t.r)} (${M.PL[t.pop].name}) · 내 답 ${fmtPc(r)} → ${Math.abs(ratio - 1) < 0.02 ? '거의 같게' : ratio >= 1 ? `${num(ratio, 2)}배 멀게` : `${num(1 / ratio, 2)}배 가깝게`} 계산했습니다.`;
         if (!pOk) msg += `<br>주기가 ${fmtDays(t.P)}에서 벗어나 있어요. 커서를 이웃한 두 극대에 맞춰 보세요.`;
         if (!popOk) {
           const dM = M.absMag(st.pop, t.P) - M.absMag(t.pop, t.P);
