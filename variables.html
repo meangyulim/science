@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2235">
+  <title>변광성 실험실 · 광도 곡선으로 읽는 별과 우주</title>
+  <link rel="stylesheet" href="variables.css?v=20261027">
+  <script defer src="variables-model.js?v=20261027"></script>
+  <script defer src="variables.js?v=20261027"></script>
+</head>
+<body>
+<main class="app">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">행성우주과학 / VARIABLE STAR LAB</p>
+      <h1>변광성 실험실<span class="title-dot">.</span></h1>
+      <p class="subtitle">밝기가 변하는 별 하나로, 별까지의 거리와 우주의 팽창까지 읽어 봅니다.</p>
+    </div>
+    <span class="lesson-badge">기말 4번 <span>변광성의 광도 곡선 특징</span></span>
+  </header>
+
+  <nav class="stations" aria-label="실험 선택">
+    <button data-station="read" aria-pressed="true"><span class="num">01</span><span>광도 곡선 읽기<small>맥동? 폭발?</small></span></button>
+    <button data-station="pulse" aria-pressed="false"><span class="num">02</span><span>맥동의 원리<small>L = 4πR²σT⁴</small></span></button>
+    <button data-station="ruler" aria-pressed="false"><span class="num">03</span><span>세페이드로 거리 재기<small>주기 → M → r</small></span></button>
+    <button data-station="cosmos" aria-pressed="false"><span class="num">04</span><span>Ia형 초신성과 우주<small>표준 광원 · 가속 팽창</small></span></button>
+  </nav>
+
+  <!-- ───────────── 01 광도 곡선 읽기 ───────────── -->
+  <section class="station" id="station-read" aria-labelledby="read-title">
+    <div class="intro">
+      <p class="eyebrow">01 / READING LIGHT CURVES</p>
+      <h2 id="read-title">광도 곡선의 모양이 별의 정체를 말해 줍니다.</h2>
+      <p>점 하나하나가 어느 날 밤의 관측입니다. 반복되는지, 얼마나 크게 변하는지 읽어 보세요.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="read-types" role="group" aria-label="변광성 종류"></div>
+      <button id="read-mystery" class="mystery">🎲 정체를 숨긴 별</button>
+    </div>
+    <div class="grid read-grid">
+      <section class="panel">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> <span id="read-chart-title">광도 곡선</span></h3>
+          <div class="segmented" role="group" aria-label="세로축">
+            <button data-axis="mag" aria-pressed="true">등급</button>
+            <button data-axis="flux" aria-pressed="false">상대 밝기</button>
+          </div>
+        </div>
+        <svg id="read-chart" class="chart interactive" viewBox="0 0 640 320" role="img" aria-label="시간에 따른 밝기 변화"></svg>
+        <div class="readout">
+          <div><span>두 커서 사이의 시간</span><strong id="read-dt">—</strong></div>
+          <div><span>커서 A가 가리키는 등급</span><strong id="read-ma">—</strong></div>
+          <label class="check"><input type="checkbox" id="read-model"> 모형 곡선 겹쳐 보기</label>
+        </div>
+        <p class="panel-note" id="read-axis-note"></p>
+      </section>
+      <section class="panel side">
+        <div class="panel-heading"><h3><span class="step">2</span> <span id="read-side-title">특징 정리</span></h3></div>
+        <div id="read-side" class="side-body"></div>
+      </section>
+    </div>
+    <p class="hint">그래프를 누르거나 끌면 가까운 커서(A·B)가 움직입니다. 두 극대에 하나씩 놓으면 그 사이 시간이 곧 <b>변광 주기</b>입니다.</p>
+  </section>
+
+  <!-- ───────────── 02 맥동의 원리 ───────────── -->
+  <section class="station" id="station-pulse" aria-labelledby="pulse-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">02 / WHY DOES IT PULSATE</p>
+      <h2 id="pulse-title">가장 클 때 가장 밝을까요?</h2>
+      <p>세페이드는 팽창과 수축을 되풀이하며 반지름 R과 표면 온도 T가 함께 변합니다. 광도는 L = 4πR²σT⁴로 정해집니다.</p>
+    </div>
+    <div class="grid pulse-grid">
+      <section class="panel scene">
+        <div class="panel-heading"><h3><span class="step">1</span> 별의 모습</h3><span class="micro" id="pulse-motion">—</span></div>
+        <svg id="pulse-star" class="space-view" viewBox="0 0 420 330" role="img" aria-label="팽창하고 수축하는 별"></svg>
+        <div class="formula" id="pulse-formula"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-heading"><h3><span class="step">2</span> 같은 시간축의 세 그래프</h3><span class="micro">그래프를 눌러 위상 이동</span></div>
+        <svg id="pulse-chart" class="chart interactive" viewBox="0 0 640 420" role="img" aria-label="반지름, 온도, 광도의 시간 변화"></svg>
+        <p class="insight" id="pulse-insight"></p>
+      </section>
+      <section class="panel controls">
+        <div class="transport">
+          <button id="pulse-play" class="primary">❚❚ 멈춤</button>
+          <label class="grow"><span>위상 <output id="pulse-phase-out">0.00</output></span><input id="pulse-phase" type="range" min="0" max="2" step="0.005" value="0"></label>
+        </div>
+        <div class="sliders">
+          <label><span>반지름 변화 폭 <output id="pulse-dR-out"></output></span><input id="pulse-dR" type="range" min="0" max="0.15" step="0.005"></label>
+          <label><span>온도 변화 폭 <output id="pulse-dT-out"></output></span><input id="pulse-dT" type="range" min="0" max="0.15" step="0.005"></label>
+          <label><span>반지름 최대가 늦게 오는 정도 <output id="pulse-lag-out"></output></span><input id="pulse-lag" type="range" min="0" max="0.5" step="0.01"></label>
+        </div>
+        <div class="presets" id="pulse-presets"></div>
+        <label class="check"><input type="checkbox" id="pulse-exaggerate" checked> 크기·색 변화를 3배 과장해서 그리기</label>
+        <details class="more">
+          <summary>더 알아보기 · 왜 계속 맥동할까?</summary>
+          <p>별 바깥층의 헬륨이 이온화된 층은 압축되면 오히려 빛을 더 잘 가둡니다. 갇힌 에너지가 층을 밀어 팽창시키고, 팽창하면 다시 투명해져 에너지가 빠져나가며 수축합니다. 이 층이 '밸브'처럼 열렸다 닫히기를 반복해 맥동이 멈추지 않습니다. 이 불안정은 거성·초거성 단계의 일부 별에서만 생깁니다.</p>
+        </details>
+      </section>
+    </div>
+  </section>
+
+  <!-- ───────────── 03 세페이드로 거리 재기 ───────────── -->
+  <section class="station" id="station-ruler" aria-labelledby="ruler-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">03 / COSMIC RULER</p>
+      <h2 id="ruler-title">주기를 재면 실제 밝기를, 실제 밝기를 알면 거리를.</h2>
+      <p>① 주기 P 측정 → ② 주기-광도 관계에서 절대 등급 M → ③ 평균 겉보기 등급 m과 비교 → ④ 거리 r</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="ruler-targets" role="group" aria-label="관측 대상"></div>
+    </div>
+    <div class="grid ruler-grid">
+      <section class="panel">
+        <div class="panel-heading">
+          <h3><span class="step">①</span> 주기와 평균 등급 읽기</h3>
+          <button id="ruler-snap" class="compact">극대에 맞추기</button>
+        </div>
+        <svg id="ruler-lc" class="chart interactive" viewBox="0 0 640 300" role="img" aria-label="관측 대상의 광도 곡선"></svg>
+        <div class="readout">
+          <div><span>측정한 주기 P</span><strong id="ruler-P">—</strong></div>
+          <div><span>평균 겉보기 등급 m</span><strong id="ruler-m">—</strong></div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-heading">
+          <h3><span class="step">②</span> 주기-광도 관계에서 M 읽기</h3>
+        </div>
+        <div class="segmented wide" id="ruler-pop" role="group" aria-label="어느 관계선을 쓸까">
+          <button data-pop="pop1" aria-pressed="true">종족 Ⅰ 세페이드</button>
+          <button data-pop="pop2" aria-pressed="false">종족 Ⅱ 세페이드</button>
+          <button data-pop="rr" aria-pressed="false">RR형</button>
+        </div>
+        <svg id="ruler-pl" class="chart" viewBox="0 0 640 330" role="img" aria-label="주기-광도 관계 그래프"></svg>
+      </section>
+      <section class="panel result">
+        <div class="panel-heading"><h3><span class="step">③④</span> 거리 지수로 거리 구하기</h3></div>
+        <div id="ruler-steps" class="steps"></div>
+        <div class="check-row"><button id="ruler-check" class="primary">정답 거리와 비교하기</button></div>
+        <div id="ruler-verdict" class="verdict" hidden></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ───────────── 04 Ia형 초신성과 우주 ───────────── -->
+  <section class="station" id="station-cosmos" aria-labelledby="cosmos-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">04 / STANDARD CANDLE</p>
+      <h2 id="cosmos-title">예상보다 어둡다 = 예상보다 멀다 → 가속 팽창</h2>
+      <p>Ia형 초신성은 최대 밝기(M ≈ −19)가 거의 일정해 먼 은하까지 재는 표준 광원이 됩니다.</p>
+    </div>
+    <div class="grid cosmos-grid">
+      <section class="panel scene">
+        <div class="panel-heading"><h3><span class="step">1</span> 표준 광원이 되는 까닭</h3><button id="sn-play" class="compact">▶ 물질 끌어오기</button></div>
+        <svg id="sn-scene" class="space-view" viewBox="0 0 420 258" role="img" aria-label="백색왜성이 동반성의 물질을 끌어와 폭발하는 과정"></svg>
+        <div class="sn-distance">
+          <label><span>관측한 최대 겉보기 등급 m <output id="sn-m-out"></output></span><input id="sn-m" type="range" min="8" max="24" step="0.1" value="16"></label>
+          <div class="formula" id="sn-formula"></div>
+        </div>
+      </section>
+      <section class="panel hubble">
+        <div class="panel-heading">
+          <h3><span class="step">2</span> 적색 편이와 거리 지수</h3>
+          <div class="segmented" role="group" aria-label="보기 방식">
+            <button data-hview="mu" aria-pressed="true">거리 지수</button>
+            <button data-hview="res" aria-pressed="false">차이 확대</button>
+          </div>
+        </div>
+        <div class="legend" id="hubble-legend"></div>
+        <svg id="hubble" class="chart interactive" viewBox="0 0 640 380" role="img" aria-label="Ia형 초신성의 적색 편이와 거리 지수"></svg>
+        <p class="insight" id="hubble-insight"></p>
+      </section>
+      <section class="panel controls">
+        <label><span>내 우주 모형의 암흑 에너지 비율 Ω<sub>Λ</sub> <output id="ol-out"></output></span><input id="ol" type="range" min="0" max="0.9" step="0.01" value="0"></label>
+        <p class="micro">평탄한 우주를 가정합니다 (물질 비율 = 1 − Ω<sub>Λ</sub>). 관측점에 가장 잘 맞는 값을 찾아보세요.</p>
+        <div class="fit" id="fit"></div>
+        <p class="micro">숫자가 작을수록, 막대가 길수록 관측과 잘 맞는 모형입니다.</p>
+      </section>
+      <section class="panel history">
+        <div class="panel-heading"><h3><span class="step">3</span> 우주의 크기 변화</h3><span class="micro">곡선의 기울기 = 팽창 속도</span></div>
+        <svg id="history" class="chart" viewBox="0 0 640 300" role="img" aria-label="시간에 따른 우주의 상대적 크기"></svg>
+        <p class="insight" id="history-insight"></p>
+      </section>
+    </div>
+  </section>
+
+  <footer class="credit">관측 자료와 그래프 눈금은 수업 활동지(교과서 78~82쪽)에 맞춘 교육용 모형입니다. 실제 천체의 값과 조금 다를 수 있습니다.</footer>
+</main>
+</body>
+</html>
