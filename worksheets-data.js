@@ -158,5 +158,17 @@ var worksheets = [
     saveAs: '행성우주과학_별의 공간 운동.pdf',
     pages:  3,
     bytes:  225280
+  },
+  {
+    unit:   'Ⅱ. 태양과 별의 관측',
+    title:  '변광성의 광도 곡선 특징',
+    note:   '소단원 내용 정리',
+    no:     4,
+    exam:   '기말고사',
+    file:   'worksheets/final-04-variable-stars.pdf',
+    added:  '2026-10-27',
+    saveAs: '행성우주과학_변광성의 광도 곡선 특징.pdf',
+    pages:  5,
+    bytes:  660506
   }
 ];
