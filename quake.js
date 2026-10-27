@@ -276,6 +276,7 @@
   // ── 관측망 지도 (SVG, 단위 m) ───────────────────────────────────
   // 바탕 지도 없이도 격자와 축척 막대로 거리를 읽을 수 있게 그린다. 위성 사진은 불러와지면 깔고, 안 되면 조용히 뺀다.
   const TILE = (z, x, y) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
+  const MIN_S = 0.15, MAX_S = 40;   // 화면 1px 당 m 의 역수 (확대 한계)
   class FieldMap {
     constructor(svg, opts = {}) {
       this.svg = svg;
@@ -283,6 +284,7 @@
       this.view = {x: 0, y: 0, s: 3};
       this.target = null;
       this.auto = true;
+      this.follow = false;
       this.sat = pref('sat', true);
       this.tiles = new Map();
       this.tileOk = 0; this.tileBad = 0;
@@ -306,57 +308,89 @@
     bind() {
       const svg = this.svg;
       const pos = e => { const r = svg.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; };
+      // 손가락 수가 바뀔 때마다 기준(손가락 위치, 그때의 지도)을 새로 잡는다.
+      // 그래야 두 손가락으로 확대한 뒤 한 손가락이 남아 끌어도 지도가 확대 전으로 튀지 않는다.
+      const rebase = () => {
+        const pts = [...this.pointers.values()], g = this.gesture;
+        this.gesture = pts.length ? {pts: pts.map(p => Object.assign({}, p)), view: Object.assign({}, this.view), moved: g ? g.moved : 0, multi: (g && g.multi) || pts.length > 1} : null;
+      };
       svg.addEventListener('pointerdown', e => {
-        svg.setPointerCapture(e.pointerId);
+        try { svg.setPointerCapture(e.pointerId); } catch (err) { /* 이미 떨어진 손가락 */ }
         this.pointers.set(e.pointerId, pos(e));
-        if (this.pointers.size === 1) { this.drag = {start: pos(e), view: Object.assign({}, this.view), moved: 0, pinched: false}; }
-        if (this.pointers.size === 2) {
-          const [a, b] = [...this.pointers.values()];
-          this.pinch = {d: Math.hypot(a.x - b.x, a.y - b.y), mid: {x: (a.x + b.x) / 2, y: (a.y + b.y) / 2}, view: Object.assign({}, this.view)};
-          if (this.drag) this.drag.pinched = true;
-        }
+        rebase();
       });
       svg.addEventListener('pointermove', e => {
-        if (!this.pointers.has(e.pointerId)) return;
+        if (!this.pointers.has(e.pointerId) || !this.gesture) return;
         this.pointers.set(e.pointerId, pos(e));
-        if (this.pointers.size >= 2 && this.pinch) {
-          const [a, b] = [...this.pointers.values()];
-          const d = Math.hypot(a.x - b.x, a.y - b.y), mid = {x: (a.x + b.x) / 2, y: (a.y + b.y) / 2};
-          const v = this.pinch.view, s = clamp(v.s * d / this.pinch.d, 0.15, 40);
-          const wx = v.x + (this.pinch.mid.x - this.w / 2) / v.s, wy = v.y - (this.pinch.mid.y - this.h / 2) / v.s;
+        const g = this.gesture, pts = [...this.pointers.values()];
+        if (pts.length >= 2 && g.pts.length >= 2) {
+          const [a, b] = pts, [a0, b0] = g.pts, v = g.view;
+          const d = Math.hypot(a.x - b.x, a.y - b.y), d0 = Math.max(1, Math.hypot(a0.x - b0.x, a0.y - b0.y));
+          const mid = {x: (a.x + b.x) / 2, y: (a.y + b.y) / 2}, mid0 = {x: (a0.x + b0.x) / 2, y: (a0.y + b0.y) / 2};
+          const s = clamp(v.s * d / d0, MIN_S, MAX_S);
+          const wx = v.x + (mid0.x - this.w / 2) / v.s, wy = v.y - (mid0.y - this.h / 2) / v.s;
           this.view = {s, x: wx - (mid.x - this.w / 2) / s, y: wy + (mid.y - this.h / 2) / s};
-          this.manual();
-        } else if (this.drag) {
-          const p = pos(e), dx = p.x - this.drag.start.x, dy = p.y - this.drag.start.y;
-          this.drag.moved = Math.max(this.drag.moved, Math.hypot(dx, dy));
-          if (this.drag.moved > 6) {
-            const v = this.drag.view;
-            this.view = {s: v.s, x: v.x - dx / v.s, y: v.y + dy / v.s};
-            this.manual();
+          g.moved = Infinity;
+          this.manual(false);
+        } else if (pts.length === 1 && g.pts.length === 1) {
+          const dx = pts[0].x - g.pts[0].x, dy = pts[0].y - g.pts[0].y;
+          g.moved = Math.max(g.moved, Math.hypot(dx, dy));
+          if (g.moved > 6) {
+            this.view = {s: g.view.s, x: g.view.x - dx / g.view.s, y: g.view.y + dy / g.view.s};
+            this.manual(true);
           }
         }
       });
       const up = e => {
         if (!this.pointers.has(e.pointerId)) return;
-        const p = pos(e);
+        const p = pos(e), g = this.gesture;
         this.pointers.delete(e.pointerId);
-        if (this.pointers.size < 2) this.pinch = null;
-        if (!this.pointers.size && this.drag) {
-          if (e.type === 'pointerup' && this.drag.moved <= 6 && !this.drag.pinched && this.opts.onTap) this.opts.onTap(this.world(p.x, p.y));
-          this.drag = null;
-        }
+        if (this.pointers.size) { rebase(); return; }
+        this.gesture = null;
+        if (e.type === 'pointerup' && g && g.moved <= 6 && !g.multi && this.opts.onTap) this.opts.onTap(this.world(p.x, p.y));
       };
       svg.addEventListener('pointerup', up);
       svg.addEventListener('pointercancel', up);
       svg.addEventListener('wheel', e => {
         e.preventDefault();
-        const p = pos(e), w = this.world(p.x, p.y), s = clamp(this.view.s * Math.exp(-e.deltaY * 0.0015), 0.15, 40);
+        const p = pos(e), w = this.world(p.x, p.y), s = clamp(this.view.s * Math.exp(-e.deltaY * 0.0015), MIN_S, MAX_S);
         this.view = {s, x: w.x - (p.x - this.w / 2) / s, y: w.y + (p.y - this.h / 2) / s};
-        this.manual();
+        this.manual(false);
       }, {passive: false});
+      // 아이폰 사파리: 지도 위에서 두 손가락을 쓰면 페이지 전체가 같이 확대·스크롤되는 것을 막는다
+      for (const t of ['gesturestart', 'gesturechange', 'gestureend']) svg.addEventListener(t, e => e.preventDefault());
+      svg.addEventListener('touchmove', e => e.preventDefault(), {passive: false});
     }
-    manual() { this.auto = false; this.target = null; this.draw(this.scene); if (this.opts.onManual) this.opts.onManual(); }
-    fitNow() { this.auto = true; this.target = null; this.draw(this.scene, true); }
+    // 손으로 지도를 움직이면 '모두 보기'는 꺼진다. 끌어서 옮겼으면 '내 위치 따라가기'도 꺼진다.
+    manual(panned) {
+      this.auto = false;
+      this.target = null;
+      if (panned) this.follow = false;
+      this.draw(this.scene);
+      this.mode();
+    }
+    mode() { if (this.opts.onMode) this.opts.onMode(this.auto ? 'fit' : this.follow ? 'follow' : 'free'); }
+    fitNow() { this.auto = true; this.follow = false; this.target = null; this.draw(this.scene, true); this.mode(); }
+    zoomBy(f) {
+      this.view = Object.assign({}, this.view, {s: clamp(this.view.s * f, MIN_S, MAX_S)});
+      this.manual(false);
+    }
+    // 내 위치(scene.focus)를 가운데 두고 계속 따라간다. 너무 멀리 축소돼 있으면 운동장이 보일 만큼 당겨 온다.
+    followNow() {
+      this.auto = false;
+      this.follow = true;
+      const f = this.scene && this.scene.focus;
+      if (f) this.view = {x: f.x, y: f.y, s: Math.max(this.view.s, Math.min(this.w, this.h) / 90)};
+      this.draw(this.scene);
+      this.mode();
+    }
+    centerOn(p, span = 50) {
+      this.auto = false;
+      this.follow = false;
+      this.view = {x: p.x, y: p.y, s: clamp(Math.max(this.view.s, Math.min(this.w, this.h) / span), MIN_S, MAX_S)};
+      this.draw(this.scene);
+      this.mode();
+    }
     toggleSat() { this.sat = !this.sat; setPref('sat', this.sat); this.tileBad = this.tileOk = 0; this.draw(this.scene); return this.sat; }
     satShown() { return this.sat && !(this.tileBad >= 3 && !this.tileOk); }
     autoFit(scene, snap) {
@@ -370,7 +404,7 @@
       }
       const span = scene.minSpan || 60;
       const sx = Math.max(x1 - x0, span), sy = Math.max(y1 - y0, span);
-      const s = clamp(Math.min(this.w / (sx * 1.18), this.h / (sy * 1.22)), 0.15, 30);
+      const s = clamp(Math.min(this.w / (sx * 1.18), this.h / (sy * 1.22)), MIN_S, 30);
       const t = {x: (x0 + x1) / 2, y: (y0 + y1) / 2, s};
       if (snap || !this.target) this.view = t;
       else {
@@ -384,6 +418,10 @@
       if (!scene) return;
       this.scene = scene;
       if (this.auto) this.autoFit(scene, snap);
+      else if (this.follow && scene.focus) {
+        const k = snap ? 1 : 0.25;
+        this.view = {s: this.view.s, x: this.view.x + (scene.focus.x - this.view.x) * k, y: this.view.y + (scene.focus.y - this.view.y) * k};
+      }
       const L = this.L, s = this.view.s;
       for (const k of ['grid', 'fill', 'circles', 'chords', 'waves', 'acc', 'players', 'guess', 'marks', 'hud']) clear(L[k]);
       this.drawTiles();
@@ -431,6 +469,23 @@
       // 표시 (진앙, 반 전체 추정, 내 위치)
       for (const m of scene.marks || []) this.mark(m);
       this.hud(stepM);
+      this.edges(scene);
+    }
+    // 화면 밖에 있는 관측소는 지도 가장자리에 화살표로 알려 준다 (어느 쪽으로 몇 m 떨어져 있는지)
+    edges(scene) {
+      const pad = 18, cx = this.w / 2, cy = this.h / 2, g = this.L.hud;
+      const items = (scene.players || []).filter(p => !p.off).map(p => ({p, color: p.color, label: ''}));
+      for (const m of scene.marks || []) if (m.kind === 'me' || m.kind === 'epi') items.push({p: m, color: m.kind === 'me' ? '#1f6feb' : '#e8590c', label: m.kind === 'me' ? (m.label || '나') : '진앙'});
+      for (const it of items) {
+        const x = this.X(it.p), y = this.Y(it.p);
+        if (x >= 0 && x <= this.w && y >= 0 && y <= this.h) continue;
+        const dx = x - cx, dy = y - cy;
+        const k = Math.min((cx - pad) / Math.max(Math.abs(dx), 1e-6), (cy - pad) / Math.max(Math.abs(dy), 1e-6));
+        const ex = cx + dx * k, ey = cy + dy * k, a = Math.atan2(dy, dx) * 180 / Math.PI;
+        const arrow = el('g', {transform: `translate(${ex.toFixed(1)} ${ey.toFixed(1)}) rotate(${a.toFixed(1)})`}, g);
+        el('path', {d: 'M9 0 L-6 -7 L-3 0 L-6 7 Z', fill: it.color, stroke: '#fff', 'stroke-width': 1.6}, arrow);
+        if (it.label) el('text', {class: 'fm-label', x: ex, y: ey - 12, 'text-anchor': 'middle', fill: it.color}, g, it.label);
+      }
     }
     mark(m) {
       const x = this.X(m), y = this.Y(m), g = el('g', {}, this.L.marks);
@@ -502,6 +557,23 @@
       for (const [k, img] of this.tiles) if (!keep.has(k)) { img.remove(); this.tiles.delete(k); }
       if (this.opts.credit) this.opts.credit('위성 사진 © Esri, Maxar, Earthstar Geographics');
     }
+  }
+
+  // '모두 보기'에 넣을 관측소: 연결돼 있고, 최근에 위치를 보냈고, GPS 가 엉뚱하지 않은 것만.
+  // (꺼진 폰이나 오차 수백 m 짜리 첫 위치 하나 때문에 지도가 멀리 축소되지 않게)
+  const fitWorthy = (p, now) => p.on !== false && now - (p.t || 0) < 30000 && (p.acc == null || p.acc <= 60);
+
+  // 지도 오른쪽 위 단추들. prefix 는 'st'(학생) 또는 't'(선생님).
+  function bindMapTools(prefix, map, onMe) {
+    const q = sel => document.querySelectorAll(`[${sel}^="${prefix}"]`);
+    for (const b of q('data-fit')) b.onclick = () => map.fitNow();
+    for (const b of q('data-sat')) b.onclick = () => { b.setAttribute('aria-pressed', String(map.toggleSat())); };
+    for (const b of q('data-me')) b.onclick = onMe;
+    for (const b of document.querySelectorAll(`[data-zoom-map^="${prefix}:"]`)) b.onclick = () => map.zoomBy(+b.dataset.zoomMap.split(':')[1]);
+    map.opts.onMode = mode => {
+      for (const b of q('data-fit')) b.setAttribute('aria-pressed', String(mode === 'fit'));
+      for (const b of q('data-me')) b.setAttribute('aria-pressed', String(mode === 'follow'));
+    };
   }
 
   // ── 지진 기록 그리기 (캔버스) ───────────────────────────────────
@@ -667,6 +739,10 @@
       onTap: w => { if (S.manual || S.gpsError) setManual(w); },
       credit: t => { $('st-credit').textContent = t; }
     });
+    bindMapTools('st', S.map, () => {
+      if (!S.fix) { toast('아직 내 위치를 못 찾았어요. 하늘이 트인 곳에서 잠시 기다려 주세요.'); return; }
+      S.map.followNow();
+    });
     loop();
   }
 
@@ -698,8 +774,9 @@
     S.gpsSince = Date.now();
     if (!navigator.geolocation) { S.gpsError = '이 브라우저는 위치를 쓸 수 없어요.'; return; }
     navigator.geolocation.watchPosition(pos => {
-      if (S.manual) return;
       const c = pos.coords;
+      S.gpsLast = {acc: c.accuracy, t: Date.now()};
+      if (S.manual) { dirty(); return; }
       S.gpsError = null;
       S.fix = M.blendFix(S.fix, {lat: c.latitude, lon: c.longitude, acc: c.accuracy, t: Date.now()});
       S.rawAcc = c.accuracy;
@@ -769,6 +846,7 @@
         ${acc > 20 ? `<p><b>GPS 오차가 ±${acc} m로 커요.</b> 건물에서 떨어져 하늘이 트인 곳으로 가면 좋아져요.</p>` : ''}
         ${S.manual ? '<p>지도를 눌러 내 위치를 옮길 수 있어요.</p>' : ''}`;
       action = `<button id="st-sound">🔊 소리 확인</button>`;
+      if (S.manual && S.gpsLast && Date.now() - S.gpsLast.t < 15000) action += `<button id="st-gps-back">📡 GPS로 돌아가기 (±${Math.round(S.gpsLast.acc)} m)</button>`;
     } else if (state === 'countdown') {
       cls = 'alert';
       card = `<p class="kicker">지진 발생 직전</p><div class="big-num">${Math.ceil(-elapsed)}</div><p>그 자리에 멈추세요. 폰을 손에 들고 화면을 보세요.</p>`;
@@ -851,6 +929,7 @@
     const on = (id, f) => { const b = $(id); if (b) b.onclick = f; };
     on('st-manual', () => { S.manual = true; S.gpsError = S.gpsError || '지도를 눌러 내 위치를 찍어 주세요.'; toast('지도에서 지금 서 있는 곳을 눌러 주세요.'); dirty(); });
     on('st-sound', () => { Sound.unlock(); Sound.play('p', 0.5); setTimeout(() => Sound.play('s', 0.6), 700); shake('p'); });
+    on('st-gps-back', () => { S.manual = false; S.fix = null; S.gpsError = null; toast('GPS 위치를 다시 쓰고 있어요.'); dirty(); });
     on('st-submit', submitPick);
     on('st-repick', () => { S.repick = true; S.tab = 'seis'; const p = myPick(); if (p) S.pick = {p: p.p, s: p.s, active: 'p'}; dirty(); });
     on('st-gopick', () => { S.tab = 'seis'; S.repick = true; dirty(); });
@@ -886,7 +965,7 @@
       if (id === S.store.uid || p.lat == null) continue;
       const q = local(p);
       scene.players.push(Object.assign(q, {color: team(p.team).color, off: p.on === false || now - (p.t || 0) > 30000}));
-      scene.fit.push(q);
+      if (fitWorthy(p, now)) scene.fit.push(q);
     }
     const picks = roundPicks();
     const showCircles = ['submitted', 'race', 'reveal'].includes(stState()) || (myPick() && S.tab === 'map');
@@ -916,6 +995,7 @@
       const me = local(S.fix);
       scene.marks.push(Object.assign({kind: 'me', acc: S.manual ? 0 : (S.rawAcc || S.fix.acc)}, me));
       scene.fit.push(me);
+      scene.focus = me;
     }
     return scene;
   }
@@ -1033,7 +1113,7 @@
     if (st === 'recording' || st === 'countdown') { if (S.rec) drawDrum(); }
     if (!$('pick-wrap').hidden) drawSeis();
     const animating = st === 'reveal';
-    if (!$('st-map-wrap').hidden && (isDirty || animating || (S.map && S.map.auto && ++mapFrame % 6 === 0))) {
+    if (!$('st-map-wrap').hidden && (isDirty || animating || (S.map && (S.map.auto || S.map.follow) && ++mapFrame % 6 === 0))) {
       S.map.draw(studentScene());
       isDirty = false;
     }
@@ -1076,10 +1156,15 @@
     $('t-code').querySelector('b').textContent = code;
     T.map = new FieldMap($('t-map'), {
       onTap: w => {
-        if (!T.epiMode) return;
-        setEpicenter(w);
-        T.epiMode = false;
-        $('t-epi-tap').setAttribute('aria-pressed', 'false');
+        if (T.epiMode) {
+          setEpicenter(w);
+          setEpiMode(false);
+          showHint('진앙을 정했어요. 다시 찍으려면 "지도에서"를 누르세요.', 3000);
+          return;
+        }
+        // 관측소 점을 누르면 그 학생을 목록에서 보여 준다
+        const hit = entries(T.players).filter(([, p]) => p.lat != null).map(([id, p]) => [id, M.dist(local(p), w)]).sort((a, b) => a[1] - b[1])[0];
+        if (hit && hit[1] * T.map.view.s < 18) focusPlayer(hit[0], false);
       },
       credit: t => { $('t-credit').textContent = t; }
     });
@@ -1123,13 +1208,97 @@
 
   function setEpicenter(w) {
     const g = geo(w);
-    T.store.set(T.base + '/secret', {lat: +g.lat.toFixed(7), lon: +g.lon.toFixed(7)});
+    return guard(T.store.set(T.base + '/secret', {lat: +g.lat.toFixed(7), lon: +g.lon.toFixed(7)}), '진앙 저장');
+  }
+  // 서버가 거절하면(규칙, 연결 끊김) 조용히 아무 일도 안 일어난 것처럼 보이지 않게 알려 준다
+  function guard(promise, what) {
+    return Promise.resolve(promise).catch(e => {
+      console.warn('[quake]', what, e);
+      alert(`${what}에 실패했어요.\n${e && e.message ? e.message : e}\n\n인터넷 연결과 Firebase 규칙을 확인해 주세요.`);
+      throw e;
+    });
+  }
+  let hintTimer = 0;
+  function showHint(text, ms) {
+    const h = $('t-hint');
+    h.textContent = text;
+    h.hidden = !text;
+    clearTimeout(hintTimer);
+    if (ms) hintTimer = setTimeout(() => { if (!T.epiMode) h.hidden = true; }, ms);
+  }
+  function setEpiMode(on) {
+    T.epiMode = on;
+    $('t-epi-tap').setAttribute('aria-pressed', String(on));
+    if (on) showHint('지도에서 진앙으로 할 곳을 누르세요');
+    else if ($('t-hint').textContent.startsWith('지도에서')) showHint('');
+  }
+
+  // 선생님 위치: '📍' 단추나 '내 자리' 진앙을 처음 쓸 때 켠다
+  function startTeacherGPS() {
+    if (T.gpsWatch != null) return;
+    if (!navigator.geolocation) { showHint('이 기기는 위치를 쓸 수 없어요.', 4000); return; }
+    showHint('선생님 위치를 찾는 중…', 6000);
+    T.gpsWatch = navigator.geolocation.watchPosition(pos => {
+      const c = pos.coords;
+      T.fix = M.blendFix(T.fix, {lat: c.latitude, lon: c.longitude, acc: c.accuracy, t: Date.now()});
+      T.fixAcc = c.accuracy;
+      if (T.followWhenFound) { T.followWhenFound = false; T.map.draw(teacherScene()); T.map.followNow(); showHint(''); }
+      if (T.epiWhenFound) { T.epiWhenFound = false; setEpicenter(local(T.fix)); showHint(''); }
+      tDirty();
+    }, err => {
+      if (err.code === 1) {
+        navigator.geolocation.clearWatch(T.gpsWatch);
+        T.gpsWatch = null;
+        T.followWhenFound = T.epiWhenFound = false;
+        showHint('위치 권한이 꺼져 있어요. 브라우저 설정에서 이 사이트의 위치를 허용해 주세요.', 6000);
+      } else if (!T.fix) showHint('위치를 아직 못 찾았어요. 하늘이 트인 곳으로 가 보세요.', 5000);
+    }, {enableHighAccuracy: true, maximumAge: 0, timeout: 20000});
+  }
+
+  // 학생 상태: 지도에 안 보이는 학생이 왜 안 보이는지 목록에서 바로 알 수 있게
+  function playerStatus(p, now) {
+    if (p.on === false) return ['bad', '연결 끊김'];
+    if (p.lat == null) return ['bad', '위치 없음'];
+    const age = (now - (p.t || 0)) / 1000;
+    if (age > 20) return ['bad', `${Math.round(age)}초째 소식 없음`];
+    if (p.manual) return ['ok', '직접 찍은 위치'];
+    const a = Math.round(p.acc || 0);
+    return [a > 20 ? 'ok' : 'good', `GPS ±${a} m`];
+  }
+  function focusPlayer(id, center = true) {
+    const p = T.players[id];
+    if (!p) return;
+    T.focusId = id;
+    T.focusUntil = performance.now() + 5000;
+    if (center && p.lat != null) T.map.centerOn(local(p), 80);
+    const box = $('t-roster-box');
+    box.open = true;
+    const row = box.querySelector(`[data-id="${CSS.escape(id)}"]`);
+    if (row) row.scrollIntoView({block: 'nearest'});
+    tDirty();
+  }
+  let rosterAt = 0, rosterSig = '';
+  function renderRoster(now) {
+    if (performance.now() - rosterAt < 1000) return;
+    rosterAt = performance.now();
+    const rows = entries(T.players).map(([id, p]) => ({id, p, st: playerStatus(p, now)}));
+    const rank = {bad: 0, ok: 1, good: 2};
+    rows.sort((a, b) => rank[a.st[0]] - rank[b.st[0]] || (a.p.team - b.p.team) || String(a.p.name).localeCompare(String(b.p.name), 'ko'));
+    const bad = rows.filter(r => r.st[0] === 'bad').length;
+    const html = rows.map(r => `<button data-id="${esc(r.id)}"${r.id === T.focusId ? ' style="outline:2px solid var(--epi)"' : ''}><i style="background:${team(r.p.team).color}"></i><span>${esc(r.p.name || '?')}</span><span class="st ${r.st[0]}">${esc(r.st[1])}</span></button>`).join('');
+    const sum = `학생 목록 · ${rows.length}명` + (bad ? ` · <b style="color:var(--bad)">확인 필요 ${bad}</b>` : '');
+    if (html + sum === rosterSig) return;
+    rosterSig = html + sum;
+    $('t-roster').innerHTML = html || '<p class="micro">아직 들어온 학생이 없어요. 방 번호를 눌러 QR을 보여 주세요.</p>';
+    $('t-roster-sum').innerHTML = sum;
   }
 
   function bindTeacher() {
     $('t-code').onclick = showQR;
-    for (const b of document.querySelectorAll('[data-fit="t"]')) b.onclick = () => T.map.fitNow();
-    for (const b of document.querySelectorAll('[data-sat="t"]')) b.onclick = () => { b.setAttribute('aria-pressed', String(T.map.toggleSat())); };
+    bindMapTools('t', T.map, () => {
+      if (T.fix) T.map.followNow();
+      else { T.followWhenFound = true; startTeacherGPS(); }
+    });
     $('t-eye').onclick = () => {
       T.showEpi = !T.showEpi;
       $('t-eye').setAttribute('aria-pressed', String(T.showEpi));
@@ -1144,15 +1313,19 @@
     $('t-mag').oninput = e => { $('t-mag-val').textContent = num(+e.target.value, 1); };
     $('t-mag').onchange = e => T.store.update(T.base + '/meta', {mag: +e.target.value});
     for (const b of document.querySelectorAll('[data-depth]')) b.onclick = () => T.store.update(T.base + '/meta', {depth: +b.dataset.depth});
-    $('t-epi-tap').onclick = () => { T.epiMode = !T.epiMode; $('t-epi-tap').setAttribute('aria-pressed', String(T.epiMode)); };
+    $('t-epi-tap').onclick = () => setEpiMode(!T.epiMode);
     $('t-epi-me').onclick = epicenterHere;
     $('t-epi-rand').onclick = () => {
       const pts = entries(T.players).filter(([, p]) => usable(p)).map(([, p]) => local(p));
-      if (pts.length < 3) { alert('관측소(학생)가 3명 이상 있어야 그 사이에서 진앙을 고를 수 있어요.'); return; }
-      setEpicenter(M.randomEpicenter(pts));
+      if (pts.length >= 3) { setEpicenter(M.randomEpicenter(pts)); return; }
+      // 관측소가 3명보다 적으면(연습할 때) 그 근처 15~40 m 안의 아무 곳
+      const c = pts.length ? {x: pts.reduce((a, q) => a + q.x, 0) / pts.length, y: pts.reduce((a, q) => a + q.y, 0) / pts.length} : T.fix ? local(T.fix) : {x: 0, y: 0};
+      const a = Math.random() * Math.PI * 2, r = 15 + Math.random() * 25;
+      setEpicenter({x: c.x + r * Math.cos(a), y: c.y + r * Math.sin(a)});
     };
-    $('t-quake').onclick = triggerQuake;
-    $('t-race').onclick = () => T.store.update(T.base + '/meta', {phase: 'race'});
+    $('t-roster').onclick = e => { const b = e.target.closest('button[data-id]'); if (b) focusPlayer(b.dataset.id); };
+    $('t-quake').onclick = () => triggerQuake().catch(() => {});
+    $('t-race').onclick = () => guard(T.store.update(T.base + '/meta', {phase: 'race'}), '레이스 시작');
     $('t-reveal').onclick = revealAnswer;
     $('t-next').onclick = nextRound;
     $('t-csv').onclick = exportCSV;
@@ -1173,28 +1346,30 @@
   function sendMsg(text) { T.store.update(T.base + '/meta', {msg: {text, t: T.store.now()}}); if (T.bots) T.bots.onMsg(text); }
 
   function epicenterHere() {
-    if (!navigator.geolocation) { alert('이 기기는 위치를 쓸 수 없어요.'); return; }
-    $('t-epi-note').textContent = '선생님 위치를 찾는 중…';
-    navigator.geolocation.getCurrentPosition(pos => {
-      setEpicenter(local({lat: pos.coords.latitude, lon: pos.coords.longitude}));
-    }, () => { $('t-epi-note').textContent = '위치를 못 찾았어요. 지도에서 찍거나 무작위로 골라 주세요.'; }, {enableHighAccuracy: true, timeout: 15000, maximumAge: 0});
+    if (T.fix && Date.now() - T.fix.t < 15000) { setEpicenter(local(T.fix)); return; }
+    T.epiWhenFound = true;
+    startTeacherGPS();
   }
 
   async function triggerQuake() {
     const m = T.meta, sc = M.scaleOf(m.scale);
     if (!T.secret) return;
-    const epi = local(T.secret), arr = {};
+    const epi = local(T.secret), arr = {}, far = [];
     for (const [id, p] of entries(T.players)) {
       if (!usable(p)) continue;
       const a = M.arrivals(M.dist(local(p), epi), m.depth || 0, sc);
+      // 너무 먼 관측소(다른 곳에서 접속했거나 GPS 가 크게 틀린 폰)는 S파가 1분 넘게 안 와서 판이 끝나지 않는다
+      if (a.s > 60) { far.push(`${p.name} (${Math.round(a.r)} m)`); continue; }
       arr[id] = {
         round: m.round, lat: p.lat, lon: p.lon, p: +a.p.toFixed(3), s: +a.s.toFixed(3),
         amp: +M.amplitudeAt(a.r, m.mag).toFixed(4), I: +M.intensity(a.r, m.mag).toFixed(2), seed: randInt()
       };
     }
-    if (!Object.keys(arr).length && !confirm('위치가 잡힌 관측소가 없어요. 그래도 지진을 일으킬까요?')) return;
-    await T.store.set(T.base + '/arr', arr);
-    await T.store.update(T.base + '/meta', {phase: 'quake', startAt: T.store.now() + 3500, msg: null});
+    if (!far.length && !Object.keys(arr).length && !confirm('위치가 잡힌 관측소가 없어요. 그래도 지진을 일으킬까요?')) return;
+    if (far.length && !confirm(`진앙에서 너무 멀리 있는 ${far.length}명은 이번 지진에서 빠집니다.\n${far.slice(0, 6).join(', ')}${far.length > 6 ? ' …' : ''}\n\n그대로 진행할까요?`)) return;
+    setEpiMode(false);
+    await guard(T.store.set(T.base + '/arr', arr), '지진 발생');
+    await guard(T.store.update(T.base + '/meta', {phase: 'quake', startAt: T.store.now() + 3500, msg: null}), '지진 발생');
   }
 
   async function revealAnswer() {
@@ -1246,8 +1421,16 @@
           d.color = INTENSITY_COLORS[I]; d.badge = M.roman(a.I); d.big = true;
         }
       }
+      // 목록에서 고른 학생은 잠깐 주황 고리로 표시
+      if (id === T.focusId && performance.now() < (T.focusUntil || 0)) d.ring = {r: 17, color: '#e8590c', w: 4, opacity: 0.5 + 0.5 * Math.abs(Math.sin(performance.now() / 250))};
       scene.players.push(d);
-      scene.fit.push(d);
+      if (fitWorthy(p, now) || (a && a.round === m.round && m.phase !== 'lobby')) scene.fit.push(d);
+    }
+    if (T.fix) {
+      const me = local(T.fix);
+      scene.marks.push(Object.assign({kind: 'me', label: '선생님', acc: T.fixAcc}, me));
+      scene.focus = me;
+      if (!scene.fit.length) scene.fit.push(me);
     }
     const picks = tRoundPicks().map(([, p]) => Object.assign(local(p), {r: p.d, color: team(p.team).color, team: p.team}));
     if (!intensityView) for (const c of picks) scene.circles.push(Object.assign({}, c, {faint: revealed}));
@@ -1298,8 +1481,10 @@
     if (!m) return;
     const sc = M.scaleOf(m.scale), now = T.store.now();
     const all = entries(T.players), live = all.filter(([, p]) => usable(p));
-    $('t-count').textContent = live.length;
-    $('t-gpsok').textContent = live.filter(([, p]) => (p.acc || 99) <= 12).length;
+    $('t-count').textContent = all.filter(([, p]) => p.on !== false).length;
+    $('t-located').textContent = live.length;
+    $('t-gpsok').textContent = live.filter(([, p]) => !p.manual && (p.acc || 99) <= 12).length;
+    renderRoster(now);
     $('t-round').textContent = m.round;
     // 모둠별 인원
     const counts = M.TEAMS.map(() => 0);
@@ -1320,10 +1505,13 @@
       for (const id of ['t-epi-tap', 't-epi-me', 't-epi-rand']) $(id).disabled = !lobby;
       if (T.secret) {
         const epi = local(T.secret), near = live.map(([, p]) => M.dist(local(p), epi)).sort((a, b) => a - b);
-        $('t-epi-note').textContent = near.length ? `진앙 준비 완료 · 가장 가까운 관측소 ${num(near[0], 0)} m, 가장 먼 관측소 ${num(near[near.length - 1], 0)} m` : '진앙 준비 완료';
+        const limit = 60 * sc.vs;   // S파가 1분 안에 닿는 거리
+        const tooFar = near.filter(d => d > limit).length;
+        $('t-epi-note').textContent = (near.length ? `진앙 준비 완료 · 가장 가까운 관측소 ${num(near[0], 0)} m, 가장 먼 관측소 ${num(near[near.length - 1], 0)} m` : '진앙 준비 완료')
+          + (tooFar ? ` · ⚠ ${tooFar}명은 ${num(limit, 0)} m보다 멀어서 이번 지진에서 빠져요` : '');
       } else $('t-epi-note').textContent = '아직 진앙이 없습니다. 학생들이 흩어진 뒤에 정하세요.';
       $('t-quake').disabled = !lobby || !T.secret;
-      $('t-quake').textContent = lobby ? '지진 발생' : m.phase === 'quake' && el < 0 ? '곧 지진 발생…' : `${m.round}번째 지진 진행 중`;
+      $('t-quake').textContent = lobby ? (T.secret ? '지진 발생' : '진앙을 먼저 정하세요') : m.phase === 'quake' && el < 0 ? '곧 지진 발생…' : `${m.round}번째 지진 진행 중`;
       $('t-pick-bar').style.width = arrN ? (100 * pickN / arrN) + '%' : '0';
       $('t-pick-note').textContent = lobby ? '지진이 나면 판독 제출 현황이 여기에 보입니다.' : `판독 제출 ${pickN} / 관측소 ${arrN}` + (pickN >= 3 ? ' · 원이 3개 이상 모였어요' : '');
       $('t-race').disabled = m.phase !== 'quake';
@@ -1436,8 +1624,8 @@
     if (document.body.dataset.screen !== 'teacher') return;
     renderTeacher();
     const m = T.meta || {};
-    const animating = (m.phase === 'quake') || (m.phase === 'reveal' && T.view === 'waves');
-    if (tIsDirty || animating || (T.map.auto && ++tFrame % 4 === 0)) {
+    const animating = (m.phase === 'quake') || (m.phase === 'reveal' && T.view === 'waves') || performance.now() < (T.focusUntil || 0);
+    if (tIsDirty || animating || ((T.map.auto || T.map.follow) && ++tFrame % 4 === 0)) {
       T.map.draw(teacherScene());
       tIsDirty = false;
     }
@@ -1560,8 +1748,6 @@
       $('open-room').disabled = true;
     }
     bindPickCanvas();
-    for (const b of document.querySelectorAll('[data-fit="st"]')) b.onclick = () => S.map && S.map.fitNow();
-    for (const b of document.querySelectorAll('[data-sat="st"]')) b.onclick = () => { if (S.map) b.setAttribute('aria-pressed', String(S.map.toggleSat())); };
     for (const b of document.querySelectorAll('[data-sat]')) b.setAttribute('aria-pressed', String(pref('sat', true)));
 
     if (params.has('demo')) openRoom(true);

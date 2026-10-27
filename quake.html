@@ -94,7 +94,10 @@
     <div class="st-map-wrap" id="st-map-wrap">
       <svg class="field-map" id="st-map" aria-label="관측망 지도"></svg>
       <div class="map-tools">
-        <button class="icon" data-fit="st" title="모두 보기" aria-label="모두 보기">⤢</button>
+        <button class="icon" data-me="st" title="내 위치로" aria-label="내 위치로 이동하고 따라가기" aria-pressed="false">📍</button>
+        <button class="icon" data-fit="st" title="모두 보기" aria-label="모두 보기" aria-pressed="true">⤢</button>
+        <button class="icon" data-zoom-map="st:1.6" title="확대" aria-label="확대">＋</button>
+        <button class="icon" data-zoom-map="st:0.625" title="축소" aria-label="축소">－</button>
         <button class="icon" data-sat="st" title="위성 사진" aria-label="위성 사진 켜고 끄기">🛰</button>
       </div>
       <p class="map-credit" id="st-credit"></p>
@@ -147,6 +150,7 @@
     <button class="room-code" id="t-code" title="QR 코드 크게 보기"><small>방 번호</small><b>----</b></button>
     <div class="t-stats">
       <div><b id="t-count">0</b><small>접속</small></div>
+      <div><b id="t-located">0</b><small>위치 잡힘</small></div>
       <div><b id="t-gpsok">0</b><small>GPS 양호</small></div>
       <div><b id="t-round">1</b><small>판</small></div>
     </div>
@@ -157,11 +161,15 @@
     <div class="t-map-wrap">
       <svg class="field-map" id="t-map" aria-label="관측망 지도"></svg>
       <div class="map-tools">
-        <button class="icon" data-fit="t" title="모두 보기" aria-label="모두 보기">⤢</button>
+        <button class="icon" data-me="t" title="선생님 위치로" aria-label="선생님 위치로 이동하고 따라가기" aria-pressed="false">📍</button>
+        <button class="icon" data-fit="t" title="모두 보기" aria-label="모두 보기" aria-pressed="true">⤢</button>
+        <button class="icon" data-zoom-map="t:1.6" title="확대" aria-label="확대">＋</button>
+        <button class="icon" data-zoom-map="t:0.625" title="축소" aria-label="축소">－</button>
         <button class="icon" data-sat="t" title="위성 사진" aria-label="위성 사진 켜고 끄기">🛰</button>
         <button class="icon" id="t-eye" title="진앙 가리기" aria-label="진앙 보이기/가리기" aria-pressed="true">👁</button>
       </div>
       <div class="map-legend" id="t-legend"></div>
+      <div class="map-hint" id="t-hint" hidden></div>
       <div class="countdown" id="countdown" hidden></div>
       <p class="map-credit" id="t-credit"></p>
     </div>
@@ -170,6 +178,10 @@
       <section class="t-step" data-step="network">
         <h3><span class="step">1</span> 관측망</h3>
         <div class="team-bars" id="t-teams"></div>
+        <details class="roster" id="t-roster-box">
+          <summary id="t-roster-sum">학생 목록</summary>
+          <div class="roster-list" id="t-roster"></div>
+        </details>
         <div class="msg-row">
           <button class="chip" data-msg="운동장 곳곳으로 흩어지세요! 친구와 너무 붙어 있지 말기">흩어지세요</button>
           <button class="chip" data-msg="그 자리에 멈추세요. 곧 지진이 납니다">멈추세요</button>
