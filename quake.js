@@ -436,6 +436,8 @@
       for (let y = Math.ceil(br.y / stepM) * stepM; y <= tl.y; y += stepM) el('line', {y1: this.Y({y}), y2: this.Y({y}), x1: 0, x2: this.w}, g);
       // 채움 (진도 등)
       for (const f of scene.fills || []) el('circle', {cx: this.X(f), cy: this.Y(f), r: f.r * s, fill: f.color, opacity: f.opacity || 0.25}, L.fill);
+      // 모둠 배치 삼각형
+      for (const pg of scene.polys || []) el('polygon', {points: pg.pts.map(p => this.X(p).toFixed(1) + ',' + this.Y(p).toFixed(1)).join(' '), fill: pg.color, 'fill-opacity': 0.12, stroke: pg.color, 'stroke-width': 2, 'stroke-dasharray': '6 4'}, L.fill);
       // 판독 원
       for (const c of scene.circles || []) {
         el('circle', {class: 'fm-circle' + (c.mine ? ' mine' : ''), cx: this.X(c), cy: this.Y(c), r: Math.max(0, c.r * s), stroke: c.color, 'stroke-opacity': c.faint ? 0.35 : null}, L.circles);
@@ -746,6 +748,20 @@
     loop();
   }
 
+  // 우리 모둠의 지금 위치 (나 + 위치가 잡힌 모둠원), 단위 m
+  function studentTeam() {
+    const now = S.store.now(), members = [];
+    if (S.fix) members.push(Object.assign(local(S.fix), {name: '나', me: true}));
+    for (const [id, p] of entries(S.players)) {
+      if (id === S.store.uid || p.team !== S.team || p.lat == null || p.on === false || now - (p.t || 0) > 30000) continue;
+      members.push(Object.assign(local(p), {name: p.name}));
+    }
+    return {name: team(S.team).name, color: team(S.team).color, members};
+  }
+  function openGuide(tab) {
+    if (window.QuakeGuide) window.QuakeGuide.open({scale: S.meta && S.meta.scale, tab, team: S.store ? studentTeam : null});
+  }
+
   function onStudentMeta(m) {
     const prev = S.meta;
     S.meta = m;
@@ -753,7 +769,11 @@
     if (m && m.msg && m.msg.t > S.lastMsg) {
       const fresh = S.store.now() - m.msg.t < 90000;
       S.lastMsg = m.msg.t;
-      if (fresh) toast(m.msg.text, '선생님');
+      if (fresh) {
+        toast(m.msg.text, '선생님');
+        // 받았다고 선생님 화면에 알린다
+        S.store.update(S.base + '/players/' + S.store.uid, {ack: m.msg.t});
+      }
     }
     if (m && prev && prev.phase !== m.phase && m.phase === 'race') { S.tab = 'map'; Sound.play('ding'); }
     prepareRecord();
@@ -844,7 +864,8 @@
       card = `<p class="kicker">관측 대기 · ${m.round}번째 지진</p><h2>이 폰은 이제 지진 관측소입니다</h2>
         <p>선생님이 지진을 일으키면 지진파가 도착할 때 <b>소리와 함께 화면이 흔들려요</b>. 소리를 켜 두고, 지진이 나면 그 자리에 멈춰 서 있어요.</p>
         ${acc > 20 ? `<p><b>GPS 오차가 ±${acc} m로 커요.</b> 건물에서 떨어져 하늘이 트인 곳으로 가면 좋아져요.</p>` : ''}
-        ${S.manual ? '<p>지도를 눌러 내 위치를 옮길 수 있어요.</p>' : ''}`;
+        ${S.manual ? '<p>지도를 눌러 내 위치를 옮길 수 있어요.</p>' : ''}
+        ${teamLine()}`;
       action = `<button id="st-sound">🔊 소리 확인</button>`;
       if (S.manual && S.gpsLast && Date.now() - S.gpsLast.t < 15000) action += `<button id="st-gps-back">📡 GPS로 돌아가기 (±${Math.round(S.gpsLast.acc)} m)</button>`;
     } else if (state === 'countdown') {
@@ -902,6 +923,14 @@
     $('st-map-wrap').hidden = recording || (pickable && S.tab === 'seis');
   }
 
+  // 대기 화면의 '우리 모둠 배치' 한 줄 점검
+  function teamLine() {
+    if (!window.QuakeGuide) return '';
+    const t = studentTeam(), f = M.formation(t.members);
+    const [lvl, txt] = window.QuakeGuide.advice(f);
+    return `<div class="team-line ${lvl}"><span><b>우리 모둠 배치</b> · ${txt}</span><button id="st-team-guide">배치 가이드</button></div>`;
+  }
+
   function revealCard() {
     const m = S.meta, r = S.reveal, sc = M.scaleOf(r.scale), epi = local(r);
     const ranks = M.rankGuesses(entries(S.guesses).filter(([, g]) => g.round === m.round).map(([t, g]) => Object.assign({team: +t, t: g.t}, local(g))), epi);
@@ -929,6 +958,7 @@
     const on = (id, f) => { const b = $(id); if (b) b.onclick = f; };
     on('st-manual', () => { S.manual = true; S.gpsError = S.gpsError || '지도를 눌러 내 위치를 찍어 주세요.'; toast('지도에서 지금 서 있는 곳을 눌러 주세요.'); dirty(); });
     on('st-sound', () => { Sound.unlock(); Sound.play('p', 0.5); setTimeout(() => Sound.play('s', 0.6), 700); shake('p'); });
+    on('st-team-guide', () => openGuide('team'));
     on('st-gps-back', () => { S.manual = false; S.fix = null; S.gpsError = null; toast('GPS 위치를 다시 쓰고 있어요.'); dirty(); });
     on('st-submit', submitPick);
     on('st-repick', () => { S.repick = true; S.tab = 'seis'; const p = myPick(); if (p) S.pick = {p: p.p, s: p.s, active: 'p'}; dirty(); });
@@ -990,6 +1020,16 @@
         const R = v * t, rr = R > (r.depth || 0) ? Math.sqrt(R * R - (r.depth || 0) ** 2) : 0;
         if (rr > 0 && rr < 600) scene.waves.push({x: epi.x, y: epi.y, r: rr, kind, opacity: clamp(1.2 - rr / 400, 0.25, 0.9)});
       }
+    }
+    if (m.phase === 'lobby') {
+      const t = studentTeam();
+      if (t.members.length >= 3) scene.polys = [{pts: M.hull(t.members), color: t.color}];
+    }
+    // '모이세요' 에 선생님 위치가 실려 오면 2분 동안 지도에 보여 준다
+    if (m.msg && m.msg.at && now - m.msg.t < 120000) {
+      const at = local(m.msg.at);
+      scene.marks.push(Object.assign({kind: 'station', color: '#e8590c', label: '선생님'}, at));
+      scene.fit.push(at);
     }
     if (S.fix) {
       const me = local(S.fix);
@@ -1342,7 +1382,28 @@
     };
   }
 
-  function sendMsg(text) { T.store.update(T.base + '/meta', {msg: {text, t: T.store.now()}}); if (T.bots) T.bots.onMsg(text); }
+  function sendMsg(text) {
+    const msg = {text, t: T.store.now()};
+    // 모이라고 할 때 선생님 위치를 알면 학생 지도에 '선생님'을 띄운다
+    if (text.includes('모이') && T.fix && Date.now() - T.fix.t < 30000) msg.at = {lat: +T.fix.lat.toFixed(7), lon: +T.fix.lon.toFixed(7)};
+    guard(T.store.update(T.base + '/meta', {msg}), '메시지 보내기').then(() => {
+      T.lastMsg = msg;
+      showHint(`📢 학생 폰에 보냈어요: ${text.length > 18 ? text.slice(0, 18) + '…' : text}`, 2500);
+      for (const b of document.querySelectorAll('[data-msg]')) b.classList.toggle('sent', b.dataset.msg === text);
+    }).catch(() => {});
+    if (T.bots) T.bots.onMsg(text, msg);
+  }
+  // 보낸 메시지를 몇 명이 받았는지
+  function renderMsgStatus() {
+    const box = $('t-msg-status'), msg = T.lastMsg;
+    if (!msg) { box.hidden = true; return; }
+    const on = entries(T.players).filter(([, p]) => p.on !== false);
+    const got = on.filter(([, p]) => p.ack === msg.t).length;
+    const ago = Math.round((T.store.now() - msg.t) / 1000);
+    const html = `📢 “${esc(msg.text)}” · <b>받음 ${got} / ${on.length}명</b> · ${ago < 60 ? ago + '초' : Math.round(ago / 60) + '분'} 전`;
+    if (box.innerHTML !== html) box.innerHTML = html;
+    box.hidden = false;
+  }
 
   function epicenterHere() {
     if (T.fix && Date.now() - T.fix.t < 15000) { setEpicenter(local(T.fix)); return; }
@@ -1484,6 +1545,7 @@
     $('t-located').textContent = live.length;
     $('t-gpsok').textContent = live.filter(([, p]) => !p.manual && (p.acc || 99) <= 12).length;
     renderRoster(now);
+    renderMsgStatus();
     $('t-round').textContent = m.round;
     // 모둠별 인원
     const counts = M.TEAMS.map(() => 0);
@@ -1684,10 +1746,16 @@
       this.tick();
     }
     scatter() { for (const b of this.list) { const p = this.inField(); b.tx = p.x; b.ty = p.y; } }
-    onMsg(text) {
-      if (text.includes('흩어')) this.scatter();
-      else if (text.includes('모이')) for (const b of this.list) { b.tx = this.c.x - 30 + (this.R() - 0.5) * 8; b.ty = this.c.y + 18 + (this.R() - 0.5) * 6; }
-      else if (text.includes('멈추')) for (const b of this.list) { b.tx = b.x; b.ty = b.y; }
+    // 선생님 메시지: 몇 초 안에 하나둘 '받음'을 보내고, 시킨 대로 (조금 서둘러) 움직인다
+    onMsg(text, msg) {
+      for (const b of this.list) { b.ackFor = msg && msg.t; b.ackAt = Date.now() + 500 + this.R() * 3500; }
+      const hurry = () => { for (const b of this.list) b.v = 2 + this.R() * 0.8; };
+      if (text.includes('흩어')) { this.scatter(); hurry(); }
+      else if (text.includes('모이')) {
+        const at = msg && msg.at ? local(msg.at) : {x: this.c.x, y: this.c.y};
+        for (const b of this.list) { b.tx = at.x + this.gauss() * 4; b.ty = at.y + this.gauss() * 3; }
+        hurry();
+      } else if (text.includes('멈추')) for (const b of this.list) { b.tx = b.x; b.ty = b.y; }
     }
     onMeta(prev, m) {
       if (prev && prev.round !== m.round) for (const b of this.list) { b.picked = false; b.pickAt = 0; b.guessTeam = false; }
@@ -1714,7 +1782,8 @@
         }
         // GPS 는 실제 위치에서 조금씩 흔들린다
         const g = geo({x: b.x + this.gauss() * b.acc * 0.3, y: b.y + this.gauss() * b.acc * 0.3});
-        upd[b.id] = {name: b.name, team: b.team, on: true, lat: +g.lat.toFixed(7), lon: +g.lon.toFixed(7), acc: Math.round(b.acc), t: now, bot: true};
+        if (b.ackFor && Date.now() >= b.ackAt) { b.ack = b.ackFor; b.ackFor = null; }
+        upd[b.id] = {name: b.name, team: b.team, on: true, lat: +g.lat.toFixed(7), lon: +g.lon.toFixed(7), acc: Math.round(b.acc), t: now, bot: true, ack: b.ack || null};
         // 판독: 기록이 끝나고 몇 초 뒤, 사람처럼 조금 늦거나 이르게 찍는다
         const a = T.arr[b.id];
         if (a && a.round === m.round && !b.picked && (m.phase === 'quake' || m.phase === 'race')) {
@@ -1777,6 +1846,13 @@
       $('open-room').disabled = true;
     }
     bindPickCanvas();
+    document.addEventListener('click', e => {
+      const b = e.target.closest('[data-guide]');
+      if (!b || !window.QuakeGuide) return;
+      e.preventDefault();
+      if (b.dataset.guide === 'student') openGuide();
+      else window.QuakeGuide.open({scale: b.dataset.guide === 'teacher' && T.meta ? T.meta.scale : undefined});
+    });
     for (const b of document.querySelectorAll('[data-sat]')) b.setAttribute('aria-pressed', String(pref('sat', true)));
 
     if (params.has('demo')) openRoom(true);

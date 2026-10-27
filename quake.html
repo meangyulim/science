@@ -6,9 +6,10 @@
   <meta name="theme-color" content="#14283a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>캠퍼스 지진 · 진앙을 찾아라</title>
-  <link rel="stylesheet" href="quake.css?v=20261027">
-  <script defer src="quake-model.js?v=20261027"></script>
-  <script defer src="quake.js?v=20261027"></script>
+  <link rel="stylesheet" href="quake.css?v=20261028">
+  <script defer src="quake-model.js?v=20261028"></script>
+  <script defer src="quake-guide.js?v=20261028"></script>
+  <script defer src="quake.js?v=20261028"></script>
 </head>
 <body data-screen="entry">
 <div class="shake-root" id="shake-root">
@@ -57,6 +58,7 @@
 
     <details class="how">
       <summary>어떻게 진행하나요?</summary>
+      <button class="ghost guide-open" data-guide="entry">📘 진앙 찾기 원리 가이드 보기</button>
       <ol>
         <li><b>관측망 깔기</b> — QR로 들어와 운동장 곳곳에 흩어집니다. 선생님 화면에 모두의 위치가 실시간으로 보여요.</li>
         <li><b>지진 발생</b> — 선생님이 숨겨 둔 진앙에서 지진이 납니다. 진앙에서 가까운 폰부터 차례로 P파, S파가 도착해 흔들려요.</li>
@@ -76,6 +78,7 @@
       <div><strong id="st-name">관측소</strong><small id="st-room">방 ----</small></div>
     </div>
     <div class="bar-status">
+      <button class="guide-btn" data-guide="student" aria-label="원리 가이드">📘</button>
       <span class="pill" id="st-gps" title="GPS 정확도">GPS …</span>
       <span class="conn" id="st-conn" title="연결 상태"></span>
     </div>
@@ -196,6 +199,8 @@
           <button class="chip" data-msg="선생님 쪽으로 모이세요">모이세요</button>
           <button class="chip" id="t-msg-custom">직접 쓰기…</button>
         </div>
+        <p class="micro msg-status" id="t-msg-status" hidden></p>
+        <button class="ghost guide-open" data-guide="teacher">📘 학생용 원리 가이드 열기 (TV에 띄우기 좋아요)</button>
       </section>
 
       <section class="t-step" data-step="setup">

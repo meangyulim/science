@@ -120,7 +120,8 @@
     }
     return s;
   }
-  function locate(stations, withDepth) {
+  // init 을 주면 격자 탐색을 건너뛰고 그 점에서부터 다듬는다 (오차 구름처럼 여러 번 풀 때 빠르게).
+  function locate(stations, withDepth, init) {
     const st = stations.filter(c => isFinite(c.x) && isFinite(c.y) && isFinite(c.r) && c.r >= 0);
     if (st.length < 3) return null;
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, rMax = 0;
@@ -131,8 +132,8 @@
     }
     const pad = Math.min(rMax, 400);
     x0 -= pad; x1 += pad; y0 -= pad; y1 += pad;
-    let best = {x: (x0 + x1) / 2, y: (y0 + y1) / 2, z: 0, f: Infinity};
-    const N = 48;
+    let best = init ? {x: init.x, y: init.y, z: withDepth ? (init.z || 0) : 0, f: 0} : {x: (x0 + x1) / 2, y: (y0 + y1) / 2, z: 0, f: Infinity};
+    const N = init ? -1 : 48;
     const zs = withDepth ? [0, rMax * 0.25, rMax * 0.5, rMax * 0.75] : [0];
     for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) for (const z of zs) {
       const x = x0 + (x1 - x0) * i / N, y = y0 + (y1 - y0) * j / N, f = misfit(st, x, y, z);
@@ -210,6 +211,57 @@
     return {x: p.x, y: p.y, depth: d <= c1.r ? Math.sqrt(c1.r * c1.r - d * d) : 0};
   }
 
+  // ── 관측소 배치가 좋은지 ─────────────────────────────────────────
+  // 원 세 개가 '한 점'에서 또렷하게 만나려면 관측소가 넓게, 한 줄이 아니게, 서로 떨어져 있어야 한다.
+  //   minPair: 가장 가까운 두 관측소, iso: 퍼진 모양(0 = 한 줄, 1 = 고르게 둘러쌈), span: 가장 먼 두 관측소 사이
+  function formation(pts) {
+    const n = pts.length;
+    if (n < 3) return {n, level: 'few'};
+    let minPair = {d: Infinity}, span = 0;
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const d = dist(pts[i], pts[j]);
+      if (d < minPair.d) minPair = {d, a: pts[i], b: pts[j]};
+      span = Math.max(span, d);
+    }
+    const cx = pts.reduce((a, p) => a + p.x, 0) / n, cy = pts.reduce((a, p) => a + p.y, 0) / n;
+    let sxx = 0, syy = 0, sxy = 0;
+    for (const p of pts) { sxx += (p.x - cx) ** 2; syy += (p.y - cy) ** 2; sxy += (p.x - cx) * (p.y - cy); }
+    const tr = sxx + syy, det = sxx * syy - sxy * sxy, disc = Math.sqrt(Math.max(0, tr * tr / 4 - det));
+    const l1 = tr / 2 + disc, l2 = tr / 2 - disc, iso = l1 > 0 ? Math.max(0, l2) / l1 : 0;
+    const level = minPair.d < 10 ? 'close' : iso < 0.12 ? 'line' : span < 30 ? 'narrow' : 'good';
+    return {n, minPair, span, iso, level, center: {x: cx, y: cy}};
+  }
+
+  // 볼록 껍질: 모둠원을 잇는 도형을 꼬이지 않게 바깥 둘레 순서로 (단조 사슬)
+  function hull(pts) {
+    const p = pts.slice().sort((a, b) => a.x - b.x || a.y - b.y);
+    if (p.length < 3) return p;
+    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const lo = [], up = [];
+    for (const q of p) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+    for (const q of p.slice().reverse()) { while (up.length >= 2 && cross(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+    return lo.slice(0, -1).concat(up.slice(0, -1));
+  }
+
+  // 판독(PS시)과 GPS 가 조금씩 틀릴 때 진앙 추정이 어디까지 흩어지는지: 여러 번 흔들어 풀어 본다.
+  // sigma 는 진원 거리 오차의 표준편차(m). 돌려주는 rms 가 작을수록 좋은 배치다.
+  // global 이면 매번 운동장 전체를 다시 찾는다: 한 줄로 선 관측소처럼 '거울상' 점이 똑같이 잘 맞으면
+  // 추정이 그쪽으로도 튀는 것까지 보여 준다.
+  function errorCloud(stations, epi, sigma, random = Math.random, n = 60, global = false) {
+    if (stations.length < 3) return null;
+    const gauss = () => Math.sqrt(-2 * Math.log(1 - random() * 0.999999)) * Math.cos(2 * Math.PI * random());
+    const out = [];
+    let ss = 0;
+    for (let i = 0; i < n; i++) {
+      const c = stations.map(s => ({x: s.x, y: s.y, r: Math.max(0, dist(s, epi) + gauss() * sigma)}));
+      const e = locate(c, false, global ? undefined : epi);
+      if (!e) continue;
+      out.push({x: e.x, y: e.y});
+      ss += (e.x - epi.x) ** 2 + (e.y - epi.y) ** 2;
+    }
+    return {pts: out, rms: out.length ? Math.sqrt(ss / out.length) : Infinity};
+  }
+
   // ── 수업 운영에 쓰는 도구 ───────────────────────────────────────
   // 관측소들이 둘러싼 영역 안쪽에서 진앙을 하나 고른다. 관측소 바로 위는 피한다.
   function randomEpicenter(points, random = Math.random, minGap = 8) {
@@ -275,6 +327,7 @@
     intensity, intensityClass, roman, INTENSITY_TEXT,
     rng, amplitudeAt, RATE, recordLength, synthesize,
     locate, chord, radicalCenter,
+    formation, errorCloud, hull,
     randomEpicenter, fitOmori, blendFix, rankGuesses, TEAMS
   };
   if (typeof module === 'object' && module.exports) module.exports = api;

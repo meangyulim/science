@@ -107,3 +107,47 @@ test('guess ranking: smaller error first, then earlier',()=>{
   assert.deepEqual(r.map(g=>g.team),[2,1,0]);
   close(r[0].err,5);
 });
+
+test('formation: flags clustered, in-line and narrow teams, praises a wide triangle',()=>{
+  assert.equal(M.formation([{x:0,y:0},{x:30,y:0}]).level,'few');
+  assert.equal(M.formation([{x:0,y:0},{x:4,y:3},{x:40,y:30}]).level,'close');
+  const line=M.formation([{x:0,y:0},{x:25,y:1},{x:50,y:-1}]);
+  assert.equal(line.level,'line'); assert.ok(line.iso<0.12);
+  assert.equal(M.formation([{x:0,y:0},{x:12,y:0},{x:6,y:11}]).level,'narrow');
+  const good=M.formation([{x:-30,y:-20},{x:30,y:-20},{x:0,y:30}]);
+  assert.equal(good.level,'good'); close(good.minPair.d,Math.hypot(30,50),1e-9); assert.ok(good.iso>0.5);
+});
+
+test('error cloud: surrounding the epicenter beats standing in a clump or a line',()=>{
+  const epi={x:0,y:0}, R=M.rng(11);
+  const wide=M.errorCloud([{x:-40,y:-25},{x:40,y:-25},{x:0,y:45}],epi,2,R);
+  const clump=M.errorCloud([{x:50,y:40},{x:58,y:42},{x:54,y:50}],epi,2,R);
+  const line=M.errorCloud([{x:-40,y:30},{x:0,y:31},{x:40,y:30}],epi,2,R);
+  assert.ok(wide.rms<3,`wide ${wide.rms}`);
+  assert.ok(clump.rms>2*wide.rms,`clump ${clump.rms} vs wide ${wide.rms}`);
+  assert.ok(line.rms>wide.rms,`line ${line.rms} vs wide ${wide.rms}`);
+  assert.equal(M.errorCloud([{x:0,y:0},{x:1,y:1}],epi,2,R),null);
+  // 초깃값을 주어도 정확한 원이면 정답을 찾는다
+  const st=[{x:-30,y:10},{x:25,y:20},{x:5,y:-35}].map(s=>({...s,r:M.dist(s,{x:3,y:4})}));
+  const e=M.locate(st,false,{x:0,y:0}); close(e.x,3,1e-3); close(e.y,4,1e-3);
+});
+
+test('error cloud with a fresh search shows the mirror trap of stations in a line',()=>{
+  const sig=2.7, R=M.rng(7);
+  const wide=M.errorCloud([{x:-32,y:-18},{x:30,y:-20},{x:2,y:24}],{x:2,y:-2},sig,R,50,true);
+  const line=M.errorCloud([{x:-40,y:4},{x:0,y:6},{x:40,y:4}],{x:4,y:-12},sig,R,50,true);
+  assert.ok(wide.rms<5,`wide ${wide.rms}`);
+  assert.ok(line.rms>3*wide.rms,`line ${line.rms} vs wide ${wide.rms}`);
+  // 거울상: 줄 반대편(+y)으로 튄 추정이 있다
+  assert.ok(line.pts.some(p=>p.y>10));
+});
+
+test('hull orders the outside of a team without crossing',()=>{
+  const pts=[{x:0,y:0},{x:10,y:10},{x:10,y:0},{x:0,y:10},{x:5,y:5}];
+  const h=M.hull(pts);
+  assert.equal(h.length,4);
+  assert.ok(!h.some(p=>p.x===5&&p.y===5));
+  // 넓이가 양수(반시계 방향)이고 정사각형 넓이 100
+  let a=0; for(let i=0;i<h.length;i++){const p=h[i],q=h[(i+1)%h.length];a+=p.x*q.y-q.x*p.y;}
+  close(a/2,100);
+});
