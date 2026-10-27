@@ -25,7 +25,7 @@
     authDomain: 'sehwa-f2f95.firebaseapp.com',
     projectId: 'sehwa-f2f95',
     appId: '1:538221310192:web:c0c949065d362562cad235',
-    databaseURL: ''
+    databaseURL: 'https://sehwa-f2f95-default-rtdb.firebaseio.com'
   };
   const FB = 'https://www.gstatic.com/firebasejs/11.6.1/';
   const QR_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
