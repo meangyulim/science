@@ -1186,8 +1186,7 @@
     bindTeacher();
     if (demo) {
       T.bots = new Bots();
-      $('t-legend').innerHTML = '<div class="row"><b>미리 해 보기</b></div><div class="row micro">가상 학생 24명이 운동장을 걸어 다녀요. 지진을 일으켜 보세요.</div>';
-      setTimeout(() => { if ($('t-legend').textContent.includes('미리')) $('t-legend').innerHTML = ''; }, 9000);
+      bindDemo();
     } else {
       showQR();
     }
@@ -1533,7 +1532,7 @@
     if (m.phase === 'quake' && el >= 0 && el < lastS + 6) lg = '<div class="row"><i style="background:#1f6feb"></i>P파 도착</div><div class="row"><i style="background:#e03131"></i>S파 도착</div>';
     else if (m.phase === 'reveal' && T.view === 'intensity') lg = `<div class="row"><b>진도 분포</b>&nbsp;규모 ${num(m.mag, 1)}</div><div class="scale">${INTENSITY_COLORS.slice(1, 10).map((c, i) => `<i style="background:${c}">${M.roman(i + 1)}</i>`).join('')}</div>`;
     else if (m.phase === 'reveal' && T.view === 'circles') lg = '<div class="row"><i style="background:#14283a"></i>굵은 원 셋과 공통현(점선)</div><div class="row">✚ 반 전체 원으로 구한 진앙</div>';
-    if (!legend.textContent.includes('미리') && legend.innerHTML !== lg) legend.innerHTML = lg;
+    if (legend.innerHTML !== lg) legend.innerHTML = lg;
     // 카운트다운
     const cd = $('countdown');
     if (m.phase === 'quake' && el > -3.6 && el < 1.2) {
@@ -1636,10 +1635,33 @@
   //  미리 해 보기: 가상 학생 24명 (선생님 기기 안에서만 움직인다)
   // ════════════════════════════════════════════════════════════
   const BOT_NAMES = ['서연', '민지', '하윤', '지우', '수아', '예린', '채원', '지민', '다은', '유나', '서현', '하은', '윤서', '소율', '가은', '나연', '예서', '시아', '아린', '혜원', '수빈', '지아', '연우', '다인'];
+  // 가상 학생들이 서 있을 곳. 한 번 옮기면 이 기기에 저장해 두고 다음에도 거기서 시작한다.
+  const demoHome = () => { const g = pref('demoCenter', null); return g && isFinite(g.lat) ? local(g) : {x: 0, y: 0}; };
+  function bindDemo() {
+    $('t-demo').hidden = false;
+    const note = () => {
+      $('t-demo-note').textContent = pref('demoCenter', null)
+        ? '가상 학생들은 지난번에 옮겨 둔 자리(이 기기에 저장됨)에서 걸어 다녀요. 지진을 일으켜 보세요.'
+        : '가상 학생들이 학교 기준점 둘레를 걸어 다녀요. 운동장이 아니면 지도를 운동장으로 옮긴 뒤 "지도 가운데로"를 누르세요. 한 번 옮기면 이 기기에 기억해요.';
+    };
+    note();
+    const move = c => { T.bots.moveTo(c); setPref('demoCenter', geo(c)); note(); T.map.fitNow(); };
+    $('t-demo-center').onclick = () => move({x: T.map.view.x, y: T.map.view.y});
+    $('t-demo-me').onclick = () => {
+      if (T.fix && Date.now() - T.fix.t < 15000) { move(local(T.fix)); return; }
+      if (!navigator.geolocation) { showHint('이 기기는 위치를 쓸 수 없어요.', 4000); return; }
+      showHint('선생님 위치를 찾는 중…', 8000);
+      navigator.geolocation.getCurrentPosition(p => { showHint(''); move(local({lat: p.coords.latitude, lon: p.coords.longitude})); },
+        () => showHint('위치를 못 찾았어요. 지도를 운동장으로 옮긴 뒤 "지도 가운데로"를 눌러 주세요.', 6000),
+        {enableHighAccuracy: true, timeout: 15000, maximumAge: 0});
+    };
+  }
+
   class Bots {
     constructor() {
       const R = M.rng(20261030);
       this.R = R;
+      this.c = demoHome();
       this.field = {a: 50, b: 30};   // 운동장 반지름 (가로 100 m × 세로 60 m 타원)
       this.list = BOT_NAMES.map((name, i) => {
         const {x, y} = this.inField();
@@ -1652,12 +1674,19 @@
     stop() { clearInterval(this.timer); }
     inField() {
       const R = this.R, t = R() * Math.PI * 2, u = Math.sqrt(0.15 + 0.85 * R());
-      return {x: this.field.a * u * Math.cos(t), y: this.field.b * u * Math.sin(t)};
+      return {x: this.c.x + this.field.a * u * Math.cos(t), y: this.c.y + this.field.b * u * Math.sin(t)};
+    }
+    // 대열을 그대로 둔 채 통째로 옮긴다
+    moveTo(c) {
+      const dx = c.x - this.c.x, dy = c.y - this.c.y;
+      this.c = {x: c.x, y: c.y};
+      for (const b of this.list) { b.x += dx; b.y += dy; b.tx += dx; b.ty += dy; }
+      this.tick();
     }
     scatter() { for (const b of this.list) { const p = this.inField(); b.tx = p.x; b.ty = p.y; } }
     onMsg(text) {
       if (text.includes('흩어')) this.scatter();
-      else if (text.includes('모이')) for (const b of this.list) { b.tx = -30 + (this.R() - 0.5) * 8; b.ty = 18 + (this.R() - 0.5) * 6; }
+      else if (text.includes('모이')) for (const b of this.list) { b.tx = this.c.x - 30 + (this.R() - 0.5) * 8; b.ty = this.c.y + 18 + (this.R() - 0.5) * 6; }
       else if (text.includes('멈추')) for (const b of this.list) { b.tx = b.x; b.ty = b.y; }
     }
     onMeta(prev, m) {

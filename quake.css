@@ -185,6 +185,8 @@ body[data-screen=entry] #screen-entry,body[data-screen=student] #screen-student,
 .t-map-wrap{position:relative;min-height:0;background:#e9eeec}
 .t-side{overflow-y:auto;border-left:1px solid var(--line);background:var(--bg);padding:12px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
 .t-step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.demo-card{background:#fff8ec;border-color:#e8c98f}
+.demo-card .live-row button{font-size:13px;padding:6px 8px}
 .t-step.quiet{background:transparent;border:0;padding:0}
 .t-step h3{font-size:14.5px}
 .step{color:var(--cyan);font-family:ui-monospace,monospace;font-size:12px;margin-right:4px}
