@@ -136,9 +136,19 @@ body[data-screen=entry] #screen-entry,body[data-screen=student] #screen-student,
 
 /* ── 지도 ───────────────────────── */
 .field-map{display:block;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none;background:#e9eeec}
-.map-tools{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+.map-tools{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;max-height:calc(100% - 20px);overflow-y:auto;scrollbar-width:none}
+.map-tools::-webkit-scrollbar{display:none}
 .map-tools .icon{width:42px;height:42px;min-height:42px;padding:0;border-radius:12px;font-size:18px;background:#fffffff0;box-shadow:0 2px 8px #0002}
-.map-tools .icon[aria-pressed=false]{opacity:.55}
+.map-tools .icon[data-sat][aria-pressed=false],#t-eye[aria-pressed=false]{opacity:.55}
+.map-tools .icon[data-me][aria-pressed=true],.map-tools .icon[data-fit][aria-pressed=true]{background:var(--ink);color:#fff}
+.map-hint{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);background:var(--epi);color:#fff;font-weight:800;padding:10px 16px;border-radius:999px;box-shadow:0 6px 18px #0004;white-space:nowrap;pointer-events:none;animation:drop .25s ease-out}
+.roster{border:1px solid var(--line);border-radius:12px;padding:6px 10px}
+.roster summary{font-size:13px;font-weight:700;cursor:pointer;min-height:32px;display:flex;align-items:center}
+.roster-list{display:flex;flex-direction:column;gap:3px;max-height:260px;overflow-y:auto;margin:4px 0 2px}
+.roster-list button{display:grid;grid-template-columns:10px 1fr auto;align-items:center;gap:8px;min-height:36px;padding:4px 8px;border:0;border-radius:8px;background:var(--bg);font-size:13px;font-weight:600;text-align:left}
+.roster-list button i{width:10px;height:10px;border-radius:50%}
+.roster-list .st{font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.st.good{background:#e3f5ea;color:var(--good)}.st.ok{background:#fff4dc;color:var(--warn)}.st.bad{background:#fde8e6;color:var(--bad)}
 .map-credit{position:absolute;left:8px;bottom:6px;font-size:10px;color:#fffd;text-shadow:0 0 3px #000a;pointer-events:none}
 .map-legend{position:absolute;left:10px;top:10px;background:#fffffff0;border-radius:12px;padding:8px 10px;font-size:12px;box-shadow:0 2px 8px #0002;display:flex;flex-direction:column;gap:3px;max-width:60%}
 .map-legend:empty{display:none}
@@ -175,6 +185,8 @@ body[data-screen=entry] #screen-entry,body[data-screen=student] #screen-student,
 .t-map-wrap{position:relative;min-height:0;background:#e9eeec}
 .t-side{overflow-y:auto;border-left:1px solid var(--line);background:var(--bg);padding:12px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
 .t-step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.demo-card{background:#fff8ec;border-color:#e8c98f}
+.demo-card .live-row button{font-size:13px;padding:6px 8px}
 .t-step.quiet{background:transparent;border:0;padding:0}
 .t-step h3{font-size:14.5px}
 .step{color:var(--cyan);font-family:ui-monospace,monospace;font-size:12px;margin-right:4px}
