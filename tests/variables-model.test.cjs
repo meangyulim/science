@@ -1,6 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const M=require('../variables-model.js');
+const M=require('../sims/variables/variables-model.js');
 const close=(a,b,eps=1e-6)=>assert.ok(Math.abs(a-b)<eps,`${a} ≠ ${b}`);
 
 test('distance modulus: worksheet examples',()=>{

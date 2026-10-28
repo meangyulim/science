@@ -1,6 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const M=require('../quake-model.js');
+const M=require('../sims/quake/quake-model.js');
 const close=(a,b,eps=1e-6)=>assert.ok(Math.abs(a-b)<eps,`${a} ≠ ${b}`);
 const SCHOOL={lat:37.4985,lon:126.9962};
 

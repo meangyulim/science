@@ -19,7 +19,7 @@
   // ── 설정 ─────────────────────────────────────────────────────
   // Firebase 콘솔 → 빌드 → Realtime Database → 데이터베이스 만들기 를 한 뒤
   // 화면 위쪽에 나오는 주소(https://….firebasedatabase.app 또는 ….firebaseio.com)를 databaseURL 에 넣는다.
-  // 같은 화면의 '규칙' 탭에는 quake-database.rules.json 내용을 붙여 넣는다 (진앙은 선생님만 읽을 수 있게).
+  // 같은 화면의 '규칙' 탭에는 database.rules.json 내용을 붙여 넣는다 (진앙은 선생님만 읽을 수 있게).
   const FIREBASE = {
     apiKey: 'AIzaSyDyscbvZ4d9dCKHa4EcKEKEKFJJeJTPets',
     authDomain: 'sehwa-f2f95.firebaseapp.com',
@@ -773,7 +773,7 @@
   // ── 모둠 대화 ──
   // 욕설 거르기: 지질시대 게임이 쓰는 목록을 같이 쓴다 (불러오지 못하면 그냥 보낸다)
   let BAD = null;
-  import('./test/data.js?v=5').then(mod => { BAD = mod.badWords.map(w => w.toLowerCase()).filter(w => w.length > 0); }).catch(() => {});
+  import('../geologic-game/data.js?v=5').then(mod => { BAD = mod.badWords.map(w => w.toLowerCase()).filter(w => w.length > 0); }).catch(() => {});
   function cleanText(text) {
     let t = String(text).replace(/\s+/g, ' ').trim().slice(0, 100);
     if (!BAD) return t;
