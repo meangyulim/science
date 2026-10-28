@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#14283a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>캠퍼스 지진 · 진앙을 찾아라</title>
-  <link rel="stylesheet" href="quake.css?v=20261028">
-  <script defer src="quake-model.js?v=20261028"></script>
-  <script defer src="quake-guide.js?v=20261028"></script>
-  <script defer src="quake.js?v=20261028"></script>
+  <link rel="stylesheet" href="quake.css?v=20261029">
+  <script defer src="quake-model.js?v=20261029"></script>
+  <script defer src="quake-guide.js?v=20261029"></script>
+  <script defer src="quake.js?v=20261029"></script>
 </head>
 <body data-screen="entry">
 <div class="shake-root" id="shake-root">
@@ -78,6 +78,7 @@
       <div><strong id="st-name">관측소</strong><small id="st-room">방 ----</small></div>
     </div>
     <div class="bar-status">
+      <button class="guide-btn chat-btn" id="st-chat-btn" aria-label="모둠 대화">💬<i id="st-chat-badge" hidden></i></button>
       <button class="guide-btn" data-guide="student" aria-label="원리 가이드">📘</button>
       <span class="pill" id="st-gps" title="GPS 정확도">GPS …</span>
       <span class="conn" id="st-conn" title="연결 상태"></span>
@@ -200,6 +201,10 @@
           <button class="chip" id="t-msg-custom">직접 쓰기…</button>
         </div>
         <p class="micro msg-status" id="t-msg-status" hidden></p>
+        <details class="roster" id="t-chat-box">
+          <summary id="t-chat-sum">💬 모둠 대화 살펴보기</summary>
+          <div class="t-chat-list" id="t-chat"></div>
+        </details>
         <button class="ghost guide-open" data-guide="teacher">📘 학생용 원리 가이드 열기 (TV에 띄우기 좋아요)</button>
       </section>
 
@@ -271,6 +276,28 @@
     </aside>
   </div>
 </section>
+
+<!-- 모둠 대화 -->
+<div class="chat" id="chat" role="dialog" aria-modal="true" aria-labelledby="chat-title" hidden>
+  <div class="chat-sheet">
+    <header class="chat-head">
+      <div><p class="eyebrow" id="chat-team">모둠 대화</p><h2 id="chat-title">우리 모둠끼리만 보여요</h2></div>
+      <button class="guide-x" id="chat-x" aria-label="대화 닫기">✕</button>
+    </header>
+    <div class="chat-list" id="chat-list" aria-live="polite"></div>
+    <div class="chat-quick" id="chat-quick">
+      <button data-say="📍 내 위치 공유">📍 내 위치</button>
+      <button data-say="여기 원이 겹쳐!">여기 원이 겹쳐!</button>
+      <button data-say="판독 끝!">판독 끝!</button>
+      <button data-say="나 이쪽으로 옮길게">이쪽으로 옮길게</button>
+      <button data-say="그 자리에 있어!">그 자리에 있어!</button>
+    </div>
+    <form class="chat-form" id="chat-form" autocomplete="off">
+      <input id="chat-input" maxlength="100" placeholder="모둠원에게 보내기" enterkeyhint="send" aria-label="보낼 말">
+      <button class="primary" id="chat-send">보내기</button>
+    </form>
+  </div>
+</div>
 
 <!-- QR 크게 보기 -->
 <dialog class="qr-dialog" id="qr-dialog">

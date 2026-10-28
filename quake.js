@@ -721,7 +721,8 @@
     }
     setPref('me', {name, team: teamIdx});
     const me = S.base + '/players/' + S.store.uid;
-    await S.store.update(me, {name, team: teamIdx, on: true, joined: S.store.now()});
+    // tk 는 모둠 대화 규칙이 '같은 모둠인지' 확인할 때 쓰는 문자열 열쇠
+    await S.store.update(me, {name, team: teamIdx, tk: 't' + teamIdx, on: true, joined: S.store.now()});
     S.store.onLeave(me, {on: false});
     S.store.onStatus(on => { S.connected = on; $('st-conn').className = 'conn ' + (on ? 'on' : 'off'); if (on) S.store.update(me, {on: true}); });
     S.store.on(S.base + '/meta', v => { S.closed = !v; onStudentMeta(v); });
@@ -730,6 +731,8 @@
     S.store.on(S.base + '/guesses', v => { S.guesses = v || {}; dirty(); });
     S.store.on(S.base + '/players', v => { S.players = v || {}; dirty(); });
     S.store.on(S.base + '/reveal', v => { S.reveal = v; if (v) S.replayAt = performance.now(); dirty(); });
+    S.store.on(S.base + '/chat/t' + teamIdx, v => { S.chat = v || {}; onChat(); dirty(); });
+    bindChat();
     history.replaceState(null, '', '?room=' + code + (LOCAL_ONLY ? '&local' : ''));
     showScreen('student');
     $('st-name').textContent = `${team(teamIdx).name} · ${name}`;
@@ -760,6 +763,98 @@
   }
   function openGuide(tab) {
     if (window.QuakeGuide) window.QuakeGuide.open({scale: S.meta && S.meta.scale, tab, team: S.store ? studentTeam : null});
+  }
+
+  // ── 모둠 대화 ──
+  // 욕설 거르기: 지질시대 게임이 쓰는 목록을 같이 쓴다 (불러오지 못하면 그냥 보낸다)
+  let BAD = null;
+  import('./test/data.js?v=5').then(mod => { BAD = mod.badWords.map(w => w.toLowerCase()).filter(w => w.length > 0); }).catch(() => {});
+  function cleanText(text) {
+    let t = String(text).replace(/\s+/g, ' ').trim().slice(0, 100);
+    if (!BAD) return t;
+    const low = t.toLowerCase();
+    for (const w of BAD) {
+      let i = low.indexOf(w);
+      while (i >= 0) { t = t.slice(0, i) + '*'.repeat(w.length) + t.slice(i + w.length); i = low.indexOf(w, i + w.length); }
+    }
+    return t;
+  }
+  const chatList = () => Object.values(S.chat || {}).filter(c => c && c.text).sort((a, b) => a.t - b.t).slice(-60);
+  let chatSeen = 0, chatShownAt = 0, lastSent = 0;
+  function onChat() {
+    const list = chatList(), open = !$('chat').hidden;
+    if (open) { chatSeen = Date.now(); renderChat(); }
+    const unread = list.filter(c => c.uid !== S.store.uid && c.t > S.chatSeenAt).length;
+    const badge = $('st-chat-badge');
+    badge.hidden = open || !unread;
+    badge.textContent = unread > 9 ? '9+' : unread;
+    // 창이 닫혀 있으면 새 말을 잠깐 띄운다 (처음 들어올 때 지난 대화는 빼고)
+    const fresh = list.filter(c => c.uid !== S.store.uid && c.t > chatShownAt && S.store.now() - c.t < 15000);
+    if (fresh.length) {
+      chatShownAt = fresh[fresh.length - 1].t;
+      if (!open) toast(fresh[fresh.length - 1].text, `💬 ${fresh[fresh.length - 1].name}`);
+    }
+  }
+  function renderChat() {
+    const list = chatList(), box = $('chat-list');
+    const html = list.length ? list.map(c => {
+      const me = c.uid === S.store.uid, ago = Math.max(0, Math.round((S.store.now() - c.t) / 60000));
+      return `<div class="bubble${me ? ' me' : ''}"><small>${me ? '나' : esc(c.name)} · ${ago ? ago + '분 전' : '방금'}</small><p>${esc(c.text)}</p>${c.at ? `<button class="loc" data-loc="${c.at.lat},${c.at.lon}">🗺 지도에서 보기</button>` : ''}</div>`;
+    }).join('') : '<p class="chat-empty">아직 대화가 없어요.<br>원이 어디서 만나는지, 누가 어디로 갈지 의논해 보세요!</p>';
+    if (box.innerHTML !== html) {
+      const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+      box.innerHTML = html;
+      if (atBottom || !box.dataset.ready) box.scrollTop = box.scrollHeight;
+      box.dataset.ready = '1';
+    }
+  }
+  function sendChat(text, at) {
+    const clean = cleanText(text);
+    if (!clean) return;
+    if (Date.now() - lastSent < 800) return;   // 연타 막기
+    lastSent = Date.now();
+    const t = S.store.now(), msg = {uid: S.store.uid, name: S.name, text: clean, t};
+    if (at) msg.at = {lat: +at.lat.toFixed(7), lon: +at.lon.toFixed(7)};
+    S.store.set(`${S.base}/chat/t${S.team}/${t.toString(36)}${S.store.uid.slice(-4)}`, msg)
+      .catch(e => toast('대화를 보내지 못했어요. 선생님께 Firebase 규칙을 확인해 달라고 해 주세요.', e && e.message));
+  }
+  function bindChat() {
+    S.chatSeenAt = S.store.now();
+    chatShownAt = S.store.now();
+    $('chat-team').textContent = `${team(S.team).name} 대화`;
+    $('st-chat-btn').onclick = () => {
+      $('chat').hidden = false;
+      S.chatSeenAt = S.store.now();
+      onChat();
+      renderChat();
+      setTimeout(() => $('chat-input').focus(), 50);
+    };
+    const close = () => { $('chat').hidden = true; S.chatSeenAt = S.store.now(); onChat(); };
+    $('chat-x').onclick = close;
+    $('chat').addEventListener('click', e => { if (e.target === $('chat')) close(); });
+    $('chat-form').onsubmit = e => {
+      e.preventDefault();
+      const v = $('chat-input').value;
+      if (!v.trim()) return;
+      sendChat(v);
+      $('chat-input').value = '';
+    };
+    for (const b of document.querySelectorAll('[data-say]')) b.onclick = () => {
+      if (b.dataset.say.startsWith('📍')) {
+        if (!S.fix) { toast('아직 내 위치를 못 찾았어요.'); return; }
+        sendChat('📍 나 여기 있어!', S.fix);
+      } else sendChat(b.dataset.say);
+    };
+    $('chat-list').addEventListener('click', e => {
+      const b = e.target.closest('[data-loc]');
+      if (!b) return;
+      const [lat, lon] = b.dataset.loc.split(',').map(Number);
+      close();
+      S.tab = 'map';
+      dirty();
+      setTimeout(() => S.map && S.map.centerOn(local({lat, lon}), 60), 50);
+    });
+    setInterval(() => { if (!$('chat').hidden) renderChat(); }, 20000);
   }
 
   function onStudentMeta(m) {
@@ -882,10 +977,10 @@
       const ok = S.pick.p != null && S.pick.s != null && S.pick.s > S.pick.p;
       action = `<button class="go" id="st-submit" ${ok ? '' : 'disabled'}>${ok ? `진원 거리 ${num((S.pick.s - S.pick.p) * k, 0)} m로 원 그리기` : 'P와 S를 모두 찍어 주세요'}</button>`;
     } else if (state === 'submitted') {
-      const p = myPick(), n = roundPicks().length;
+      const p = myPick(), n = roundPicks().filter(([, q]) => q.team === S.team).length;
       cls = 'good';
       card = `<p class="kicker">제출 완료</p><h2>진원 거리 ${num(p.d, 0)} m</h2>
-        <p>지도에 내 원이 그려졌어요. 지금까지 원 <b>${n}개</b>. 원이 모이면 겹치는 곳이 보입니다. 선생님이 레이스를 시작하면 그곳으로 달려가요!</p>`;
+        <p>지도에 내 원이 그려졌어요. 우리 모둠 원 <b>${n}개</b>. ${n >= 3 ? '세 원이 만나는 곳을 💬 모둠 대화로 의논해 보세요!' : '모둠원 원이 3개 모이면 만나는 점이 보여요.'} 선생님이 레이스를 시작하면 그곳으로 달려가요!</p>`;
       action = `<button id="st-repick">다시 판독하기</button>`;
     } else if (state === 'race') {
       const g = S.guesses[S.team], mine = g && g.round === m.round;
@@ -991,17 +1086,23 @@
   function studentScene() {
     const m = S.meta || {}, scene = {players: [], circles: [], chords: [], waves: [], guesses: [], marks: [], fit: [], minSpan: 70};
     const now = S.store.now();
+    // 학생 지도에는 우리 모둠원만, 이름과 함께 보인다
     for (const [id, p] of entries(S.players)) {
-      if (id === S.store.uid || p.lat == null) continue;
+      if (id === S.store.uid || p.lat == null || p.team !== S.team) continue;
       const q = local(p);
-      scene.players.push(Object.assign(q, {color: team(p.team).color, off: p.on === false || now - (p.t || 0) > 30000}));
+      scene.players.push(Object.assign(q, {color: team(p.team).color, label: p.name, big: true, off: p.on === false || now - (p.t || 0) > 30000}));
       if (fitWorthy(p, now)) scene.fit.push(q);
     }
-    const picks = roundPicks();
+    // 모둠 대화에서 공유한 위치는 1분 동안 지도에 표시
+    for (const c of Object.values(S.chat || {})) {
+      if (!c.at || c.uid === S.store.uid || now - c.t > 60000) continue;
+      scene.marks.push(Object.assign({kind: 'station', color: team(S.team).color, label: `📍${c.name}`}, local(c.at)));
+    }
+    const picks = roundPicks().filter(([, p]) => p.team === S.team);
     const showCircles = ['submitted', 'race', 'reveal'].includes(stState()) || (myPick() && S.tab === 'map');
     if (showCircles) {
       for (const [id, p] of picks) {
-        const c = Object.assign(local(p), {r: p.d, color: team(p.team).color, mine: id === S.store.uid});
+        const c = Object.assign(local(p), {r: p.d, color: id === S.store.uid ? '#1f6feb' : team(p.team).color, mine: id === S.store.uid});
         scene.circles.push(c);
         scene.marks.push({kind: 'station', x: c.x, y: c.y, color: c.color});
       }
@@ -1222,6 +1323,7 @@
     on('/arr', v => { T.arr = v || {}; });
     on('/secret', v => { T.secret = v; });
     on('/reveal', v => { T.reveal = v; });
+    on('/chat', v => { T.chat = v || {}; renderTeacherChat(); });
     T.store.onStatus(ok => { $('t-conn').className = 'conn ' + (ok ? 'on' : 'off'); });
     bindTeacher();
     if (demo) {
@@ -1380,6 +1482,15 @@
       for (const x of document.querySelectorAll('[data-view]')) x.setAttribute('aria-pressed', String(x === b));
       tDirty();
     };
+  }
+
+  // 모둠 대화 살펴보기 (선생님만 모든 모둠 대화를 볼 수 있다)
+  function renderTeacherChat() {
+    const all = [];
+    for (const [tk, msgs] of entries(T.chat)) for (const c of Object.values(msgs || {})) if (c && c.text) all.push(Object.assign({team: +tk.slice(1)}, c));
+    all.sort((a, b) => b.t - a.t);
+    $('t-chat-sum').textContent = `💬 모둠 대화 살펴보기${all.length ? ` · ${all.length}개` : ''}`;
+    $('t-chat').innerHTML = all.slice(0, 40).map(c => `<div><i style="background:${team(c.team).color}"></i><b>${esc(c.name)}</b><span>${esc(c.text)}</span></div>`).join('') || '<p class="micro">아직 대화가 없어요.</p>';
   }
 
   function sendMsg(text) {
@@ -1550,7 +1661,8 @@
     // 모둠별 인원
     const counts = M.TEAMS.map(() => 0);
     for (const [, p] of live) if (counts[p.team] != null) counts[p.team]++;
-    const teamsHtml = M.TEAMS.map((t, i) => `<div style="--c:${t.color}" class="${counts[i] ? '' : 'none'}"><b>${counts[i]}</b>${t.name}</div>`).join('');
+    // 원 세 개가 필요하니 1~2명뿐인 모둠은 점선으로 알려 준다
+    const teamsHtml = M.TEAMS.map((t, i) => `<div style="--c:${t.color}" class="${counts[i] ? (counts[i] < 3 ? 'few' : '') : 'none'}"${counts[i] && counts[i] < 3 ? ' title="원이 3개는 있어야 진앙이 한 점으로 정해져요"' : ''}><b>${counts[i]}</b>${t.name}${counts[i] && counts[i] < 3 ? ' ⚠' : ''}</div>`).join('');
     // 설정 상태
     const lobby = m.phase === 'lobby';
     const arrN = Object.values(T.arr).filter(a => a.round === m.round).length, pickN = tRoundPicks().length;
@@ -1750,7 +1862,10 @@
     onMsg(text, msg) {
       for (const b of this.list) { b.ackFor = msg && msg.t; b.ackAt = Date.now() + 500 + this.R() * 3500; }
       const hurry = () => { for (const b of this.list) b.v = 2 + this.R() * 0.8; };
-      if (text.includes('흩어')) { this.scatter(); hurry(); }
+      if (text.includes('흩어')) {
+        this.scatter(); hurry();
+        this.leaders().forEach((b, i) => this.say(b, ['나 운동장 오른쪽 끝으로 갈게', '셋이 삼각형으로 서자!', '나는 왼쪽 위로 간다', '20 m씩 떨어지자', '나 반대편으로 갈게', '한 줄로 서지 말자!'][i], null, 1500 + this.R() * 3000));
+      }
       else if (text.includes('모이')) {
         const at = msg && msg.at ? local(msg.at) : {x: this.c.x, y: this.c.y};
         for (const b of this.list) { b.tx = at.x + this.gauss() * 4; b.ty = at.y + this.gauss() * 3; }
@@ -1759,9 +1874,22 @@
     }
     onMeta(prev, m) {
       if (prev && prev.round !== m.round) for (const b of this.list) { b.picked = false; b.pickAt = 0; b.guessTeam = false; }
-      if (m.phase === 'race' && (!prev || prev.phase !== 'race')) this.race();
+      if (m.phase === 'race' && (!prev || prev.phase !== 'race')) {
+        this.race();
+        this.leaders().forEach(b => this.say(b, '원 세 개 겹치는 곳으로 가자!', null, 800 + this.R() * 2500));
+      }
     }
     gauss() { const R = this.R; return Math.sqrt(-2 * Math.log(1 - R())) * Math.cos(2 * Math.PI * R()); }
+    // 모둠 대화에 한마디 (사람처럼 조금 늦게)
+    say(b, text, at, delay = 0) {
+      setTimeout(() => {
+        if (!T.store) return;
+        const t = T.store.now(), msg = {uid: b.id, name: b.name, text, t};
+        if (at) { const g = geo(at); msg.at = {lat: +g.lat.toFixed(7), lon: +g.lon.toFixed(7)}; }
+        T.store.set(`${T.base}/chat/t${b.team}/${t.toString(36)}${b.id}`, msg);
+      }, delay);
+    }
+    leaders() { return M.TEAMS.slice(0, 6).map((_, i) => this.list.find(b => b.team === i)); }
     race() {
       // 모둠마다 지금까지 모인 원으로 진앙을 어림하고(조금씩 틀리게) 그곳으로 걸어간다
       const circles = tRoundPicks().map(([, p]) => Object.assign(local(p), {r: p.d}));
@@ -1783,7 +1911,7 @@
         // GPS 는 실제 위치에서 조금씩 흔들린다
         const g = geo({x: b.x + this.gauss() * b.acc * 0.3, y: b.y + this.gauss() * b.acc * 0.3});
         if (b.ackFor && Date.now() >= b.ackAt) { b.ack = b.ackFor; b.ackFor = null; }
-        upd[b.id] = {name: b.name, team: b.team, on: true, lat: +g.lat.toFixed(7), lon: +g.lon.toFixed(7), acc: Math.round(b.acc), t: now, bot: true, ack: b.ack || null};
+        upd[b.id] = {name: b.name, team: b.team, tk: 't' + b.team, on: true, lat: +g.lat.toFixed(7), lon: +g.lon.toFixed(7), acc: Math.round(b.acc), t: now, bot: true, ack: b.ack || null};
         // 판독: 기록이 끝나고 몇 초 뒤, 사람처럼 조금 늦거나 이르게 찍는다
         const a = T.arr[b.id];
         if (a && a.round === m.round && !b.picked && (m.phase === 'quake' || m.phase === 'race')) {
@@ -1792,7 +1920,9 @@
           if (now >= b.pickAt) {
             b.picked = true;
             const p = Math.max(0, a.p + 0.08 + this.gauss() * 0.15), s = Math.max(p + 0.2, a.s + 0.05 + this.gauss() * 0.3), ps = s - p;
-            T.store.set(T.base + '/picks/' + b.id, {round: m.round, p: +p.toFixed(2), s: +s.toFixed(2), ps: +ps.toFixed(2), d: +M.distanceFromPS(ps, M.scaleOf(m.scale)).toFixed(1), lat: a.lat, lon: a.lon, name: b.name, team: b.team, t: now});
+            const d = M.distanceFromPS(ps, M.scaleOf(m.scale));
+            T.store.set(T.base + '/picks/' + b.id, {round: m.round, p: +p.toFixed(2), s: +s.toFixed(2), ps: +ps.toFixed(2), d: +d.toFixed(1), lat: a.lat, lon: a.lon, name: b.name, team: b.team, t: now});
+            if (this.R() < 0.6) this.say(b, `판독 끝! PS시 ${num(ps, 1)}초, 진원 거리 ${num(d, 0)} m`, null, 500);
           }
         }
         if (b.racing && m.phase === 'race' && Math.hypot(b.tx - b.x, b.ty - b.y) < 1.5) {
@@ -1800,6 +1930,7 @@
           if (!gs || gs.round !== m.round) {
             const gg = geo({x: b.x, y: b.y});
             T.store.set(T.base + '/guesses/' + b.team, {round: m.round, lat: +gg.lat.toFixed(7), lon: +gg.lon.toFixed(7), by: b.name, t: now});
+            this.say(b, '📍 여기가 진앙 같아! 제출했어', {x: b.x, y: b.y});
           }
         }
         if (m.phase === 'lobby') b.racing = false;
