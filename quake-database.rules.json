@@ -28,7 +28,16 @@
             ".read": "auth != null",
             "$team": { ".write": "auth != null && root.child('quake/rooms/' + $code + '/meta').exists()" }
           },
-          "reveal": { ".read": "auth != null" }
+          "reveal": { ".read": "auth != null" },
+          "chat": {
+            "$tk": {
+              ".read": "auth != null && root.child('quake/rooms/' + $code + '/players/' + auth.uid + '/tk').val() === $tk",
+              "$msg": {
+                ".write": "auth != null && !data.exists() && root.child('quake/rooms/' + $code + '/players/' + auth.uid + '/tk').val() === $tk",
+                ".validate": "newData.hasChildren(['uid', 'name', 'text', 't']) && newData.child('uid').val() === auth.uid && newData.child('text').isString() && newData.child('text').val().length <= 120"
+              }
+            }
+          }
         }
       }
     }
