@@ -187,8 +187,12 @@
       onStatus: cb => D.onValue(ref('.info/connected'), s => cb(!!s.val()))
     };
   }
+  // 미리 해 보기도 서버가 있으면 진짜 방으로 연다. 그래야 다른 폰(선생님 폰 포함)이 방 번호·QR 로 들어와
+  // 가상 학생 24명과 함께 연습할 수 있다. 서버가 없거나 연결이 안 되면 이 브라우저 안에서만 돌린다.
   async function openStore(demo) {
-    if (!demo && !LOCAL_ONLY) return firebaseStore();
+    if (!LOCAL_ONLY && DB_URL) {
+      try { return await firebaseStore(); } catch (e) { if (!demo) throw e; }
+    } else if (!demo && !LOCAL_ONLY) return firebaseStore();
     const s = new LocalStore();
     await s.ready;
     return s;
@@ -514,7 +518,7 @@
       }
     }
     hud(stepM) {
-      const g = this.L.hud, y = this.h - 24, x = 14, len = stepM * this.view.s;
+      const g = this.L.hud, y = this.opts.hudTop ? 30 : this.h - 24, x = 14, len = stepM * this.view.s;
       const sc = el('g', {class: 'fm-scale'}, g);
       el('line', {x1: x, y1: y, x2: x + len, y2: y}, sc);
       el('line', {x1: x, y1: y - 5, x2: x, y2: y + 1}, sc);
@@ -741,6 +745,7 @@
     // 가만히 서 있으면 GPS 가 새 값을 안 줄 때가 있다. 그래도 '살아 있음'은 5초마다 알린다.
     setInterval(() => sendPos(), 2500);
     S.map = new FieldMap($('st-map'), {
+      hudTop: true,   // 지도 아래는 모둠 대화 칸이라 축척 막대는 위에 둔다
       onTap: w => { if (S.manual || S.gpsError) setManual(w); },
       credit: t => { $('st-credit').textContent = t; }
     });
@@ -779,34 +784,34 @@
     }
     return t;
   }
+  // 가상 학생의 말은 선생님 계정으로 오므로, 같은 브라우저에서 들어와도 '내 말'로 치지 않는다
+  const mine = c => c.uid === S.store.uid && !c.bot;
   const chatList = () => Object.values(S.chat || {}).filter(c => c && c.text).sort((a, b) => a.t - b.t).slice(-60);
-  let chatSeen = 0, chatShownAt = 0, lastSent = 0;
+  let chatShownAt = 0, lastSent = 0, chatOn = pref('chatOn', true);
+  const chatVisible = () => chatOn && !$('st-map-wrap').hidden;
   function onChat() {
-    const list = chatList(), open = !$('chat').hidden;
-    if (open) { chatSeen = Date.now(); renderChat(); }
-    const unread = list.filter(c => c.uid !== S.store.uid && c.t > S.chatSeenAt).length;
+    const list = chatList(), visible = chatVisible();
+    renderChat();
+    if (visible) S.chatSeenAt = S.store.now();
+    const unread = visible ? 0 : list.filter(c => !mine(c) && c.t > S.chatSeenAt).length;
     const badge = $('st-chat-badge');
-    badge.hidden = open || !unread;
+    badge.hidden = !unread;
     badge.textContent = unread > 9 ? '9+' : unread;
-    // 창이 닫혀 있으면 새 말을 잠깐 띄운다 (처음 들어올 때 지난 대화는 빼고)
-    const fresh = list.filter(c => c.uid !== S.store.uid && c.t > chatShownAt && S.store.now() - c.t < 15000);
+    // 지도 위 대화가 안 보일 때(지진 기록 화면, 대화 끔)만 새 말을 알림으로 띄운다
+    const fresh = list.filter(c => !mine(c) && c.t > chatShownAt && S.store.now() - c.t < 15000);
     if (fresh.length) {
       chatShownAt = fresh[fresh.length - 1].t;
-      if (!open) toast(fresh[fresh.length - 1].text, `💬 ${fresh[fresh.length - 1].name}`);
+      if (!visible) toast(fresh[fresh.length - 1].text, `💬 ${fresh[fresh.length - 1].name}`);
     }
   }
+  // 평소엔 최근 5줄, 쓰는 중엔 12줄. 30초 지난 말은 흐리게.
   function renderChat() {
-    const list = chatList(), box = $('chat-list');
-    const html = list.length ? list.map(c => {
-      const me = c.uid === S.store.uid, ago = Math.max(0, Math.round((S.store.now() - c.t) / 60000));
-      return `<div class="bubble${me ? ' me' : ''}"><small>${me ? '나' : esc(c.name)} · ${ago ? ago + '분 전' : '방금'}</small><p>${esc(c.text)}</p>${c.at ? `<button class="loc" data-loc="${c.at.lat},${c.at.lon}">🗺 지도에서 보기</button>` : ''}</div>`;
-    }).join('') : '<p class="chat-empty">아직 대화가 없어요.<br>원이 어디서 만나는지, 누가 어디로 갈지 의논해 보세요!</p>';
-    if (box.innerHTML !== html) {
-      const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
-      box.innerHTML = html;
-      if (atBottom || !box.dataset.ready) box.scrollTop = box.scrollHeight;
-      box.dataset.ready = '1';
-    }
+    const box = $('mc-feed'), writing = $('map-chat').classList.contains('open'), now = S.store.now();
+    const html = chatList().slice(writing ? -12 : -5).map(c => {
+      const me = mine(c), cls = [me ? 'me' : '', !writing && now - c.t > 30000 ? 'old' : '', c.at ? 'loc' : ''].join(' ').trim();
+      return `<p class="${cls}"${c.at ? ` data-loc="${c.at.lat},${c.at.lon}"` : ''}><b>${me ? '나' : esc(c.name)}</b>${esc(c.text)}${c.at ? '<u>지도에서 보기</u>' : ''}</p>`;
+    }).join('');
+    if (box.innerHTML !== html) { box.innerHTML = html; box.scrollTop = box.scrollHeight; }
   }
   function sendChat(text, at) {
     const clean = cleanText(text);
@@ -821,40 +826,39 @@
   function bindChat() {
     S.chatSeenAt = S.store.now();
     chatShownAt = S.store.now();
-    $('chat-team').textContent = `${team(S.team).name} 대화`;
-    $('st-chat-btn').onclick = () => {
-      $('chat').hidden = false;
-      S.chatSeenAt = S.store.now();
-      onChat();
-      renderChat();
-      setTimeout(() => $('chat-input').focus(), 50);
-    };
-    const close = () => { $('chat').hidden = true; S.chatSeenAt = S.store.now(); onChat(); };
-    $('chat-x').onclick = close;
-    $('chat').addEventListener('click', e => { if (e.target === $('chat')) close(); });
-    $('chat-form').onsubmit = e => {
+    const box = $('map-chat'), input = $('mc-input'), btn = $('st-chat-btn');
+    const show = () => { box.hidden = !chatOn; btn.setAttribute('aria-pressed', String(chatOn)); onChat(); };
+    btn.onclick = () => { chatOn = !chatOn; setPref('chatOn', chatOn); show(); };
+    show();
+    let blurTimer = 0;
+    const setOpen = on => { box.classList.toggle('open', on); $('mc-quick').hidden = !on; renderChat(); };
+    input.addEventListener('focus', () => { clearTimeout(blurTimer); setOpen(true); });
+    // 빠른 말 단추를 누를 틈을 주고 닫는다
+    input.addEventListener('blur', () => { blurTimer = setTimeout(() => setOpen(false), 250); });
+    $('mc-form').onsubmit = e => {
       e.preventDefault();
-      const v = $('chat-input').value;
-      if (!v.trim()) return;
-      sendChat(v);
-      $('chat-input').value = '';
+      if (!input.value.trim()) return;
+      sendChat(input.value);
+      input.value = '';
+      input.focus({preventScroll: true});   // 이어서 쓸 수 있게 자판을 닫지 않는다
     };
-    for (const b of document.querySelectorAll('[data-say]')) b.onclick = () => {
-      if (b.dataset.say.startsWith('📍')) {
-        if (!S.fix) { toast('아직 내 위치를 못 찾았어요.'); return; }
-        sendChat('📍 나 여기 있어!', S.fix);
-      } else sendChat(b.dataset.say);
-    };
-    $('chat-list').addEventListener('click', e => {
-      const b = e.target.closest('[data-loc]');
-      if (!b) return;
-      const [lat, lon] = b.dataset.loc.split(',').map(Number);
-      close();
-      S.tab = 'map';
-      dirty();
-      setTimeout(() => S.map && S.map.centerOn(local({lat, lon}), 60), 50);
+    for (const b of box.querySelectorAll('[data-say]')) {
+      b.addEventListener('pointerdown', e => e.preventDefault());   // 단추를 눌러도 입력칸 포커스(자판)가 유지되게
+      b.onclick = () => {
+        if (b.dataset.say === '📍') {
+          if (!S.fix) { toast('아직 내 위치를 못 찾았어요.'); return; }
+          sendChat('📍 나 여기 있어!', S.fix);
+        } else sendChat(b.dataset.say);
+      };
+    }
+    $('mc-feed').addEventListener('click', e => {
+      const p = e.target.closest('[data-loc]');
+      if (!p) return;
+      const [lat, lon] = p.dataset.loc.split(',').map(Number);
+      input.blur();
+      S.map && S.map.centerOn(local({lat, lon}), 60);
     });
-    setInterval(() => { if (!$('chat').hidden) renderChat(); }, 20000);
+    setInterval(renderChat, 10000);
   }
 
   function onStudentMeta(m) {
@@ -1016,6 +1020,9 @@
     $('drum-wrap').hidden = !recording;
     $('pick-wrap').hidden = !(pickable && S.tab === 'seis');
     $('st-map-wrap').hidden = recording || (pickable && S.tab === 'seis');
+    // 지도로 돌아오면 그사이 쌓인 대화를 읽은 것으로 친다
+    const chatVis = chatVisible();
+    if (chatVis !== S.chatVis) { S.chatVis = chatVis; if (S.chat) onChat(); }
   }
 
   // 대기 화면의 '우리 모둠 배치' 한 줄 점검
@@ -1095,7 +1102,7 @@
     }
     // 모둠 대화에서 공유한 위치는 1분 동안 지도에 표시
     for (const c of Object.values(S.chat || {})) {
-      if (!c.at || c.uid === S.store.uid || now - c.t > 60000) continue;
+      if (!c.at || mine(c) || now - c.t > 60000) continue;
       scene.marks.push(Object.assign({kind: 'station', color: team(S.team).color, label: `📍${c.name}`}, local(c.at)));
     }
     const picks = roundPicks().filter(([, p]) => p.team === S.team);
@@ -1289,10 +1296,12 @@
         const c = String(1000 + Math.floor(Math.random() * 9000));
         if (!(await T.store.get(`${ROOT}/${c}/meta`))) code = c;
       }
-      await T.store.set(`${ROOT}/${code}/meta`, {teacher: T.store.uid, created: T.store.now(), phase: 'lobby', round: 1, scale: 'one', mag: 5, depth: 0, startAt: 0});
+      await T.store.set(`${ROOT}/${code}/meta`, {teacher: T.store.uid, created: T.store.now(), phase: 'lobby', round: 1, scale: 'one', mag: 5, depth: 0, startAt: 0, demo: demo || null});
     }
     T.code = code; T.base = `${ROOT}/${code}`;
+    // 새로고침해도 같은 방으로 돌아오게 (미리 해 보기는 서버에 열렸을 때만 — 이 브라우저 안의 방은 새로고침하면 사라진다)
     if (!demo) history.replaceState(null, '', '?host=' + code + (LOCAL_ONLY ? '&local' : ''));
+    else if (T.store.kind === 'firebase') history.replaceState(null, '', '?demo&host=' + code);
     showScreen('teacher');
     $('t-code').querySelector('b').textContent = code;
     T.map = new FieldMap($('t-map'), {
@@ -1813,10 +1822,16 @@
   const demoHome = () => { const g = pref('demoCenter', null); return g && isFinite(g.lat) ? local(g) : {x: 0, y: 0}; };
   function bindDemo() {
     $('t-demo').hidden = false;
+    const shared = T.store.kind === 'firebase';
+    $('t-demo-join').hidden = !shared;
+    $('t-demo-join').onclick = showQR;
     const note = () => {
-      $('t-demo-note').textContent = pref('demoCenter', null)
-        ? '가상 학생들은 지난번에 옮겨 둔 자리(이 기기에 저장됨)에서 걸어 다녀요. 지진을 일으켜 보세요.'
-        : '가상 학생들이 학교 기준점 둘레를 걸어 다녀요. 운동장이 아니면 지도를 운동장으로 옮긴 뒤 "지도 가운데로"를 누르세요. 한 번 옮기면 이 기기에 기억해요.';
+      $('t-demo-note').textContent = (pref('demoCenter', null)
+        ? '가상 학생들은 지난번에 옮겨 둔 자리(이 기기에 저장됨)에서 걸어 다녀요. '
+        : '가상 학생들이 학교 기준점 둘레를 걸어 다녀요. 운동장이 아니면 지도를 운동장으로 옮긴 뒤 "지도 가운데로"를 누르세요. 한 번 옮기면 이 기기에 기억해요. ')
+        + (shared
+          ? `내 폰으로 방 번호 ${T.code}에 들어오면 가상 학생들과 함께 연습할 수 있어요. 이 화면은 켜 둔 채로 두세요(가상 학생은 이 기기에서 움직여요).`
+          : '서버에 연결하지 못해서 이 기기 안에서만 돌아가요. 다른 폰은 들어올 수 없어요.');
     };
     note();
     const move = c => { T.bots.moveTo(c); setPref('demoCenter', geo(c)); note(); T.map.fitNow(); };
@@ -1884,7 +1899,8 @@
     say(b, text, at, delay = 0) {
       setTimeout(() => {
         if (!T.store) return;
-        const t = T.store.now(), msg = {uid: b.id, name: b.name, text, t};
+        // uid 는 선생님 것으로 쓴다: 서버 규칙이 '보낸 사람 = 로그인한 사람'만 받아 주기 때문 (이름은 가상 학생)
+        const t = T.store.now(), msg = {uid: T.store.uid, name: b.name, text, t, bot: true};
         if (at) { const g = geo(at); msg.at = {lat: +g.lat.toFixed(7), lon: +g.lon.toFixed(7)}; }
         T.store.set(`${T.base}/chat/t${b.team}/${t.toString(36)}${b.id}`, msg);
       }, delay);
@@ -1986,7 +2002,7 @@
     });
     for (const b of document.querySelectorAll('[data-sat]')) b.setAttribute('aria-pressed', String(pref('sat', true)));
 
-    if (params.has('demo')) openRoom(true);
+    if (params.has('demo')) openRoom(true, params.get('host'));
     else if (params.get('host')) openRoom(false, params.get('host'));
     else if (room) $('join-name').focus();
   }
