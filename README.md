@@ -11,6 +11,7 @@
 | `sims/` | 시뮬레이션. 파일 하나짜리는 `sims/이름.html`, 여러 파일짜리는 `sims/이름/` 폴더 |
 | `sims/quake/` | 야외수업 「캠퍼스 지진」. Firebase 규칙은 `database.rules.json` |
 | `sims/geologic-game/` | 지질시대 온라인 게임 |
+| `sims/phone-sextant/` | 폰 육분의: 카메라·기울기 센서로 해·달·별의 고도를 재서 위치 찾기. 계산은 `phone-sextant-model.js` |
 | `widgets/` | 첫 화면에 붙는 작은 기능 (체육대회 우천 레이더) |
 | `tests/` | 계산 모형 테스트: `node --test tests/*.test.cjs` |
 | `archive/` | 지금은 쓰지 않는 예전 파일 |
