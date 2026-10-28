@@ -2,14 +2,14 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#14283a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>캠퍼스 지진 · 진앙을 찾아라</title>
-  <link rel="stylesheet" href="quake.css?v=20261029">
-  <script defer src="quake-model.js?v=20261029"></script>
-  <script defer src="quake-guide.js?v=20261029"></script>
-  <script defer src="quake.js?v=20261029"></script>
+  <link rel="stylesheet" href="quake.css?v=20261030">
+  <script defer src="quake-model.js?v=20261030"></script>
+  <script defer src="quake-guide.js?v=20261030"></script>
+  <script defer src="quake.js?v=20261030"></script>
 </head>
 <body data-screen="entry">
 <div class="shake-root" id="shake-root">
@@ -78,7 +78,7 @@
       <div><strong id="st-name">관측소</strong><small id="st-room">방 ----</small></div>
     </div>
     <div class="bar-status">
-      <button class="guide-btn chat-btn" id="st-chat-btn" aria-label="모둠 대화">💬<i id="st-chat-badge" hidden></i></button>
+      <button class="guide-btn chat-btn" id="st-chat-btn" aria-label="지도 위 모둠 대화 켜고 끄기" aria-pressed="true">💬<i id="st-chat-badge" hidden></i></button>
       <button class="guide-btn" data-guide="student" aria-label="원리 가이드">📘</button>
       <span class="pill" id="st-gps" title="GPS 정확도">GPS …</span>
       <span class="conn" id="st-conn" title="연결 상태"></span>
@@ -105,6 +105,21 @@
         <button class="icon" data-sat="st" title="위성 사진" aria-label="위성 사진 켜고 끄기">🛰</button>
       </div>
       <p class="map-credit" id="st-credit"></p>
+      <!-- 모둠 대화: 지도 위에 글자로 뜨고, 아래 칸에 바로 쓴다 -->
+      <div class="map-chat" id="map-chat">
+        <div class="mc-feed" id="mc-feed" aria-live="polite"></div>
+        <div class="mc-quick" id="mc-quick" hidden>
+          <button type="button" data-say="여기 원이 겹쳐!">여기 원이 겹쳐!</button>
+          <button type="button" data-say="판독 끝!">판독 끝!</button>
+          <button type="button" data-say="나 이쪽으로 옮길게">이쪽으로 옮길게</button>
+          <button type="button" data-say="그 자리에 있어!">그 자리에 있어!</button>
+        </div>
+        <form class="mc-form" id="mc-form" autocomplete="off">
+          <button type="button" class="mc-loc" data-say="📍" aria-label="내 위치 공유">📍</button>
+          <input id="mc-input" maxlength="100" placeholder="모둠에게 말하기…" enterkeyhint="send" aria-label="모둠에게 보낼 말">
+          <button class="mc-send" aria-label="보내기">➤</button>
+        </form>
+      </div>
     </div>
 
     <div class="drum-wrap" id="drum-wrap" hidden>
@@ -186,6 +201,7 @@
           <button id="t-demo-center">🗺 지도 가운데로 옮기기</button>
           <button id="t-demo-me">📍 내 위치로 옮기기</button>
         </div>
+        <button class="primary" id="t-demo-join" hidden>📱 내 폰으로 참여하기 (QR 보기)</button>
       </section>
       <section class="t-step" data-step="network">
         <h3><span class="step">1</span> 관측망</h3>
@@ -276,28 +292,6 @@
     </aside>
   </div>
 </section>
-
-<!-- 모둠 대화 -->
-<div class="chat" id="chat" role="dialog" aria-modal="true" aria-labelledby="chat-title" hidden>
-  <div class="chat-sheet">
-    <header class="chat-head">
-      <div><p class="eyebrow" id="chat-team">모둠 대화</p><h2 id="chat-title">우리 모둠끼리만 보여요</h2></div>
-      <button class="guide-x" id="chat-x" aria-label="대화 닫기">✕</button>
-    </header>
-    <div class="chat-list" id="chat-list" aria-live="polite"></div>
-    <div class="chat-quick" id="chat-quick">
-      <button data-say="📍 내 위치 공유">📍 내 위치</button>
-      <button data-say="여기 원이 겹쳐!">여기 원이 겹쳐!</button>
-      <button data-say="판독 끝!">판독 끝!</button>
-      <button data-say="나 이쪽으로 옮길게">이쪽으로 옮길게</button>
-      <button data-say="그 자리에 있어!">그 자리에 있어!</button>
-    </div>
-    <form class="chat-form" id="chat-form" autocomplete="off">
-      <input id="chat-input" maxlength="100" placeholder="모둠원에게 보내기" enterkeyhint="send" aria-label="보낼 말">
-      <button class="primary" id="chat-send">보내기</button>
-    </form>
-  </div>
-</div>
 
 <!-- QR 크게 보기 -->
 <dialog class="qr-dialog" id="qr-dialog">
