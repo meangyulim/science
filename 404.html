@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>페이지를 찾을 수 없어요 · 민규쌤의 과학 실험실</title>
+  <script>
+    // 2026-10 폴더 정리 때 자리를 옮긴 파일들.
+    // 옛 주소(공유한 링크, 즐겨찾기, 예전 QR 코드)로 들어오면 새 주소로 보낸다. ? 뒤와 # 뒤는 그대로 넘긴다.
+    // GitHub Pages 는 없는 주소에 이 404.html 을 보여 주므로, 여기서 바로 옮겨 주면 된다.
+    (function () {
+      var MOVED = {
+        'worksheets.html': 'worksheets/',
+        'worksheets-data.js': 'worksheets/worksheets-data.js',
+        'notices.txt': 'worksheets/notices.txt',
+        'sportsday-rain.js': 'widgets/sportsday-rain.js',
+        'test/index.html': 'sims/geologic-game/',
+        'test/': 'sims/geologic-game/',
+        'test': 'sims/geologic-game/',
+        'test.html': 'sims/geologic-game/',
+        'quake.html': 'sims/quake/',
+        'exoplanets.html': 'sims/exoplanets/',
+        'variables.html': 'sims/variables/',
+        'hdl_simulation.html': 'sims/haidilao/',
+        'Overturned cross bedding.html': 'sims/overturned-cross-bedding.html',
+        'cyclone.html': 'sims/cyclone.html',
+        'eccentricity.html': 'sims/eccentricity.html',
+        'el.html': 'sims/el.html',
+        'land.html': 'sims/land.html',
+        'sand.html': 'sims/sand.html',
+        'sedimentary-structures.html': 'sims/sedimentary-structures.html',
+        'spaceboom.html': 'sims/spaceboom.html',
+        'sextant.html': 'sims/sextant.html',
+        'wind.html': 'sims/wind.html',
+        'windspin.html': 'sims/windspin.html',
+        'soup_page_markup.html': 'archive/soup_page_markup.html'
+      };
+      var path;
+      try { path = decodeURIComponent(location.pathname); } catch (e) { path = location.pathname; }
+      var keys = Object.keys(MOVED).sort(function (a, b) { return b.length - a.length; });
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        if (path.slice(-(k.length + 1)) === '/' + k) {
+          location.replace(path.slice(0, path.length - k.length) + MOVED[k] + location.search + location.hash);
+          return;
+        }
+      }
+    })();
+  </script>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f4f6f5;color:#14283a;font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;padding:24px;box-sizing:border-box}
+    main{max-width:420px;text-align:center}
+    h1{font-size:22px;margin:12px 0 6px}
+    p{color:#5f7282;margin:0 0 18px;line-height:1.6}
+    a{display:inline-block;background:#14283a;color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:12px}
+  </style>
+</head>
+<body>
+  <main>
+    <div style="font-size:40px">🔬</div>
+    <h1>페이지를 찾을 수 없어요</h1>
+    <p>주소가 바뀌었거나 없는 페이지예요.<br>첫 화면에서 원하는 실험을 골라 주세요.</p>
+    <a id="home" href="./">민규쌤의 과학 실험실로</a>
+  </main>
+  <script>
+    // github.io 프로젝트 사이트(…github.io/science/)면 첫 칸까지가 첫 화면이다
+    var seg = location.pathname.split('/')[1];
+    document.getElementById('home').href = /\.github\.io$/.test(location.hostname) && seg ? '/' + seg + '/' : '/';
+  </script>
+</body>
+</html>

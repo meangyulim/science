@@ -1,6 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const R=require('../sportsday-rain.js');
+const R=require('../widgets/sportsday-rain.js');
 
 const ev={...R.EVENT,date:'2026-10-30',hour:7};
 const hourly={

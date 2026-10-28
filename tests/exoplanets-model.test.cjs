@@ -1,6 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const M=require('../exoplanets-model.js');
+const M=require('../sims/exoplanets/exoplanets-model.js');
 const close=(a,b,eps=1e-8)=>assert.ok(Math.abs(a-b)<eps,`${a} ≠ ${b}`);
 
 test('radial velocity: mass, inclination, period and recession sign',()=>{
