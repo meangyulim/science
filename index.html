@@ -98,6 +98,106 @@
             z-index: 50;
         }
 
+        /* --- 첫 화면 목록 ---
+           학교망에서 Tailwind CDN 이 막혀도 목록은 고를 수 있도록
+           첫 화면 모양은 Tailwind 클래스가 아니라 아래 규칙으로 직접 잡는다. */
+        .brand { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .brand-icon { font-size: 20px; line-height: 1; }
+        .brand h1 { margin: 0; font-size: 16px; font-weight: 700; color: #4f46e5; }
+        .brand-count { font-size: 12px; color: #94a3b8; }
+
+        .home-wrap { max-width: 1024px; margin: 0 auto; }
+
+        .ws-banner {
+            display: flex; align-items: center; gap: 12px;
+            margin: 4px 0 16px; padding: 12px 16px;
+            background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 16px;
+            color: #3730a3; text-decoration: none;
+        }
+        .ws-banner:active { transform: scale(.99); }
+        .ws-banner-icon { font-size: 24px; line-height: 1; }
+        .ws-banner-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .ws-banner-text b { font-size: 15px; }
+        .ws-banner-text span { font-size: 12px; color: #6366f1; }
+        .ws-banner-go { font-size: 13px; font-weight: 700; white-space: nowrap; }
+
+        /* 검색창과 분류 탭은 목록을 내려도 위에 붙어 있다 */
+        .toolbar {
+            position: sticky; top: -16px; z-index: 5;
+            margin: 0 -16px; padding: 12px 16px 10px;
+            background: rgba(248, 250, 252, .94);
+            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        }
+        .search { position: relative; }
+        .search svg {
+            position: absolute; left: 12px; top: 50%; width: 18px; height: 18px;
+            transform: translateY(-50%); color: #94a3b8; pointer-events: none;
+        }
+        .search input {
+            width: 100%; box-sizing: border-box; height: 42px; padding: 0 12px 0 38px;
+            border: 1px solid #e2e8f0; border-radius: 12px; background: #fff;
+            font: inherit; font-size: 16px; /* 16px 미만이면 iOS 가 화면을 확대한다 */
+            color: #1e293b; outline: none;
+        }
+        .search input:focus { border-color: #818cf8; box-shadow: 0 0 0 3px #e0e7ff; }
+        .chips { display: flex; gap: 6px; margin-top: 10px; overflow-x: auto; }
+        .chip {
+            flex: none; padding: 7px 13px; border-radius: 999px;
+            border: 1px solid #e2e8f0; background: #fff; color: #475569;
+            font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+        }
+        .chip small { font-weight: 400; color: #94a3b8; margin-left: 3px; }
+        .chip[aria-selected="true"] { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+        .chip[aria-selected="true"] small { color: #c7d2fe; }
+
+        .section { margin-top: 14px; }
+        .section-head {
+            display: flex; align-items: baseline; gap: 6px;
+            margin: 0 4px 8px; font-size: 14px; font-weight: 700; color: #334155;
+        }
+        .section-head small { font-weight: 400; color: #94a3b8; font-size: 12px; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+        @media (min-width: 640px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1000px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+        .card {
+            display: flex; align-items: center; gap: 12px; padding: 12px;
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+            cursor: pointer; text-align: left; font: inherit; color: inherit; width: 100%;
+            transition: box-shadow .15s, transform .15s, border-color .15s;
+        }
+        .card:hover { border-color: #cbd5e1; box-shadow: 0 4px 12px rgba(15, 23, 42, .06); }
+        .card:active { transform: scale(.98); }
+        .card:focus-visible { outline: 3px solid #a5b4fc; outline-offset: 2px; }
+        .card-icon {
+            flex: none; width: 44px; height: 44px; border-radius: 12px;
+            display: grid; place-items: center; font-size: 24px; line-height: 1;
+        }
+        .card-text { flex: 1; min-width: 0; }
+        .card-name {
+            display: block; font-size: 14.5px; font-weight: 700; color: #1e293b;
+            line-height: 1.35; word-break: keep-all;
+        }
+        .card-desc {
+            display: block; margin-top: 2px; font-size: 12.5px; color: #64748b;
+            line-height: 1.4; word-break: keep-all;
+        }
+        .card-arrow { flex: none; color: #cbd5e1; font-size: 18px; }
+        .badge {
+            display: inline-block; margin-left: 5px; padding: 1px 6px; border-radius: 999px;
+            font-size: 10px; font-weight: 700; vertical-align: 2px; letter-spacing: .02em;
+        }
+        .badge-new { background: #4f46e5; color: #fff; }
+        .badge-phone { background: #fef3c7; color: #92400e; }
+
+        /* 분류마다 아이콘 바탕색 */
+        .cat-geo   .card-icon { background: #fef3c7; }
+        .cat-air   .card-icon { background: #e0f2fe; }
+        .cat-space .card-icon { background: #ede9fe; }
+        .cat-etc   .card-icon { background: #f1f5f9; }
+
+        .empty { margin: 32px 0; text-align: center; font-size: 14px; color: #94a3b8; }
+
         /* 스크롤바 숨기기 (선택사항) */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -107,23 +207,35 @@
 
     <div class="app-container">
         <header id="main-header">
-            <div class="flex items-center cursor-pointer" onclick="goHome()">
-                <span class="text-xl mr-2">🔬</span>
-                <h1 class="text-base font-bold text-indigo-600">민규쌤의 과학 실험실</h1>
+            <div class="brand" onclick="goHome()">
+                <span class="brand-icon">🔬</span>
+                <h1>민규쌤의 과학 실험실</h1>
             </div>
-            <div></div>
+            <span class="brand-count" id="sim-count"></span>
         </header>
 
         <div class="view-area">
             <main id="home-view" class="no-scrollbar">
-                <div class="max-w-5xl mx-auto">
-                    <div class="mb-6 mt-4 px-2">
-                        <h2 class="text-lg md:text-xl font-bold text-slate-800">원하는 실험을 선택해보세요!</h2>
-                        <p class="text-sm text-slate-500 mt-1">카드를 터치하면 시뮬레이션이 시작됩니다.</p>
+                <div class="home-wrap">
+                    <a class="ws-banner" href="#worksheets">
+                        <span class="ws-banner-icon">📄</span>
+                        <span class="ws-banner-text">
+                            <b>학습지 내려받기</b>
+                            <span>수업 학습지 PDF와 공지</span>
+                        </span>
+                        <span class="ws-banner-go">열기 ›</span>
+                    </a>
+
+                    <div class="toolbar">
+                        <div class="search">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
+                            <input id="search" type="search" placeholder="실험 이름으로 찾기" autocomplete="off" aria-label="실험 찾기">
+                        </div>
+                        <div id="chips" class="chips no-scrollbar" role="tablist" aria-label="분류"></div>
                     </div>
 
-                    <div id="card-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        </div>
+                    <div id="card-container"></div>
+                    <p id="empty" class="empty" hidden>찾는 실험이 없어요. 다른 낱말로 찾아보세요.</p>
                 </div>
             </main>
 
@@ -151,166 +263,286 @@
     </div>
 
     <script>
-        // 시뮬레이션 목록: 카드 디자인을 위해 아이콘과 배경색상 클래스(Tailwind) 추가
-        // 학습지는 언제나 목록 맨 위에 고정한다.
-        // 시뮬레이션 배열과 따로 두어, 새 시뮬을 추가해도 자리가 밀리지 않는다.
-        const pinnedItem = { 
-                id: 'worksheets', 
-                name: '학습지 내려받기', 
-                url: 'worksheets/',
-                icon: '📄',
-                color: 'bg-slate-100 text-slate-700 border-slate-300'
-            };
+        // 학습지는 카드 목록과 따로 맨 위 띠로 보여 준다.
+        // 주소는 예전처럼 #worksheets 로 열린다.
+        const pinnedItem = {
+            id: 'worksheets',
+            name: '학습지 내려받기',
+            url: 'worksheets/'
+        };
+
+        // 분류 — 탭과 목록의 묶음이 이 순서로 나온다.
+        const categories = [
+            { id: 'geo',   name: '지질·고체지구', icon: '⛰️' },
+            { id: 'air',   name: '대기·해양',     icon: '🌦️' },
+            { id: 'space', name: '천체·우주',     icon: '🪐' },
+            { id: 'etc',   name: '그 밖의 것',    icon: '🧩' }
+        ];
 
         // 시뮬레이션 목록 — 만들어진 순서(오래된 것 → 최근 것)로 둔다.
         // 새로 만든 시뮬레이션은 이 배열 맨 아래에 추가하면 된다.
+        //   category: 위 categories 의 id
+        //   desc:     카드에 작게 나오는 한 줄 설명
+        //   phone:    true 면 '폰으로' 표시 (카메라·센서·야외 활동)
+        // 맨 아래 NEW_COUNT 개는 자동으로 NEW 표시가 붙는다.
         const simulations = [
-            { 
-                id: 'geologic-time-game', 
-                name: '지질시대 온라인 게임', 
+            {
+                id: 'geologic-time-game',
+                name: '지질시대 온라인 게임',
+                desc: '화석·기후·대멸종을 익히고 친구와 실력 대결',
                 url: 'sims/geologic-game/',
                 icon: '🏜️',
-                color: 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                category: 'geo'
             },
-            { 
-                id: 'sedimentary-structures', 
-                name: '퇴적구조의 수직단면 층리면', 
+            {
+                id: 'sedimentary-structures',
+                name: '퇴적구조의 수직단면 층리면',
+                desc: '사층리·점이층리·연흔·건열을 단면과 층리면으로',
                 url: 'sims/sedimentary-structures.html',
                 icon: '🏜️',
-                color: 'bg-orange-100 text-orange-700 border-orange-200'
+                category: 'geo'
             },
-            { 
-                id: 'cyclone', 
-                name: '중위도 저기압', 
+            {
+                id: 'cyclone',
+                name: '중위도 저기압',
+                desc: '정체 전선에서 전선이 갈라지기까지 3D로',
                 url: 'sims/cyclone.html',
                 icon: '🌪️',
-                color: 'bg-blue-100 text-blue-700 border-blue-200'
+                category: 'air'
             },
-            { 
-                id: 'overturned-cross-bedding', 
-                name: '사층리 역전', 
+            {
+                id: 'overturned-cross-bedding',
+                name: '사층리 역전',
+                desc: '사층리로 지층 역전과 옛 흐름 방향 읽기',
                 url: 'sims/overturned-cross-bedding.html',
                 icon: '🔄',
-                color: 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                category: 'geo'
             },
-            { 
-                id: 'land', 
-                name: '지사학 법칙', 
+            {
+                id: 'land',
+                name: '지사학 법칙',
+                desc: '누중·부정합·관입·동물군 천이를 3D 지층으로',
                 url: 'sims/land.html',
                 icon: '⛰️',
-                color: 'bg-purple-100 text-purple-700 border-purple-200'
+                category: 'geo'
             },
-            { 
-                id: 'wind', 
-                name: '중위도 저기압 풍향 변화', 
+            {
+                id: 'wind',
+                name: '중위도 저기압 풍향 변화',
+                desc: '저기압이 지나갈 때 관측소 A·B의 풍향 변화',
                 url: 'sims/wind.html',
                 icon: '🎏',
-                color: 'bg-violet-100 text-violet-700 border-violet-200'
+                category: 'air'
             },
-            { 
-                id: 'windspin', 
-                name: '상승기류 하강기류 회전 방향', 
+            {
+                id: 'windspin',
+                name: '상승기류 하강기류 회전 방향',
+                desc: '고기압·저기압 바람이 도는 방향, 북반구·남반구',
                 url: 'sims/windspin.html',
                 icon: '🔄',
-                color: 'bg-lime-100 text-lime-700 border-lime-200'},
-            { 
-                id: 'el', 
-                name: '엘니뇨 라니냐 수직단면 및 비교표', 
+                category: 'air'
+            },
+            {
+                id: 'el',
+                name: '엘니뇨 라니냐 수직단면 및 비교표',
+                desc: '무역풍에 따라 바뀌는 워커 순환과 바다 단면',
                 url: 'sims/el.html',
                 icon: '🌊',
-                color: 'bg-blue-100 text-blue-700 border-blue-200'},
-            { 
-                id: 'sand', 
-                name: '삼각함수 샌드위치', 
+                category: 'air'
+            },
+            {
+                id: 'sand',
+                name: '삼각함수 샌드위치',
+                desc: '작은 각에서 tan θ ≈ θ 가 되는 까닭',
                 url: 'sims/sand.html',
                 icon: '🥪',
-                color: 'bg-orange-100 text-orange-700 border-orange-200'},
-            { 
-                id: 'spaceboom', 
-                name: '대폭발 우주론과 급팽창 우주론', 
+                category: 'space'
+            },
+            {
+                id: 'spaceboom',
+                name: '대폭발 우주론과 급팽창 우주론',
+                desc: '평탄성·지평선·자기 홀극 문제와 급팽창',
                 url: 'sims/spaceboom.html',
                 icon: '🌌',
-                color: 'bg-black-100 text-black-700 border-black-200'},
-            { 
-                id: 'haidilao-preorder', 
-                name: '하이디라오 주문 시뮬레이터', 
+                category: 'space'
+            },
+            {
+                id: 'haidilao-preorder',
+                name: '하이디라오 주문 시뮬레이터',
+                desc: '육수와 메뉴를 골라 주문 내역서 만들기',
                 url: 'sims/haidilao/',
                 icon: '🍲',
-                color: 'bg-red-100 text-red-700 border-red-200'},
-            { 
-                id: 'eccentricity', 
-                name: '이심률에 따른 궤도 형태', 
+                category: 'etc'
+            },
+            {
+                id: 'eccentricity',
+                name: '이심률에 따른 궤도 형태',
+                desc: '이심률을 0에서 1 너머까지 바꾸며 궤도 보기',
                 url: 'sims/eccentricity.html',
                 icon: '🪐',
-                color: 'bg-indigo-100 text-indigo-700 border-indigo-200'},
-            { 
-                id: 'sextant', 
-                name: '육분의 광학 시뮬레이터', 
+                category: 'space'
+            },
+            {
+                id: 'sextant',
+                name: '육분의 광학 시뮬레이터',
+                desc: '거울 두 장의 빛 경로로 고도를 재는 원리',
                 url: 'sims/sextant.html',
                 icon: '🔭',
-                color: 'bg-amber-100 text-amber-700 border-amber-200'},
+                category: 'space'
+            },
             {
                 id: 'exoplanets',
                 name: '외계행성 탐사 · 별빛에 남은 흔적',
+                desc: '시선 속도·식현상·미세 중력 렌즈·직접 관측',
                 url: 'sims/exoplanets/',
                 icon: '✨',
-                color: 'bg-teal-100 text-teal-800 border-teal-200'
+                category: 'space'
             },
             {
                 id: 'variable-stars',
                 name: '변광성 실험실 · 광도 곡선으로 읽는 별과 우주',
+                desc: '광도 곡선, 세페이드로 거리 재기, Ia형 초신성',
                 url: 'sims/variables/',
                 icon: '🌟',
-                color: 'bg-sky-100 text-sky-800 border-sky-200'
+                category: 'space'
             },
             {
                 id: 'campus-quake',
                 name: '야외수업 · 캠퍼스 지진, 진앙을 찾아라',
+                desc: '모두의 휴대폰이 관측소 — PS시로 진앙 찾기',
                 url: 'sims/quake/',
                 icon: '📡',
-                color: 'bg-rose-100 text-rose-800 border-rose-200'
+                category: 'geo',
+                phone: true
             },
             {
                 id: 'phone-sextant',
                 name: '폰 육분의 · 해와 별의 고도로 내 위치 찾기',
+                desc: '카메라·기울기 센서로 해·달·별의 고도 재기',
                 url: 'sims/phone-sextant/',
                 icon: '🧭',
-                color: 'bg-amber-100 text-amber-800 border-amber-200'
+                category: 'space',
+                phone: true
             }
         ];
+        const NEW_COUNT = 3;
 
-        // 화면에 실제로 뿌리는 목록.
-        // 학습지를 맨 위에 두고, 시뮬레이션은 최근에 만든 것부터 보여 준다.
-        // (배열은 만든 순서 그대로 두고 여기서 뒤집는다 — 새 시뮬을 배열 아래에
-        //  추가하기만 하면 화면 맨 위에 뜬다)
-        const items = [pinnedItem, ...[...simulations].reverse()];
+        // 주소(#아이디)로 열 수 있는 모든 화면
+        const items = [pinnedItem, ...simulations];
+        const newIds = new Set(simulations.slice(-NEW_COUNT).map(s => s.id));
+        // 화면에는 최근에 만든 것부터 보여 준다
+        const newestFirst = [...simulations].reverse();
 
         const homeView = document.getElementById('home-view');
         const simView = document.getElementById('sim-view');
         const cardContainer = document.getElementById('card-container');
         const viewer = document.getElementById('sim-viewer');
         const currentSimTitle = document.getElementById('current-sim-title');
-        
-        // 새로 추가됨: 숨김/표시 제어를 위한 헤더와 푸터 요소 가져오기
+        const searchInput = document.getElementById('search');
+        const chipsBox = document.getElementById('chips');
+        const emptyMsg = document.getElementById('empty');
+
+        // 숨김/표시 제어를 위한 헤더와 푸터
         const mainHeader = document.getElementById('main-header');
         const mainFooter = document.getElementById('main-footer');
 
-        // 홈 화면에 카드 동적 생성
-        items.forEach(sim => {
-            const card = document.createElement('div');
-            card.className = `flex flex-col items-center justify-center p-6 rounded-2xl border-2 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg active:scale-95 ${sim.color} bg-opacity-50 hover:bg-opacity-100`;
+        document.querySelector('.ws-banner').onclick = e => {
+            e.preventDefault();
+            openSimulation(pinnedItem);
+        };
+
+        // --- 목록 그리기 ---
+        let activeCat = 'all';
+
+        const escapeHtml = s => s.replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+        // 띄어쓰기·가운뎃점은 무시하고 찾는다 ('엘니뇨라니냐', '육분의' 모두 걸리도록)
+        const normalize = s => s.toLowerCase().replace(/[\s·,]/g, '');
+
+        function makeCard(sim) {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = `card cat-${sim.category}`;
+            const badges =
+                (newIds.has(sim.id) ? '<span class="badge badge-new">NEW</span>' : '') +
+                (sim.phone ? '<span class="badge badge-phone">📱 폰으로</span>' : '');
             card.innerHTML = `
-                <div class="text-4xl mb-3">${sim.icon}</div>
-                <h3 class="text-base font-bold text-center break-keep">${sim.name}</h3>
-                <div class="mt-4 px-4 py-1.5 bg-white bg-opacity-70 rounded-full text-xs font-semibold shadow-sm">
-                    실행하기 ▶
-                </div>
-            `;
-            
-            // 카드 클릭 이벤트
+                <span class="card-icon" aria-hidden="true">${sim.icon}</span>
+                <span class="card-text">
+                    <span class="card-name">${escapeHtml(sim.name)}${badges}</span>
+                    <span class="card-desc">${escapeHtml(sim.desc || '')}</span>
+                </span>
+                <span class="card-arrow" aria-hidden="true">›</span>`;
             card.onclick = () => openSimulation(sim);
-            cardContainer.appendChild(card);
+            return card;
+        }
+
+        function makeSection(title, list) {
+            const section = document.createElement('section');
+            section.className = 'section';
+            if (title) {
+                const head = document.createElement('h2');
+                head.className = 'section-head';
+                head.innerHTML = `${title} <small>${list.length}</small>`;
+                section.appendChild(head);
+            }
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+            list.forEach(sim => grid.appendChild(makeCard(sim)));
+            section.appendChild(grid);
+            return section;
+        }
+
+        function renderChips() {
+            const tabs = [{ id: 'all', name: '전체', count: simulations.length },
+                ...categories.map(c => ({ ...c, count: simulations.filter(s => s.category === c.id).length }))
+                    .filter(c => c.count > 0)];
+            // 찾는 중에는 분류와 상관없이 전부에서 찾으므로 탭 선택을 꺼 둔다
+            const searching = normalize(searchInput.value) !== '';
+            chipsBox.innerHTML = '';
+            tabs.forEach(t => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'chip';
+                chip.setAttribute('role', 'tab');
+                chip.setAttribute('aria-selected', String(!searching && t.id === activeCat));
+                chip.innerHTML = `${t.icon ? t.icon + ' ' : ''}${t.name}<small>${t.count}</small>`;
+                chip.onclick = () => {
+                    activeCat = t.id;
+                    searchInput.value = '';
+                    renderChips();
+                    renderList();
+                };
+                chipsBox.appendChild(chip);
+            });
+        }
+
+        function renderList() {
+            const q = normalize(searchInput.value);
+            cardContainer.innerHTML = '';
+
+            const inCat = s => q || activeCat === 'all' || s.category === activeCat;
+            const matches = s => !q || normalize(`${s.name} ${s.desc || ''}`).includes(q);
+            const shown = newestFirst.filter(s => inCat(s) && matches(s));
+
+            if (q) {
+                // 찾는 중에는 묶지 않고 한 덩어리로 보여 준다
+                if (shown.length) cardContainer.appendChild(makeSection(`찾은 실험`, shown));
+            } else {
+                categories.forEach(c => {
+                    const list = shown.filter(s => s.category === c.id);
+                    if (list.length) cardContainer.appendChild(makeSection(`${c.icon} ${c.name}`, list));
+                });
+            }
+            emptyMsg.hidden = shown.length > 0;
+        }
+
+        document.getElementById('sim-count').textContent = `실험 ${simulations.length}개`;
+        searchInput.addEventListener('input', () => {
+            renderChips();
+            renderList();
         });
+        renderChips();
+        renderList();
 
         // --- 화면 전환 (실제 렌더링) ---
         const HOME_TITLE = document.title;
