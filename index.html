@@ -285,14 +285,14 @@
         // 지금 수업 — '전체' 화면 맨 위에 따로 묶어 보여 준다.
         // 진도가 넘어가면 이 블록만 바꾸면 된다.
         //   items 에는 아래 simulations 의 id 를 적는다.
-        //   { id, tag } 처럼 쓰면 카드에 작은 표시(예: 학습지 번호)가 붙는다.
+        //   { id, tag } 처럼 쓰면 카드에 작은 표시(예: 같이 볼 학습지 이름)가 붙는다.
         //   url 까지 적으면 목록에 없는 바로가기 카드가 된다 (시뮬레이션 안의 특정 화면 등).
         const currentClass = {
             title: '지금 수업 · 행성우주과학 기말',
             note: 'Ⅱ. 태양과 별의 관측',
             items: [
-                { id: 'sand', tag: '기말 2번' },
-                { id: 'variable-stars', tag: '기말 4번' },
+                { id: 'sand', tag: '📄 별까지의 거리' },
+                { id: 'variable-stars', tag: '📄 변광성' },
                 {
                     id: 'variable-stars-pulse',
                     name: '맥동 변광성 · 맥동의 원리',
@@ -300,7 +300,7 @@
                     url: 'sims/variables/#pulse',
                     icon: '💓',
                     category: 'space',
-                    tag: '기말 4번'
+                    tag: '📄 변광성'
                 }
             ]
         };
