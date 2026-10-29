@@ -189,8 +189,19 @@
         }
         .badge-new { background: #4f46e5; color: #fff; }
         .badge-phone { background: #fef3c7; color: #92400e; }
+        .badge-tag { background: #e0e7ff; color: #3730a3; }
+
+        /* 지금 수업 묶음은 바탕을 깔아 눈에 띄게 */
+        .section-class {
+            margin: 14px -4px 0; padding: 12px 4px 4px;
+            background: #eef2ff; border-radius: 18px;
+        }
+        .section-class .section-head { color: #3730a3; margin-left: 8px; }
+        .section-class .section-head small { color: #6366f1; }
+        .section-class .grid { padding: 0 4px 4px; }
 
         /* 분류마다 아이콘 바탕색 */
+        .cat-activity .card-icon { background: #dcfce7; }
         .cat-geo   .card-icon { background: #fef3c7; }
         .cat-air   .card-icon { background: #e0f2fe; }
         .cat-space .card-icon { background: #ede9fe; }
@@ -271,8 +282,22 @@
             url: 'worksheets/'
         };
 
+        // 지금 수업 — '전체' 화면 맨 위에 따로 묶어 보여 준다.
+        // 진도가 넘어가면 이 블록만 바꾸면 된다.
+        //   items 에는 아래 simulations 의 id 를 적는다.
+        //   { id, tag } 처럼 쓰면 카드에 작은 표시(예: 같이 볼 학습지 이름)가 붙는다.
+        const currentClass = {
+            title: '지금 수업 · 행성우주과학 기말',
+            note: 'Ⅱ. 태양과 별의 관측',
+            items: [
+                { id: 'sand', tag: '📄 별까지의 거리' },
+                { id: 'variable-stars', tag: '📄 변광성' }
+            ]
+        };
+
         // 분류 — 탭과 목록의 묶음이 이 순서로 나온다.
         const categories = [
+            { id: 'activity', name: '활동 수업', icon: '🏃' },
             { id: 'geo',   name: '지질·고체지구', icon: '⛰️' },
             { id: 'air',   name: '대기·해양',     icon: '🌦️' },
             { id: 'space', name: '천체·우주',     icon: '🪐' },
@@ -353,7 +378,7 @@
             {
                 id: 'sand',
                 name: '삼각함수 샌드위치',
-                desc: '작은 각에서 tan θ ≈ θ 가 되는 까닭',
+                desc: '작은 각에서 tan θ ≈ θ — 연주시차와 파섹',
                 url: 'sims/sand.html',
                 icon: '🥪',
                 category: 'space'
@@ -380,7 +405,7 @@
                 desc: '이심률을 0에서 1 너머까지 바꾸며 궤도 보기',
                 url: 'sims/eccentricity.html',
                 icon: '🪐',
-                category: 'space'
+                category: 'activity'
             },
             {
                 id: 'sextant',
@@ -401,7 +426,7 @@
             {
                 id: 'variable-stars',
                 name: '변광성 실험실 · 광도 곡선으로 읽는 별과 우주',
-                desc: '광도 곡선, 세페이드로 거리 재기, Ia형 초신성',
+                desc: '광도 곡선, 맥동의 원리, 세페이드로 거리 재기, Ia형 초신성',
                 url: 'sims/variables/',
                 icon: '🌟',
                 category: 'space'
@@ -412,7 +437,7 @@
                 desc: '모두의 휴대폰이 관측소 — PS시로 진앙 찾기',
                 url: 'sims/quake/',
                 icon: '📡',
-                category: 'geo',
+                category: 'activity',
                 phone: true
             },
             {
@@ -421,11 +446,17 @@
                 desc: '카메라·기울기 센서로 해·달·별의 고도 재기',
                 url: 'sims/phone-sextant/',
                 icon: '🧭',
-                category: 'space',
+                category: 'activity',
                 phone: true
             }
         ];
         const NEW_COUNT = 3;
+
+        // 지금 수업 카드: id 로 시뮬레이션을 찾아 tag 를 덧붙인다 (없는 id 는 건너뛴다)
+        const classItems = currentClass.items
+            .map(it => ({ ...simulations.find(s => s.id === it.id), ...it }))
+            .filter(it => it.url);
+        const classIds = new Set(classItems.map(it => it.id));
 
         // 주소(#아이디)로 열 수 있는 모든 화면
         const items = [pinnedItem, ...simulations];
@@ -463,6 +494,7 @@
             card.type = 'button';
             card.className = `card cat-${sim.category}`;
             const badges =
+                (sim.tag ? `<span class="badge badge-tag">${escapeHtml(sim.tag)}</span>` : '') +
                 (newIds.has(sim.id) ? '<span class="badge badge-new">NEW</span>' : '') +
                 (sim.phone ? '<span class="badge badge-phone">📱 폰으로</span>' : '');
             card.innerHTML = `
@@ -476,13 +508,13 @@
             return card;
         }
 
-        function makeSection(title, list) {
+        function makeSection(title, list, note, extraClass) {
             const section = document.createElement('section');
-            section.className = 'section';
+            section.className = 'section' + (extraClass ? ' ' + extraClass : '');
             if (title) {
                 const head = document.createElement('h2');
                 head.className = 'section-head';
-                head.innerHTML = `${title} <small>${list.length}</small>`;
+                head.innerHTML = `${title} <small>${note ? escapeHtml(note) : list.length}</small>`;
                 section.appendChild(head);
             }
             const grid = document.createElement('div');
@@ -528,8 +560,13 @@
                 // 찾는 중에는 묶지 않고 한 덩어리로 보여 준다
                 if (shown.length) cardContainer.appendChild(makeSection(`찾은 실험`, shown));
             } else {
+                // '전체' 에서는 지금 수업을 맨 위에 모으고, 아래 분류에서는 겹치지 않게 뺀다
+                const showClass = activeCat === 'all' && classItems.length > 0;
+                if (showClass) {
+                    cardContainer.appendChild(makeSection(`📌 ${currentClass.title}`, classItems, currentClass.note, 'section-class'));
+                }
                 categories.forEach(c => {
-                    const list = shown.filter(s => s.category === c.id);
+                    const list = shown.filter(s => s.category === c.id && !(showClass && classIds.has(s.id)));
                     if (list.length) cardContainer.appendChild(makeSection(`${c.icon} ${c.name}`, list));
                 });
             }
