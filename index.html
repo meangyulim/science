@@ -286,22 +286,12 @@
         // 진도가 넘어가면 이 블록만 바꾸면 된다.
         //   items 에는 아래 simulations 의 id 를 적는다.
         //   { id, tag } 처럼 쓰면 카드에 작은 표시(예: 같이 볼 학습지 이름)가 붙는다.
-        //   url 까지 적으면 목록에 없는 바로가기 카드가 된다 (시뮬레이션 안의 특정 화면 등).
         const currentClass = {
             title: '지금 수업 · 행성우주과학 기말',
             note: 'Ⅱ. 태양과 별의 관측',
             items: [
                 { id: 'sand', tag: '📄 별까지의 거리' },
-                { id: 'variable-stars', tag: '📄 변광성' },
-                {
-                    id: 'variable-stars-pulse',
-                    name: '맥동 변광성 · 맥동의 원리',
-                    desc: '반지름·표면 온도가 바뀌며 밝기가 변하는 원리',
-                    url: 'sims/variables/#pulse',
-                    icon: '💓',
-                    category: 'space',
-                    tag: '📄 변광성'
-                }
+                { id: 'variable-stars', tag: '📄 변광성' }
             ]
         };
 
@@ -436,7 +426,7 @@
             {
                 id: 'variable-stars',
                 name: '변광성 실험실 · 광도 곡선으로 읽는 별과 우주',
-                desc: '광도 곡선, 세페이드로 거리 재기, Ia형 초신성',
+                desc: '광도 곡선, 맥동의 원리, 세페이드로 거리 재기, Ia형 초신성',
                 url: 'sims/variables/',
                 icon: '🌟',
                 category: 'space'
@@ -462,16 +452,14 @@
         ];
         const NEW_COUNT = 3;
 
-        // 지금 수업 카드: id 로 시뮬레이션을 찾아 tag 를 덧붙이고, url 이 있으면 바로가기 카드로 쓴다
-        const classItems = currentClass.items.map(it => {
-            const sim = simulations.find(s => s.id === it.id);
-            return sim ? { ...sim, ...it } : it;
-        }).filter(it => it.url);
-        const shortcuts = classItems.filter(it => !simulations.some(s => s.id === it.id));
+        // 지금 수업 카드: id 로 시뮬레이션을 찾아 tag 를 덧붙인다 (없는 id 는 건너뛴다)
+        const classItems = currentClass.items
+            .map(it => ({ ...simulations.find(s => s.id === it.id), ...it }))
+            .filter(it => it.url);
         const classIds = new Set(classItems.map(it => it.id));
 
         // 주소(#아이디)로 열 수 있는 모든 화면
-        const items = [pinnedItem, ...simulations, ...shortcuts];
+        const items = [pinnedItem, ...simulations];
         const newIds = new Set(simulations.slice(-NEW_COUNT).map(s => s.id));
         // 화면에는 최근에 만든 것부터 보여 준다
         const newestFirst = [...simulations].reverse();
@@ -538,7 +526,7 @@
 
         function renderChips() {
             const tabs = [{ id: 'all', name: '전체', count: simulations.length },
-                ...categories.map(c => ({ ...c, count: [...simulations, ...shortcuts].filter(s => s.category === c.id).length }))
+                ...categories.map(c => ({ ...c, count: simulations.filter(s => s.category === c.id).length }))
                     .filter(c => c.count > 0)];
             // 찾는 중에는 분류와 상관없이 전부에서 찾으므로 탭 선택을 꺼 둔다
             const searching = normalize(searchInput.value) !== '';
@@ -566,7 +554,7 @@
 
             const inCat = s => q || activeCat === 'all' || s.category === activeCat;
             const matches = s => !q || normalize(`${s.name} ${s.desc || ''}`).includes(q);
-            const shown = [...newestFirst, ...shortcuts].filter(s => inCat(s) && matches(s));
+            const shown = newestFirst.filter(s => inCat(s) && matches(s));
 
             if (q) {
                 // 찾는 중에는 묶지 않고 한 덩어리로 보여 준다
