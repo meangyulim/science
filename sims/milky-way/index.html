@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2235">
+  <title>우리은하 지도 · 구상 성단으로 찾은 은하의 중심과 크기</title>
+  <link rel="stylesheet" href="milky-way.css?v=20261101">
+  <script defer src="milky-way-data.js?v=20261101"></script>
+  <script defer src="milky-way-model.js?v=20261101"></script>
+  <script defer src="milky-way.js?v=20261101"></script>
+</head>
+<body>
+<main class="app">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">행성우주과학 / MILKY WAY MAP</p>
+      <h1>우리은하 지도<span class="title-dot">.</span></h1>
+      <p class="subtitle">변광성으로 잰 구상 성단의 거리로 은하의 중심과 크기를 찾고, 태양계가 어디에 있는지 확인해 봅니다.</p>
+    </div>
+    <span class="lesson-badge">Ⅲ-01 <span>우리은하의 구조와 규모 · 교과서 98~100쪽</span></span>
+  </header>
+
+  <nav class="stations" aria-label="실험 선택">
+    <button data-station="s1" aria-pressed="true"><span class="num">01</span><span>우리은하의 구조<small>팽대부 · 원반 · 헤일로</small></span></button>
+    <button data-station="s2" aria-pressed="false"><span class="num">02</span><span>구상 성단까지의 거리<small>탐구 1 · 오메가 센타우리</small></span></button>
+    <button data-station="s3" aria-pressed="false"><span class="num">03</span><span>은하의 중심 찾기<small>탐구 2 · 구상 성단 157개</small></span></button>
+    <button data-station="s4" aria-pressed="false"><span class="num">04</span><span>거리 재는 여러 방법<small>연주 시차 → 허블-르메트르</small></span></button>
+  </nav>
+
+  <!-- ───────────── 01 우리은하의 구조 ───────────── -->
+  <section class="station" id="station-s1" aria-labelledby="s1-title">
+    <div class="intro">
+      <p class="eyebrow">01 / STRUCTURE</p>
+      <h2 id="s1-title">팽대부, 원반, 헤일로 — 우리은하는 세 부분으로 되어 있습니다.</h2>
+      <p>모형을 옆으로 끌어 돌려 보세요. 구성 요소를 누르면 그 부분이 밝게 보이고 설명이 나옵니다. 구상 성단 157개와 마젤란은하는 실제 관측 위치입니다.</p>
+    </div>
+    <div class="grid s1-grid">
+      <section class="panel scene">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> 우리은하 모형</h3>
+          <div class="segmented" id="s1-views" role="group" aria-label="보는 방향">
+            <button data-view="oblique" aria-pressed="true">비스듬히</button>
+            <button data-view="top" aria-pressed="false">위에서</button>
+            <button data-view="side" aria-pressed="false">옆에서</button>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="s1-canvas" class="space-canvas" tabindex="0" role="img" aria-label="우리은하의 팽대부, 원반, 헤일로와 구상 성단을 나타낸 3차원 모형"></canvas>
+        </div>
+        <div class="readout">
+          <div class="segmented" id="s1-unit" role="group" aria-label="거리 단위">
+            <button data-unit="pc" aria-pressed="true">pc</button>
+            <button data-unit="ly" aria-pressed="false">광년</button>
+          </div>
+          <div class="zoom" role="group" aria-label="확대와 축소">
+            <button id="s1-zoom-out" class="compact" aria-label="축소">− 넓게</button>
+            <button id="s1-zoom-in" class="compact" aria-label="확대">＋ 가까이</button>
+          </div>
+          <label class="check"><input type="checkbox" id="s1-measure"> 크기 재기</label>
+          <button id="s1-spin" class="compact" aria-pressed="false">⟳ 천천히 돌리기</button>
+          <label class="tilt"><span>기울기 <output id="s1-tilt-out"></output></span><input id="s1-tilt" type="range" min="0" max="90" step="1" value="22"></label>
+        </div>
+        <p class="panel-note" id="s1-note">나선팔의 모양과 원반·팽대부의 별은 개념을 보여 주는 그림입니다. 크기 비율은 실제에 가깝게 맞췄습니다.</p>
+      </section>
+      <section class="panel side">
+        <div class="panel-heading"><h3><span class="step">2</span> 구성 요소</h3><span class="micro">누르면 모형에서 찾아 줍니다</span></div>
+        <div class="comp-list" id="s1-comps" role="group" aria-label="우리은하의 구성 요소"></div>
+        <div class="info" id="s1-info" aria-live="polite"></div>
+      </section>
+    </div>
+    <p class="insight standalone" id="s1-insight" aria-live="polite"></p>
+    <p class="hint">모형을 옆으로 끌면 돌아가고(마우스로는 위아래로 끌어 기울일 수도 있어요), 점을 누르면 그 천체의 이름과 거리가 나옵니다. 휴대폰에서는 기울기 막대로 위·옆을 바꿔 보세요.</p>
+  </section>
+
+  <!-- ───────────── 02 구상 성단까지의 거리 ───────────── -->
+  <section class="station" id="station-s2" aria-labelledby="s2-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">02 / OMEGA CENTAURI</p>
+      <h2 id="s2-title">구상 성단 속 세페이드 하나로 성단까지의 거리를 잽니다.</h2>
+      <p>교과서 99쪽 탐구 1: 구상 성단 오메가 센타우리에 속한 종족 Ⅱ 세페이드 변광성의 관측 자료입니다. ① 주기와 평균 겉보기 등급 → ② 절대 등급 → ③ 거리 순서로 구해 보세요.</p>
+    </div>
+    <div class="toolbar">
+      <div class="segmented big" id="s2-mode" role="group" aria-label="무엇을 잴까요">
+        <button data-mode="period" aria-pressed="true">① 주기 재기</button>
+        <button data-mode="mag" aria-pressed="false">① 밝기 재기</button>
+      </div>
+      <button id="s2-guide" class="mystery" aria-pressed="false">📘 교과서 풀이 보기</button>
+    </div>
+    <div class="grid s2-grid">
+      <section class="panel lc">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> 광도 곡선 그리기 · 주기와 평균 겉보기 등급 읽기</h3>
+          <label class="check" id="s2-curve-label"><input type="checkbox" id="s2-curve" checked> 매끄러운 곡선</label>
+        </div>
+        <svg id="s2-lc" class="chart interactive" viewBox="0 0 640 330" role="img" aria-label="오메가 센타우리 종족 Ⅱ 세페이드의 광도 곡선"></svg>
+        <div class="readout">
+          <div><span>측정한 주기 P</span><strong id="s2-P">—</strong></div>
+          <div><span>가장 밝을 때</span><strong id="s2-mb">—</strong></div>
+          <div><span>가장 어두울 때</span><strong id="s2-mf">—</strong></div>
+          <div><span>평균 겉보기 등급 m</span><strong id="s2-m">—</strong></div>
+        </div>
+        <p class="panel-note" id="s2-lc-note"></p>
+      </section>
+      <section class="panel table-panel">
+        <div class="panel-heading">
+          <h3><span class="step">표</span> 관측 자료 (교과서 99쪽)</h3>
+          <span class="micro" id="s2-count"></span>
+        </div>
+        <div class="plot-buttons">
+          <button id="s2-next" class="compact">▶ 한 점씩 찍기</button>
+          <button id="s2-all" class="compact">모두 찍기</button>
+          <button id="s2-clear" class="compact">처음부터</button>
+        </div>
+        <div class="table-wrap"><table class="data-table" id="s2-table" aria-label="시간에 따른 겉보기 등급"></table></div>
+        <div class="typo-box" id="s2-typo"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-heading"><h3><span class="step">2</span> 주기-광도 관계에서 절대 등급 M 읽기</h3></div>
+        <div class="segmented wide" id="s2-pop" role="group" aria-label="어느 관계선을 쓸까">
+          <button data-pop="pop1" aria-pressed="false">종족 Ⅰ 세페이드</button>
+          <button data-pop="pop2" aria-pressed="true">종족 Ⅱ 세페이드</button>
+          <button data-pop="rr" aria-pressed="false">RR형</button>
+        </div>
+        <svg id="s2-pl" class="chart" viewBox="0 0 640 330" role="img" aria-label="주기-광도 관계 그래프"></svg>
+        <p class="panel-note">수업 그래프(활동지 12쪽)와 같은 관계선입니다. 주기 10일에서 종족 Ⅰ은 −4등급, 종족 Ⅱ는 −2등급입니다.</p>
+      </section>
+      <section class="panel result">
+        <div class="panel-heading"><h3><span class="step">3</span> 거리 지수 공식으로 거리 구하기</h3></div>
+        <div id="s2-steps" class="steps"></div>
+        <div class="check-row"><button id="s2-check" class="primary">정답과 비교하기</button></div>
+        <div id="s2-verdict" class="verdict" hidden></div>
+      </section>
+    </div>
+    <p class="insight standalone" id="s2-insight" aria-live="polite"></p>
+    <p class="hint" id="s2-hint"></p>
+  </section>
+
+  <!-- ───────────── 03 은하의 중심 찾기 ───────────── -->
+  <section class="station" id="station-s3" aria-labelledby="s3-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">03 / FINDING THE CENTRE</p>
+      <h2 id="s3-title">구상 성단이 모여 있는 곳의 중심이 우리은하의 중심입니다.</h2>
+      <p>교과서 100쪽 탐구 2: 구상 성단 157개의 실제 위치를 태양이 원점인 좌표에 찍었습니다. X축은 은하 중심 방향, XY 평면은 은하면과 나란합니다. 은하의 중심이라고 생각하는 곳에 ×를 놓아 보세요.</p>
+    </div>
+    <div class="toolbar">
+      <div class="segmented big" id="s3-views" role="group" aria-label="보기">
+        <button data-view="3d" aria-pressed="true">3차원</button>
+        <button data-view="xy" aria-pressed="false">XY 평면</button>
+        <button data-view="xz" aria-pressed="false">XZ 평면</button>
+      </div>
+      <button id="s3-guide" class="mystery" aria-pressed="false">📘 교과서 풀이 보기</button>
+    </div>
+    <div class="grid s3-grid">
+      <section class="panel plot3">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> <span id="s3-plot-title">구상 성단의 3차원 분포</span></h3>
+          <div class="segmented" id="s3-zoom" role="group" aria-label="보이는 범위">
+            <button data-zoom="60" aria-pressed="true">±60 kpc</button>
+            <button data-zoom="25" aria-pressed="false">±25 kpc</button>
+          </div>
+        </div>
+        <svg id="s3-plot" class="chart interactive" viewBox="0 0 640 640" tabindex="0" role="img" aria-label="태양을 원점으로 한 구상 성단의 공간 분포"></svg>
+        <div class="readout">
+          <div><span>×의 위치 (X, Y, Z)</span><strong id="s3-pos">—</strong></div>
+          <div><span>태양에서 ×까지</span><strong id="s3-dist">—</strong></div>
+          <label class="radius"><span>구의 반지름 R <output id="s3-R-out"></output></span><input id="s3-R" type="range" min="5" max="120" step="1" value="30"></label>
+          <div><span>구 안의 구상 성단</span><strong id="s3-in">—</strong></div>
+        </div>
+      </section>
+      <div class="s3-side">
+        <section class="panel">
+          <div class="panel-heading"><h3><span class="step">2</span> 정답 확인</h3></div>
+          <div class="side-body">
+            <button id="s3-reveal" class="primary" aria-pressed="false">밀집된 곳의 중심 계산하기</button>
+            <div id="s3-answer" class="answer" aria-live="polite"></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-heading">
+            <h3><span class="step">3</span> 하늘에서 본 구상 성단</h3>
+            <button id="s3-ifsun" class="compact" aria-pressed="false">태양이 중심이라면?</button>
+          </div>
+          <svg id="s3-sky" class="chart" viewBox="0 0 640 360" role="img" aria-label="은하 좌표로 나타낸 하늘 전체의 구상 성단 분포"></svg>
+          <p class="insight" id="s3-sky-insight" aria-live="polite"></p>
+        </section>
+      </div>
+    </div>
+    <p class="insight standalone" id="s3-insight" aria-live="polite"></p>
+    <p class="hint" id="s3-hint"></p>
+    <details class="more page">
+      <summary>더 알아보기 · 왜 구상 성단으로 은하의 지도를 그렸을까?</summary>
+      <p>섀플리(1918년 무렵)는 구상 성단 속 맥동 변광성으로 구상 성단들의 거리를 재고, 그 3차원 분포의 중심이 궁수자리 방향에 있다는 것을 알아냈습니다. 태양이 우리은하의 중심이 아니라는 것을 보여 준 중요한 증거였습니다. 구상 성단이 지도를 그리기에 좋았던 까닭은 두 가지입니다. ① 성단 속 변광성으로 거리를 잴 수 있고, ② 대부분 원반 밖 헤일로에 있어 원반의 성간 티끌에 덜 가려지기 때문입니다. 원반 안의 별만 세면 티끌 때문에 어느 방향이나 비슷한 거리까지만 보여 태양이 중심인 것처럼 보입니다(기출에서는 허셜의 모형과 비교합니다). 다만 섀플리도 성간 소광을 몰라 거리를 실제보다 멀게 계산해, 우리은하를 실제보다 크게 생각했습니다.</p>
+    </details>
+  </section>
+
+  <!-- ───────────── 04 거리 재는 여러 방법 ───────────── -->
+  <section class="station" id="station-s4" aria-labelledby="s4-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">04 / DISTANCE LADDER</p>
+      <h2 id="s4-title">가까운 곳은 기하학으로, 먼 곳은 밝기로 — 거리마다 쓰는 자가 다릅니다.</h2>
+      <p>교과서 100쪽 그림 7을 거리 눈금 위에 다시 그렸습니다. 천체를 누르면 그 거리까지 닿는 방법이 보이고, 방법을 누르면 무엇을 재고 무엇에 기대는지 비교할 수 있습니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="s4-objects" role="group" aria-label="천체 고르기"></div>
+      <div class="segmented" id="s4-unit" role="group" aria-label="거리 단위">
+        <button data-unit="pc" aria-pressed="true">pc</button>
+        <button data-unit="ly" aria-pressed="false">광년</button>
+      </div>
+    </div>
+    <div class="grid s4-grid">
+      <section class="panel ladder">
+        <div class="panel-heading"><h3><span class="step">1</span> 거리 사다리 (로그 눈금)</h3><span class="micro">눈금 한 칸마다 100배</span></div>
+        <svg id="s4-ladder" class="chart interactive" viewBox="0 0 960 470" role="img" aria-label="거리에 따라 쓸 수 있는 거리 측정 방법"></svg>
+        <div class="readout" id="s4-readout"></div>
+      </section>
+      <section class="panel method">
+        <div class="panel-heading"><h3><span class="step">2</span> <span id="s4-method-title">방법 비교</span></h3></div>
+        <div class="method-chips" id="s4-methods" role="group" aria-label="거리 측정 방법 고르기"></div>
+        <div id="s4-card" class="side-body"></div>
+      </section>
+      <section class="panel compare">
+        <div class="panel-heading"><h3><span class="step">3</span> 비교·평가</h3></div>
+        <div id="s4-compare" class="side-body"></div>
+      </section>
+    </div>
+    <p class="insight standalone" id="s4-insight" aria-live="polite"></p>
+    <p class="hint">사다리 위를 누르거나 옆으로 끌면 주황색 거리 커서가 움직입니다. 그 거리에서 연주 시차와 표준 광원(세페이드·Ia형 초신성)의 겉보기 등급이 얼마인지 아래에 나옵니다.</p>
+  </section>
+
+  <footer class="credit">구상 성단 자료: Harris, W. E. 1996, AJ, 112, 1487 (2010 edition) · 마젤란은하 거리: Pietrzyński et al. 2019, Graczyk et al. 2020 · 오메가 센타우리 관측 자료와 탐구는 천재교과서 『행성우주과학』 98~101쪽. 우리은하의 원반·팽대부·나선팔과 산개 성단·방출 성운의 점은 개념을 보여 주는 그림입니다.</footer>
+</main>
+</body>
+</html>
