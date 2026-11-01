@@ -12,6 +12,7 @@
 | `sims/quake/` | 야외수업 「캠퍼스 지진」. Firebase 규칙은 `database.rules.json` |
 | `sims/geologic-game/` | 지질시대 온라인 게임 |
 | `sims/phone-sextant/` | 폰 육분의: 카메라·기울기 센서로 해·달·별의 고도를 재서 위치 찾기. 계산은 `phone-sextant-model.js` |
+| `sims/sun/` 외 7개 | 행성우주과학 Ⅱ·Ⅲ단원 실험실: `sun`(태양 관측소), `star-distance`(별까지의 거리), `star-motion`(별의 공간 운동), `cluster-cmd`(성단 C-M도), `milky-way`(우리은하 지도), `dust`(성간 티끌), `redshift-survey`(은하 적색 편이 탐사), `cosmic-web`(우주거대구조 모의실험). 변광성 실험실(`sims/variables/`)과 같은 틀이고 계산은 폴더마다 `*-model.js`. 주소 끝에 `#s2`처럼 붙이면 그 실험부터 열립니다(QR 코드용) |
 | `widgets/` | 첫 화면에 붙는 작은 기능 (체육대회 우천 레이더) |
 | `tests/` | 계산 모형 테스트: `node --test tests/*.test.cjs` |
 | `archive/` | 지금은 쓰지 않는 예전 파일 |
