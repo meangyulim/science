@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2235">
+  <title>태양 관측소 · 광구와 대기, 흑점과 태양 활동</title>
+  <link rel="stylesheet" href="sun.css?v=20261101">
+  <script defer src="sun-data.js?v=20261101"></script>
+  <script defer src="sun-model.js?v=20261101"></script>
+  <script defer src="sun.js?v=20261101"></script>
+</head>
+<body>
+<main class="app">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">행성우주과학 / SOLAR OBSERVATORY</p>
+      <h1>태양 관측소<span class="title-dot">.</span></h1>
+      <p class="subtitle">광구의 무늬와 흑점, 흑점으로 재는 자전 주기, 여러 파장의 태양, 11년 활동 주기까지 직접 관측해 봅니다.</p>
+    </div>
+    <span class="lesson-badge">Ⅱ-01 <span>태양의 광구와 대기 관측 · 교과서 56~63쪽</span></span>
+  </header>
+
+  <nav class="stations" aria-label="관측 선택">
+    <button data-station="s1" aria-pressed="true"><span class="num">01</span><span>광구 들여다보기<small>주연 감광 · 흑점 · 쌀알 무늬</small></span></button>
+    <button data-station="s2" aria-pressed="false"><span class="num">02</span><span>흑점으로 자전 주기 재기<small>투명 용지 · 차등 자전</small></span></button>
+    <button data-station="s3" aria-pressed="false"><span class="num">03</span><span>파장별로 본 태양<small>채층 · 코로나 · 플레어</small></span></button>
+    <button data-station="s4" aria-pressed="false"><span class="num">04</span><span>태양 활동 주기<small>약 11년 · 나비 도표</small></span></button>
+  </nav>
+
+  <!-- ───────────── 01 광구 들여다보기 ───────────── -->
+  <section class="station" id="station-s1" aria-labelledby="s1-title">
+    <div class="intro">
+      <p class="eyebrow">01 / PHOTOSPHERE</p>
+      <h2 id="s1-title">광구: 우리가 보는 햇빛이 나오는 태양의 밝고 둥근 표면</h2>
+      <p>광구의 온도는 약 5800 K입니다. 가장자리는 왜 어둡고, 흑점은 왜 검게 보이고, 쌀알 무늬는 왜 생길까요? 하나씩 켜고 끄며 확인해 보세요.</p>
+    </div>
+    <div class="grid s1-grid">
+      <section class="panel disk-panel">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> 태양 필터를 단 망원경으로 본 광구</h3>
+          <div class="segmented" id="s1-paint" role="group" aria-label="색칠 방식">
+            <button type="button" data-paint="light" aria-pressed="true">밝기</button>
+            <button type="button" data-paint="temp" aria-pressed="false">온도로 색칠</button>
+          </div>
+        </div>
+        <div class="toggles" role="group" aria-label="보기 설정">
+          <button type="button" class="toggle" id="s1-limb" aria-pressed="true">주연 감광</button>
+          <button type="button" class="toggle" id="s1-alone" aria-pressed="false">광구 가리고 흑점만 보기</button>
+        </div>
+        <svg id="s1-disk" class="space-view interactive" viewBox="0 0 640 400" role="img" aria-label="흑점이 있는 태양 광구와 흑점 확대 그림. 누르면 밝기를 잴 줄이 그곳으로 옮겨 갑니다."></svg>
+        <div class="temp-legend" id="s1-tlegend" hidden></div>
+        <div class="slider-row">
+          <label><span>밝기를 잴 줄 <output id="s1-scan-out"></output></span><input id="s1-scan" type="range" min="-0.95" max="0.95" step="0.01" value="0.26"></label>
+        </div>
+        <div class="legend" id="s1-plegend"></div>
+        <svg id="s1-profile" class="chart" viewBox="0 0 640 240" role="img" aria-label="줄을 따라 잰 광구의 밝기 그래프"></svg>
+        <p class="insight" id="s1-disk-insight"></p>
+      </section>
+
+      <section class="panel gran-panel">
+        <div class="panel-heading">
+          <h3><span class="step">2</span> 쌀알 무늬 확대</h3>
+          <button type="button" id="s1-play" class="compact">❚❚ 멈춤</button>
+        </div>
+        <div class="toggles" role="group" aria-label="쌀알 무늬 보기 설정">
+          <button type="button" class="toggle" id="s1-arrows" aria-pressed="true">대류 화살표</button>
+          <button type="button" class="toggle" id="s1-gtemp" aria-pressed="false">온도로 색칠</button>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="s1-gran" width="220" height="220" role="img" aria-label="시간에 따라 생겼다 사라지는 쌀알 무늬. 누르면 그 쌀알을 따라갑니다."></canvas>
+          <svg id="s1-gran-over" class="overlay interactive" viewBox="0 0 220 220" aria-hidden="true"></svg>
+        </div>
+        <div class="temp-legend" id="s1-glegend" hidden></div>
+        <div class="cut-wrap">
+          <canvas id="s1-cut" width="440" height="150" role="img" aria-label="점선을 따라 자른 광구의 단면과 기체의 움직임"></canvas>
+        </div>
+        <div class="readout">
+          <div><span>실제 태양에서 흐른 시간</span><strong id="s1-clock">0분 0초</strong></div>
+          <div><span>고른 쌀알</span><strong id="s1-track">—</strong></div>
+        </div>
+        <p class="insight" id="s1-gran-insight"></p>
+      </section>
+
+      <section class="panel mag-panel">
+        <div class="panel-heading">
+          <h3><span class="step">3</span> 흑점은 왜 생길까?</h3>
+          <button type="button" class="toggle compact" id="s1-lines" aria-pressed="true">자기력선 보기</button>
+        </div>
+        <div class="mag-body">
+          <svg id="s1-mag" class="chart" viewBox="0 0 640 300" role="img" aria-label="자기장이 강한 곳에서 뜨거운 기체의 상승이 억제되어 흑점이 생기는 모습"></svg>
+          <div class="mag-side">
+            <label><span>흑점 자리의 자기장 세기 <output id="s1-B-out"></output></span><input id="s1-B" type="range" min="0" max="1" step="0.01" value="0.95"></label>
+            <div class="chain" id="s1-chain"></div>
+            <div class="readout boxed">
+              <div><span>흑점 자리의 온도</span><strong id="s1-spotT">—</strong></div>
+              <div><span>주변 광구에 견준 밝기</span><strong id="s1-spotI">—</strong></div>
+            </div>
+          </div>
+        </div>
+        <p class="insight" id="s1-mag-insight"></p>
+      </section>
+    </div>
+    <p class="hint">태양은 맨눈이나 태양 필터 없는 망원경으로 절대 보면 안 됩니다(교과서 58쪽). 이 화면의 태양은 실제 사진이 아니라 교과서의 값으로 그린 그림입니다.</p>
+  </section>
+
+  <!-- ───────────── 02 흑점으로 자전 주기 재기 ───────────── -->
+  <section class="station" id="station-s2" aria-labelledby="s2-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">02 / SUNSPOTS AND ROTATION</p>
+      <h2 id="s2-title">흑점이 돈 각도(이동각)로 태양의 자전 주기를 구합니다.</h2>
+      <p>교과서 60쪽 탐구처럼 투명 용지에 흑점의 처음 위치와 나중 위치를 표시하고, R′, x, y를 재어 이동각 θ와 자전 주기 P를 구해 보세요.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="s2-modes" role="group" aria-label="자료 고르기">
+        <button type="button" data-mode="practice">연습 사진<span class="tag">가상의 태양</span></button>
+        <button type="button" data-mode="A">교과서 흑점 A<span class="tag">60쪽 · 3일</span></button>
+        <button type="button" data-mode="B">교과서 흑점 B<span class="tag">60쪽 · 4일</span></button>
+        <button type="button" data-mode="q3">확인 문제 3<span class="tag">63쪽 · 4일, 50°</span></button>
+      </div>
+      <button type="button" id="s2-new" class="mystery">🎲 새 연습 사진</button>
+    </div>
+    <div class="grid s2-grid">
+      <section class="panel photo-panel">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> 투명 용지에 흑점 표시하기</h3>
+          <div class="segmented" id="s2-photo" role="group" aria-label="사진 고르기">
+            <button type="button" data-photo="0" aria-pressed="true">(가) 처음</button>
+            <button type="button" data-photo="1" aria-pressed="false">(나) <span id="s2-dt-label">3</span>일 뒤</button>
+          </div>
+        </div>
+        <svg id="s2-disk" class="photo-view interactive" viewBox="0 0 640 560" role="img" aria-label="흑점이 있는 태양 사진. 흑점을 누르면 투명 용지에 위치가 표시됩니다."></svg>
+        <div class="readout" id="s2-readout"></div>
+        <div class="row-buttons">
+          <button type="button" id="s2-clear" class="compact">표시 지우기</button>
+          <button type="button" class="toggle compact" id="s2-grid" aria-pressed="false">경위선 보기</button>
+        </div>
+        <p class="panel-note" id="s2-note"></p>
+      </section>
+
+      <section class="panel geo-panel">
+        <div class="panel-heading">
+          <h3><span class="step">2</span> 정면에서 본 모습과 위에서 본 모습</h3>
+          <button type="button" id="s2-replay" class="compact">▶ 움직임 보기</button>
+        </div>
+        <svg id="s2-geo" class="chart" viewBox="0 0 640 620" role="img" aria-label="흑점이 위도선을 따라 도는 모습을 정면과 위에서 본 기하 그림"></svg>
+        <p class="insight" id="s2-geo-insight"></p>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="panel-heading">
+          <h3><span class="step">3</span> 스프레드시트처럼 한 칸씩 계산하기</h3>
+          <div class="btns">
+            <button type="button" id="s2-next" class="primary compact">다음 칸 계산 ▶</button>
+            <button type="button" id="s2-all" class="compact">한 번에 보기</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="s2-table"></div>
+        <div class="explain" id="s2-explain"></div>
+      </section>
+
+      <section class="panel chart-panel">
+        <div class="panel-heading">
+          <h3><span class="step">4</span> 위도에 따른 자전 주기</h3>
+          <div class="btns">
+            <button type="button" class="toggle compact" id="s2-model" aria-pressed="false">모형 곡선</button>
+            <button type="button" id="s2-reset" class="compact">기록 지우기</button>
+          </div>
+        </div>
+        <div class="chart-body">
+          <svg id="s2-chart" class="chart" viewBox="0 0 640 340" role="img" aria-label="잰 흑점들의 위도와 자전 주기 그래프"></svg>
+          <div class="band-box">
+            <p class="band-title">한 경선 위에서 함께 출발한 점들은? <span class="micro">(모형 · 적도의 점을 따라 돌며 본 모습)</span></p>
+            <svg id="s2-band" class="space-view" viewBox="0 0 400 400" role="img" aria-label="같은 경선에서 출발한 점들이 위도에 따라 다르게 도는 모습"></svg>
+            <label><span>지난 날수 <output id="s2-days-out"></output></span><input id="s2-days" type="range" min="0" max="30" step="0.5" value="12"></label>
+          </div>
+        </div>
+        <p class="insight" id="s2-chart-insight"></p>
+        <p class="insight" id="s2-band-insight"></p>
+      </section>
+    </div>
+    <details class="more">
+      <summary>더 알아보기 · 지구에서 본 자전 주기는 왜 조금 더 길까?</summary>
+      <p>지구도 태양 둘레를 태양의 자전과 같은 방향으로 공전합니다. 그래서 지구에서 보면 흑점이 실제보다 조금 느리게 도는 것처럼 보여, 사진으로 바로 구한 주기는 실제 자전 주기보다 1~2일쯤 길게 나옵니다. 교과서 63쪽 확인 문제 3이 ‘지구의 공전 효과는 보정된 자료’라고 밝힌 것도 이 때문입니다. 이 실험의 연습 사진은 지구 공전 효과를 뺀(보정한) 태양입니다.</p>
+    </details>
+    <p class="hint">연습 사진의 흑점은 모두 가상입니다. 흑점의 가운데를 누르면 자석처럼 붙어 표시됩니다. 흑점은 같은 위도선을 따라 동쪽(왼쪽)에서 서쪽(오른쪽)으로 움직입니다.</p>
+  </section>
+
+  <!-- ───────────── 03 파장별로 본 태양 ───────────── -->
+  <section class="station" id="station-s3" aria-labelledby="s3-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">03 / MANY WAVELENGTHS</p>
+      <h2 id="s3-title">파장을 바꾸면 다른 층, 다른 온도의 태양이 보입니다.</h2>
+      <p>같은 순간의 같은 태양을 가시광선, 자외선, X선으로 바꿔 보세요. 흑점 위의 대기가 짧은 파장에서 밝게 빛납니다. 개기 일식 때만 보이는 채층과 코로나도 확인해 보세요.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="s3-wl" role="group" aria-label="관측 파장"></div>
+      <button type="button" id="s3-flare" class="mystery">⚡ 플레어 일으키기</button>
+    </div>
+    <div class="grid s3-grid">
+      <section class="panel main-panel">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> <span id="s3-main-title">가시광선으로 본 태양</span></h3>
+          <span class="micro" id="s3-main-shows"></span>
+        </div>
+        <div class="canvas-wrap dark">
+          <canvas id="s3-main" width="420" height="420" role="img" aria-label="고른 파장으로 본 가상의 태양. 누르면 그 자리가 네 파장 사진에 함께 표시됩니다."></canvas>
+          <svg id="s3-main-over" class="overlay interactive" viewBox="0 0 420 420" aria-hidden="true"></svg>
+        </div>
+        <div class="eclipse-ctl" id="s3-eclipse-ctl" hidden>
+          <label><span>달의 위치 <output id="s3-moon-out"></output></span><input id="s3-moon" type="range" min="0" max="1" step="0.005" value="1"></label>
+          <div class="segmented" id="s3-cycle" role="group" aria-label="태양 활동 시기">
+            <button type="button" data-cyc="max" aria-pressed="true">흑점이 많은 시기</button>
+            <button type="button" data-cyc="min" aria-pressed="false">흑점이 적은 시기</button>
+          </div>
+        </div>
+        <div class="bars" id="s3-bars"></div>
+        <p class="insight" id="s3-insight"></p>
+      </section>
+
+      <section class="panel quad-panel">
+        <div class="panel-heading">
+          <h3><span class="step">2</span> 같은 순간, 네 파장 비교 <small class="h-note">(교과서 그림 5)</small></h3>
+        </div>
+        <div class="quad" id="s3-quad"></div>
+        <p class="panel-note">사진을 누르면 위의 큰 화면이 그 파장으로 바뀝니다. 큰 화면에서 누른 자리가 네 사진에 ＋로 함께 표시됩니다.</p>
+      </section>
+
+      <section class="panel layer-panel">
+        <div class="panel-heading">
+          <h3><span class="step">3</span> 태양 대기의 층과 온도</h3>
+        </div>
+        <div class="chips small-chips" id="s3-layer-chips" role="group" aria-label="층과 현상 고르기"></div>
+        <svg id="s3-layers" class="chart" viewBox="0 0 640 400" role="img" aria-label="광구, 채층, 코로나와 여러 현상의 온도 비교"></svg>
+        <p class="insight" id="s3-layer-insight"></p>
+      </section>
+    </div>
+    <p class="hint">이 화면의 태양은 교과서 그림 5(태양 활동 관측 위성의 사진)의 특징을 따라 그린 가상의 태양입니다. 자외선·X선은 대기에 흡수되므로 실제로는 우주의 관측 위성으로 관측합니다.</p>
+  </section>
+
+  <!-- ───────────── 04 태양 활동 주기 ───────────── -->
+  <section class="station" id="station-s4" aria-labelledby="s4-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">04 / SOLAR CYCLE</p>
+      <h2 id="s4-title">흑점 수는 약 11년을 주기로 늘었다 줄어듭니다.</h2>
+      <p>1950년부터 지금까지 실제로 센 흑점 수입니다(교과서 그림 1과 같은 자료). 커서를 봉우리에 놓아 주기를 재고, 같은 시기의 나비 도표와 태양·지구의 모습을 비교해 보세요.</p>
+    </div>
+    <div class="grid s4-grid">
+      <section class="panel sn-panel">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> 월평균 흑점 수</h3>
+          <div class="btns">
+            <button type="button" id="s4-snap-max" class="compact">극대에 맞추기</button>
+            <button type="button" id="s4-snap-min" class="compact">극소에 맞추기</button>
+          </div>
+        </div>
+        <div class="legend" id="s4-legend"></div>
+        <svg id="s4-sn" class="chart interactive" viewBox="0 0 640 300" role="img" aria-label="1950년부터의 월평균 흑점 수와 13개월 이동 평균"></svg>
+        <div class="readout">
+          <div><span>두 커서 사이의 시간</span><strong id="s4-dt">—</strong></div>
+          <div><span>커서 A의 때</span><strong id="s4-when">—</strong></div>
+          <div><span>월평균 / 이동 평균 흑점 수</span><strong id="s4-val">—</strong></div>
+        </div>
+        <p class="insight" id="s4-sn-insight"></p>
+      </section>
+
+      <section class="panel bfly-panel">
+        <div class="panel-heading">
+          <h3><span class="step">2</span> 흑점이 나타난 위도 (나비 도표)</h3>
+          <button type="button" class="toggle compact" id="s4-mean" aria-pressed="false">평균 위도 선</button>
+        </div>
+        <div class="legend" id="s4-blegend"></div>
+        <svg id="s4-bfly" class="chart interactive" viewBox="0 0 640 300" role="img" aria-label="시간에 따른 흑점의 위도 분포(나비 도표)"></svg>
+        <p class="insight" id="s4-bfly-insight"></p>
+      </section>
+
+      <section class="panel earth-panel">
+        <div class="panel-heading">
+          <h3><span class="step">3</span> 커서 A 무렵의 태양과 지구</h3>
+          <span class="micro" id="s4-scene-when"></span>
+        </div>
+        <svg id="s4-scene" class="space-view" viewBox="0 0 640 340" role="img" aria-label="태양 활동 정도에 따른 흑점, 코로나, 태양풍과 오로라"></svg>
+        <p class="insight" id="s4-insight"></p>
+        <table class="compare" id="s4-compare" aria-label="태양 활동 극소기와 극대기 비교"></table>
+      </section>
+    </div>
+    <p class="hint">그래프를 누르거나 끌면 가까운 커서(A·B)가 움직이고, 이동 평균의 봉우리·골짜기 근처에서는 자석처럼 붙습니다. 위의 흑점 수 그래프와 아래 나비 도표는 같은 시간 축을 씁니다.</p>
+  </section>
+
+  <footer class="credit">
+    흑점 수: SILSO, Royal Observatory of Belgium, Brussels (월평균 흑점 수 V2.0, CC BY-NC 4.0; 2026년 7월부터는 잠정값) ·
+    나비 도표: D. Hathaway가 정리한 Royal Greenwich Observatory·USAF/NOAA 흑점 면적 자료 (2016년까지 NASA Marshall Space Flight Center 공개, 이후 solarcyclescience.com) ·
+    태양 그림과 연습 사진은 교과서 56~63쪽의 값으로 직접 그린 가상의 모습이며, 크기와 각은 과장했을 수 있습니다.
+  </footer>
+</main>
+</body>
+</html>

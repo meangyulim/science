@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2235">
+  <title>우주거대구조 모의실험 · 중력이 짜는 우주의 그물</title>
+  <link rel="stylesheet" href="cosmic-web.css?v=20261101">
+  <script defer src="cosmic-web-model.js?v=20261101"></script>
+  <script defer src="cosmic-web.js?v=20261101"></script>
+</head>
+<body>
+<main class="app">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">행성우주과학 / COSMIC WEB LAB</p>
+      <h1>우주거대구조 모의실험<span class="title-dot">.</span></h1>
+      <p class="subtitle">미세한 밀도 차이와 중력만으로 우주의 그물이 자라는 과정을 컴퓨터 속 우주에서 재현해 봅니다.</p>
+    </div>
+    <span class="lesson-badge">Ⅲ-04 <span>우주거대구조의 진화 · 교과서 118~119쪽</span></span>
+  </header>
+
+  <nav class="stations" aria-label="실험 선택">
+    <button type="button" data-station="grow" aria-pressed="true"><span class="num">01</span><span><span class="full">미세한 밀도 차이의 성장</span><span class="short">밀도 차이</span><small>그림 27 · 중력과 시간</small></span></button>
+    <button type="button" data-station="find" aria-pressed="false"><span class="num">02</span><span><span class="full">은하단·필라멘트·보이드</span><span class="short">구조 찾기</span><small>밀도와 부피</small></span></button>
+    <button type="button" data-station="models" aria-pressed="false"><span class="num">03</span><span><span class="full">우주 모형 비교</span><span class="short">모형 비교</span><small>그림 28 · 가·나·다</small></span></button>
+  </nav>
+
+  <!-- ───────────── 01 미세한 밀도 차이의 성장 ───────────── -->
+  <section class="station" id="station-grow" aria-labelledby="grow-title">
+    <div class="intro">
+      <p class="eyebrow">01 / GROWTH OF TINY RIPPLES</p>
+      <h2 id="grow-title">밀도가 조금 높은 곳이 주변 물질을 끌어당깁니다.</h2>
+      <p>대폭발 이후 물질은 거의 고르게 퍼져 있었지만 곳곳에 미세한 밀도 차이가 있었습니다. 중력이 이 차이를 140억 년 동안 어떻게 키우는지 따라가 보세요.</p>
+    </div>
+    <div class="toolbar">
+      <div class="segmented" id="grow-view" role="group" aria-label="그리는 방식">
+        <button type="button" data-view="density" aria-pressed="true">밀도 지도</button>
+        <button type="button" data-view="particles" aria-pressed="false">물질 입자</button>
+      </div>
+      <div class="group">
+        <span class="lbl" id="quality-label">입자 수</span>
+        <div class="segmented quality" role="group" aria-labelledby="quality-label">
+          <button type="button" data-quality="64" aria-pressed="false">4천 개 (가볍게)</button>
+          <button type="button" data-quality="128" aria-pressed="true">1만 6천 개</button>
+        </div>
+      </div>
+    </div>
+    <div class="grid grow-grid">
+      <section class="panel scene">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> 모의실험 상자</h3>
+          <span class="micro">교육용 2차원 모형 · 한 변 = 현재 기준 140 Mpc</span>
+        </div>
+        <div class="sim-box">
+          <canvas id="grow-canvas" role="img" aria-label="모의실험 상자 속 물질의 분포"></canvas>
+          <div class="sim-age" id="grow-age" aria-hidden="true"></div>
+          <div class="sim-scale" id="grow-scale" aria-hidden="true"><i></i><span>35 Mpc</span></div>
+          <div class="sim-busy" id="grow-busy" hidden><span></span></div>
+        </div>
+        <div class="transport">
+          <button type="button" id="grow-play" class="primary">▶ 재생</button>
+          <button type="button" id="grow-back" class="compact" aria-label="10억 년 전의 모습으로">◀ 10억 년</button>
+          <button type="button" id="grow-fwd" class="compact" aria-label="10억 년 뒤의 모습으로">10억 년 ▶</button>
+          <label class="grow"><span>우주 나이 <output id="grow-time-out"></output></span><input id="grow-time" type="range" min="0" max="138.6" step="0.1" value="138.6"></label>
+        </div>
+        <div class="readout">
+          <div><span>우주의 크기 (현재 = 1)</span><strong id="grow-a">—</strong></div>
+          <div><span>밀도 차이 (표준편차)</span><strong id="grow-rms">—</strong></div>
+          <div><span>가장 빽빽한 곳</span><strong id="grow-max">—</strong></div>
+          <label class="check"><input type="checkbox" id="grow-real"> 상자를 그때의 실제 크기로</label>
+        </div>
+      </section>
+      <section class="panel side">
+        <div class="panel-heading"><h3><span class="step">2</span> 초기 밀도 차이 바꾸기</h3></div>
+        <div class="amp-box">
+          <label><span>시작할 때의 밀도 차이 <output id="amp-out"></output></span><input id="amp" type="range" min="0" max="2" step="0.25" value="1"></label>
+          <div class="presets" id="amp-presets">
+            <button type="button" data-amp="0">0 · 완전히 고르게</button>
+            <button type="button" data-amp="0.5">절반</button>
+            <button type="button" data-amp="1">기본</button>
+            <button type="button" data-amp="2">두 배</button>
+          </div>
+          <p class="micro">계산은 우주의 크기가 현재의 1 %(우주 나이 약 1750만 년)일 때부터 시작합니다.</p>
+        </div>
+        <div class="panel-heading sub">
+          <h4>밀도 차이가 자라는 모습</h4>
+          <div class="segmented" id="grow-yscale" role="group" aria-label="세로축 눈금">
+            <button type="button" data-ys="lin" aria-pressed="true">보통 눈금</button>
+            <button type="button" data-ys="log" aria-pressed="false">로그 눈금</button>
+          </div>
+        </div>
+        <svg id="grow-chart" class="chart interactive" viewBox="0 0 640 340" role="img" aria-label="우주 나이에 따른 밀도 차이의 성장 그래프"></svg>
+        <p class="panel-note chart-note">밀도 차이 = 상자를 가로세로 32칸(한 칸 약 4 Mpc)으로 나누어, 칸마다의 밀도가 평균과 얼마나 다른지를 표준편차로 나타낸 값입니다.</p>
+        <p class="insight" id="grow-insight"></p>
+      </section>
+      <section class="panel strip">
+        <div class="panel-heading"><h3><span class="step">3</span> 네 시점 비교 — 교과서 그림 27처럼</h3><span class="micro">누르면 그 시점으로 갑니다</span></div>
+        <div class="snaps" id="grow-snaps"></div>
+        <p class="panel-note">네 그림 모두 같은 상자(현재 기준 한 변 140 Mpc)입니다. 상자는 우주와 함께 팽창하므로, 과거의 실제 크기는 더 작았습니다 — 우주 나이 60억 년일 때는 현재의 약 0.5배였습니다.</p>
+      </section>
+    </div>
+    <details class="more">
+      <summary>더 알아보기 · 실제 모의실험과 이 모형</summary>
+      <p><b>실제 모의실험</b> — 유럽의 <b>밀레니엄 모의실험</b>(교과서 그림 26·27)은 입자 약 100억 개로 3차원 우주를 계산했고, 우리나라의 <b>호라이즌 런</b> 모의실험은 관측할 수 있는 우주의 끝(우주의 지평선)까지 이르는 거대한 영역을 계산했습니다. 최근의 호라이즌 런 5는 약 1000 Mpc 크기의 영역에서 별과 가스의 진화까지 다룹니다. 실제 모의실험의 입자는 대부분 빛을 내지 않는 암흑 물질입니다(따로 배우지 않았지만, 중력만 미치는 보이지 않는 물질).</p>
+      <p><b>이 모형</b> — 입자 1만 6천 개(또는 4천 개)를 평면에 놓은 교육용 2차원 모형입니다. ① 입자의 질량을 격자 칸에 나눠 담아 밀도를 구하고, ② 밀도로 중력을 계산한 뒤(푸리에 변환), ③ 입자를 조금씩 움직이기를 약 100번 되풀이합니다. 우주가 팽창하는 빠르기는 가속 팽창 우주(물질 30 %, 암흑 에너지 70 %)를 따릅니다. 상자는 우주와 함께 팽창하므로 '현재 기준 140 Mpc'로 크기를 고정해 그립니다.</p>
+    </details>
+    <p class="hint">▶를 누르면 140억 년이 약 12초 동안 흘러갑니다. 슬라이더나 아래 네 그림으로 원하는 시점을 고르고, 시작할 때의 밀도 차이를 <b>0</b>으로 바꾸면 무엇이 달라지는지 확인해 보세요.</p>
+  </section>
+
+  <!-- ───────────── 02 은하단·필라멘트·보이드 찾기 ───────────── -->
+  <section class="station" id="station-find" aria-labelledby="find-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">02 / CLUSTERS · FILAMENTS · VOIDS</p>
+      <h2 id="find-title">현재의 우주 지도에 이름표를 붙여 보세요.</h2>
+      <p>01의 기본 모의실험(초기 밀도 차이 ×1)이 현재(약 139억 년)에 이른 모습입니다. 이름표를 고른 뒤 지도를 누르면 붙고, 붙인 이름표를 다시 누르면 떨어집니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="find-tools" role="group" aria-label="붙일 이름표">
+        <button type="button" data-tool="cluster" aria-pressed="true"><i class="dot cluster"></i>은하단</button>
+        <button type="button" data-tool="filament" aria-pressed="false"><i class="dot filament"></i>필라멘트</button>
+        <button type="button" data-tool="void" aria-pressed="false"><i class="dot void"></i>보이드</button>
+      </div>
+      <div class="tool-actions">
+        <button type="button" id="find-clear" class="compact">이름표 모두 떼기</button>
+        <button type="button" id="find-reveal" class="reveal" aria-pressed="false">정답 확인 · 자동 분류 겹쳐 보기</button>
+      </div>
+    </div>
+    <div class="grid find-grid">
+      <section class="panel scene">
+        <div class="panel-heading"><h3><span class="step">1</span> 현재의 우주 — 가속 팽창 우주 모형</h3><span class="micro">교육용 2차원 모형 · 한 변 140 Mpc</span></div>
+        <div class="sim-box">
+          <canvas id="find-canvas" class="tap" role="img" aria-label="현재의 우주 지도. 누르면 고른 이름표가 붙습니다."></canvas>
+          <div class="sim-scale" aria-hidden="true"><i></i><span>35 Mpc (현재 기준)</span></div>
+          <div class="sim-busy" id="find-busy" hidden><span></span></div>
+        </div>
+        <div class="readout">
+          <div><span>붙인 이름표</span><strong id="find-count">0개</strong></div>
+          <div><span>맞은 이름표</span><strong id="find-score">—</strong></div>
+          <div><span>마지막으로 누른 곳</span><strong id="find-here">—</strong></div>
+        </div>
+        <div class="legend" id="find-legend" hidden>
+          <span><i class="cl"></i>은하단 (흰 원)</span><span><i class="fi"></i>필라멘트 (하늘색)</span><span><i class="vo"></i>보이드의 큰 빈 곳 (파란 점선 원)</span>
+        </div>
+        <p class="feedback" id="find-feedback" hidden></p>
+      </section>
+      <section class="panel side">
+        <div class="panel-heading"><h3><span class="step">2</span> 밀도는 어디가 높고, 넓이는 어디가 넓을까</h3></div>
+        <svg id="find-density" class="chart" viewBox="0 0 640 300" role="img" aria-label="구조별 평균 밀도 막대그래프"></svg>
+        <div class="stack" id="find-stack"></div>
+        <p class="insight" id="find-insight"></p>
+      </section>
+    </div>
+    <p class="hint">은하단은 밝게 뭉친 점, 필라멘트는 점들을 잇는 밝은 실, 보이드는 실 사이의 어두운 빈 곳입니다. 이 모형에서는 우주 평균보다 밀도가 낮은 곳을 보이드로 셉니다. 실제 관측 지도에서도 같은 구조를 찾을 수 있습니다(교과서 117쪽 탐구).</p>
+  </section>
+
+  <!-- ───────────── 03 우주 모형 비교 ───────────── -->
+  <section class="station" id="station-models" aria-labelledby="models-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">03 / WHICH UNIVERSE?</p>
+      <h2 id="models-title">같은 출발, 다른 우주 — 우주 모형에 따라 거대구조가 다르게 자랍니다.</h2>
+      <p>세 우주는 같은 무늬의 초기 밀도 차이에서 출발합니다(물질만 있는 다 우주는 작은 무늬가 조금 더 뚜렷합니다). 다른 것은 물질과 암흑 에너지의 양, 그래서 우주가 팽창하는 방식과 중력의 세기입니다.</p>
+    </div>
+    <div class="grid models-grid" id="models-grid"></div>
+    <details class="more">
+      <summary>더 알아보기 · 세 우주는 어떻게 비교했을까?</summary>
+      <p>세 우주 모두 우주의 크기가 현재의 1 %일 때, 같은 무늬의 초기 밀도 차이에서 계산을 시작합니다. <b>가와 나는 물질의 양(30 %)이 같아서</b> 초기 우주가 완전히 같습니다. 그 뒤 가는 암흑 에너지 때문에 가속 팽창하고, 암흑 에너지가 없는 열린 우주 나는 감속 팽창하므로 둘의 구조가 자라는 빠르기가 달라집니다.</p>
+      <p><b>물질만 있는 다</b>는 물질이 많아 중력이 강하고, 처음부터 작은 규모의 밀도 차이가 상대적으로 큰 무늬로 시작합니다(실제 우주 모형에서도 물질의 양에 따라 초기 요동의 무늬가 달라집니다). 시작할 때 밀도 차이의 크기는 세 우주가 같도록 맞추었습니다. 지금 팽창하는 빠르기(허블 상수)는 세 우주 모두 같고, 그래서 현재까지 걸린 시간 — 우주의 나이 — 가 모형마다 다릅니다.</p>
+    </details>
+    <p class="hint">세 우주를 같은 크기(우주의 크기가 현재의 몇 %인지)에서 비교합니다. 먼저 세 그림의 차이를 찾아본 뒤 <b>교과서 그림 28 설명 보기</b>를 눌러 확인해 보세요. 모형 비교는 입자 수 설정과 관계없이 늘 1만 6천 개로 계산합니다.</p>
+  </section>
+
+  <footer class="credit">교육용 2차원 모형입니다. 입자 하나는 은하 하나가 아니라 물질의 작은 덩어리이며, 상자 크기와 시간 눈금은 교과서 118~119쪽 그림 27·28에 맞췄습니다.<br>실제 모의실험(유럽의 밀레니엄, 우리나라의 호라이즌 런)은 훨씬 많은 입자로 3차원 공간을 계산합니다.</footer>
+</main>
+</body>
+</html>

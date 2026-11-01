@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2235">
+  <title>성단 C-M도 실험실 · 색과 밝기로 읽는 성단의 나이와 거리</title>
+  <link rel="stylesheet" href="cluster-cmd.css?v=20261101">
+  <script defer src="cluster-cmd-data.js?v=20261101"></script>
+  <script defer src="cluster-cmd-model.js?v=20261101"></script>
+  <script defer src="cluster-cmd.js?v=20261101"></script>
+</head>
+<body>
+<main class="app">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">행성우주과학 / STAR CLUSTER C-M DIAGRAM LAB</p>
+      <h1>성단 C-M도 실험실<span class="title-dot">.</span></h1>
+      <p class="subtitle">함께 태어난 별들의 색과 밝기를 한 장에 찍어, 성단의 나이와 거리를 읽어 봅니다.</p>
+    </div>
+    <span class="lesson-badge">Ⅲ-01 <span>성단의 C-M도 · 교과서 94~97쪽</span></span>
+  </header>
+
+  <nav class="stations" aria-label="실험 선택">
+    <button type="button" data-station="s1" aria-pressed="true"><span class="num">01</span><span>두 가지 성단<small>산개 · 구상</small></span></button>
+    <button type="button" data-station="s2" aria-pressed="false"><span class="num">02</span><span>색지수와 C-M도<small>B − V · 색등급도</small></span></button>
+    <button type="button" data-station="s3" aria-pressed="false"><span class="num">03</span><span>전향점과 나이<small>늙을수록 오른쪽 아래</small></span></button>
+    <button type="button" data-station="s4" aria-pressed="false"><span class="num">04</span><span>주계열 맞추기<small>거리 지수 → 거리</small></span></button>
+  </nav>
+
+  <!-- ───────────── 01 두 가지 성단 ───────────── -->
+  <section class="station" id="station-s1" aria-labelledby="s1-title">
+    <div class="intro">
+      <p class="eyebrow">01 / TWO KINDS OF STAR CLUSTERS</p>
+      <h2 id="s1-title">같은 성운에서 함께 태어난 별의 무리, 성단</h2>
+      <p>한 성단의 별들은 지구로부터의 거리와 나이가 거의 같습니다. 모양과 사는 곳, 나이가 다른 두 성단을 비교해 보세요.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="s1-kinds" role="group" aria-label="성단 고르기">
+        <button type="button" data-kind="open" aria-pressed="true">산개 성단<span class="tag">M45 플레이아데스</span></button>
+        <button type="button" data-kind="glob" aria-pressed="false" class="warm">구상 성단<span class="tag">M3</span></button>
+      </div>
+      <button type="button" id="s1-quiz" class="mystery" aria-pressed="false">🎲 사진으로 구별하기 (Q1)</button>
+    </div>
+    <div class="grid s1-grid">
+      <section class="panel scene" aria-labelledby="s1-scene-title">
+        <div class="panel-heading"><h3><span class="step">1</span> <span id="s1-scene-title">망원경으로 본 성단</span></h3><span class="micro">직접 그린 그림</span></div>
+        <div id="s1-normal">
+          <div class="sky"><canvas id="s1-sky" role="img" aria-label="성단 그림"></canvas></div>
+          <div class="readout">
+            <label class="grow"><span>어두운 별까지 보기 · 보이는 가장 어두운 별 <output id="s1-limit-out"></output></span><input id="s1-limit" type="range" min="0" max="1" step="0.005" value="1"></label>
+            <div><span>보이는 별</span><strong id="s1-count">—</strong></div>
+            <div><span>성단 전체 빛의 색</span><strong id="s1-colour">—</strong></div>
+          </div>
+          <div class="mix-wrap"><div class="mix" id="s1-mix" aria-hidden="true"></div><p class="mix-legend" id="s1-mix-legend"></p></div>
+        </div>
+        <div id="s1-quizview" hidden>
+          <div class="pair">
+            <figure><div class="sky"><canvas id="s1-qa" role="img" aria-label="성단 그림 (가)"></canvas></div><figcaption>(가)</figcaption></figure>
+            <figure><div class="sky"><canvas id="s1-qb" role="img" aria-label="성단 그림 (나)"></canvas></div><figcaption>(나)</figcaption></figure>
+          </div>
+          <p class="panel-note">(가)와 (나)는 구상 성단과 산개 성단을 순서 없이 나타낸 것입니다. 별의 밝기와 색은 실제 관측 자료, 별의 자리는 그린 것입니다.</p>
+        </div>
+      </section>
+      <section class="panel side" aria-labelledby="s1-side-title">
+        <div class="panel-heading"><h3><span class="step">2</span> <span id="s1-side-title">산개 성단과 구상 성단</span></h3></div>
+        <div class="side-body" id="s1-side"></div>
+      </section>
+      <section class="panel galaxy" aria-labelledby="s1-gal-title">
+        <div class="panel-heading"><h3><span class="step">3</span> <span id="s1-gal-title">우리은하의 어디에 있을까?</span></h3><span class="micro">성단 점을 눌러 보세요</span></div>
+        <svg id="s1-galaxy" class="chart interactive" viewBox="0 0 640 330" role="img" aria-label="우리은하를 옆에서 본 모식도. 산개 성단은 원반에, 구상 성단은 헤일로에 있다."></svg>
+        <p class="insight" id="s1-insight"></p>
+      </section>
+    </div>
+    <p class="hint">막대를 왼쪽으로 옮기면 가장 밝은 별만, 오른쪽으로 옮기면 어두운 별까지 보입니다. 성단 전체의 색을 정하는 별이 누구인지 찾아보세요.</p>
+  </section>
+
+  <!-- ───────────── 02 색지수와 C-M도 ───────────── -->
+  <section class="station" id="station-s2" aria-labelledby="s2-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">02 / COLOUR INDEX &amp; C-M DIAGRAM</p>
+      <h2 id="s2-title">별의 색을 숫자로, 색과 밝기를 한 장에</h2>
+      <p>필터로 잰 두 등급의 차가 색지수입니다. H-R도의 가로축을 색지수, 세로축을 등급으로 하여 별들을 나타낸 것이 C-M도(색등급도)입니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="s2-stars" role="group" aria-label="별 고르기"></div>
+    </div>
+    <div class="grid s2-grid">
+      <section class="panel" aria-labelledby="s2-filter-title">
+        <div class="panel-heading"><h3><span class="step">①</span> <span id="s2-filter-title">필터로 잰 별빛</span></h3><span class="micro">교육용 모형 곡선</span></div>
+        <svg id="s2-spectrum" class="chart" viewBox="0 0 640 300" role="img" aria-label="별빛의 파장별 세기와 U, B, V 필터"></svg>
+        <p class="panel-note">필터로 특정 파장 구간의 빛만 모아 등급을 잽니다. <b>U</b> 자외선, <b>B</b> 청색 가시광선, <b>V</b> 녹색 가시광선. 인접한 두 필터의 등급 차 U − B, B − V가 <b>색지수</b>입니다.</p>
+        <svg id="s2-bars" class="chart" viewBox="0 0 640 150" role="img" aria-label="B 필터와 V 필터로 들어온 빛의 양"></svg>
+      </section>
+      <section class="panel" aria-labelledby="s2-scale-title">
+        <div class="panel-heading"><h3><span class="step">②</span> <span id="s2-scale-title">색지수 눈금</span></h3><span class="micro">눈금 위 ◆를 끌어 보세요</span></div>
+        <svg id="s2-scale" class="chart interactive" viewBox="0 0 640 230" role="img" aria-label="색지수 눈금과 실제 별"></svg>
+        <div class="readout">
+          <div><span>V 등급</span><strong id="s2-V">—</strong></div>
+          <div><span>B 등급</span><strong id="s2-B">—</strong></div>
+          <div><span>색지수 B − V</span><strong id="s2-BV">—</strong></div>
+          <div><span>별의 색 · 표면 온도</span><strong id="s2-kind" class="small-strong">—</strong></div>
+        </div>
+        <div class="formula" id="s2-formula"></div>
+        <p class="insight" id="s2-insight"></p>
+      </section>
+      <section class="panel wide" aria-labelledby="s2-cmd-title">
+        <div class="panel-heading">
+          <h3><span class="step">③</span> <span id="s2-cmd-title">성단의 별을 C-M도에 찍기</span></h3>
+          <div class="segmented" id="s2-cluster" role="group" aria-label="성단">
+            <button type="button" data-cl="m45" aria-pressed="true">M45 플레이아데스</button>
+            <button type="button" data-cl="m3" aria-pressed="false">M3</button>
+          </div>
+        </div>
+        <div class="cmd-pair">
+          <div class="cmd-pic">
+            <div class="sky tall"><canvas id="s2-sky" role="img" aria-label="성단 그림. 별을 누르면 C-M도에 찍힌다."></canvas></div>
+            <p class="panel-note">그림의 별을 눌러 보세요. 그 별이 C-M도의 (색지수, 겉보기 등급) 자리에 찍힙니다.</p>
+          </div>
+          <div class="cmd-chart">
+            <svg id="s2-cmd" class="chart" viewBox="0 0 640 520" role="img" aria-label="성단의 C-M도"></svg>
+          </div>
+        </div>
+        <div class="readout">
+          <div class="grow-text"><span>고른 별</span><strong id="s2-pick" class="small-strong">—</strong></div>
+          <div class="btns"><button type="button" id="s2-all" class="compact primary">모든 별 찍기</button><button type="button" id="s2-clear" class="compact">지우기</button></div>
+        </div>
+        <p class="insight" id="s2-cmd-insight"></p>
+      </section>
+      <section class="panel wide" aria-labelledby="s2-q2-title">
+        <div class="panel-heading"><h3><span class="step">④</span> <span id="s2-q2-title">Q2 · 두 성단의 C-M도</span></h3><span class="micro">실제 관측 자료</span></div>
+        <div class="q2-wrap">
+          <div class="q2-charts">
+            <figure><svg id="s2-q2a" class="chart" viewBox="0 0 320 340" role="img" aria-label="(가) 성단의 C-M도"></svg><figcaption>(가)</figcaption></figure>
+            <figure><svg id="s2-q2b" class="chart" viewBox="0 0 320 340" role="img" aria-label="(나) 성단의 C-M도"></svg><figcaption>(나)</figcaption></figure>
+          </div>
+          <div class="q2-text">
+            <p class="qstem">(가)와 (나)는 산개 성단과 구상 성단의 C-M도를 순서 없이 나타낸 것이다. 별 ㉠, ㉡, ㉢의 겉보기 등급(V)은 각각 15, 20, 9.5이고, ㉢의 색지수는 0.5이다.</p>
+            <div class="quiz" id="s2-q2"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ───────────── 03 전향점과 나이 ───────────── -->
+  <section class="station" id="station-s3" aria-labelledby="s3-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">03 / TURNOFF POINT &amp; AGE</p>
+      <h2 id="s3-title">무거운 별이 먼저 주계열을 떠납니다.</h2>
+      <p>밝고 푸른 무거운 별일수록 일찍 주계열을 떠납니다. 별들이 주계열을 벗어나는 지점(전향점)의 위치로 성단의 나이를 어림할 수 있습니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="s3-snaps" role="group" aria-label="교과서 그림 4의 네 장면"></div>
+      <div class="chips" id="s3-presets" role="group" aria-label="탐구하기 1의 성단"></div>
+    </div>
+    <div class="grid s3-grid">
+      <section class="panel main" aria-labelledby="s3-chart-title">
+        <div class="panel-heading"><h3><span class="step">1</span> <span id="s3-chart-title">모형 성단의 C-M도</span></h3><span class="micro">교육용 모형 · 표준 주계열과 교과서 나이 눈금 사용</span></div>
+        <svg id="s3-chart" class="chart" viewBox="0 0 640 460" role="img" aria-label="나이에 따른 성단의 C-M도"></svg>
+        <div class="controls-row">
+          <button type="button" id="s3-play" class="primary">▶ 나이 먹이기</button>
+          <label class="grow"><span>성단의 나이 <output id="s3-age-out"></output></span><input id="s3-age" type="range" min="6" max="10.11" step="0.005" value="6.3"></label>
+        </div>
+        <div class="readout">
+          <div><span>전향점의 색지수</span><strong id="s3-to-bv">—</strong></div>
+          <div><span>전향점의 절대 등급</span><strong id="s3-to-mv">—</strong></div>
+          <div><span>주계열성 비율</span><strong id="s3-msf">—</strong></div>
+          <label class="check"><input type="checkbox" id="s3-ghost" checked> 떠난 별의 원래 자리 보기</label>
+        </div>
+        <div class="mix-wrap"><div class="mix" id="s3-mix" aria-hidden="true"></div><p class="mix-legend" id="s3-mix-legend"></p></div>
+        <p class="insight" id="s3-insight"></p>
+        <details class="more">
+          <summary>이 모형은 어떻게 만들었나요?</summary>
+          <p>별의 색지수와 절대 등급은 표준 주계열(Mamajek 표)에서, 별이 주계열을 떠나는 나이는 교과서 96쪽 탐구 그림의 나이 눈금(전향점의 절대 등급 → 나이)에서 가져왔습니다. 보기 쉽도록 별 360개를 절대 등급이 고르게 퍼지게 넣었고, 거성 단계의 길이와 수축하는 시간도 알아보기 쉽게 조정했습니다. 실제 성단에는 어둡고 가벼운 별이 훨씬 많아서 주계열성 비율의 크기는 이 모형과 다릅니다. 늙을수록 비율이 줄어드는 경향만 보세요.</p>
+        </details>
+      </section>
+      <section class="panel side" aria-labelledby="s3-side-title">
+        <div class="panel-heading"><h3><span class="step">2</span> <span id="s3-side-title">탐구하기 1 · M45와 M67</span></h3></div>
+        <div class="side-body">
+          <table class="ref-table" id="s3-table"></table>
+          <p class="micro" id="s3-table-note"></p>
+          <div class="sep"></div>
+          <h4 class="qtitle">Q3 · 전향점으로 나이 비교하기</h4>
+          <p class="qstem">표는 산개 성단 A, B, C에서 전향점에 위치한 별의 색지수를 나타낸 것이다.</p>
+          <table class="ref-table q3-table" id="s3-q3-table"></table>
+          <div class="quiz" id="s3-q3"></div>
+        </div>
+      </section>
+      <section class="panel wide" aria-labelledby="s3-thumbs-title">
+        <div class="panel-heading"><h3><span class="step">3</span> <span id="s3-thumbs-title">시간에 따른 성단의 진화</span></h3><span class="micro">교과서 96쪽 그림 4처럼 네 장면 · 눌러서 옮기기</span></div>
+        <div class="thumbs" id="s3-thumbs"></div>
+      </section>
+    </div>
+    <p class="hint">별 하나하나의 색과 밝기는 그대로이고, 주계열을 떠난 별만 거성이 되어 오른쪽 위로 옮겨 갑니다. 회색 고리는 이미 주계열을 떠난 별이 원래 있던 자리입니다.</p>
+  </section>
+
+  <!-- ───────────── 04 주계열 맞추기 ───────────── -->
+  <section class="station" id="station-s4" aria-labelledby="s4-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">04 / MAIN-SEQUENCE FITTING</p>
+      <h2 id="s4-title">투명 용지를 위아래로만 옮겨, 옮긴 만큼이 거리 지수</h2>
+      <p>색지수가 같은 주계열성은 거리에 관계없이 절대 등급이 같습니다. 표준 주계열성을 그린 투명 용지를 성단의 주계열에 겹쳐 보세요.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="s4-targets" role="group" aria-label="성단 고르기"></div>
+    </div>
+    <div class="grid s4-grid">
+      <section class="panel main" aria-labelledby="s4-chart-title">
+        <div class="panel-heading">
+          <h3><span class="step">①</span> <span id="s4-chart-title">C-M도에 투명 용지 겹치기</span></h3>
+          <div class="segmented" id="s4-zoom" role="group" aria-label="보기 범위">
+            <button type="button" data-zoom="full" aria-pressed="true">교과서 범위</button>
+            <button type="button" data-zoom="data" aria-pressed="false">자료 확대</button>
+          </div>
+        </div>
+        <div class="fit-wrap">
+          <svg id="s4-chart" class="chart" viewBox="0 0 640 560" role="img" aria-label="성단의 C-M도와 표준 주계열성 투명 용지"></svg>
+          <button type="button" id="s4-grip" class="grip" aria-label="투명 용지를 위아래로 옮기기 (위아래 화살표 키)">⇕</button>
+        </div>
+        <div class="legend" id="s4-legend"></div>
+        <div class="readout">
+          <div><span>옮긴 만큼 = 거리 지수 <i>m</i> − <i>M</i></span><strong id="s4-dm">—</strong></div>
+          <div class="btns"><button type="button" id="s4-up" class="compact" aria-label="용지를 0.1등급 올리기">▲ 0.1</button><button type="button" id="s4-down" class="compact" aria-label="용지를 0.1등급 내리기">▼ 0.1</button></div>
+          <div class="balance-box"><span>주계열성이 선의 위·아래에 놓인 비율</span><div class="balance" id="s4-balance"><i class="up"></i><i class="down"></i></div><small id="s4-balance-text"></small></div>
+        </div>
+        <p class="insight" id="s4-insight"></p>
+      </section>
+      <section class="panel side" aria-labelledby="s4-steps-title">
+        <div class="panel-heading"><h3><span class="step">②</span> <span id="s4-steps-title">거리 지수로 거리 구하기</span></h3></div>
+        <div class="steps vertical" id="s4-steps"></div>
+        <div class="check-row"><button type="button" id="s4-check" class="primary">교과서 값과 비교하기</button></div>
+        <div id="s4-verdict" class="verdict" hidden></div>
+        <p class="panel-note">교과서 97쪽 탐구하기 2와 같은 방법입니다. 투명 용지 = 부록 142쪽 표준 주계열성의 C-M도. 기출에서도 「투명 용지」라고 하고, C-M도는 「색등급도」라고도 씁니다.</p>
+      </section>
+      <section class="panel" aria-labelledby="s4-result-title">
+        <div class="panel-heading"><h3><span class="step">③</span> <span id="s4-result-title">결과 · 산개 성단은 가깝고 젊다, 구상 성단은 멀고 늙었다</span></h3></div>
+        <div class="side-body">
+          <div class="table-scroll"><table class="ref-table result" id="s4-result"></table></div>
+          <div id="s4-why"></div>
+        </div>
+      </section>
+      <section class="panel" aria-labelledby="s4-q4-title">
+        <div class="panel-heading"><h3><span class="step">④</span> <span id="s4-q4-title">Q4 · 주계열 맞추기</span></h3></div>
+        <div class="side-body">
+          <p class="qstem">표는 색지수가 0.5인 주계열성의 등급을 나타낸 것이다.</p>
+          <table class="ref-table q4-table">
+            <tr><th>등급</th><th>값</th></tr>
+            <tr><td>표준 주계열성의 절대 등급</td><td><b>+4</b></td></tr>
+            <tr><td>성단 A에서의 겉보기 등급</td><td><b>+9</b></td></tr>
+            <tr><td>성단 B에서의 겉보기 등급</td><td><b>+14</b></td></tr>
+          </table>
+          <svg id="s4-q4-fig" class="chart" viewBox="0 0 640 210" role="img" aria-label="색지수 0.5인 주계열성의 절대 등급과 성단 A, B에서의 겉보기 등급"></svg>
+          <div class="quiz" id="s4-q4"></div>
+        </div>
+      </section>
+    </div>
+    <p class="hint">컴퓨터에서는 그래프 아무 곳이나 위아래로 끌면 되고, 휴대폰·태블릿에서는 오른쪽의 ⇕ 손잡이를 끌거나 ▲▼ 단추를 누르세요. 가로축(색지수) 눈금은 처음부터 맞춰 두었습니다.</p>
+  </section>
+
+  <footer class="credit">
+    <p>관측 자료: 플레이아데스(M45) — Stauffer 외 2007, ApJS 172, 663 · M3 — Rey 외 2001, AJ 122, 3219 (VizieR) · 표준 주계열 — Pecaut &amp; Mamajek 2013, ApJS 208, 9; Mamajek 주계열 표 v2022.04.16 · 밝은 별의 B·V 등급 — SIMBAD.</p>
+    <p>성단 그림은 관측된 별의 밝기와 색으로 직접 그린 것이고(별의 자리는 그린 것), 03의 성단과 별빛 곡선은 교육용 모형입니다. 나이 눈금과 탐구 값은 교과서 96~97쪽을 따랐습니다.</p>
+  </footer>
+</main>
+</body>
+</html>

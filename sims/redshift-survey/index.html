@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2235">
+  <title>은하 적색 편이 탐사 · 우주의 3차원 지도 만들기</title>
+  <link rel="stylesheet" href="redshift-survey.css?v=20261101">
+  <script defer src="redshift-survey-data.js?v=20261101"></script>
+  <script defer src="redshift-survey-model.js?v=20261101"></script>
+  <script defer src="redshift-survey.js?v=20261101"></script>
+</head>
+<body>
+<main class="app">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">행성우주과학 / REDSHIFT SURVEY LAB</p>
+      <h1>은하 적색 편이 탐사<span class="title-dot">.</span></h1>
+      <p class="subtitle">은하 하나의 스펙트럼에서 우주의 3차원 지도까지 — 은하들이 어떻게 모여 있는지 실제 자료로 찾아봅니다.</p>
+    </div>
+    <span class="lesson-badge">Ⅲ-04 <span>은하의 공간 분포와 우주거대구조 · 교과서 114~117쪽</span></span>
+  </header>
+
+  <nav class="stations" aria-label="실험 선택">
+    <button type="button" data-station="groups" aria-pressed="true"><span class="num">01</span><span>은하들의 집단<small>은하군 → 은하단 → 초은하단</small></span></button>
+    <button type="button" data-station="spectrum" aria-pressed="false"><span class="num">02</span><span>분광으로 거리 재기<small>λ → z → v → d</small></span></button>
+    <button type="button" data-station="map" aria-pressed="false"><span class="num">03</span><span>3차원 지도 만들기<small>탐구 · SDSS 실제 자료</small></span></button>
+    <button type="button" data-station="density" aria-pressed="false"><span class="num">04</span><span>밀도와 부피<small>보이드 · 70 Mpc</small></span></button>
+  </nav>
+
+  <!-- ───────────── 01 은하들의 집단 ───────────── -->
+  <section class="station" id="station-groups" aria-labelledby="groups-title">
+    <div class="intro">
+      <p class="eyebrow">01 / GROUPS OF GALAXIES</p>
+      <h2 id="groups-title">은하는 홀로 있지 않고, 크고 작은 무리를 짓습니다.</h2>
+      <p>단계를 바꾸며 확대·축소해 보세요. 크기와 은하 수, 그리고 자체 중력으로 묶여 있는지를 비교합니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="g-levels" role="group" aria-label="규모 단계"></div>
+      <div class="zoom-pair">
+        <button type="button" id="g-out" class="compact" aria-label="한 단계 축소">－ 축소</button>
+        <button type="button" id="g-in" class="compact" aria-label="한 단계 확대">＋ 확대</button>
+      </div>
+    </div>
+    <div class="grid groups-grid">
+      <section class="panel scene">
+        <div class="panel-heading"><h3><span class="step">1</span> <span id="g-title">우주의 규모</span></h3><span class="micro" id="g-width"></span></div>
+        <div class="canvas-wrap dark"><canvas id="g-canvas" role="img" aria-label="은하 집단의 규모"></canvas></div>
+        <p class="panel-note" id="g-note"></p>
+        <p class="insight" id="g-insight"></p>
+      </section>
+      <section class="panel side">
+        <div class="panel-heading"><h3><span class="step">2</span> <span id="g-facts-title">이 단계의 특징</span></h3></div>
+        <div class="side-body">
+          <dl class="facts" id="g-facts"></dl>
+          <table class="ref-table" id="g-table" aria-label="은하군, 은하단, 초은하단 비교"></table>
+          <div class="address" id="g-address" aria-label="우주에서 우리 집 주소"></div>
+        </div>
+      </section>
+      <section class="panel expand">
+        <div class="panel-heading">
+          <h3><span class="step">3</span> 우주가 팽창하면?</h3>
+          <button type="button" id="x-play" class="compact primary">▶ 팽창시키기</button>
+        </div>
+        <div class="canvas-wrap dark"><canvas id="x-canvas" role="img" aria-label="우주가 팽창할 때 은하단과 초은하단의 크기"></canvas></div>
+        <div class="readout">
+          <label class="grow"><span>우주의 크기 (처음 = 1) <output id="x-a-out">×1.00</output></span><input id="x-a" type="range" min="1" max="2" step="0.01" value="1"></label>
+          <div><span>은하군·은하단의 지름</span><strong id="x-bound">처음과 같음</strong></div>
+          <div><span>초은하단의 지름</span><strong id="x-free">×1.00</strong></div>
+        </div>
+        <p class="insight" id="x-insight"></p>
+      </section>
+    </div>
+    <p class="hint">위 그림은 크기를 비교하기 위한 모식도입니다. 마지막 단계(우주거대구조)의 점은 03에서 쓰는 SDSS 실제 관측 자료입니다.</p>
+  </section>
+
+  <!-- ───────────── 02 분광으로 거리 재기 ───────────── -->
+  <section class="station" id="station-spectrum" aria-labelledby="spectrum-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">02 / SPECTRUM TO DISTANCE</p>
+      <h2 id="spectrum-title">선이 붉은 쪽으로 밀린 만큼, 은하는 멀리 있습니다.</h2>
+      <p>① 파장 재기 → ② 적색 편이 z → ③ 후퇴 속도 v → ④ 거리 d. 4차시에 배운 시선 속도 식을 은하에 씁니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="s-targets" role="group" aria-label="관측 대상"></div>
+    </div>
+    <div class="grid spec-grid">
+      <section class="panel spec">
+        <div class="panel-heading">
+          <h3><span class="step">①</span> <span id="s-title">스펙트럼에서 파장 재기</span></h3>
+          <span class="micro" id="s-kind"></span>
+        </div>
+        <div class="line-pick" id="s-lines" role="group" aria-label="기준 선 고르기"></div>
+        <svg id="s-chart" class="chart interactive" viewBox="0 0 640 330" role="img" aria-label="기준 스펙트럼과 관측한 스펙트럼"></svg>
+        <div class="readout">
+          <div><span>기준 파장 λ₀</span><strong id="s-l0">—</strong></div>
+          <div><span>관측 파장 λ</span><strong id="s-l">—</strong></div>
+          <div><span>밀린 양 λ − λ₀</span><strong id="s-dl">—</strong></div>
+          <button type="button" id="s-snap" class="compact">선에 맞추기</button>
+        </div>
+        <p class="panel-note" id="s-note"></p>
+      </section>
+      <section class="panel result">
+        <div class="panel-heading"><h3><span class="step">②③④</span> 적색 편이 → 후퇴 속도 → 거리</h3></div>
+        <div id="s-steps" class="steps"></div>
+        <div id="s-extra"></div>
+        <p class="insight" id="s-insight"></p>
+      </section>
+      <section class="panel minimap">
+        <div class="panel-heading"><h3><span class="step">⑤</span> 지도에 점 찍기</h3><span class="micro" id="s-count"></span></div>
+        <div class="canvas-wrap dark"><canvas id="s-map" role="img" aria-label="거리를 잰 은하를 찍은 쐐기 지도"></canvas></div>
+        <p class="panel-note" id="s-map-note">은하 하나의 적색 편이를 재면 지도 위에 점 하나를 찍을 수 있습니다.</p>
+        <div class="check-row"><button type="button" id="s-go-map" class="compact">03 · 1만 5천여 개를 한꺼번에 찍기 →</button></div>
+      </section>
+    </div>
+    <p class="hint">스펙트럼은 SDSS가 잰 실제 적색 편이로 그린 <b>모의 스펙트럼</b>입니다(선의 기준 파장은 실제 값). 관측 스펙트럼(아래 그래프와 띠)을 누르거나 끌면 노란 표시가 움직이고, 선 가까이에 놓으면 자석처럼 붙어 청록색으로 바뀝니다. 위의 기준 스펙트럼을 누르면 기준 선을 고를 수 있어요.</p>
+  </section>
+
+  <!-- ───────────── 03 3차원 지도 만들기 ───────────── -->
+  <section class="station" id="station-map" aria-labelledby="map-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">03 / MAPPING THE UNIVERSE · 탐구</p>
+      <h2 id="map-title">하늘 사진에 적색 편이를 더하면, 숨어 있던 구조가 드러납니다.</h2>
+      <p id="m-sub">적경 140°~220°, 적위 −1.25°~+1.25°의 얇은 띠에 든 은하들의 실제 관측 자료입니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="segmented" id="m-survey" role="group" aria-label="탐사 자료">
+        <button type="button" data-survey="sdss" aria-pressed="true">SDSS DR16</button>
+        <button type="button" data-survey="twodf" aria-pressed="false">2dFGRS</button>
+      </div>
+      <div class="measure">
+        <button type="button" id="m-play" class="primary">▶ 적색 편이 재기</button>
+        <label class="grow"><span>적색 편이를 잰 은하 <output id="m-count-out">0개</output></span><input id="m-count" type="range" min="0" max="15656" step="1" value="0"></label>
+      </div>
+    </div>
+    <div class="grid map-grid">
+      <section class="panel sky">
+        <div class="panel-heading"><h3><span class="step">1</span> 하늘에서 본 모습 — 사진은 방향만 알려 줍니다</h3><span class="micro" id="m-sky-note"></span></div>
+        <div class="canvas-wrap dark"><canvas id="m-sky" role="img" aria-label="하늘에서 본 은하들의 분포"></canvas></div>
+      </section>
+      <section class="panel wedge">
+        <div class="panel-heading">
+          <h3><span class="step">2</span> 적색 편이를 더한 쐐기 지도</h3>
+          <div class="zoom-pair">
+            <button type="button" id="m-zout" class="compact" aria-label="지도 축소">－</button>
+            <button type="button" id="m-zin" class="compact" aria-label="지도 확대">＋</button>
+            <button type="button" id="m-zreset" class="compact">전체</button>
+          </div>
+        </div>
+        <div class="canvas-wrap dark"><canvas id="m-wedge" role="img" aria-label="적색 편이로 그린 은하 분포 쐐기 지도"></canvas></div>
+        <div class="readout" id="m-readout">
+          <div class="grow"><span>고른 은하</span><strong id="m-pick">지도나 하늘을 눌러 은하를 골라 보세요</strong></div>
+        </div>
+        <p class="insight" id="m-insight"></p>
+      </section>
+      <section class="panel controls tools">
+        <div class="tool-head"><h3><span class="step">3</span> 구조 찾아 표시하기</h3></div>
+        <div class="tool-grid" id="m-tools" role="group" aria-label="표시 도구"></div>
+        <p class="micro" id="m-tool-help"></p>
+        <div class="tool-row">
+          <button type="button" id="m-undo" class="compact">↶ 하나 지우기</button>
+          <button type="button" id="m-clear" class="compact">모두 지우기</button>
+        </div>
+        <label class="check"><input type="checkbox" id="m-red"> 붉은 은하만 보기</label>
+        <button type="button" id="m-answer" class="answer" aria-pressed="false">확인 · 수업 결과 겹쳐 보기</button>
+        <p class="micro" id="m-answer-note" hidden>표시는 한 가지 예입니다(수업 결과 슬라이드와 같음). 다른 곳을 찾았어도 맞을 수 있어요.</p>
+        <div class="qcard" id="m-wall">
+          <p class="qtitle">④ 은하 장성까지의 거리</p>
+          <p>필라멘트보다 훨씬 두껍고 길게 펼쳐진 벽이 <b>슬론 장성</b>입니다. 적색 편이는 약 0.07입니다. 후퇴 속도와 거리를 구해 보세요.</p>
+          <button type="button" id="m-wall-check" class="compact">확인</button>
+          <div id="m-wall-answer" hidden></div>
+        </div>
+        <div class="radial" id="m-radial-box" hidden>
+          <p class="micro">지도의 눈금</p>
+          <div class="segmented wide" id="m-radial" role="group" aria-label="쐐기 지도의 눈금">
+            <button type="button" data-radial="z" aria-pressed="true">적색 편이</button>
+            <button type="button" data-radial="v" aria-pressed="false">후퇴 속도</button>
+            <button type="button" data-radial="d" aria-pressed="false">거리</button>
+          </div>
+        </div>
+        <details class="more">
+          <summary>더 알아보기 · 은하단이 '손가락'처럼 보이는 까닭</summary>
+          <p>쐐기 지도의 은하단은 꼭짓점(우리은하) 쪽으로 길쭉하게 늘어나 보입니다. 은하단 속 은하들은 자체 중력에 의해 초속 500~1000 km로 움직이고 있어서, 이 운동의 시선 속도가 우주 팽창에 의한 후퇴 속도에 더해지거나 빠지기 때문입니다. 그래서 실제 크기(10 Mpc ↔ 적색 편이 폭 약 0.002)보다 적색 편이 폭이 넓게 보입니다.</p>
+        </details>
+      </section>
+    </div>
+    <p class="hint" id="m-hint">점 하나가 은하 하나입니다. 점의 색이 푸른색에서 붉은색으로 갈수록 늙은 별의 비율이 높은 은하이고, 붉은 점은 대체로 질량이 큰 타원 은하입니다.</p>
+  </section>
+
+  <!-- ───────────── 04 밀도와 부피 ───────────── -->
+  <section class="station" id="station-density" aria-labelledby="density-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">04 / DENSITY AND VOLUME</p>
+      <h2 id="density-title">빽빽한 곳은 좁고, 넓은 곳은 텅 비어 있습니다.</h2>
+      <p>지도를 같은 크기의 칸으로 나누어 은하를 세어 봅니다. 칸을 키우면 우주는 어떻게 보일까요?</p>
+    </div>
+    <div class="toolbar">
+      <div class="segmented" id="d-size" role="group" aria-label="칸 크기"></div>
+      <div class="segmented" id="d-survey" role="group" aria-label="탐사 자료">
+        <button type="button" data-survey="sdss" aria-pressed="true">SDSS DR16</button>
+        <button type="button" data-survey="twodf" aria-pressed="false">2dFGRS</button>
+      </div>
+    </div>
+    <div class="grid density-grid">
+      <section class="panel dmap">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> 칸마다 은하 세기</h3>
+          <label class="check"><input type="checkbox" id="d-dots" checked> 은하 점 함께 보기</label>
+        </div>
+        <div class="canvas-wrap dark"><canvas id="d-map" role="img" aria-label="칸마다 은하 밀도를 색으로 나타낸 지도"></canvas></div>
+        <div class="legend dlegend" id="d-legend"></div>
+        <div class="readout">
+          <div class="grow"><span>고른 칸</span><strong id="d-pick">지도의 칸을 눌러 보세요</strong></div>
+        </div>
+      </section>
+      <section class="panel share">
+        <div class="panel-heading"><h3><span class="step">2</span> 부피와 은하 수, 누가 차지할까?</h3></div>
+        <svg id="d-share" class="chart" viewBox="0 0 640 250" role="img" aria-label="밀도 구간별 부피와 은하 수의 비율"></svg>
+        <p class="insight" id="d-share-insight"></p>
+      </section>
+      <section class="panel scale">
+        <div class="panel-heading"><h3><span class="step">3</span> 칸을 키우면?</h3><span class="micro">칸 크기마다 부피 비율</span></div>
+        <svg id="d-scale" class="chart" viewBox="0 0 640 300" role="img" aria-label="칸 크기에 따른 밀도 구간의 부피 비율"></svg>
+        <p class="insight" id="d-scale-insight"></p>
+      </section>
+    </div>
+    <details class="more page-more">
+      <summary>더 알아보기 · 지도 위 점의 밀도를 그대로 비교해도 될까?</summary>
+      <p>먼 곳일수록 어두운 은하는 분광 관측 대상에서 빠지므로 점이 성겨집니다. 대신 이 띠(적위 2.5°)는 멀수록 두꺼워져 더 넓은 공간을 담습니다. 이 자료에서 적색 편이 0.1까지는 두 효과가 거의 비기므로(거리 구간마다 평균 밀도가 크게 다르지 않음), 지도 위 점의 밀도를 그대로 비교했습니다. 그보다 먼 곳은 분석에서 뺐습니다. 또 이 지도는 얇은 띠라서 칸이 실제로는 납작한 판입니다. 3차원 상자로 세면 같은 크기에서 더 고르게 보입니다.</p>
+    </details>
+  </section>
+
+  <footer class="credit">은하 자료: SDSS DR16 (Ahumada et al. 2020; VizieR V/154) · 2dFGRS (Colless et al. 2001; VizieR VII/250) — CDS VizieR의 실제 관측 자료, 출처를 밝혀 교육용으로 사용. 01의 그림과 02의 스펙트럼 모양은 교육용 모식도·모형입니다. 계산: c = 3 × 10⁵ km/s, H = 70 km/s/Mpc, 1 Mpc ≈ 326만 광년.</footer>
+</main>
+</body>
+</html>

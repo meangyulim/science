@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2235">
+  <title>별의 공간 운동 · 고유 운동부터 별자리의 미래까지</title>
+  <link rel="stylesheet" href="star-motion.css?v=20261101">
+  <script defer src="star-motion-data.js?v=20261101"></script>
+  <script defer src="star-motion-model.js?v=20261101"></script>
+  <script defer src="star-motion.js?v=20261101"></script>
+</head>
+<body>
+<main class="app">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">행성우주과학 / SPACE MOTION OF STARS</p>
+      <h1>별의 공간 운동<span class="title-dot">.</span></h1>
+      <p class="subtitle">하늘에 붙박인 듯한 별들도 저마다 다른 방향, 다른 빠르기로 우주 공간을 움직입니다.</p>
+    </div>
+    <span class="lesson-badge">Ⅱ-02 <span>별의 공간 운동 · 교과서 66~71쪽</span></span>
+  </header>
+
+  <nav class="stations" aria-label="실험 선택">
+    <button type="button" data-station="s1" aria-pressed="true"><span class="num">01</span><span>고유 운동<small>사진으로 재는 μ → V<sub>t</sub></small></span></button>
+    <button type="button" data-station="s2" aria-pressed="false"><span class="num">02</span><span>시선 속도<small>흡수선의 이동 · 도플러 효과</small></span></button>
+    <button type="button" data-station="s3" aria-pressed="false"><span class="num">03</span><span>공간 속도<small>V<sub>t</sub>와 V<sub>r</sub>의 벡터 합</small></span></button>
+    <button type="button" data-station="s4" aria-pressed="false"><span class="num">04</span><span>별자리의 변화<small>북두칠성 ±20만 년</small></span></button>
+  </nav>
+
+  <!-- ───────────── 01 고유 운동과 접선 속도 ───────────── -->
+  <section class="station" id="station-s1" aria-labelledby="s1-title">
+    <div class="intro">
+      <p class="eyebrow">01 / PROPER MOTION</p>
+      <h2 id="s1-title">별도 하늘에서 아주 조금씩 자리를 옮깁니다.</h2>
+      <p>1718년 핼리는 시리우스·아르크투루스 같은 별의 위치가 1800여 년 전 히파르코스가 기록한 위치에서 0.5° 넘게 바뀐 것을 처음 알아냈습니다. 별이 천구상에서 1년 동안 움직인 각거리를 <b>고유 운동(μ)</b>이라 하고, ″/년 단위로 나타냅니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="s1-seq" role="group" aria-label="사진 묶음">
+        <button type="button" data-seq="textbook" aria-pressed="true">교과서 69쪽처럼<span class="tag">2007~2014년 · 해마다 7월</span></button>
+        <button type="button" data-seq="worksheet" aria-pressed="false">활동지처럼<span class="tag">1985~2005년 · 5년마다</span></button>
+      </div>
+      <div class="segmented" id="s1-view" role="group" aria-label="사진 보기 방식">
+        <button type="button" data-view="single" aria-pressed="true">한 장씩</button>
+        <button type="button" data-view="overlay" aria-pressed="false">모두 겹쳐 보기</button>
+      </div>
+    </div>
+    <div class="grid s1-grid">
+      <section class="panel photo">
+        <div class="panel-heading"><h3><span class="step">1</span> 해마다 찍은 바너드별 주변 하늘</h3><span class="micro" id="s1-photo-note">Gaia 관측 자료로 그림 · 위가 북쪽, 왼쪽이 동쪽</span></div>
+        <svg id="s1-field" class="space-view field" viewBox="0 0 640 480" role="img" aria-label="해마다 찍은 바너드별 주변 하늘. 바너드별만 해마다 북쪽으로 움직이고 주변 별들은 제자리에 있다."></svg>
+        <div class="filmstrip">
+          <button type="button" id="s1-play" class="primary">▶ 넘겨 보기</button>
+          <div class="years" id="s1-years" role="group" aria-label="사진 고르기"></div>
+        </div>
+        <div class="readout">
+          <div><span>자의 길이</span><strong id="s1-len">—</strong></div>
+          <div><span>두 사진 사이의 시간</span><strong id="s1-dt">—</strong></div>
+          <div><span>고유 운동 μ</span><strong id="s1-mu">—</strong></div>
+          <button type="button" id="s1-fit" class="compact push">자를 첫 사진 ↔ 마지막 사진에</button>
+        </div>
+        <p class="insight" id="s1-insight"></p>
+      </section>
+      <section class="panel calc">
+        <div class="panel-heading"><h3><span class="step">2</span> 각에서 속도로 — 접선 속도</h3></div>
+        <div class="chips small-chips" id="s1-calc" role="group" aria-label="계산할 값">
+          <button type="button" data-calc="measured" aria-pressed="true">사진에서 잰 μ</button>
+          <button type="button" data-calc="textbook" aria-pressed="false">교과서 값</button>
+          <button type="button" data-calc="q1" aria-pressed="false">활동지 Q1</button>
+        </div>
+        <svg id="s1-geo" class="chart" viewBox="0 0 420 270" role="img" aria-label="태양에서 거리 r인 별이 1년 동안 접선 방향으로 움직이면 하늘에서 고유 운동 μ만큼의 각으로 보인다"></svg>
+        <div class="sliders pad">
+          <label><span>거리만 바꿔 보기 (접선 속도는 그대로) · r = <output id="s1-r-out"></output></span><input id="s1-r" type="range" min="0.5" max="8" step="0.01" value="1.83"></label>
+        </div>
+        <div class="derive" id="s1-derive"></div>
+        <p class="insight" id="s1-calc-insight"></p>
+      </section>
+    </div>
+    <p class="hint">교과서 69쪽 사진은 모두 같은 달(7월)에 찍었습니다. 지구가 공전 궤도의 같은 자리에 있을 때끼리 비교하면 연주 시차처럼 지구 공전 때문에 생기는 겉보기 움직임이 섞이지 않고, 별 자신의 움직임(고유 운동)만 남습니다. 자의 양 끝(A·B)은 바너드별 가까이에 놓으면 자석처럼 붙습니다.</p>
+  </section>
+
+  <!-- ───────────── 02 시선 속도 ───────────── -->
+  <section class="station" id="station-s2" aria-labelledby="s2-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">02 / RADIAL VELOCITY</p>
+      <h2 id="s2-title">다가오면 파란 쪽으로, 멀어지면 붉은 쪽으로 흡수선이 밀립니다.</h2>
+      <p>시선 방향의 운동은 천구상에 나타나지 않습니다. 그래서 도플러 효과로 별빛 스펙트럼의 흡수선이 밀린 정도를 재어 <b>시선 속도(V<sub>r</sub>)</b>를 구합니다.</p>
+      <p class="recall"><b>1학기 1-4 복습</b> 51 페가수스 b를 찾을 때는 행성 때문에 별이 앞뒤로 흔들려 흡수선이 주기적으로 왔다 갔다 했습니다. 이번에는 별 자체가 우주 공간을 달리는 빠르기를 잽니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="s2-modes" role="group" aria-label="관측 대상">
+        <button type="button" data-mode="free" aria-pressed="true">직접 움직여 보기</button>
+        <button type="button" data-mode="qa" aria-pressed="false">별 A<span class="tag">활동지 Q2</span></button>
+        <button type="button" data-mode="qb" aria-pressed="false">별 B<span class="tag">활동지 Q2</span></button>
+        <button type="button" data-mode="barnard" aria-pressed="false">바너드별<span class="tag">해 보기 · 칼슘 흡수선</span></button>
+      </div>
+    </div>
+    <div class="grid s2-grid">
+      <section class="panel scene">
+        <div class="panel-heading"><h3><span class="step">1</span> 별빛의 도플러 효과</h3><span class="micro" id="s2-motion">—</span></div>
+        <svg id="s2-scene" class="space-view" viewBox="0 0 640 250" role="img" aria-label="움직이는 별에서 나온 빛의 파면. 별이 다가오는 쪽은 파장이 짧아지고 멀어지는 쪽은 길어진다."></svg>
+        <div class="sliders pad" id="s2-control">
+          <label><span>별의 시선 속도 V<sub>r</sub> <output id="s2-vr-out"></output></span><input id="s2-vr" type="range" min="-300" max="300" step="30" value="-120"></label>
+        </div>
+        <p class="panel-note">빛의 속도에 비해 별의 빠르기와 파장 변화를 크게 과장해 그렸습니다.</p>
+      </section>
+      <section class="panel spectrum">
+        <div class="panel-heading"><h3><span class="step">2</span> 별빛의 스펙트럼</h3><span class="micro">흡수선의 이동 폭은 20배 과장해 그림</span></div>
+        <svg id="s2-strip" class="chart" viewBox="0 0 640 176" role="img" aria-label="기준 스펙트럼과 관측한 별의 스펙트럼. 흡수선이 한쪽으로 밀려 있다."></svg>
+        <div class="panel-heading"><h3><span class="step">3</span> 흡수선 하나 확대 <span class="micro">실제 눈금</span></h3><span class="micro" id="s2-zoom-tip">그래프를 누르거나 끌어 관측 파장 읽기</span></div>
+        <div class="legend zoom-legend" id="s2-legend"></div>
+        <svg id="s2-zoom" class="chart interactive" viewBox="0 0 640 300" role="img" aria-label="흡수선 부분의 빛의 세기 그래프. 점선은 기준 파장, 실선은 관측한 흡수선."></svg>
+        <div class="readout">
+          <div><span>기준 파장 λ₀</span><strong id="s2-l0">—</strong></div>
+          <div><span>관측 파장 λ (커서)</span><strong id="s2-l">—</strong></div>
+          <div><span>시선 속도 V<sub>r</sub></span><strong id="s2-vr-read">—</strong></div>
+        </div>
+      </section>
+      <section class="panel steps-panel">
+        <div class="panel-heading"><h3><span class="step">4</span> 시선 속도 구하기</h3></div>
+        <div class="formula" id="s2-formula"></div>
+        <div class="terms"><span>c : 빛의 속도 (3 × 10⁵ km/s)</span><span>λ₀ : 정지 상태의 파장 — 기출의 「기준 파장」</span><span>λ : 움직이는 별의 파장 — 기출의 「관측 파장」</span></div>
+        <p class="insight" id="s2-insight"></p>
+      </section>
+    </div>
+  </section>
+
+  <!-- ───────────── 03 공간 속도 ───────────── -->
+  <section class="station" id="station-s3" aria-labelledby="s3-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">03 / SPACE VELOCITY</p>
+      <h2 id="s3-title">옆으로 가는 빠르기와 앞뒤로 가는 빠르기를 합치면 공간 속도.</h2>
+      <p>시선 방향은 관측자(태양)와 별을 잇는 선이고, 접선 방향은 그에 수직입니다. 별의 <b>공간 속도 V</b>는 접선 속도(V<sub>t</sub>)와 시선 속도(V<sub>r</sub>)의 벡터 합입니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="segmented" id="s3-mode" role="group" aria-label="별의 수">
+        <button type="button" data-mode="one" aria-pressed="true">한 별</button>
+        <button type="button" data-mode="four" aria-pressed="false">네 별 · 같은 공간 속도</button>
+      </div>
+      <div class="legend" id="s3-legend"></div>
+    </div>
+    <div class="grid s3-grid">
+      <section class="panel plane">
+        <div class="panel-heading"><h3><span class="step">1</span> 위에서 내려다본 한 평면</h3><span class="micro" id="s3-plane-tip">별과 화살표 끝(○)을 끌어 보세요</span></div>
+        <svg id="s3-plane" class="chart" viewBox="0 0 640 440" role="img" aria-label="태양과 별, 공간 속도 화살표를 시선 속도와 접선 속도로 나눈 그림"></svg>
+        <div class="readout" id="s3-readout">
+          <div><span>시선 속도 V<sub>r</sub></span><strong id="s3-vr">—</strong></div>
+          <div><span>접선 속도 V<sub>t</sub></span><strong id="s3-vt">—</strong></div>
+          <div><span>공간 속도 V</span><strong id="s3-v">—</strong></div>
+          <div><span>시선 방향과 이루는 각 θ</span><strong id="s3-th">—</strong></div>
+        </div>
+        <p class="insight" id="s3-insight"></p>
+      </section>
+      <section class="panel quiz">
+        <div class="panel-heading"><h3><span class="step">2</span> 기출처럼 — 시선 속도 화살표 고르기</h3><span class="micro" id="s3-score"></span></div>
+        <svg id="s3-quiz" class="chart" viewBox="0 0 420 300" role="img" aria-label="공간 속도(검은 화살표)와 접선 속도(주황 화살표)가 주어진 별"></svg>
+        <p class="quiz-q">검은 화살표가 공간 속도, 주황 화살표가 접선 속도입니다. 이 별의 <b>시선 속도</b> 화살표는?</p>
+        <div class="opts" id="s3-opts" role="group" aria-label="보기"></div>
+        <div class="feedback" id="s3-feedback" hidden></div>
+        <div class="check-row"><button type="button" id="s3-next" class="primary">🎲 다음 문제</button></div>
+      </section>
+      <section class="panel barnard">
+        <div class="panel-heading"><h3><span class="step">3</span> 바너드별의 공간 속도 <span class="micro">교과서 69쪽 해 보기</span></h3></div>
+        <div class="chips small-chips" id="s3-presets" role="group" aria-label="자료">
+          <button type="button" data-preset="textbook" aria-pressed="true">교과서 값</button>
+          <button type="button" data-preset="worksheet" aria-pressed="false">활동지에서 잰 값</button>
+          <button type="button" data-preset="q3" aria-pressed="false">활동지 Q3 · 세 별 비교</button>
+        </div>
+        <div id="s3-one">
+          <div class="inputs">
+            <label><span>거리 r (pc)</span><input id="s3-r" type="number" inputmode="decimal" step="0.01" min="0.1" value="1.83"></label>
+            <label><span>고유 운동 μ (″/년)</span><input id="s3-mu" type="number" inputmode="decimal" step="0.1" min="0" value="10.3"></label>
+            <label><span>시선 속도 V<sub>r</sub> (km/s, 다가오면 −)</span><input id="s3-vr-in" type="number" inputmode="decimal" step="0.1" value="-110.5"></label>
+          </div>
+          <div class="b-grid">
+            <div class="steps" id="s3-steps"></div>
+            <svg id="s3-tri" class="chart" viewBox="0 0 360 250" role="img" aria-label="접선 속도와 시선 속도를 두 변으로 하는 직각삼각형의 빗변이 공간 속도"></svg>
+          </div>
+          <div class="verdict" id="s3-verdict"></div>
+        </div>
+        <div id="s3-q3" hidden>
+          <p class="q3-stem">표는 별 A, B, C의 거리, 고유 운동, 시선 속도입니다. 옳은 것을 모두 고르세요.</p>
+          <div class="table-wrap"><table class="ref-table q3" id="s3-q3-table"></table></div>
+          <ol class="bogi" id="s3-bogi"></ol>
+          <div class="check-row"><button type="button" id="s3-q3-show" class="primary">풀이 보기</button></div>
+        </div>
+      </section>
+    </div>
+    <p class="hint">공간 속도를 구하려면 고유 운동·거리(접선 속도)와 스펙트럼(시선 속도)이 모두 필요합니다. 접선 속도에는 거리가 필요하고, 시선 속도에는 필요 없습니다.</p>
+  </section>
+
+  <!-- ───────────── 04 별자리의 변화 ───────────── -->
+  <section class="station" id="station-s4" aria-labelledby="s4-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">04 / CONSTELLATIONS CHANGE</p>
+      <h2 id="s4-title">10만 년 뒤에도 북두칠성은 국자 모양일까요?</h2>
+      <p>별자리를 이루는 별들은 서로 물리적인 연관성은 없지만, 시선 방향의 범위가 비슷해 밤하늘에서 특정한 모양으로 보입니다. 그런데 별들은 제각각 움직이고 있습니다.</p>
+    </div>
+    <div class="grid s4-grid">
+      <section class="panel sky">
+        <div class="panel-heading"><h3><span class="step">1</span> 북두칠성의 모양 변화 <span class="micro">그림 11</span></h3><span class="micro">위가 북쪽, 왼쪽이 동쪽</span></div>
+        <svg id="s4-sky" class="space-view" viewBox="0 0 900 400" role="img" aria-label="시간에 따라 바뀌는 북두칠성의 모양"></svg>
+        <div class="time-box">
+          <div class="transport">
+            <button type="button" id="s4-play" class="primary">▶ 재생</button>
+            <label class="grow"><span>시간 <output id="s4-t-out">현재</output></span><input id="s4-t" type="range" min="-200000" max="200000" step="1000" value="0" aria-describedby="s4-t-scale"></label>
+          </div>
+          <div class="t-scale" id="s4-t-scale" aria-hidden="true"><span><i class="l">20만 년 전</i><i class="s">20만 전</i></span><span><i class="l">10만 년 전</i><i class="s">10만 전</i></span><span>현재</span><span><i class="l">10만 년 후</i><i class="s">10만 후</i></span><span><i class="l">20만 년 후</i><i class="s">20만 후</i></span></div>
+          <div class="presets" id="s4-jumps">
+            <button type="button" data-t="-100000">10만 년 전</button>
+            <button type="button" data-t="0">현재</button>
+            <button type="button" data-t="100000">10만 년 후</button>
+          </div>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="s4-arrows" checked> 움직이는 방향 (5만 년 동안)</label>
+            <label class="check"><input type="checkbox" id="s4-trails"> ±20만 년 자취</label>
+            <label class="check"><input type="checkbox" id="s4-ghost" checked> 현재 모양 겹치기</label>
+          </div>
+        </div>
+        <p class="insight" id="s4-insight"></p>
+      </section>
+      <section class="panel space3d">
+        <div class="panel-heading"><h3><span class="step">2</span> 공간 분포를 입체로 <span class="micro">탐구 70쪽</span></h3></div>
+        <div class="presets views" id="s4-views">
+          <button type="button" data-view="earth">지구에서 본 방향</button>
+          <button type="button" data-view="side">옆에서</button>
+          <button type="button" data-view="top">위에서</button>
+          <button type="button" id="s4-spin">↻ 돌려 보기</button>
+        </div>
+        <svg id="s4-3d" class="space-view rot" viewBox="0 0 480 400" role="img" aria-label="교과서 70쪽 표의 x, y, z 좌표로 그린 북두칠성 일곱 별의 입체 분포. 끌어서 돌릴 수 있다."></svg>
+        <p class="panel-note" id="s4-3d-note">끌어서 돌려 보세요. 휴대폰에서는 옆으로 밀면 돌아갑니다.</p>
+        <p class="insight" id="s4-3d-insight"></p>
+      </section>
+      <section class="panel dist">
+        <div class="panel-heading"><h3><span class="step">3</span> 지구로부터의 거리 <span class="micro">표의 x, y, z로 계산</span></h3></div>
+        <div class="dist-grid">
+          <div class="table-wrap"><table class="ref-table xyz" id="s4-table"></table></div>
+          <svg id="s4-bars" class="chart" viewBox="0 0 520 250" role="img" aria-label="북두칠성 일곱 별까지의 거리 막대그래프"></svg>
+        </div>
+        <p class="panel-note" id="s4-dist-note"></p>
+        <details class="more pad">
+          <summary>생각해 보기 · 교과서 71쪽 4번</summary>
+          <p><b>별자리의 형태가 오랜 시간에 걸쳐 변한다는 사실로부터 우주의 공간 규모와 시간 규모에 대해 무엇을 알 수 있을까요?</b></p>
+          <p>북두칠성의 별들은 초속 10~25 km로 움직이지만(접선 속도) 지구에서 매우 멀리 있어 고유 운동은 1년에 약 0.1″에 불과합니다. 그래서 별자리의 모양이 달라지려면 수만~수십만 년이 걸립니다. → 우주의 공간 규모는 매우 크고, 시간 규모는 사람이 경험하는 시간에 비해 매우 깁니다.</p>
+        </details>
+      </section>
+    </div>
+  </section>
+
+  <footer class="credit">
+    <p>자료 · 바너드별과 주변 별의 위치·고유 운동: Gaia DR3 (ESA/Gaia/DPAC, CC BY-NC 3.0 IGO) · 북두칠성의 위치·고유 운동·연주 시차·시선 속도: SIMBAD 데이터베이스 (CDS, Strasbourg), 2026년 10월 조회 · 바너드별 값과 북두칠성 x, y, z 표: 교과서 69·70쪽 · 칼슘 흡수선 파장: 지도서 자료.</p>
+    <p>별 사진과 그래프는 이 자료로 직접 그린 그림입니다. 도플러 효과 그림의 빠르기·파장 변화, 접선 속도 그림의 각은 과장해 그렸습니다.</p>
+  </footer>
+</main>
+</body>
+</html>
