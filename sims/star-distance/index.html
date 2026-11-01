@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2235">
+  <title>별까지의 거리 · 연주 시차와 거리 지수</title>
+  <link rel="stylesheet" href="star-distance.css?v=20261101">
+  <script defer src="star-distance-model.js?v=20261101"></script>
+  <script defer src="star-distance.js?v=20261101"></script>
+</head>
+<body>
+<main class="app">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">행성우주과학 / DISTANCE TO THE STARS</p>
+      <h1>별까지의 거리<span class="title-dot">.</span></h1>
+      <p class="subtitle">연주 시차와 별의 밝기, 두 가지 자로 별까지의 거리를 재 봅니다.</p>
+    </div>
+    <span class="lesson-badge">Ⅱ-02 <span>별의 거리 측정 · 교과서 64~66쪽</span></span>
+  </header>
+
+  <nav class="stations" aria-label="실험 선택">
+    <button type="button" data-station="s1" aria-pressed="true"><span class="num">01</span><span>연주 시차<small>지구 공전 · 파섹</small></span></button>
+    <button type="button" data-station="s2" aria-pressed="false"><span class="num">02</span><span>별의 밝기와 등급<small>포그슨 공식 · 거리의 제곱</small></span></button>
+    <button type="button" data-station="s3" aria-pressed="false"><span class="num">03</span><span>절대 등급과 거리 지수<small>m − M = 5 log r − 5</small></span></button>
+    <button type="button" data-station="s4" aria-pressed="false"><span class="num">04</span><span>두 방법 비교하기<small>해 보기 · 오리온자리</small></span></button>
+  </nav>
+
+  <!-- ───────────── 01 연주 시차 ───────────── -->
+  <section class="station" id="station-s1" aria-labelledby="s1-title">
+    <div class="intro">
+      <p class="eyebrow">01 / ANNUAL PARALLAX</p>
+      <h2 id="s1-title">지구가 공전하면, 가까운 별이 흔들려 보입니다.</h2>
+      <p>지구가 E₁에서 E₂로 가는 6개월 사이, 가까운 별 S는 멀리 있는 배경 별에 대해 S₁에서 S₂로 옮겨 보입니다. 이 방향 차이(시차)의 <span class="frac"><span>1</span><span>2</span></span>이 연주 시차 p입니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="px-presets" role="group" aria-label="어떤 별을 볼까"></div>
+    </div>
+    <div class="grid px-grid">
+      <section class="panel scene px-top">
+        <div class="panel-heading"><h3><span class="step">1</span> 위에서 본 지구의 공전</h3><span class="micro">각과 거리는 과장해 그림</span></div>
+        <svg id="px-top" class="space-view" viewBox="0 0 520 470" role="img" aria-label="태양 둘레를 도는 지구와 가까운 별 S, 멀리 있는 배경 별. 지구 위치에 따라 별 S가 보이는 방향이 달라진다."></svg>
+        <div class="transport">
+          <button type="button" id="px-play" class="primary">▶ 1년 돌리기</button>
+          <label class="grow"><span>지구의 위치 <output id="px-month-out"></output></span><input id="px-month" type="range" min="0" max="12" step="0.05" value="0" aria-label="관측 시작 후 개월"></label>
+        </div>
+      </section>
+      <section class="panel scene px-scope">
+        <div class="panel-heading">
+          <h3><span class="step">2</span> 망원경으로 본 별 S</h3>
+          <div class="segmented" id="px-zoom" role="group" aria-label="망원경 배율">
+            <button type="button" data-zoom="1" aria-pressed="true">×1</button>
+            <button type="button" data-zoom="10" aria-pressed="false">×10</button>
+            <button type="button" data-zoom="100" aria-pressed="false">×100</button>
+          </div>
+        </div>
+        <svg id="px-scope" class="space-view" viewBox="0 0 520 250" role="img" aria-label="망원경 시야에서 배경 별에 대해 좌우로 오가는 별 S"></svg>
+        <p class="panel-note" id="px-scope-note"></p>
+      </section>
+      <section class="panel px-ruler">
+        <div class="panel-heading">
+          <h3><span class="step">3</span> 연주 시차와 거리</h3>
+          <div class="segmented" id="px-inst" role="group" aria-label="관측 장비">
+            <button type="button" data-inst="ground" aria-pressed="true">지상 망원경</button>
+            <button type="button" data-inst="gaia" aria-pressed="false">우주 망원경 Gaia</button>
+          </div>
+        </div>
+        <svg id="px-ruler" class="chart interactive" viewBox="0 0 640 160" role="img" aria-label="로그 눈금 거리 자: 거리와 연주 시차, 관측 장비별로 잴 수 있는 범위"></svg>
+        <div class="slider-row">
+          <label><span>별까지의 거리 r (로그 눈금) <output id="px-r-out"></output></span><input id="px-r-in" type="range" min="0" max="4" step="0.005" value="0.114" aria-label="별까지의 거리, 1 pc부터 10000 pc까지 로그 눈금"></label>
+        </div>
+        <div class="readout">
+          <div><span>연주 시차 p</span><strong id="px-p">—</strong></div>
+          <div><span>별까지의 거리 r</span><strong id="px-r">—</strong></div>
+          <div><span>광년으로</span><strong id="px-ly">—</strong></div>
+          <div><span>1 cm가 이 각으로 보이는 거리</span><strong id="px-coin">—</strong></div>
+        </div>
+      </section>
+      <section class="panel px-result">
+        <div class="panel-heading"><h3><span class="step">4</span> 연주 시차로 거리 구하기</h3><span class="micro">1 pc = 연주 시차가 1″인 별까지의 거리 ≈ 3.26광년</span></div>
+        <div class="formula derive" id="px-formula"></div>
+        <p class="insight" id="px-insight"></p>
+      </section>
+    </div>
+    <p class="hint">별 S를 위아래로 끌거나, 3의 거리 눈금이나 막대를 좌우로 움직여 거리를 바꿔 보세요. ▶를 누르면 지구가 1년 동안 공전합니다. 왜 r = <span class="frac"><span>1</span><span>p</span></span>로 간단해지는지(작은 각 근사)는 <a href="../sand.html">삼각함수 샌드위치</a>에서 볼 수 있습니다.</p>
+  </section>
+
+  <!-- ───────────── 02 별의 밝기와 등급 ───────────── -->
+  <section class="station" id="station-s2" aria-labelledby="s2-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">02 / MAGNITUDE &amp; BRIGHTNESS</p>
+      <h2 id="s2-title">등급의 숫자가 작을수록 밝은 별입니다.</h2>
+      <p>1등급인 별은 6등급인 별보다 100배 밝습니다. ① 등급 차를 밝기 비로 바꾸고, ② 밝기가 거리에 따라 어떻게 줄어드는지 이어 봅니다.</p>
+    </div>
+    <div class="grid mag-grid">
+      <section class="panel mag-ladder">
+        <div class="panel-heading"><h3><span class="step">①</span> 등급 차 → 밝기 비</h3><span class="micro">별 1·별 2를 좌우로 끌어 보세요</span></div>
+        <svg id="mag-ladder" class="chart interactive" viewBox="0 0 640 300" role="img" aria-label="등급 눈금 위의 두 별과 밝기 비"></svg>
+        <div class="chips small" id="mag-presets" role="group" aria-label="예시"></div>
+        <div class="slider-row two">
+          <label><span>별 1의 등급 m₁ <output id="mag-m1-out"></output></span><input id="mag-m1-in" type="range" min="-2" max="7" step="0.1" value="1" aria-label="별 1의 등급"></label>
+          <label><span>별 2의 등급 m₂ <output id="mag-m2-out"></output></span><input id="mag-m2-in" type="range" min="-2" max="7" step="0.1" value="6" aria-label="별 2의 등급"></label>
+        </div>
+        <div class="readout">
+          <div><span>별 1의 등급 m₁</span><strong id="mag-m1">—</strong></div>
+          <div><span>별 2의 등급 m₂</span><strong id="mag-m2">—</strong></div>
+          <div><span>등급 차 m₂ − m₁</span><strong id="mag-dm">—</strong></div>
+          <div><span>밝기 비 (밝은 별 ÷ 어두운 별)</span><strong id="mag-ratio">—</strong></div>
+        </div>
+        <div class="formula derive" id="mag-formula"></div>
+        <p class="insight" id="mag-insight"></p>
+      </section>
+      <section class="panel inv">
+        <div class="panel-heading"><h3><span class="step">②</span> 밝기와 거리</h3><span class="micro">스크린을 좌우로 끌어 보세요</span></div>
+        <svg id="inv-scene" class="chart interactive" viewBox="0 0 640 300" role="img" aria-label="별빛이 거리에 따라 넓게 퍼지는 모습: 거리 2배이면 넓이 4배, 밝기 4분의 1"></svg>
+        <div class="chips small" id="inv-presets" role="group" aria-label="예시"></div>
+        <div class="slider-row">
+          <label><span>스크린까지의 거리 (처음의 몇 배) <output id="inv-d-out"></output></span><input id="inv-d-in" type="range" min="1" max="10" step="0.1" value="2" aria-label="스크린까지의 거리, 처음 거리의 1배부터 10배까지"></label>
+        </div>
+        <div class="readout">
+          <div><span>거리 (처음의 몇 배)</span><strong id="inv-d">—</strong></div>
+          <div><span>빛이 퍼지는 넓이</span><strong id="inv-area">—</strong></div>
+          <div><span>밝기</span><strong id="inv-l">—</strong></div>
+          <div><span>등급 차 m₂ − m₁</span><strong id="inv-dm">—</strong></div>
+        </div>
+        <div class="formula derive" id="inv-formula"></div>
+        <p class="insight" id="inv-insight"></p>
+      </section>
+      <section class="panel rough">
+        <div class="panel-heading"><h3><span class="step">✎</span> 계산기 없이 어림하기</h3><span class="micro">줄을 누르면 위 그림이 그 값으로 바뀝니다</span></div>
+        <div class="rough-body" id="rough"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ───────────── 03 절대 등급과 거리 지수 ───────────── -->
+  <section class="station" id="station-s3" aria-labelledby="s3-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">03 / ABSOLUTE MAGNITUDE &amp; DISTANCE MODULUS</p>
+      <h2 id="s3-title">밝아 보이는 별이 정말 밝은 별일까요?</h2>
+      <p>겉보기 등급 m은 별의 광도와 거리가 함께 정합니다. 모든 별을 10 pc에 놓았다고 할 때의 등급이 절대 등급 M이고, m − M에 거리가 들어 있습니다.</p>
+    </div>
+    <div class="grid abs-grid">
+      <section class="panel scene lineup">
+        <div class="panel-heading"><h3><span class="step">③</span> 모든 별을 10 pc로 옮기면</h3><span class="micro" id="lineup-note">별을 누르면 ④에서 계산합니다</span></div>
+        <svg id="lineup" class="space-view" viewBox="0 0 640 380" role="img" aria-label="교과서의 일곱 별을 실제 거리에서 10 pc로 옮기며 등급이 변하는 모습"></svg>
+        <div class="transport">
+          <button type="button" id="lineup-play" class="primary">▶ 모두 10 pc로</button>
+          <label class="grow"><span>옮긴 정도 <output id="lineup-t-out"></output></span><input id="lineup-t" type="range" min="0" max="1" step="0.01" value="0" aria-label="실제 거리에서 10 pc까지 옮긴 정도"></label>
+        </div>
+        <p class="insight" id="lineup-insight"></p>
+      </section>
+      <section class="panel modulus">
+        <div class="panel-heading">
+          <h3><span class="step">④</span> 거리 지수 만들기</h3>
+          <button type="button" id="mod-q2" class="compact" aria-pressed="false">Q2 풀어 보기</button>
+        </div>
+        <div class="chips small pad" id="mod-stars" role="group" aria-label="계산할 별"></div>
+        <div class="formula derive" id="mod-derive"></div>
+        <svg id="mod-chart" class="chart interactive" viewBox="0 0 640 290" role="img" aria-label="거리와 거리 지수의 관계 그래프"></svg>
+        <div class="slider-row">
+          <label><span>이 별을 옮겨 놓을 거리 r <output id="mod-r-out"></output></span><input id="mod-r" type="range" min="0" max="4" step="0.005" value="2" aria-label="별까지의 거리(로그 눈금)"></label>
+          <button type="button" id="mod-reset" class="compact">실제 거리로</button>
+        </div>
+        <table class="mini-table" id="mod-table"></table>
+        <p class="insight" id="mod-insight"></p>
+      </section>
+      <section class="panel twostar">
+        <div class="panel-heading"><h3><span class="step">⑤</span> 두 별 비교하기 — 식은 하나, 경우는 셋</h3></div>
+        <div class="big-eq" id="case-eq"></div>
+        <div class="segmented wide" id="case-tabs" role="group" aria-label="무엇이 같은가">
+          <button type="button" data-case="dist" aria-pressed="true">① 거리가 같다</button>
+          <button type="button" data-case="lum" aria-pressed="false">② 광도가 같다</button>
+          <button type="button" data-case="app" aria-pressed="false">③ 겉보기 등급이 같다</button>
+          <button type="button" data-case="quiz" aria-pressed="false">문제 풀기</button>
+        </div>
+        <div class="case-body" id="case-body"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ───────────── 04 두 방법 비교하기 ───────────── -->
+  <section class="station" id="station-s4" aria-labelledby="s4-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">04 / TWO RULERS, ONE SKY</p>
+      <h2 id="s4-title">두 방법으로 구하면, 같은 답이 나올까요?</h2>
+      <p>교과서 66쪽 해 보기 — 시리우스, 베텔게우스, 리겔까지의 거리를 연주 시차와 거리 지수로 각각 구해 비교하고 평가해 보세요.</p>
+    </div>
+    <div class="toolbar">
+      <span class="micro">값을 써 넣고 확인을 누르거나, 풀이를 펼쳐 보세요. 어림해서 계산해도 됩니다(±10%).</span>
+      <div class="chips">
+        <button type="button" id="ex-reveal-all">모두 풀이 보기</button>
+        <button type="button" id="ex-reset">처음부터</button>
+      </div>
+    </div>
+    <div class="grid ex-grid">
+      <section class="panel ex-calc">
+        <div class="panel-heading"><h3><span class="step">1</span> 연주 시차와 거리 지수로 거리 구하기</h3><span class="micro">자료: 교과서 66쪽 (Carroll and Ostlie, 2017)</span></div>
+        <div class="ex-cards" id="ex-cards"></div>
+        <div class="pow10" id="ex-pow10"></div>
+      </section>
+      <section class="panel ex-chart">
+        <div class="panel-heading">
+          <h3><span class="step">2</span> 로그 거리 눈금에서 비교하기</h3>
+          <label class="check"><input type="checkbox" id="ex-known"> 오늘날 알려진 거리</label>
+        </div>
+        <div class="legend" id="ex-legend"></div>
+        <svg id="ex-axis" class="chart" viewBox="0 0 640 270" role="img" aria-label="세 별의 거리를 두 방법으로 구한 값과 연주 시차 오차 범위"></svg>
+        <div class="slider-row">
+          <label><span>연주 시차를 잘못 잴 수 있는 정도 ± <output id="ex-sigma-out"></output></span><input id="ex-sigma" type="range" min="0" max="0.002" step="0.00025" value="0.001" aria-label="연주 시차 측정 오차"></label>
+        </div>
+        <table class="ref-table err-table" id="ex-errtable"></table>
+        <div class="discuss" id="ex-q3"></div>
+        <p class="insight" id="ex-insight"></p>
+      </section>
+      <section class="panel scene ex-orion">
+        <div class="panel-heading">
+          <h3><span class="step">3</span> 같은 별자리의 별은 같은 거리에 있을까?</h3>
+          <div class="segmented" id="ex-view" role="group" aria-label="보는 방향">
+            <button type="button" data-view="sky" aria-pressed="true">지구에서 본 하늘</button>
+            <button type="button" data-view="side" aria-pressed="false">옆에서 보기</button>
+          </div>
+        </div>
+        <svg id="ex-sky" class="space-view" viewBox="0 0 640 400" role="img" aria-label="오리온자리와 시리우스: 하늘에서 본 모습과 옆에서 본 거리"></svg>
+        <div class="segmented wide dark" id="ex-method" role="group" aria-label="어떤 거리로 놓을까">
+          <button type="button" data-method="parallax" aria-pressed="true">연주 시차로 구한 거리</button>
+          <button type="button" data-method="modulus" aria-pressed="false">거리 지수로 구한 거리</button>
+          <button type="button" data-method="known" aria-pressed="false">알려진 거리</button>
+        </div>
+        <div class="discuss" id="ex-q4"></div>
+        <p class="insight" id="ex-sky-insight"></p>
+      </section>
+      <section class="panel ex-eval">
+        <div class="panel-heading"><h3><span class="step">4</span> 두 가지 자 평가하기</h3><button type="button" id="ex-eval-all" class="compact">모두 보기</button></div>
+        <p class="panel-note">각 칸을 먼저 토의한 뒤 눌러 보세요.</p>
+        <div class="eval-wrap"><table class="eval-table" id="ex-eval"></table></div>
+        <p class="insight" id="ex-eval-insight"></p>
+      </section>
+    </div>
+  </section>
+
+  <footer class="credit">
+    교과서 『행성우주과학』(천재교과서, 오필석 외) 64~66쪽·84~85쪽과 수업 활동지 「2-2-1 별까지의 거리 측정」에 맞춘 교육용 모형입니다.
+    해 보기 자료: 교과서 66쪽(Carroll and Ostlie, 2017). 별의 위치: SIMBAD 천문 데이터베이스(CDS, 스트라스부르) J2000 좌표.
+    알려진 거리: 수업 PPT(베텔게우스 약 500~720광년, 리겔 약 860광년), 시리우스 약 8.6광년(히파르코스).
+    그림은 모두 코드로 직접 그렸습니다. 위에서 본 그림의 각과 거리는 과장해 그렸습니다.
+  </footer>
+</main>
+</body>
+</html>
