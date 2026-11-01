@@ -152,9 +152,11 @@
 
         .section { margin-top: 14px; }
         .section-head {
-            display: flex; align-items: baseline; gap: 6px;
+            display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px;
             margin: 0 4px 8px; font-size: 14px; font-weight: 700; color: #334155;
         }
+        /* 폰에서 제목 끝 글자만 다음 줄로 밀리지 않게: 제목은 한 줄, 설명은 통째로 아랫줄로 */
+        .section-title { white-space: nowrap; }
         .section-head small { font-weight: 400; color: #94a3b8; font-size: 12px; }
         .grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
         @media (min-width: 640px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
@@ -187,6 +189,7 @@
             display: inline-block; margin-left: 5px; padding: 1px 6px; border-radius: 999px;
             font-size: 10px; font-weight: 700; vertical-align: 2px; letter-spacing: .02em;
         }
+        .badges { white-space: nowrap; }  /* 소단원 번호와 NEW 가 서로 떨어지지 않게 */
         .badge-new { background: #4f46e5; color: #fff; }
         .badge-phone { background: #fef3c7; color: #92400e; }
         .badge-tag { background: #e0e7ff; color: #3730a3; }
@@ -572,7 +575,7 @@
             card.innerHTML = `
                 <span class="card-icon" aria-hidden="true">${sim.icon}</span>
                 <span class="card-text">
-                    <span class="card-name">${escapeHtml(sim.name)}${badges}</span>
+                    <span class="card-name">${escapeHtml(sim.name)}${badges ? `<span class="badges">${badges}</span>` : ''}</span>
                     <span class="card-desc">${escapeHtml(sim.desc || '')}</span>
                 </span>
                 <span class="card-arrow" aria-hidden="true">›</span>`;
@@ -586,7 +589,7 @@
             if (title) {
                 const head = document.createElement('h2');
                 head.className = 'section-head';
-                head.innerHTML = `${title} <small>${note ? escapeHtml(note) : list.length}</small>`;
+                head.innerHTML = `<span class="section-title">${title}</span> <small>${note ? escapeHtml(note) : list.length}</small>`;
                 section.appendChild(head);
             }
             const grid = document.createElement('div');
