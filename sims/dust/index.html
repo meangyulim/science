@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2235">
+  <title>성간 티끌 실험실 · 별빛을 가리고 붉게 바꾸는 우주의 티끌</title>
+  <link rel="stylesheet" href="dust.css?v=20261101">
+  <script defer src="dust-data.js?v=20261101"></script>
+  <script defer src="dust-model.js?v=20261101"></script>
+  <script defer src="dust.js?v=20261101"></script>
+</head>
+<body>
+<main class="app">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">행성우주과학 / INTERSTELLAR DUST LAB</p>
+      <h1>성간 티끌 실험실<span class="title-dot">.</span></h1>
+      <p class="subtitle">별 사이의 작은 티끌이 별빛을 어둡게, 그리고 붉게 바꿉니다. 티끌을 걷어 내고 별의 진짜 밝기와 거리를 찾아봅니다.</p>
+    </div>
+    <span class="lesson-badge">Ⅲ-02 <span>성간 소광과 성간 티끌 · 교과서 102~107쪽</span></span>
+  </header>
+
+  <nav class="stations" aria-label="실험 선택">
+    <button type="button" data-station="nebula" aria-pressed="true"><span class="num">01</span><span>성간 물질과 성운<small>암흑 · 반사 · 방출</small></span></button>
+    <button type="button" data-station="extinct" aria-pressed="false"><span class="num">02</span><span>성간 소광<small>바너드 68 · 적외선</small></span></button>
+    <button type="button" data-station="redden" aria-pressed="false"><span class="num">03</span><span>성간 적색화<small>색초과 E · A<sub>V</sub> ≈ 3E</small></span></button>
+    <button type="button" data-station="distance" aria-pressed="false"><span class="num">04</span><span>거리 보정<small>m − M = 5 log r − 5 + A</small></span></button>
+  </nav>
+
+  <!-- ───────────── 01 성간 물질과 성운 ───────────── -->
+  <section class="station" id="station-nebula" aria-labelledby="nebula-title">
+    <div class="intro">
+      <p class="eyebrow">01 / INTERSTELLAR MATTER &amp; NEBULAE</p>
+      <h2 id="nebula-title">검게, 푸르게, 붉게 — 같은 성간 물질, 다른 모습</h2>
+      <p>성간 물질은 성간 기체와 성간 티끌로 이루어져 있습니다. 별과 구름을 옮겨 보며 어떤 성운이 보이는지 확인해 보세요.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="neb-presets" role="group" aria-label="배치 예시">
+        <button type="button" data-preset="dark">암흑 성운 만들기</button>
+        <button type="button" data-preset="refl">반사 성운 만들기</button>
+        <button type="button" data-preset="emis">방출 성운 만들기</button>
+      </div>
+      <div class="segmented" id="neb-startype" role="group" aria-label="별의 종류">
+        <button type="button" data-hot="1" aria-pressed="true">젊고 뜨거운 O·B형 별</button>
+        <button type="button" data-hot="0" aria-pressed="false">덜 뜨거운 별</button>
+      </div>
+    </div>
+    <div class="grid neb-grid">
+      <section class="panel neb-scene">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> 성운 만들기</h3>
+          <label class="check"><input type="checkbox" id="neb-bg" checked> 뒤쪽 먼 별들</label>
+        </div>
+        <div class="sky-wrap">
+          <canvas id="neb-sky" class="sky-canvas" role="img" aria-label="관측자가 보는 하늘"></canvas>
+          <span class="view-tag">관측자가 보는 하늘</span>
+        </div>
+        <div class="map-wrap" id="neb-map-wrap">
+          <svg id="neb-map" class="map-svg" viewBox="0 0 640 300" aria-hidden="true"></svg>
+          <button type="button" class="token token-star" data-token="star" aria-label="별 옮기기 (화살표 키)"><span class="tok-icon"></span><span class="tok-name">별</span></button>
+          <button type="button" class="token token-dust" data-token="dust" aria-label="티끌 구름 옮기기 (화살표 키)"><span class="tok-icon"></span><span class="tok-name">티끌 구름</span></button>
+          <button type="button" class="token token-gas" data-token="gas" aria-label="수소 기체 구름 옮기기 (화살표 키)"><span class="tok-icon"></span><span class="tok-name">수소 기체</span></button>
+          <span class="view-tag map-tag">위에서 내려다본 배치</span>
+        </div>
+        <p class="insight" id="neb-insight"></p>
+      </section>
+      <section class="panel side neb-side">
+        <div class="panel-heading"><h3><span class="step">2</span> 지금 보이는 것</h3></div>
+        <div class="side-body">
+          <div id="neb-status" class="status-list"></div>
+          <div class="comp">
+            <p class="micro">성간 물질의 질량 (교과서 102·104쪽)</p>
+            <div class="comp-bar" role="img" aria-label="수소 74 퍼센트, 헬륨 24 퍼센트, 나머지 약 2 퍼센트 가운데 성간 티끌 약 1 퍼센트">
+              <span class="h">수소 74 %</span><span class="he">헬륨 24 %</span><span class="d" title="성간 티끌 약 1 %"></span>
+            </div>
+            <p class="micro">성간 <b>기체</b>(수소·헬륨) + 성간 <b>티끌</b>(얼음, 탄소·규소 알갱이, 약 1 %)</p>
+          </div>
+          <table class="ref-table states" id="neb-states">
+            <tr><th>성간 물질</th><th>온도</th><th>특징</th></tr>
+            <tr data-state="molecular"><td><b>분자 구름</b></td><td>약 10 K</td><td>밀도가 높다. 수소 분자 + 티끌이 뭉쳐 새로운 별이 탄생</td></tr>
+            <tr data-state="HI"><td><b>중성수소(HⅠ) 영역</b></td><td>약 100 K</td><td>수소 원자. 파장 21 cm 전파 → 나선팔 구조를 알아냄</td></tr>
+            <tr data-state="HII"><td><b>전리수소(HⅡ) 영역</b></td><td>약 1만 K</td><td>밀도가 낮다. 젊고 밝은 O·B형 별의 자외선이 수소를 이온화</td></tr>
+          </table>
+        </div>
+      </section>
+      <section class="panel neb-orion">
+        <div class="panel-heading">
+          <h3><span class="step">3</span> 실제 하늘: 오리온자리 제타 별 주변 <span class="micro">(교과서 그림 10)</span></h3>
+          <div class="segmented" id="orion-view" role="group" aria-label="보기 방식">
+            <button type="button" data-oview="draw" aria-pressed="true">그림</button>
+            <button type="button" data-oview="photo" aria-pressed="false">실제 사진</button>
+          </div>
+        </div>
+        <div class="orion-body">
+          <div class="orion-frame">
+            <canvas id="orion" class="orion-canvas" role="img" aria-label="오리온자리 제타 별 주변의 암흑 성운, 반사 성운, 방출 성운"></canvas>
+            <img id="orion-photo" src="img/orion-zeta.jpg?v=20261101" alt="오리온자리 제타 별 주변 실제 사진: 붉은 기체 앞의 말머리 성운, 푸른 반사 성운, 주황빛 불꽃 성운" hidden>
+          </div>
+          <div class="orion-side">
+            <div class="chips" id="orion-chips" role="group" aria-label="성운 고르기"></div>
+            <div id="orion-info" class="orion-info"></div>
+            <div class="neb-defs" aria-label="세 가지 성운 (교과서 103쪽)">
+              <div><span class="badge dark">암흑 성운</span><span>차가운 고밀도 분자 구름의 성간 티끌이 뒤에서 오는 별빛을 차단하여 검게 보이는 성운</span></div>
+              <div><span class="badge refl">반사 성운</span><span>주변 별들이 내놓은 강한 빛의 일부가 성간 티끌 때문에 반사되어 푸르게 보이는 성운</span></div>
+              <div><span class="badge emis">방출 성운</span><span>전리수소 영역에서 전리된 수소가 재결합하면서 내놓는 빛(방출선)으로 붉게 빛나는 성운</span></div>
+            </div>
+            <p class="micro" id="orion-credit"></p>
+          </div>
+        </div>
+        <p class="insight">별이 태어나는 곳에는 성간 물질이 많이 모여 있어 <b>암흑 성운, 반사 성운, 방출 성운이 함께</b> 나타납니다. 말머리 성운과 NGC 2023은 같은 분자 구름의 다른 부분입니다.</p>
+      </section>
+    </div>
+    <p class="hint">별과 구름을 손가락으로 끌어 옮겨 보세요(키보드: 버튼을 고르고 화살표 키). 점선 원은 별빛과 자외선이 강하게 닿는 범위입니다. 크기와 거리는 실제와 다르게 그렸습니다.</p>
+  </section>
+
+  <!-- ───────────── 02 성간 소광 ───────────── -->
+  <section class="station" id="station-extinct" aria-labelledby="extinct-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">02 / INTERSTELLAR EXTINCTION</p>
+      <h2 id="extinct-title">검은 구멍 뒤에도 별은 있을까?</h2>
+      <p>성간 티끌이 별빛을 흡수하고 산란해 별이 어둡게 보이는 현상이 <b>성간 소광</b>입니다. 교과서 104쪽 해 보기처럼 암흑 성운 주변의 별을 가시광선과 적외선으로 비교해 보세요.</p>
+    </div>
+    <div class="toolbar">
+      <div class="segmented big" id="ext-band" role="group" aria-label="관측 파장">
+        <button type="button" data-band="vis" aria-pressed="true">가시광선으로 보기</button>
+        <button type="button" data-band="ir" aria-pressed="false">적외선으로 보기</button>
+      </div>
+      <label class="check"><input type="checkbox" id="ext-ghost"> 가려진 별 표시하기</label>
+    </div>
+    <div class="grid ext-grid">
+      <section class="panel ext-field">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> 암흑 성운 모형 <span class="micro" id="ext-band-label"></span></h3>
+          <span class="micro">별을 누르면 등급을 봅니다</span>
+        </div>
+        <div class="field-wrap">
+          <canvas id="ext-canvas" class="field-canvas" role="img" aria-label="암흑 성운과 그 뒤의 별들"></canvas>
+        </div>
+        <div class="slider-row">
+          <label><span>성운 가운데의 티끌 양 <output id="ext-A-out"></output></span><input id="ext-A" type="range" min="0" max="30" step="1" value="12"></label>
+        </div>
+        <div class="readout">
+          <div><span>가운데 원 안의 별</span><strong id="ext-in">—</strong></div>
+          <div><span>바깥 원 안의 별</span><strong id="ext-out">—</strong></div>
+          <div><span>적외선으로만 보이는 별</span><strong id="ext-onlyir">—</strong></div>
+        </div>
+        <p class="panel-note" id="ext-pick">별을 하나 눌러 보세요. 티끌이 없을 때의 등급과 지금 관측되는 등급을 비교해 줍니다.</p>
+      </section>
+      <section class="panel ext-profile">
+        <div class="panel-heading"><h3><span class="step">2</span> 가운데에서 바깥으로, 별의 수</h3></div>
+        <div class="legend" id="ext-legend"></div>
+        <svg id="ext-chart" class="chart" viewBox="0 0 640 300" role="img" aria-label="성운 가운데로부터의 거리에 따른 같은 넓이당 별의 수"></svg>
+        <p class="insight" id="ext-insight"></p>
+      </section>
+      <section class="panel ext-real">
+        <div class="panel-heading"><h3><span class="step">3</span> 실제 관측: 바너드 68 <span class="micro">(교과서 104쪽 해 보기)</span></h3></div>
+        <div class="photo-pair">
+          <figure><img src="img/b68-vis.jpg?v=20261101" alt="바너드 68 가시광선 영상: 별이 빽빽한 하늘 가운데만 별이 하나도 없는 검은 덩어리" loading="lazy"><figcaption>가시광선</figcaption></figure>
+          <figure><img src="img/b68-ir.jpg?v=20261101" alt="바너드 68 적외선 영상: 가운데에도 붉은 별들이 흐리게 보인다" loading="lazy"><figcaption>적외선</figcaption></figure>
+        </div>
+        <p class="micro photo-credit">바너드 68 · ESO (왼쪽 VLT, 오른쪽 NTT), CC BY 4.0. 두 영상은 망원경과 시야가 조금 다릅니다.</p>
+        <ol class="tamgu">
+          <li>가시광선 영상에서 암흑 성운 영역과 그 바깥의 별 분포는 어떻게 다른지 비교하고, 그 까닭을 성간 소광과 관련지어 설명해 보세요.</li>
+          <li>적외선으로 관측하면 성간 티끌에 가려 보이지 않던 뒤쪽 별을 볼 수 있는 까닭은 무엇일까요?</li>
+        </ol>
+        <details class="more">
+          <summary>예시 답안과 바너드 68 이야기</summary>
+          <p>① 가운데는 별이 거의 보이지 않고 바깥으로 갈수록 별이 많고 밝아집니다. 암흑 성운에 많은 성간 티끌이 뒤쪽 별빛을 가리기 때문(성간 소광)이고, 가운데에서 바깥으로 갈수록 티끌이 줄어 소광도 줄어듭니다.</p>
+          <p>② 가시광선보다 파장이 긴 적외선은 성간 티끌에 의한 흡수와 산란을 적게 겪어 뒤쪽 별빛이 통과합니다.</p>
+          <p>바너드 68은 뱀주인자리 쪽 약 410광년 거리에 있는 약 16 K의 차가운 분자 구름입니다. 오래 노출해 찍은 영상에서 이 구름 뒤의 별을 약 3700개 찾았고, 그중 1000개 넘게는 적외선으로만 보였습니다(ESO 보도 자료 eso0102).</p>
+        </details>
+      </section>
+      <section class="panel ext-more">
+        <div class="panel-heading"><h3><span class="step">4</span> 적외선으로 보면 보이는 것</h3><span class="micro">위쪽 단추로 함께 바뀝니다</span></div>
+        <div class="flip-cards">
+          <figure class="flip">
+            <div class="flip-frame square"><img id="pillars-img" src="img/pillars-vis.jpg?v=20261101" alt="" loading="lazy"></div>
+            <figcaption><b>창조의 기둥</b> (교과서 그림 12) <span id="pillars-cap"></span></figcaption>
+          </figure>
+          <div class="flip-right">
+            <figure class="flip">
+              <div class="flip-frame band"><img id="mw-img" src="img/milkyway-vis.jpg?v=20261101" alt="" loading="lazy"></div>
+              <figcaption><b>우리은하</b> (교과서 그림 16) <span id="mw-cap"></span></figcaption>
+            </figure>
+            <p class="insight" id="ext-more-insight"></p>
+          </div>
+        </div>
+      </section>
+    </div>
+    <p class="hint">모형에서는 티끌이 없을 때 두 파장에서 보이는 별이 같다고 두었습니다. 적외선의 소광 등급은 같은 티끌에서 가시광선의 약 0.11배입니다(파장 2.2 μm 근적외선, 03의 소광 곡선). 실제 적외선 영상의 색은 사람 눈에 보이도록 입힌 색입니다.</p>
+  </section>
+
+  <!-- ───────────── 03 성간 적색화 ───────────── -->
+  <section class="station" id="station-redden" aria-labelledby="redden-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">03 / INTERSTELLAR REDDENING</p>
+      <h2 id="redden-title">티끌을 지나온 별빛은 어둡고, 붉다</h2>
+      <p>성간 티끌은 파장이 짧은 파란빛을 붉은빛보다 더 많이 흡수·산란합니다. 그래서 별빛이 약해지면서 붉은빛이 더 많은 비율로 도착합니다. 이것이 <b>성간 적색화</b>입니다.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="red-stars" role="group" aria-label="별 고르기"></div>
+      <div class="chips" id="red-examples" role="group" aria-label="수업 예제">
+        <button type="button" class="mystery" data-ex="q3">수업 Q3</button>
+        <button type="button" class="mystery" data-ex="q4">수업 Q4 ⓑ</button>
+      </div>
+    </div>
+    <div class="grid red-grid">
+      <section class="panel red-scene">
+        <div class="panel-heading">
+          <h3><span class="step">1</span> 별빛이 티끌을 지날 때 <span class="micro">(교과서 그림 14)</span></h3>
+          <div class="segmented" id="red-medium" role="group" aria-label="무엇을 지나는가">
+            <button type="button" data-medium="space" aria-pressed="true">우주의 티끌</button>
+            <button type="button" data-medium="air" aria-pressed="false">노을 비유</button>
+          </div>
+        </div>
+        <canvas id="red-canvas" class="photon-canvas" role="img" aria-label="별빛의 파란빛과 붉은빛이 티끌 층을 지나는 모습"></canvas>
+        <div class="slider-row">
+          <label><span id="red-A-label">별과 관측자 사이의 티끌 양 <output id="red-A-out"></output></span><input id="red-A" type="range" min="0" max="4.5" step="0.05" value="1.5"></label>
+        </div>
+        <div class="readout" id="red-counts"></div>
+        <p class="panel-note">파란 선은 파장이 짧은 파란빛, 붉은 선은 파장이 긴 붉은빛입니다. 티끌 층에서 방향이 꺾이면 <b>산란</b>, 주황색으로 사라지면 <b>흡수</b>(빛이 티끌을 데움)입니다. 교과서 그림 14처럼 관측자 1은 티끌 너머의 별을, 관측자 2는 별빛을 산란하는 티끌 구름을 봅니다.</p>
+      </section>
+      <section class="panel red-numbers">
+        <div class="panel-heading"><h3><span class="step">2</span> B 등급과 V 등급, 그리고 색초과</h3></div>
+        <div class="ladder-wrap">
+          <svg id="red-ladder" class="chart" viewBox="0 0 400 330" role="img" aria-label="티끌을 지나기 전후의 B 등급과 V 등급"></svg>
+          <div class="swatches" id="red-swatches"></div>
+        </div>
+        <div class="derive" id="red-derive"></div>
+        <p class="insight" id="red-insight"></p>
+      </section>
+      <section class="panel red-curve">
+        <div class="panel-heading">
+          <h3><span class="step">3</span> 파장에 따른 소광량 <span class="micro">(교과서 그림 13)</span></h3>
+          <span class="micro">그래프를 눌러 파장 고르기</span>
+        </div>
+        <svg id="red-chart" class="chart interactive" viewBox="0 0 640 330" role="img" tabindex="0" aria-label="파장에 따른 소광량 그래프: 파장이 짧을수록 소광량이 크다. 화살표 키로 파장을 고릅니다"></svg>
+        <div class="readout" id="red-lambda"></div>
+        <p class="panel-note">우리은하 평균 소광 곡선(Cardelli·Clayton·Mathis 1989의 식, R<sub>V</sub> = 3.1)으로 그렸습니다. 0.22 μm 근처의 혹은 교과서 그림에도 있는 모양입니다. 기출에는 가로축 방향이 반대인 그래프도 나옵니다 — 소광량이 큰 쪽이 짧은 파장입니다.</p>
+      </section>
+      <section class="panel red-real">
+        <div class="panel-heading"><h3><span class="step">4</span> 실제 관측: 성운 뒤의 별은 왜 붉을까?</h3></div>
+        <div class="real-photo"><img src="img/b68-mix.jpg?v=20261101" alt="바너드 68을 가시광선, 근적외선, 적외선으로 찍어 합성한 영상: 성운 자리에 붉은 별이 가득하고 바깥 별들은 희거나 푸르다" loading="lazy"></div>
+        <p class="micro photo-credit">바너드 68 · 가시광선(파랑) + 근적외선(초록) + 적외선(빨강)에 색을 입혀 합성 · ESO, CC BY 4.0</p>
+        <p class="panel-note">성운 바깥의 별은 희거나 푸른데, 성운 자리의 별은 모두 붉습니다. 교과서 그림 15의 말머리 성운 속 별들도 같은 까닭으로 붉게 보입니다.</p>
+        <ol class="tamgu" start="3">
+          <li>성운 자리에 보이는 별들이 붉은 까닭을 쓰고, 색초과가 더 큰 별은 성운 가운데 쪽과 가장자리 쪽 중 어디에 있을지 골라 보세요.</li>
+        </ol>
+        <details class="more">
+          <summary>예시 답안</summary>
+          <p>티끌이 파란빛을 더 많이 가려 성간 적색화가 일어나 색초과가 생깁니다. 티끌이 많은 가운데 쪽 별의 색초과가 더 큽니다. 성운이 사라진다면 이 별들은 소광이 없어져 더 밝아지므로 겉보기 등급이 작아집니다.</p>
+        </details>
+      </section>
+    </div>
+    <p class="hint">기출 용어: 관측된 색지수 (B−V), 고유한 색지수 (B−V)₀, 색초과 E(B−V), "V 필터 파장 영역의 겉보기 등급 변화량" = 소광 등급 A<sub>V</sub>. 별이 실제로 차가워진 것이 아니라 별빛의 색만 붉어 보입니다.</p>
+  </section>
+
+  <!-- ───────────── 04 거리 보정 ───────────── -->
+  <section class="station" id="station-distance" aria-labelledby="distance-title" hidden>
+    <div class="intro">
+      <p class="eyebrow">04 / CORRECTING DISTANCES</p>
+      <h2 id="distance-title">티끌을 무시하면, 별이 더 멀어 보인다</h2>
+      <p>성간 소광으로 겉보기 등급이 소광 등급 A만큼 커지면, 소광을 보정하지 않고 구한 거리는 실제 거리보다 크게 추정됩니다(교과서 105쪽).</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="dist-examples" role="group" aria-label="예제 고르기">
+        <button type="button" data-ex="free">직접 해 보기</button>
+        <button type="button" data-ex="q2">수업 Q2</button>
+        <button type="button" data-ex="q3">수업 Q3</button>
+        <button type="button" data-ex="q4">수업 Q4</button>
+      </div>
+    </div>
+    <div class="grid dist-grid">
+      <section class="panel controls dist-inputs">
+        <div class="panel-heading flush"><h3><span class="step">1</span> 관측한 값</h3></div>
+        <div class="sliders">
+          <label><span>겉보기 등급 m (V) <output id="d-m-out"></output></span><input id="d-m" type="range" min="0" max="20" step="0.1" value="12"></label>
+          <label><span>절대 등급 M (V) <output id="d-M-out"></output></span><input id="d-M" type="range" min="-6" max="10" step="0.1" value="2"></label>
+        </div>
+        <div class="segmented wide" id="d-mode" role="group" aria-label="소광 등급을 아는 방법">
+          <button type="button" data-amode="direct" aria-pressed="true">소광 등급 A를 안다</button>
+          <button type="button" data-amode="excess" aria-pressed="false">색초과로 구한다 (A<sub>V</sub> = 3E)</button>
+        </div>
+        <div class="sliders" id="d-direct">
+          <label><span>소광 등급 A<sub>V</sub> <output id="d-A-out"></output></span><input id="d-A" type="range" min="0" max="6" step="0.1" value="5"></label>
+        </div>
+        <div class="sliders" id="d-excess" hidden>
+          <label><span>관측한 색지수 (B − V)<sub>관측</sub> <output id="d-bvo-out"></output></span><input id="d-bvo" type="range" min="-0.3" max="2.5" step="0.05" value="0.5"></label>
+          <label><span>고유 색지수 (B − V)<sub>고유</sub> <output id="d-bvi-out"></output></span><input id="d-bvi" type="range" min="-0.3" max="2" step="0.05" value="0"></label>
+        </div>
+        <p class="micro" id="d-example-note"></p>
+        <div class="derive-box">
+          <div class="t">거리 지수에 소광 넣기 (수업 슬라이드 15)</div>
+          <div>3차시: <em class="v">m</em> − <em class="v">M</em> = 5 log <em class="v">r</em> − 5 <span class="micro">(별빛이 오는 길이 투명할 때)</span></div>
+          <div>① 티끌이 없다면 <em class="v">m</em><sub>0</sub> − <em class="v">M</em> = 5 log <em class="v">r</em> − 5</div>
+          <div>② 티끌 때문에 <em class="v">m</em> = <em class="v">m</em><sub>0</sub> + <em class="v">A</em> <span class="micro">(A: 소광 등급)</span></div>
+          <div>③ <em class="v">m</em><sub>0</sub> = <em class="v">m</em> − <em class="v">A</em>를 대입 → <span class="hl"><em class="v">m</em> − <em class="v">A</em> − <em class="v">M</em> = 5 log <em class="v">r</em> − 5</span></div>
+          <div class="micro">같은 식: <em class="v">m</em> − <em class="v">M</em> = 5 log <em class="v">r</em> − 5 + <em class="v">A</em> · V 필터로 재면 <em class="v">m</em><sub>V</sub>, <em class="v">M</em><sub>V</sub>, <em class="v">A</em><sub>V</sub>로 씁니다(기출 표기).</div>
+        </div>
+      </section>
+      <section class="panel dist-picture">
+        <div class="panel-heading"><h3><span class="step">2</span> 실제 거리와 착각한 거리</h3></div>
+        <svg id="d-picture" class="chart" viewBox="0 0 640 250" role="img" aria-label="실제 거리와 소광을 무시하고 구한 거리 비교"></svg>
+        <svg id="d-factor" class="chart" viewBox="0 0 640 230" role="img" aria-label="소광 등급에 따라 거리를 몇 배로 착각하는지 보여 주는 그래프"></svg>
+        <p class="insight" id="d-insight"></p>
+      </section>
+      <section class="panel result dist-steps">
+        <div class="panel-heading"><h3><span class="step">3</span> 거리 지수에 소광 넣기</h3></div>
+        <div id="d-steps" class="steps"></div>
+      </section>
+      <section class="panel dist-cmd">
+        <div class="panel-heading">
+          <h3><span class="step">4</span> 성단의 C-M도는 어떻게 옮겨질까 <span class="micro">(교과서 124쪽 10번)</span></h3>
+        </div>
+        <div class="cmd-controls">
+          <div class="segmented" id="cmd-E" role="group" aria-label="색초과">
+            <button type="button" data-e="0" aria-pressed="false">E = 0</button>
+            <button type="button" data-e="0.5" aria-pressed="true">E = 0.5</button>
+            <button type="button" data-e="1" aria-pressed="false">E = 1.0</button>
+          </div>
+          <div class="cmd-fix">
+            <button type="button" class="compact" id="cmd-fix1" aria-pressed="false">① 색초과 보정 (← E)</button>
+            <button type="button" class="compact" id="cmd-fix2" aria-pressed="false">② 소광 보정 (↑ 3E)</button>
+          </div>
+        </div>
+        <svg id="cmd-chart" class="chart" viewBox="0 0 640 380" role="img" aria-label="플레이아데스 성단의 C-M도와 티끌 때문에 옮겨진 C-M도"></svg>
+        <p class="insight" id="cmd-insight"></p>
+      </section>
+      <section class="panel dist-story">
+        <div class="panel-heading"><h3><span class="step">5</span> 06 성단과 C-M도의 M3, 다시 보기</h3></div>
+        <div class="story-body" id="m3-story"></div>
+      </section>
+    </div>
+    <p class="hint">거리 지수 식의 r은 pc 단위입니다. 슬라이더를 움직이면 예제가 '직접 해 보기'로 바뀝니다.</p>
+  </section>
+
+  <footer class="credit">모형의 수치는 교과서(102~107쪽)와 수업 활동지에 맞춘 교육용 값입니다. 소광 곡선: Cardelli, Clayton &amp; Mathis (1989). 플레이아데스 C-M도: Stauffer 외 (2007) 관측 자료. M3 색초과: Harris 구상 성단 목록(2010판).<br>
+    사진: 바너드 68 ⓒ ESO (CC BY 4.0) · 창조의 기둥 NASA, ESA/Hubble, Hubble Heritage Team (CC BY 4.0) / NASA, ESA, CSA, STScI (CC BY 4.0) · 은하수 ⓒ ESO/S. Brunier (CC BY 4.0) · 적외선 우리은하 NASA/GSFC/COBE (퍼블릭 도메인) · 오리온자리 제타 별 주변 Giuseppe Donatiello (CC0). 그림 속 성운과 별은 직접 그렸습니다.</footer>
+</main>
+</body>
+</html>
