@@ -531,7 +531,6 @@
         const classItems = currentClass.items
             .map(it => ({ ...simulations.find(s => s.id === it.id), ...it }))
             .filter(it => it.url);
-        const classIds = new Set(classItems.map(it => it.id));
 
         // 주소(#아이디)로 열 수 있는 모든 화면
         const items = [pinnedItem, ...simulations];
@@ -635,13 +634,12 @@
                 // 찾는 중에는 묶지 않고 한 덩어리로 보여 준다
                 if (shown.length) cardContainer.appendChild(makeSection(`찾은 실험`, shown));
             } else {
-                // '전체' 에서는 시험 범위 묶음을 맨 위에 모으고, 아래 분류에서는 겹치지 않게 뺀다
-                const showClass = activeCat === 'all' && classItems.length > 0;
-                if (showClass) {
+                // '전체' 에서는 시험 범위 묶음을 맨 위에 따로 보여 주고, 아래 분류에도 그대로 둔다
+                if (activeCat === 'all' && classItems.length > 0) {
                     cardContainer.appendChild(makeSection(`📌 ${currentClass.title}`, classItems, currentClass.note, 'section-class'));
                 }
                 categories.forEach(c => {
-                    const list = shown.filter(s => s.category === c.id && !(showClass && classIds.has(s.id)));
+                    const list = shown.filter(s => s.category === c.id);
                     if (list.length) cardContainer.appendChild(makeSection(`${c.icon} ${c.name}`, list));
                 });
             }
