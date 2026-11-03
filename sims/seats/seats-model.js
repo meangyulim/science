@@ -2,12 +2,13 @@
    브라우저에서는 window.SeatsModel, Node 에서는 require 로 쓴다 (tests/seats-model.test.cjs).
 
    교실: 줄 6개. 한 줄에 5자리, 복도에 붙은 줄만 7자리 → 모두 32자리.
+   두 줄씩 붙어 짝을 이루고(분단), 분단 사이에는 통로가 있다.
    자리 이름은 '줄-번째' — 줄 k 는 복도 쪽이 0, 창가 쪽이 5. 번째 r 은 칠판 쪽(맨 앞)이 0.
    복도가 칠판 기준 왼쪽인지 오른쪽인지는 화면에서만 뒤집는다. 그래서 복도 위치를 바꿔도
    학생들이 골라 둔 자리('복도 쪽 둘째 줄 맨 앞' 같은)는 그대로 맞는다.
 
    한 학생의 만족도(0~1) = 친구 점수와 자리 점수를 선생님이 정한 비율로 섞은 값.
-     친구 점수: 고른 친구(1·2·3순위 = 1, 0.8, 0.6)가 얼마나 가까운지. 옆자리 1, 앞뒤 0.75, 대각선 0.5 …
+     친구 점수: 고른 친구(1·2·3순위 = 1, 0.8, 0.6)가 얼마나 가까운지. 짝 1, 앞뒤 0.75, 대각선 0.5, 통로 건너 옆 0.4 …
      자리 점수: 고른 자리(최대 3곳) 가운데 가장 가까운 곳까지의 거리로 정한다. 그 자리면 1.
    배치 전체의 점수 = 학생마다 √(만족도)를 더한 값. 제곱근이라 이미 만족한 학생을 더 만족시키기보다
    아무도 못 얻은 학생을 끌어올리는 쪽이 점수가 더 오른다 — 한두 명만 손해 보는 배치를 피한다.
@@ -32,37 +33,48 @@
   // 빈자리에 새 학생을 앉힐 때의 순서: 앞줄부터, 같은 줄에서는 복도 쪽부터
   const FILL_ORDER = SEATS.slice().sort((a, b) => a.r - b.r || a.k - b.k);
 
-  // 두 자리가 얼마나 가까운가 (줄 차이 dk, 번째 차이 dr)
-  const NEAR = [
-    [0, 0.75, 0.25],   // 같은 줄: 앞뒤, 두 칸 앞뒤
-    [1, 0.5, 0.15],    // 옆 줄: 옆자리, 대각선, 한 칸 건너 대각선
-    [0.25, 0.15, 0]    // 두 줄 건너
-  ];
+  // 책상은 두 줄씩 붙어 있다 (복도 쪽부터 1분단 = 0·1줄, 2분단 = 2·3줄, 3분단 = 4·5줄).
+  // 분단 사이에는 통로가 있어서, 통로 건너 옆자리는 짝보다 훨씬 멀다.
+  const pairOf = k => Math.floor(k / 2);
+  const AISLE = 0.6;                     // 통로 너비 (책상 너비를 1로 볼 때)
+  const xOf = k => k + AISLE * pairOf(k);  // 실제 가로 위치
+  // 두 자리가 얼마나 가까운가 — [번째 차이 0, 1, 2]
+  const SAME_COL = [0, 0.75, 0.25];      // 같은 줄: 앞뒤, 두 칸 앞뒤
+  const DESKMATE = [1, 0.5, 0.15];       // 같은 분단 옆 줄: 짝, 대각선, 한 칸 건너 대각선
+  const ACROSS = [0.4, 0.2, 0.05];       // 통로 건너 옆 줄
+  const FAR = [0.1, 0.05, 0];            // 두 줄 건너 (사이에 통로가 하나 있다)
   function near(a, b) {
     const dk = Math.abs(a.k - b.k), dr = Math.abs(a.r - b.r);
-    return dk < 3 && dr < 3 ? NEAR[dk][dr] : 0;
+    if (dr > 2) return 0;
+    if (dk === 0) return SAME_COL[dr];
+    if (dk === 1) return (pairOf(a.k) === pairOf(b.k) ? DESKMATE : ACROSS)[dr];
+    if (dk === 2) return FAR[dr];
+    return 0;
   }
   const NM = new Float64Array(NSEAT * NSEAT);
   for (const a of SEATS) for (const b of SEATS) NM[a.i * NSEAT + b.i] = a === b ? 0 : near(a, b);
+  // 짝 자리와 앞뒤 자리 — 두 자리를 한 덩어리로 옮길 때 쓴다
+  const NBRS = SEATS.map(a => SEATS.filter(b => NM[a.i * NSEAT + b.i] >= 0.75).map(b => b.i));
 
-  // 고른 자리에서 얼마나 가까운가: 그 자리 1, 바로 옆 0.66, 대각선 0.44, 두 칸 0.19
+  // 고른 자리에서 얼마나 가까운가 (통로 너비까지 친 실제 거리): 그 자리 1, 짝 자리·앞뒤 0.66, 통로 건너 0.35, 두 칸 0.19
   const WISH_SIGMA = 1.1;
-  const wishAt = (seat, w) => Math.exp(-((seat.k - w.k) ** 2 + (seat.r - w.r) ** 2) / (2 * WISH_SIGMA * WISH_SIGMA));
+  const wishAt = (seat, w) => Math.exp(-((xOf(seat.k) - xOf(w.k)) ** 2 + (seat.r - w.r) ** 2) / (2 * WISH_SIGMA * WISH_SIGMA));
 
   function relation(v) {
-    if (v >= 1) return '옆자리';
+    if (v >= 1) return '짝';
     if (v >= 0.75) return '앞뒤';
     if (v >= 0.5) return '대각선';
+    if (v >= 0.4) return '통로 건너 옆';
     if (v > 0) return '조금 떨어짐';
     return '멀어요';
   }
   const ORD = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째'];
-  // 사람이 읽는 자리 이름. 복도 쪽 줄부터 센다.
+  // 사람이 읽는 자리 이름. 분단과 줄은 복도 쪽부터 센다.
   function seatName(id) {
     const s = SEAT[id];
     if (!s) return '';
     const col = s.k === 0 ? '복도 쪽 줄' : s.k === COLS - 1 ? '창가 쪽 줄' : `복도에서 ${ORD[s.k]} 줄`;
-    return `${col} · 앞에서 ${s.r + 1}번째`;
+    return `${pairOf(s.k) + 1}분단 ${col} · 앞에서 ${s.r + 1}번째`;
   }
 
   // ── 명단 ─────────────────────────────────────────────────────
@@ -262,6 +274,8 @@
       this.cur = score(prob, this.occ, this.pos);
       this.best = this.cur;
       this.bestOcc = Int16Array.from(this.occ);
+      this.canMove = new Uint8Array(NSEAT);
+      for (const i of prob.movable) this.canMove[i] = 1;
     }
     get T() { return this.T0 * Math.pow(this.T1 / this.T0, Math.min(1, this.it / this.iters)); }
     swap(a, b) {
@@ -280,13 +294,26 @@
         const a = mv[Math.floor(rand() * m)];
         let b = mv[Math.floor(rand() * (m - 1))];
         if (b === a) b = mv[m - 1];
-        if (this.occ[a] < 0 && this.occ[b] < 0) continue;
+        // 열에 셋은 한 자리끼리, 하나는 두 자리 덩어리끼리 바꾼다. 짝·앞뒤로 붙은 두 친구를
+        // 한 번에 옮길 수 있어야 '한 명씩 옮기면 둘 다 잠깐 손해'인 자리에서 빠져나온다.
+        let a2 = -1, b2 = -1;
+        if (rand() < 0.25) {
+          const na = NBRS[a], nb = NBRS[b];
+          a2 = na[Math.floor(rand() * na.length)];
+          b2 = nb[Math.floor(rand() * nb.length)];
+          if (a2 === undefined || b2 === undefined || !this.canMove[a2] || !this.canMove[b2] || a2 === b || b2 === a || a2 === b2) a2 = b2 = -1;
+        }
+        if (this.occ[a] < 0 && this.occ[b] < 0 && (a2 < 0 || (this.occ[a2] < 0 && this.occ[b2] < 0))) continue;
         this.swap(a, b);
+        if (a2 >= 0) this.swap(a2, b2);
         const ns = score(this.p, this.occ, this.pos), d = ns - this.cur;
         if (d >= 0 || rand() < Math.exp(d / T)) {
           this.cur = ns;
           if (ns > this.best + 1e-12) { this.best = ns; this.bestOcc = Int16Array.from(this.occ); }
-        } else this.swap(a, b);
+        } else {
+          if (a2 >= 0) this.swap(a2, b2);
+          this.swap(a, b);
+        }
       }
       return this.it >= this.iters;
     }
@@ -351,7 +378,7 @@
 
   const api = {
     COLS, ROWS, HALL_ROWS, ROWS_MAX, NSEAT, SEATS, SEAT, FILL_ORDER, MAX_FRIENDS, MAX_WISHES, FRIEND_W,
-    near, wishAt, relation, seatName, parseRoster, assignKeys, rosterList, splitList,
+    AISLE, pairOf, xOf, near, wishAt, relation, seatName, parseRoster, assignKeys, rosterList, splitList,
     prepare, posOf, parts, score, applyLocks, toOcc, toMap, rng, randomOcc, Annealer, polish, optimize, report
   };
   if (typeof module === 'object' && module.exports) module.exports = api;

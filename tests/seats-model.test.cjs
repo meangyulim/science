@@ -16,19 +16,37 @@ test('classroom: 6 rows of 5 seats, the hallway row has 7 — 32 seats',()=>{
   assert.equal(M.FILL_ORDER[6].id,'0-1');
 });
 
-test('nearness: side by side beats front-back beats diagonal, symmetric',()=>{
+test('nearness: desk pairs with an aisle between them',()=>{
   const n=(a,b)=>M.near(M.SEAT[a],M.SEAT[b]);
-  assert.equal(n('2-2','3-2'),1);
-  assert.equal(n('2-2','2-3'),0.75);
-  assert.equal(n('2-2','3-3'),0.5);
+  assert.equal(n('2-2','3-2'),1);      // 같은 분단 짝
+  assert.equal(n('2-2','2-3'),0.75);   // 앞뒤
+  assert.equal(n('2-2','3-3'),0.5);    // 짝의 대각선
   assert.equal(n('2-2','2-4'),0.25);
+  assert.equal(n('1-2','2-2'),0.4);    // 통로 건너 옆 — 짝보다 훨씬 멀다
+  assert.equal(n('3-1','4-2'),0.2);
+  assert.equal(n('1-2','3-2'),0.1);    // 두 줄 건너
   assert.equal(n('0-0','5-4'),0);
+  assert.deepEqual([0,1,2,3,4,5].map(M.pairOf),[0,0,1,1,2,2]);
   for(const a of M.SEATS)for(const b of M.SEATS)assert.equal(M.near(a,b),M.near(b,a));
-  assert.equal(M.relation(1),'옆자리');
+  // 원하는 자리: 통로 건너 옆자리는 짝 자리보다 덜 가깝다
+  const w=M.SEAT['2-2'];
+  assert.ok(M.wishAt(M.SEAT['3-2'],w)>M.wishAt(M.SEAT['1-2'],w));
+  assert.equal(M.relation(1),'짝');
+  assert.equal(M.relation(0.4),'통로 건너 옆');
   assert.equal(M.relation(0),'멀어요');
-  assert.equal(M.seatName('0-2'),'복도 쪽 줄 · 앞에서 3번째');
-  assert.equal(M.seatName('5-0'),'창가 쪽 줄 · 앞에서 1번째');
-  assert.equal(M.seatName('2-0'),'복도에서 셋째 줄 · 앞에서 1번째');
+  assert.equal(M.seatName('0-2'),'1분단 복도 쪽 줄 · 앞에서 3번째');
+  assert.equal(M.seatName('5-0'),'3분단 창가 쪽 줄 · 앞에서 1번째');
+  assert.equal(M.seatName('2-0'),'2분단 복도에서 셋째 줄 · 앞에서 1번째');
+});
+
+test('friends who choose each other become desk partners, not neighbours across the aisle',()=>{
+  const st=kids(4);
+  st[0].friends=['s02'];st[1].friends=['s01'];
+  st[2].friends=['s04'];st[3].friends=['s03'];
+  const prob=M.prepare(st,{locks:{s01:'1-0',s03:'2-0'}});   // s01·s03 을 통로 양쪽에 고정
+  const occ=M.optimize(prob,null,{rand:M.rng(4),restarts:2,iters:6000});
+  assert.equal(seatOf(prob,occ,'s02').id,'0-0');   // s01 의 짝 자리
+  assert.equal(seatOf(prob,occ,'s04').id,'3-0');   // s03 의 짝 자리
 });
 
 test('roster: numbers, tabs from a spreadsheet, plain names',()=>{

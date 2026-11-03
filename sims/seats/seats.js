@@ -231,6 +231,7 @@
   // ════════════════════════════════════════════════════════════
   //  교실 그림 (선생님 화면, 학생의 자리 고르기, 결과에서 같이 쓴다)
   // ════════════════════════════════════════════════════════════
+  const AISLE_VIEW = 0.5, FLOOR_W = M.COLS + 2 * AISLE_VIEW;   // 바닥 너비 = 책상 6개 + 통로 2개
   class Board {
     constructor(host, o) {
       this.o = o = o || {};
@@ -240,6 +241,10 @@
       this.sideL = h('div', {class: 'side'});
       this.sideR = h('div', {class: 'side'});
       this.floor = h('div', {class: 'floor'});
+      for (let p = 1; p < M.COLS / 2; p++) {
+        const x = (2 * p + AISLE_VIEW * (p - 0.5)) / FLOOR_W * 100;
+        this.floor.append(h('div', {class: 'aisle', style: `left:${x}%;width:${AISLE_VIEW / FLOOR_W * 100}%`}));
+      }
       this.svg = svg('svg', {class: 'lines', viewBox: '0 0 600 700', preserveAspectRatio: 'none', 'aria-hidden': 'true'}, this.floor);
       this.root.append(this.wall, h('div', {class: 'room-mid'}, this.sideL, this.floor, this.sideR));
       host.append(this.root);
@@ -259,7 +264,8 @@
       const s = M.SEAT[id];
       let c = this.hall === 'left' ? s.k : M.COLS - 1 - s.k, r = s.r;
       if (this.flip) { c = M.COLS - 1 - c; r = M.ROWS_MAX - 1 - r; }
-      return {x: (c + 0.5) / M.COLS * 100, y: (r + 0.5) / M.ROWS_MAX * 100};
+      // 두 줄씩 붙은 책상 사이에 통로(책상 너비의 반)를 둔다
+      return {x: (c + AISLE_VIEW * Math.floor(c / 2) + 0.5) / FLOOR_W * 100, y: (r + 0.5) / M.ROWS_MAX * 100};
     }
     view(hall, flip) {
       hall = hall === 'right' ? 'right' : 'left';
@@ -1070,7 +1076,7 @@
     let text = mine ? '빨간 테두리가 내 자리예요.' : '';
     if (mine && myF.length) {
       const near = myF.filter(k => where[k] && M.near(M.SEAT[mine], M.SEAT[where[k]]) >= 0.75).length;
-      text += near ? ` 고른 친구 ${myF.length}명 가운데 ${near}명이 옆이나 앞뒤에 있어요.` : ' 고른 친구와는 조금 떨어졌지만, 모두가 골고루 원하는 것을 얻도록 정한 자리예요.';
+      text += near ? ` 고른 친구 ${myF.length}명 가운데 ${near}명이 짝이나 앞뒤에 있어요.` : ' 고른 친구와는 조금 떨어졌지만, 모두가 골고루 원하는 것을 얻도록 정한 자리예요.';
     }
     $('res-text').textContent = text;
   }
@@ -1082,8 +1088,8 @@
     // 첫 화면 그림: 32자리 교실
     const g = $('entry-art-desks');
     for (const s of M.SEATS) {
-      const x = 52 + (s.k) * 44, y = 16 + s.r * 11;
-      svg('rect', {x, y, width: 36, height: 8, rx: 2, class: (s.k * 7 + s.r * 3) % 5 === 0 ? 'hot' : ''}, g);
+      const x = 50 + s.k * 40 + Math.floor(s.k / 2) * 18, y = 16 + s.r * 11;
+      svg('rect', {x, y, width: 38, height: 8, rx: 2, class: (s.k * 7 + s.r * 3) % 5 === 0 ? 'hot' : ''}, g);
     }
     const room = (params.get('room') || '').replace(/\D/g, '').slice(0, 4);
     $('join-code').value = room || '';

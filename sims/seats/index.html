@@ -49,7 +49,7 @@
         <li><b>방 열기</b> — 선생님이 방을 열고 반 명단을 붙여 넣습니다. 복도가 칠판 기준 어느 쪽인지도 정해요.</li>
         <li><b>바람 내기</b> — 학생은 QR로 들어와 자기 이름을 고르고, 같이 앉고 싶은 친구(최대 3명)와 앉고 싶은 자리(최대 3곳)를 고릅니다. 다른 친구가 무엇을 골랐는지는 아무도 볼 수 없어요.</li>
         <li><b>실시간 배치</b> — 바람이 들어올 때마다 선생님 화면의 자리가 조금씩 다시 맞춰집니다.</li>
-        <li><b>자리 배치 돌리기</b> — 다 모이면 처음부터 크게 섞어서 가장 좋은 배치를 찾습니다. 아무도 크게 손해 보지 않게, 한 명도 못 얻은 학생부터 챙겨요.</li>
+        <li><b>자리 배치 돌리기</b> — 다 모이면 처음부터 크게 섞어서 가장 좋은 배치를 찾습니다. 두 줄씩 붙은 짝 자리와 분단 사이 통로까지 따져서, 통로 건너 옆자리는 짝보다 먼 자리로 칩니다. 아무도 크게 손해 보지 않게, 한 명도 못 얻은 학생부터 챙겨요.</li>
         <li><b>공개</b> — 마음에 들면 학생 폰에 공개합니다. 각자 자기 자리를 확인해요.</li>
       </ol>
     </details>
@@ -157,7 +157,7 @@
       <section class="t-stats" id="t-stats">
         <div class="big-stat"><b id="st-avg">—</b><small>평균 만족도</small></div>
         <ul>
-          <li><span>친구가 옆·앞뒤에</span><b id="st-fr">—</b></li>
+          <li><span>친구가 짝·앞뒤에</span><b id="st-fr">—</b></li>
           <li><span>원한 자리 근처</span><b id="st-wi">—</b></li>
           <li id="st-ap-row" hidden><span>떨어뜨리기 못 지킴</span><b id="st-ap">0</b></li>
         </ul>
@@ -175,7 +175,7 @@
         <summary>조건 · 보기 설정</summary>
         <div class="more-body">
           <h3>떨어뜨려 앉히기</h3>
-          <p class="hint">서로 원해도 옆·앞뒤·대각선에 앉히지 않아요. 학생들에게는 보이지 않습니다.</p>
+          <p class="hint">서로 원해도 짝·앞뒤·대각선에는 앉히지 않고, 통로 건너 옆자리도 되도록 피해요. 학생들에게는 보이지 않습니다.</p>
           <div class="apart-add">
             <select id="ap-a" aria-label="첫째 학생"></select>
             <select id="ap-b" aria-label="둘째 학생"></select>
@@ -237,7 +237,7 @@
       <button type="button" data-hall="left">왼쪽</button>
       <button type="button" data-hall="right">오른쪽</button>
     </div>
-    <p class="hint">복도 쪽 줄만 7자리, 나머지 다섯 줄은 5자리씩 — 모두 32자리예요.</p>
+    <p class="hint">두 줄씩 붙어 짝을 이루고 분단 사이에 통로가 있어요. 복도 쪽 줄만 7자리, 나머지 다섯 줄은 5자리씩 — 모두 32자리예요.</p>
     <div class="dialog-actions">
       <button class="ghost" value="cancel" id="r-cancel" formnovalidate>닫기</button>
       <button class="primary" value="ok" id="r-ok">저장하고 학생 받기</button>
