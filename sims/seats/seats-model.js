@@ -1,0 +1,359 @@
+/* 자리 배치 시뮬레이션 — 화면과 분리한 계산 모형.
+   브라우저에서는 window.SeatsModel, Node 에서는 require 로 쓴다 (tests/seats-model.test.cjs).
+
+   교실: 줄 6개. 한 줄에 5자리, 복도에 붙은 줄만 7자리 → 모두 32자리.
+   자리 이름은 '줄-번째' — 줄 k 는 복도 쪽이 0, 창가 쪽이 5. 번째 r 은 칠판 쪽(맨 앞)이 0.
+   복도가 칠판 기준 왼쪽인지 오른쪽인지는 화면에서만 뒤집는다. 그래서 복도 위치를 바꿔도
+   학생들이 골라 둔 자리('복도 쪽 둘째 줄 맨 앞' 같은)는 그대로 맞는다.
+
+   한 학생의 만족도(0~1) = 친구 점수와 자리 점수를 선생님이 정한 비율로 섞은 값.
+     친구 점수: 고른 친구(1·2·3순위 = 1, 0.8, 0.6)가 얼마나 가까운지. 옆자리 1, 앞뒤 0.75, 대각선 0.5 …
+     자리 점수: 고른 자리(최대 3곳) 가운데 가장 가까운 곳까지의 거리로 정한다. 그 자리면 1.
+   배치 전체의 점수 = 학생마다 √(만족도)를 더한 값. 제곱근이라 이미 만족한 학생을 더 만족시키기보다
+   아무도 못 얻은 학생을 끌어올리는 쪽이 점수가 더 오른다 — 한두 명만 손해 보는 배치를 피한다.
+   여기에 '떨어뜨리기' 짝이 가까우면 크게 깎고, 앞자리가 비면 조금 깎는다.
+   이 점수가 가장 높은 배치를 담금질(simulated annealing)로 찾는다. */
+(function(root) {
+  'use strict';
+
+  const COLS = 6, ROWS = 5, HALL_ROWS = 7, ROWS_MAX = HALL_ROWS;
+  const MAX_FRIENDS = 3, MAX_WISHES = 3;
+  const FRIEND_W = [1, 0.8, 0.6];
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  // ── 교실 ─────────────────────────────────────────────────────
+  const SEATS = [];
+  for (let k = 0; k < COLS; k++) {
+    const n = k === 0 ? HALL_ROWS : ROWS;
+    for (let r = 0; r < n; r++) SEATS.push({id: k + '-' + r, k, r, i: SEATS.length});
+  }
+  const NSEAT = SEATS.length;   // 32
+  const SEAT = Object.fromEntries(SEATS.map(s => [s.id, s]));
+  // 빈자리에 새 학생을 앉힐 때의 순서: 앞줄부터, 같은 줄에서는 복도 쪽부터
+  const FILL_ORDER = SEATS.slice().sort((a, b) => a.r - b.r || a.k - b.k);
+
+  // 두 자리가 얼마나 가까운가 (줄 차이 dk, 번째 차이 dr)
+  const NEAR = [
+    [0, 0.75, 0.25],   // 같은 줄: 앞뒤, 두 칸 앞뒤
+    [1, 0.5, 0.15],    // 옆 줄: 옆자리, 대각선, 한 칸 건너 대각선
+    [0.25, 0.15, 0]    // 두 줄 건너
+  ];
+  function near(a, b) {
+    const dk = Math.abs(a.k - b.k), dr = Math.abs(a.r - b.r);
+    return dk < 3 && dr < 3 ? NEAR[dk][dr] : 0;
+  }
+  const NM = new Float64Array(NSEAT * NSEAT);
+  for (const a of SEATS) for (const b of SEATS) NM[a.i * NSEAT + b.i] = a === b ? 0 : near(a, b);
+
+  // 고른 자리에서 얼마나 가까운가: 그 자리 1, 바로 옆 0.66, 대각선 0.44, 두 칸 0.19
+  const WISH_SIGMA = 1.1;
+  const wishAt = (seat, w) => Math.exp(-((seat.k - w.k) ** 2 + (seat.r - w.r) ** 2) / (2 * WISH_SIGMA * WISH_SIGMA));
+
+  function relation(v) {
+    if (v >= 1) return '옆자리';
+    if (v >= 0.75) return '앞뒤';
+    if (v >= 0.5) return '대각선';
+    if (v > 0) return '조금 떨어짐';
+    return '멀어요';
+  }
+  const ORD = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째'];
+  // 사람이 읽는 자리 이름. 복도 쪽 줄부터 센다.
+  function seatName(id) {
+    const s = SEAT[id];
+    if (!s) return '';
+    const col = s.k === 0 ? '복도 쪽 줄' : s.k === COLS - 1 ? '창가 쪽 줄' : `복도에서 ${ORD[s.k]} 줄`;
+    return `${col} · 앞에서 ${s.r + 1}번째`;
+  }
+
+  // ── 명단 ─────────────────────────────────────────────────────
+  // 한 줄에 한 명. "12 김민지", "12. 김민지", "12번 김민지", 엑셀에서 복사한 "12<탭>김민지", "김민지" 모두 된다.
+  function parseRoster(text) {
+    const out = [];
+    for (let line of String(text || '').split(/\r?\n/)) {
+      line = line.replace(/[\s ]+/g, ' ').trim();
+      if (!line) continue;
+      let no = null, name = line;
+      const m = line.match(/^(\d{1,5})\s*(?:번)?\s*[.):,-]?\s+(.+)$/) || line.match(/^(\d{1,5})(?:번|[.):])\s*(.+)$/);
+      if (m) { no = +m[1]; name = m[2].trim(); }
+      name = name.replace(/[.#$\[\]\/]/g, '').slice(0, 12).trim();
+      if (name) out.push({no, name});
+    }
+    return out;
+  }
+  // 명단을 고쳐도 이미 들어온 학생의 열쇠(s01 …)가 바뀌지 않게, 같은 이름·번호면 예전 열쇠를 다시 쓴다.
+  function assignKeys(list, old) {
+    const prev = Object.entries(old || {});
+    const used = new Set();
+    let next = 1;
+    for (const [k] of prev) { const n = +String(k).slice(1); if (n >= next) next = n + 1; }
+    const fresh = () => { let k; do k = 's' + String(next++).padStart(2, '0'); while (used.has(k)); return k; };
+    const out = {};
+    const take = test => { const hit = prev.find(([k, v]) => !used.has(k) && test(v)); return hit ? hit[0] : null; };
+    for (const p of list) {
+      const k = take(v => v.name === p.name && (v.no ?? null) === (p.no ?? null)) || take(v => v.name === p.name) || fresh();
+      used.add(k);
+      out[k] = p.no == null ? {name: p.name} : {no: p.no, name: p.name};
+    }
+    return out;
+  }
+  // 번호 순(번호 없으면 뒤로), 같은 이름이 둘이면 번호를 붙여 구별한다
+  function rosterList(roster) {
+    const list = Object.entries(roster || {}).map(([key, v]) => ({key, no: v.no ?? null, name: v.name}));
+    list.sort((a, b) => (a.no ?? 1e9) - (b.no ?? 1e9) || a.key.localeCompare(b.key));
+    const count = {};
+    for (const s of list) count[s.name] = (count[s.name] || 0) + 1;
+    for (const s of list) s.label = count[s.name] > 1 ? `${s.name}(${s.no ?? s.key})` : s.name;
+    return list;
+  }
+  // 서버에는 짧은 글자로 보낸다: "s03,s07", "0-1,2-3"
+  const splitList = s => String(s || '').split(',').map(x => x.trim()).filter(Boolean);
+
+  // ── 문제 만들기 ───────────────────────────────────────────────
+  // students: [{key, friends: [key], wishes: [seatId]}], opts: {fw: 친구 비중 0~1, locks: {key: seatId}, apart: [[key, key]]}
+  function prepare(students, opts) {
+    opts = opts || {};
+    if (students.length > NSEAT) throw new Error(`자리는 ${NSEAT}개인데 학생이 ${students.length}명이에요.`);
+    const keys = students.map(s => s.key);
+    const idx = new Map(keys.map((k, i) => [k, i]));
+    const fr = students.map((s, i) => {
+      const seen = new Set();
+      const list = [];
+      for (const k of s.friends || []) {
+        const j = idx.get(k);
+        if (j === undefined || j === i || seen.has(j)) continue;
+        seen.add(j);
+        list.push(j);
+      }
+      return list.slice(0, MAX_FRIENDS).map((j, q) => [j, FRIEND_W[q]]);
+    });
+    const wish = students.map(s => {
+      const w = [...new Set(s.wishes || [])].map(id => SEAT[id]).filter(Boolean).slice(0, MAX_WISHES);
+      if (!w.length) return null;
+      return Float64Array.from(SEATS, seat => Math.max(...w.map(x => wishAt(seat, x))));
+    });
+    const lockSeat = new Int16Array(students.length).fill(-1);
+    const taken = new Set();
+    students.forEach((s, i) => {
+      const seat = opts.locks && SEAT[opts.locks[s.key]];
+      if (seat && !taken.has(seat.i)) { lockSeat[i] = seat.i; taken.add(seat.i); }
+    });
+    // 떨어뜨리기 짝은 서로를 친구로 골랐더라도 그 바람은 빼고 계산한다 (못 이룰 바람이 만족도를 깎지 않게)
+    const apart = [];
+    for (const [a, b] of opts.apart || []) {
+      const i = idx.get(a), j = idx.get(b);
+      if (i === undefined || j === undefined || i === j) continue;
+      apart.push([i, j]);
+      for (const [x, y] of [[i, j], [j, i]]) {
+        const q = fr[x].findIndex(([z]) => z === y);
+        if (q >= 0) fr[x] = fr[x].filter((_, n) => n !== q).map(([z], n) => [z, FRIEND_W[n]]);
+      }
+    }
+    const movable = SEATS.filter(s => !taken.has(s.i)).map(s => s.i);
+    return {n: students.length, keys, idx, fr, wish, lockSeat, apart, movable, fw: clamp(opts.fw ?? 0.6, 0, 1)};
+  }
+
+  // occ: 자리 → 학생 번호(-1 은 빈자리). pos: 학생 → 자리.
+  function posOf(prob, occ) {
+    const pos = new Int16Array(prob.n).fill(-1);
+    for (let s = 0; s < NSEAT; s++) if (occ[s] >= 0) pos[occ[s]] = s;
+    return pos;
+  }
+
+  // 한 학생의 만족도. 원하는 것을 아무것도 안 냈으면 null.
+  function parts(prob, pos, i) {
+    const f = prob.fr[i], w = prob.wish[i];
+    let F = null, P = null;
+    if (f.length) {
+      let sum = 0, sw = 0;
+      for (const [j, wt] of f) { sum += wt * NM[pos[i] * NSEAT + pos[j]]; sw += wt; }
+      F = sum / sw;
+    }
+    if (w) P = w[pos[i]];
+    const wf = F === null ? 0 : prob.fw, ww = P === null ? 0 : 1 - prob.fw;
+    const s = wf + ww > 0 ? ((wf ? wf * F : 0) + (ww ? ww * P : 0)) / (wf + ww) : (F ?? P);
+    return {F, P, s: F === null && P === null ? null : s};
+  }
+  const APART_PENALTY = 10, EMPTY_FRONT = 0.15;
+  function score(prob, occ, pos) {
+    pos = pos || posOf(prob, occ);
+    let t = 0;
+    for (let i = 0; i < prob.n; i++) {
+      const s = parts(prob, pos, i).s;
+      if (s !== null) t += Math.sqrt(s + 0.01);
+    }
+    for (const [a, b] of prob.apart) t -= APART_PENALTY * NM[pos[a] * NSEAT + pos[b]];
+    for (let s = 0; s < NSEAT; s++) if (occ[s] < 0) t -= EMPTY_FRONT * (1 - SEATS[s].r / ROWS_MAX);
+    return t;
+  }
+
+  // 고정한 학생을 고정한 자리로 옮긴다 (그 자리에 있던 학생은 고정 학생이 있던 자리로)
+  function applyLocks(prob, occ) {
+    occ = Int16Array.from(occ);
+    for (let i = 0; i < prob.n; i++) {
+      const L = prob.lockSeat[i];
+      if (L < 0) continue;
+      const from = occ.indexOf(i);
+      if (from === L) continue;
+      const other = occ[L];
+      occ[L] = i;
+      if (from >= 0) occ[from] = other;
+      else if (other >= 0) { const e = FILL_ORDER.find(s => occ[s.i] < 0 && prob.lockSeat.indexOf(s.i) < 0); if (e) occ[e.i] = other; }
+    }
+    return occ;
+  }
+
+  // 자리 이름 → 열쇠 지도({ '0-1': 's03' })를 occ 로. 자리가 없는 학생은 앞쪽 빈자리부터 앉힌다.
+  function toOcc(prob, map) {
+    const occ = new Int16Array(NSEAT).fill(-1);
+    const placed = new Set();
+    for (const [sid, key] of Object.entries(map || {})) {
+      const s = SEAT[sid], i = prob.idx.get(key);
+      if (s && i !== undefined && occ[s.i] < 0 && !placed.has(i)) { occ[s.i] = i; placed.add(i); }
+    }
+    for (let i = 0; i < prob.n; i++) {
+      if (placed.has(i)) continue;
+      const s = FILL_ORDER.find(x => occ[x.i] < 0);
+      occ[s.i] = i;
+    }
+    return applyLocks(prob, occ);
+  }
+  function toMap(prob, occ) {
+    const map = {};
+    for (let s = 0; s < NSEAT; s++) if (occ[s] >= 0) map[SEATS[s].id] = prob.keys[occ[s]];
+    return map;
+  }
+
+  // ── 찾기 ─────────────────────────────────────────────────────
+  function rng(seed) {
+    let a = (seed >>> 0) || 1;
+    return () => {
+      a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function randomOcc(prob, rand) {
+    rand = rand || Math.random;
+    const occ = new Int16Array(NSEAT).fill(-1);
+    const free = prob.movable.slice();
+    for (let i = free.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [free[i], free[j]] = [free[j], free[i]]; }
+    let q = 0;
+    for (let i = 0; i < prob.n; i++) {
+      if (prob.lockSeat[i] >= 0) occ[prob.lockSeat[i]] = i;
+      else occ[free[q++]] = i;
+    }
+    return occ;
+  }
+
+  // 담금질: 두 자리를 바꿔 보고, 점수가 오르면 받아들인다. 내려가도 '온도'가 높을 때는 가끔 받아들여
+  // 지금 배치에 갇히지 않게 한다. 온도는 차츰 내려간다. step(n) 으로 조금씩 돌릴 수 있어 화면에 보여 주기 좋다.
+  class Annealer {
+    constructor(prob, occ, o) {
+      o = o || {};
+      this.p = prob;
+      this.occ = applyLocks(prob, occ || randomOcc(prob, o.rand));
+      this.pos = posOf(prob, this.occ);
+      this.iters = o.iters || 30000;
+      this.T0 = o.T0 ?? 0.3;
+      this.T1 = o.T1 ?? 0.002;
+      this.rand = o.rand || Math.random;
+      this.it = 0;
+      this.cur = score(prob, this.occ, this.pos);
+      this.best = this.cur;
+      this.bestOcc = Int16Array.from(this.occ);
+    }
+    get T() { return this.T0 * Math.pow(this.T1 / this.T0, Math.min(1, this.it / this.iters)); }
+    swap(a, b) {
+      const occ = this.occ, x = occ[a], y = occ[b];
+      occ[a] = y; occ[b] = x;
+      if (x >= 0) this.pos[x] = b;
+      if (y >= 0) this.pos[y] = a;
+    }
+    step(n) {
+      const mv = this.p.movable, m = mv.length, rand = this.rand;
+      if (m < 2 || !this.p.n) { this.it = this.iters; return true; }
+      const end = Math.min(this.iters, this.it + n);
+      while (this.it < end) {
+        const T = this.T;
+        this.it++;
+        const a = mv[Math.floor(rand() * m)];
+        let b = mv[Math.floor(rand() * (m - 1))];
+        if (b === a) b = mv[m - 1];
+        if (this.occ[a] < 0 && this.occ[b] < 0) continue;
+        this.swap(a, b);
+        const ns = score(this.p, this.occ, this.pos), d = ns - this.cur;
+        if (d >= 0 || rand() < Math.exp(d / T)) {
+          this.cur = ns;
+          if (ns > this.best + 1e-12) { this.best = ns; this.bestOcc = Int16Array.from(this.occ); }
+        } else this.swap(a, b);
+      }
+      return this.it >= this.iters;
+    }
+  }
+
+  // 마무리: 두 자리를 바꿔서 나아지는 것이 하나도 없을 때까지 바꾼다
+  function polish(prob, occ) {
+    occ = Int16Array.from(occ);
+    const pos = posOf(prob, occ), mv = prob.movable;
+    let cur = score(prob, occ, pos);
+    for (let pass = 0; pass < 30; pass++) {
+      let better = false;
+      for (let x = 0; x < mv.length; x++) for (let y = x + 1; y < mv.length; y++) {
+        const a = mv[x], b = mv[y], p = occ[a], q = occ[b];
+        if (p < 0 && q < 0) continue;
+        occ[a] = q; occ[b] = p;
+        if (p >= 0) pos[p] = b;
+        if (q >= 0) pos[q] = a;
+        const ns = score(prob, occ, pos);
+        if (ns > cur + 1e-9) { cur = ns; better = true; continue; }
+        occ[a] = p; occ[b] = q;
+        if (p >= 0) pos[p] = a;
+        if (q >= 0) pos[q] = b;
+      }
+      if (!better) break;
+    }
+    return occ;
+  }
+
+  // 한 번에 끝까지: 처음 배치(start)와 무작위 배치 여러 개에서 담금질 → 마무리 → 가장 좋은 것
+  function optimize(prob, start, o) {
+    o = o || {};
+    const rand = o.rand || Math.random;
+    let best = null, bestScore = -Infinity;
+    const restarts = o.restarts ?? 4;
+    for (let r = 0; r < restarts; r++) {
+      const a = new Annealer(prob, r === 0 && start ? start : randomOcc(prob, rand), {iters: o.iters || 30000, rand, T0: o.T0, T1: o.T1});
+      a.step(a.iters);
+      const occ = polish(prob, a.bestOcc), sc = score(prob, occ);
+      if (sc > bestScore) { bestScore = sc; best = occ; }
+    }
+    return best;
+  }
+
+  // ── 결과 읽기 ─────────────────────────────────────────────────
+  function report(prob, occ) {
+    const pos = posOf(prob, occ);
+    const people = [];
+    let sum = 0, cnt = 0, min = null, withF = 0, hasF = 0, wishHit = 0, hasW = 0;
+    for (let i = 0; i < prob.n; i++) {
+      const p = parts(prob, pos, i);
+      const friends = prob.fr[i].map(([j]) => ({key: prob.keys[j], near: NM[pos[i] * NSEAT + pos[j]]}));
+      const nearCount = friends.filter(f => f.near >= 0.75).length;
+      people.push({key: prob.keys[i], seat: SEATS[pos[i]].id, s: p.s, F: p.F, P: p.P, friends, nearCount, wishHit: p.P !== null && p.P >= 0.6});
+      if (p.s !== null) { sum += p.s; cnt++; min = min === null ? p.s : Math.min(min, p.s); }
+      if (friends.length) { hasF++; if (nearCount) withF++; }
+      if (p.P !== null) { hasW++; if (p.P >= 0.6) wishHit++; }
+    }
+    const apartBad = prob.apart.filter(([a, b]) => NM[pos[a] * NSEAT + pos[b]] >= 0.5).length;
+    return {people, byKey: Object.fromEntries(people.map(x => [x.key, x])), avg: cnt ? sum / cnt : null, min, count: cnt, withF, hasF, wishHit, hasW, apartBad};
+  }
+
+  const api = {
+    COLS, ROWS, HALL_ROWS, ROWS_MAX, NSEAT, SEATS, SEAT, FILL_ORDER, MAX_FRIENDS, MAX_WISHES, FRIEND_W,
+    near, wishAt, relation, seatName, parseRoster, assignKeys, rosterList, splitList,
+    prepare, posOf, parts, score, applyLocks, toOcc, toMap, rng, randomOcc, Annealer, polish, optimize, report
+  };
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.SeatsModel = api;
+})(typeof self !== 'undefined' ? self : this);

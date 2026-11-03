@@ -1,5 +1,39 @@
 {
   "rules": {
+    "seats": {
+      "rooms": {
+        "$code": {
+          ".read": "auth != null && data.child('meta/teacher').val() === auth.uid",
+          ".write": "auth != null && data.child('meta/teacher').val() === auth.uid",
+          "meta": {
+            ".read": "auth != null",
+            ".write": "auth != null && (!data.exists() || data.child('teacher').val() === auth.uid)",
+            ".validate": "newData.child('teacher').val() === auth.uid || !newData.exists()"
+          },
+          "roster": { ".read": "auth != null" },
+          "result": { ".read": "auth != null" },
+          "claims": {
+            ".read": "auth != null",
+            "$k": {
+              ".write": "auth != null && root.child('seats/rooms/' + $code + '/meta/phase').val() === 'open' && root.child('seats/rooms/' + $code + '/roster/' + $k).exists() && (!data.exists() || data.val() === auth.uid) && (!newData.exists() || newData.val() === auth.uid)",
+              ".validate": "newData.isString()"
+            }
+          },
+          "prefs": {
+            "$uid": {
+              ".read": "auth != null && auth.uid === $uid",
+              ".write": "auth != null && auth.uid === $uid && root.child('seats/rooms/' + $code + '/meta/phase').val() === 'open'",
+              ".validate": "newData.hasChildren(['who', 't']) && newData.child('who').isString() && root.child('seats/rooms/' + $code + '/claims/' + newData.child('who').val()).val() === $uid",
+              "who": { ".validate": "newData.isString()" },
+              "f": { ".validate": "newData.isString() && newData.val().length <= 40" },
+              "w": { ".validate": "newData.isString() && newData.val().length <= 40" },
+              "t": { ".validate": "newData.isNumber()" },
+              "$other": { ".validate": false }
+            }
+          }
+        }
+      }
+    },
     "quake": {
       "rooms": {
         "$code": {

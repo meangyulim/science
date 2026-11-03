@@ -523,9 +523,18 @@
                 url: 'sims/cosmic-web/',
                 icon: '🕸️',
                 category: 'space'
+            },
+            {
+                id: 'seats',
+                name: '자리 배치 시뮬레이션 · 모두의 바람이 가장 잘 맞는 자리',
+                desc: '폰으로 친구·자리 바람 내기 → 실시간으로 자리 맞추기',
+                url: 'sims/seats/',
+                icon: '🪑',
+                category: 'activity',
+                phone: true
             }
         ];
-        const NEW_COUNT = 8;
+        const NEW_COUNT = 9;
 
         // 시험 범위 카드: id 로 시뮬레이션을 찾아 tag 를 덧붙인다 (없는 id 는 건너뛴다)
         const classItems = currentClass.items
