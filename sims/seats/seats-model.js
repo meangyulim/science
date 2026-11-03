@@ -1,9 +1,12 @@
 /* 자리 배치 시뮬레이션 — 화면과 분리한 계산 모형.
    브라우저에서는 window.SeatsModel, Node 에서는 require 로 쓴다 (tests/seats-model.test.cjs).
 
-   교실: 줄 6개. 한 줄에 5자리, 복도에 붙은 줄만 7자리 → 모두 32자리.
-   두 줄씩 붙어 짝을 이루고(분단), 분단 사이에는 통로가 있다.
+   교실: 줄 6개를 두 줄씩 붙여 분단 셋 (복도 쪽부터 1·2·3분단), 분단 사이에는 통로가 있다.
+     1분단(복도 쪽): 두 줄 모두 7자리, 맨 뒷줄에만 통로 쪽으로 한 자리가 더 있다 → 15자리
+     2·3분단: 두 줄 × 5자리 → 10자리씩
+     모두 35자리.
    자리 이름은 '줄-번째' — 줄 k 는 복도 쪽이 0, 창가 쪽이 5. 번째 r 은 칠판 쪽(맨 앞)이 0.
+   1분단 맨 뒷줄의 셋째 자리만 'e-6'.
    복도가 칠판 기준 왼쪽인지 오른쪽인지는 화면에서만 뒤집는다. 그래서 복도 위치를 바꿔도
    학생들이 골라 둔 자리('복도 쪽 둘째 줄 맨 앞' 같은)는 그대로 맞는다.
 
@@ -23,33 +26,37 @@
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
   // ── 교실 ─────────────────────────────────────────────────────
+  // g: 분단(0 = 복도 쪽), c: 분단 안에서 몇째 칸(복도 쪽부터), x: 실제 가로 위치(책상 가운데, 책상 너비 1)
+  const AISLE = 0.6;                                     // 통로 너비 (책상 너비를 1로 볼 때)
+  const GROUP_X = [0, 2 + AISLE, 4 + 2 * AISLE];         // 분단이 시작하는 가로 위치
+  const WIDTH = COLS + 2 * AISLE;                        // 교실 바닥의 가로 너비
   const SEATS = [];
+  const add = (id, g, c, k, r, extra) => SEATS.push({id, g, c, k, r, x: GROUP_X[g] + c + 0.5, extra: !!extra, i: SEATS.length});
   for (let k = 0; k < COLS; k++) {
-    const n = k === 0 ? HALL_ROWS : ROWS;
-    for (let r = 0; r < n; r++) SEATS.push({id: k + '-' + r, k, r, i: SEATS.length});
+    const n = k < 2 ? HALL_ROWS : ROWS;
+    for (let r = 0; r < n; r++) add(k + '-' + r, Math.floor(k / 2), k % 2, k, r);
   }
-  const NSEAT = SEATS.length;   // 32
+  add('e-6', 0, 2, 1, HALL_ROWS - 1, true);              // 1분단 맨 뒷줄의 셋째 자리 (통로 쪽)
+  const NSEAT = SEATS.length;   // 35
   const SEAT = Object.fromEntries(SEATS.map(s => [s.id, s]));
   // 빈자리에 새 학생을 앉힐 때의 순서: 앞줄부터, 같은 줄에서는 복도 쪽부터
-  const FILL_ORDER = SEATS.slice().sort((a, b) => a.r - b.r || a.k - b.k);
+  const FILL_ORDER = SEATS.slice().sort((a, b) => a.r - b.r || a.x - b.x);
 
-  // 책상은 두 줄씩 붙어 있다 (복도 쪽부터 1분단 = 0·1줄, 2분단 = 2·3줄, 3분단 = 4·5줄).
-  // 분단 사이에는 통로가 있어서, 통로 건너 옆자리는 짝보다 훨씬 멀다.
-  const pairOf = k => Math.floor(k / 2);
-  const AISLE = 0.6;                     // 통로 너비 (책상 너비를 1로 볼 때)
-  const xOf = k => k + AISLE * pairOf(k);  // 실제 가로 위치
   // 두 자리가 얼마나 가까운가 — [번째 차이 0, 1, 2]
   const SAME_COL = [0, 0.75, 0.25];      // 같은 줄: 앞뒤, 두 칸 앞뒤
-  const DESKMATE = [1, 0.5, 0.15];       // 같은 분단 옆 줄: 짝, 대각선, 한 칸 건너 대각선
-  const ACROSS = [0.4, 0.2, 0.05];       // 통로 건너 옆 줄
-  const FAR = [0.1, 0.05, 0];            // 두 줄 건너 (사이에 통로가 하나 있다)
+  const DESKMATE = [1, 0.5, 0.15];       // 같은 분단 바로 옆 칸: 짝, 대각선, 한 칸 건너 대각선
+  const TWO_OVER = [0.25, 0.15, 0];      // 같은 분단 두 칸 옆 (1분단 맨 뒷줄 세 자리의 양 끝)
+  const ACROSS = [0.4, 0.2, 0.05];       // 통로 건너 옆 — 짝보다 훨씬 멀다
+  const FAR = [0.1, 0.05, 0];            // 통로 하나 건너 한 칸 더
   function near(a, b) {
-    const dk = Math.abs(a.k - b.k), dr = Math.abs(a.r - b.r);
-    if (dr > 2) return 0;
-    if (dk === 0) return SAME_COL[dr];
-    if (dk === 1) return (pairOf(a.k) === pairOf(b.k) ? DESKMATE : ACROSS)[dr];
-    if (dk === 2) return FAR[dr];
-    return 0;
+    const dr = Math.abs(a.r - b.r);
+    if (dr > 2 || a === b) return 0;
+    if (a.g === b.g) {
+      const dc = Math.abs(a.c - b.c);
+      return dc === 0 ? SAME_COL[dr] : dc === 1 ? DESKMATE[dr] : dc === 2 ? TWO_OVER[dr] : 0;
+    }
+    const dx = Math.abs(a.x - b.x);
+    return dx < 1.7 ? ACROSS[dr] : dx < 2.7 ? FAR[dr] : 0;
   }
   const NM = new Float64Array(NSEAT * NSEAT);
   for (const a of SEATS) for (const b of SEATS) NM[a.i * NSEAT + b.i] = a === b ? 0 : near(a, b);
@@ -58,7 +65,7 @@
 
   // 고른 자리에서 얼마나 가까운가 (통로 너비까지 친 실제 거리): 그 자리 1, 짝 자리·앞뒤 0.66, 통로 건너 0.35, 두 칸 0.19
   const WISH_SIGMA = 1.1;
-  const wishAt = (seat, w) => Math.exp(-((xOf(seat.k) - xOf(w.k)) ** 2 + (seat.r - w.r) ** 2) / (2 * WISH_SIGMA * WISH_SIGMA));
+  const wishAt = (seat, w) => Math.exp(-((seat.x - w.x) ** 2 + (seat.r - w.r) ** 2) / (2 * WISH_SIGMA * WISH_SIGMA));
 
   function relation(v) {
     if (v >= 1) return '짝';
@@ -73,8 +80,9 @@
   function seatName(id) {
     const s = SEAT[id];
     if (!s) return '';
+    if (s.extra) return '1분단 맨 뒤 · 통로 쪽 셋째 자리';
     const col = s.k === 0 ? '복도 쪽 줄' : s.k === COLS - 1 ? '창가 쪽 줄' : `복도에서 ${ORD[s.k]} 줄`;
-    return `${pairOf(s.k) + 1}분단 ${col} · 앞에서 ${s.r + 1}번째`;
+    return `${s.g + 1}분단 ${col} · 앞에서 ${s.r + 1}번째`;
   }
 
   // ── 명단 ─────────────────────────────────────────────────────
@@ -185,7 +193,7 @@
     const s = wf + ww > 0 ? ((wf ? wf * F : 0) + (ww ? ww * P : 0)) / (wf + ww) : (F ?? P);
     return {F, P, s: F === null && P === null ? null : s};
   }
-  const APART_PENALTY = 10, EMPTY_FRONT = 0.15;
+  const APART_PENALTY = 10, EMPTY_FRONT = 0.5;
   function score(prob, occ, pos) {
     pos = pos || posOf(prob, occ);
     let t = 0;
@@ -378,7 +386,7 @@
 
   const api = {
     COLS, ROWS, HALL_ROWS, ROWS_MAX, NSEAT, SEATS, SEAT, FILL_ORDER, MAX_FRIENDS, MAX_WISHES, FRIEND_W,
-    AISLE, pairOf, xOf, near, wishAt, relation, seatName, parseRoster, assignKeys, rosterList, splitList,
+    AISLE, WIDTH, GROUP_X, near, wishAt, relation, seatName, parseRoster, assignKeys, rosterList, splitList,
     prepare, posOf, parts, score, applyLocks, toOcc, toMap, rng, randomOcc, Annealer, polish, optimize, report
   };
   if (typeof module === 'object' && module.exports) module.exports = api;

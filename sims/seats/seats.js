@@ -231,7 +231,7 @@
   // ════════════════════════════════════════════════════════════
   //  교실 그림 (선생님 화면, 학생의 자리 고르기, 결과에서 같이 쓴다)
   // ════════════════════════════════════════════════════════════
-  const AISLE_VIEW = 0.5, FLOOR_W = M.COLS + 2 * AISLE_VIEW;   // 바닥 너비 = 책상 6개 + 통로 2개
+  const FLOOR_W = M.WIDTH;   // 바닥 너비 = 책상 6개 + 통로 2개 (자리 위치는 seats-model.js 의 x 를 그대로 쓴다)
   class Board {
     constructor(host, o) {
       this.o = o = o || {};
@@ -241,10 +241,13 @@
       this.sideL = h('div', {class: 'side'});
       this.sideR = h('div', {class: 'side'});
       this.floor = h('div', {class: 'floor'});
-      for (let p = 1; p < M.COLS / 2; p++) {
-        const x = (2 * p + AISLE_VIEW * (p - 0.5)) / FLOOR_W * 100;
-        this.floor.append(h('div', {class: 'aisle', style: `left:${x}%;width:${AISLE_VIEW / FLOOR_W * 100}%`}));
-      }
+      // 분단 사이 통로 (1분단 맨 뒷줄 셋째 자리는 통로 쪽으로 튀어나와 있다)
+      this.aisles = [1, 2].map(g => {
+        const a = h('div', {class: 'aisle', style: `width:${M.AISLE / FLOOR_W * 100}%`});
+        a.dataset.x = M.GROUP_X[g] - M.AISLE / 2;
+        this.floor.append(a);
+        return a;
+      });
       this.root.append(this.wall, h('div', {class: 'room-mid'}, this.sideL, this.floor, this.sideR));
       host.append(this.root);
       this.seats = {};
@@ -257,17 +260,17 @@
       if (o.onFloor) this.floor.addEventListener('click', () => o.onFloor());
       this.chips = new Map();
       this.at = new Map();
-      this.view('left', false);
+      this.view('right', false);
     }
     xy(id) {
       const s = M.SEAT[id];
-      let c = this.hall === 'left' ? s.k : M.COLS - 1 - s.k, r = s.r;
-      if (this.flip) { c = M.COLS - 1 - c; r = M.ROWS_MAX - 1 - r; }
+      let x = this.hall === 'left' ? s.x : FLOOR_W - s.x, r = s.r;
+      if (this.flip) { x = FLOOR_W - x; r = M.ROWS_MAX - 1 - r; }
       // 두 줄씩 붙은 책상 사이에 통로(책상 너비의 반)를 둔다
-      return {x: (c + AISLE_VIEW * Math.floor(c / 2) + 0.5) / FLOOR_W * 100, y: (r + 0.5) / M.ROWS_MAX * 100};
+      return {x: x / FLOOR_W * 100, y: (r + 0.5) / M.ROWS_MAX * 100};
     }
     view(hall, flip) {
-      hall = hall === 'right' ? 'right' : 'left';
+      hall = hall === 'left' ? 'left' : 'right';
       if (this.hall === hall && this.flip === !!flip) return;
       this.hall = hall; this.flip = !!flip;
       this.root.classList.toggle('flipped', this.flip);
@@ -275,6 +278,7 @@
       const side = (el, isHall) => { el.className = 'side ' + (isHall ? 'hall' : 'window'); el.innerHTML = isHall ? '<span>복도</span>' : '<span>창문</span>'; };
       side(this.sideL, hallLeft);
       side(this.sideR, !hallLeft);
+      for (const a of this.aisles) { const x = +a.dataset.x; a.style.left = ((this.hall === 'left') !== this.flip ? x : FLOOR_W - x) / FLOOR_W * 100 + '%'; }
       for (const id in this.seats) this.put(this.seats[id], id);
       for (const [key, c] of this.chips) this.put(c, this.at.get(key));
     }
@@ -476,7 +480,7 @@
     lk.textContent = '';
     for (const [k, seat] of entries(T.locks)) lk.append(h('li', {}, `${label(k)} · ${M.seatName(seat)}`, h('button', {type: 'button', 'aria-label': '고정 풀기', text: '×', onclick: () => { delete T.locks[k]; afterConstraint(); }})));
     if (!Object.keys(T.locks).length) lk.append(h('li', {class: 'muted', text: '없음'}));
-    for (const b of document.querySelectorAll('#screen-teacher [data-hall]')) b.setAttribute('aria-pressed', String((T.meta && T.meta.hall || 'left') === b.dataset.hall));
+    for (const b of document.querySelectorAll('#screen-teacher [data-hall]')) b.setAttribute('aria-pressed', String((T.meta && T.meta.hall || 'right') === b.dataset.hall));
   }
 
   function afterConstraint() {
@@ -653,7 +657,7 @@
           const c = String(1000 + Math.floor(Math.random() * 9000));
           if (!(await T.store.get(`${ROOT}/${c}/meta`))) code = c;
         }
-        await T.store.set(`${ROOT}/${code}/meta`, {teacher: T.store.uid, created: T.store.now(), phase: 'open', hall: pref('hall', 'left'), cls: '', demo: demo || null});
+        await T.store.set(`${ROOT}/${code}/meta`, {teacher: T.store.uid, created: T.store.now(), phase: 'open', hall: pref('hall', 'right'), cls: '', demo: demo || null});
       }
     } catch (e) {
       console.warn('[seats] open', e);
@@ -776,7 +780,7 @@
   function openRosterDialog(first) {
     const d = $('roster-dialog');
     const saved = pref('rosters', {});
-    let hall = T.meta && T.meta.hall || pref('hall', 'left');
+    let hall = T.meta && T.meta.hall || pref('hall', 'right');
     $('r-cls').value = T.meta && T.meta.cls || '';
     $('r-text').value = rosterText(T.roster) || (T.demo ? DEMO_NAMES.map((n, i) => `${i + 1} ${n}`).join('\n') : '');
     if (T.demo && !$('r-cls').value) $('r-cls').value = '미리 해 보기반';
@@ -1064,10 +1068,10 @@
   //  처음 화면
   // ════════════════════════════════════════════════════════════
   function initEntry() {
-    // 첫 화면 그림: 32자리 교실
+    // 첫 화면 그림: 35자리 교실
     const g = $('entry-art-desks');
     for (const s of M.SEATS) {
-      const x = 50 + s.k * 40 + Math.floor(s.k / 2) * 18, y = 16 + s.r * 11;
+      const x = 34 + (M.WIDTH - s.x - 0.5) * 40, y = 16 + s.r * 11;   // 복도가 오른쪽인 교실
       svg('rect', {x, y, width: 38, height: 8, rx: 2, class: (s.k * 7 + s.r * 3) % 5 === 0 ? 'hot' : ''}, g);
     }
     const room = (params.get('room') || '').replace(/\D/g, '').slice(0, 4);

@@ -5,15 +5,22 @@ const M=require('../sims/seats/seats-model.js');
 const kids=n=>Array.from({length:n},(_,i)=>({key:'s'+String(i+1).padStart(2,'0'),friends:[],wishes:[]}));
 const seatOf=(prob,occ,key)=>M.SEATS[M.posOf(prob,occ)[prob.idx.get(key)]];
 
-test('classroom: 6 rows of 5 seats, the hallway row has 7 — 32 seats',()=>{
-  assert.equal(M.NSEAT,32);
+test('classroom: hallway group 2×7 plus one back seat, other groups 2×5 — 35 seats',()=>{
+  assert.equal(M.NSEAT,35);
+  const perGroup=[0,0,0];
+  for(const s of M.SEATS) perGroup[s.g]++;
+  assert.deepEqual(perGroup,[15,10,10]);
   const perCol=[0,0,0,0,0,0];
-  for(const s of M.SEATS) perCol[s.k]++;
-  assert.deepEqual(perCol,[7,5,5,5,5,5]);
-  assert.ok(M.SEAT['0-6']);
-  assert.equal(M.SEAT['1-5'],undefined);
+  for(const s of M.SEATS) if(!s.extra) perCol[s.k]++;
+  assert.deepEqual(perCol,[7,7,5,5,5,5]);
+  // 맨 뒷줄(7번째)은 1분단에만 있고 세 칸
+  assert.deepEqual(M.SEATS.filter(s=>s.r===6).map(s=>s.id),['0-6','1-6','e-6']);
+  assert.ok(M.SEAT['1-5']);
+  assert.equal(M.SEAT['2-5'],undefined);
   assert.equal(M.FILL_ORDER[0].id,'0-0');
   assert.equal(M.FILL_ORDER[6].id,'0-1');
+  // 셋째 자리는 통로 쪽(2분단 쪽)으로 붙어 있다
+  assert.ok(M.SEAT['e-6'].x>M.SEAT['1-6'].x && M.SEAT['e-6'].x<M.GROUP_X[1]+0.5);
 });
 
 test('nearness: desk pairs with an aisle between them',()=>{
@@ -26,7 +33,12 @@ test('nearness: desk pairs with an aisle between them',()=>{
   assert.equal(n('3-1','4-2'),0.2);
   assert.equal(n('1-2','3-2'),0.1);    // 두 줄 건너
   assert.equal(n('0-0','5-4'),0);
-  assert.deepEqual([0,1,2,3,4,5].map(M.pairOf),[0,0,1,1,2,2]);
+  assert.deepEqual([0,1,2,3,4,5].map(k=>M.SEAT[k+'-0'].g),[0,0,1,1,2,2]);
+  // 1분단 맨 뒷줄 세 자리: 가운데와 셋째는 짝, 양 끝은 두 칸 떨어짐
+  assert.equal(n('1-6','e-6'),1);
+  assert.equal(n('0-6','e-6'),0.25);
+  assert.equal(n('1-5','e-6'),0.5);
+  assert.ok(n('e-6','2-4')<0.1);
   for(const a of M.SEATS)for(const b of M.SEATS)assert.equal(M.near(a,b),M.near(b,a));
   // 원하는 자리: 통로 건너 옆자리는 짝 자리보다 덜 가깝다
   const w=M.SEAT['2-2'];
@@ -37,6 +49,7 @@ test('nearness: desk pairs with an aisle between them',()=>{
   assert.equal(M.seatName('0-2'),'1분단 복도 쪽 줄 · 앞에서 3번째');
   assert.equal(M.seatName('5-0'),'3분단 창가 쪽 줄 · 앞에서 1번째');
   assert.equal(M.seatName('2-0'),'2분단 복도에서 셋째 줄 · 앞에서 1번째');
+  assert.equal(M.seatName('e-6'),'1분단 맨 뒤 · 통로 쪽 셋째 자리');
 });
 
 test('friends who choose each other become desk partners, not neighbours across the aisle',()=>{
@@ -79,7 +92,7 @@ test('every student gets exactly one seat, the rest stay empty',()=>{
   const occ=M.optimize(prob,null,{rand:M.rng(1),restarts:3,iters:30000});
   const seated=[...occ].filter(x=>x>=0).sort((a,b)=>a-b);
   assert.deepEqual(seated,Array.from({length:27},(_,i)=>i));
-  assert.equal([...occ].filter(x=>x<0).length,5);
+  assert.equal([...occ].filter(x=>x<0).length,8);
   // 빈자리는 뒤쪽에 남는다 (앞자리가 비면 점수가 깎인다)
   const empties=M.SEATS.filter(s=>occ[s.i]<0);
   assert.ok(empties.every(s=>s.r>=3),empties.map(s=>s.id).join());
@@ -159,8 +172,9 @@ test('seat maps round-trip; newcomers fill the front, locks win over the map',()
   assert.deepEqual(M.toMap(prob,M.toOcc(prob,map)),map);
 });
 
-test('more students than seats is refused',()=>{
-  assert.throws(()=>M.prepare(kids(33),{}),/32/);
+test('more than 35 students is refused',()=>{
+  assert.throws(()=>M.prepare(kids(36),{}),/35/);
+  assert.doesNotThrow(()=>M.prepare(kids(35),{}));
 });
 
 test('annealer runs in small steps and never loses its best',()=>{
