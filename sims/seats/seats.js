@@ -245,7 +245,6 @@
         const x = (2 * p + AISLE_VIEW * (p - 0.5)) / FLOOR_W * 100;
         this.floor.append(h('div', {class: 'aisle', style: `left:${x}%;width:${AISLE_VIEW / FLOOR_W * 100}%`}));
       }
-      this.svg = svg('svg', {class: 'lines', viewBox: '0 0 600 700', preserveAspectRatio: 'none', 'aria-hidden': 'true'}, this.floor);
       this.root.append(this.wall, h('div', {class: 'room-mid'}, this.sideL, this.floor, this.sideR));
       host.append(this.root);
       this.seats = {};
@@ -278,7 +277,6 @@
       side(this.sideR, !hallLeft);
       for (const id in this.seats) this.put(this.seats[id], id);
       for (const [key, c] of this.chips) this.put(c, this.at.get(key));
-      this.lastLines && this.lines(this.lastLines);
     }
     put(el, id) {
       if (!id || !M.SEAT[id]) return;
@@ -320,16 +318,6 @@
       this.at.set(key, seat);
       this.put(c, seat);
     }
-    // 친구 선: [{a: seatId, b: seatId, cls}]
-    lines(list) {
-      this.lastLines = list;
-      while (this.svg.firstChild) this.svg.firstChild.remove();
-      for (const l of list || []) {
-        if (!M.SEAT[l.a] || !M.SEAT[l.b]) continue;
-        const p = this.xy(l.a), q = this.xy(l.b);
-        svg('line', {x1: p.x * 6, y1: p.y * 7, x2: q.x * 6, y2: q.y * 7, class: l.cls || '', 'vector-effect': 'non-scaling-stroke'}, this.svg);
-      }
-    }
   }
 
   // ════════════════════════════════════════════════════════════
@@ -339,7 +327,7 @@
     store: null, code: '', base: '', demo: false,
     meta: null, roster: {}, claims: {}, prefs: {}, result: null,
     list: [], prob: null, rep: null,
-    occ: {}, locks: {}, apart: [], fw: 0.6, live: true, flip: false, showLines: false, showSat: true,
+    occ: {}, locks: {}, apart: [], fw: 0.6, live: true, flip: false,
     sel: null, moving: false, run: null, pendingQuick: false, liveTimer: 0, sig: '', board: null, loaded: false
   };
 
@@ -388,35 +376,28 @@
     $('t-cls').textContent = T.meta && T.meta.cls ? '· ' + T.meta.cls : '';
   }
 
+  // 화면(프로젝터)에는 누가 누구를·어디를 골랐는지, 누구 바람이 이루어졌는지 짐작할 만한 것을 아무것도 띄우지 않는다.
+  //  - 받는 동안(open)에는 이름을 가린다. 바람이 들어올 때 이름표가 움직이는 것을 보고 짐작할 수 없게.
+  //  - 학생별 만족도 색, 친구 선, 고른 친구·자리 목록은 아예 그리지 않는다. 계산에만 쓴다.
+  const named = () => !!T.meta && T.meta.phase !== 'open';
   function drawBoard() {
-    const b = T.board, rep = T.rep;
+    const b = T.board, rep = T.rep, show = named();
     b.view(T.meta && T.meta.hall, T.flip);
-    const sel = T.sel && rep.byKey[T.sel];
-    const selFriends = new Set(sel ? sel.friends.map(f => f.key) : []);
+    b.root.classList.toggle('anon', !show);
     b.setChips(T.list.map(s => {
-      const r = rep.byKey[s.key];
-      let cls = 'st-' + tStatus(s.key);
-      if (T.showSat && r.s !== null) cls += r.s >= 0.7 ? ' sat-hi' : r.s >= 0.4 ? ' sat-mid' : ' sat-lo';
-      if (T.locks[s.key]) cls += ' locked';
-      if (T.sel === s.key) cls += ' selected';
-      if (selFriends.has(s.key)) cls += ' friend';
+      let cls = '';
+      if (show && T.locks[s.key]) cls += ' locked';
+      if (show && T.sel === s.key) cls += ' selected';
       if (T.moving) cls += ' target';
-      const pr = r.s !== null ? ` · 만족도 ${pct(r.s)}` : '';
-      return {key: s.key, seat: r.seat, label: s.label, cls, badge: T.locks[s.key] ? '📌' : '', title: s.label + pr};
+      return {key: s.key, seat: rep.byKey[s.key].seat, label: show ? s.label : '', cls, badge: show && T.locks[s.key] ? '📌' : '', title: show ? s.label : ''};
     }));
     const marks = {};
-    const p = T.sel && tPref(T.sel);
-    if (p) p.wishes.forEach((w, i) => { if (M.SEAT[w]) marks[w] = {cls: 'wish', text: '★' + (i + 1)}; });
-    if (T.moving) for (const s of M.SEATS) if (!marks[s.id]) marks[s.id] = {cls: 'target'};
+    if (T.moving) for (const s of M.SEATS) marks[s.id] = {cls: 'target'};
     b.marks(marks);
-    const src = T.showLines ? rep.people : sel ? [sel] : [];
-    const lines = [];
-    for (const person of src) for (const f of person.friends) lines.push({a: person.seat, b: rep.byKey[f.key].seat, cls: f.near >= 0.75 ? 'good' : f.near >= 0.25 ? 'ok' : 'bad'});
-    b.lines(lines);
     b.root.classList.toggle('moving', T.moving);
-    $('t-hint').textContent = T.moving ? `${label(T.sel)} — 옮길 자리를 누르세요 (빈자리나 다른 학생). 그만두려면 빈 바닥을 누르세요.`
-      : T.sel ? '★ 원한 자리 · 초록 선 가까움 · 노란 선 조금 떨어짐 · 빨간 선 멀어요'
-      : '이름을 누르면 그 학생이 원한 친구와 자리를 보여 줘요.';
+    $('t-hint').textContent = !show ? '받는 동안에는 이름을 가려요 — 자리가 움직이는 것을 보고 누가 누구를 골랐는지 짐작할 수 없게요. 마감하면 처음부터 다시 섞은 뒤 이름이 보여요.'
+      : T.moving ? `${label(T.sel)} — 옮길 자리를 누르세요 (빈자리나 다른 학생). 그만두려면 빈 바닥을 누르세요.`
+      : '이름을 누르면 그 학생을 옮기거나 고정할 수 있어요.';
   }
   function drawPositions() {
     for (const [seat, key] of entries(T.occ)) T.board.move(key, seat);
@@ -457,23 +438,14 @@
 
   function drawSel() {
     const box = $('t-sel'), key = T.sel;
-    if (!key || !T.roster[key] || !T.rep) { box.hidden = true; return; }
-    const r = T.rep.byKey[key], st = tStatus(key), p = tPref(key);
+    if (!key || !T.roster[key] || !T.rep || !named()) { box.hidden = true; return; }
+    const r = T.rep.byKey[key], st = tStatus(key);
     box.hidden = false;
     box.textContent = '';
     const tag = {none: ['미접속', 'none'], joined: ['들어옴 · 아직 안 냄', 'joined'], sent: ['냈어요', 'sent']}[st];
     box.append(h('div', {class: 'sel-head'}, h('h3', {text: label(key)}), h('span', {class: 'tag st-' + tag[1], text: tag[0]}),
       h('button', {type: 'button', class: 'x', 'aria-label': '닫기', text: '×', onclick: () => { T.sel = null; T.moving = false; tRender(); }})));
     box.append(h('p', {class: 'sel-seat', text: M.seatName(r.seat) + (T.locks[key] ? ' · 📌 고정' : '')}));
-    if (p) {
-      const ul = h('ul', {class: 'sel-friends'});
-      if (!r.friends.length) ul.append(h('li', {class: 'muted', text: '친구는 안 골랐어요'}));
-      r.friends.forEach((f, i) => ul.append(h('li', {class: f.near >= 0.75 ? 'good' : f.near >= 0.25 ? 'ok' : 'bad'},
-        h('small', {text: i + 1 + '순위'}), label(f.key), h('b', {text: M.relation(f.near)}))));
-      box.append(ul);
-      box.append(h('p', {class: 'sel-wish', text: p.wishes.length ? `원한 자리 ${p.wishes.length}곳 — ${r.P >= 0.6 ? '가까워요 ✓' : r.P >= 0.3 ? '조금 떨어졌어요' : '멀어요'} (★ 표시)` : '자리는 어디든 괜찮대요'}));
-      if (r.s !== null) box.append(h('p', {class: 'sel-sat'}, '만족도 ', h('b', {text: pct(r.s)})));
-    } else box.append(h('p', {class: 'hint', text: st === 'none' ? '아직 들어오지 않았어요. 빈자리를 채우는 데 쓰여요.' : '아직 바람을 보내지 않았어요.'}));
     const row = h('div', {class: 'sel-actions'},
       h('button', {type: 'button', class: T.moving ? 'on' : '', text: T.moving ? '옮기기 그만' : '자리 옮기기', onclick: () => { T.moving = !T.moving; drawBoard(); drawSel(); }}),
       h('button', {type: 'button', text: T.locks[key] ? '고정 풀기' : '📌 고정', onclick: () => {
@@ -516,6 +488,7 @@
   // 이름표·자리를 누르면
   function tChip(key) {
     if (T.run) return;
+    if (!named()) { toast('t-toast', '받는 동안에는 이름을 가려 둬요. 마감한 뒤에 옮기거나 고정할 수 있어요.'); return; }
     if (T.moving && T.sel && key !== T.sel) return moveTo(T.rep.byKey[key].seat);
     T.moving = false;
     T.sel = T.sel === key ? null : key;
@@ -524,6 +497,7 @@
   function tSeat(id) {
     if (T.run) return;
     if (T.moving && T.sel) return moveTo(id);
+    if (!named()) return;
     const key = T.occ[id];
     if (key) return tChip(key);
     if (T.sel) { T.sel = null; tRender(); }
@@ -566,7 +540,7 @@
       if (!T.store) return;
       T.store.set(T.base + '/tconf', {
         occ: T.occ, locks: T.locks, apart: T.apart.length ? T.apart : null,
-        fw: T.fw, live: T.live, flip: T.flip, lines: T.showLines, sat: T.showSat
+        fw: T.fw, live: T.live, flip: T.flip
       }).catch(e => console.warn('[seats] tconf', e));
     }, 800);
   }
@@ -606,7 +580,6 @@
     root.classList.add('running');
     root.classList.toggle('shake', full);
     $('t-run').disabled = full;
-    T.board.lines([]);
     T.board.marks({});
     if (full) { T.occ = M.toMap(prob, ann.occ); drawPositions(); }
     const finish = occ => {
@@ -693,7 +666,7 @@
     const conf = existing ? await T.store.get(T.base + '/tconf').catch(() => null) : null;
     if (conf) {
       T.occ = conf.occ || {}; T.locks = conf.locks || {}; T.apart = (conf.apart || []).map(p => [p[0], p[1]]);
-      T.fw = conf.fw ?? 0.6; T.live = conf.live !== false; T.flip = !!conf.flip; T.showLines = !!conf.lines; T.showSat = conf.sat !== false;
+      T.fw = conf.fw ?? 0.6; T.live = conf.live !== false; T.flip = !!conf.flip;
     }
     history.replaceState(null, '', demo ? location.pathname + (LOCAL_ONLY ? '?local' : '') : '?host=' + code + (LOCAL_ONLY ? '&local' : ''));
     showScreen('teacher');
@@ -742,7 +715,12 @@
     fw.onchange = () => { saveConf(); scheduleQuick(0); };
     $('t-close').onclick = async () => {
       const ph = T.meta.phase;
-      if (ph === 'open') return guard(T.store.update(T.base, {'meta/phase': 'closed'}), '마감');
+      if (ph === 'open') {
+        // 이름을 보이기 전에 처음부터 다시 섞는다 — 받는 동안의 움직임과 이어지지 않게
+        await guard(T.store.update(T.base, {'meta/phase': 'closed'}), '마감');
+        runAnneal('full');
+        return;
+      }
       if (ph === 'published' && !confirm('학생 폰의 공개를 내리고 다시 바람을 받을까요?')) return;
       await guard(T.store.update(T.base, {'meta/phase': 'open', result: null}), '다시 받기');
     };
@@ -754,7 +732,7 @@
         return;
       }
       if (!Object.keys(T.roster).length) return toast('t-toast', '명단을 먼저 넣어 주세요.');
-      if (ph === 'open' && !confirm('받기를 마감하고 지금 자리를 학생 폰에 공개할까요?')) return;
+      if (ph === 'open') return toast('t-toast', '먼저 받기를 마감해 주세요. 마감하면 자리를 처음부터 다시 찾은 뒤 이름이 보여요.', 5000);
       await guard(T.store.update(T.base, {result: {occ: T.occ, t: T.store.now()}, 'meta/phase': 'published'}), '공개');
       toast('t-toast', '학생 폰에 공개했어요.');
     };
@@ -771,7 +749,7 @@
       guard(T.store.update(T.base, {'meta/hall': b.dataset.hall}), '복도 위치');
     };
     const chk = (id, k) => { const c = $(id); c.checked = T[k]; c.onchange = () => { T[k] = c.checked; tRender(); saveConf(); }; };
-    chk('t-flip', 'flip'); chk('t-sat', 'showSat'); chk('t-lines', 'showLines');
+    chk('t-flip', 'flip');
     $('ap-add').onclick = () => {
       const a = $('ap-a').value, b = $('ap-b').value;
       if (!a || !b || a === b) return toast('t-toast', '서로 다른 두 학생을 골라 주세요.');
@@ -1055,9 +1033,10 @@
     $('wait-icon').textContent = '✓';
     $('wait-title').textContent = '보냈어요';
     $('wait-text').textContent = ph === 'open' ? '선생님 화면에서 자리가 맞춰지고 있어요. 마감 전까지는 고칠 수 있어요.' : '마감됐어요. 선생님이 자리를 정하는 중이에요.';
+    // 폰을 책상에 올려 두면 옆 친구가 볼 수 있으니, 기다리는 화면에는 누구를 골랐는지 이름을 띄우지 않는다
     const f = M.splitList(S.mine.f), w = M.splitList(S.mine.w);
-    sum.append(h('li', {}, h('small', {text: '친구'}), f.length ? f.map((k, i) => `${i + 1}. ${sLabel(k)}`).join('  ') : '안 골랐어요'));
-    sum.append(h('li', {}, h('small', {text: '자리'}), w.length ? w.map(id => M.seatName(id)).join(' / ') : '어디든 괜찮아요'));
+    sum.append(h('li', {}, h('small', {text: '보낸 것'}), `친구 ${f.length}명 · 자리 ${w.length ? w.length + '곳' : '어디든 괜찮음'}`));
+    sum.append(h('li', {class: 'quiet'}, '누구를 골랐는지는 나만 알아요. 친구들 화면에도, 선생님 화면에도 나오지 않아요.'));
     $('edit-btn').hidden = ph !== 'open';
   }
 
@@ -1069,7 +1048,7 @@
     const myF = S.mine ? M.splitList(S.mine.f) : [];
     S.resBoard.view(S.meta.hall, false);
     S.resBoard.setChips(M.rosterList(S.roster).filter(s => where[s.key]).map(s => ({
-      key: s.key, seat: where[s.key], label: s.label, cls: s.key === S.key ? 'me' : myF.includes(s.key) ? 'friend' : ''
+      key: s.key, seat: where[s.key], label: s.label, cls: s.key === S.key ? 'me' : ''
     })));
     S.resBoard.marks({});
     $('res-title').textContent = mine ? M.seatName(mine) : '새 자리가 나왔어요';

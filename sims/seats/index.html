@@ -47,8 +47,8 @@
       <summary>어떻게 진행하나요?</summary>
       <ol>
         <li><b>방 열기</b> — 선생님이 방을 열고 반 명단을 붙여 넣습니다. 복도가 칠판 기준 어느 쪽인지도 정해요.</li>
-        <li><b>바람 내기</b> — 학생은 QR로 들어와 자기 이름을 고르고, 같이 앉고 싶은 친구(최대 3명)와 앉고 싶은 자리(최대 3곳)를 고릅니다. 다른 친구가 무엇을 골랐는지는 아무도 볼 수 없어요.</li>
-        <li><b>실시간 배치</b> — 바람이 들어올 때마다 선생님 화면의 자리가 조금씩 다시 맞춰집니다.</li>
+        <li><b>바람 내기</b> — 학생은 QR로 들어와 자기 이름을 고르고, 같이 앉고 싶은 친구(최대 3명)와 앉고 싶은 자리(최대 3곳)를 고릅니다. 누가 누구를 골랐는지는 친구들 폰에도, 선생님 화면(프로젝터)에도 나오지 않아요.</li>
+        <li><b>실시간 배치</b> — 바람이 들어올 때마다 선생님 화면의 자리가 조금씩 다시 맞춰집니다. 받는 동안에는 이름을 가려서, 움직임을 보고 누가 누구를 골랐는지 짐작할 수 없어요.</li>
         <li><b>자리 배치 돌리기</b> — 다 모이면 처음부터 크게 섞어서 가장 좋은 배치를 찾습니다. 두 줄씩 붙은 짝 자리와 분단 사이 통로까지 따져서, 통로 건너 옆자리는 짝보다 먼 자리로 칩니다. 아무도 크게 손해 보지 않게, 한 명도 못 얻은 학생부터 챙겨요.</li>
         <li><b>공개</b> — 마음에 들면 학생 폰에 공개합니다. 각자 자기 자리를 확인해요.</li>
       </ol>
@@ -139,7 +139,7 @@
   <main class="t-main">
     <div class="t-stage" id="t-stage">
       <div class="room-wrap"><div id="t-board"></div></div>
-      <p class="t-hint" id="t-hint">이름을 누르면 그 학생이 원한 친구와 자리를 보여 줘요.</p>
+      <p class="t-hint" id="t-hint"></p>
     </div>
 
     <aside class="t-side">
@@ -183,7 +183,7 @@
           </div>
           <ul class="tag-list" id="ap-list"></ul>
           <h3>고정한 학생 📌</h3>
-          <p class="hint">이름을 누르고 '고정'을 누르면 그 자리에서 움직이지 않아요. 손으로 옮긴 학생도 고정됩니다.</p>
+          <p class="hint">마감한 뒤 이름을 누르고 '고정'을 누르면 그 자리에서 움직이지 않아요. 손으로 옮긴 학생도 고정됩니다.</p>
           <ul class="tag-list" id="lock-list"></ul>
           <h3>보기</h3>
           <div class="seg" role="group" aria-label="복도 위치">
@@ -192,8 +192,6 @@
             <button type="button" data-hall="right">오른쪽</button>
           </div>
           <label class="check"><input type="checkbox" id="t-flip"> 교탁에서 본 모습으로 (칠판이 아래)</label>
-          <label class="check"><input type="checkbox" id="t-sat" checked> 만족도 색 보기</label>
-          <label class="check"><input type="checkbox" id="t-lines"> 모든 학생의 친구 선 보기 <small>(누가 누구를 골랐는지 보여요)</small></label>
           <button class="ghost" id="t-qr-again" type="button">QR 코드 다시 보기</button>
         </div>
       </details>
