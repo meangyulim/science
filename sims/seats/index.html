@@ -72,6 +72,14 @@
       <h2>내 이름을 눌러 주세요</h2>
       <p class="hint">다른 사람 이름을 누르면 그 친구가 못 들어와요. 잘못 눌렀으면 선생님께 말해 주세요.</p>
       <div class="name-grid" id="name-grid"></div>
+      <div class="self-add">
+        <button class="ghost" id="self-open" type="button">명단에 내 이름이 없어요</button>
+        <form class="self-form" id="self-form" autocomplete="off" hidden>
+          <input id="self-name" maxlength="20" placeholder="학번 이름 (예: 20101 김하늘)" aria-label="학번과 이름">
+          <button class="primary" type="submit">보내기</button>
+        </form>
+        <p class="hint" id="self-note" hidden></p>
+      </div>
     </div>
 
     <!-- 2. 바람 고르기 -->
@@ -220,22 +228,31 @@
 <dialog class="roster-dialog" id="roster-dialog">
   <form class="roster-body" id="roster-form" method="dialog">
     <h2>반 명단</h2>
+    <div class="xl-row">
+      <label class="xl-btn"><input type="file" id="r-file" accept=".xlsx,.xls,.csv" hidden>📄 엑셀 명렬표 불러오기</label>
+      <span class="hint">파일은 이 기기 안에서만 읽어요.</span>
+    </div>
+    <div class="xl-sheets" id="r-sheets" hidden></div>
     <label class="field">
       <span>반 이름</span>
-      <input id="r-cls" list="r-saved" maxlength="20" placeholder="예: 2학년 3반">
+      <input id="r-cls" list="r-saved" maxlength="20" placeholder="예: A_행성">
       <datalist id="r-saved"></datalist>
     </label>
     <label class="field">
-      <span>한 줄에 한 명 — 번호를 앞에 붙여도 돼요. 엑셀에서 번호·이름 두 칸을 그대로 복사해 붙여도 됩니다.</span>
-      <textarea id="r-text" rows="12" placeholder="1 김민지&#10;2 이서연&#10;3 박지후&#10;…"></textarea>
+      <span>한 줄에 한 명 — 번호(학번)를 앞에 붙여도 돼요. 엑셀 표를 통째로 복사해 붙여도 이름과 학번만 골라 씁니다.</span>
+      <textarea id="r-text" rows="10" placeholder="20101 김하늘&#10;20102 이바다&#10;…"></textarea>
     </label>
     <p class="hint" id="r-count"></p>
+    <div class="field">
+      <span>교실 모양</span>
+      <div class="layout-pick" id="r-layouts" role="radiogroup" aria-label="교실 모양"></div>
+    </div>
     <div class="seg" role="group" aria-label="복도 위치">
       <span>복도는 칠판을 볼 때</span>
       <button type="button" data-hall="left">왼쪽</button>
       <button type="button" data-hall="right">오른쪽</button>
     </div>
-    <p class="hint">두 줄씩 붙어 짝을 이루고 분단 사이에 통로가 있어요. 복도 쪽 1분단은 두 줄 모두 7자리에 맨 뒷줄만 통로 쪽으로 한 자리 더(15자리), 2·3분단은 5자리씩 — 모두 35자리예요.</p>
+    <p class="hint">명단에 없는 학생은 폰에서 '명단에 내 이름이 없어요'를 눌러 이름을 쓰면 이 명단에 저절로 더해져요.</p>
     <div class="dialog-actions">
       <button class="ghost" value="cancel" id="r-cancel" formnovalidate>닫기</button>
       <button class="primary" value="ok" id="r-ok">저장하고 학생 받기</button>

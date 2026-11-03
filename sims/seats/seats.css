@@ -68,9 +68,9 @@ body[data-screen=entry] #screen-entry,body[data-screen=student] #screen-student,
 .side span{writing-mode:vertical-rl;letter-spacing:.4em}
 .side.hall{background:repeating-linear-gradient(0deg,#e9eef0 0 12px,#f3f6f7 12px 24px);border:1px dashed #c5d0d5}
 .side.window{background:linear-gradient(90deg,#e3f1fb,#f2f8fc);border:1px solid #cfe3f1;color:#4b7da3}
-.floor{position:relative;aspect-ratio:9.36/7;width:100%}
+.floor{position:relative;aspect-ratio:9.36/7;width:100%;--w:7.2;--rows:7}
 .aisle{position:absolute;top:0;bottom:0;transform:translateX(-50%);background:#ece5d455;border-left:1px dashed #e2d9c4;border-right:1px dashed #e2d9c4;pointer-events:none}
-.seat,.chip{position:absolute;transform:translate(-50%,-50%);width:calc(100% / 7.2 * .95);height:calc(100% / 7 * .8);border-radius:clamp(5px,1cqi,12px);padding:0;min-height:0}
+.seat,.chip{position:absolute;transform:translate(-50%,-50%);width:calc(100% / var(--w) * .95);height:calc(100% / var(--rows) * .8);border-radius:clamp(5px,1cqi,12px);padding:0;min-height:0}
 .seat:not(:disabled):active,.chip:not(:disabled):active{transform:translate(-50%,-50%)}  /* 누를 때 버튼이 아래로 1px 내려가는 효과가 가운데 맞춤을 덮어쓰지 않게 */
 .seat{background:var(--desk);border:1px solid var(--desk-line);display:flex;align-items:center;justify-content:center;z-index:1}
 .seat-mark{font-size:clamp(9px,2cqi,18px);font-weight:800;color:var(--epi)}
@@ -138,7 +138,7 @@ button.seat:hover{background:#e4d8bf}
 .t-bar-actions button{min-height:38px;background:#ffffff14;border-color:#ffffff33;color:#fff;font-weight:600}
 .t-main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 340px}
 .t-stage{min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;gap:8px}
-.t-stage .room-wrap{width:min(100%,calc((100dvh - 130px) * 1.25))}
+.t-stage .room-wrap{width:min(100%,calc((100dvh - 130px) * var(--ar,1.36)))}
 .t-hint{font-size:13px;color:var(--muted);text-align:center;min-height:1.5em}
 .t-side{background:#fff;border-left:1px solid var(--line);overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px}
 .t-side h3{font-size:14px}
@@ -216,6 +216,24 @@ dialog::backdrop{background:#0f2235cc}
 .roster-body{padding:22px;display:flex;flex-direction:column;gap:12px;max-height:90dvh;overflow-y:auto}
 .roster-body h2{font-size:20px}
 .dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+
+/* ── 명단 창: 엑셀, 교실 모양 ── */
+.xl-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.xl-btn{display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;border:1.5px dashed var(--cyan);border-radius:12px;color:var(--cyan);font-weight:700;cursor:pointer;background:var(--cyan-soft)}
+.xl-sheets{display:flex;flex-wrap:wrap;gap:6px;font-size:13px;color:var(--muted)}
+.xl-sheets button{min-height:40px;padding:4px 12px;display:flex;align-items:baseline;gap:6px}
+.xl-sheets button small{color:var(--muted);font-weight:600}
+.xl-sheets button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+.xl-sheets button[aria-pressed=true] small{color:#c8d6df}
+.layout-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.layout-pick button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border-width:2px}
+.layout-pick button small{font-size:12px;font-weight:500;color:var(--muted);line-height:1.35}
+.layout-pick button[aria-checked=true]{border-color:var(--cyan);background:var(--cyan-soft)}
+/* ── 학생: 명단에 없어요 ── */
+.self-add{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:6px}
+.self-form{display:flex;gap:8px;width:100%}
+.self-form input{flex:1;min-width:0;min-height:48px;border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:16px;background:#fff}
+.self-add .hint{text-align:center}
 
 .print-head{display:none}
 

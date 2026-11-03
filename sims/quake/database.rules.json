@@ -19,6 +19,17 @@
               ".validate": "newData.isString()"
             }
           },
+          "joins": {
+            "$uid": {
+              ".read": "auth != null && auth.uid === $uid",
+              ".write": "auth != null && auth.uid === $uid && root.child('seats/rooms/' + $code + '/meta/phase').val() === 'open'",
+              ".validate": "newData.hasChildren(['name', 't']) && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 20",
+              "name": { ".validate": "newData.isString()" },
+              "no": { ".validate": "newData.isNumber()" },
+              "t": { ".validate": "newData.isNumber()" },
+              "$other": { ".validate": false }
+            }
+          },
           "prefs": {
             "$uid": {
               ".read": "auth != null && auth.uid === $uid",

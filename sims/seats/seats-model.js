@@ -1,12 +1,12 @@
 /* 자리 배치 시뮬레이션 — 화면과 분리한 계산 모형.
    브라우저에서는 window.SeatsModel, Node 에서는 require 로 쓴다 (tests/seats-model.test.cjs).
 
-   교실: 줄 6개를 두 줄씩 붙여 분단 셋 (복도 쪽부터 1·2·3분단), 분단 사이에는 통로가 있다.
-     1분단(복도 쪽): 두 줄 모두 7자리, 맨 뒷줄에만 통로 쪽으로 한 자리가 더 있다 → 15자리
-     2·3분단: 두 줄 × 5자리 → 10자리씩
-     모두 35자리.
-   자리 이름은 '줄-번째' — 줄 k 는 복도 쪽이 0, 창가 쪽이 5. 번째 r 은 칠판 쪽(맨 앞)이 0.
-   1분단 맨 뒷줄의 셋째 자리만 'e-6'.
+   교실 모양은 LAYOUTS 에 있다. 두 가지:
+     room  보통 교실 — 두 줄씩 붙은 분단 셋. 복도 쪽 1분단은 두 줄 모두 7자리에 맨 뒷줄만
+           통로 쪽으로 한 자리 더(15자리), 2·3분단은 5자리씩 → 35자리
+     hall  종합강의실 — 양끝 분단은 두 줄, 가운데 분단은 세 줄, 줄마다 6자리 → 42자리
+   분단 사이에는 통로가 있다. 자리 이름은 '줄-번째' — 줄 k 는 복도 쪽이 0, 번째 r 은 칠판 쪽(맨 앞)이 0.
+   보통 교실 1분단 맨 뒷줄의 셋째 자리만 'e-6'.
    복도가 칠판 기준 왼쪽인지 오른쪽인지는 화면에서만 뒤집는다. 그래서 복도 위치를 바꿔도
    학생들이 골라 둔 자리('복도 쪽 둘째 줄 맨 앞' 같은)는 그대로 맞는다.
 
@@ -20,52 +20,78 @@
 (function(root) {
   'use strict';
 
-  const COLS = 6, ROWS = 5, HALL_ROWS = 7, ROWS_MAX = HALL_ROWS;
   const MAX_FRIENDS = 3, MAX_WISHES = 3;
   const FRIEND_W = [1, 0.8, 0.6];
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-
-  // ── 교실 ─────────────────────────────────────────────────────
-  // g: 분단(0 = 복도 쪽), c: 분단 안에서 몇째 칸(복도 쪽부터), x: 실제 가로 위치(책상 가운데, 책상 너비 1)
-  const AISLE = 0.6;                                     // 통로 너비 (책상 너비를 1로 볼 때)
-  const GROUP_X = [0, 2 + AISLE, 4 + 2 * AISLE];         // 분단이 시작하는 가로 위치
-  const WIDTH = COLS + 2 * AISLE;                        // 교실 바닥의 가로 너비
-  const SEATS = [];
-  const add = (id, g, c, k, r, extra) => SEATS.push({id, g, c, k, r, x: GROUP_X[g] + c + 0.5, extra: !!extra, i: SEATS.length});
-  for (let k = 0; k < COLS; k++) {
-    const n = k < 2 ? HALL_ROWS : ROWS;
-    for (let r = 0; r < n; r++) add(k + '-' + r, Math.floor(k / 2), k % 2, k, r);
-  }
-  add('e-6', 0, 2, 1, HALL_ROWS - 1, true);              // 1분단 맨 뒷줄의 셋째 자리 (통로 쪽)
-  const NSEAT = SEATS.length;   // 35
-  const SEAT = Object.fromEntries(SEATS.map(s => [s.id, s]));
-  // 빈자리에 새 학생을 앉힐 때의 순서: 앞줄부터, 같은 줄에서는 복도 쪽부터
-  const FILL_ORDER = SEATS.slice().sort((a, b) => a.r - b.r || a.x - b.x);
+  const ORD = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째', '일곱째', '여덟째'];
 
   // 두 자리가 얼마나 가까운가 — [번째 차이 0, 1, 2]
   const SAME_COL = [0, 0.75, 0.25];      // 같은 줄: 앞뒤, 두 칸 앞뒤
   const DESKMATE = [1, 0.5, 0.15];       // 같은 분단 바로 옆 칸: 짝, 대각선, 한 칸 건너 대각선
-  const TWO_OVER = [0.25, 0.15, 0];      // 같은 분단 두 칸 옆 (1분단 맨 뒷줄 세 자리의 양 끝)
+  const TWO_OVER = [0.25, 0.15, 0];      // 같은 분단 두 칸 옆 (세 줄 분단의 양 끝)
   const ACROSS = [0.4, 0.2, 0.05];       // 통로 건너 옆 — 짝보다 훨씬 멀다
   const FAR = [0.1, 0.05, 0];            // 통로 하나 건너 한 칸 더
-  function near(a, b) {
-    const dr = Math.abs(a.r - b.r);
-    if (dr > 2 || a === b) return 0;
-    if (a.g === b.g) {
-      const dc = Math.abs(a.c - b.c);
-      return dc === 0 ? SAME_COL[dr] : dc === 1 ? DESKMATE[dr] : dc === 2 ? TWO_OVER[dr] : 0;
-    }
-    const dx = Math.abs(a.x - b.x);
-    return dx < 1.7 ? ACROSS[dr] : dx < 2.7 ? FAR[dr] : 0;
-  }
-  const NM = new Float64Array(NSEAT * NSEAT);
-  for (const a of SEATS) for (const b of SEATS) NM[a.i * NSEAT + b.i] = a === b ? 0 : near(a, b);
-  // 짝 자리와 앞뒤 자리 — 두 자리를 한 덩어리로 옮길 때 쓴다
-  const NBRS = SEATS.map(a => SEATS.filter(b => NM[a.i * NSEAT + b.i] >= 0.75).map(b => b.i));
-
   // 고른 자리에서 얼마나 가까운가 (통로 너비까지 친 실제 거리): 그 자리 1, 짝 자리·앞뒤 0.66, 통로 건너 0.35, 두 칸 0.19
   const WISH_SIGMA = 1.1;
   const wishAt = (seat, w) => Math.exp(-((seat.x - w.x) ** 2 + (seat.r - w.r) ** 2) / (2 * WISH_SIGMA * WISH_SIGMA));
+
+  // ── 교실 ─────────────────────────────────────────────────────
+  // def.groups: 분단마다 [줄마다 자리 수] (복도 쪽 분단부터). def.extra: 따로 붙은 자리.
+  // 자리마다 g: 분단, c: 분단 안에서 몇째 줄, k: 복도 쪽부터 몇째 줄, x: 실제 가로 위치(책상 가운데, 책상 너비 1)
+  function makeLayout(def) {
+    const AISLE = def.aisle ?? 0.6;      // 통로 너비 (책상 너비를 1로 볼 때)
+    const GROUP_X = [];
+    let w = 0;
+    for (const g of def.groups) { GROUP_X.push(w); w += g.length + AISLE; }
+    const WIDTH = w - AISLE;             // 교실 바닥의 가로 너비
+    const SEATS = [];
+    const add = (id, g, c, k, r, extra) => SEATS.push({id, g, c, k, r, x: GROUP_X[g] + c + 0.5, extra: extra || null, i: SEATS.length});
+    let k = 0;
+    def.groups.forEach((cols, g) => cols.forEach((n, c) => { for (let r = 0; r < n; r++) add(k + '-' + r, g, c, k, r); k++; }));
+    const COLS = k;
+    for (const e of def.extra || []) add(e.id, e.g, e.c, e.k, e.r, e.name);
+    const NSEAT = SEATS.length;
+    const ROWS_MAX = Math.max(...SEATS.map(s => s.r)) + 1;
+    const SEAT = Object.fromEntries(SEATS.map(s => [s.id, s]));
+    // 빈자리에 새 학생을 앉힐 때의 순서: 앞줄부터, 같은 줄에서는 복도 쪽부터
+    const FILL_ORDER = SEATS.slice().sort((a, b) => a.r - b.r || a.x - b.x);
+    function near(a, b) {
+      const dr = Math.abs(a.r - b.r);
+      if (dr > 2 || a === b) return 0;
+      if (a.g === b.g) {
+        const dc = Math.abs(a.c - b.c);
+        return dc === 0 ? SAME_COL[dr] : dc === 1 ? DESKMATE[dr] : dc === 2 ? TWO_OVER[dr] : 0;
+      }
+      const dx = Math.abs(a.x - b.x);
+      return dx < 1.7 ? ACROSS[dr] : dx < 2.7 ? FAR[dr] : 0;
+    }
+    const NM = new Float64Array(NSEAT * NSEAT);
+    for (const a of SEATS) for (const b of SEATS) NM[a.i * NSEAT + b.i] = near(a, b);
+    // 짝 자리와 앞뒤 자리 — 두 자리를 한 덩어리로 옮길 때 쓴다
+    const NBRS = SEATS.map(a => SEATS.filter(b => NM[a.i * NSEAT + b.i] >= 0.75).map(b => b.i));
+    // 사람이 읽는 자리 이름. 분단과 줄은 복도 쪽부터 센다.
+    function seatName(id) {
+      const s = SEAT[id];
+      if (!s) return '';
+      if (s.extra) return s.extra;
+      const col = s.k === 0 ? '복도 쪽 줄' : s.k === COLS - 1 ? '창가 쪽 줄' : `복도에서 ${ORD[s.k]} 줄`;
+      return `${s.g + 1}분단 ${col} · 앞에서 ${s.r + 1}번째`;
+    }
+    return {id: def.id, name: def.name, desc: def.desc, COLS, ROWS_MAX, AISLE, GROUP_X, WIDTH, SEATS, SEAT, NSEAT, FILL_ORDER, NM, NBRS, near, seatName};
+  }
+  const LAYOUTS = {
+    room: makeLayout({
+      id: 'room', name: '보통 교실', desc: '두 줄씩 분단 셋 · 복도 쪽 분단은 7자리, 맨 뒷줄 3칸 (35자리)',
+      groups: [[7, 7], [5, 5], [5, 5]],
+      extra: [{id: 'e-6', g: 0, c: 2, k: 1, r: 6, name: '1분단 맨 뒤 · 통로 쪽 셋째 자리'}]
+    }),
+    hall: makeLayout({
+      id: 'hall', name: '종합강의실', desc: '양끝 두 줄, 가운데 세 줄 · 줄마다 6자리 (42자리)',
+      groups: [[6, 6], [6, 6, 6], [6, 6]]
+    })
+  };
+  const layout = id => (id && typeof id === 'object' ? id : LAYOUTS[id]) || LAYOUTS.room;
+  const ROOM = LAYOUTS.room;
 
   function relation(v) {
     if (v >= 1) return '짝';
@@ -75,31 +101,40 @@
     if (v > 0) return '조금 떨어짐';
     return '멀어요';
   }
-  const ORD = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째'];
-  // 사람이 읽는 자리 이름. 분단과 줄은 복도 쪽부터 센다.
-  function seatName(id) {
-    const s = SEAT[id];
-    if (!s) return '';
-    if (s.extra) return '1분단 맨 뒤 · 통로 쪽 셋째 자리';
-    const col = s.k === 0 ? '복도 쪽 줄' : s.k === COLS - 1 ? '창가 쪽 줄' : `복도에서 ${ORD[s.k]} 줄`;
-    return `${s.g + 1}분단 ${col} · 앞에서 ${s.r + 1}번째`;
-  }
-
   // ── 명단 ─────────────────────────────────────────────────────
   // 한 줄에 한 명. "12 김민지", "12. 김민지", "12번 김민지", 엑셀에서 복사한 "12<탭>김민지", "김민지" 모두 된다.
+  // 엑셀 명렬표 한 줄을 통째로 붙여도 된다 ("1<탭>1반<탭>1<탭>20101<탭>김하늘"): 이름 칸과 학번 칸을 찾아 쓰고,
+  // 제목·머리글(연번 학급 번호 학번 성명 …)처럼 이름이 없는 줄은 건너뛴다.
+  const HEADER = /^(연번|학급|반|번호|학번|성명|이름|확인|비고|성별)$/;
+  const NAME = /^[가-힣]{2,5}$/;
+  function fromFields(fields) {
+    const name = fields.find(f => NAME.test(f) && !/반$/.test(f) && !HEADER.test(f));
+    if (!name) return null;
+    const num = fields.find(f => /^\d{5}$/.test(f)) || fields.filter(f => /^\d{1,4}$/.test(f)).pop();
+    return {no: num ? +num : null, name};
+  }
+  const clean = name => name.replace(/[.#$\[\]\/]/g, '').slice(0, 12).trim();
   function parseRoster(text) {
-    const out = [];
-    for (let line of String(text || '').split(/\r?\n/)) {
-      line = line.replace(/[\s ]+/g, ' ').trim();
+    const out = [], seen = new Set();
+    const push = p => { if (!p || !p.name) return; const k = p.no + '|' + p.name; if (!seen.has(k)) { seen.add(k); out.push(p); } };
+    for (const raw of String(text || '').split(/\r?\n/)) {
+      if (raw.includes('\t')) {
+        const fields = raw.split('\t').map(f => f.replace(/[\s\u00a0]+/g, ' ').trim()).filter(Boolean);
+        const p = fromFields(fields);
+        if (p) { push({no: p.no, name: clean(p.name)}); continue; }
+        if (fields.length > 2 || (fields.length === 1 && fields[0].length > 12)) continue;   // 제목·머리글 줄
+      }
+      const line = raw.replace(/[\s\u00a0]+/g, ' ').trim();
       if (!line) continue;
       let no = null, name = line;
       const m = line.match(/^(\d{1,5})\s*(?:번)?\s*[.):,-]?\s+(.+)$/) || line.match(/^(\d{1,5})(?:번|[.):])\s*(.+)$/);
       if (m) { no = +m[1]; name = m[2].trim(); }
-      name = name.replace(/[.#$\[\]\/]/g, '').slice(0, 12).trim();
-      if (name) out.push({no, name});
+      push({no, name: clean(name)});
     }
     return out;
   }
+  // 엑셀 시트(행마다 칸 배열)를 명단으로
+  const rosterFromRows = rows => parseRoster((rows || []).map(r => (r || []).map(c => c == null ? '' : String(c)).join('\t')).join('\n'));
   // 명단을 고쳐도 이미 들어온 학생의 열쇠(s01 …)가 바뀌지 않게, 같은 이름·번호면 예전 열쇠를 다시 쓴다.
   function assignKeys(list, old) {
     const prev = Object.entries(old || {});
@@ -129,9 +164,11 @@
   const splitList = s => String(s || '').split(',').map(x => x.trim()).filter(Boolean);
 
   // ── 문제 만들기 ───────────────────────────────────────────────
-  // students: [{key, friends: [key], wishes: [seatId]}], opts: {fw: 친구 비중 0~1, locks: {key: seatId}, apart: [[key, key]]}
+  // students: [{key, friends: [key], wishes: [seatId]}],
+  // opts: {layout: 'room'|'hall', fw: 친구 비중 0~1, locks: {key: seatId}, apart: [[key, key]]}
   function prepare(students, opts) {
     opts = opts || {};
+    const L = layout(opts.layout), {SEAT, SEATS, NSEAT} = L;
     if (students.length > NSEAT) throw new Error(`자리는 ${NSEAT}개인데 학생이 ${students.length}명이에요.`);
     const keys = students.map(s => s.key);
     const idx = new Map(keys.map((k, i) => [k, i]));
@@ -169,19 +206,19 @@
       }
     }
     const movable = SEATS.filter(s => !taken.has(s.i)).map(s => s.i);
-    return {n: students.length, keys, idx, fr, wish, lockSeat, apart, movable, fw: clamp(opts.fw ?? 0.6, 0, 1)};
+    return {L, n: students.length, keys, idx, fr, wish, lockSeat, apart, movable, fw: clamp(opts.fw ?? 0.6, 0, 1)};
   }
 
   // occ: 자리 → 학생 번호(-1 은 빈자리). pos: 학생 → 자리.
   function posOf(prob, occ) {
     const pos = new Int16Array(prob.n).fill(-1);
-    for (let s = 0; s < NSEAT; s++) if (occ[s] >= 0) pos[occ[s]] = s;
+    for (let s = 0; s < prob.L.NSEAT; s++) if (occ[s] >= 0) pos[occ[s]] = s;
     return pos;
   }
 
   // 한 학생의 만족도. 원하는 것을 아무것도 안 냈으면 null.
   function parts(prob, pos, i) {
-    const f = prob.fr[i], w = prob.wish[i];
+    const f = prob.fr[i], w = prob.wish[i], {NM, NSEAT} = prob.L;
     let F = null, P = null;
     if (f.length) {
       let sum = 0, sw = 0;
@@ -196,6 +233,7 @@
   const APART_PENALTY = 10, EMPTY_FRONT = 0.5;
   function score(prob, occ, pos) {
     pos = pos || posOf(prob, occ);
+    const {NM, NSEAT, SEATS, ROWS_MAX} = prob.L;
     let t = 0;
     for (let i = 0; i < prob.n; i++) {
       const s = parts(prob, pos, i).s;
@@ -209,6 +247,7 @@
   // 고정한 학생을 고정한 자리로 옮긴다 (그 자리에 있던 학생은 고정 학생이 있던 자리로)
   function applyLocks(prob, occ) {
     occ = Int16Array.from(occ);
+    const {FILL_ORDER} = prob.L;
     for (let i = 0; i < prob.n; i++) {
       const L = prob.lockSeat[i];
       if (L < 0) continue;
@@ -224,6 +263,7 @@
 
   // 자리 이름 → 열쇠 지도({ '0-1': 's03' })를 occ 로. 자리가 없는 학생은 앞쪽 빈자리부터 앉힌다.
   function toOcc(prob, map) {
+    const {SEAT, NSEAT, FILL_ORDER} = prob.L;
     const occ = new Int16Array(NSEAT).fill(-1);
     const placed = new Set();
     for (const [sid, key] of Object.entries(map || {})) {
@@ -238,7 +278,7 @@
     return applyLocks(prob, occ);
   }
   function toMap(prob, occ) {
-    const map = {};
+    const map = {}, {SEATS, NSEAT} = prob.L;
     for (let s = 0; s < NSEAT; s++) if (occ[s] >= 0) map[SEATS[s].id] = prob.keys[occ[s]];
     return map;
   }
@@ -255,7 +295,7 @@
   }
   function randomOcc(prob, rand) {
     rand = rand || Math.random;
-    const occ = new Int16Array(NSEAT).fill(-1);
+    const occ = new Int16Array(prob.L.NSEAT).fill(-1);
     const free = prob.movable.slice();
     for (let i = free.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [free[i], free[j]] = [free[j], free[i]]; }
     let q = 0;
@@ -282,7 +322,7 @@
       this.cur = score(prob, this.occ, this.pos);
       this.best = this.cur;
       this.bestOcc = Int16Array.from(this.occ);
-      this.canMove = new Uint8Array(NSEAT);
+      this.canMove = new Uint8Array(prob.L.NSEAT);
       for (const i of prob.movable) this.canMove[i] = 1;
     }
     get T() { return this.T0 * Math.pow(this.T1 / this.T0, Math.min(1, this.it / this.iters)); }
@@ -306,7 +346,7 @@
         // 한 번에 옮길 수 있어야 '한 명씩 옮기면 둘 다 잠깐 손해'인 자리에서 빠져나온다.
         let a2 = -1, b2 = -1;
         if (rand() < 0.25) {
-          const na = NBRS[a], nb = NBRS[b];
+          const na = this.p.L.NBRS[a], nb = this.p.L.NBRS[b];
           a2 = na[Math.floor(rand() * na.length)];
           b2 = nb[Math.floor(rand() * nb.length)];
           if (a2 === undefined || b2 === undefined || !this.canMove[a2] || !this.canMove[b2] || a2 === b || b2 === a || a2 === b2) a2 = b2 = -1;
@@ -368,7 +408,7 @@
 
   // ── 결과 읽기 ─────────────────────────────────────────────────
   function report(prob, occ) {
-    const pos = posOf(prob, occ);
+    const pos = posOf(prob, occ), {NM, NSEAT, SEATS} = prob.L;
     const people = [];
     let sum = 0, cnt = 0, min = null, withF = 0, hasF = 0, wishHit = 0, hasW = 0;
     for (let i = 0; i < prob.n; i++) {
@@ -384,9 +424,12 @@
     return {people, byKey: Object.fromEntries(people.map(x => [x.key, x])), avg: cnt ? sum / cnt : null, min, count: cnt, withF, hasF, wishHit, hasW, apartBad};
   }
 
+  // 보통 교실(room)의 값은 그대로 꺼내 둔다 (예전 코드·테스트가 M.SEATS 처럼 쓴다)
   const api = {
-    COLS, ROWS, HALL_ROWS, ROWS_MAX, NSEAT, SEATS, SEAT, FILL_ORDER, MAX_FRIENDS, MAX_WISHES, FRIEND_W,
-    AISLE, WIDTH, GROUP_X, near, wishAt, relation, seatName, parseRoster, assignKeys, rosterList, splitList,
+    LAYOUTS, layout, makeLayout,
+    COLS: ROOM.COLS, ROWS_MAX: ROOM.ROWS_MAX, NSEAT: ROOM.NSEAT, SEATS: ROOM.SEATS, SEAT: ROOM.SEAT, FILL_ORDER: ROOM.FILL_ORDER,
+    AISLE: ROOM.AISLE, WIDTH: ROOM.WIDTH, GROUP_X: ROOM.GROUP_X, near: ROOM.near, seatName: ROOM.seatName,
+    MAX_FRIENDS, MAX_WISHES, FRIEND_W, wishAt, relation, parseRoster, rosterFromRows, assignKeys, rosterList, splitList,
     prepare, posOf, parts, score, applyLocks, toOcc, toMap, rng, randomOcc, Annealer, polish, optimize, report
   };
   if (typeof module === 'object' && module.exports) module.exports = api;

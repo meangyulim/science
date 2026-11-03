@@ -190,3 +190,51 @@ test('annealer runs in small steps and never loses its best',()=>{
   assert.ok(Math.abs(M.score(prob,a.bestOcc)-a.best)<1e-9);
   assert.ok(M.score(prob,M.polish(prob,a.bestOcc))>=a.best-1e-9);
 });
+
+test('lecture hall: two rows at each end, three in the middle, 6 seats per row — 42 seats',()=>{
+  const L=M.LAYOUTS.hall;
+  assert.equal(L.NSEAT,42);
+  assert.equal(L.ROWS_MAX,6);
+  assert.equal(L.COLS,7);
+  const perGroup=[0,0,0];
+  for(const s of L.SEATS) perGroup[s.g]++;
+  assert.deepEqual(perGroup,[12,18,12]);
+  const n=(a,b)=>L.near(L.SEAT[a],L.SEAT[b]);
+  assert.equal(n('2-0','3-0'),1);     // 가운데 분단: 가운데 줄은 양옆이 다 짝
+  assert.equal(n('3-0','4-0'),1);
+  assert.equal(n('2-0','4-0'),0.25);  // 가운데 분단 양 끝
+  assert.equal(n('1-0','2-0'),0.4);   // 통로 건너
+  assert.equal(n('4-3','5-3'),0.4);
+  assert.equal(L.seatName('3-0'),'2분단 복도에서 넷째 줄 · 앞에서 1번째');
+  // 23명이면 빈자리는 뒤쪽에, 서로 고른 짝은 짝으로
+  const st=kids(23);
+  for(let i=0;i<22;i+=2){st[i].friends=[st[i+1].key];st[i+1].friends=[st[i].key];}
+  const prob=M.prepare(st,{layout:'hall'});
+  assert.equal(prob.L,L);
+  const occ=M.optimize(prob,null,{rand:M.rng(8),restarts:3,iters:20000});
+  assert.equal([...occ].filter(x=>x>=0).length,23);
+  assert.ok(L.SEATS.filter(s=>occ[s.i]>=0).every(s=>s.r<=4));
+  const pos=M.posOf(prob,occ);
+  for(let i=0;i<22;i+=2)assert.equal(L.near(L.SEATS[pos[i]],L.SEATS[pos[i+1]]),1);
+  // 보통 교실의 셋째 자리는 강의실에는 없다
+  assert.equal(L.SEAT['e-6'],undefined);
+  assert.equal(M.layout('nope'),M.LAYOUTS.room);
+});
+
+test('roster: whole rows pasted from the class list spreadsheet',()=>{
+  const text=[
+    '2026학년도 2학기 행성우주과학 명렬표 (A_행성)\t\t\t',
+    '분반: A_행성 (2층 종합강의실 1 (213))\t\t담당 교사: 선생님\t\t시간표: 월 7교시\t수강 인원: 총 3명',
+    '\t\t\t\t',
+    '연번\t학급\t번호\t학번\t성명\t확인\t비고',
+    '1\t2반\t15\t20215\t가나다\t\t',
+    '2\t3반\t8\t20308\t라마바\t\t',
+    '3\t3반\t20\t20320\t사아\t\t전입',
+  ].join('\n');
+  assert.deepEqual(M.parseRoster(text),[{no:20215,name:'가나다'},{no:20308,name:'라마바'},{no:20320,name:'사아'}]);
+  // 엑셀 시트(칸 배열)에서 바로
+  assert.deepEqual(M.rosterFromRows([['연번','학급','번호','학번','성명'],[1,'9반',9,'20909','가나다'],[2,'9반',10,20910,'라마바'],[]]),
+    [{no:20909,name:'가나다'},{no:20910,name:'라마바'}]);
+  // 같은 줄을 두 번 붙여도 한 번만
+  assert.equal(M.parseRoster('20215 가나다\n20215 가나다').length,1);
+});
