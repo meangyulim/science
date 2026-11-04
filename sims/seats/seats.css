@@ -272,6 +272,8 @@ dialog::backdrop{background:#0f2235cc}
 .balance button[aria-checked=true]{background:var(--cyan);border-color:var(--cyan);color:#fff}
 .slider-cap{margin-bottom:-6px}
 
+.saved-btns{align-items:center}
+.saved-btns .hint{margin-right:4px}
 .print-head{display:none}
 
 @media (max-width:900px){

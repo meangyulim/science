@@ -797,6 +797,17 @@
 
   // 명단에 없던 학생: 폰에서 이름을 보내면(joins/uid) 선생님 기기가 명단에 더하고 그 폰에 이름을 맡긴다.
   // 명단에 같은 이름이 있고 아직 아무도 안 골랐으면 그 이름을 맡긴다.
+  // 지금 방의 명단을 이 반의 저장해 둔 명단과 자리 기록(다른 기기용)에 반영한다
+  // — '명단에 없어요'로 들어온 학생을 다음 시간에 다시 넣지 않아도 되게
+  function rememberRoster() {
+    const cls = T.meta && T.meta.cls;
+    if (T.demo || !cls) return;
+    const text = rosterText(T.roster), lay = TL().id, hall = T.meta.hall || 'right';
+    const saved = savedRosters();
+    saved[cls] = Object.assign({}, saved[cls], {text, layout: lay, hall}, T.bid ? {bid: T.bid} : {});
+    setPref('rosters', saved);
+    if (T.bid) T.store.set(`${BOARDS}/${T.bid}/info`, {cls, layout: lay, hall, text, t: T.store.now()}).catch(e => console.warn('[seats] board info', e));
+  }
   let joining = false;
   async function processJoins() {
     if (joining || !T.store) return;
@@ -822,7 +833,8 @@
         await T.store.update(T.base, upd);
         T.roster[key] = T.roster[key] || upd['roster/' + key];
         T.claims[key] = uid;
-        toast('t-toast', `명단에 없던 ${p.name} 학생이 들어왔어요.`);
+        toast('t-toast', `명단에 없던 ${p.name} 학생이 들어왔어요. 이 반 명단에도 저장했어요.`);
+        rememberRoster();
       }
     } catch (e) {
       console.warn('[seats] joins', e);
@@ -970,6 +982,18 @@
     const dl = $('r-saved');
     dl.textContent = '';
     for (const k of Object.keys(saved)) dl.append(h('option', {value: k}));
+    // 저장해 둔 반: 한 번 누르면 명단·교실 모양·복도 위치가 채워진다
+    const sb = $('r-saved-btns');
+    sb.textContent = '';
+    sb.hidden = !Object.keys(saved).length;
+    if (Object.keys(saved).length) sb.append(h('span', {class: 'hint', text: '저장해 둔 반'}));
+    for (const k of Object.keys(saved).sort()) {
+      const n = M.parseRoster(saved[k].text).length;
+      sb.append(h('button', {type: 'button', 'data-name': k, onclick: () => {
+        $('r-cls').value = k; useSaved(k);
+        for (const x of sb.querySelectorAll('button')) x.setAttribute('aria-pressed', String(x.dataset.name === k));
+      }}, h('b', {text: k}), h('small', {text: `${n}명`})));
+    }
     const count = () => {
       const n = M.parseRoster($('r-text').value).length, N = M.layout(lay).NSEAT;
       const over = n > N;
@@ -1021,6 +1045,7 @@
     $('r-ok').textContent = first ? '저장하고 학생 받기' : '저장';
     $('r-ok').onclick = async e => {
       e.preventDefault();
+      if (!T.demo && !$('r-cls').value.trim() && !confirm('반 이름이 없으면 이 명단을 기억해 두지 못해서 다음에 다시 넣어야 해요.\n반 이름 없이 진행할까요?')) { $('r-cls').focus(); return; }
       const ok = await saveRoster($('r-cls').value.trim(), $('r-text').value, hall, lay);
       if (!ok) return;
       d.close();
