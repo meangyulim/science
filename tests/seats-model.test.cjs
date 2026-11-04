@@ -12,15 +12,18 @@ test('classroom: hallway group 2×7 plus one back seat, other groups 2×5 — 35
   assert.deepEqual(perGroup,[15,10,10]);
   const perCol=[0,0,0,0,0,0];
   for(const s of M.SEATS) if(!s.extra) perCol[s.k]++;
-  assert.deepEqual(perCol,[7,7,5,5,5,5]);
-  // 맨 뒷줄(7번째)은 1분단에만 있고 세 칸
-  assert.deepEqual(M.SEATS.filter(s=>s.r===6).map(s=>s.id),['0-6','1-6','e-6']);
+  assert.deepEqual(perCol,[6,6,5,5,5,5]);
+  // 맨 뒷줄(7번째)은 1분단에만 있고, 두 칸 뒤에 피라미드처럼 세 칸 (반 칸씩 엇갈림)
+  const back=M.SEATS.filter(s=>s.r===6);
+  assert.deepEqual(back.map(s=>s.id),['e-6','0-6','1-6']);
+  assert.deepEqual(back.map(s=>s.x),[0.5,1.5,2.5]);
+  assert.deepEqual(['0-5','1-5'].map(id=>M.SEAT[id].x),[1,2]);
   assert.ok(M.SEAT['1-5']);
   assert.equal(M.SEAT['2-5'],undefined);
   assert.equal(M.FILL_ORDER[0].id,'0-0');
   assert.equal(M.FILL_ORDER[6].id,'0-1');
-  // 셋째 자리는 통로 쪽(2분단 쪽)으로 붙어 있다
-  assert.ok(M.SEAT['e-6'].x>M.SEAT['1-6'].x && M.SEAT['e-6'].x<M.GROUP_X[1]+0.5);
+  // 양쪽으로 반 칸씩 튀어나오니 바닥이 반 칸 넓어진다
+  assert.ok(Math.abs(M.WIDTH-7.7)<1e-9);
 });
 
 test('nearness: desk pairs with an aisle between them',()=>{
@@ -35,10 +38,11 @@ test('nearness: desk pairs with an aisle between them',()=>{
   assert.equal(n('0-0','5-4'),0);
   assert.deepEqual([0,1,2,3,4,5].map(k=>M.SEAT[k+'-0'].g),[0,0,1,1,2,2]);
   // 1분단 맨 뒷줄 세 자리: 가운데와 셋째는 짝, 양 끝은 두 칸 떨어짐
-  assert.equal(n('1-6','e-6'),1);
-  assert.equal(n('0-6','e-6'),0.25);
-  assert.equal(n('1-5','e-6'),0.5);
-  assert.ok(n('e-6','2-4')<0.1);
+  assert.equal(n('0-6','e-6'),1);      // 맨 뒷줄 세 칸은 서로 짝
+  assert.equal(n('1-6','e-6'),0.25);   // 양 끝
+  assert.equal(n('0-5','e-6'),0.625);  // 반 칸 엇갈린 바로 뒤
+  assert.equal(n('0-5','0-6'),0.625);
+  assert.equal(n('e-6','2-4'),0);
   for(const a of M.SEATS)for(const b of M.SEATS)assert.equal(M.near(a,b),M.near(b,a));
   // 원하는 자리: 통로 건너 옆자리는 짝 자리보다 덜 가깝다
   const w=M.SEAT['2-2'];
@@ -49,7 +53,7 @@ test('nearness: desk pairs with an aisle between them',()=>{
   assert.equal(M.seatName('0-2'),'1분단 복도 쪽 줄 · 앞에서 3번째');
   assert.equal(M.seatName('5-0'),'3분단 창가 쪽 줄 · 앞에서 1번째');
   assert.equal(M.seatName('2-0'),'2분단 복도에서 셋째 줄 · 앞에서 1번째');
-  assert.equal(M.seatName('e-6'),'1분단 맨 뒤 · 통로 쪽 셋째 자리');
+  assert.equal(M.seatName('e-6'),'1분단 맨 뒤 세 칸 · 복도 벽 쪽');
 });
 
 test('friends who choose each other become desk partners, not neighbours across the aisle',()=>{

@@ -2,11 +2,11 @@
    브라우저에서는 window.SeatsModel, Node 에서는 require 로 쓴다 (tests/seats-model.test.cjs).
 
    교실 모양은 LAYOUTS 에 있다. 두 가지:
-     room  보통 교실 — 두 줄씩 붙은 분단 셋. 복도 쪽 1분단은 두 줄 모두 7자리에 맨 뒷줄만
-           통로 쪽으로 한 자리 더(15자리), 2·3분단은 5자리씩 → 35자리
+     room  보통 교실 — 두 줄씩 붙은 분단 셋. 복도 쪽 1분단은 두 줄 × 6자리 뒤에
+           피라미드처럼 반 칸씩 엇갈린 세 칸(15자리), 2·3분단은 5자리씩 → 35자리
      hall  종합강의실 — 양끝 분단은 두 줄, 가운데 분단은 세 줄, 줄마다 6자리 → 42자리
    분단 사이에는 통로가 있다. 자리 이름은 '줄-번째' — 줄 k 는 복도 쪽이 0, 번째 r 은 칠판 쪽(맨 앞)이 0.
-   보통 교실 1분단 맨 뒷줄의 셋째 자리만 'e-6'.
+   보통 교실 1분단 맨 뒷줄 세 칸은 복도 벽 쪽부터 'e-6', '0-6', '1-6'.
    복도가 칠판 기준 왼쪽인지 오른쪽인지는 화면에서만 뒤집는다. 그래서 복도 위치를 바꿔도
    학생들이 골라 둔 자리('복도 쪽 둘째 줄 맨 앞' 같은)는 그대로 맞는다.
 
@@ -33,6 +33,7 @@
   const FAR = [0.1, 0.05, 0];            // 통로 하나 건너 한 칸 더
   // 고른 자리에서 얼마나 가까운가 (통로 너비까지 친 실제 거리): 그 자리 1, 짝 자리·앞뒤 0.66, 통로 건너 0.35, 두 칸 0.19
   const WISH_SIGMA = 1.1;
+  const WISH_W = [1, 0.85, 0.7];
   const wishAt = (seat, w) => Math.exp(-((seat.x - w.x) ** 2 + (seat.r - w.r) ** 2) / (2 * WISH_SIGMA * WISH_SIGMA));
 
   // ── 교실 ─────────────────────────────────────────────────────
@@ -43,13 +44,17 @@
     const GROUP_X = [];
     let w = 0;
     for (const g of def.groups) { GROUP_X.push(w); w += g.length + AISLE; }
-    const WIDTH = w - AISLE;             // 교실 바닥의 가로 너비
+    let WIDTH = w - AISLE;               // 교실 바닥의 가로 너비
     const SEATS = [];
     const add = (id, g, c, k, r, extra) => SEATS.push({id, g, c, k, r, x: GROUP_X[g] + c + 0.5, extra: extra || null, i: SEATS.length});
     let k = 0;
     def.groups.forEach((cols, g) => cols.forEach((n, c) => { for (let r = 0; r < n; r++) add(k + '-' + r, g, c, k, r); k++; }));
     const COLS = k;
     for (const e of def.extra || []) add(e.id, e.g, e.c, e.k, e.r, e.name);
+    // 따로 붙은 자리가 바깥(복도 벽 쪽)으로 튀어나오면 바닥을 그만큼 넓힌다
+    const left = Math.min(0, ...SEATS.map(s => s.x - 0.5));
+    if (left < 0) { for (const s of SEATS) s.x -= left; for (let g = 0; g < GROUP_X.length; g++) GROUP_X[g] -= left; }
+    WIDTH = Math.max(...SEATS.map(s => s.x + 0.5));
     const NSEAT = SEATS.length;
     const ROWS_MAX = Math.max(...SEATS.map(s => s.r)) + 1;
     const SEAT = Object.fromEntries(SEATS.map(s => [s.id, s]));
@@ -59,8 +64,11 @@
       const dr = Math.abs(a.r - b.r);
       if (dr > 2 || a === b) return 0;
       if (a.g === b.g) {
-        const dc = Math.abs(a.c - b.c);
-        return dc === 0 ? SAME_COL[dr] : dc === 1 ? DESKMATE[dr] : dc === 2 ? TWO_OVER[dr] : 0;
+        // 칸 차이가 반 칸(피라미드처럼 엇갈린 맨 뒷줄)이면 두 값의 가운데
+        const dc = Math.abs(a.c - b.c), T = [SAME_COL, DESKMATE, TWO_OVER];
+        if (dc > 2) return 0;
+        const lo = Math.floor(dc), f = dc - lo;
+        return f ? T[lo][dr] * (1 - f) + T[lo + 1][dr] * f : T[lo][dr];
       }
       const dx = Math.abs(a.x - b.x);
       return dx < 1.7 ? ACROSS[dr] : dx < 2.7 ? FAR[dr] : 0;
@@ -77,17 +85,30 @@
       const col = s.k === 0 ? '복도 쪽 줄' : s.k === COLS - 1 ? '창가 쪽 줄' : `복도에서 ${ORD[s.k]} 줄`;
       return `${s.g + 1}분단 ${col} · 앞에서 ${s.r + 1}번째`;
     }
-    return {id: def.id, name: def.name, desc: def.desc, COLS, ROWS_MAX, AISLE, GROUP_X, WIDTH, SEATS, SEAT, NSEAT, FILL_ORDER, NM, NBRS, near, seatName};
+    // 바로 옆(짝) 자리 쌍 — 넓은 교실에서 서로 모르는 학생끼리 딱 붙어 앉지 않게 할 때 쓴다
+    const SIDE = [];
+    for (const a of SEATS) for (const b of SEATS) if (a.i < b.i && NM[a.i * NSEAT + b.i] >= 1) SIDE.push([a.i, b.i]);
+    // 양옆이 모두 짝 자리인 자리 (세 줄 분단의 가운데) — 양쪽에 다 사람이 앉으면 끼어 앉은 것
+    const MIDDLE = [];
+    for (const m of SEATS) { const sides = SEATS.filter(b => NM[m.i * NSEAT + b.i] >= 1).map(b => b.i); if (sides.length === 2) MIDDLE.push([m.i, sides[0], sides[1]]); }
+    return {id: def.id, name: def.name, desc: def.desc, spread: !!def.spread, COLS, ROWS_MAX, AISLE, GROUP_X, WIDTH, SEATS, SEAT, NSEAT, FILL_ORDER, NM, NBRS, SIDE, MIDDLE, near, seatName};
   }
   const LAYOUTS = {
     room: makeLayout({
-      id: 'room', name: '보통 교실', desc: '두 줄씩 분단 셋 · 복도 쪽 분단은 7자리, 맨 뒷줄 3칸 (35자리)',
-      groups: [[7, 7], [5, 5], [5, 5]],
-      extra: [{id: 'e-6', g: 0, c: 2, k: 1, r: 6, name: '1분단 맨 뒤 · 통로 쪽 셋째 자리'}]
+      id: 'room', name: '보통 교실', desc: '두 줄씩 분단 셋 · 복도 쪽 분단은 6줄 뒤에 피라미드처럼 3칸 (35자리)',
+      // 1분단 맨 뒷줄은 피라미드처럼 두 칸 뒤에 세 칸 — 반 칸씩 엇갈려 양쪽으로 반 칸씩 튀어나온다
+      groups: [[6, 6], [5, 5], [5, 5]],
+      extra: [
+        {id: 'e-6', g: 0, c: -0.5, k: 0, r: 6, name: '1분단 맨 뒤 세 칸 · 복도 벽 쪽'},
+        {id: '0-6', g: 0, c: 0.5, k: 0, r: 6, name: '1분단 맨 뒤 세 칸 · 가운데'},
+        {id: '1-6', g: 0, c: 1.5, k: 1, r: 6, name: '1분단 맨 뒤 세 칸 · 통로 쪽'}
+      ]
     }),
     hall: makeLayout({
-      id: 'hall', name: '종합강의실', desc: '양끝 두 줄, 가운데 세 줄 · 줄마다 6자리 (42자리)',
-      groups: [[6, 6], [6, 6, 6], [6, 6]]
+      id: 'hall', name: '종합강의실', desc: '양끝 두 줄, 가운데 세 줄 · 줄마다 6자리 (42자리) · 띄엄띄엄 앉혀요',
+      groups: [[6, 6], [6, 6, 6], [6, 6]],
+      // 자리가 넉넉하다: 서로 고르지 않은 학생끼리는 짝 자리에 붙이지 않고 띄엄띄엄, 그래도 너무 뒤로는 안 가게
+      spread: true
     })
   };
   const layout = id => (id && typeof id === 'object' ? id : LAYOUTS[id]) || LAYOUTS.room;
@@ -186,7 +207,8 @@
     const wish = students.map(s => {
       const w = [...new Set(s.wishes || [])].map(id => SEAT[id]).filter(Boolean).slice(0, MAX_WISHES);
       if (!w.length) return null;
-      return Float64Array.from(SEATS, seat => Math.max(...w.map(x => wishAt(seat, x))));
+      // 먼저 고른 자리일수록 무겁게 (★1 1, ★2 0.85, ★3 0.7)
+      return Float64Array.from(SEATS, seat => Math.max(...w.map((x, q) => WISH_W[q] * wishAt(seat, x))));
     });
     const lockSeat = new Int16Array(students.length).fill(-1);
     const taken = new Set();
@@ -206,7 +228,12 @@
       }
     }
     const movable = SEATS.filter(s => !taken.has(s.i)).map(s => s.i);
-    return {L, n: students.length, keys, idx, fr, wish, lockSeat, apart, movable, fw: clamp(opts.fw ?? 0.6, 0, 1)};
+    // 서로 한쪽이라도 친구로 고른 사이 (넓은 교실에서 '모르는 사이끼리 붙어 앉기' 감점에 쓴다)
+    const n = students.length, likes = new Uint8Array(n * n);
+    fr.forEach((list, i) => { for (const [j] of list) { likes[i * n + j] = 1; likes[j * n + i] = 1; } });
+    // 넓은 교실에서 쓸 줄 수: 한 줄을 3/4쯤만 채운다고 보고 앞에서부터 (23명·한 줄 7자리 → 앞 5줄)
+    const useRows = clamp(Math.ceil(n / (NSEAT / L.ROWS_MAX * 0.75)), 1, L.ROWS_MAX);
+    return {L, n, keys, idx, fr, wish, likes, useRows, lockSeat, apart, movable, fw: clamp(opts.fw ?? 0.6, 0, 1)};
   }
 
   // occ: 자리 → 학생 번호(-1 은 빈자리). pos: 학생 → 자리.
@@ -230,7 +257,7 @@
     const s = wf + ww > 0 ? ((wf ? wf * F : 0) + (ww ? ww * P : 0)) / (wf + ww) : (F ?? P);
     return {F, P, s: F === null && P === null ? null : s};
   }
-  const APART_PENALTY = 10, EMPTY_FRONT = 0.5;
+  const APART_PENALTY = 10, EMPTY_FRONT = 0.5, FRONT_PULL = 0.03, BEYOND = 0.8, SPREAD = 0.2, CROWD = 0.15;
   function score(prob, occ, pos) {
     pos = pos || posOf(prob, occ);
     const {NM, NSEAT, SEATS, ROWS_MAX} = prob.L;
@@ -240,7 +267,17 @@
       if (s !== null) t += Math.sqrt(s + 0.01);
     }
     for (const [a, b] of prob.apart) t -= APART_PENALTY * NM[pos[a] * NSEAT + pos[b]];
-    for (let s = 0; s < NSEAT; s++) if (occ[s] < 0) t -= EMPTY_FRONT * (1 - SEATS[s].r / ROWS_MAX);
+    if (prob.L.spread) {
+      // 넓은 교실: 앞 useRows 줄 안에서 띄엄띄엄 (수업 듣기 좋게 너무 뒤로는 안 가게)
+      //  - 쓸 줄 안에서는 뒤로 갈수록 조금씩, 그보다 뒤는 크게 감점
+      //  - 서로 고르지 않은 학생끼리 짝 자리에 붙으면 감점, 세 줄 분단 가운데에 양쪽이 다 차서 끼어 앉아도 감점
+      const n = prob.n, U = prob.useRows;
+      for (let s = 0; s < NSEAT; s++) if (occ[s] >= 0) { const r = SEATS[s].r; t -= FRONT_PULL * r + (r >= U ? BEYOND * (r - U + 1) : 0); }
+      for (const [a, b] of prob.L.SIDE) { const x = occ[a], y = occ[b]; if (x >= 0 && y >= 0 && !prob.likes[x * n + y]) t -= SPREAD; }
+      for (const [m, a, b] of prob.L.MIDDLE) if (occ[m] >= 0 && occ[a] >= 0 && occ[b] >= 0) t -= CROWD;
+    } else {
+      for (let s = 0; s < NSEAT; s++) if (occ[s] < 0) t -= EMPTY_FRONT * (1 - SEATS[s].r / ROWS_MAX);
+    }
     return t;
   }
 
