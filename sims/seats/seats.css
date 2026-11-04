@@ -262,7 +262,7 @@ dialog::backdrop{background:#0f2235cc}
 .h-list button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
 .h-when{font-weight:700;color:var(--muted)}
 @media (max-width:760px){.h-main{grid-template-columns:1fr}.h-side{border-right:0;border-bottom:1px solid var(--line)}.h-list{flex-direction:row;flex-wrap:wrap}}
-@media print{.h-side,.history .t-bar{display:none!important}.h-main{display:block}}
+@media print{.h-side,.history .t-bar,.h-top button{display:none!important}.h-main{display:block}}
 
 /* ── 나에게 더 중요한 것 ── */
 .balance{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -274,6 +274,29 @@ dialog::backdrop{background:#0f2235cc}
 
 .saved-btns{align-items:center}
 .saved-btns .hint{margin-right:4px}
+/* ── 선생님 코드 ── */
+.code-box{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.code-form{display:flex;gap:6px}
+.code-form input{flex:1;min-width:0;min-height:44px;border:1px solid var(--line);border-radius:12px;padding:6px 12px;font-size:15px;background:#fbfcfc}
+.code-form button{min-height:44px}
+.records-link{justify-content:center;min-height:44px}
+/* ── 끌어다 놓기 ── */
+.room.can-drag .chip{touch-action:none;cursor:grab}
+.room.can-drag:not(.editing).dragging .chip:not(.dragging){transition:left .35s,top .35s}
+.chip.dragging{z-index:20;transition:none!important;cursor:grabbing;box-shadow:0 12px 28px #0b7f9a55;opacity:.92}
+.seat.drop{outline:3px dashed var(--cyan);outline-offset:2px;background:var(--cyan-soft)}
+.room.anon.can-drag .chip{cursor:default}
+#h-board .room:not(.editing) .chip{cursor:default;touch-action:auto}
+#h-board .room.editing .chip{box-shadow:0 0 0 2px var(--cyan-soft)}
+/* ── 자리 기록 화면 ── */
+.h-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.h-top button{min-height:38px;padding:4px 14px}
+.h-classes button{display:flex;justify-content:space-between;align-items:baseline}
+.h-classes button small{color:var(--muted);font-weight:600}
+.h-classes button[aria-pressed=true] small{color:#c8d6df}
+.h-classes:not(:empty){padding-bottom:10px;border-bottom:1px solid var(--line)}
+.reg-all{background:var(--cyan)!important;border-color:var(--cyan)!important;color:#fff!important}
+
 .print-head{display:none}
 
 @media (max-width:900px){

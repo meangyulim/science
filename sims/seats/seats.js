@@ -9,7 +9,8 @@
      meta     {teacher, phase: open|closed|published, hall: left|right, cls}   모두 읽기
      roster   {s01: {no, name}}                                              모두 읽기, 선생님만 쓰기
      claims   {s01: uid}   이 이름을 고른 폰                                   모두 읽기, 자기 것만 쓰기
-     prefs    {uid: {who: s01, f: 's03,s07', w: '0-1,2-3', t}}              자기 것만, 선생님은 모두
+     prefs    {uid: {s01: {who: s01, f: 's03,s07', w: '0-1,2-3', b, t}}}   기기(uid)마다, 그 기기로 낸 학생마다.
+                                                                     자기 기기 것만, 선생님은 모두. 태블릿 하나를 돌려 써도 섞이지 않는다
      result   {occ: {'0-1': s01}, t}   공개한 자리                             모두 읽기
      tconf    선생님 화면 상태 (지금 자리, 고정, 떨어뜨리기, 보기 설정)           선생님만
 
@@ -33,7 +34,27 @@
   const FB = 'https://www.gstatic.com/firebasejs/11.6.1/';
   const QR_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
   const ROOT = 'seats/rooms';
-  const BOARDS = 'seats/boards';   // 반마다 자리 기록 (비밀 주소로 어느 기기에서든 본다)
+  // ── 선생님 코드 ──────────────────────────────────────────────
+  // 선생님이 정한 코드로 '선생님 공간'(seats/teachers/<코드의 해시>)을 연다. 반 명단과 자리 기록이 여기에 있어서
+  // 어느 기기에서든 코드만 넣으면 불러온다. 코드 자체는 서버에 가지 않는다 (이 기기에만 저장).
+  const SPACE = 'seats/teachers';
+  const normCode = c => String(c || '').toLowerCase().replace(/[^a-z0-9가-힣]/g, '');
+  async function spaceId(code) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('seats-teacher-space:' + normCode(code)));
+    return Array.from(new Uint8Array(buf), x => x.toString(16).padStart(2, '0')).join('');
+  }
+  let TID = null;
+  async function initCode() { const c = pref('teacherCode', ''); TID = c ? await spaceId(c) : null; return TID; }
+  const classId = cls => String(cls || '').replace(/[.#$\[\]\/]/g, '_').trim().slice(0, 40);
+  const classPath = c => `${SPACE}/${TID}/classes/${c}`;
+  // 선생님 공간의 반 목록 {반 이름: {text, layout, hall, t}}
+  async function spaceClasses(store) {
+    if (!TID) return {};
+    const all = await store.get(`${SPACE}/${TID}/classes`).catch(() => null);
+    const out = {};
+    for (const v of Object.values(all || {})) if (v && v.info && v.info.cls) out[v.info.cls] = v.info;
+    return out;
+  }
   const params = new URLSearchParams(location.search);
   const DB_URL = params.get('db') || FIREBASE.databaseURL;
   const LOCAL_ONLY = params.has('local');
@@ -259,7 +280,7 @@
     constructor(host, o) {
       this.o = o = o || {};
       host.textContent = '';
-      this.root = h('div', {class: 'room'});
+      this.root = h('div', {class: 'room' + (o.onDrop ? ' can-drag' : '')});
       this.wall = h('div', {class: 'wall'}, h('span', {class: 'chalk', text: '칠판'}), h('span', {class: 'lectern', text: '교탁'}));
       this.sideL = h('div', {class: 'side'});
       this.sideR = h('div', {class: 'side'});
@@ -343,7 +364,8 @@
         let c = this.chips.get(it.key);
         if (!c) {
           c = h(this.o.onChip ? 'button' : 'div', {class: 'chip', type: this.o.onChip ? 'button' : null}, h('span', {class: 'nm'}), h('i', {class: 'badge'}));
-          if (this.o.onChip) c.addEventListener('click', e => { e.stopPropagation(); this.o.onChip(it.key); });
+          if (this.o.onChip) c.addEventListener('click', e => { e.stopPropagation(); if (!this.dragged) this.o.onChip(it.key); });
+          if (this.o.onDrop) c.addEventListener('pointerdown', e => this.drag(e, it.key, c));
           this.floor.append(c);
           this.chips.set(it.key, c);
         }
@@ -354,6 +376,45 @@
         this.move(it.key, it.seat);
       }
       for (const [k, c] of this.chips) if (!keep.has(k)) { c.remove(); this.chips.delete(k); this.at.delete(k); }
+    }
+    // 끌어다 놓기: 이름표를 6px 넘게 끌면 손가락(마우스)을 따라오고, 놓은 자리로 onDrop(열쇠, 자리)
+    drag(e, key, el) {
+      if (e.button > 0 || (this.o.canDrag && !this.o.canDrag(key))) return;
+      const sx = e.clientX, sy = e.clientY;
+      let moving = false, over = null;
+      const mark = id => { if (over === id) return; if (over && this.seats[over]) this.seats[over].classList.remove('drop'); over = id; if (over && this.seats[over]) this.seats[over].classList.add('drop'); };
+      const move = ev => {
+        const dx = ev.clientX - sx, dy = ev.clientY - sy;
+        if (!moving && Math.hypot(dx, dy) < 6) return;
+        if (!moving) { moving = true; el.classList.add('dragging'); this.root.classList.add('dragging'); }
+        ev.preventDefault();
+        el.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        mark(this.seatAt(ev.clientX, ev.clientY));
+      };
+      const end = ev => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', end);
+        window.removeEventListener('pointercancel', end);
+        el.style.transform = '';
+        el.classList.remove('dragging');
+        this.root.classList.remove('dragging');
+        const target = over;
+        mark(null);
+        if (!moving) return;
+        this.dragged = true;                      // 바로 뒤에 오는 click 은 무시
+        setTimeout(() => { this.dragged = false; }, 0);
+        if (ev.type === 'pointerup' && target) this.o.onDrop(key, target);
+      };
+      window.addEventListener('pointermove', move, {passive: false});
+      window.addEventListener('pointerup', end);
+      window.addEventListener('pointercancel', end);
+    }
+    seatAt(x, y) {
+      for (const id in this.seats) {
+        const r = this.seats[id].getBoundingClientRect();
+        if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return id;
+      }
+      return null;
     }
     move(key, seat) {
       const c = this.chips.get(key);
@@ -371,12 +432,12 @@
     meta: null, roster: {}, claims: {}, prefs: {}, result: null, joins: {},
     list: [], prob: null, rep: null,
     occ: {}, locks: {}, apart: [], fw: 0.6, live: true, flip: false,
-    bid: null, bidCls: null, hist: [],
+    bid: null, hist: [],
     sel: null, moving: false, run: null, pendingQuick: false, liveTimer: 0, sig: '', board: null, loaded: false
   };
 
   function tPref(key) {
-    const uid = T.claims[key], p = uid && T.prefs[uid];
+    const uid = T.claims[key], p = uid && T.prefs[uid] && T.prefs[uid][key];
     return p && p.who === key ? {friends: M.splitList(p.f), wishes: M.splitList(p.w), fw: Number.isFinite(p.b) ? p.b / 100 : undefined} : null;
   }
   const TL = () => M.layout(T.meta && T.meta.layout);   // 이 방의 교실 모양
@@ -406,34 +467,30 @@
     });
   }
   async function loadHistory() {
-    if (!T.bid || T.demo) { T.hist = []; return; }
+    if (!T.bid || !TID || T.demo) { T.hist = []; drawRecordLink(); return; }
     try {
-      const h = await T.store.get(`${BOARDS}/${T.bid}/hist`);
+      const h = await T.store.get(`${classPath(T.bid)}/hist`);
       T.hist = Object.values(h || {}).filter(e => e && e.room !== T.code && e.seats).sort((a, b) => b.t - a.t);
     } catch (e) { T.hist = []; }
-    drawBoardLink();
+    drawRecordLink();
     tRender();
   }
-  function newBid() {
-    const a = new Uint8Array(18);
-    crypto.getRandomValues(a);
-    return Array.from(a, x => 'abcdefghijkmnpqrstuvwxyz23456789'[x % 32]).join('');
-  }
-  const boardURL = bid => location.origin + location.pathname + '?board=' + bid + (LOCAL_ONLY ? '&local' : '');
-  function drawBoardLink() {
+  const recordsURL = c => location.pathname + '?records' + (c ? '&c=' + encodeURIComponent(c) : '') + (LOCAL_ONLY ? '&local' : '');
+  function drawRecordLink() {
     const box = $('t-board-link');
     if (!box) return;
-    box.hidden = !T.bid || T.demo;
-    if (!T.bid) return;
-    $('t-board-url').textContent = boardURL(T.bid);
-    $('t-board-url').href = boardURL(T.bid);
-    $('t-board-count').textContent = T.hist.length ? `지난 기록 ${T.hist.length}개 — 돌아가며 양보에 쓰여요` : '아직 지난 기록이 없어요';
+    box.hidden = T.demo;
+    $('t-record-open').href = recordsURL(T.bid);
+    $('t-record-open').hidden = !TID;
+    $('t-board-count').textContent = !TID ? '처음 화면에서 선생님 코드를 정하면 공개할 때마다 자리 기록이 저장되고, 어느 기기에서든 볼 수 있어요.'
+      : !T.bid ? '명단을 반 이름과 함께 저장하면 이 반 기록이 생겨요.'
+      : T.hist.length ? `지난 기록 ${T.hist.length}개 — 돌아가며 양보에 쓰여요` : '아직 지난 기록이 없어요. 학생 폰에 공개하면 저장돼요.';
   }
 
   // 바람·조건이 바뀌었는지 알아보는 글자열 (바뀌었을 때만 실시간으로 다시 맞춘다)
   function signature() {
     const out = [];
-    for (const s of M.rosterList(T.roster)) { const uid = T.claims[s.key], p = uid && T.prefs[uid]; if (p && p.who === s.key) out.push(s.key + ':' + (p.f || '') + '|' + (p.w || '') + '|' + (p.b ?? '')); }
+    for (const s of M.rosterList(T.roster)) { const uid = T.claims[s.key], p = uid && T.prefs[uid] && T.prefs[uid][s.key]; if (p && p.who === s.key) out.push(s.key + ':' + (p.f || '') + '|' + (p.w || '') + '|' + (p.b ?? '')); }
     return out.join(';') + '#' + Object.keys(T.roster).length;
   }
 
@@ -483,7 +540,7 @@
     b.root.classList.toggle('moving', T.moving);
     $('t-hint').textContent = !show ? '받는 동안에는 이름을 가려요 — 자리가 움직이는 것을 보고 누가 누구를 골랐는지 짐작할 수 없게요. 마감하면 처음부터 다시 섞은 뒤 이름이 보여요.'
       : T.moving ? `${label(T.sel)} — 옮길 자리를 누르세요 (빈자리나 다른 학생). 그만두려면 빈 바닥을 누르세요.`
-      : '이름을 누르면 그 학생을 옮기거나 고정할 수 있어요.';
+      : '이름표를 끌어다 다른 자리에 놓으면 자리가 바뀌어요 (옮긴 학생은 📌 고정). 이름을 누르면 고정·접속 풀기.';
   }
   function drawPositions() {
     for (const [seat, key] of entries(T.occ)) T.board.move(key, seat);
@@ -591,13 +648,19 @@
   function tFloor() {
     if (T.sel || T.moving) { T.sel = null; T.moving = false; tRender(); }
   }
+  // 이름표를 끌어다 다른 자리에 놓으면 (마감한 뒤)
+  function tDrop(key, target) {
+    if (!named() || T.run) return;
+    T.sel = key;
+    moveTo(target);
+  }
   function moveTo(target) {
     const key = T.sel, from = T.rep.byKey[key].seat;
     if (target === from) { T.moving = false; tRender(); return; }
     const other = T.occ[target];
-    if (other && T.locks[other]) { toast('t-toast', `${label(other)}은(는) 고정된 자리예요. 먼저 고정을 풀어 주세요.`); return; }
     T.occ[target] = key;
     if (other) T.occ[from] = other; else delete T.occ[from];
+    if (other && T.locks[other]) T.locks[other] = from;   // 고정된 학생과 바꾸면 그 학생은 바뀐 자리에 고정
     T.locks[key] = target;   // 손으로 옮긴 학생은 실시간 맞추기에 다시 밀려나지 않게 고정
     T.moving = false;
     tRender();
@@ -608,7 +671,7 @@
   async function releaseClaim(key) {
     const uid = T.claims[key];
     if (!uid || !confirm(`${label(key)}의 접속을 풀까요?\n다른 폰으로 다시 들어와 이름을 고를 수 있게 됩니다. 이미 낸 바람도 지워져요.`)) return;
-    await guard(T.store.update(T.base, {['claims/' + key]: null, ['prefs/' + uid]: null}), '접속 풀기');
+    await guard(T.store.update(T.base, {['claims/' + key]: null, [`prefs/${uid}/${key}`]: null}), '접속 풀기');
   }
 
   function guard(promise, what) {
@@ -626,7 +689,7 @@
       if (!T.store) return;
       T.store.set(T.base + '/tconf', {
         occ: T.occ, locks: T.locks, apart: T.apart.length ? T.apart : null,
-        fw: T.fw, live: T.live, flip: T.flip, bid: T.bid, bidCls: T.bidCls
+        fw: T.fw, live: T.live, flip: T.flip, bid: T.bid
       }).catch(e => console.warn('[seats] tconf', e));
     }, 800);
   }
@@ -712,7 +775,7 @@
   }
 
   // ── 방 열기 ─────────────────────────────────────────────────
-  async function openRoom(demo, existing, classBid) {
+  async function openRoom(demo, existing, fromClass) {
     const note = $('server-note');
     note.classList.remove('error');
     note.textContent = demo ? '' : '서버에 연결하는 중…';
@@ -728,6 +791,7 @@
       return fail(e.message || String(e));
     }
     T.demo = demo;
+    await initCode();
     let code = existing;
     try {
       if (code) {
@@ -753,20 +817,20 @@
     if (conf) {
       T.occ = conf.occ || {}; T.locks = conf.locks || {}; T.apart = (conf.apart || []).map(p => [p[0], p[1]]);
       T.fw = conf.fw ?? 0.6; T.live = conf.live !== false; T.flip = !!conf.flip;
-      T.bid = conf.bid || null; T.bidCls = conf.bidCls || null;
+      T.bid = conf.bid || null;
     }
     // ?class=… (자리 기록 화면의 '이 반으로 새 방 열기'): 그 반의 명단·교실 모양을 이어받는다
     let classInfo = null;
-    if (classBid && !demo) {
-      classInfo = await T.store.get(`${BOARDS}/${classBid}/info`).catch(() => null);
-      if (classInfo) { T.bid = classBid; T.bidCls = classInfo.cls || null; }
+    if (fromClass && !demo && TID) {
+      classInfo = await T.store.get(`${classPath(fromClass)}/info`).catch(() => null);
+      if (classInfo) T.bid = fromClass;
     }
     history.replaceState(null, '', demo ? location.pathname + (LOCAL_ONLY ? '?local' : '') : '?host=' + code + (LOCAL_ONLY ? '&local' : ''));
     showScreen('teacher');
     $('t-code').querySelector('b').textContent = code;
     $('t-code').classList.toggle('demo', demo);
     if (demo) $('t-code').querySelector('b').textContent = '미리 해 보기';
-    T.board = new Board($('t-board'), {onSeat: tSeat, onChip: tChip, onFloor: tFloor});
+    T.board = new Board($('t-board'), {onSeat: tSeat, onChip: tChip, onFloor: tFloor, onDrop: tDrop, canDrag: () => named() && !T.run});
     bindTeacher();
     const on = (p, f) => T.store.on(T.base + p, v => { f(v); tChanged(); });
     on('/meta', v => { T.meta = v || T.meta; });
@@ -804,9 +868,9 @@
     if (T.demo || !cls) return;
     const text = rosterText(T.roster), lay = TL().id, hall = T.meta.hall || 'right';
     const saved = savedRosters();
-    saved[cls] = Object.assign({}, saved[cls], {text, layout: lay, hall}, T.bid ? {bid: T.bid} : {});
+    saved[cls] = Object.assign({}, saved[cls], {text, layout: lay, hall});
     setPref('rosters', saved);
-    if (T.bid) T.store.set(`${BOARDS}/${T.bid}/info`, {cls, layout: lay, hall, text, t: T.store.now()}).catch(e => console.warn('[seats] board info', e));
+    if (TID) T.store.set(`${classPath(classId(cls))}/info`, {cls, layout: lay, hall, text, t: T.store.now()}).catch(e => console.warn('[seats] class info', e));
   }
   let joining = false;
   async function processJoins() {
@@ -819,7 +883,7 @@
         const upd = {['joins/' + uid]: null};
         const p = M.parseRoster(String(j && j.name || '') + '')[0];
         const no = j && Number.isFinite(j.no) ? j.no : p && p.no;
-        if (!p || Object.values(T.claims).includes(uid)) { await T.store.update(T.base, upd); continue; }
+        if (!p) { await T.store.update(T.base, upd); continue; }   // 한 기기로 여러 명이 낼 수 있어서, 이미 이름을 맡은 기기도 받는다
         const same = M.rosterList(T.roster).find(s => s.name === p.name && !T.claims[s.key] && (no == null || s.no == null || s.no === no));
         let key = same && same.key;
         if (!key) {
@@ -885,10 +949,7 @@
     $('t-code').onclick = () => { if (!T.demo) showQR(); else toast('t-toast', '미리 해 보기는 이 브라우저 안에서만 돌아가요. 학생 폰으로 해 보려면 처음 화면에서 방을 여세요.', 5000); };
     $('t-qr-again').onclick = $('t-code').onclick;
     $('t-explain').onclick = () => { $('explain-body').innerHTML = explainHTML(T.fw); $('explain-dialog').showModal(); };
-    $('t-board-copy').onclick = async () => {
-      try { await navigator.clipboard.writeText(boardURL(T.bid)); toast('t-toast', '주소를 복사했어요. 즐겨찾기나 메모에 붙여 두세요.'); }
-      catch (e) { toast('t-toast', '복사하지 못했어요. 주소를 길게 눌러 복사해 주세요.'); }
-    };
+
     $('t-roster-btn').onclick = () => openRosterDialog(false);
     $('t-print').onclick = () => {
       const d = new Date();
@@ -914,12 +975,12 @@
 
   // 공개한 배치를 이 반 기록에 남긴다. 같은 방에서 같은 날 다시 공개하면 덮어쓴다.
   async function saveHistory(t) {
-    if (!T.bid || T.demo) return false;
+    if (!T.bid || !TID || T.demo) return false;
     const d = new Date(t), day = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
     const seats = {};
     for (const [seat, key] of entries(T.occ)) { const r = T.roster[key]; if (r) seats[seat] = r.no != null ? {n: r.name, no: r.no} : {n: r.name}; }
     try {
-      await T.store.set(`${BOARDS}/${T.bid}/hist/${day}-${T.code}`, {t, room: T.code, cls: T.meta.cls || '', layout: TL().id, hall: T.meta.hall || 'right', seats});
+      await T.store.set(`${classPath(T.bid)}/hist/${day}-${T.code}`, {t, room: T.code, cls: T.meta.cls || '', layout: TL().id, hall: T.meta.hall || 'right', seats});
       return true;
     } catch (e) { console.warn('[seats] history', e); return false; }
   }
@@ -982,18 +1043,29 @@
     const dl = $('r-saved');
     dl.textContent = '';
     for (const k of Object.keys(saved)) dl.append(h('option', {value: k}));
-    // 저장해 둔 반: 한 번 누르면 명단·교실 모양·복도 위치가 채워진다
+    // 저장해 둔 반: 한 번 누르면 명단·교실 모양·복도 위치가 채워진다.
+    // 이 기기에 저장한 반 + 선생님 공간(코드)에 있는 반 (더 최근 것)
     const sb = $('r-saved-btns');
-    sb.textContent = '';
-    sb.hidden = !Object.keys(saved).length;
-    if (Object.keys(saved).length) sb.append(h('span', {class: 'hint', text: '저장해 둔 반'}));
-    for (const k of Object.keys(saved).sort()) {
-      const n = M.parseRoster(saved[k].text).length;
-      sb.append(h('button', {type: 'button', 'data-name': k, onclick: () => {
-        $('r-cls').value = k; useSaved(k);
-        for (const x of sb.querySelectorAll('button')) x.setAttribute('aria-pressed', String(x.dataset.name === k));
-      }}, h('b', {text: k}), h('small', {text: `${n}명`})));
-    }
+    const drawSaved = () => {
+      sb.textContent = '';
+      sb.hidden = !Object.keys(saved).length;
+      if (Object.keys(saved).length) sb.append(h('span', {class: 'hint', text: '저장해 둔 반'}));
+      for (const k of Object.keys(saved).sort()) {
+        const n = M.parseRoster(saved[k].text).length;
+        sb.append(h('button', {type: 'button', 'data-name': k, onclick: () => {
+          $('r-cls').value = k; useSaved(k);
+          for (const x of sb.querySelectorAll('button')) x.setAttribute('aria-pressed', String(x.dataset.name === k));
+        }}, h('b', {text: k}), h('small', {text: `${n}명`})));
+      }
+      dl.textContent = '';
+      for (const k of Object.keys(saved)) dl.append(h('option', {value: k}));
+    };
+    drawSaved();
+    if (!T.demo) spaceClasses(T.store).then(sp => {
+      let changed = false;
+      for (const [k, v] of entries(sp)) if (!saved[k] || (v.t || 0) > (saved[k].t || 0)) { saved[k] = {text: v.text || '', layout: v.layout, hall: v.hall, t: v.t}; changed = true; }
+      if (changed) { setPref('rosters', saved); drawSaved(); if (first && !$('r-text').value.trim()) count(); }
+    });
     const count = () => {
       const n = M.parseRoster($('r-text').value).length, N = M.layout(lay).NSEAT;
       const over = n > N;
@@ -1036,6 +1108,19 @@
         };
         for (const sh of sheets) sheetBox.append(h('button', {type: 'button', 'data-name': sh.name, onclick: () => pick(sh)}, h('b', {text: sh.name}), h('small', {text: `${sh.list.length}명`})));
         if (sheets.length === 1) pick(sheets[0]);
+        // 여러 반이면 한꺼번에 등록 — 다음부터는 '저장해 둔 반' 단추로 바로 고른다
+        if (sheets.length > 1 && !T.demo) sheetBox.append(h('button', {type: 'button', class: 'reg-all', onclick: async () => {
+          const now = T.store.now();
+          for (const sh of sheets) {
+            const text = listText(sh.list);
+            saved[sh.name] = {text, layout: sh.layout, hall: (saved[sh.name] && saved[sh.name].hall) || hall, t: now};
+            if (TID) await T.store.set(`${classPath(classId(sh.name))}/info`, {cls: sh.name, layout: sh.layout, hall: saved[sh.name].hall, text, t: now}).catch(e => console.warn('[seats] class info', e));
+          }
+          setPref('rosters', saved);
+          drawSaved();
+          toast('t-toast', TID ? `${sheets.length}개 반을 등록했어요. 선생님 코드가 있는 기기라면 어디서든 '저장해 둔 반'에 나와요.`
+            : `${sheets.length}개 반을 이 기기에 등록했어요. 처음 화면에서 선생님 코드를 정하면 다른 기기에서도 불러올 수 있어요.`, 6000);
+        }}, `📥 ${sheets.length}개 반 모두 등록`));
       } catch (e) {
         sheetBox.textContent = (e.message || '파일을 읽지 못했어요') + ' — 표를 복사해 아래 칸에 붙여 넣어도 돼요.';
       }
@@ -1063,18 +1148,17 @@
     for (const k of Object.keys(T.roster)) {
       if (roster[k]) continue;
       upd['claims/' + k] = null;
-      if (T.claims[k]) upd['prefs/' + T.claims[k]] = null;
+      if (T.claims[k]) upd[`prefs/${T.claims[k]}/${k}`] = null;
       delete T.locks[k];
     }
     try { await guard(T.store.update(T.base, upd), '명단 저장'); } catch (e) { return false; }
     setPref('hall', hall);
     if (!T.demo && cls) {
-      // 반마다 자리 기록 하나: 저장해 둔 반이면 그 기록을, 이 방에서 이미 쓰던 같은 반이면 그대로, 아니면 새로 만든다
-      const bid = (savedAll[cls] && savedAll[cls].bid) || (T.bid && T.bidCls === cls ? T.bid : null) || newBid();
-      T.bid = bid; T.bidCls = cls;
-      savedAll[cls] = {text: text.trim(), layout: lay, hall, bid};
+      // 반 이름이 곧 그 반의 자리 기록 이름 (선생님 공간 안)
+      T.bid = classId(cls);
+      savedAll[cls] = {text: text.trim(), layout: lay, hall};
       setPref('rosters', savedAll);
-      T.store.set(`${BOARDS}/${bid}/info`, {cls, layout: lay, hall, text: text.trim(), t: T.store.now()}).catch(e => console.warn('[seats] board info', e));
+      if (TID) T.store.set(`${classPath(T.bid)}/info`, {cls, layout: lay, hall, text: text.trim(), t: T.store.now()}).catch(e => console.warn('[seats] class info', e));
       loadHistory();
     }
     saveConf();
@@ -1116,7 +1200,7 @@
         if (T.store !== store) return;
         store.set(`${base}/claims/${k}`, 'bot-' + k);
         if (lurk.has(k)) return;
-        setTimeout(() => { if (T.store === store) store.set(`${base}/prefs/bot-${k}`, Object.assign({who: k, t: store.now()}, plan[k])); }, 1500 + Math.random() * 5000);
+        setTimeout(() => { if (T.store === store) store.set(`${base}/prefs/bot-${k}/${k}`, Object.assign({who: k, t: store.now()}, plan[k])); }, 1500 + Math.random() * 5000);
       }, 600 + i * 450 + Math.random() * 1500);
     });
     toast('t-toast', '가상 학생들이 하나씩 들어와요. 바람이 들어올 때마다 자리가 맞춰지는 것을 보세요.', 6000);
@@ -1127,7 +1211,7 @@
   // ════════════════════════════════════════════════════════════
   const S = {
     store: null, code: '', base: '', meta: undefined, roster: {}, claims: {}, result: null, mine: undefined,
-    key: null, join: null, f: [], w: [], b: null, dirty: false, editing: false, wishBoard: null, resBoard: null, sending: false
+    key: null, join: null, minePrefs: {}, active: null, done: [], formKey: null, fresh: false, f: [], w: [], b: null, dirty: false, editing: false, wishBoard: null, resBoard: null, sending: false
   };
   const SL = () => M.layout(S.meta && S.meta.layout);
   const sLabel = key => { const s = M.rosterList(S.roster).find(x => x.key === key); return s ? s.label : '?'; };
@@ -1158,10 +1242,10 @@
     on('/claims', v => { S.claims = v || {}; });
     on('/result', v => { S.result = v; });
     on('/joins/' + S.store.uid, v => { S.join = v; });
-    on('/prefs/' + S.store.uid, v => {
-      S.mine = v;
-      if (v && !S.dirty) { S.f = M.splitList(v.f); S.w = M.splitList(v.w); S.b = Number.isFinite(v.b) ? v.b : null; }
-    });
+    // 이 기기로 낸 학생들의 바람 {열쇠: 바람}. 지금 학생(S.key) 것만 화면에 쓴다.
+    S.done = pref('done-' + code, []);
+    try { S.active = sessionStorage.getItem('seats-active-' + code); } catch (e) { S.active = null; }
+    on('/prefs/' + S.store.uid, v => { S.minePrefs = v || {}; S.fresh = true; });
     S.store.onStatus(ok => { $('st-conn').className = 'conn ' + (ok ? 'on' : 'off'); });
     $('send-btn').onclick = sendPrefs;
     $('self-open').onclick = () => { $('self-form').hidden = false; $('self-open').hidden = true; $('self-name').focus(); };
@@ -1175,15 +1259,34 @@
       } catch (err) { toast('st-toast', '보내지 못했어요. 마감됐을 수 있어요.', 5000); }
     };
     $('edit-btn').onclick = () => { S.editing = true; sRender(); };
+    // 태블릿을 빌려 쓰는 친구에게 넘기기: 낸 바람은 서버에 남고, 이 기기에서는 다시 열 수 없게 잠근다
+    $('pass-btn').onclick = () => {
+      const who = sLabel(S.key);
+      if (!confirm(`${who}의 바람은 보냈어요.\n이 기기를 다른 친구에게 넘길까요? 넘기면 이 기기에서는 ${who}의 바람을 다시 볼 수 없어요.`)) return;
+      S.done = [...new Set([...S.done, S.key])];
+      setPref('done-' + S.code, S.done);
+      setActive(null);
+      S.f = []; S.w = []; S.b = null; S.dirty = false; S.editing = false; S.formKey = null;
+      const ex = $('st-explain'); delete ex.dataset.init;
+      sRender();
+      toast('st-toast', '다음 친구가 이름을 고르면 돼요.');
+    };
     $('rename-btn').onclick = async () => {
       if (!confirm('내 이름을 다시 고를까요? 지금까지 고른 것은 지워져요.')) return;
       try {
-        await S.store.update(S.base, {['claims/' + S.key]: null, ['prefs/' + S.store.uid]: null});
+        await S.store.update(S.base, {['claims/' + S.key]: null, [`prefs/${S.store.uid}/${S.key}`]: null});
+        setActive(null);
         S.f = []; S.w = []; S.b = null; S.dirty = false; S.editing = false;
       } catch (e) { toast('st-toast', '지우지 못했어요. 마감됐을 수 있어요.'); }
     };
   }
 
+  function setActive(key) {
+    S.active = key;
+    try { if (key) sessionStorage.setItem('seats-active-' + S.code, key); else sessionStorage.removeItem('seats-active-' + S.code); } catch (e) { /* 그대로 */ }
+  }
+  // 이 기기가 맡은 이름들 (태블릿 하나를 여럿이 쓰면 여러 개)
+  const mineKeys = () => Object.keys(S.claims).filter(k => S.claims[k] === S.store.uid && S.roster[k]);
   function sRender() {
     const m = S.meta;
     const steps = ['st-pick', 'st-prefs', 'st-wait', 'st-result'];
@@ -1195,8 +1298,15 @@
       $('st-error').hidden = false;
       return;
     }
-    const uid = S.store.uid;
-    S.key = Object.keys(S.claims).find(k => S.claims[k] === uid && S.roster[k]) || null;
+    const mk = mineKeys();
+    S.key = S.active && mk.includes(S.active) && !S.done.includes(S.active) ? S.active : mk.find(k => !S.done.includes(k)) || null;
+    if (S.key && S.key !== S.active) setActive(S.key);
+    S.mine = S.key ? S.minePrefs[S.key] || null : null;
+    // 고르는 칸 채우기: 학생이 바뀌면 그 학생 것으로, 서버 값이 새로 왔으면 고치는 중이 아닐 때만
+    const fill = () => { const v = S.mine; S.f = v ? M.splitList(v.f) : []; S.w = v ? M.splitList(v.w) : []; S.b = v && Number.isFinite(v.b) ? v.b : null; };
+    if (S.key !== S.formKey) { fill(); S.formKey = S.key; S.dirty = false; }
+    else if (S.fresh && !S.dirty) fill();
+    S.fresh = false;
     $('st-title').textContent = m.cls ? `${m.cls} 자리 배치` : '자리 배치';
     $('st-sub').textContent = `방 ${S.code}` + (S.key ? ' · ' + sLabel(S.key) : '');
     if (m.phase === 'published' && S.result && S.result.occ) { show('st-result'); drawResult(); return; }
@@ -1214,9 +1324,9 @@
     const g = $('name-grid');
     g.textContent = '';
     for (const s of M.rosterList(S.roster)) {
-      const taken = !!S.claims[s.key];
+      const taken = !!S.claims[s.key], here = taken && S.claims[s.key] === S.store.uid;
       g.append(h('button', {type: 'button', class: 'name' + (taken ? ' taken' : ''), disabled: taken, onclick: () => claim(s)},
-        s.no != null ? h('small', {text: s.no}) : null, h('span', {text: s.label}), taken ? h('em', {text: '들어옴'}) : null));
+        s.no != null ? h('small', {text: s.no}) : null, h('span', {text: s.label}), taken ? h('em', {text: here ? '이 기기에서 냈어요' : '들어옴'}) : null));
     }
     if (!g.firstChild) g.append(h('p', {class: 'hint', text: '선생님이 명단을 넣는 중이에요. 잠시만 기다려 주세요.'}));
     const waiting = !!S.join;
@@ -1228,7 +1338,8 @@
     if (!confirm(`${s.no != null ? s.no + '번 ' : ''}${s.label} 맞나요?`)) return;
     try {
       await S.store.set(`${S.base}/claims/${s.key}`, S.store.uid);
-      S.f = []; S.w = []; S.b = null; S.dirty = false; S.editing = true;
+      setActive(s.key);
+      S.f = []; S.w = []; S.b = null; S.dirty = false; S.editing = true; S.formKey = s.key;
     } catch (e) {
       toast('st-toast', '이미 다른 폰에서 고른 이름이에요. 내 이름이 맞다면 선생님께 말해 주세요.', 5000);
     }
@@ -1287,7 +1398,7 @@
     S.sending = true;
     drawPrefs();
     try {
-      await S.store.set(`${S.base}/prefs/${S.store.uid}`, Object.assign({who: S.key, f: S.f.join(','), w: S.w.join(','), t: S.store.now()}, S.b != null ? {b: S.b} : {}));
+      await S.store.set(`${S.base}/prefs/${S.store.uid}/${S.key}`, Object.assign({who: S.key, f: S.f.join(','), w: S.w.join(','), t: S.store.now()}, S.b != null ? {b: S.b} : {}));
       S.dirty = false; S.editing = false;
       toast('st-toast', '보냈어요! 선생님 화면에서 자리가 맞춰지고 있어요.');
     } catch (e) {
@@ -1302,6 +1413,7 @@
     const sum = $('wait-sum');
     sum.textContent = '';
     $('edit-btn').hidden = true;
+    $('pass-btn').hidden = true;
     if (!S.key) {
       $('wait-icon').textContent = '⏸';
       $('wait-title').textContent = '받기가 마감됐어요';
@@ -1323,23 +1435,28 @@
     sum.append(h('li', {}, h('small', {text: '보낸 것'}), `친구 ${f.length}명 · 자리 ${w.length ? w.length + '곳' : '어디든 괜찮음'} · ${bb}`));
     sum.append(h('li', {class: 'quiet'}, '누구를 골랐는지는 나만 알아요. 친구들 화면에도, 선생님 화면에도 나오지 않아요.'));
     $('edit-btn').hidden = ph !== 'open';
+    $('pass-btn').hidden = ph !== 'open';
   }
 
   function drawResult() {
     const occ = S.result.occ || {};
     const where = {};
     for (const [seat, key] of entries(occ)) where[key] = seat;
-    const mine = S.key && where[S.key];
-    const myF = S.mine ? M.splitList(S.mine.f) : [];
+    // 태블릿을 돌려 썼으면 이 기기로 낸 학생이 여럿 — 마지막에 낸 학생(또는 지금 학생)을 강조
+    const mk = mineKeys(), me = S.key || S.active || mk[mk.length - 1] || null;
+    const mine = me && where[me];
+    const myP = me ? S.minePrefs[me] : null;
+    const myF = myP ? M.splitList(myP.f) : [];
     S.resBoard.layout(SL());
     S.resBoard.view(S.meta.hall, false);
     S.resBoard.setChips(M.rosterList(S.roster).filter(s => where[s.key]).map(s => ({
-      key: s.key, seat: where[s.key], label: s.label, cls: s.key === S.key ? 'me' : ''
+      key: s.key, seat: where[s.key], label: s.label, cls: s.key === me ? 'me' : ''
     })));
     S.resBoard.marks({});
     const L = SL();
-    $('res-title').textContent = mine ? L.seatName(mine) : '새 자리가 나왔어요';
+    $('res-title').textContent = mine ? (mk.length > 1 ? `${sLabel(me)} · ` : '') + L.seatName(mine) : '새 자리가 나왔어요';
     let text = mine ? '빨간 테두리가 내 자리예요.' : '';
+    if (mk.length > 1) text = `이 기기로 ${mk.length}명이 냈어요. ${mk.filter(k => where[k]).map(k => `${sLabel(k)}: ${L.seatName(where[k])}`).join(' / ')}. `;
     if (mine && myF.length) {
       const near = myF.filter(k => where[k] && L.near(L.SEAT[mine], L.SEAT[where[k]]) >= 0.75).length;
       text += near ? ` 고른 친구 ${myF.length}명 가운데 ${near}명이 짝이나 앞뒤에 있어요.` : ' 고른 친구와는 조금 떨어졌지만, 모두가 골고루 원하는 것을 얻도록 정한 자리예요.';
@@ -1351,41 +1468,122 @@
   //  처음 화면
   // ════════════════════════════════════════════════════════════
   // ════════════════════════════════════════════════════════════
-  //  반별 자리 기록 (?board=비밀 주소) — 어느 기기에서든 지난 자리표를 본다
+  //  자리 기록 (?records) — 선생님 코드로 반별·날짜별 자리표를 보고, 끌어다 놓아 고친다
   // ════════════════════════════════════════════════════════════
-  async function openHistory(bid) {
+  const fmtDay = t => { const d = new Date(t); return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}. ${'일월화수목금토'[d.getDay()]}요일`; };
+  async function openRecords(want) {
     showScreen('history');
     const note = $('h-note');
+    await initCode();
+    if (!TID) {
+      note.textContent = '선생님 코드를 넣으면 자리 기록이 보여요.';
+      $('h-code').hidden = false;
+      $('h-code').onsubmit = async e => {
+        e.preventDefault();
+        if (await setCode($('h-code-input').value)) location.reload();
+      };
+      return;
+    }
+    $('h-code').hidden = true;
     let store;
     try { store = await openStore(false); } catch (e) { note.textContent = '서버에 연결하지 못했어요: ' + (e.message || e); return; }
-    let info, hist;
-    try {
-      [info, hist] = await Promise.all([store.get(`${BOARDS}/${bid}/info`), store.get(`${BOARDS}/${bid}/hist`)]);
-    } catch (e) { note.textContent = isDenied(e) ? '이 기록을 볼 수 없어요. Firebase 규칙을 다시 게시했는지 확인해 주세요.' : '기록을 불러오지 못했어요.'; return; }
-    if (!info) { note.textContent = '이 주소의 기록을 찾을 수 없어요. 주소를 다시 확인해 주세요.'; return; }
-    $('h-title').textContent = `${info.cls || '이 반'} 자리 기록`;
-    $('h-new').href = '?class=' + bid + (LOCAL_ONLY ? '&local' : '');
-    const list = Object.values(hist || {}).filter(e => e && e.seats).sort((a, b) => b.t - a.t);
-    const box = $('h-list');
-    box.textContent = '';
-    if (!list.length) { note.textContent = '아직 공개한 자리가 없어요. 자리 배치 방에서 \'학생 폰에 공개\'를 누르면 여기에 날짜별로 쌓여요.'; return; }
-    note.textContent = '날짜를 누르면 그때 자리가 보여요.';
-    const board = new Board($('h-board'), {});
-    const fmt = t => { const d = new Date(t); return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}. ${'일월화수목금토'[d.getDay()]}요일`; };
-    const show = e => {
+    let all;
+    try { all = await store.get(`${SPACE}/${TID}/classes`); }
+    catch (e) { note.textContent = isDenied(e) ? '기록을 볼 수 없어요. Firebase 규칙을 다시 게시했는지 확인해 주세요.' : '기록을 불러오지 못했어요.'; return; }
+    const classes = entries(all).filter(([, v]) => v && v.info).sort((a, b) => a[1].info.cls.localeCompare(b[1].info.cls));
+    const cbox = $('h-classes');
+    cbox.textContent = '';
+    if (!classes.length) { note.textContent = '이 선생님 코드로 저장된 반이 아직 없어요. 자리 배치 방에서 명단을 반 이름과 함께 저장하면 생겨요.'; return; }
+    const board = new Board($('h-board'), {onDrop: (key, seat) => edit.drop(key, seat), canDrag: () => edit.on});
+    const edit = {on: false, entry: null, hkey: null, c: null, dirty: false, drop: () => {}};
+    const pickClass = c => {
+      const v = all[c];
+      edit.c = c;
+      for (const b of cbox.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.c === c));
+      $('h-title').textContent = `${v.info.cls} 자리 기록`;
+      $('h-new').href = '?class=' + encodeURIComponent(c) + (LOCAL_ONLY ? '&local' : '');
+      history.replaceState(null, '', recordsURL(c));
+      const list = entries(v.hist).filter(([, e]) => e && e.seats).sort((a, b) => b[1].t - a[1].t);
+      const box = $('h-list');
+      box.textContent = '';
+      $('h-edit').hidden = !list.length;
+      if (!list.length) {
+        note.textContent = '아직 공개한 자리가 없어요. 자리 배치 방에서 \'학생 폰에 공개\'를 누르면 날짜별로 쌓여요.';
+        $('h-when').textContent = ''; board.setChips([]); return;
+      }
+      note.textContent = '날짜를 누르면 그때 자리가 보여요.';
+      const show = ([hkey, e]) => {
+        stopEdit(false);
+        edit.entry = JSON.parse(JSON.stringify(e)); edit.hkey = hkey;
+        draw();
+        for (const b of box.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.h === hkey));
+      };
+      for (const it of list) box.append(h('button', {type: 'button', 'data-h': it[0], onclick: () => show(it)}, fmtDay(it[1].t)));
+      show(list[0]);
+    };
+    const draw = () => {
+      const e = edit.entry;
       board.layout(M.layout(e.layout));
       board.view(e.hall, false);
       const seen = {};
       for (const p of Object.values(e.seats)) seen[p.n] = (seen[p.n] || 0) + 1;
-      board.setChips(entries(e.seats).map(([seat, p]) => ({key: seat, seat, label: seen[p.n] > 1 ? `${p.n}(${p.no ?? ''})` : p.n})));
+      // 이름표 열쇠는 사람(이름|번호) — 끌어서 옮겨도 같은 이름표가 미끄러져 간다
+      board.setChips(entries(e.seats).map(([seat, p]) => ({key: p.n + '|' + (p.no ?? ''), seat, label: seen[p.n] > 1 ? `${p.n}(${p.no ?? ''})` : p.n})));
       board.marks({});
-      $('h-when').textContent = `${fmt(e.t)} · ${M.layout(e.layout).name} · ${Object.keys(e.seats).length}명`;
-      $('print-head').textContent = `${info.cls || ''} 자리 배치 · ${fmt(e.t)}`;
-      for (const b of box.querySelectorAll('button')) b.setAttribute('aria-pressed', String(+b.dataset.t === e.t));
+      board.root.classList.toggle('editing', edit.on);
+      $('h-when').textContent = `${fmtDay(e.t)} · ${M.layout(e.layout).name} · ${Object.keys(e.seats).length}명` + (edit.on ? ' — 이름을 끌어다 다른 자리에 놓으세요' : '');
+      $('print-head').textContent = `${all[edit.c].info.cls} 자리 배치 · ${fmtDay(e.t)}`;
       $('h-stage').style.setProperty('--ar', board.aspect);
     };
-    for (const e of list) box.append(h('button', {type: 'button', 'data-t': e.t, onclick: () => show(e)}, fmt(e.t)));
-    show(list[0]);
+    // 끌어다 놓기: 빈자리면 옮기고, 사람이 있으면 서로 바꾼다
+    edit.drop = (key, target) => {
+      const e = edit.entry, from = Object.keys(e.seats).find(s => { const p = e.seats[s]; return p.n + '|' + (p.no ?? '') === key; });
+      if (!from || from === target) return;
+      const other = e.seats[target];
+      e.seats[target] = e.seats[from];
+      if (other) e.seats[from] = other; else delete e.seats[from];
+      edit.dirty = true;
+      $('h-save').disabled = false;
+      draw();
+    };
+    const stopEdit = ask => {
+      if (ask && edit.dirty && !confirm('고친 자리를 저장하지 않고 그만둘까요?')) return false;
+      edit.on = false; edit.dirty = false;
+      $('h-edit').textContent = '✏️ 자리 고치기'; $('h-save').hidden = true;
+      return true;
+    };
+    $('h-edit').onclick = () => {
+      if (edit.on) { if (stopEdit(true)) { edit.entry = JSON.parse(JSON.stringify(all[edit.c].hist[edit.hkey])); draw(); } return; }
+      edit.on = true; edit.dirty = false;
+      $('h-edit').textContent = '그만두기'; $('h-save').hidden = false; $('h-save').disabled = true;
+      draw();
+    };
+    $('h-save').onclick = async () => {
+      try {
+        await store.set(`${classPath(edit.c)}/hist/${edit.hkey}`, Object.assign({}, edit.entry, {edited: store.now()}));
+        all[edit.c].hist[edit.hkey] = JSON.parse(JSON.stringify(edit.entry));
+        stopEdit(false); draw();
+        toast('h-toast', '고친 자리를 저장했어요. 다음 자리 배치의 \'돌아가며 양보\'에도 이 자리가 쓰여요.');
+      } catch (err) { toast('h-toast', '저장하지 못했어요: ' + (err.message || err), 5000); }
+    };
+    for (const [c, v] of classes) cbox.append(h('button', {type: 'button', 'data-c': c, onclick: () => { if (stopEdit(true)) pickClass(c); }},
+      h('b', {text: v.info.cls}), h('small', {text: `${Object.keys(v.hist || {}).length}번`})));
+    pickClass(want && all[want] ? want : classes[0][0]);
+  }
+
+  // 선생님 코드 정하기 (이 기기에 저장). 너무 짧으면 남이 짐작할 수 있어서 6자 이상.
+  async function setCode(raw) {
+    const c = normCode(raw);
+    if (c.length < 6) { alert('선생님 코드는 6자 이상으로 정해 주세요. 남이 짐작하기 어렵게, 숫자와 글자를 섞으면 좋아요.'); return false; }
+    setPref('teacherCode', c);
+    await initCode();
+    return true;
+  }
+  function drawCodeBox() {
+    const c = pref('teacherCode', '');
+    $('code-state').textContent = c ? `선생님 코드가 이 기기에 저장돼 있어요 (${c.slice(0, 2)}${'•'.repeat(Math.max(0, c.length - 2))}).` : '선생님 코드를 정해 두면 반 명단과 자리 기록을 어느 기기에서든 불러와요. 기기마다 처음 한 번만 넣으면 돼요.';
+    $('code-form').hidden = !!c;
+    $('code-change').hidden = !c;
   }
 
   function initEntry() {
@@ -1405,11 +1603,14 @@
     };
     $('open-room').onclick = () => openRoom(false);
     $('open-demo').onclick = () => openRoom(true);
+    $('records-link').href = recordsURL();
+    drawCodeBox();
+    $('code-form').onsubmit = async e => { e.preventDefault(); if (await setCode($('code-input').value)) { $('code-input').value = ''; drawCodeBox(); } };
+    $('code-change').onclick = () => { if (confirm('이 기기에 저장된 선생님 코드를 지우고 다시 넣을까요?')) { setPref('teacherCode', ''); TID = null; drawCodeBox(); $('code-input').focus(); } };
     if (LOCAL_ONLY) $('server-note').textContent = '연습 모드: 서버 없이 이 브라우저의 탭끼리만 연결돼요.';
-    const board = (params.get('board') || '').replace(/[^a-z0-9]/g, '');
-    if (board) return openHistory(board);
-    const cls = (params.get('class') || '').replace(/[^a-z0-9]/g, '');
-    if (cls) return openRoom(false, null, cls);
+    if (params.has('records')) return openRecords(params.get('c') || '');
+    const cls = params.get('class') || '';
+    if (cls) return openRoom(false, null, classId(cls));
     const host = (params.get('host') || '').replace(/\D/g, '').slice(0, 4);
     if (host) openRoom(false, host);
     else if (room) joinRoom(room);
