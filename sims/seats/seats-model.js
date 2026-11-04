@@ -2,11 +2,11 @@
    브라우저에서는 window.SeatsModel, Node 에서는 require 로 쓴다 (tests/seats-model.test.cjs).
 
    교실 모양은 LAYOUTS 에 있다. 두 가지:
-     room  보통 교실 — 두 줄씩 붙은 분단 셋. 복도 쪽 1분단은 두 줄 × 6자리 뒤에
-           피라미드처럼 반 칸씩 엇갈린 세 칸(15자리), 2·3분단은 5자리씩 → 35자리
+     room  보통 교실 — 두 줄씩 붙은 분단 셋. 복도 쪽 1분단은 두 줄 × 5자리 바로 뒤에
+           피라미드처럼 반 칸씩 엇갈린 세 칸(13자리), 2·3분단은 5자리씩 → 33자리
      hall  종합강의실 — 양끝 분단은 두 줄, 가운데 분단은 세 줄, 줄마다 6자리 → 42자리
    분단 사이에는 통로가 있다. 자리 이름은 '줄-번째' — 줄 k 는 복도 쪽이 0, 번째 r 은 칠판 쪽(맨 앞)이 0.
-   보통 교실 1분단 맨 뒷줄 세 칸은 복도 벽 쪽부터 'e-6', '0-6', '1-6'.
+   보통 교실 1분단 맨 뒷줄 세 칸은 복도 벽 쪽부터 'e-5', '0-5', '1-5'.
    복도가 칠판 기준 왼쪽인지 오른쪽인지는 화면에서만 뒤집는다. 그래서 복도 위치를 바꿔도
    학생들이 골라 둔 자리('복도 쪽 둘째 줄 맨 앞' 같은)는 그대로 맞는다.
 
@@ -44,17 +44,35 @@
     const AISLE = def.aisle ?? 0.6;      // 통로 너비 (책상 너비를 1로 볼 때)
     const GROUP_X = [];
     let w = 0;
-    for (const g of def.groups) { GROUP_X.push(w); w += g.length + AISLE; }
+    const gw = g => Array.isArray(g) ? g.length : g.w;   // 분단 너비 (책상 칸 수)
+    for (const g of def.groups) { GROUP_X.push(w); w += gw(g) + AISLE; }
     let WIDTH = w - AISLE;               // 교실 바닥의 가로 너비
     const SEATS = [];
     const add = (id, g, c, k, r, extra) => SEATS.push({id, g, c, k, r, x: GROUP_X[g] + c + 0.5, extra: extra || null, i: SEATS.length});
     let k = 0;
     // 줄마다 자리 수(숫자) 또는 있는 자리의 번째 목록(배열 — 중간에 책상이 없는 줄)
-    def.groups.forEach((cols, g) => cols.forEach((spec, c) => {
-      const rows = Array.isArray(spec) ? spec.slice().sort((a, b) => a - b) : Array.from({length: spec}, (_, r) => r);
-      for (const r of rows) add(k + '-' + r, g, c, k, r);
-      k++;
-    }));
+    // 분단은 두 가지로 적는다
+    //  - [줄마다 자리 수 또는 있는 번째 목록]  (네모 모양)
+    //  - {w: 너비, seats: [[칸, 번째], …]}   (칸은 0.5 단위 — 피라미드처럼 반 칸 엇갈린 줄)
+    def.groups.forEach((grp, g) => {
+      if (Array.isArray(grp)) {
+        grp.forEach((spec, c) => {
+          const rows = Array.isArray(spec) ? spec.slice().sort((a, b) => a - b) : Array.from({length: spec}, (_, r) => r);
+          for (const r of rows) add(k + '-' + r, g, c, k, r);
+          k++;
+        });
+      } else {
+        const used = new Set();
+        for (const [c, r] of grp.seats.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1])) {
+          const kk = k + Math.min(grp.w - 1, Math.floor(c + 1e-9));
+          let id = kk + '-' + r;
+          if (used.has(id)) id = kk + 'h-' + r;   // 반 칸 엇갈려 같은 줄에 둘이 들어갈 때
+          used.add(id);
+          add(id, g, c, kk, r);
+        }
+        k += grp.w;
+      }
+    });
     const COLS = k;
     for (const e of def.extra || []) add(e.id, e.g, e.c, e.k, e.r, e.name);
     // 따로 붙은 자리가 바깥(복도 벽 쪽)으로 튀어나오면 바닥을 그만큼 넓힌다
@@ -101,13 +119,13 @@
   }
   const LAYOUTS = {
     room: makeLayout({
-      id: 'room', name: '보통 교실', desc: '두 줄씩 분단 셋 · 복도 쪽 분단은 6줄 뒤에 피라미드처럼 3칸 (35자리)',
+      id: 'room', name: '보통 교실', desc: '두 줄씩 분단 셋 · 복도 쪽 분단은 5줄 바로 뒤에 피라미드처럼 3칸 (33자리)',
       // 1분단 맨 뒷줄은 피라미드처럼 두 칸 뒤에 세 칸 — 반 칸씩 엇갈려 양쪽으로 반 칸씩 튀어나온다
-      groups: [[6, 6], [5, 5], [5, 5]],
+      groups: [[5, 5], [5, 5], [5, 5]],
       extra: [
-        {id: 'e-6', g: 0, c: -0.5, k: 0, r: 6, name: '1분단 맨 뒤 세 칸 · 복도 벽 쪽'},
-        {id: '0-6', g: 0, c: 0.5, k: 0, r: 6, name: '1분단 맨 뒤 세 칸 · 가운데'},
-        {id: '1-6', g: 0, c: 1.5, k: 1, r: 6, name: '1분단 맨 뒤 세 칸 · 통로 쪽'}
+        {id: 'e-5', g: 0, c: -0.5, k: 0, r: 5, name: '1분단 맨 뒤 세 칸 · 복도 벽 쪽'},
+        {id: '0-5', g: 0, c: 0.5, k: 0, r: 5, name: '1분단 맨 뒤 세 칸 · 가운데'},
+        {id: '1-5', g: 0, c: 1.5, k: 1, r: 5, name: '1분단 맨 뒤 세 칸 · 통로 쪽'}
       ]
     }),
     hall: makeLayout({
@@ -125,6 +143,18 @@
     if (!def || !Array.isArray(def.groups) || !def.groups.length || def.groups.length > 6) return false;
     let n = 0;
     for (const g of def.groups) {
+      if (g && !Array.isArray(g)) {
+        if (!Number.isInteger(g.w) || g.w < 1 || g.w > 5 || !Array.isArray(g.seats)) return false;
+        const seen = new Set();
+        for (const p of g.seats) {
+          if (!Array.isArray(p) || p.length !== 2) return false;
+          const [c, r] = p;
+          if (!Number.isFinite(c) || c < 0 || c > g.w - 1 || Math.round(c * 2) !== c * 2 || !Number.isInteger(r) || r < 0 || r > 11 || seen.has(c + ':' + r)) return false;
+          seen.add(c + ':' + r);
+        }
+        n += g.seats.length;
+        continue;
+      }
       if (!Array.isArray(g) || !g.length || g.length > 4) return false;
       for (const col of g) {
         const rows = Array.isArray(col) ? col : Number.isInteger(col) ? Array.from({length: col}, (_, r) => r) : null;
@@ -136,7 +166,7 @@
   }
   function layoutOf(id, def) {
     if (!validDef(def)) return layout(id);
-    const key = JSON.stringify([id, def.groups, !!def.spread]);
+    const key = JSON.stringify([id, def.groups.map(g => Array.isArray(g) ? g : [g.w, g.seats]), !!def.spread]);
     if (!customCache.has(key)) customCache.set(key, makeLayout({id: id || 'custom', name: def.name || '직접 만든 교실', desc: def.desc || '', groups: def.groups, spread: !!def.spread}));
     return customCache.get(key);
   }
