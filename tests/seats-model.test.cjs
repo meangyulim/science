@@ -5,21 +5,21 @@ const M=require('../sims/seats/seats-model.js');
 const kids=n=>Array.from({length:n},(_,i)=>({key:'s'+String(i+1).padStart(2,'0'),friends:[],wishes:[]}));
 const seatOf=(prob,occ,key)=>M.SEATS[M.posOf(prob,occ)[prob.idx.get(key)]];
 
-test('classroom: hallway group 2×7 plus one back seat, other groups 2×5 — 35 seats',()=>{
-  assert.equal(M.NSEAT,35);
+test('classroom: hallway group 2×5 plus a pyramid back row of 3, other groups 2×5 — 33 seats',()=>{
+  assert.equal(M.NSEAT,33);
   const perGroup=[0,0,0];
   for(const s of M.SEATS) perGroup[s.g]++;
-  assert.deepEqual(perGroup,[15,10,10]);
+  assert.deepEqual(perGroup,[13,10,10]);
   const perCol=[0,0,0,0,0,0];
   for(const s of M.SEATS) if(!s.extra) perCol[s.k]++;
-  assert.deepEqual(perCol,[6,6,5,5,5,5]);
-  // 맨 뒷줄(7번째)은 1분단에만 있고, 두 칸 뒤에 피라미드처럼 세 칸 (반 칸씩 엇갈림)
-  const back=M.SEATS.filter(s=>s.r===6);
-  assert.deepEqual(back.map(s=>s.id),['e-6','0-6','1-6']);
+  assert.deepEqual(perCol,[5,5,5,5,5,5]);
+  // 맨 뒷줄(6번째)은 1분단에만 있고, 두 칸 바로 뒤에 피라미드처럼 세 칸 (반 칸씩 엇갈림)
+  const back=M.SEATS.filter(s=>s.r===5);
+  assert.deepEqual(back.map(s=>s.id),['e-5','0-5','1-5']);
   assert.deepEqual(back.map(s=>s.x),[0.5,1.5,2.5]);
-  assert.deepEqual(['0-5','1-5'].map(id=>M.SEAT[id].x),[1,2]);
-  assert.ok(M.SEAT['1-5']);
+  assert.deepEqual(['0-4','1-4'].map(id=>M.SEAT[id].x),[1,2]);
   assert.equal(M.SEAT['2-5'],undefined);
+  assert.equal(M.ROWS_MAX,6);
   assert.equal(M.FILL_ORDER[0].id,'0-0');
   assert.equal(M.FILL_ORDER[6].id,'0-1');
   // 양쪽으로 반 칸씩 튀어나오니 바닥이 반 칸 넓어진다
@@ -38,11 +38,11 @@ test('nearness: desk pairs with an aisle between them',()=>{
   assert.equal(n('0-0','5-4'),0);
   assert.deepEqual([0,1,2,3,4,5].map(k=>M.SEAT[k+'-0'].g),[0,0,1,1,2,2]);
   // 1분단 맨 뒷줄 세 자리: 가운데와 셋째는 짝, 양 끝은 두 칸 떨어짐
-  assert.equal(n('0-6','e-6'),1);      // 맨 뒷줄 세 칸은 서로 짝
-  assert.equal(n('1-6','e-6'),0.25);   // 양 끝
-  assert.equal(n('0-5','e-6'),0.625);  // 반 칸 엇갈린 바로 뒤
-  assert.equal(n('0-5','0-6'),0.625);
-  assert.equal(n('e-6','2-4'),0);
+  assert.equal(n('0-5','e-5'),1);      // 맨 뒷줄 세 칸은 서로 짝
+  assert.equal(n('1-5','e-5'),0.25);   // 양 끝
+  assert.equal(n('0-4','e-5'),0.625);  // 반 칸 엇갈린 바로 뒤
+  assert.equal(n('0-4','0-5'),0.625);
+  assert.equal(n('e-5','2-2'),0);
   for(const a of M.SEATS)for(const b of M.SEATS)assert.equal(M.near(a,b),M.near(b,a));
   // 원하는 자리: 통로 건너 옆자리는 짝 자리보다 덜 가깝다
   const w=M.SEAT['2-2'];
@@ -53,7 +53,7 @@ test('nearness: desk pairs with an aisle between them',()=>{
   assert.equal(M.seatName('0-2'),'1분단 복도 쪽 줄 · 앞에서 3번째');
   assert.equal(M.seatName('5-0'),'3분단 창가 쪽 줄 · 앞에서 1번째');
   assert.equal(M.seatName('2-0'),'2분단 복도에서 셋째 줄 · 앞에서 1번째');
-  assert.equal(M.seatName('e-6'),'1분단 맨 뒤 세 칸 · 복도 벽 쪽');
+  assert.equal(M.seatName('e-5'),'1분단 맨 뒤 세 칸 · 복도 벽 쪽');
 });
 
 test('friends who choose each other become desk partners, not neighbours across the aisle',()=>{
@@ -96,7 +96,7 @@ test('every student gets exactly one seat, the rest stay empty',()=>{
   const occ=M.optimize(prob,null,{rand:M.rng(1),restarts:3,iters:30000});
   const seated=[...occ].filter(x=>x>=0).sort((a,b)=>a-b);
   assert.deepEqual(seated,Array.from({length:27},(_,i)=>i));
-  assert.equal([...occ].filter(x=>x<0).length,8);
+  assert.equal([...occ].filter(x=>x<0).length,6);
   // 빈자리는 뒤쪽에 남는다 (앞자리가 비면 점수가 깎인다)
   const empties=M.SEATS.filter(s=>occ[s.i]<0);
   assert.ok(empties.every(s=>s.r>=3),empties.map(s=>s.id).join());
@@ -116,12 +116,12 @@ test('mutual friend pairs end up next to each other',()=>{
 test('seat wishes are honoured, and fairness spreads the front seats',()=>{
   const st=kids(10);
   st[0].wishes=['3-0'];            // 한 명만 원하는 자리 → 그 자리
-  st[1].wishes=['0-6'];            // 복도 줄 맨 뒤
+  st[1].wishes=['e-5'];            // 1분단 맨 뒤 세 칸의 복도 벽 쪽
   for(let i=2;i<6;i++)st[i].wishes=['2-0'];   // 넷이 같은 자리를 원하면 그 근처로 모인다
   const prob=M.prepare(st,{});
   const occ=M.optimize(prob,null,{rand:M.rng(3),restarts:3,iters:15000});
   assert.equal(seatOf(prob,occ,'s01').id,'3-0');
-  assert.equal(seatOf(prob,occ,'s02').id,'0-6');
+  assert.equal(seatOf(prob,occ,'s02').id,'e-5');
   for(let i=2;i<6;i++){
     const s=seatOf(prob,occ,st[i].key), w=M.SEAT['2-0'];
     assert.ok(Math.hypot(s.k-w.k,s.r-w.r)<=1.5,s.id);
@@ -176,9 +176,9 @@ test('seat maps round-trip; newcomers fill the front, locks win over the map',()
   assert.deepEqual(M.toMap(prob,M.toOcc(prob,map)),map);
 });
 
-test('more than 35 students is refused',()=>{
-  assert.throws(()=>M.prepare(kids(36),{}),/35/);
-  assert.doesNotThrow(()=>M.prepare(kids(35),{}));
+test('more than 33 students is refused',()=>{
+  assert.throws(()=>M.prepare(kids(34),{}),/33/);
+  assert.doesNotThrow(()=>M.prepare(kids(33),{}));
 });
 
 test('annealer runs in small steps and never loses its best',()=>{
@@ -309,4 +309,25 @@ test('teacher-made classroom: groups, columns, and missing desks',()=>{
   assert.equal(M.validDef({groups:[[1,2,3,4,5]]}),false);
   assert.equal(M.validDef({groups:[[[0,99]]]}),false);
   assert.equal(M.layoutOf('x',{groups:[]}),M.LAYOUTS.room);
+});
+
+test('teacher-made classroom: a back row with a different number of desks (pyramid)',()=>{
+  // 1분단: 2줄×6 뒤에 반 칸씩 엇갈린 3칸 — 보통 교실의 피라미드와 같은 모양
+  const seats=[];
+  for(let r=0;r<6;r++)seats.push([0.5,r],[1.5,r]);
+  seats.push([0,6],[1,6],[2,6]);
+  const def={name:'피라미드',groups:[{w:3,seats,cols:2,rows:6,back:3},[5,5],[5,5]]};
+  assert.ok(M.validDef(def));
+  const L=M.layoutOf('c-p',def);
+  assert.equal(L.NSEAT,15+10+10);
+  const back=L.SEATS.filter(s=>s.r===6);
+  assert.equal(back.length,3);
+  const s05=L.SEATS.find(s=>s.r===5&&s.c===0.5);
+  assert.equal(L.near(back[0],back[1]),1);          // 맨 뒷줄 세 칸은 서로 짝
+  assert.equal(L.near(s05,back[0]),0.625);          // 반 칸 엇갈린 바로 뒤 (보통 교실과 같다)
+  assert.equal(new Set(L.SEATS.map(s=>s.id)).size,L.NSEAT);
+  // 잘못된 칸(반 칸 단위가 아님, 겹침, 너비 밖)은 거절
+  assert.equal(M.validDef({groups:[{w:2,seats:[[0.3,0]]}]}),false);
+  assert.equal(M.validDef({groups:[{w:2,seats:[[0,0],[0,0]]}]}),false);
+  assert.equal(M.validDef({groups:[{w:2,seats:[[2,0]]}]}),false);
 });

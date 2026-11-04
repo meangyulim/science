@@ -1047,10 +1047,18 @@
     if (changed) setPref('layouts', all);
     return changed;
   }
-  const describeDef = def => def.groups.map((g, i) => {
+  const describeDef = def => def.groups.map(g => {
+    if (!Array.isArray(g)) return `${g.cols}줄×${g.rows}` + (g.back ? `+뒤 ${g.back}칸` : '');
     const rows = Math.max(...g.map(c => Array.isArray(c) ? Math.max(-1, ...c) + 1 : c));
     return `${g.length}줄×${rows}`;
   }).join(' · ') + (def.spread ? ' · 띄엄띄엄' : '');
+  // 편집기의 분단 {cols, rows, back} → 책상 칸 목록. 맨 뒷줄 칸 수가 다르면 가운데 맞춤(반 칸 엇갈림)
+  function groupSeats(g) {
+    const W = Math.max(g.cols, g.back || 0), o = (W - g.cols) / 2, seats = [];
+    for (let c = 0; c < g.cols; c++) for (let r = 0; r < g.rows; r++) seats.push([o + c, r]);
+    if (g.back) { const ob = (W - g.back) / 2; for (let i = 0; i < g.back; i++) seats.push([ob + i, g.rows]); }
+    return {W, seats};
+  }
 
   // 교실 모양 만들기: 분단마다 줄 수·줄마다 자리 수, 그림에서 책상을 눌러 빼고 넣기
   function openLayoutEditor(id, hall, done) {
@@ -1058,9 +1066,14 @@
     const old = id ? customLayouts()[id] : null;
     let groups, off = new Set();
     if (old) {
-      groups = old.groups.map(g => ({cols: g.length, rows: Math.max(...g.map(c => Array.isArray(c) ? Math.max(-1, ...c) + 1 : c))}));
-      old.groups.forEach((g, gi) => g.forEach((c, ci) => { const has = Array.isArray(c) ? new Set(c) : null; for (let r = 0; r < groups[gi].rows; r++) if (has ? !has.has(r) : r >= c) off.add(`${gi}:${ci}:${r}`); }));
-    } else groups = [{cols: 2, rows: 5}, {cols: 2, rows: 5}, {cols: 2, rows: 5}];
+      groups = old.groups.map(g => Array.isArray(g)
+        ? {cols: g.length, rows: Math.max(...g.map(c => Array.isArray(c) ? Math.max(-1, ...c) + 1 : c)), back: 0}
+        : {cols: g.cols || g.w, rows: g.rows || Math.max(...g.seats.map(p => p[1])) + 1, back: g.back || 0});
+      old.groups.forEach((g, gi) => {
+        if (Array.isArray(g)) g.forEach((c, ci) => { const has = Array.isArray(c) ? new Set(c) : null; for (let r = 0; r < groups[gi].rows; r++) if (has ? !has.has(r) : r >= c) off.add(`${gi}:${ci}:${r}`); });
+        else { const has = new Set(g.seats.map(p => p[0] + ':' + p[1])); for (const [c, r] of groupSeats(groups[gi]).seats) if (!has.has(c + ':' + r)) off.add(`${gi}:${c}:${r}`); }
+      });
+    } else groups = [{cols: 2, rows: 5, back: 0}, {cols: 2, rows: 5, back: 0}, {cols: 2, rows: 5, back: 0}];
     $('lay-name').value = old ? old.name : '';
     $('lay-spread').checked = !!(old && old.spread);
     $('lay-delete').hidden = !old;
@@ -1072,15 +1085,21 @@
     const finalDef = () => ({
       name: $('lay-name').value.trim().slice(0, 20) || '직접 만든 교실',
       spread: $('lay-spread').checked,
-      groups: groups.map((g, gi) => Array.from({length: g.cols}, (_, c) => {
-        const rows = [];
-        for (let r = 0; r < g.rows; r++) if (!off.has(`${gi}:${c}:${r}`)) rows.push(r);
-        return rows.length === g.rows ? g.rows : rows;
-      }))
+      groups: groups.map((g, gi) => {
+        if (g.back) {   // 맨 뒷줄이 따로 있으면 칸 목록으로
+          const {W, seats} = groupSeats(g);
+          return {w: W, cols: g.cols, rows: g.rows, back: g.back, seats: seats.filter(([c, r]) => !off.has(`${gi}:${c}:${r}`))};
+        }
+        return Array.from({length: g.cols}, (_, c) => {
+          const rows = [];
+          for (let r = 0; r < g.rows; r++) if (!off.has(`${gi}:${c}:${r}`)) rows.push(r);
+          return rows.length === g.rows ? g.rows : rows;
+        });
+      })
     });
-    const sel = (val, max, on) => {
+    const sel = (val, max, on, min = 1, zero) => {
       const s = h('select', {onchange: () => on(+s.value)});
-      for (let i = 1; i <= max; i++) s.append(h('option', {value: i, text: i}));
+      for (let i = min; i <= max; i++) s.append(h('option', {value: i, text: i === 0 && zero ? zero : i}));
       s.value = val;
       return s;
     };
@@ -1089,9 +1108,10 @@
       box.textContent = '';
       groups.forEach((g, gi) => box.append(h('div', {class: 'lay-group'},
         h('b', {text: `${gi + 1}분단`}), ' 줄 ', sel(g.cols, 4, v => { g.cols = v; draw(); }), ' · 줄마다 ', sel(g.rows, 10, v => { g.rows = v; draw(); }), '자리',
+        h('span', {class: 'lay-back'}, ' · 맨 뒤에 한 줄 더 ', sel(g.back || 0, 4, v => { g.back = v; draw(); }, 0, '없음'), g.back ? '칸' : ''),
         groups.length > 1 ? h('button', {type: 'button', class: 'x', 'aria-label': `${gi + 1}분단 빼기`, text: '×', onclick: () => { groups.splice(gi, 1); off = new Set([...off].filter(k => +k.split(':')[0] !== gi).map(k => { const [a, b, c] = k.split(':').map(Number); return `${a > gi ? a - 1 : a}:${b}:${c}`; })); draw(); }}) : null)));
       $('lay-add-group').disabled = groups.length >= 6;
-      const full = M.makeLayout({id: 'edit', groups: groups.map(g => Array(g.cols).fill(g.rows))});
+      const full = M.makeLayout({id: 'edit', groups: groups.map(g => g.back ? (({W, seats}) => ({w: W, seats}))(groupSeats(g)) : Array(g.cols).fill(g.rows))});
       board.layout(full);
       board.view(hall, false);
       const marks = {};
@@ -1102,7 +1122,7 @@
       $('lay-count').textContent = `책상 ${n}개` + (n > 60 ? ' — 60개까지 만들 수 있어요' : '');
       $('lay-ok').disabled = n < 1 || n > 60;
     };
-    $('lay-add-group').onclick = () => { groups.push({cols: 2, rows: groups[groups.length - 1].rows}); draw(); };
+    $('lay-add-group').onclick = () => { groups.push({cols: 2, rows: groups[groups.length - 1].rows, back: 0}); draw(); };
     $('lay-form').onsubmit = e => e.preventDefault();
     $('lay-cancel').onclick = e => { e.preventDefault(); d.close(); };
     $('lay-delete').onclick = e => {
@@ -1702,7 +1722,7 @@
   }
 
   function initEntry() {
-    // 첫 화면 그림: 35자리 교실
+    // 첫 화면 그림: 33자리 교실
     const g = $('entry-art-desks');
     for (const s of M.SEATS) {
       const x = 34 + (M.WIDTH - s.x - 0.5) * 40, y = 16 + s.r * 11;   // 복도가 오른쪽인 교실
