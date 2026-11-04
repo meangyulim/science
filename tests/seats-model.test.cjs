@@ -263,3 +263,23 @@ test('taking turns: whoever had a popular seat last time yields it this time',()
   const p=M.prepare(one,{history:[{s01:'5-4'}]});
   assert.equal(p.yieldF[0],1);
 });
+
+test('each student can choose how much friends vs seat matter to them',()=>{
+  // 둘 다 친구(서로)와 자리(멀리 떨어진 두 곳)를 원한다. 셋째 학생 자리도 끼어 있어 둘 다 이룰 수는 없다.
+  const st=kids(2);
+  st[0].friends=['s02'];st[0].wishes=['0-0'];
+  st[1].friends=['s01'];st[1].wishes=['5-4'];
+  const seat=(prob,occ,k)=>M.SEATS[M.posOf(prob,occ)[prob.idx.get(k)]].id;
+  // 둘 다 자리가 훨씬 중요 → 각자 원한 자리에
+  st[0].fw=0.2;st[1].fw=0.2;
+  let prob=M.prepare(st,{fw:0.6}),occ=M.optimize(prob,null,{rand:M.rng(1),restarts:2,iters:8000});
+  assert.equal(seat(prob,occ,'s01'),'0-0');assert.equal(seat(prob,occ,'s02'),'5-4');
+  // 둘 다 친구가 훨씬 중요 → 짝으로
+  st[0].fw=0.8;st[1].fw=0.8;
+  prob=M.prepare(st,{fw:0.6});occ=M.optimize(prob,null,{rand:M.rng(1),restarts:2,iters:8000});
+  assert.equal(M.near(M.SEAT[seat(prob,occ,'s01')],M.SEAT[seat(prob,occ,'s02')]),1);
+  // 안 고르면 선생님 기본값
+  delete st[0].fw;
+  assert.equal(M.prepare(st,{fw:0.3}).fwi[0],0.3);
+  assert.equal(M.prepare(st,{fw:0.3}).fwi[1],0.8);
+});

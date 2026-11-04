@@ -187,7 +187,8 @@
 
   // ── 문제 만들기 ───────────────────────────────────────────────
   // students: [{key, friends: [key], wishes: [seatId]}],
-  // opts: {layout: 'room'|'hall', fw: 친구 비중 0~1, locks: {key: seatId}, apart: [[key, key]]}
+  //   학생마다 fw(친구 비중 0~1)를 직접 고를 수 있다. 안 고르면 opts.fw(선생님 기본값).
+  // opts: {layout: 'room'|'hall', fw: 기본 친구 비중 0~1, locks: {key: seatId}, apart: [[key, key]], history: [...]}
   function prepare(students, opts) {
     opts = opts || {};
     const L = layout(opts.layout), {SEAT, SEATS, NSEAT} = L;
@@ -250,7 +251,9 @@
     fr.forEach((list, i) => { for (const [j] of list) { likes[i * n + j] = 1; likes[j * n + i] = 1; } });
     // 넓은 교실에서 쓸 줄 수: 한 줄을 3/4쯤만 채운다고 보고 앞에서부터 (23명·한 줄 7자리 → 앞 5줄)
     const useRows = clamp(Math.ceil(n / (NSEAT / L.ROWS_MAX * 0.75)), 1, L.ROWS_MAX);
-    return {L, n, keys, idx, fr, wish, yieldF, likes, useRows, lockSeat, apart, movable, fw: clamp(opts.fw ?? 0.6, 0, 1)};
+    const fw = clamp(opts.fw ?? 0.6, 0, 1);
+    const fwi = Float64Array.from(students, st => Number.isFinite(st.fw) ? clamp(st.fw, 0, 1) : fw);
+    return {L, n, keys, idx, fr, wish, yieldF, likes, useRows, lockSeat, apart, movable, fw, fwi};
   }
 
   // occ: 자리 → 학생 번호(-1 은 빈자리). pos: 학생 → 자리.
@@ -271,7 +274,7 @@
     }
     if (w) P = w[pos[i]];
     const Pe = P === null ? null : P * prob.yieldF[i];   // 양보하는 학생은 자리 점수를 덜 받는다
-    const wf = F === null ? 0 : prob.fw, ww = P === null ? 0 : 1 - prob.fw;
+    const fw = prob.fwi[i], wf = F === null ? 0 : fw, ww = P === null ? 0 : 1 - fw;
     const s = wf + ww > 0 ? ((wf ? wf * F : 0) + (ww ? ww * Pe : 0)) / (wf + ww) : (F ?? Pe);
     return {F, P, s: F === null && P === null ? null : s};
   }

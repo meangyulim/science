@@ -231,8 +231,8 @@
 
   // ── 학생에게 보여 주는 설명: 자리가 어떻게 정해지는지 ──────────────────
   // 비율(친구:자리)은 선생님이 정한 값을 그대로 보여 준다.
-  function explainHTML(fw) {
-    const f = Math.round((fw ?? 0.6) * 100), w = 100 - f;
+  function explainHTML(fw, mine) {
+    const d = Math.round((fw ?? 0.6) * 100), f = mine ?? d, w = 100 - f;
     return `
       <ol class="explain-list">
         <li><b>내가 내는 것</b> — 같이 앉고 싶은 친구 <b>3명까지</b>, 앉고 싶은 자리 <b>3곳까지</b>. 먼저 누른 것이 1순위예요.
@@ -242,7 +242,8 @@
         <li><b>자리 점수</b> — 고른 자리에 앉으면 100점, 바로 옆·뒤면 약 66점, 더 멀어질수록 줄어요.
           1순위 자리가 가장 중요해요 (10 : 8.5 : 7).</li>
         <li><b>내 만족도</b> = 친구 점수 <b>${f}%</b> + 자리 점수 <b>${w}%</b>
-          <small>(지금 선생님이 정한 비율)</small>. 친구만 골랐으면 친구 점수가, 자리만 골랐으면 자리 점수가 전부예요.</li>
+          <small>(${mine != null ? '내가 고른 비율' : `선생님 기본 비율 — '나에게 더 중요한 것'에서 내가 바꿀 수 있어요`})</small>.
+          친구만 골랐으면 친구 점수가, 자리만 골랐으면 자리 점수가 전부예요. 비율을 바꿔도 더 유리해지지는 않아요 — 내 만족도를 무엇으로 잴지만 정해요.</li>
         <li><b>반 전체</b> — 컴퓨터가 자리를 수만 번 바꿔 보며 <b>모두의 만족도</b>가 가장 높은 배치를 찾아요.
           이때 이미 만족한 친구를 더 챙기기보다 <b>아무것도 못 얻은 친구를 먼저</b> 챙겨요. 그래서 인기 자리는 다른 바람을 덜 이룬 친구에게 갈 수 있어요.</li>
         <li><b>돌아가며 양보</b> — 지난번에 여럿이 원하던 자리에 앉았다면, 이번에는 자리 바람이 조금 덜 반영돼요. 친구 바람은 그대로예요.</li>
@@ -376,7 +377,7 @@
 
   function tPref(key) {
     const uid = T.claims[key], p = uid && T.prefs[uid];
-    return p && p.who === key ? {friends: M.splitList(p.f), wishes: M.splitList(p.w)} : null;
+    return p && p.who === key ? {friends: M.splitList(p.f), wishes: M.splitList(p.w), fw: Number.isFinite(p.b) ? p.b / 100 : undefined} : null;
   }
   const TL = () => M.layout(T.meta && T.meta.layout);   // 이 방의 교실 모양
   const tStatus = key => !T.claims[key] ? 'none' : tPref(key) ? 'sent' : 'joined';
@@ -386,7 +387,7 @@
     T.list = M.rosterList(T.roster);
     for (const k of Object.keys(T.locks)) if (!T.roster[k] || !TL().SEAT[T.locks[k]]) delete T.locks[k];
     T.apart = T.apart.filter(([a, b]) => T.roster[a] && T.roster[b]);
-    const st = T.list.map(s => { const p = tPref(s.key); return {key: s.key, friends: p ? p.friends : [], wishes: p ? p.wishes : []}; });
+    const st = T.list.map(s => { const p = tPref(s.key); return {key: s.key, friends: p ? p.friends : [], wishes: p ? p.wishes : [], fw: p ? p.fw : undefined}; });
     T.prob = M.prepare(st, {layout: TL(), fw: T.fw, locks: T.locks, apart: T.apart, history: histMaps()});
     return T.prob;
   }
@@ -432,7 +433,7 @@
   // 바람·조건이 바뀌었는지 알아보는 글자열 (바뀌었을 때만 실시간으로 다시 맞춘다)
   function signature() {
     const out = [];
-    for (const s of M.rosterList(T.roster)) { const uid = T.claims[s.key], p = uid && T.prefs[uid]; if (p && p.who === s.key) out.push(s.key + ':' + (p.f || '') + '|' + (p.w || '')); }
+    for (const s of M.rosterList(T.roster)) { const uid = T.claims[s.key], p = uid && T.prefs[uid]; if (p && p.who === s.key) out.push(s.key + ':' + (p.f || '') + '|' + (p.w || '') + '|' + (p.b ?? '')); }
     return out.join(';') + '#' + Object.keys(T.roster).length;
   }
 
@@ -1101,7 +1102,7 @@
   // ════════════════════════════════════════════════════════════
   const S = {
     store: null, code: '', base: '', meta: undefined, roster: {}, claims: {}, result: null, mine: undefined,
-    key: null, join: null, f: [], w: [], dirty: false, editing: false, wishBoard: null, resBoard: null, sending: false
+    key: null, join: null, f: [], w: [], b: null, dirty: false, editing: false, wishBoard: null, resBoard: null, sending: false
   };
   const SL = () => M.layout(S.meta && S.meta.layout);
   const sLabel = key => { const s = M.rosterList(S.roster).find(x => x.key === key); return s ? s.label : '?'; };
@@ -1134,7 +1135,7 @@
     on('/joins/' + S.store.uid, v => { S.join = v; });
     on('/prefs/' + S.store.uid, v => {
       S.mine = v;
-      if (v && !S.dirty) { S.f = M.splitList(v.f); S.w = M.splitList(v.w); }
+      if (v && !S.dirty) { S.f = M.splitList(v.f); S.w = M.splitList(v.w); S.b = Number.isFinite(v.b) ? v.b : null; }
     });
     S.store.onStatus(ok => { $('st-conn').className = 'conn ' + (ok ? 'on' : 'off'); });
     $('send-btn').onclick = sendPrefs;
@@ -1153,7 +1154,7 @@
       if (!confirm('내 이름을 다시 고를까요? 지금까지 고른 것은 지워져요.')) return;
       try {
         await S.store.update(S.base, {['claims/' + S.key]: null, ['prefs/' + S.store.uid]: null});
-        S.f = []; S.w = []; S.dirty = false; S.editing = false;
+        S.f = []; S.w = []; S.b = null; S.dirty = false; S.editing = false;
       } catch (e) { toast('st-toast', '지우지 못했어요. 마감됐을 수 있어요.'); }
     };
   }
@@ -1202,7 +1203,7 @@
     if (!confirm(`${s.no != null ? s.no + '번 ' : ''}${s.label} 맞나요?`)) return;
     try {
       await S.store.set(`${S.base}/claims/${s.key}`, S.store.uid);
-      S.f = []; S.w = []; S.dirty = false; S.editing = true;
+      S.f = []; S.w = []; S.b = null; S.dirty = false; S.editing = true;
     } catch (e) {
       toast('st-toast', '이미 다른 폰에서 고른 이름이에요. 내 이름이 맞다면 선생님께 말해 주세요.', 5000);
     }
@@ -1225,8 +1226,16 @@
     const marks = {};
     S.w.forEach((id, i) => { marks[id] = {cls: 'wish', text: '★' + (i + 1)}; });
     S.wishBoard.marks(marks);
+    // 나에게 더 중요한 것: 친구 비중(%) 다섯 단계 + 선생님 기본값
+    const def = Math.round((S.meta.fw ?? 0.6) * 100), bal = $('balance');
+    bal.textContent = '';
+    for (const [b, text] of [[null, '선생님 기본값'], [80, '친구가 훨씬 중요'], [60, '친구가 조금 더'], [50, '반반'], [40, '자리가 조금 더'], [20, '자리가 훨씬 중요']]) {
+      const f = b ?? def;
+      bal.append(h('button', {type: 'button', role: 'radio', 'aria-checked': String(S.b === b), class: b === null ? 'def' : '', onclick: () => { S.b = b; S.dirty = true; drawPrefs(); }},
+        h('span', {text}), h('small', {text: `친구 ${f} : 자리 ${100 - f}`})));
+    }
     const ex = $('st-explain');
-    $('st-explain-body').innerHTML = explainHTML(S.meta.fw);
+    $('st-explain-body').innerHTML = explainHTML(S.meta.fw, S.b);
     if (!ex.dataset.init) { ex.dataset.init = '1'; ex.open = !S.mine; }
     $('send-btn').textContent = S.mine ? '고친 내용 보내기' : '보내기';
     $('send-btn').disabled = S.sending;
@@ -1253,7 +1262,7 @@
     S.sending = true;
     drawPrefs();
     try {
-      await S.store.set(`${S.base}/prefs/${S.store.uid}`, {who: S.key, f: S.f.join(','), w: S.w.join(','), t: S.store.now()});
+      await S.store.set(`${S.base}/prefs/${S.store.uid}`, Object.assign({who: S.key, f: S.f.join(','), w: S.w.join(','), t: S.store.now()}, S.b != null ? {b: S.b} : {}));
       S.dirty = false; S.editing = false;
       toast('st-toast', '보냈어요! 선생님 화면에서 자리가 맞춰지고 있어요.');
     } catch (e) {
@@ -1285,7 +1294,8 @@
     $('wait-text').textContent = ph === 'open' ? '선생님 화면에서 자리가 맞춰지고 있어요. 마감 전까지는 고칠 수 있어요.' : '마감됐어요. 선생님이 자리를 정하는 중이에요.';
     // 폰을 책상에 올려 두면 옆 친구가 볼 수 있으니, 기다리는 화면에는 누구를 골랐는지 이름을 띄우지 않는다
     const f = M.splitList(S.mine.f), w = M.splitList(S.mine.w);
-    sum.append(h('li', {}, h('small', {text: '보낸 것'}), `친구 ${f.length}명 · 자리 ${w.length ? w.length + '곳' : '어디든 괜찮음'}`));
+    const bb = Number.isFinite(S.mine.b) ? `친구 ${S.mine.b} : 자리 ${100 - S.mine.b}` : '선생님 기본 비율';
+    sum.append(h('li', {}, h('small', {text: '보낸 것'}), `친구 ${f.length}명 · 자리 ${w.length ? w.length + '곳' : '어디든 괜찮음'} · ${bb}`));
     sum.append(h('li', {class: 'quiet'}, '누구를 골랐는지는 나만 알아요. 친구들 화면에도, 선생님 화면에도 나오지 않아요.'));
     $('edit-btn').hidden = ph !== 'open';
   }

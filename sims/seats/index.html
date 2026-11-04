@@ -98,6 +98,11 @@
         <p class="hint">최대 3곳. 안 골라도 돼요 — 그러면 친구만 보고 정해요.</p>
         <div class="room-wrap"><div id="wish-board"></div></div>
       </div>
+      <div class="st-sec">
+        <h2>나에게 더 중요한 것</h2>
+        <p class="hint">친구와 자리를 둘 다 골랐을 때, 내 만족도를 무엇으로 더 쳐 줄지 골라요. 안 고르면 선생님이 정한 기본 비율로 해요.</p>
+        <div class="balance" id="balance" role="radiogroup" aria-label="친구와 자리 중 더 중요한 것"></div>
+      </div>
       <div class="st-send">
         <p class="hint" id="send-note"></p>
         <button class="primary big" id="send-btn" type="button">보내기</button>
@@ -159,6 +164,7 @@
         <button class="primary big" id="t-run" type="button">▶ 자리 배치 돌리기</button>
         <div class="progress" id="t-progress" hidden><i></i><span></span></div>
         <label class="check"><input type="checkbox" id="t-live" checked> 바람이 들어올 때마다 실시간으로 맞추기</label>
+        <p class="hint slider-cap">기본 비율 — 학생이 따로 고르지 않으면 이 비율로 해요</p>
         <label class="slider">
           <span>친구 <b id="t-fw-f">60</b></span>
           <input type="range" id="t-fw" min="0" max="100" step="10" value="60" aria-label="친구와 자리 중 무엇을 더 따질지">

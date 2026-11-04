@@ -51,6 +51,7 @@
               "who": { ".validate": "newData.isString()" },
               "f": { ".validate": "newData.isString() && newData.val().length <= 40" },
               "w": { ".validate": "newData.isString() && newData.val().length <= 40" },
+              "b": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
               "t": { ".validate": "newData.isNumber()" },
               "$other": { ".validate": false }
             }
