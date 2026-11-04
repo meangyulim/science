@@ -1,15 +1,20 @@
 {
   "rules": {
     "seats": {
-      "boards": {
-        "$bid": {
-          ".read": "auth != null && $bid.length >= 16",
-          ".write": "auth != null && $bid.length >= 16",
-          "info": {
-            ".validate": "newData.hasChildren(['cls', 't']) && newData.child('cls').isString() && newData.child('cls').val().length <= 20 && (!newData.child('text').exists() || (newData.child('text').isString() && newData.child('text').val().length <= 4000))"
-          },
-          "hist": {
-            "$h": { ".validate": "newData.hasChildren(['t', 'seats', 'layout']) && newData.child('t').isNumber()" }
+      "teachers": {
+        "$tid": {
+          ".read": "auth != null && $tid.length === 64",
+          ".write": "auth != null && $tid.length === 64",
+          "classes": {
+            "$c": {
+              "info": {
+                ".validate": "newData.hasChildren(['cls', 't']) && newData.child('cls').isString() && newData.child('cls').val().length <= 40 && (!newData.child('text').exists() || (newData.child('text').isString() && newData.child('text').val().length <= 4000))"
+              },
+              "hist": {
+                "$h": { ".validate": "newData.hasChildren(['t', 'seats', 'layout']) && newData.child('t').isNumber()" }
+              },
+              "$other": { ".validate": false }
+            }
           },
           "$other": { ".validate": false }
         }
@@ -46,14 +51,16 @@
           "prefs": {
             "$uid": {
               ".read": "auth != null && auth.uid === $uid",
-              ".write": "auth != null && auth.uid === $uid && root.child('seats/rooms/' + $code + '/meta/phase').val() === 'open'",
-              ".validate": "newData.hasChildren(['who', 't']) && newData.child('who').isString() && root.child('seats/rooms/' + $code + '/claims/' + newData.child('who').val()).val() === $uid",
-              "who": { ".validate": "newData.isString()" },
-              "f": { ".validate": "newData.isString() && newData.val().length <= 40" },
-              "w": { ".validate": "newData.isString() && newData.val().length <= 40" },
-              "b": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
-              "t": { ".validate": "newData.isNumber()" },
-              "$other": { ".validate": false }
+              "$k": {
+                ".write": "auth != null && auth.uid === $uid && root.child('seats/rooms/' + $code + '/meta/phase').val() === 'open'",
+                ".validate": "newData.hasChildren(['who', 't']) && newData.child('who').val() === $k && root.child('seats/rooms/' + $code + '/claims/' + $k).val() === $uid",
+                "who": { ".validate": "newData.isString()" },
+                "f": { ".validate": "newData.isString() && newData.val().length <= 40" },
+                "w": { ".validate": "newData.isString() && newData.val().length <= 40" },
+                "b": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
+                "t": { ".validate": "newData.isNumber()" },
+                "$other": { ".validate": false }
+              }
             }
           }
         }
