@@ -34,6 +34,7 @@
   // 고른 자리에서 얼마나 가까운가 (통로 너비까지 친 실제 거리): 그 자리 1, 짝 자리·앞뒤 0.66, 통로 건너 0.35, 두 칸 0.19
   const WISH_SIGMA = 1.1;
   const WISH_W = [1, 0.85, 0.7];
+  const YIELD = 0.5, HISTORY_W = [1, 0.5];   // 돌아가며 양보: 지난번 인기 자리였으면 자리 점수를 최대 절반까지
   const wishAt = (seat, w) => Math.exp(-((seat.x - w.x) ** 2 + (seat.r - w.r) ** 2) / (2 * WISH_SIGMA * WISH_SIGMA));
 
   // ── 교실 ─────────────────────────────────────────────────────
@@ -210,6 +211,22 @@
       // 먼저 고른 자리일수록 무겁게 (★1 1, ★2 0.85, ★3 0.7)
       return Float64Array.from(SEATS, seat => Math.max(...w.map((x, q) => WISH_W[q] * wishAt(seat, x))));
     });
+    // 돌아가며 양보: 지난 배치(opts.history, 최근 것부터 {key: seatId})에서 이번에도 여럿이 원하는 자리(인기 자리)에
+    // 앉았던 학생은, 이번에 자리 바람이 덜 무겁게 들어간다 (지난번 1, 그 전 0.5 만큼). 친구 바람은 그대로.
+    const demand = new Float64Array(NSEAT);
+    for (const w of wish) if (w) for (let s = 0; s < NSEAT; s++) demand[s] += w[s];
+    const top = Math.max(0, ...demand);
+    const yieldF = new Float64Array(students.length).fill(1);
+    (opts.history || []).slice(0, HISTORY_W.length).forEach((h, q) => {
+      if (!h || top <= 1) return;
+      students.forEach((st, i) => {
+        const seat = SEAT[h[st.key]];
+        if (!seat) return;
+        // 한 명만 원하는 자리는 인기 자리가 아니다. 세제곱으로 날카롭게 — 인기 자리 바로 옆은 거의 양보하지 않는다
+        const hot = clamp((demand[seat.i] - 1) / (top - 1), 0, 1) ** 3;
+        yieldF[i] = Math.min(yieldF[i], 1 - YIELD * HISTORY_W[q] * hot);
+      });
+    });
     const lockSeat = new Int16Array(students.length).fill(-1);
     const taken = new Set();
     students.forEach((s, i) => {
@@ -233,7 +250,7 @@
     fr.forEach((list, i) => { for (const [j] of list) { likes[i * n + j] = 1; likes[j * n + i] = 1; } });
     // 넓은 교실에서 쓸 줄 수: 한 줄을 3/4쯤만 채운다고 보고 앞에서부터 (23명·한 줄 7자리 → 앞 5줄)
     const useRows = clamp(Math.ceil(n / (NSEAT / L.ROWS_MAX * 0.75)), 1, L.ROWS_MAX);
-    return {L, n, keys, idx, fr, wish, likes, useRows, lockSeat, apart, movable, fw: clamp(opts.fw ?? 0.6, 0, 1)};
+    return {L, n, keys, idx, fr, wish, yieldF, likes, useRows, lockSeat, apart, movable, fw: clamp(opts.fw ?? 0.6, 0, 1)};
   }
 
   // occ: 자리 → 학생 번호(-1 은 빈자리). pos: 학생 → 자리.
@@ -253,8 +270,9 @@
       F = sum / sw;
     }
     if (w) P = w[pos[i]];
+    const Pe = P === null ? null : P * prob.yieldF[i];   // 양보하는 학생은 자리 점수를 덜 받는다
     const wf = F === null ? 0 : prob.fw, ww = P === null ? 0 : 1 - prob.fw;
-    const s = wf + ww > 0 ? ((wf ? wf * F : 0) + (ww ? ww * P : 0)) / (wf + ww) : (F ?? P);
+    const s = wf + ww > 0 ? ((wf ? wf * F : 0) + (ww ? ww * Pe : 0)) / (wf + ww) : (F ?? Pe);
     return {F, P, s: F === null && P === null ? null : s};
   }
   const APART_PENALTY = 10, EMPTY_FRONT = 0.5, FRONT_PULL = 0.03, BEYOND = 0.8, SPREAD = 0.2, CROWD = 0.15;

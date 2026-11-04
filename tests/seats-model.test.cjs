@@ -242,3 +242,24 @@ test('roster: whole rows pasted from the class list spreadsheet',()=>{
   // 같은 줄을 두 번 붙여도 한 번만
   assert.equal(M.parseRoster('20215 가나다\n20215 가나다').length,1);
 });
+
+test('taking turns: whoever had a popular seat last time yields it this time',()=>{
+  const st=kids(4);
+  for(const s of st)s.wishes=['2-0'];   // 넷 다 같은 자리를 원한다
+  const seatOf2=(prob,occ,key)=>M.SEATS[M.posOf(prob,occ)[prob.idx.get(key)]].id;
+  const winners=new Set();
+  let history=[];
+  for(let round=0;round<4;round++){
+    const prob=M.prepare(st,{history});
+    const occ=M.optimize(prob,null,{rand:M.rng(round+1),restarts:3,iters:20000});
+    const who=st.find(s=>seatOf2(prob,occ,s.key)==='2-0');
+    assert.ok(who,'someone sits in the popular seat');
+    assert.ok(!winners.has(who.key)||winners.size===4,`round ${round}: ${who.key} again`);
+    winners.add(who.key);
+    history=[Object.fromEntries(st.map(s=>[s.key,seatOf2(prob,occ,s.key)])),...history];
+  }
+  // 한 명만 원하던 자리는 양보 대상이 아니다
+  const one=kids(2);one[0].wishes=['5-4'];
+  const p=M.prepare(one,{history:[{s01:'5-4'}]});
+  assert.equal(p.yieldF[0],1);
+});

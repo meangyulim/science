@@ -33,6 +33,7 @@
   const FB = 'https://www.gstatic.com/firebasejs/11.6.1/';
   const QR_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
   const ROOT = 'seats/rooms';
+  const BOARDS = 'seats/boards';   // 반마다 자리 기록 (비밀 주소로 어느 기기에서든 본다)
   const params = new URLSearchParams(location.search);
   const DB_URL = params.get('db') || FIREBASE.databaseURL;
   const LOCAL_ONLY = params.has('local');
@@ -228,6 +229,27 @@
     }
   }
 
+  // ── 학생에게 보여 주는 설명: 자리가 어떻게 정해지는지 ──────────────────
+  // 비율(친구:자리)은 선생님이 정한 값을 그대로 보여 준다.
+  function explainHTML(fw) {
+    const f = Math.round((fw ?? 0.6) * 100), w = 100 - f;
+    return `
+      <ol class="explain-list">
+        <li><b>내가 내는 것</b> — 같이 앉고 싶은 친구 <b>3명까지</b>, 앉고 싶은 자리 <b>3곳까지</b>. 먼저 누른 것이 1순위예요.
+          <br><small>누가 누구를 골랐는지는 친구들 폰에도, 선생님 화면에도 나오지 않아요.</small></li>
+        <li><b>친구 점수</b> — 고른 친구가 <b>짝</b>이면 100점, <b>앞뒤</b> 75점, <b>대각선</b> 50점, <b>통로 건너 옆</b> 40점, 멀면 0점.
+          1순위 친구가 가장 중요해요 (1순위 : 2순위 : 3순위 = 10 : 8 : 6).</li>
+        <li><b>자리 점수</b> — 고른 자리에 앉으면 100점, 바로 옆·뒤면 약 66점, 더 멀어질수록 줄어요.
+          1순위 자리가 가장 중요해요 (10 : 8.5 : 7).</li>
+        <li><b>내 만족도</b> = 친구 점수 <b>${f}%</b> + 자리 점수 <b>${w}%</b>
+          <small>(지금 선생님이 정한 비율)</small>. 친구만 골랐으면 친구 점수가, 자리만 골랐으면 자리 점수가 전부예요.</li>
+        <li><b>반 전체</b> — 컴퓨터가 자리를 수만 번 바꿔 보며 <b>모두의 만족도</b>가 가장 높은 배치를 찾아요.
+          이때 이미 만족한 친구를 더 챙기기보다 <b>아무것도 못 얻은 친구를 먼저</b> 챙겨요. 그래서 인기 자리는 다른 바람을 덜 이룬 친구에게 갈 수 있어요.</li>
+        <li><b>돌아가며 양보</b> — 지난번에 여럿이 원하던 자리에 앉았다면, 이번에는 자리 바람이 조금 덜 반영돼요. 친구 바람은 그대로예요.</li>
+      </ol>
+      <p class="explain-tip">💡 친구끼리 <b>서로</b> 고르면 짝이 될 가능성이 훨씬 커요. 인기 자리 하나만 고르기보다 2·3순위 자리도 적어 두세요.</p>`;
+  }
+
   // ════════════════════════════════════════════════════════════
   //  교실 그림 (선생님 화면, 학생의 자리 고르기, 결과에서 같이 쓴다)
   // ════════════════════════════════════════════════════════════
@@ -348,6 +370,7 @@
     meta: null, roster: {}, claims: {}, prefs: {}, result: null, joins: {},
     list: [], prob: null, rep: null,
     occ: {}, locks: {}, apart: [], fw: 0.6, live: true, flip: false,
+    bid: null, bidCls: null, hist: [],
     sel: null, moving: false, run: null, pendingQuick: false, liveTimer: 0, sig: '', board: null, loaded: false
   };
 
@@ -364,9 +387,48 @@
     for (const k of Object.keys(T.locks)) if (!T.roster[k] || !TL().SEAT[T.locks[k]]) delete T.locks[k];
     T.apart = T.apart.filter(([a, b]) => T.roster[a] && T.roster[b]);
     const st = T.list.map(s => { const p = tPref(s.key); return {key: s.key, friends: p ? p.friends : [], wishes: p ? p.wishes : []}; });
-    T.prob = M.prepare(st, {layout: TL(), fw: T.fw, locks: T.locks, apart: T.apart});
+    T.prob = M.prepare(st, {layout: TL(), fw: T.fw, locks: T.locks, apart: T.apart, history: histMaps()});
     return T.prob;
   }
+  // 이 반의 지난 배치(다른 방에서 공개한 것, 같은 교실 모양)를 지금 명단의 열쇠로 — 돌아가며 양보에 쓴다
+  function histMaps() {
+    const byName = new Map(T.list.map(s => [s.name + '|' + (s.no ?? ''), s.key]));
+    const byOnly = new Map();
+    for (const s of T.list) byOnly.set(s.name, byOnly.has(s.name) ? null : s.key);
+    return T.hist.filter(e => e.layout === TL().id).slice(0, 2).map(e => {
+      const m = {};
+      for (const [seat, p] of entries(e.seats)) {
+        const key = byName.get(p.n + '|' + (p.no ?? '')) || byOnly.get(p.n);
+        if (key) m[key] = seat;
+      }
+      return m;
+    });
+  }
+  async function loadHistory() {
+    if (!T.bid || T.demo) { T.hist = []; return; }
+    try {
+      const h = await T.store.get(`${BOARDS}/${T.bid}/hist`);
+      T.hist = Object.values(h || {}).filter(e => e && e.room !== T.code && e.seats).sort((a, b) => b.t - a.t);
+    } catch (e) { T.hist = []; }
+    drawBoardLink();
+    tRender();
+  }
+  function newBid() {
+    const a = new Uint8Array(18);
+    crypto.getRandomValues(a);
+    return Array.from(a, x => 'abcdefghijkmnpqrstuvwxyz23456789'[x % 32]).join('');
+  }
+  const boardURL = bid => location.origin + location.pathname + '?board=' + bid + (LOCAL_ONLY ? '&local' : '');
+  function drawBoardLink() {
+    const box = $('t-board-link');
+    if (!box) return;
+    box.hidden = !T.bid || T.demo;
+    if (!T.bid) return;
+    $('t-board-url').textContent = boardURL(T.bid);
+    $('t-board-url').href = boardURL(T.bid);
+    $('t-board-count').textContent = T.hist.length ? `지난 기록 ${T.hist.length}개 — 돌아가며 양보에 쓰여요` : '아직 지난 기록이 없어요';
+  }
+
   // 바람·조건이 바뀌었는지 알아보는 글자열 (바뀌었을 때만 실시간으로 다시 맞춘다)
   function signature() {
     const out = [];
@@ -563,7 +625,7 @@
       if (!T.store) return;
       T.store.set(T.base + '/tconf', {
         occ: T.occ, locks: T.locks, apart: T.apart.length ? T.apart : null,
-        fw: T.fw, live: T.live, flip: T.flip
+        fw: T.fw, live: T.live, flip: T.flip, bid: T.bid, bidCls: T.bidCls
       }).catch(e => console.warn('[seats] tconf', e));
     }, 800);
   }
@@ -649,7 +711,7 @@
   }
 
   // ── 방 열기 ─────────────────────────────────────────────────
-  async function openRoom(demo, existing) {
+  async function openRoom(demo, existing, classBid) {
     const note = $('server-note');
     note.classList.remove('error');
     note.textContent = demo ? '' : '서버에 연결하는 중…';
@@ -676,7 +738,7 @@
           const c = String(1000 + Math.floor(Math.random() * 9000));
           if (!(await T.store.get(`${ROOT}/${c}/meta`))) code = c;
         }
-        await T.store.set(`${ROOT}/${code}/meta`, {teacher: T.store.uid, created: T.store.now(), phase: 'open', hall: pref('hall', 'right'), layout: 'room', cls: '', demo: demo || null});
+        await T.store.set(`${ROOT}/${code}/meta`, {teacher: T.store.uid, created: T.store.now(), phase: 'open', hall: pref('hall', 'right'), layout: 'room', cls: '', fw: T.fw, demo: demo || null});
       }
     } catch (e) {
       console.warn('[seats] open', e);
@@ -690,6 +752,13 @@
     if (conf) {
       T.occ = conf.occ || {}; T.locks = conf.locks || {}; T.apart = (conf.apart || []).map(p => [p[0], p[1]]);
       T.fw = conf.fw ?? 0.6; T.live = conf.live !== false; T.flip = !!conf.flip;
+      T.bid = conf.bid || null; T.bidCls = conf.bidCls || null;
+    }
+    // ?class=… (자리 기록 화면의 '이 반으로 새 방 열기'): 그 반의 명단·교실 모양을 이어받는다
+    let classInfo = null;
+    if (classBid && !demo) {
+      classInfo = await T.store.get(`${BOARDS}/${classBid}/info`).catch(() => null);
+      if (classInfo) { T.bid = classBid; T.bidCls = classInfo.cls || null; }
     }
     history.replaceState(null, '', demo ? location.pathname + (LOCAL_ONLY ? '?local' : '') : '?host=' + code + (LOCAL_ONLY ? '&local' : ''));
     showScreen('teacher');
@@ -709,8 +778,9 @@
     T.loaded = true;
     T.sig = signature();
     tRender();
+    loadHistory();
     const roster = await T.store.get(T.base + '/roster');
-    if (!roster) openRosterDialog(true);
+    if (!roster) openRosterDialog(true, classInfo);
   }
 
   function tChanged() {
@@ -773,7 +843,7 @@
     fw.value = Math.round(T.fw * 100);
     fwText();
     fw.oninput = () => { T.fw = fw.value / 100; fwText(); if (!T.run) { buildProb(); T.rep = M.report(T.prob, M.toOcc(T.prob, T.occ)); drawBoard(); drawStats(T.rep); } };
-    fw.onchange = () => { saveConf(); scheduleQuick(0); };
+    fw.onchange = () => { saveConf(); scheduleQuick(0); T.store.update(T.base, {'meta/fw': T.fw}).catch(() => {}); };
     $('t-close').onclick = async () => {
       const ph = T.meta.phase;
       if (ph === 'open') {
@@ -794,11 +864,18 @@
       }
       if (!Object.keys(T.roster).length) return toast('t-toast', '명단을 먼저 넣어 주세요.');
       if (ph === 'open') return toast('t-toast', '먼저 받기를 마감해 주세요. 마감하면 자리를 처음부터 다시 찾은 뒤 이름이 보여요.', 5000);
-      await guard(T.store.update(T.base, {result: {occ: T.occ, t: T.store.now()}, 'meta/phase': 'published'}), '공개');
-      toast('t-toast', '학생 폰에 공개했어요.');
+      const now = T.store.now();
+      await guard(T.store.update(T.base, {result: {occ: T.occ, t: now}, 'meta/phase': 'published'}), '공개');
+      const saved = await saveHistory(now);
+      toast('t-toast', saved ? '학생 폰에 공개하고, 이 반 자리 기록에도 저장했어요.' : '학생 폰에 공개했어요.');
     };
     $('t-code').onclick = () => { if (!T.demo) showQR(); else toast('t-toast', '미리 해 보기는 이 브라우저 안에서만 돌아가요. 학생 폰으로 해 보려면 처음 화면에서 방을 여세요.', 5000); };
     $('t-qr-again').onclick = $('t-code').onclick;
+    $('t-explain').onclick = () => { $('explain-body').innerHTML = explainHTML(T.fw); $('explain-dialog').showModal(); };
+    $('t-board-copy').onclick = async () => {
+      try { await navigator.clipboard.writeText(boardURL(T.bid)); toast('t-toast', '주소를 복사했어요. 즐겨찾기나 메모에 붙여 두세요.'); }
+      catch (e) { toast('t-toast', '복사하지 못했어요. 주소를 길게 눌러 복사해 주세요.'); }
+    };
     $('t-roster-btn').onclick = () => openRosterDialog(false);
     $('t-print').onclick = () => {
       const d = new Date();
@@ -820,6 +897,18 @@
       afterConstraint();
     };
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.dataset.screen === 'teacher' && (T.sel || T.moving)) tFloor(); });
+  }
+
+  // 공개한 배치를 이 반 기록에 남긴다. 같은 방에서 같은 날 다시 공개하면 덮어쓴다.
+  async function saveHistory(t) {
+    if (!T.bid || T.demo) return false;
+    const d = new Date(t), day = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+    const seats = {};
+    for (const [seat, key] of entries(T.occ)) { const r = T.roster[key]; if (r) seats[seat] = r.no != null ? {n: r.name, no: r.no} : {n: r.name}; }
+    try {
+      await T.store.set(`${BOARDS}/${T.bid}/hist/${day}-${T.code}`, {t, room: T.code, cls: T.meta.cls || '', layout: TL().id, hall: T.meta.hall || 'right', seats});
+      return true;
+    } catch (e) { console.warn('[seats] history', e); return false; }
   }
 
   function showQR() {
@@ -863,13 +952,19 @@
   }
   const listText = list => list.map(p => (p.no != null ? p.no + ' ' : '') + p.name).join('\n');
 
-  function openRosterDialog(first) {
+  function openRosterDialog(first, info) {
     const d = $('roster-dialog');
     const saved = savedRosters();
     let hall = T.meta && T.meta.hall || pref('hall', 'right');
     let lay = T.meta && T.meta.layout || 'room';
     $('r-cls').value = T.meta && T.meta.cls || '';
     $('r-text').value = rosterText(T.roster) || (T.demo ? DEMO_NAMES.map((n, i) => `${i + 1} ${n}`).join('\n') : '');
+    if (info && !Object.keys(T.roster).length) {
+      $('r-cls').value = info.cls || '';
+      $('r-text').value = info.text || '';
+      if (info.layout) lay = info.layout;
+      if (info.hall) hall = info.hall;
+    }
     if (T.demo && !$('r-cls').value) $('r-cls').value = '미리 해 보기반';
     const dl = $('r-saved');
     dl.textContent = '';
@@ -934,6 +1029,7 @@
     d.showModal();
   }
   async function saveRoster(cls, text, hall, lay) {
+    const savedAll = savedRosters();
     const list = M.parseRoster(text);
     if (!list.length || list.length > M.layout(lay).NSEAT) return false;
     const roster = M.assignKeys(list, T.roster);
@@ -946,7 +1042,15 @@
     }
     try { await guard(T.store.update(T.base, upd), '명단 저장'); } catch (e) { return false; }
     setPref('hall', hall);
-    if (cls && !T.demo) { const saved = savedRosters(); saved[cls] = {text: text.trim(), layout: lay, hall}; setPref('rosters', saved); }
+    if (!T.demo && cls) {
+      // 반마다 자리 기록 하나: 저장해 둔 반이면 그 기록을, 이 방에서 이미 쓰던 같은 반이면 그대로, 아니면 새로 만든다
+      const bid = (savedAll[cls] && savedAll[cls].bid) || (T.bid && T.bidCls === cls ? T.bid : null) || newBid();
+      T.bid = bid; T.bidCls = cls;
+      savedAll[cls] = {text: text.trim(), layout: lay, hall, bid};
+      setPref('rosters', savedAll);
+      T.store.set(`${BOARDS}/${bid}/info`, {cls, layout: lay, hall, text: text.trim(), t: T.store.now()}).catch(e => console.warn('[seats] board info', e));
+      loadHistory();
+    }
     saveConf();
     return true;
   }
@@ -1121,6 +1225,9 @@
     const marks = {};
     S.w.forEach((id, i) => { marks[id] = {cls: 'wish', text: '★' + (i + 1)}; });
     S.wishBoard.marks(marks);
+    const ex = $('st-explain');
+    $('st-explain-body').innerHTML = explainHTML(S.meta.fw);
+    if (!ex.dataset.init) { ex.dataset.init = '1'; ex.open = !S.mine; }
     $('send-btn').textContent = S.mine ? '고친 내용 보내기' : '보내기';
     $('send-btn').disabled = S.sending;
     $('send-note').textContent = S.mine && S.dirty ? '고친 내용은 보내기를 눌러야 반영돼요.' : S.mine ? '보낸 내용 그대로예요.' : '';
@@ -1208,6 +1315,44 @@
   // ════════════════════════════════════════════════════════════
   //  처음 화면
   // ════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════
+  //  반별 자리 기록 (?board=비밀 주소) — 어느 기기에서든 지난 자리표를 본다
+  // ════════════════════════════════════════════════════════════
+  async function openHistory(bid) {
+    showScreen('history');
+    const note = $('h-note');
+    let store;
+    try { store = await openStore(false); } catch (e) { note.textContent = '서버에 연결하지 못했어요: ' + (e.message || e); return; }
+    let info, hist;
+    try {
+      [info, hist] = await Promise.all([store.get(`${BOARDS}/${bid}/info`), store.get(`${BOARDS}/${bid}/hist`)]);
+    } catch (e) { note.textContent = isDenied(e) ? '이 기록을 볼 수 없어요. Firebase 규칙을 다시 게시했는지 확인해 주세요.' : '기록을 불러오지 못했어요.'; return; }
+    if (!info) { note.textContent = '이 주소의 기록을 찾을 수 없어요. 주소를 다시 확인해 주세요.'; return; }
+    $('h-title').textContent = `${info.cls || '이 반'} 자리 기록`;
+    $('h-new').href = '?class=' + bid + (LOCAL_ONLY ? '&local' : '');
+    const list = Object.values(hist || {}).filter(e => e && e.seats).sort((a, b) => b.t - a.t);
+    const box = $('h-list');
+    box.textContent = '';
+    if (!list.length) { note.textContent = '아직 공개한 자리가 없어요. 자리 배치 방에서 \'학생 폰에 공개\'를 누르면 여기에 날짜별로 쌓여요.'; return; }
+    note.textContent = '날짜를 누르면 그때 자리가 보여요.';
+    const board = new Board($('h-board'), {});
+    const fmt = t => { const d = new Date(t); return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}. ${'일월화수목금토'[d.getDay()]}요일`; };
+    const show = e => {
+      board.layout(M.layout(e.layout));
+      board.view(e.hall, false);
+      const seen = {};
+      for (const p of Object.values(e.seats)) seen[p.n] = (seen[p.n] || 0) + 1;
+      board.setChips(entries(e.seats).map(([seat, p]) => ({key: seat, seat, label: seen[p.n] > 1 ? `${p.n}(${p.no ?? ''})` : p.n})));
+      board.marks({});
+      $('h-when').textContent = `${fmt(e.t)} · ${M.layout(e.layout).name} · ${Object.keys(e.seats).length}명`;
+      $('print-head').textContent = `${info.cls || ''} 자리 배치 · ${fmt(e.t)}`;
+      for (const b of box.querySelectorAll('button')) b.setAttribute('aria-pressed', String(+b.dataset.t === e.t));
+      $('h-stage').style.setProperty('--ar', board.aspect);
+    };
+    for (const e of list) box.append(h('button', {type: 'button', 'data-t': e.t, onclick: () => show(e)}, fmt(e.t)));
+    show(list[0]);
+  }
+
   function initEntry() {
     // 첫 화면 그림: 35자리 교실
     const g = $('entry-art-desks');
@@ -1226,6 +1371,10 @@
     $('open-room').onclick = () => openRoom(false);
     $('open-demo').onclick = () => openRoom(true);
     if (LOCAL_ONLY) $('server-note').textContent = '연습 모드: 서버 없이 이 브라우저의 탭끼리만 연결돼요.';
+    const board = (params.get('board') || '').replace(/[^a-z0-9]/g, '');
+    if (board) return openHistory(board);
+    const cls = (params.get('class') || '').replace(/[^a-z0-9]/g, '');
+    if (cls) return openRoom(false, null, cls);
     const host = (params.get('host') || '').replace(/\D/g, '').slice(0, 4);
     if (host) openRoom(false, host);
     else if (room) joinRoom(room);

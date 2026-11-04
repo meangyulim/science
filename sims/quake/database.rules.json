@@ -1,6 +1,19 @@
 {
   "rules": {
     "seats": {
+      "boards": {
+        "$bid": {
+          ".read": "auth != null && $bid.length >= 16",
+          ".write": "auth != null && $bid.length >= 16",
+          "info": {
+            ".validate": "newData.hasChildren(['cls', 't']) && newData.child('cls').isString() && newData.child('cls').val().length <= 20 && (!newData.child('text').exists() || (newData.child('text').isString() && newData.child('text').val().length <= 4000))"
+          },
+          "hist": {
+            "$h": { ".validate": "newData.hasChildren(['t', 'seats', 'layout']) && newData.child('t').isNumber()" }
+          },
+          "$other": { ".validate": false }
+        }
+      },
       "rooms": {
         "$code": {
           ".read": "auth != null && data.child('meta/teacher').val() === auth.uid",

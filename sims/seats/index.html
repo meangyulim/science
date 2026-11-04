@@ -84,6 +84,10 @@
 
     <!-- 2. 바람 고르기 -->
     <div class="st-step" id="st-prefs" hidden>
+      <details class="explain" id="st-explain">
+        <summary>🧭 자리는 이렇게 정해져요</summary>
+        <div id="st-explain-body"></div>
+      </details>
       <div class="st-sec">
         <h2>같이 앉고 싶은 친구 <span class="count" id="f-count">0 / 3</span></h2>
         <p class="hint">최대 3명. 먼저 누른 친구가 1순위예요. 다시 누르면 빠져요.</p>
@@ -201,6 +205,13 @@
           </div>
           <label class="check"><input type="checkbox" id="t-flip"> 교탁에서 본 모습으로 (칠판이 아래)</label>
           <button class="ghost" id="t-qr-again" type="button">QR 코드 다시 보기</button>
+          <button class="ghost" id="t-explain" type="button">🧭 학생들에게 '자리는 이렇게 정해져요' 띄우기</button>
+          <div class="board-link" id="t-board-link" hidden>
+            <h3>이 반 자리 기록</h3>
+            <p class="hint">공개할 때마다 날짜별로 저장돼요. 이 주소로 어느 기기에서든 지난 자리표를 보고, 그 반으로 새 방을 열 수 있어요. 학생들에게는 알려 주지 마세요.</p>
+            <a id="t-board-url" target="_blank" rel="noopener"></a>
+            <div class="board-link-row"><button type="button" id="t-board-copy">주소 복사</button><small id="t-board-count"></small></div>
+          </div>
         </div>
       </details>
 
@@ -212,6 +223,36 @@
   </main>
   <div class="toast" id="t-toast" role="status" hidden></div>
 </section>
+
+<!-- 반별 자리 기록 (?board=…) -->
+<section class="screen history" id="screen-history">
+  <header class="t-bar">
+    <div class="t-brand"><strong id="h-title">자리 기록</strong></div>
+    <div class="t-bar-actions">
+      <a class="btn-link" id="h-new" href="./">이 반으로 새 자리 배치 방 열기</a>
+      <button type="button" onclick="window.print()">인쇄</button>
+    </div>
+  </header>
+  <main class="h-main">
+    <aside class="h-side">
+      <p class="hint" id="h-note">불러오는 중…</p>
+      <div class="h-list" id="h-list"></div>
+    </aside>
+    <div class="t-stage" id="h-stage">
+      <p class="h-when" id="h-when"></p>
+      <div class="room-wrap"><div id="h-board"></div></div>
+    </div>
+  </main>
+</section>
+
+<!-- 학생에게 설명 -->
+<dialog class="explain-dialog" id="explain-dialog">
+  <div class="explain-big">
+    <h2>🧭 자리는 이렇게 정해져요</h2>
+    <div id="explain-body"></div>
+    <form method="dialog"><button class="primary">닫기</button></form>
+  </div>
+</dialog>
 
 <!-- QR -->
 <dialog class="qr-dialog" id="qr-dialog">
