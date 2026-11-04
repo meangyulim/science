@@ -49,7 +49,12 @@
     const SEATS = [];
     const add = (id, g, c, k, r, extra) => SEATS.push({id, g, c, k, r, x: GROUP_X[g] + c + 0.5, extra: extra || null, i: SEATS.length});
     let k = 0;
-    def.groups.forEach((cols, g) => cols.forEach((n, c) => { for (let r = 0; r < n; r++) add(k + '-' + r, g, c, k, r); k++; }));
+    // 줄마다 자리 수(숫자) 또는 있는 자리의 번째 목록(배열 — 중간에 책상이 없는 줄)
+    def.groups.forEach((cols, g) => cols.forEach((spec, c) => {
+      const rows = Array.isArray(spec) ? spec.slice().sort((a, b) => a - b) : Array.from({length: spec}, (_, r) => r);
+      for (const r of rows) add(k + '-' + r, g, c, k, r);
+      k++;
+    }));
     const COLS = k;
     for (const e of def.extra || []) add(e.id, e.g, e.c, e.k, e.r, e.name);
     // 따로 붙은 자리가 바깥(복도 벽 쪽)으로 튀어나오면 바닥을 그만큼 넓힌다
@@ -113,6 +118,28 @@
     })
   };
   const layout = id => (id && typeof id === 'object' ? id : LAYOUTS[id]) || LAYOUTS.room;
+  // 선생님이 만든 교실 모양: {name, groups: [[줄마다 자리 수 또는 번째 목록]], spread}
+  // 같은 모양은 한 번만 만들어 둔다 (자리 계산에 쓰는 표가 크다)
+  const customCache = new Map();
+  function validDef(def) {
+    if (!def || !Array.isArray(def.groups) || !def.groups.length || def.groups.length > 6) return false;
+    let n = 0;
+    for (const g of def.groups) {
+      if (!Array.isArray(g) || !g.length || g.length > 4) return false;
+      for (const col of g) {
+        const rows = Array.isArray(col) ? col : Number.isInteger(col) ? Array.from({length: col}, (_, r) => r) : null;
+        if (!rows || rows.some(r => !Number.isInteger(r) || r < 0 || r > 11)) return false;
+        n += rows.length;
+      }
+    }
+    return n >= 1 && n <= 60;
+  }
+  function layoutOf(id, def) {
+    if (!validDef(def)) return layout(id);
+    const key = JSON.stringify([id, def.groups, !!def.spread]);
+    if (!customCache.has(key)) customCache.set(key, makeLayout({id: id || 'custom', name: def.name || '직접 만든 교실', desc: def.desc || '', groups: def.groups, spread: !!def.spread}));
+    return customCache.get(key);
+  }
   const ROOM = LAYOUTS.room;
 
   function relation(v) {
@@ -484,7 +511,7 @@
 
   // 보통 교실(room)의 값은 그대로 꺼내 둔다 (예전 코드·테스트가 M.SEATS 처럼 쓴다)
   const api = {
-    LAYOUTS, layout, makeLayout,
+    LAYOUTS, layout, makeLayout, layoutOf, validDef,
     COLS: ROOM.COLS, ROWS_MAX: ROOM.ROWS_MAX, NSEAT: ROOM.NSEAT, SEATS: ROOM.SEATS, SEAT: ROOM.SEAT, FILL_ORDER: ROOM.FILL_ORDER,
     AISLE: ROOM.AISLE, WIDTH: ROOM.WIDTH, GROUP_X: ROOM.GROUP_X, near: ROOM.near, seatName: ROOM.seatName,
     MAX_FRIENDS, MAX_WISHES, FRIEND_W, wishAt, relation, parseRoster, rosterFromRows, assignKeys, rosterList, splitList,
