@@ -5,6 +5,9 @@
         "$tid": {
           ".read": "auth != null && $tid.length === 64",
           ".write": "auth != null && $tid.length === 64",
+          "layouts": {
+            "$l": { ".validate": "newData.hasChildren(['name', 'groups']) && newData.child('name').isString() && newData.child('name').val().length <= 20" }
+          },
           "classes": {
             "$c": {
               "info": {

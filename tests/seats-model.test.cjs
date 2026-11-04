@@ -283,3 +283,30 @@ test('each student can choose how much friends vs seat matter to them',()=>{
   assert.equal(M.prepare(st,{fw:0.3}).fwi[0],0.3);
   assert.equal(M.prepare(st,{fw:0.3}).fwi[1],0.8);
 });
+
+test('teacher-made classroom: groups, columns, and missing desks',()=>{
+  // 분단 넷: 2줄×6, 3줄×5(가운데 줄 맨 앞 책상 없음), 2줄×6, 1줄×4
+  const def={name:'7반 교실',groups:[[6,6],[5,[1,2,3,4],5],[6,6],[4]]};
+  assert.ok(M.validDef(def));
+  const L=M.layoutOf('c-7',def);
+  assert.equal(L.NSEAT,12+14+12+4);
+  assert.equal(L.SEAT['3-0'],undefined);          // 빠진 책상
+  assert.ok(L.SEAT['3-1']);
+  assert.equal(L.COLS,8);
+  assert.equal(L.ROWS_MAX,6);
+  assert.equal(M.layoutOf('c-7',def),L);           // 같은 모양은 다시 만들지 않는다
+  assert.equal(L.near(L.SEAT['2-1'],L.SEAT['3-1']),1);
+  assert.equal(L.near(L.SEAT['1-1'],L.SEAT['2-1']),0.4);   // 통로 건너
+  // 그 교실에서 자리 찾기
+  const st=kids(30);
+  for(let i=0;i<30;i+=2){st[i].friends=[st[i+1].key];st[i+1].friends=[st[i].key];}
+  const prob=M.prepare(st,{layout:L});
+  const occ=M.optimize(prob,null,{rand:M.rng(3),restarts:2,iters:15000});
+  assert.equal([...occ].filter(x=>x>=0).length,30);
+  assert.ok(M.report(prob,occ).withF>=28);
+  // 이상한 모양은 거절하고 보통 교실로
+  assert.equal(M.validDef({groups:[]}),false);
+  assert.equal(M.validDef({groups:[[1,2,3,4,5]]}),false);
+  assert.equal(M.validDef({groups:[[[0,99]]]}),false);
+  assert.equal(M.layoutOf('x',{groups:[]}),M.LAYOUTS.room);
+});

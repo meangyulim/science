@@ -297,6 +297,22 @@ dialog::backdrop{background:#0f2235cc}
 .h-classes:not(:empty){padding-bottom:10px;border-bottom:1px solid var(--line)}
 .reg-all{background:var(--cyan)!important;border-color:var(--cyan)!important;color:#fff!important}
 
+/* ── 교실 모양 만들기 ── */
+.layout-dialog{width:min(96vw,760px)}
+.lay-groups{display:flex;flex-direction:column;gap:6px}
+.lay-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:14px;background:var(--bg);border-radius:10px;padding:6px 10px}
+.lay-group select{min-height:36px;border:1px solid var(--line);border-radius:8px;padding:2px 6px;background:#fff}
+.lay-group .x{margin-left:auto;min-height:30px;width:30px;padding:0;border-radius:50%}
+.lay-stage{padding:0;flex-shrink:0;justify-content:flex-start}
+.roster-body>*{flex-shrink:0}
+.lay-stage .room-wrap{width:min(100%,calc(52dvh * var(--ar,1.3)))}
+.seat.off{background:transparent;border:1.5px dashed #c9bfa8;opacity:.6}
+.seat.off .seat-mark{color:#b9ad93}
+.layout-pick button{position:relative}
+.layout-pick .lay-edit{position:absolute;top:6px;right:8px;font-size:14px;cursor:pointer}
+.layout-pick .lay-new{border-style:dashed;background:transparent}
+.ghost.danger{color:var(--bad)}
+
 .print-head{display:none}
 
 @media (max-width:900px){

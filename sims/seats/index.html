@@ -271,6 +271,31 @@
   <div class="toast" id="h-toast" role="status" hidden></div>
 </section>
 
+<!-- 교실 모양 만들기 -->
+<dialog class="roster-dialog layout-dialog" id="layout-dialog">
+  <form class="roster-body" id="lay-form">
+    <h2>교실 모양 만들기</h2>
+    <label class="field">
+      <span>이름</span>
+      <input id="lay-name" maxlength="20" placeholder="예: 7반 교실">
+    </label>
+    <div class="field">
+      <span>분단 — 복도 쪽부터. 분단 사이에는 통로가 있어요.</span>
+      <div class="lay-groups" id="lay-groups"></div>
+      <button type="button" class="ghost" id="lay-add-group">＋ 분단 더하기</button>
+    </div>
+    <p class="hint">아래 그림에서 책상을 누르면 빠지고(✕ 없는 자리), 다시 누르면 들어가요.</p>
+    <div class="t-stage lay-stage" id="lay-stage"><div class="room-wrap"><div id="lay-board"></div></div></div>
+    <p class="hint" id="lay-count"></p>
+    <label class="check"><input type="checkbox" id="lay-spread"> 자리가 넉넉해요 — 띄엄띄엄 앉히되 너무 뒤로는 안 가게</label>
+    <div class="dialog-actions">
+      <button class="ghost danger" id="lay-delete" hidden>이 모양 지우기</button>
+      <button class="ghost" id="lay-cancel">닫기</button>
+      <button class="primary" id="lay-ok">저장</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- 학생에게 설명 -->
 <dialog class="explain-dialog" id="explain-dialog">
   <div class="explain-big">

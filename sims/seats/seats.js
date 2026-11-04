@@ -440,7 +440,7 @@
     const uid = T.claims[key], p = uid && T.prefs[uid] && T.prefs[uid][key];
     return p && p.who === key ? {friends: M.splitList(p.f), wishes: M.splitList(p.w), fw: Number.isFinite(p.b) ? p.b / 100 : undefined} : null;
   }
-  const TL = () => M.layout(T.meta && T.meta.layout);   // 이 방의 교실 모양
+  const TL = () => M.layoutOf(T.meta && T.meta.layout, T.meta && T.meta.layoutDef);   // 이 방의 교실 모양 (직접 만든 모양이면 meta.layoutDef)
   const tStatus = key => !T.claims[key] ? 'none' : tPref(key) ? 'sent' : 'joined';
   const label = key => { const s = T.list.find(x => x.key === key); return s ? s.label : '?'; };
 
@@ -868,9 +868,10 @@
     if (T.demo || !cls) return;
     const text = rosterText(T.roster), lay = TL().id, hall = T.meta.hall || 'right';
     const saved = savedRosters();
-    saved[cls] = Object.assign({}, saved[cls], {text, layout: lay, hall});
+    const layoutDef = T.meta.layoutDef || null;
+    saved[cls] = Object.assign({}, saved[cls], {text, layout: lay, hall, layoutDef});
     setPref('rosters', saved);
-    if (TID) T.store.set(`${classPath(classId(cls))}/info`, {cls, layout: lay, hall, text, t: T.store.now()}).catch(e => console.warn('[seats] class info', e));
+    if (TID) T.store.set(`${classPath(classId(cls))}/info`, {cls, layout: lay, hall, text, layoutDef, t: T.store.now()}).catch(e => console.warn('[seats] class info', e));
   }
   let joining = false;
   async function processJoins() {
@@ -980,7 +981,7 @@
     const seats = {};
     for (const [seat, key] of entries(T.occ)) { const r = T.roster[key]; if (r) seats[seat] = r.no != null ? {n: r.name, no: r.no} : {n: r.name}; }
     try {
-      await T.store.set(`${classPath(T.bid)}/hist/${day}-${T.code}`, {t, room: T.code, cls: T.meta.cls || '', layout: TL().id, hall: T.meta.hall || 'right', seats});
+      await T.store.set(`${classPath(T.bid)}/hist/${day}-${T.code}`, {t, room: T.code, cls: T.meta.cls || '', layout: TL().id, layoutDef: T.meta.layoutDef || null, hall: T.meta.hall || 'right', seats});
       return true;
     } catch (e) { console.warn('[seats] history', e); return false; }
   }
@@ -1026,6 +1027,102 @@
   }
   const listText = list => list.map(p => (p.no != null ? p.no + ' ' : '') + p.name).join('\n');
 
+  // ── 직접 만든 교실 모양 ───────────────────────────────────────
+  // 이 기기(localStorage)와 선생님 공간(seats/teachers/<코드>/layouts)에 {id: {name, groups, spread}}
+  const customLayouts = () => pref('layouts', {});
+  const layoutFor = id => M.layoutOf(id, customLayouts()[id]);
+  function putCustomLayout(id, def) {
+    const all = customLayouts();
+    if (def) all[id] = def; else delete all[id];
+    setPref('layouts', all);
+    if (TID && T.store && !T.demo) T.store.set(`${SPACE}/${TID}/layouts/${id}`, def || null).catch(e => console.warn('[seats] layout', e));
+  }
+  async function loadSpaceLayouts() {
+    if (!TID || !T.store) return false;
+    const sp = await T.store.get(`${SPACE}/${TID}/layouts`).catch(() => null);
+    if (!sp) return false;
+    const all = customLayouts();
+    let changed = false;
+    for (const [id, def] of entries(sp)) if (M.validDef(def) && JSON.stringify(all[id]) !== JSON.stringify(def)) { all[id] = def; changed = true; }
+    if (changed) setPref('layouts', all);
+    return changed;
+  }
+  const describeDef = def => def.groups.map((g, i) => {
+    const rows = Math.max(...g.map(c => Array.isArray(c) ? Math.max(-1, ...c) + 1 : c));
+    return `${g.length}줄×${rows}`;
+  }).join(' · ') + (def.spread ? ' · 띄엄띄엄' : '');
+
+  // 교실 모양 만들기: 분단마다 줄 수·줄마다 자리 수, 그림에서 책상을 눌러 빼고 넣기
+  function openLayoutEditor(id, hall, done) {
+    const d = $('layout-dialog');
+    const old = id ? customLayouts()[id] : null;
+    let groups, off = new Set();
+    if (old) {
+      groups = old.groups.map(g => ({cols: g.length, rows: Math.max(...g.map(c => Array.isArray(c) ? Math.max(-1, ...c) + 1 : c))}));
+      old.groups.forEach((g, gi) => g.forEach((c, ci) => { const has = Array.isArray(c) ? new Set(c) : null; for (let r = 0; r < groups[gi].rows; r++) if (has ? !has.has(r) : r >= c) off.add(`${gi}:${ci}:${r}`); }));
+    } else groups = [{cols: 2, rows: 5}, {cols: 2, rows: 5}, {cols: 2, rows: 5}];
+    $('lay-name').value = old ? old.name : '';
+    $('lay-spread').checked = !!(old && old.spread);
+    $('lay-delete').hidden = !old;
+    const board = new Board($('lay-board'), {onSeat: sid => {
+      const st = board.L.SEAT[sid], key = `${st.g}:${st.c}:${st.r}`;
+      if (off.has(key)) off.delete(key); else off.add(key);
+      draw();
+    }});
+    const finalDef = () => ({
+      name: $('lay-name').value.trim().slice(0, 20) || '직접 만든 교실',
+      spread: $('lay-spread').checked,
+      groups: groups.map((g, gi) => Array.from({length: g.cols}, (_, c) => {
+        const rows = [];
+        for (let r = 0; r < g.rows; r++) if (!off.has(`${gi}:${c}:${r}`)) rows.push(r);
+        return rows.length === g.rows ? g.rows : rows;
+      }))
+    });
+    const sel = (val, max, on) => {
+      const s = h('select', {onchange: () => on(+s.value)});
+      for (let i = 1; i <= max; i++) s.append(h('option', {value: i, text: i}));
+      s.value = val;
+      return s;
+    };
+    const draw = () => {
+      const box = $('lay-groups');
+      box.textContent = '';
+      groups.forEach((g, gi) => box.append(h('div', {class: 'lay-group'},
+        h('b', {text: `${gi + 1}분단`}), ' 줄 ', sel(g.cols, 4, v => { g.cols = v; draw(); }), ' · 줄마다 ', sel(g.rows, 10, v => { g.rows = v; draw(); }), '자리',
+        groups.length > 1 ? h('button', {type: 'button', class: 'x', 'aria-label': `${gi + 1}분단 빼기`, text: '×', onclick: () => { groups.splice(gi, 1); off = new Set([...off].filter(k => +k.split(':')[0] !== gi).map(k => { const [a, b, c] = k.split(':').map(Number); return `${a > gi ? a - 1 : a}:${b}:${c}`; })); draw(); }}) : null)));
+      $('lay-add-group').disabled = groups.length >= 6;
+      const full = M.makeLayout({id: 'edit', groups: groups.map(g => Array(g.cols).fill(g.rows))});
+      board.layout(full);
+      board.view(hall, false);
+      const marks = {};
+      for (const st of full.SEATS) if (off.has(`${st.g}:${st.c}:${st.r}`)) marks[st.id] = {cls: 'off', text: '✕'};
+      board.marks(marks);
+      $('lay-stage').style.setProperty('--ar', board.aspect);
+      const n = full.NSEAT - Object.keys(marks).length;
+      $('lay-count').textContent = `책상 ${n}개` + (n > 60 ? ' — 60개까지 만들 수 있어요' : '');
+      $('lay-ok').disabled = n < 1 || n > 60;
+    };
+    $('lay-add-group').onclick = () => { groups.push({cols: 2, rows: groups[groups.length - 1].rows}); draw(); };
+    $('lay-form').onsubmit = e => e.preventDefault();
+    $('lay-cancel').onclick = e => { e.preventDefault(); d.close(); };
+    $('lay-delete').onclick = e => {
+      e.preventDefault();
+      if (!confirm(`'${old.name}' 교실 모양을 지울까요? 이 모양을 쓰던 반은 보통 교실로 바뀌어요.`)) return;
+      putCustomLayout(id, null); d.close(); done(null);
+    };
+    $('lay-ok').onclick = e => {
+      e.preventDefault();
+      const def = finalDef();
+      if (!M.validDef(def)) return alert('책상이 1개 이상, 60개 이하여야 해요.');
+      const nid = id || 'c' + Math.random().toString(36).slice(2, 8);
+      putCustomLayout(nid, def);
+      d.close();
+      done(nid);
+    };
+    draw();
+    d.showModal();
+  }
+
   function openRosterDialog(first, info) {
     const d = $('roster-dialog');
     const saved = savedRosters();
@@ -1037,6 +1134,7 @@
       $('r-cls').value = info.cls || '';
       $('r-text').value = info.text || '';
       if (info.layout) lay = info.layout;
+      if (info.layoutDef && M.validDef(info.layoutDef)) putCustomLayout(info.layout, info.layoutDef);
       if (info.hall) hall = info.hall;
     }
     if (T.demo && !$('r-cls').value) $('r-cls').value = '미리 해 보기반';
@@ -1063,11 +1161,11 @@
     drawSaved();
     if (!T.demo) spaceClasses(T.store).then(sp => {
       let changed = false;
-      for (const [k, v] of entries(sp)) if (!saved[k] || (v.t || 0) > (saved[k].t || 0)) { saved[k] = {text: v.text || '', layout: v.layout, hall: v.hall, t: v.t}; changed = true; }
+      for (const [k, v] of entries(sp)) if (!saved[k] || (v.t || 0) > (saved[k].t || 0)) { saved[k] = {text: v.text || '', layout: v.layout, hall: v.hall, layoutDef: v.layoutDef || null, t: v.t}; changed = true; }
       if (changed) { setPref('rosters', saved); drawSaved(); if (first && !$('r-text').value.trim()) count(); }
     });
     const count = () => {
-      const n = M.parseRoster($('r-text').value).length, N = M.layout(lay).NSEAT;
+      const n = M.parseRoster($('r-text').value).length, N = layoutFor(lay).NSEAT;
       const over = n > N;
       $('r-count').textContent = n ? `${n}명 · 자리 ${N}개${over ? ` — ${n - N}명이 넘어요` : n < N ? ` (빈자리 ${N - n}개는 뒤쪽에 남겨요)` : ''}` : (Object.keys(saved).length ? '반 이름 칸을 누르면 저장해 둔 명단을 고를 수 있어요.' : '');
       $('r-count').classList.toggle('error', over);
@@ -1078,14 +1176,30 @@
       for (const b of d.querySelectorAll('[data-layout]')) b.setAttribute('aria-checked', String(b.dataset.layout === lay));
       count();
     };
+    // 교실 모양: 기본 두 가지 + 직접 만든 모양 + 새로 만들기
     const box = $('r-layouts');
-    box.textContent = '';
-    for (const L of Object.values(M.LAYOUTS)) {
-      box.append(h('button', {type: 'button', role: 'radio', 'data-layout': L.id, onclick: () => { lay = L.id; segs(); }},
-        h('b', {text: `${L.name} · ${L.NSEAT}자리`}), h('small', {text: L.desc})));
-    }
+    const drawLayouts = () => {
+      box.textContent = '';
+      const customs = customLayouts();
+      for (const L of [...Object.values(M.LAYOUTS), ...Object.keys(customs).map(id => layoutFor(id))]) {
+        const custom = !M.LAYOUTS[L.id];
+        const b = h('button', {type: 'button', role: 'radio', 'data-layout': L.id, onclick: () => { lay = L.id; segs(); }},
+          h('b', {text: `${L.name} · ${L.NSEAT}자리`}), h('small', {text: custom ? describeDef(customs[L.id]) : L.desc}));
+        if (custom) b.append(h('span', {class: 'lay-edit', role: 'button', tabindex: 0, title: '고치기', text: '✏️', onclick: e => { e.stopPropagation(); openLayoutEditor(L.id, hall, id => { if (id) lay = id; else if (lay === L.id) lay = 'room'; drawLayouts(); segs(); }); }}));
+        box.append(b);
+      }
+      box.append(h('button', {type: 'button', class: 'lay-new', onclick: () => openLayoutEditor(null, hall, id => { if (id) lay = id; drawLayouts(); segs(); })},
+        h('b', {text: '＋ 새 교실 모양 만들기'}), h('small', {text: '분단·줄·자리 수를 정하고, 없는 책상은 빼요'})));
+    };
+    drawLayouts();
+    if (!T.demo) loadSpaceLayouts().then(changed => { if (changed) { drawLayouts(); segs(); } });
     for (const b of d.querySelectorAll('[data-hall]')) b.onclick = () => { hall = b.dataset.hall; segs(); };
-    const useSaved = name => { const v = saved[name]; if (!v) return; $('r-text').value = v.text; if (v.layout) lay = v.layout; if (v.hall) hall = v.hall; segs(); };
+    const useSaved = name => {
+      const v = saved[name]; if (!v) return;
+      $('r-text').value = v.text;
+      if (v.layoutDef && M.validDef(v.layoutDef) && !customLayouts()[v.layout]) { putCustomLayout(v.layout, v.layoutDef); drawLayouts(); }
+      if (v.layout) lay = v.layout; if (v.hall) hall = v.hall; segs();
+    };
     $('r-cls').oninput = () => { if (saved[$('r-cls').value] && !$('r-text').value.trim()) useSaved($('r-cls').value); };
     $('r-cls').onchange = () => { const v = saved[$('r-cls').value]; if (v && $('r-text').value.trim() !== v.text.trim() && (!$('r-text').value.trim() || confirm(`저장해 둔 '${$('r-cls').value}' 명단으로 바꿀까요?`))) useSaved($('r-cls').value); };
     $('r-text').oninput = count;
@@ -1142,9 +1256,10 @@
   async function saveRoster(cls, text, hall, lay) {
     const savedAll = savedRosters();
     const list = M.parseRoster(text);
-    if (!list.length || list.length > M.layout(lay).NSEAT) return false;
+    if (!list.length || list.length > layoutFor(lay).NSEAT) return false;
     const roster = M.assignKeys(list, T.roster);
-    const upd = {roster, 'meta/cls': cls, 'meta/hall': hall, 'meta/layout': lay};
+    const layoutDef = M.LAYOUTS[lay] ? null : customLayouts()[lay] || null;   // 직접 만든 모양은 학생 폰도 그릴 수 있게 방에 같이 둔다
+    const upd = {roster, 'meta/cls': cls, 'meta/hall': hall, 'meta/layout': lay, 'meta/layoutDef': layoutDef};
     for (const k of Object.keys(T.roster)) {
       if (roster[k]) continue;
       upd['claims/' + k] = null;
@@ -1156,9 +1271,9 @@
     if (!T.demo && cls) {
       // 반 이름이 곧 그 반의 자리 기록 이름 (선생님 공간 안)
       T.bid = classId(cls);
-      savedAll[cls] = {text: text.trim(), layout: lay, hall};
+      savedAll[cls] = {text: text.trim(), layout: lay, hall, layoutDef};
       setPref('rosters', savedAll);
-      if (TID) T.store.set(`${classPath(T.bid)}/info`, {cls, layout: lay, hall, text: text.trim(), t: T.store.now()}).catch(e => console.warn('[seats] class info', e));
+      if (TID) T.store.set(`${classPath(T.bid)}/info`, {cls, layout: lay, hall, layoutDef, text: text.trim(), t: T.store.now()}).catch(e => console.warn('[seats] class info', e));
       loadHistory();
     }
     saveConf();
@@ -1213,7 +1328,7 @@
     store: null, code: '', base: '', meta: undefined, roster: {}, claims: {}, result: null, mine: undefined,
     key: null, join: null, minePrefs: {}, active: null, done: [], formKey: null, fresh: false, f: [], w: [], b: null, dirty: false, editing: false, wishBoard: null, resBoard: null, sending: false
   };
-  const SL = () => M.layout(S.meta && S.meta.layout);
+  const SL = () => M.layoutOf(S.meta && S.meta.layout, S.meta && S.meta.layoutDef);
   const sLabel = key => { const s = M.rosterList(S.roster).find(x => x.key === key); return s ? s.label : '?'; };
 
   async function joinRoom(code) {
@@ -1523,7 +1638,7 @@
     };
     const draw = () => {
       const e = edit.entry;
-      board.layout(M.layout(e.layout));
+      board.layout(M.layoutOf(e.layout, e.layoutDef));
       board.view(e.hall, false);
       const seen = {};
       for (const p of Object.values(e.seats)) seen[p.n] = (seen[p.n] || 0) + 1;
@@ -1531,7 +1646,7 @@
       board.setChips(entries(e.seats).map(([seat, p]) => ({key: p.n + '|' + (p.no ?? ''), seat, label: seen[p.n] > 1 ? `${p.n}(${p.no ?? ''})` : p.n})));
       board.marks({});
       board.root.classList.toggle('editing', edit.on);
-      $('h-when').textContent = `${fmtDay(e.t)} · ${M.layout(e.layout).name} · ${Object.keys(e.seats).length}명` + (edit.on ? ' — 이름을 끌어다 다른 자리에 놓으세요' : '');
+      $('h-when').textContent = `${fmtDay(e.t)} · ${M.layoutOf(e.layout, e.layoutDef).name} · ${Object.keys(e.seats).length}명` + (edit.on ? ' — 이름을 끌어다 다른 자리에 놓으세요' : '');
       $('print-head').textContent = `${all[edit.c].info.cls} 자리 배치 · ${fmtDay(e.t)}`;
       $('h-stage').style.setProperty('--ar', board.aspect);
     };
