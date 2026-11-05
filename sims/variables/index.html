@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0f2235">
   <title>변광성 실험실 · 광도 곡선으로 읽는 별과 우주</title>
-  <link rel="stylesheet" href="variables.css?v=20261027b">
-  <script defer src="variables-model.js?v=20261027b"></script>
-  <script defer src="variables.js?v=20261027b"></script>
+  <link rel="stylesheet" href="variables.css?v=20261105">
+  <script defer src="variables-model.js?v=20261105"></script>
+  <script defer src="variables.js?v=20261105"></script>
 </head>
 <body>
 <main class="app">
@@ -159,9 +159,23 @@
           <div class="formula" id="sn-formula"></div>
         </div>
       </section>
+      <section class="panel redshift">
+        <div class="panel-heading"><h3><span class="step">2</span> 적색 편이: 빛이 오는 동안 우주가 늘어난다</h3><button id="rs-play" class="compact">▶ 빛 보내기</button></div>
+        <svg id="rs-scene" class="space-view" viewBox="0 0 640 232" role="img" aria-label="팽창하는 공간을 건너오며 파장이 늘어나는 빛"></svg>
+        <p class="panel-note">세로 점선은 공간의 눈금입니다. 은하들은 눈금에 붙어 제자리에 있고, 눈금 사이가 늘어나면서 서로 멀어집니다. 빛도 늘어나는 공간을 건너오는 동안 파장이 함께 늘어납니다.</p>
+        <svg id="rs-spectrum" class="chart" viewBox="0 0 640 150" role="img" aria-label="실험실의 흡수선과 적색 편이된 흡수선"></svg>
+        <div class="rs-controls"><label><span>초신성의 적색 편이 z <output id="rs-z-out"></output></span><input id="rs-z" type="range" min="0.1" max="1.5" step="0.05" value="0.7"></label></div>
+        <p class="insight" id="rs-insight"></p>
+      </section>
+      <section class="panel race">
+        <div class="panel-heading"><h3><span class="step">3</span> 같은 적색 편이, 세 가지 우주</h3><button id="race-play" class="compact">▶ 세 우주에서 동시에</button></div>
+        <svg id="race" class="space-view" viewBox="0 0 640 380" role="img" aria-label="감속, 등속, 가속 팽창 우주에서 같은 적색 편이의 빛이 오는 과정"></svg>
+        <div class="race-table" id="race-table"></div>
+        <p class="insight" id="race-insight"></p>
+      </section>
       <section class="panel hubble">
         <div class="panel-heading">
-          <h3><span class="step">2</span> 적색 편이와 거리 지수</h3>
+          <h3><span class="step">4</span> 관측 자료: 적색 편이와 거리 지수</h3>
           <div class="segmented" role="group" aria-label="보기 방식">
             <button data-hview="mu" aria-pressed="true">거리 지수</button>
             <button data-hview="res" aria-pressed="false">차이 확대</button>
@@ -178,7 +192,7 @@
         <p class="micro">숫자가 작을수록, 막대가 길수록 관측과 잘 맞는 모형입니다.</p>
       </section>
       <section class="panel history">
-        <div class="panel-heading"><h3><span class="step">3</span> 우주의 크기 변화</h3><span class="micro">곡선의 기울기 = 팽창 속도</span></div>
+        <div class="panel-heading"><h3><span class="step">5</span> 우주의 크기 변화</h3><span class="micro">곡선의 기울기 = 팽창 속도</span></div>
         <svg id="history" class="chart" viewBox="0 0 640 300" role="img" aria-label="시간에 따른 우주의 상대적 크기"></svg>
         <p class="insight" id="history-insight"></p>
       </section>

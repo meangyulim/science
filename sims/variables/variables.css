@@ -42,7 +42,11 @@ h1{font-size:clamp(26px,4vw,38px);letter-spacing:-.05em;line-height:1.35;margin-
 .pulse-grid .scene{grid-area:scene}.pulse-grid .controls{grid-area:controls}.pulse-grid>.panel:nth-child(2){grid-area:chart;align-self:stretch}
 .ruler-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .ruler-grid .result{grid-column:1/-1}
-.cosmos-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);grid-template-areas:"scene hubble" "controls hubble" "history history"}
+.cosmos-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);grid-template-areas:"scene redshift" "race race" "controls hubble" "history history"}
+.cosmos-grid .redshift{grid-area:redshift}.cosmos-grid .race{grid-area:race}
+.race svg{max-width:900px;margin:0 auto}
+.race-table{padding:6px 14px 4px;overflow-x:auto}
+.rs-controls{padding:10px 14px 4px}
 .cosmos-grid .scene{grid-area:scene}.cosmos-grid .hubble{grid-area:hubble;align-self:stretch}.cosmos-grid .controls{grid-area:controls}.cosmos-grid .history{grid-area:history}
 
 .panel{min-width:0;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
@@ -155,7 +159,7 @@ details.more p{margin-top:4px;line-height:1.75}
   .stations{grid-template-columns:repeat(2,minmax(0,1fr))}
   .read-grid,.ruler-grid{grid-template-columns:minmax(0,1fr)}
   .pulse-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"scene" "chart" "controls"}
-  .cosmos-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"scene" "hubble" "controls" "history"}
+  .cosmos-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"scene" "redshift" "race" "hubble" "controls" "history"}
   .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:640px){

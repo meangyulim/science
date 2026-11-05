@@ -818,6 +818,151 @@
         : `내 모형(Ω<sub>Λ</sub> = ${num(st.ol, 2)})의 우주 나이는 약 <b>${Math.round(my.age)}억 년</b>입니다. 처음에는 물질의 중력 때문에 <b>감속 팽창</b>(곡선이 점점 완만)하다가 약 <b>${Math.round(my.lookback)}억 년 전</b>부터 암흑 에너지의 영향이 커져 <b>가속 팽창</b>(곡선이 점점 가팔라짐)합니다.`;
     }
 
+    // ── 적색 편이: 빛이 오는 동안 우주가 늘어난다 ─────────────────
+    // 은하들은 공간의 눈금에 붙어 있고, 눈금 사이가 a 에 비례해 늘어난다.
+    // 빛은 그 위를 달리며 파장도 a 에 비례해 늘어난다 → 1 + z = 지금 크기 ÷ 출발 때 크기.
+    const LAMBDA0 = 420;                       // 초신성 빛 가운데 보랏빛 한 줄기 (nm)
+    const RACE = ['decel', 'coast', 'accel'];
+    const RACE_COLOR = {decel: '#a8d63a', coast: '#c9d2dc', accel: '#ff7aa5'};   // 어두운 배경용
+    const rs = {z: 0.7, j: null, js: null, play: null, race: null};
+    const rsScene = $('rs-scene'), rsSpec = $('rs-spectrum'), raceSvg = $('race');
+    function colorWord(nm) {
+      return nm < 450 ? '보라' : nm < 495 ? '파랑' : nm < 570 ? '초록' : nm < 590 ? '노랑' : nm < 620 ? '주황' : nm <= 750 ? '빨강' : '적외선 — 눈에 안 보임';
+    }
+    function journeys() {
+      rs.j = M.lightJourney(rs.z, 0.3, 0.7);
+      rs.js = RACE.map(k => M.lightJourney(rs.z, M.MODELS[k].om, M.MODELS[k].ol));
+    }
+    // 앞쪽 끝이 xFront 인 빛의 파동 묶음
+    function wave(parent, xFront, y, lambda, amp, color, n = 4) {
+      const pts = [], len = lambda * n;
+      for (let i = 0; i <= 80; i++) {
+        const x = xFront - len + len * i / 80, env = Math.sin(Math.PI * i / 80);
+        pts.push([x, y - amp * env * Math.sin(M.TAU * (x - xFront) / lambda)]);
+      }
+      el('path', {d: pathOf(pts), fill: 'none', stroke: color, 'stroke-width': 7, opacity: 0.25, 'stroke-linecap': 'round'}, parent);
+      el('path', {d: pathOf(pts), fill: 'none', stroke: color, 'stroke-width': 2.6, 'stroke-linecap': 'round'}, parent);
+    }
+    function galaxy(parent, x, y, r, color, opacity = 1) {
+      el('ellipse', {cx: x, cy: y, rx: r, ry: r * 0.42, fill: color, opacity: opacity * 0.85}, parent);
+      el('circle', {cx: x, cy: y, r: r * 0.3, fill: '#fff8e8', opacity}, parent);
+    }
+    // 한 줄(우주 하나)을 그린다. elapsed: 빛이 출발한 뒤 흐른 시간(억 년, 음수면 아직 출발 전)
+    function lane(svg, o) {
+      const {j, y, S, xObs, elapsed, gridStep, big} = o;
+      const g = el('g', {}, svg), st0 = M.journeyAt(j, elapsed), a = st0.a, f = a / j.ae;
+      const X = chi => xObs - S * a * chi;
+      for (let c = 0; c <= j.chi + 1e-9; c += gridStep) {
+        el('line', {x1: X(c), x2: X(c), y1: y - (big ? 62 : 30), y2: y + (big ? 62 : 30), stroke: '#7f9bb5', 'stroke-dasharray': '3 5', opacity: 0.45}, g);
+      }
+      el('line', {x1: X(j.chi), x2: xObs, y1: y, y2: y, stroke: '#35526d', 'stroke-width': 1}, g);
+      for (let k = 1; k < 4; k++) galaxy(g, X(j.chi * k / 4), y + (big ? 34 : 17) * (k % 2 ? 1 : -1), big ? 9 : 6, '#9fb3c8', 0.6);
+      galaxy(g, X(j.chi), y, big ? 16 : 11, '#e9a35c');
+      galaxy(g, xObs, y, big ? 16 : 11, '#7fb3ff');
+      const r = big ? 1 : 0.8;
+      if (elapsed < 0) {
+        el('text', {x: X(j.chi), y: y - (big ? 24 : 16), 'text-anchor': 'middle', 'font-size': 12 * r, opacity: 0.8}, g, '빛 출발 전');
+      } else {
+        if (st0.frac < 0.06) el('circle', {cx: X(j.chi), cy: y, r: (big ? 26 : 18) * (1 - st0.frac / 0.06) + 6, fill: 'url(#rs-flash)'}, g);
+        const front = st0.frac >= 1 ? xObs : X(j.chi - st0.chi);
+        // 적외선은 실제로 보이지 않지만, 어두운 배경에서 찾을 수 있게 붉은 기운으로 그린다
+        wave(g, front, y, (big ? 11 : 8) * f, big ? 11 : 8, LAMBDA0 * f > 750 ? '#c0504d' : M.wavelengthColor(LAMBDA0 * f));
+        if (st0.frac >= 1) {
+          el('circle', {cx: xObs, cy: y, r: o.glow || 16, fill: 'url(#rs-flash)'}, g);
+          el('text', {x: xObs - 26, y: y - (big ? 22 : 16), 'text-anchor': 'end', 'font-size': 12 * r, 'font-weight': 800, fill: LAMBDA0 * f > 700 ? '#ff9e9e' : M.wavelengthColor(LAMBDA0 * f)}, g, `도착 · 파장 ×${num(f, 2)}`);
+        }
+      }
+      return {a, f, st: st0};
+    }
+    function flashDef(svg) {
+      const d = el('defs', {}, svg), gr = el('radialGradient', {id: 'rs-flash'}, d);
+      el('stop', {offset: '0%', 'stop-color': '#fff'}, gr);
+      el('stop', {offset: '40%', 'stop-color': '#ffe7a3', 'stop-opacity': 0.8}, gr);
+      el('stop', {offset: '100%', 'stop-color': '#ff9a3c', 'stop-opacity': 0}, gr);
+    }
+
+    function drawRedshift(now) {
+      const j = rs.j, p = rs.play ? Math.min(1, (now - rs.play.t0) / rs.play.dur) : 1;
+      if (rs.play && p >= 1) { rs.play = null; $('rs-play').textContent = '↺ 다시 보내기'; }
+      const elapsed = p * j.lookback;
+      clear(rsScene); flashDef(rsScene);
+      const xObs = 590, S = (xObs - 60) / j.chi;
+      const {a, f} = lane(rsScene, {j, y: 132, S, xObs, elapsed, gridStep: j.chi / 8, big: true, glow: 22});
+      const nm = LAMBDA0 * f;
+      el('text', {x: 16, y: 26, 'font-size': 15, 'font-weight': 800}, rsScene, `빛이 출발한 지 ${num(elapsed, 1)}억 년 · 우주 크기 a = ${num(a, 2)} (지금 = 1)`);
+      el('text', {x: 16, y: 48, 'font-size': 14, 'font-weight': 700, fill: nm > 750 ? '#ff9e9e' : M.wavelengthColor(nm)}, rsScene, `빛의 파장 ${LAMBDA0} nm × ${num(f, 2)} = ${Math.round(nm)} nm (${colorWord(nm)})`);
+      el('text', {x: 60, y: 222, 'font-size': 12, opacity: 0.85}, rsScene, '초신성이 터진 은하');
+      el('text', {x: xObs, y: 222, 'text-anchor': 'end', 'font-size': 12, opacity: 0.85}, rsScene, '우리은하 (관측자)');
+      drawSpectrum(f);
+    }
+    function drawSpectrum(f) {
+      clear(rsSpec);
+      const xs = lin(380, 1100, 40, 620), bar = (y, h) => {
+        for (let nm = 380; nm < 1100; nm += 4) el('rect', {x: xs(nm), y, width: xs(nm + 4) - xs(nm) + 0.6, height: h, fill: nm <= 750 ? M.wavelengthColor(nm + 2) : '#2b1a1f'}, rsSpec);
+      };
+      const rows = [{y: 22, label: '실험실의 수소 흡수선', k: 1}, {y: 92, label: `지금 받은 빛 (파장 ×${num(f, 2)})`, k: f}];
+      rows.forEach(r => {
+        bar(r.y, 30);
+        el('text', {x: 40, y: r.y - 6, class: 'tick'}, rsSpec, r.label);
+        // 적외선 쪽(어두운 띠)에서는 흡수선을 밝게 그려야 보인다
+        M.H_LINES.forEach(l => { const nm = l * r.k, x = xs(nm); if (x <= 620) el('rect', {x: x - 1.5, y: r.y, width: 3, height: 30, fill: nm > 750 ? '#f3e3e6' : '#111'}, rsSpec); });
+      });
+      M.H_LINES.forEach(l => {
+        const x1 = xs(l), x2 = xs(l * f);
+        if (x2 <= 620) el('path', {d: `M${x1} 54L${x2} 90`, stroke: '#c2581c', 'stroke-width': 1.4, 'stroke-dasharray': '4 3', fill: 'none'}, rsSpec);
+      });
+      el('text', {x: xs(925), y: 41, 'text-anchor': 'middle', 'font-size': 11, fill: '#d9c3c8'}, rsSpec, '적외선 (눈에 안 보임)');
+      [400, 500, 600, 700, 800, 900, 1000].forEach(v => el('text', {x: xs(v), y: 140, 'text-anchor': 'middle', class: 'tick'}, rsSpec, String(v)));
+      el('text', {x: 620, y: 140, 'text-anchor': 'end', class: 'tick'}, rsSpec, '(nm)');
+    }
+
+    function drawRace(now) {
+      const T = Math.max(...rs.js.map(j => j.lookback)) + 6;
+      const p = rs.race ? Math.min(1, (now - rs.race.t0) / rs.race.dur) : 1;
+      if (rs.race && p >= 1) { rs.race = null; $('race-play').textContent = '↺ 다시 보기'; }
+      const tau = -T * (1 - p);                         // 현재로부터의 시간 (억 년, 음수 = 과거)
+      clear(raceSvg); flashDef(raceSvg);
+      el('text', {x: 16, y: 28, 'font-size': 16, 'font-weight': 800}, raceSvg, tau < -0.05 ? `지금으로부터 ${num(-tau, 1)}억 년 전` : '지금 — 세 빛이 모두 도착');
+      el('text', {x: 624, y: 28, 'text-anchor': 'end', 'font-size': 12, opacity: 0.75}, raceSvg, `세 우주 모두 적색 편이 z = ${num(rs.z, 2)}`);
+      const chiMax = Math.max(...rs.js.map(j => j.chi)), xObs = 600, S = (xObs - 70) / chiMax;
+      const dL0 = rs.js[0].dL;
+      rs.js.forEach((j, i) => {
+        const y = 92 + i * 110, k = RACE[i];
+        const glow = 10 + 14 * (dL0 / j.dL);           // 겉보기 밝기 ∝ 1/d² — 반지름은 √밝기 ∝ 1/d
+        const out = lane(raceSvg, {j, y, S, xObs, elapsed: tau + j.lookback, gridStep: chiMax / 12, glow});
+        el('text', {x: 16, y: y - 38, 'font-size': 14, 'font-weight': 800, fill: RACE_COLOR[k]}, raceSvg, M.MODELS[k].name);
+        el('text', {x: 160, y: y - 38, 'font-size': 12, opacity: 0.85}, raceSvg, `우주 크기 a = ${num(out.a, 2)}`);
+        el('text', {x: 16, y: y + 46, 'font-size': 12, opacity: 0.85}, raceSvg,
+          tau + j.lookback < 0 ? `${num(j.lookback, 1)}억 년 전에 빛이 출발합니다` : out.st.frac < 1 ? `빛이 ${num(tau + j.lookback, 1)}억 년째 오는 중` : `빛이 ${num(j.lookback, 1)}억 년 걸려 도착 · 은하는 지금 ${Math.round(j.properNow * M.MPC_TO_100MLY)}억 광년 거리`);
+      });
+    }
+    function renderRaceTable() {
+      const m0 = 5 * Math.log10(rs.js[0].dL) + 25 - 19;
+      $('race-table').innerHTML = `<table class="ref-table"><tr><th>우주</th><th>빛이 온 시간</th><th>은하까지 지금 거리</th><th>초신성 겉보기 등급</th><th>밝기 (감속 우주 = 100)</th></tr>${
+        rs.js.map((j, i) => { const m = 5 * Math.log10(j.dL) + 25 - 19;
+          return `<tr><td><b style="color:${['var(--decel)', 'var(--coast)', 'var(--accel)'][i]}">${M.MODELS[RACE[i]].name}</b></td><td>${num(j.lookback, 1)}억 년</td><td>${Math.round(j.properNow * M.MPC_TO_100MLY)}억 광년</td><td>${num(m, 2)}등급</td><td>${Math.round(100 * 10 ** (-0.4 * (m - m0)))}</td></tr>`; }).join('')}</table>`;
+      const [d, , acc] = rs.js, f = 1 + rs.z;
+      $('race-insight').innerHTML = `세 우주 모두 빛의 파장이 똑같이 <b>${num(f, 2)}배</b> 늘었습니다(z = ${num(rs.z, 2)}). 우주가 ${num(f, 2)}배 커지는 동안 빛이 왔다는 뜻이에요.
+        그런데 <b>가속 팽창 우주</b>는 과거에 더 천천히 커졌기 때문에, ${num(f, 2)}배 커지는 데 시간이 더 걸렸습니다(감속 ${num(d.lookback, 1)}억 년 → 가속 ${num(acc.lookback, 1)}억 년).
+        그동안 빛은 더 먼 길을 왔으므로 <b>같은 z에서 가장 멀고, 가장 어둡게</b> 보입니다. 1998년 관측된 Ia형 초신성이 감속 우주의 예상보다 어두웠던 까닭이 바로 이것입니다 → <b>가속 팽창</b>.`;
+      $('rs-insight').innerHTML = `빛이 떠날 때 우주의 크기는 지금의 <b>${num(1 / f, 2)}배</b>였습니다. 빛이 오는 동안 우주가 ${num(f, 2)}배로 커졌고, 빛의 파장도 똑같이 <b>${num(f, 2)}배</b> 늘어 붉은 쪽으로 밀렸습니다.
+        그래서 <b>1 + z = 지금 우주 크기 ÷ 빛이 떠날 때 우주 크기</b>. 적색 편이가 클수록 더 오래전에, 더 먼 곳에서 출발한 빛입니다.`;
+    }
+    $('rs-z').addEventListener('input', e => {
+      rs.z = +e.target.value; rs.play = null; rs.race = null;
+      $('rs-play').textContent = '▶ 빛 보내기'; $('race-play').textContent = '▶ 세 우주에서 동시에';
+      st.z = rs.z;                                     // 아래 그래프의 비교선도 같은 z 로
+      renderRedshiftPanels(); renderHubble();
+    });
+    $('rs-play').addEventListener('click', () => { rs.play = {t0: performance.now(), dur: 6500}; $('rs-play').textContent = '빛이 오는 중…'; });
+    $('race-play').addEventListener('click', () => { rs.race = {t0: performance.now(), dur: 10000}; $('race-play').textContent = '세 우주 진행 중…'; });
+    function renderRedshiftPanels() {
+      $('rs-z-out').textContent = num(rs.z, 2);
+      journeys(); renderRaceTable();
+      const now = performance.now();
+      drawRedshift(now); drawRace(now);
+    }
+
     let last = null;
     function tick(now) {
       if (current === 'cosmos' && !document.hidden) {
@@ -827,12 +972,14 @@
           if (st.mass >= 1.4) { st.mode = 'boom'; st.boomT = now; $('sn-play').textContent = '↺ 다시 하기'; }
         }
         drawScene(now);
+        if (rs.play) drawRedshift(now);
+        if (rs.race) drawRace(now);
         last = now;
       } else last = null;
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
-    function render() { renderDistance(); renderHubble(); renderFit(); renderHistory(); drawScene(performance.now()); }
+    function render() { renderDistance(); renderRedshiftPanels(); renderHubble(); renderFit(); renderHistory(); drawScene(performance.now()); }
     return {render};
   })();
 
