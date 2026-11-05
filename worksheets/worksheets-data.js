@@ -170,5 +170,17 @@ var worksheets = [
     saveAs: '행성우주과학_변광성의 광도 곡선 특징.pdf',
     pages:  5,
     bytes:  660506
+  },
+  {
+    unit:   'Ⅲ. 은하와 우주',
+    title:  '우리은하의 중심과 구조',
+    note:   '소단원 내용 정리',
+    no:     5,
+    exam:   '기말고사',
+    file:   'final-05-milky-way-structure.pdf',
+    added:  '2026-11-05',
+    saveAs: '행성우주과학_우리은하의 중심과 구조.pdf',
+    pages:  3,
+    bytes:  193019
   }
 ];
