@@ -238,10 +238,55 @@
     return {age: now, pts, aAcc, tAcc, lookback: tAcc === null ? null : now - tAcc};
   }
 
+  // 빛의 여행: 적색 편이 z 인 천체에서 나온 빛이 우리에게 오는 동안의 기록.
+  // 우주 크기 a 가 1/(1+z) 에서 1 이 될 때까지, 걸린 시간 t(억 년)와
+  // 빛이 지나온 공동(共動) 거리 chi(c/H0 단위)를 a 에 따라 표로 만든다.
+  // 빛의 파장은 a 에 비례해 늘어나므로 도착할 때 (1+z)배가 된다.
+  function lightJourney(z, om, ol, n = 240) {
+    const ae = 1 / (1 + z), samples = [{a: ae, t: 0, chi: 0}];
+    let t = 0, chi = 0;
+    for (let i = 0; i < n; i++) {
+      const a0 = ae + (1 - ae) * i / n, a1 = ae + (1 - ae) * (i + 1) / n, a = (a0 + a1) / 2, da = a1 - a0;
+      const e = E(1 / a - 1, om, ol);
+      t += da / (a * e) * HUBBLE_TIME;
+      chi += da / (a * a * e);
+      samples.push({a: a1, t, chi});
+    }
+    return {z, ae, lookback: t, chi, properNow: chi * C_KMS / H0, dL: lumDistance(z, om, ol), samples};
+  }
+  // 출발 뒤 time(억 년)이 지났을 때의 상태. 빛과 천체의 '지금 거리'는 a·chi 로 바뀐다.
+  function journeyAt(j, time) {
+    const s = j.samples;
+    if (time <= 0) return {...s[0], frac: 0};
+    if (time >= j.lookback) return {...s[s.length - 1], frac: 1};
+    let lo = 0, hi = s.length - 1;
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (s[mid].t < time) lo = mid; else hi = mid; }
+    const k = (time - s[lo].t) / (s[hi].t - s[lo].t);
+    return {a: s[lo].a + k * (s[hi].a - s[lo].a), t: time, chi: s[lo].chi + k * (s[hi].chi - s[lo].chi), frac: time / j.lookback};
+  }
+  const MPC_TO_100MLY = 3.2616e6 / 1e8; // 1 Mpc = 326만 광년 = 0.0326억 광년
+  // 빛의 파장(nm)에 따른 색. 380~750 nm 는 무지개색, 그 밖은 눈에 보이지 않는 빛.
+  function wavelengthColor(nm) {
+    let r = 0, g = 0, b = 0;
+    if (nm < 380) return 'rgb(120,90,200)';
+    if (nm < 440) { r = -(nm - 440) / 60; b = 1; }
+    else if (nm < 490) { g = (nm - 440) / 50; b = 1; }
+    else if (nm < 510) { g = 1; b = -(nm - 510) / 20; }
+    else if (nm < 580) { r = (nm - 510) / 70; g = 1; }
+    else if (nm < 645) { r = 1; g = -(nm - 645) / 65; }
+    else if (nm <= 750) r = 1;
+    else return 'rgb(110,24,24)';
+    const f = nm < 420 ? 0.3 + 0.7 * (nm - 380) / 40 : nm > 700 ? 0.3 + 0.7 * (750 - nm) / 50 : 1;
+    const c = v => Math.round(255 * Math.pow(v * f, 0.8));
+    return `rgb(${c(r)},${c(g)},${c(b)})`;
+  }
+  const H_LINES = [410.2, 434.0, 486.1, 656.3]; // 수소 흡수선 (nm)
+
   const api = {TAU, clamp, modulus, distanceFromModulus, brightnessRatio, PC_TO_LY, PL, absMag,
     pulseShape, pulsatorMag, maxima, novaMag, supernovaMag, rng, TYPES, randomStar, domain, starMag,
     withPhase, observe, SIGMA_SUN, pulsation, pulsationExtrema, phaseGap, starColor,
-    H0, MODELS, SN_DATA, lumDistance, distModulus, fitStats, timeAt, accelerationStart, expansionHistory};
+    H0, MODELS, SN_DATA, lumDistance, distModulus, fitStats, timeAt, accelerationStart, expansionHistory,
+    lightJourney, journeyAt, MPC_TO_100MLY, wavelengthColor, H_LINES};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.VariableModel = api;
 })(typeof window !== 'undefined' ? window : this);

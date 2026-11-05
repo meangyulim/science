@@ -120,3 +120,35 @@ test('cosmology: distances, best model and expansion history',()=>{
   assert.equal(M.expansionHistory(1,0).tAcc,null);
   assert.ok(h.pts.every((p,i,a)=>i===0||p.t>a[i-1].t));
 });
+
+test('light journey: same redshift, longer trip in an accelerating universe',()=>{
+  const z=0.7, c=299792.458;
+  const ms=['decel','coast','accel'].map(k=>M.MODELS[k]);
+  const js=ms.map(m=>M.lightJourney(z,m.om,m.ol));
+  js.forEach((j,i)=>{
+    close(j.ae,1/1.7,1e-12);
+    close(j.samples[j.samples.length-1].a,1,1e-12);           // 도착할 때 우주 크기 = 지금
+    // 빛이 온 시간 = 지금 우주 나이 − 빛이 떠날 때 우주 나이
+    close(j.lookback,M.timeAt(1,ms[i].om,ms[i].ol)-M.timeAt(j.ae,ms[i].om,ms[i].ol),0.05);
+  });
+  // 감속 우주의 정확한 식: 시간 = 2/(3H0)(1 − (1+z)^−1.5), 거리 = 2c/H0 (1 − (1+z)^−0.5)
+  close(js[0].lookback,2/3*9777.8/M.H0*(1-1.7**-1.5),0.01);
+  close(js[0].properNow/(2*c/M.H0*(1-1/Math.sqrt(1.7))),1,1e-4);
+  // 평탄 우주에서 광도 거리 = (1+z) × 지금 거리
+  close(js[2].dL/((1+z)*js[2].properNow),1,1e-4);
+  // 같은 z: 감속 < 등속 < 가속 순으로 빛이 오래, 멀리 왔다
+  assert.ok(js[0].lookback<js[1].lookback&&js[1].lookback<js[2].lookback);
+  assert.ok(js[0].properNow<js[1].properNow&&js[1].properNow<js[2].properNow);
+  // 중간 상태: 시간에 따라 크기와 지나온 거리가 늘어난다
+  const j=js[2], half=M.journeyAt(j,j.lookback/2);
+  assert.ok(half.a>j.ae&&half.a<1&&half.chi>0&&half.chi<j.chi);
+  assert.equal(M.journeyAt(j,-1).a,j.ae);
+  assert.equal(M.journeyAt(j,1e9).chi,j.chi);
+});
+
+test('wavelength colours: blue light reddens, then leaves the visible range',()=>{
+  const rgb=s=>s.match(/\d+/g).map(Number);
+  const blue=rgb(M.wavelengthColor(450)), red=rgb(M.wavelengthColor(650));
+  assert.ok(blue[2]>blue[0]&&red[0]>red[2]);
+  assert.equal(M.wavelengthColor(900),'rgb(110,24,24)');
+});
