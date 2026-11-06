@@ -200,6 +200,7 @@ button.seat:hover{background:#e4d8bf}
 .pill small{font-size:10px;opacity:.75}
 .pill.st-joined{background:var(--mid);color:#7a4b0c;border:1px solid var(--mid-line)}
 .pill.st-sent{background:var(--hi);color:#0f5132;border:1px solid var(--hi-line)}
+.pill.st-full{background:var(--lo);color:var(--bad);border:1px dashed var(--lo-line)}
 .pill.selected{box-shadow:0 0 0 2px var(--cyan)}
 
 /* ── 대화 상자 ───────────────────────── */

@@ -167,8 +167,9 @@
     }
     apply(writes, broadcast = true) {
       for (const [path, val] of writes) setIn(this.tree, parts(path), val);
-      this.notify(writes.map(w => w[0]));
+      // 다른 탭에 먼저 알린다 — 알림을 받은 쪽(구독)이 곧바로 또 쓰면 그 쓰기가 앞질러 가지 않게
       if (broadcast && this.ch) this.ch.postMessage({op: 'write', writes});
+      this.notify(writes.map(w => w[0]));
     }
     notify(paths) {
       for (const s of this.subs) {
@@ -563,6 +564,12 @@
       box.append(h('button', {type: 'button', class: 'pill st-' + st + (T.sel === s.key ? ' selected' : ''), title: {none: '아직 안 들어옴', joined: '들어왔지만 아직 안 냄', sent: '냈어요'}[st], onclick: () => tChip(s.key)},
         s.no != null ? h('small', {text: s.no}) : null, s.label));
     }
+    // 자리가 모자라 아직 못 들어온 학생 ('명단에 내 이름이 없어요'로 보냈지만 자리가 다 찼다)
+    for (const [uid, j] of entries(T.joins)) {
+      if (!(T.meta && T.meta.joinFull && T.meta.joinFull[uid]) || !j) continue;
+      box.append(h('button', {type: 'button', class: 'pill st-full', title: '자리가 모자라 아직 못 들어왔어요', onclick: () => toast('t-toast', `${j.name} 학생은 자리가 모자라 아직 못 들어왔어요. 명단 단추로 안 오는 학생을 빼거나, 교실 모양에 자리를 더하면 바로 들어와요.`, 7000)},
+        j.name, h('small', {text: '자리 부족'})));
+    }
     if (!box.firstChild) box.append(h('p', {class: 'hint', text: '명단을 넣으면 여기에 나와요.'}));
   }
 
@@ -888,13 +895,21 @@
         const same = M.rosterList(T.roster).find(s => s.name === p.name && !T.claims[s.key] && (no == null || s.no == null || s.no === no));
         let key = same && same.key;
         if (!key) {
-          if (Object.keys(T.roster).length >= TL().NSEAT) { toast('t-toast', `자리가 다 차서 ${p.name} 학생을 더하지 못했어요. 명단을 고쳐 주세요.`, 6000); continue; }
-          let n = 1;
-          for (const k of Object.keys(T.roster)) n = Math.max(n, +k.slice(1) + 1 || n);
-          key = 's' + String(n).padStart(2, '0');
+          if (Object.keys(T.roster).length >= TL().NSEAT) {
+            // 자리가 모자라면 요청은 남겨 두고(자리가 생기면 바로 들어온다) 알림은 한 번만.
+            // 학생 폰에도 알린다 — meta/joinFull/<uid> (uid 만 있어서 누군지는 드러나지 않는다)
+            if (!T.meta.joinFull || !T.meta.joinFull[uid]) {
+              toast('t-toast', `자리가 다 차서 ${p.name} 학생을 더하지 못했어요. 명단에서 안 오는 학생을 빼거나 교실 모양에 자리를 더하면 바로 들어와요.`, 8000);
+              await T.store.update(T.base, {['meta/joinFull/' + uid]: true});
+            }
+            continue;
+          }
+          // 명단에서 빠진 학생의 열쇠를 다시 쓰지 않도록, 늘 새 열쇠
+          key = 'j' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
           upd['roster/' + key] = no != null ? {no, name: p.name} : {name: p.name};
         }
         upd['claims/' + key] = uid;
+        if (T.meta.joinFull && T.meta.joinFull[uid]) upd['meta/joinFull/' + uid] = null;
         await T.store.update(T.base, upd);
         T.roster[key] = T.roster[key] || upd['roster/' + key];
         T.claims[key] = uid;
@@ -1466,7 +1481,9 @@
     if (!g.firstChild) g.append(h('p', {class: 'hint', text: '선생님이 명단을 넣는 중이에요. 잠시만 기다려 주세요.'}));
     const waiting = !!S.join;
     $('self-note').hidden = !waiting;
-    if (waiting) { $('self-form').hidden = true; $('self-open').hidden = true; $('self-note').textContent = `'${S.join.name}'(으)로 보냈어요. 선생님 화면에서 명단에 더해지면 바로 다음으로 넘어가요.`; }
+    const full = waiting && S.meta && S.meta.joinFull && S.meta.joinFull[S.store.uid];
+    $('self-note').classList.toggle('error', !!full);
+    if (waiting) { $('self-form').hidden = true; $('self-open').hidden = true; $('self-note').textContent = full ? `'${S.join.name}'(으)로 보냈는데 자리가 다 차서 아직 못 들어갔어요. 선생님께 말해 주세요 — 자리가 생기면 바로 넘어가요.` : `'${S.join.name}'(으)로 보냈어요. 선생님 화면에서 명단에 더해지면 바로 다음으로 넘어가요.`; }
     else if ($('self-form').hidden) $('self-open').hidden = false;
   }
   async function claim(s) {
