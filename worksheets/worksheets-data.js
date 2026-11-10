@@ -182,5 +182,17 @@ var worksheets = [
     saveAs: '행성우주과학_우리은하의 중심과 구조.pdf',
     pages:  3,
     bytes:  193019
+  },
+  {
+    unit:   'Ⅲ. 은하와 우주',
+    title:  '성단과 C-M도',
+    note:   '소단원 내용 정리',
+    no:     6,
+    exam:   '기말고사',
+    file:   'final-06-star-clusters-cm.pdf',
+    added:  '2026-11-10',
+    saveAs: '행성우주과학_성단과 C-M도.pdf',
+    pages:  4,
+    bytes:  576556
   }
 ];
