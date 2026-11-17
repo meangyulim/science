@@ -411,7 +411,7 @@
     // 처음 방향 연장선과 옆으로 밀린 거리
     if (S.ghost) {
       Lab.line(ctx, [pts[0], add(pts[0], L.u0, toEdge(pts[0], L.u0, W, H, 4))], C.muted, 1.8, [7, 6]);
-      const E = add(pts[3], L.u4, Math.min(80, toEdge(pts[3], L.u4, W, H, 4) * 0.55)), tt = (E[0] - pts[0][0]) * L.u0[0] + (E[1] - pts[0][1]) * L.u0[1];
+      const E = add(pts[3], L.u4, Math.min(110, toEdge(pts[3], L.u4, W, H, 4) * 0.62)), tt = (E[0] - pts[0][0]) * L.u0[0] + (E[1] - pts[0][1]) * L.u0[1];
       const F = add(pts[0], L.u0, tt), dd = Math.hypot(F[0] - E[0], F[1] - E[1]);
       if (dd > 8) dim(ctx, E, F, L.u0, C.copper, '옆으로 밀림', 22);
     }
