@@ -1,0 +1,33 @@
+/* 공통 색 토큰 — 시뮬레이션(simkit)과 사이트가 함께 쓴다 */
+:root {
+  --bg: #f6f7fb; --card: #ffffff; --fg: #1d2330; --muted: #667085; --grid: #e4e7ec; --line: #e4e7ec;
+  --c-blue: #2563eb; --c-red: #dc2626; --c-green: #15803d; --c-purple: #7c3aed; --c-orange: #ea580c; --c-yellow: #b45309;
+  --acc: #1f5fbf; --acc-soft: #e8f0fc; --acc-ink: #17407e;          /* 물리학Ⅰ 기본 */
+  --key-bg: #fff6df; --key-ink: #8a5a00;
+  --ok: #15803d; --ok-bg: #e7f6ec; --bad: #c2262e; --bad-bg: #fde8ea;
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 4px 16px rgba(16,24,40,.06);
+  color-scheme: light;
+}
+body.s2 { --acc: #6d3fc0; --acc-soft: #f0eafb; --acc-ink: #4b2a8a; }     /* 물리학Ⅱ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1218; --card: #171b23; --fg: #e6e9ef; --muted: #98a2b3; --grid: #2a303b; --line: #2a303b;
+    --c-blue: #60a5fa; --c-red: #f87171; --c-green: #4ade80; --c-purple: #a78bfa; --c-orange: #fb923c; --c-yellow: #facc15;
+    --acc: #6ea8ff; --acc-soft: #1b2638; --acc-ink: #a9c8ff;
+    --key-bg: #2b2412; --key-ink: #f5c86b;
+    --ok: #4ade80; --ok-bg: #12291b; --bad: #f87171; --bad-bg: #2d1518;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+    color-scheme: dark;
+  }
+  :root:not([data-theme="light"]) body.s2 { --acc: #b49cff; --acc-soft: #241d38; --acc-ink: #d4c6ff; }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1218; --card: #171b23; --fg: #e6e9ef; --muted: #98a2b3; --grid: #2a303b; --line: #2a303b;
+  --c-blue: #60a5fa; --c-red: #f87171; --c-green: #4ade80; --c-purple: #a78bfa; --c-orange: #fb923c; --c-yellow: #facc15;
+  --acc: #6ea8ff; --acc-soft: #1b2638; --acc-ink: #a9c8ff;
+  --key-bg: #2b2412; --key-ink: #f5c86b;
+  --ok: #4ade80; --ok-bg: #12291b; --bad: #f87171; --bad-bg: #2d1518;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+  color-scheme: dark;
+}
+:root[data-theme="dark"] body.s2 { --acc: #b49cff; --acc-soft: #241d38; --acc-ink: #d4c6ff; }
