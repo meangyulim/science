@@ -6,7 +6,7 @@
 <title>횡파와 종파 — 파동의 기본 요소</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
 /* Layout: 왼쪽 무대(위 = 줄의 횡파, 아래 = 용수철의 종파)와 조작판, 오른쪽 y-x·y-t 그래프와 '한 주기 = 한 파장' 띠 */
@@ -186,7 +186,7 @@
   let C = {};
   const readColors = () => {
     const cs = getComputedStyle(document.documentElement);
-    for (const k of ['ink', 'muted', 'line', 'line-soft', 'paper', 'bg', 'copper', 'copper-soft', 'vel', 'vel-soft', 'acc', 'acc-soft', 'neg', 'neg-soft', 'violet'])
+    for (const k of ['ink', 'muted', 'grid', 'line', 'line-soft', 'paper', 'bg', 'copper', 'copper-soft', 'vel', 'vel-soft', 'acc', 'acc-soft', 'neg', 'neg-soft', 'violet'])
       C[k] = cs.getPropertyValue('--' + k).trim();
   };
   readColors();
@@ -207,7 +207,8 @@
     views[id] = v;
     return v;
   }
-  const FONT = (s, w = 600, mono = false) => `${w} ${s}px ${mono ? '"IBM Plex Mono",ui-monospace,monospace' : '"IBM Plex Sans KR",system-ui,sans-serif'}`;
+  // 캔버스 글자: 폰에서도 읽히게 최소 13px, 기본보다 한 단계 크게
+  const FONT = (s, w = 600, mono = false) => `${w >= 600 ? 700 : 500} ${Math.max(13, s + 1.5)}px ${mono ? '"IBM Plex Mono",ui-monospace,monospace' : '"Noto Sans KR",system-ui,sans-serif'}`;
   function text(ctx, s, x, y, o = {}) {
     ctx.save(); ctx.font = FONT(o.size || 12, o.w || 600, o.mono); ctx.fillStyle = o.color || C.ink;
     ctx.textAlign = o.align || 'center'; ctx.textBaseline = o.base || 'middle';
@@ -242,13 +243,18 @@
     const pad = 26, X = (x) => pad + x / XW * (W - 2 * pad);
     const showT = S.mode !== 'long', showL = S.mode !== 'trans';
     const narrow = W < 520;
+    // 모눈 (0.1 m 간격)
+    ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+    for (let k = 0; k <= XW * 10 + 1e-9; k++) { ctx.beginPath(); ctx.moveTo(X(k / 10), 0); ctx.lineTo(X(k / 10), H); ctx.stroke(); }
+    for (let y = 20; y < H; y += (W - 2 * pad) / XW / 10) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+    ctx.restore();
     // 위·아래 영역
     // 세로 배치: 위 = HUD·진행 방향, 아래 = 위치 눈금과 범례. 그 사이를 두 파동이 나눠 쓴다.
-    const top = narrow ? 82 : 54, ty = H - (narrow ? 74 : 58);
+    const top = narrow ? 82 : 54, ty = H - (narrow ? 82 : 68);
     const R = ty - 46 - top;
     let yT, yL, hT, hL, labT, labL;
     if (showT && showL) {
-      hT = R * 0.17; labT = top + 6; yT = labT + 36 + hT;
+      hT = R * 0.17; labT = top + 6; yT = labT + 46 + hT;
       hL = R * 0.11; labL = yT + hT + 34; yL = labL + 18 + hL;
     } else if (showT) { hT = R * 0.3; labT = top + 6; yT = labT + 40 + hT; }
     else { hL = R * 0.2; labL = top + 6; yL = labL + 30 + hL; }
@@ -269,18 +275,18 @@
       ctx.save(); ctx.strokeStyle = C.line; ctx.setLineDash([4, 5]); ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(pad - 10, yT); ctx.lineTo(W - pad + 10, yT); ctx.stroke(); ctx.restore();
       text(ctx, '횡파 · 줄', pad - 4, labT, {size: 12.5, w: 700, align: 'left'});
-      text(ctx, '진동 ⊥ 진행', pad + 70, labT, {size: 11.5, w: 500, align: 'left', color: C.muted});
+      text(ctx, '진동 ⊥ 진행', pad + 82, labT, {size: 11.5, w: 500, align: 'left', color: C.muted});
       // 줄
-      ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2.2; ctx.beginPath();
+      ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.beginPath();
       for (let i = 0; i <= 240; i++) { const x = XW * i / 240; const px = X(x), py = pT(x); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
       ctx.stroke(); ctx.restore();
       // 매질 구슬
       const N = narrow ? 24 : 32;
-      for (let i = 0; i <= N; i++) { const x = XW * i / N; ctx.beginPath(); ctx.arc(X(x), pT(x), narrow ? 3 : 3.6, 0, 7); ctx.fillStyle = C.muted; ctx.fill(); }
+      for (let i = 0; i <= N; i++) { const x = XW * i / N; ctx.beginPath(); ctx.arc(X(x), pT(x), narrow ? 3.6 : 4.4, 0, 7); ctx.fillStyle = C.vel; ctx.fill(); }
       // 진폭·파장 자
       if (S.ruler && inView.length >= 2) {
         const c0 = inView[0], c1 = inView[1];
-        bracket(ctx, X(c0), X(c1), yT - ampPx - 18, C.copper, 'λ = ' + fmt(S.lambda) + ' m');
+        bracket(ctx, X(c0), X(c1), yT - ampPx - 30, C.copper, 'λ = ' + fmt(S.lambda) + ' m');
         // 진폭: 가장 오른쪽 마루에서 평형선까지
         const ca = inView[inView.length - 1], xa = Math.min(X(ca) + 16, W - pad);
         arrow(ctx, xa, yT, xa, yT - ampPx + 1, C.violet, 1.6, 7); arrow(ctx, xa, yT - ampPx, xa, yT - 1, C.violet, 1.6, 7);
@@ -289,7 +295,7 @@
       if (trackX !== null) {
         const px = X(trackX), py = pT(trackX);
         ctx.beginPath(); ctx.moveTo(px, py - 8); ctx.lineTo(px - 7, py - 19); ctx.lineTo(px + 7, py - 19); ctx.closePath(); ctx.fillStyle = C.vel; ctx.fill();
-        text(ctx, '마루', px, py - 30, {size: 11.5, color: C.vel, w: 700, halo: C.paper});
+        text(ctx, '마루', px - 11, py - 14, {size: 11.5, color: C.vel, w: 700, halo: C.paper, align: 'right'});
       }
       // 점 P
       const px = X(XP), py = pT(XP);
@@ -300,13 +306,13 @@
       const vy = -M.vel(XP, t, w);                                   // 화면 아래가 + 이므로 부호 반대
       const vmax = S.A * M.TAU * S.f;
       if (Math.abs(vy) > vmax * 0.08) arrow(ctx, px + 14, py, px + 14, py + Math.sign(vy) * (8 + 18 * Math.abs(vy) / vmax), C.acc, 2.5, 8);
-      ctx.beginPath(); ctx.arc(px, py, 7.5, 0, 7); ctx.fillStyle = C.copper; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.paper; ctx.stroke();
+      ctx.beginPath(); ctx.arc(px, py, 9, 0, 7); ctx.fillStyle = C.copper; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.paper; ctx.stroke();
       text(ctx, 'P', px - 15, py - 10, {size: 13, color: C.copper, w: 700, halo: C.paper});
     }
 
     if (showL) {
       text(ctx, '종파 · 용수철', pad - 4, labL, {size: 12.5, w: 700, align: 'left'});
-      text(ctx, '진동 ∥ 진행', pad + 96, labL, {size: 11.5, w: 500, align: 'left', color: C.muted});
+      text(ctx, '진동 ∥ 진행', pad + 116, labL, {size: 11.5, w: 500, align: 'left', color: C.muted});
       // 변위를 과장해서 그림: 최대 변형률 0.75 이하가 되게
       const sScale = 0.12 * S.lambda * (S.A / 5);                    // 최대 변위 (m, 그림용)
       const s = (x) => sScale * M.disp(x, t, w) / S.A;
@@ -389,7 +395,7 @@
     const w = wave(), r = {x: 30, y: 22, w: W - 50, h: H - 44};
     axes(ctx, r, 'x (m)', 'y');
     const X = (x) => r.x + x / XW * r.w, Y = (y) => r.y + r.h / 2 - y / 5 * (r.h / 2 - 6);
-    ctx.save(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2.4; ctx.beginPath();
+    ctx.save(); ctx.strokeStyle = C.vel; ctx.lineWidth = 3; ctx.beginPath();
     for (let i = 0; i <= 200; i++) { const x = XW * i / 200; i ? ctx.lineTo(X(x), Y(M.disp(x, S.t, w))) : ctx.moveTo(X(x), Y(M.disp(x, S.t, w))); }
     ctx.stroke(); ctx.restore();
     const cs = M.crests(S.t, w, 0, XW);
@@ -417,7 +423,7 @@
     const t0 = Math.max(0, S.t - span * 0.75);
     const X = (tt) => r.x + (tt - t0) / span * r.w, Y = (y) => r.y + r.h / 2 - y / 5 * (r.h / 2 - 6);
     ctx.save(); ctx.beginPath(); ctx.rect(r.x, r.y - 4, r.w, r.h + 8); ctx.clip();
-    ctx.strokeStyle = C.copper; ctx.lineWidth = 2.4; ctx.beginPath();
+    ctx.strokeStyle = C.copper; ctx.lineWidth = 3; ctx.beginPath();
     for (let i = 0; i <= 200; i++) { const tt = t0 + span * i / 200; if (tt > S.t) break; i ? ctx.lineTo(X(tt), Y(M.disp(XP, tt, w))) : ctx.moveTo(X(tt), Y(M.disp(XP, tt, w))); }
     ctx.stroke();
     ctx.globalAlpha = 0.35; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.4; ctx.beginPath();
@@ -449,7 +455,7 @@
       if (on) { ctx.fillStyle = C['copper-soft']; ctx.fillRect(0, yc - rh / 2 + 1, W, rh - 2); }
       text(ctx, ['0', 'T/4', 'T/2', '3T/4', 'T'][k], 32, yc, {size: 11.5, w: 700, mono: true, color: on ? C.copper : C.muted});
       ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(0), yc); ctx.lineTo(X(L), yc); ctx.stroke();
-      ctx.strokeStyle = C.vel; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.strokeStyle = C.vel; ctx.lineWidth = 2.6; ctx.beginPath();
       for (let i = 0; i <= 120; i++) { const x = L * i / 120, y = yc - amp * M.disp(x, tt, w) / S.A; i ? ctx.lineTo(X(x), y) : ctx.moveTo(X(x), y); }
       ctx.stroke(); ctx.restore();
       if (c0 !== undefined) {
