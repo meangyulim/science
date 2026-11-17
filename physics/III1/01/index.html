@@ -271,7 +271,7 @@
       for (let i = 0; i <= 64; i++) {
         const x = XW * i / 64, d = 1 / (1 + (-S.dir * sScale * M.TAU / S.lambda * Math.cos(M.TAU * (S.f * t - S.dir * x / S.lambda))));
         const a = Math.max(0, Math.min(0.5, (d - 1) * 0.55 + 0.12));
-        g.addColorStop(i / 64, `rgba(36,99,199,${a})`);
+        g.addColorStop(i / 64, Lab.alpha(C.vel, a));
       }
       ctx.fillStyle = g; ctx.fillRect(X(0), yL - hL, X(XW) - X(0), 2 * hL);
       // 코일 (세로선)

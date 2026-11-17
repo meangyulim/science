@@ -23,6 +23,7 @@
  *          Lab.check(id, ok, okText, idleText)    예제 확인 줄 (.check / .check.ok)
  *          Lab.tries(map, after)   [data-try] 버튼 → map[key]() 실행, after() 뒤 무대로 스크롤
  *          Lab.pointer(el, {down(x,y), move(x,y), up()})   마우스·터치 끌기 (세로 스크롤은 페이지가 가짐)
+ *  색 섞기 Lab.alpha(color, a) → 'rgba(…)'  토큰 색(#hex·rgb)에 투명도를 입힌다 (그라디언트 멈춤점 등)
  *  숫자    Lab.fmt(v, d=2)  끝 0 자름, 음수는 −   Lab.sg(v, d) 부호 붙임   Lab.sci(v, d) 1.7 × 10⁸   Lab.frac(v) 5/3
  *  기타    Lab.reduceMotion (움직임 줄이기 설정이면 처음에 멈춘 상태로)
  */
@@ -259,6 +260,20 @@
     el.addEventListener('pointercancel', () => { pending = null; if (down) { down = false; o.up && o.up(); } });
   }
 
+  // ── 색 섞기 ─────────────────────────────────────────────
+  function alpha(col, a) {
+    col = (col || '').trim();
+    let r = 0, g = 0, bl = 0;
+    if (col[0] === '#') {
+      const h = col.length === 4 ? col.slice(1).split('').map((c) => c + c).join('') : col.slice(1, 7);
+      r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); bl = parseInt(h.slice(4, 6), 16);
+    } else {
+      const m = col.match(/[\d.]+/g) || [0, 0, 0];
+      [r, g, bl] = m.map(Number);
+    }
+    return `rgba(${r},${g},${bl},${a})`;
+  }
+
   // ── 숫자 ────────────────────────────────────────────────
   function fmt(v, d = 2) {
     if (!isFinite(v)) return '–';
@@ -289,5 +304,5 @@
   }
 
   window.Lab = {C, $, reduceMotion, canvas, font, text, measure, arrow, bracket, vbracket, line, circle, rrect, paper, axes,
-    loop, play, slider, group, toggle, check, tries, pointer, fmt, sg, sci, frac, MI, redrawAll};
+    loop, play, slider, group, toggle, check, tries, pointer, alpha, fmt, sg, sci, frac, MI, redrawAll};
 })();
