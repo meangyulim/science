@@ -105,6 +105,20 @@
         .brand-icon { font-size: 20px; line-height: 1; }
         .brand h1 { margin: 0; font-size: 16px; font-weight: 700; color: #4f46e5; }
         .brand-count { font-size: 12px; color: #94a3b8; }
+        .head-right { display: flex; align-items: center; gap: 10px; }
+        /* 물리 시뮬레이션(베타)은 따로 페이지 physics/ 로 간다 */
+        .physics-beta {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 5px 10px; border-radius: 999px;
+            border: 1px solid #ecc9ad; background: #fdf3ec; color: #a2531c;
+            font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap;
+        }
+        .physics-beta:hover { background: #fae6d7; }
+        .physics-beta:active { transform: scale(.97); }
+        .physics-beta small {
+            font-size: 10px; font-weight: 700; letter-spacing: .02em;
+            padding: 1px 5px; border-radius: 999px; background: #a2531c; color: #fff;
+        }
 
         .home-wrap { max-width: 1024px; margin: 0 auto; }
 
@@ -208,7 +222,6 @@
         .cat-geo   .card-icon { background: #fef3c7; }
         .cat-air   .card-icon { background: #e0f2fe; }
         .cat-space .card-icon { background: #ede9fe; }
-        .cat-physics .card-icon { background: #fde4d4; }
         .cat-etc   .card-icon { background: #f1f5f9; }
 
         .empty { margin: 32px 0; text-align: center; font-size: 14px; color: #94a3b8; }
@@ -226,7 +239,10 @@
                 <span class="brand-icon">🔬</span>
                 <h1>민규쌤의 과학 실험실</h1>
             </div>
-            <span class="brand-count" id="sim-count"></span>
+            <div class="head-right">
+                <span class="brand-count" id="sim-count"></span>
+                <a class="physics-beta" href="physics/" title="물리 시뮬레이션 (베타)">🧲 물리 <small>β</small></a>
+            </div>
         </header>
 
         <div class="view-area">
@@ -313,7 +329,6 @@
             { id: 'geo',   name: '지질·고체지구', icon: '⛰️' },
             { id: 'air',   name: '대기·해양',     icon: '🌦️' },
             { id: 'space', name: '천체·우주',     icon: '🪐' },
-            { id: 'physics', name: '물리',        icon: '🧲' },
             { id: 'etc',   name: '그 밖의 것',    icon: '🧩' }
         ];
 
@@ -534,14 +549,6 @@
                 icon: '🪑',
                 category: 'activity',
                 phone: true
-            },
-            {
-                id: 'dc-motor',
-                name: '직류 전동기 3D · 정류자가 전류를 뒤집는 순간',
-                desc: '전류가 흐르는 길, 변이 받는 힘과 돌림힘을 3D로 돌려 보기',
-                url: 'physics/dc-motor/',
-                icon: '🧲',
-                category: 'physics'
             }
         ];
         const NEW_COUNT = 9;

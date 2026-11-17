@@ -35,7 +35,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);f
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 56px}
 .page{max-width:1040px;margin:0 auto}
 :focus-visible{outline:2px solid var(--copper);outline-offset:3px}
-header{padding-block:36px 8px;display:grid;gap:6px}
+header{padding-block:18px 8px;display:grid;gap:6px}
+.home{font-size:13px;color:var(--muted);text-decoration:none;width:max-content;margin-bottom:14px}
+.home:hover{color:var(--ink)}
+.beta{display:inline-block;vertical-align:.35em;margin-left:8px;font:700 12px/1 var(--font-num);padding:4px 8px;border-radius:999px;
+  background:var(--copper);color:var(--paper);letter-spacing:.04em}
 .kicker{font:600 12.5px/1 var(--font-num);letter-spacing:.08em;color:var(--copper)}
 h1{margin:0;font-size:clamp(28px,4.4vw,40px);font-weight:700;letter-spacing:-.025em;line-height:1.2}
 .lead{margin:0;color:var(--muted);max-width:60ch}
@@ -61,9 +65,10 @@ h1{margin:0;font-size:clamp(28px,4.4vw,40px);font-weight:700;letter-spacing:-.02
 <body>
 <div class="page">
   <header>
+    <a class="home" href="../">← 민규쌤의 과학 실험실 (지구과학)</a>
     <div class="kicker">PHYSICS LAB</div>
-    <h1>물리 실험실</h1>
-    <p class="lead">물리학 Ⅰ·Ⅱ 개념을 직접 움직여 보면서 공부하는 시뮬레이션 모음.</p>
+    <h1>물리 실험실<span class="beta">BETA</span></h1>
+    <p class="lead">물리학 Ⅰ·Ⅱ 개념을 직접 움직여 보면서 공부하는 시뮬레이션 모음. 하나씩 만들어 가는 중이에요.</p>
   </header>
   <main id="list"></main>
 </div>
