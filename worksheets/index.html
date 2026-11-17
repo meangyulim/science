@@ -13,6 +13,8 @@
      꼭 필요한 모양은 Tailwind 클래스가 아니라 아래 규칙으로 직접 잡아 둔다. */
   .ws-card   { background:#fff; border:1px solid #e2e8f0; border-radius:16px;
                padding:16px; margin-bottom:12px; }
+  .ws-card-sub { margin-left:18px; border-left:4px solid #a5b4fc; }
+  .ws-card h2  { word-break:keep-all; }
   .ws-btns   { display:flex; gap:8px; margin-top:16px; }
   .ws-btn    { flex:1; text-align:center; padding:11px 0; border-radius:12px;
                font-weight:700; font-size:14px; text-decoration:none; display:block; }
@@ -240,6 +242,11 @@
       .slice(0, 5);
   }
 
+  // 화면에 쓰는 번호. 추가 학습지(sub)는 '4-1' 처럼 본 학습지 번호 뒤에 붙인다.
+  function numLabel(w) {
+    return w.sub ? `${w.no}-${w.sub}` : `${w.no}`;
+  }
+
   // 학습지를 올리거나 고치면 저절로 쌓이는 기록. 손으로 적지 않는다.
   function buildChangeFeed() {
     // 지난 시험 범위의 소식은 접어 둔 학습지와 함께 물러난다.
@@ -247,7 +254,9 @@
       .filter(w => isCurrent(w) && w.added)
       .map(w => ({
         date: w.added,
-        text: `새 학습지 「${w.title}」${objectParticle(w.title)} 올렸습니다.`
+        text: w.sub
+          ? `${w.no}번에 추가 학습지 「${w.title}」${objectParticle(w.title)} 올렸습니다.`
+          : `새 학습지 「${w.title}」${objectParticle(w.title)} 올렸습니다.`
       }));
 
     const revisions = [];
@@ -255,7 +264,7 @@
       updateDays(w).forEach((day, i) => {
         revisions.push({
           date: day,
-          text: `${w.no}번 「${w.title}」 ${i + 1}차 수정본을 올렸습니다. 다시 내려받아 주세요.`
+          text: `${numLabel(w)}번 「${w.title}」 ${i + 1}차 수정본을 올렸습니다. 다시 내려받아 주세요.`
         });
       });
     });
@@ -323,7 +332,7 @@
   // 문자열을 이어 붙여 innerHTML 로 넣지 않고 textContent 로만 넣는다.
   function buildCard(w) {
     const card = document.createElement('div');
-    card.className = "ws-card sm:p-5 shadow-sm";
+    card.className = "ws-card sm:p-5 shadow-sm" + (w.sub ? " ws-card-sub" : "");
 
     const top = document.createElement('div');
     top.className = "flex items-start gap-3";
@@ -342,7 +351,9 @@
 
     const title = document.createElement('h2');
     title.className = "text-base font-bold text-slate-800 break-keep leading-snug mt-0.5";
-    title.textContent = `${w.no}. ${w.title}`;
+    title.textContent = w.sub
+      ? `${numLabel(w)}. 추가 학습지 – ${w.title}`
+      : `${w.no}. ${w.title}`;
     if (isRevised(w) || isNew(w)) {
       const badge = document.createElement('span');
       const revised = isRevised(w);
@@ -400,7 +411,7 @@
     archiveEl.textContent = '';
 
     // 배열에 적은 순서와 무관하게 번호 순으로 보여 준다.
-    const byNo = (a, b) => a.no - b.no;
+    const byNo = (a, b) => (a.no - b.no) || ((a.sub || 0) - (b.sub || 0));
     const current = worksheets.filter(isCurrent).sort(byNo);
     current.forEach(w => listEl.appendChild(buildCard(w)));
 
