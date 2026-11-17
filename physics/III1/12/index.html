@@ -14,6 +14,7 @@
 #pb{aspect-ratio:10/7.4}
 #pc{height:200px}
 .ro.full{grid-column:1/-1}
+.readouts .ro b{white-space:normal;line-height:1.3;display:block}
 .ro.full b{white-space:normal;font-size:18px;line-height:1.4;display:block}
 .ro.neg b{color:var(--neg)}
 .ro b .sw{display:inline-block;width:18px;height:18px;border-radius:50%;vertical-align:-2px;margin-right:6px;border:1px solid var(--line)}
@@ -325,7 +326,7 @@
         Lab.circle(ctx, x, g.yc - y, 2.6, {fill: L});
       }
       ctx.restore();
-    } else slitField(ctx, g);
+    } else { room(ctx, g.rm); slitField(ctx, g); }
     // 광원
     const bx = g.rm.x + (g.narrow ? 6 : 14), bw = g.narrow ? 24 : 50;
     ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.muted; ctx.lineWidth = 1.5; Lab.rrect(ctx, bx, g.yc - 20, bw, 40, 6); ctx.fill(); ctx.stroke(); ctx.restore();
@@ -346,23 +347,25 @@
       const v = Math.min(1, I(g.yc - py));
       ctx.fillStyle = css(mix(rc, lc, Math.pow(v, 0.8))); ctx.fillRect(g.xs - 7, py, 14, 2);
     }
-    text(ctx, '스크린', g.xs, g.rm.y + 14, {size: 13.5, w: 700, color: tc});
+    text(ctx, '스크린', g.xs + 8, g.rm.y + 14, {size: 13.5, w: 700, color: tc, align: 'right'});
     const pts = [];
     for (let py = g.rm.y + 6; py <= g.rm.y + g.rm.h - 6; py += 2) pts.push([g.xs + 16 + Math.min(1, I(g.yc - py)) * cw, py]);
     Lab.line(ctx, [[g.xs + 16, g.rm.y + 6], [g.xs + 16, g.rm.y + g.rm.h - 6]], tc, 1);
     Lab.line(ctx, pts, L, 2.6);
     // 오른쪽 이름표 (넓은 화면): 경로차 0, λ/2, λ, 3λ/2 …
-    if (!g.narrow && !S.particle) {
+    const avail = g.W - (g.rm.x + g.rm.w) - 14;
+    if (!g.narrow && !S.particle && avail > 70) {
+      const long = avail >= 132;
       for (let q = 0; q <= 2; q += 0.5) {
         const y = M.yOfDiff(q * g.lam, g.d, g.L), py = g.yc - y; if (py < g.rm.y + 10) continue;
         const con = q % 1 === 0, col = con ? C.acc : C.neg;
         ctx.save(); ctx.strokeStyle = col; ctx.setLineDash([2, 3]); ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(g.xs + 16 + (con ? cw : 4), py); ctx.lineTo(g.rm.x + g.rm.w + 6, py); ctx.stroke(); ctx.restore();
-        text(ctx, '경로차 ' + fl(q) + (con ? ' → 밝음' : ' → 어두움'), g.rm.x + g.rm.w + 10, py, {size: 13, w: 700, color: col, align: 'left'});
+        text(ctx, (long ? '경로차 ' : '') + fl(q) + (con ? (long ? ' → 밝음' : ' 밝음') : (long ? ' → 어두움' : ' 어두움')), g.rm.x + g.rm.w + 10, py, {size: 13, w: 700, color: col, align: 'left'});
       }
     }
     if (S.particle) {
-      tag(ctx, '입자라면: 틈 모양의 두 줄만', (g.xb + g.xs) / 2, g.rm.y + 26, {size: 14, w: 700, color: C.ink, align: 'center'});
+      tag(ctx, '입자라면: 틈 모양의 두 줄만', (g.xb + g.xs) / 2, g.rm.y + 50, {size: 14, w: 700, color: C.ink, align: 'center'});
       return;
     }
     // 점 P 와 두 경로
@@ -446,9 +449,9 @@
     if (tpx) { ctx.moveTo(box.x, yBot); ctx.lineTo(box.x + box.w, yBot); } ctx.stroke(); ctx.restore();
     text(ctx, o.names[0], box.x + 8, box.y + 14, {size: 13.5, w: 700, color: C.muted, align: 'left'});
     if (tpx) text(ctx, o.names[1], box.x + 8, (yTop + yBot) / 2, {size: 13.5, w: 700, color: C.violet, align: 'left', halo: true});
-    text(ctx, o.names[2], box.x + 8, box.y + box.h - 14, {size: 13.5, w: 700, color: o.n3 > 1.01 ? C.vel : C.muted, align: 'left'});
+    text(ctx, o.names[2], box.x + 8, (tpx ? yBot : yTop) + 18, {size: 13.5, w: 700, color: o.n3 > 1.01 ? C.vel : C.muted, align: 'left', halo: true});
     // 빛줄기
-    const ax = box.x + box.w * (o.small ? 0.36 : 0.34), up = yTop - box.y - 26, len = up / Math.cos(th);
+    const ax = box.x + box.w * (o.ax || (o.small ? 0.36 : 0.34)), up = yTop - box.y - 26, len = up / Math.cos(th);
     const A = [ax, yTop], In0 = [ax - Math.sin(th) * len, yTop - Math.cos(th) * len];
     const ray = o.ray || C.ink;
     ctx.save(); ctx.globalAlpha = 0.25; Lab.line(ctx, [In0, A], ray, 9); ctx.restore();
@@ -469,8 +472,8 @@
       const T1 = [ax + Math.tan(th3) * (box.y + box.h - yTop - 6), box.y + box.h - 6];
       ctx.save(); ctx.globalAlpha = 0.45; Lab.line(ctx, [A, T1], ray, o.wT || 2.4); ctx.restore();
     }
-    text(ctx, o.lab1 || '① 윗면 반사', E1[0] - 10, E1[1] + 6, {size: 13.5, w: 700, color: C.violet, align: 'right', halo: true});
-    if (E2) text(ctx, o.lab2 || '② 아랫면 반사', E2[0] + 10, E2[1] + 6, {size: 13.5, w: 700, color: C.vel, align: 'left', halo: true});
+    text(ctx, o.lab1 || (o.small ? '①' : '① 윗면 반사'), E1[0] - 10, E1[1] + 6, {size: 13.5, w: 700, color: C.violet, align: 'right', halo: true});
+    if (E2) text(ctx, o.lab2 || (o.small ? '②' : '② 아랫면 반사'), E2[0] + 10, E2[1] + 6, {size: 13.5, w: 700, color: C.vel, align: 'left', halo: true});
     return {E1, E2, yTop, yBot};
   }
   function drawFilm(ctx, g) {
@@ -497,12 +500,12 @@
       ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1.2; Lab.rrect(ctx, b.x, b.y, b.w, b.h, 12); ctx.stroke(); ctx.restore();
       ctx.save(); Lab.rrect(ctx, b.x, b.y, b.w, b.h, 12); ctx.clip();
       const R = i ? R1 : R0, wR = 1.5 + R / 0.04 * 5;
-      const r = drawSection(ctx, b, {n2: N_COAT, n3: N_GLASS, t, names: ['공기', i ? '코팅 막 ' + t + ' nm' : '', '렌즈 유리'], small: true,
+      const r = drawSection(ctx, b, {n2: N_COAT, n3: N_GLASS, t, names: ['공기', i ? '코팅 막 ' + t + ' nm' : '', '렌즈 유리'], small: true, ax: narrow ? 0.58 : 0.36,
         w1: i ? 3 : wR, w2: 3, wT: 2.4 + (1 - R) * 2, lab1: i ? '①' : '반사광', lab2: '②'});
       ctx.restore();
       // 제목과 반사율
-      text(ctx, nm, b.x + b.w - 10, b.y + b.h - 34, {size: 14.5, w: 700, color: i ? C.acc : C.ink, align: 'right', halo: true});
-      text(ctx, '반사 ' + fmt(R * 100, 1) + '% · 투과 ' + fmt((1 - R) * 100, 1) + '%', b.x + b.w - 10, b.y + b.h - 14, {size: 13, w: 700, color: C.ink, align: 'right', mono: true, halo: true});
+      text(ctx, nm, b.x + 10, b.y + b.h - 34, {size: 14.5, w: 700, color: i ? C.acc : C.ink, align: 'left', halo: true});
+      text(ctx, '반사 ' + fmt(R * 100, 1) + '% · 투과 ' + fmt((1 - R) * 100, 1) + '%', b.x + 10, b.y + b.h - 14, {size: 13, w: 700, color: C.ink, align: 'left', mono: true, halo: true});
       // 반사되어 보이는 빛 (백색광을 비출 때)
       let mx = 0; for (let l = 400; l <= 700; l += 10) mx = Math.max(mx, coatR(t, l));
       const rc = M.spectrumRGB((l) => coatR(t, l) / mx), ex = b.x + b.w - 34, ey = b.y + (narrow ? 40 : 58);
@@ -520,22 +523,26 @@
   }
   function drawNoise(ctx, g) {
     const {W, H, narrow} = g, top = narrow ? 60 : 56, bot = H - 16;
-    // 헤드폰 그림 (왼쪽 / 위)
-    const hx = narrow ? W / 2 : 120, hy = narrow ? top + 62 : (top + bot) / 2;
-    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 6; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.arc(hx, hy + 10, narrow ? 48 : 70, PI * 1.1, PI * 1.9); ctx.stroke(); ctx.restore();
-    const cup = (cx) => { ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 2.4; Lab.rrect(ctx, cx - 16, hy - 14, 32, 58, 12); ctx.fill(); ctx.stroke(); ctx.restore(); };
-    const sp = narrow ? 48 : 70; cup(hx - sp); cup(hx + sp);
-    Lab.circle(ctx, hx + sp + 22, hy + 28, 5, {fill: C.vel}); text(ctx, '마이크', hx + sp + 22, hy + 46, {size: 13, w: 600, color: C.vel});
-    Lab.circle(ctx, hx + sp, hy + 16, 7, {fill: C.violet}); text(ctx, '스피커', hx + sp - 2, hy - 26, {size: 13, w: 600, color: C.violet});
-    if (!narrow) text(ctx, S.anc ? '소음 제거 켜짐' : '소음 제거 꺼짐', hx, hy + 78, {size: 14, w: 700, color: S.anc ? C.acc : C.muted});
+    // 이어컵 단면: 바깥 소음 → 마이크, 컵 안 스피커가 반대 위상 소리 → 귀
+    const hx = narrow ? W / 2 - 26 : 112, hy = narrow ? top + 66 : (top + bot) / 2 - 16;
+    arrow(ctx, hx - (narrow ? 92 : 96), hy - 28, hx - 36, hy - 28, C.vel, 3, 10);
+    text(ctx, '바깥 소음', hx - (narrow ? 66 : 68), hy - 10, {size: 13.5, w: 700, color: C.vel});
+    ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 2.4; Lab.rrect(ctx, hx - 28, hy - 54, 52, 108, 14); ctx.fill(); ctx.stroke(); ctx.restore();
+    Lab.circle(ctx, hx - 28, hy - 28, 6.5, {fill: C.vel, stroke: C.paper, width: 1.5});
+    text(ctx, '마이크', hx - 36, hy - 50, {size: 13, w: 700, color: C.vel, align: 'right'});
+    ctx.save(); ctx.fillStyle = C.violet; ctx.beginPath(); ctx.moveTo(hx + 10, hy - 10); ctx.lineTo(hx + 22, hy - 20); ctx.lineTo(hx + 22, hy + 20); ctx.lineTo(hx + 10, hy + 10); ctx.closePath(); ctx.fill(); ctx.restore();
+    text(ctx, '스피커', hx - 2, hy + 70, {size: 13, w: 700, color: C.violet});
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(hx + 52, hy, 20, -PI * 0.55, PI * 0.55); ctx.stroke();
+    ctx.beginPath(); ctx.arc(hx + 52, hy + 2, 9, -PI * 0.4, PI * 0.5); ctx.stroke(); ctx.restore();
+    text(ctx, '귀', hx + 80, hy, {size: 13.5, w: 700, color: C.ink, align: 'left'});
+    if (!narrow) text(ctx, S.anc ? '소음 제거 켜짐' : '소음 제거 꺼짐', hx, hy + 96, {size: 14, w: 700, color: S.anc ? C.acc : C.muted});
     // 세 줄: 소음, 반대 위상 소리, 귀에 들리는 합
-    const x0 = narrow ? 18 : 260, x1 = W - 20, y0 = narrow ? top + 138 : top + 8, rh = (bot - y0) / 3, amp = rh * 0.26, sh = S.t * 0.6;
+    const x0 = narrow ? 18 : 236, x1 = W - 20, y0 = narrow ? top + 150 : top + 8, rh = (bot - y0) / 3, amp = rh * 0.24, sh = S.t * 0.6;
     const rows = [['바깥 소음 (마이크가 받음)', C.vel, (u) => M.noise(u * 2.2 + sh), [7, 5]],
       ['스피커가 내는 소리: 반대 위상', C.violet, S.anc ? (u) => M.antiNoise(u * 2.2 + sh) : null, [7, 5]],
       ['귀에 들리는 소리 = 두 소리의 합', C.ink, (u) => M.noise(u * 2.2 + sh) + (S.anc ? M.antiNoise(u * 2.2 + sh) : 0), null]];
     rows.forEach(([nm, col, f, dash], k) => {
-      const yb = y0 + rh * k + rh * 0.6;
+      const yb = y0 + rh * k + rh * 0.58;
       text(ctx, nm, x0, y0 + rh * k + 12, {size: 13.5, w: 700, color: col, align: 'left'});
       Lab.line(ctx, [[x0, yb], [x1, yb]], C.line, 1);
       if (f) wavePlot(ctx, x0, x1, yb, amp, f, col, k === 2 ? 3.4 : 2.6, dash);
@@ -545,15 +552,8 @@
   }
   function drawInst(ctx, g) {
     const {W, H, narrow} = g, top = narrow ? 64 : 60;
-    const x0 = narrow ? 30 : 70, x1 = W - (narrow ? 30 : 70), ys = top + (narrow ? 90 : 96), A = narrow ? 18 : 24, Ls = x1 - x0;
-    // 울림통
-    const bx = (x0 + x1) / 2, by = ys + (narrow ? 150 : 140);
-    ctx.save(); ctx.fillStyle = C['copper-soft']; ctx.strokeStyle = C.copper; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(bx - Ls * 0.18, by, Ls * 0.24, narrow ? 62 : 74, 0, 0, TAU); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(bx + Ls * 0.16, by, Ls * 0.2, narrow ? 54 : 64, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
-    Lab.circle(ctx, bx, by, narrow ? 16 : 20, {fill: roomCol()});
-    text(ctx, '울림통', bx - Ls * 0.3, by + 4, {size: 13.5, w: 700, color: C.copper});
-    // 줄: 양 끝에서 반사된 두 파동(점선)이 겹쳐 정상파(실선)
+    const x0 = narrow ? 30 : 70, x1 = W - (narrow ? 30 : 70), ys = top + (narrow ? 96 : 100), A = narrow ? 18 : 24, Ls = x1 - x0;
+    // 줄: 양 끝에서 반사된 두 파동(점선)이 겹쳐 제자리에서 크게 진동(실선)
     const k = PI / Ls, w = TAU * S.tau;
     ctx.save(); ctx.fillStyle = C['acc-soft']; ctx.beginPath();
     for (let i = 0; i <= 100; i++) { const x = x0 + Ls * i / 100; ctx.lineTo(x, ys - 2 * A * Math.sin(k * (x - x0))); }
@@ -564,67 +564,80 @@
     ctx.save(); ctx.lineDashOffset = 6; wavePlot(ctx, x0, x1, ys, A, f2, C.vel, 2.2, [6, 6]); ctx.restore();
     wavePlot(ctx, x0, x1, ys, A, (u) => f1(u) + f2(u), C.ink, 3.4);
     [x0, x1].forEach((x) => { ctx.save(); ctx.fillStyle = C.ink; ctx.fillRect(x - 4, ys - 26, 8, 52); ctx.restore(); });
-    text(ctx, '양 끝에서 반사된 두 파동이 겹쳐', bx, ys - 2 * A - 34, {size: 14, w: 700, color: C.ink, halo: true});
-    text(ctx, '특정 진동수만 크게 진동 (보강)', bx, ys - 2 * A - 14, {size: 14, w: 700, color: C.acc, halo: true});
-    // 울림통에서 퍼지는 소리
+    text(ctx, '줄', x0 + 14, ys + 2 * A + 16, {size: 13.5, w: 700, color: C.ink, align: 'left'});
+    text(ctx, '양 끝에서 반사된 두 파동이 겹쳐', (x0 + x1) / 2, ys - 2 * A - 34, {size: 14, w: 700, color: C.ink, halo: true});
+    text(ctx, '특정 진동수만 크게 진동 (보강)', (x0 + x1) / 2, ys - 2 * A - 14, {size: 14, w: 700, color: C.acc, halo: true});
+    // 울림통(기타 몸통)과 아래로 퍼지는 소리
+    const bx = narrow ? W * 0.42 : W * 0.4, by = ys + (narrow ? 132 : 128), rx = narrow ? 74 : 96, ry = narrow ? 48 : 58;
+    ctx.save(); ctx.fillStyle = C['copper-soft']; ctx.strokeStyle = C.copper; ctx.lineWidth = 2;
+    Lab.rrect(ctx, bx + rx - 10, by - 9, narrow ? 70 : 150, 18, 4); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(bx, by, rx, ry, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
+    Lab.circle(ctx, bx + rx * 0.3, by, narrow ? 14 : 17, {fill: roomCol()});
+    text(ctx, '울림통', bx - rx * 0.42, by, {size: 13.5, w: 700, color: C.copper});
+    const reach = narrow ? 56 : 70;
     for (let n = 0; n < 3; n++) {
-      const rr = ((S.t * 0.5 + n / 3) % 1) * (narrow ? 70 : 110) + 24;
-      ctx.save(); ctx.strokeStyle = C.acc; ctx.globalAlpha = 1 - (rr - 24) / (narrow ? 70 : 110); ctx.lineWidth = 2.6;
-      ctx.beginPath(); ctx.arc(bx, by, rr, -PI * 0.15, PI * 0.15); ctx.stroke(); ctx.beginPath(); ctx.arc(bx, by, rr, PI * 0.85, PI * 1.15); ctx.stroke(); ctx.restore();
+      const rr = ry + 8 + ((S.t * 0.5 + n / 3) % 1) * reach;
+      ctx.save(); ctx.strokeStyle = C.acc; ctx.globalAlpha = 1 - (rr - ry - 8) / reach; ctx.lineWidth = 2.6;
+      ctx.beginPath(); ctx.arc(bx + rx * 0.3, by, rr, PI * 0.32, PI * 0.68); ctx.stroke(); ctx.restore();
     }
-    text(ctx, '크고 선명한 소리', bx + (narrow ? 0 : Ls * 0.42), by + (narrow ? 84 : 0), {size: 13.5, w: 700, color: C.acc, halo: true});
+    text(ctx, '울림통에서 더 크게 → 크고 선명한 소리', bx + rx * 0.3, by + ry + reach + 22, {size: 13.5, w: 700, color: C.acc, halo: true});
   }
   function drawStone(ctx, g) {
     const {W, H, narrow} = g, top = narrow ? 60 : 56;
-    const fx = W / 2, fy = top + (narrow ? 150 : 130), R = narrow ? 150 : 200;
-    // 몸과 콩팥, 결석
+    const fx = W / 2, fy = top + (narrow ? 104 : 92), R = narrow ? 160 : 210, spread = narrow ? 0.42 : 0.36;
+    // 몸(살갗)과 콩팥, 결석 — 발생 장치는 살갗에 붙어 결석에서 같은 거리
     ctx.save(); ctx.fillStyle = C['copper-soft']; ctx.strokeStyle = C.copper; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(fx, fy - 10, narrow ? 150 : 250, narrow ? 112 : 118, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
-    text(ctx, '몸 속', fx - (narrow ? 112 : 200), fy - 70, {size: 13.5, w: 700, color: C.copper});
-    ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.ellipse(fx, fy, 46, 30, 0.2, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
-    // 발생 장치 5개: 결석에서 같은 거리(원호 위)
-    const srcs = []; for (let k = -2; k <= 2; k++) { const a = PI / 2 + k * 0.32; srcs.push([fx + R * Math.cos(a), fy + R * Math.sin(a)]); }
-    const cyc = (S.t * 0.4) % 1, rr = cyc * R * 1.25, hit = Math.abs(rr - R) < R * 0.05;
+    ctx.beginPath(); ctx.ellipse(fx, fy + R * 0.32, narrow ? W / 2 - 12 : R * 1.45, R * 0.68, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
+    text(ctx, '몸 속', fx - (narrow ? W / 2 - 52 : R * 1.12), fy + R * 0.12, {size: 13.5, w: 700, color: C.copper});
+    ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.ellipse(fx, fy, 50, 32, 0.2, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
+    text(ctx, '콩팥', fx + 58, fy - 18, {size: 13, w: 600, color: C.muted, align: 'left'});
+    const srcs = []; for (let k = -2; k <= 2; k++) { const a = PI / 2 + k * spread; srcs.push([fx + R * Math.cos(a), fy + R * Math.sin(a)]); }
+    const cyc = (S.t * 0.4) % 1, rr = cyc * R * 1.2, hit = Math.abs(rr - R) < R * 0.06;
     srcs.forEach(([sx, sy]) => {
       const ang = Math.atan2(fy - sy, fx - sx);
-      ctx.save(); ctx.fillStyle = C.ink; ctx.translate(sx, sy); ctx.rotate(ang + PI / 2); Lab.rrect(ctx, -14, -6, 28, 12, 4); ctx.fill(); ctx.restore();
-      if (rr > 4) { ctx.save(); ctx.strokeStyle = C.energy; ctx.lineWidth = 2.8; ctx.globalAlpha = rr > R * 1.1 ? 0.35 : 0.95; ctx.beginPath(); ctx.arc(sx, sy, rr, ang - 0.35, ang + 0.35); ctx.stroke(); ctx.restore(); }
+      if (rr > 4) { ctx.save(); ctx.strokeStyle = C.energy; ctx.lineWidth = 3.2; ctx.globalAlpha = rr > R * 1.06 ? 0.3 : 1; ctx.beginPath(); ctx.arc(sx, sy, rr, ang - 0.32, ang + 0.32); ctx.stroke(); ctx.restore(); }
+      ctx.save(); ctx.fillStyle = C.ink; ctx.translate(sx, sy); ctx.rotate(ang + PI / 2); Lab.rrect(ctx, -16, -7, 32, 14, 4); ctx.fill(); ctx.restore();
     });
-    // 결석
     ctx.save(); ctx.fillStyle = C.ink; ctx.beginPath();
     for (let i = 0; i < 9; i++) { const a = i / 9 * TAU, r = 10 + 3 * Math.sin(i * 2.7); ctx.lineTo(fx + r * Math.cos(a), fy + r * Math.sin(a)); }
     ctx.closePath(); ctx.fill(); ctx.restore();
-    if (hit || cyc > 0.79 && cyc < 0.86) {
-      for (let i = 0; i < 10; i++) { const a = i / 10 * TAU; Lab.line(ctx, [[fx + 16 * Math.cos(a), fy + 16 * Math.sin(a)], [fx + 32 * Math.cos(a), fy + 32 * Math.sin(a)]], C.energy, 3); }
-    }
-    tag(ctx, '결석: 다섯 펄스가 동시에 도착 → 보강', fx, fy - (narrow ? 72 : 62), {size: 13.5, w: 700, color: C.acc, align: 'center', border: C.acc});
-    text(ctx, '초음파 발생 장치 (결석에서 같은 거리)', fx, fy + R + (narrow ? 26 : 22), {size: 13.5, w: 700, color: C.ink, halo: true});
-    text(ctx, '다른 곳은 펄스가 따로따로 지나가 약함', fx, fy + R + (narrow ? 46 : 42), {size: 13, w: 600, color: C.muted, halo: true});
+    if (hit) for (let i = 0; i < 10; i++) { const a = i / 10 * TAU; Lab.line(ctx, [[fx + 16 * Math.cos(a), fy + 16 * Math.sin(a)], [fx + 34 * Math.cos(a), fy + 34 * Math.sin(a)]], C.energy, 3.4); }
+    tag(ctx, hit ? '다섯 펄스가 결석에 동시에 도착 → 보강' : '결석까지 거리가 모두 같다', fx, top + 12, {size: 13.5, w: 700, color: hit ? C.acc : C.ink, align: 'center', border: hit ? C.acc : C.line});
+    const ly = fy + R + (narrow ? 30 : 26);
+    text(ctx, '초음파 발생 장치', fx, ly, {size: 13.5, w: 700, color: C.ink, halo: true});
+    text(ctx, '다른 곳은 펄스가 따로따로 지나가 약함', fx, ly + 20, {size: 13, w: 600, color: C.muted, halo: true});
   }
   const inkColor = (deg) => M.spectrumRGB((l) => M.twoBeam(M.filmDelta(INK_T, l, 1, N_INK, N_INK_SUB, deg * PI / 180)));
   function drawInk(ctx, g) {
     const {W, H, narrow} = g, top = narrow ? 62 : 58;
-    const nx = narrow ? 26 : W * 0.2, nw = narrow ? W - 52 : W * 0.6, ny = top + (narrow ? 170 : 150), nh = narrow ? 120 : 140;
-    // 지폐
+    const nx = narrow ? 18 : 30, nw = narrow ? W - 36 : W * 0.58, ny = top + (narrow ? 196 : 176), nh = narrow ? 112 : 132;
     ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.muted; ctx.lineWidth = 2; Lab.rrect(ctx, nx, ny, nw, nh, 10); ctx.fill(); ctx.stroke(); ctx.restore();
-    ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; for (let i = 1; i < 6; i++) { ctx.beginPath(); ctx.moveTo(nx + 10, ny + nh * i / 6); ctx.lineTo(nx + nw * 0.45, ny + nh * i / 6); ctx.stroke(); } ctx.restore();
-    const c0 = inkColor(0), c1 = inkColor(S.angle), cx = nx + nw * 0.72, cy = ny + nh / 2;
-    ctx.save(); ctx.fillStyle = roomCol(); Lab.rrect(ctx, cx - (narrow ? 62 : 80), cy - 34, narrow ? 124 : 160, 68, 10); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; for (let i = 1; i < 6; i++) { ctx.beginPath(); ctx.moveTo(nx + 10, ny + nh * i / 6); ctx.lineTo(nx + nw * 0.36, ny + nh * i / 6); ctx.stroke(); } ctx.restore();
+    const c0 = inkColor(0), c1 = inkColor(S.angle), cx = nx + nw * 0.68, cy = ny + nh / 2, pw = narrow ? 128 : 160;
+    ctx.save(); ctx.fillStyle = roomCol(); Lab.rrect(ctx, cx - pw / 2, cy - 32, pw, 64, 10); ctx.fill(); ctx.restore();
     text(ctx, '50000', cx, cy, {size: narrow ? 30 : 38, w: 800, color: css(c1), mono: true});
-    // 두 눈
-    const eye = (ex, ey, col, nm, deg) => {
-      ctx.save(); ctx.strokeStyle = C.muted; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(ex, ey + 10); ctx.lineTo(cx, cy - 34); ctx.stroke(); ctx.restore();
-      ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(ex, ey, 16, 9, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
-      Lab.circle(ctx, ex, ey, 4.5, {fill: C.ink});
-      ctx.save(); ctx.fillStyle = roomCol(); Lab.rrect(ctx, ex + 22, ey - 13, 26, 26, 6); ctx.fill(); ctx.restore();
-      Lab.circle(ctx, ex + 35, ey, 9, {fill: css(col)});
-      text(ctx, nm + ' (' + deg + '°)', ex + 56, ey, {size: 13.5, w: 700, color: C.ink, align: 'left', halo: true});
+    // 보는 눈: 수직선(정면)에서 θ 기울어진 방향
+    const L = narrow ? 150 : 150, a = S.angle * PI / 180, ox = cx, oy = cy - 32, ex = ox - L * Math.sin(a), ey = oy - L * Math.cos(a);
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox, oy - L - 10); ctx.stroke(); ctx.restore();
+    text(ctx, '정면 (0°)', ox + 8, oy - L - 4, {size: 13, w: 600, color: C.muted, align: 'left'});
+    Lab.line(ctx, [[ox, oy], [ex, ey + 8]], C.ink, 1.6, [5, 4]);
+    if (S.angle > 2) {
+      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ox, oy, 46, -PI / 2 - a, -PI / 2); ctx.stroke(); ctx.restore();
+      text(ctx, 'θ', ox - 60 * Math.sin(a / 2), oy - 60 * Math.cos(a / 2), {size: 14, w: 700, color: C.copper, halo: true});
+    }
+    ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(ex, ey, 17, 10, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
+    Lab.circle(ctx, ex, ey, 4.8, {fill: C.ink});
+    text(ctx, '보는 눈', ex - 24, ey, {size: 13.5, w: 700, color: C.ink, align: 'right', halo: true});
+    // 견본: 정면과 지금 각도
+    const bx = narrow ? 18 : nx + nw + 26, by = narrow ? top + 8 : top + 40;
+    const sw = (y, col, s) => {
+      ctx.save(); ctx.fillStyle = roomCol(); Lab.rrect(ctx, bx, y - 15, 30, 30, 7); ctx.fill(); ctx.restore();
+      Lab.circle(ctx, bx + 15, y, 10, {fill: css(col)});
+      text(ctx, s + ' ' + colorName(col), bx + 40, y, {size: 13.5, w: 700, color: C.ink, align: 'left'});
     };
-    const L = narrow ? 120 : 140, a = S.angle * PI / 180;
-    eye(cx - (narrow ? 70 : 60), cy - 34 - L, c0, '정면', 0);
-    eye(cx - L * Math.sin(a) - 30, cy - 34 - L * Math.cos(a) + (S.angle ? 0 : 40), c1, '비스듬히', S.angle);
-    text(ctx, '보는 각도에 따라 보강되는 색이 달라진다', W / 2, ny + nh + 28, {size: 14, w: 700, color: C.acc, halo: true});
-    text(ctx, '→ 복사기로 흉내 낼 수 없다', W / 2, ny + nh + 50, {size: 13.5, w: 600, color: C.muted, halo: true});
+    sw(by, c0, '0°에서'); sw(by + 38, c1, S.angle + '°에서');
+    text(ctx, '보는 각도가 바뀌면 보강되는 색이 달라진다', W / 2, ny + nh + 26, {size: 14, w: 700, color: C.acc, halo: true});
+    text(ctx, '→ 복사기로 흉내 낼 수 없다', W / 2, ny + nh + 48, {size: 13.5, w: 600, color: C.muted, halo: true});
   }
 
   function drawStage() {
@@ -711,11 +724,9 @@
       });
       text(ctx, '← 스크린 위치 →', W / 2, H - 6, {size: 13, w: 500, color: C.muted});
     } else if (S.scene === 'film') {
-      const lw = 8, X = (t) => lw + t / 1000 * (W - 2 * lw), y0 = 20, hh = H - 70;
-      text(ctx, S.light === 'w' ? '백색광에서 막 두께에 따라 보이는 색' : CN[S.light] + '빛에서 막 두께에 따른 밝기', lw, 8, {size: 13.5, w: 700, align: 'left', color: C.muted});
+      const lw = 8, X = (t) => lw + t / 1000 * (W - 2 * lw), y0 = 20, hh = H - 52;
       for (let x = X(0); x < X(1000); x += 2) { ctx.fillStyle = css(filmColor((x - lw) / (W - 2 * lw) * 1000, S.light)); ctx.fillRect(x, y0, 2, hh); }
-      for (let t = 0; t <= 1000; t += 100) { Lab.line(ctx, [[X(t), y0 + hh], [X(t), y0 + hh + 5]], C.muted, 1); if (t % 200 === 0) text(ctx, String(t), X(t), y0 + hh + 16, {size: 13, w: 500, color: C.muted, mono: true}); }
-      text(ctx, 'nm', W - lw, y0 + hh + 32, {size: 13, w: 500, color: C.muted, align: 'right'});
+      for (let t = 0; t <= 1000; t += 100) { Lab.line(ctx, [[X(t), y0 + hh], [X(t), y0 + hh + 5]], C.muted, 1); if (t % 200 === 0) text(ctx, t === 1000 ? '1000 nm' : String(t), X(t), y0 + hh + 16, {size: 13, w: 500, color: C.muted, mono: true, align: t === 0 ? 'left' : t === 1000 ? 'right' : 'center'}); }
       const px = X(S.thick);
       ctx.beginPath(); ctx.moveTo(px, y0 - 2); ctx.lineTo(px - 7, y0 - 13); ctx.lineTo(px + 7, y0 - 13); ctx.closePath(); ctx.fillStyle = C.copper; ctx.fill();
       ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.5; ctx.strokeRect(px - 3, y0 - 1, 6, hh + 2); ctx.restore();
@@ -761,7 +772,8 @@
       setRo(1, '빛의 색 · 파장', CN[S.col] + ' ' + NM[S.col] + ' nm', 'cu');
       setRo(2, '경로차 Δ = |r₂ − r₁|', fl(Math.abs(dl)), '');
       setRo(3, '판정', S.particle ? '–' : {con: '밝음 (보강)', des: '어두움 (상쇄)', mid: '중간'}[j], j === 'con' ? 'acc' : j === 'des' ? 'neg' : '');
-      setRo(4, '무늬', S.particle ? '두 줄' : (j === 'con' ? (m === 0 ? '가운데 밝은 무늬' : m + '번째 밝은 무늬') : j === 'des' ? (m + 0.5) + '번째 어두운 무늬' : '경계'), '');
+      const nth = (k) => (['', '첫', '두', '세', '네', '다섯'][k] || k) + ' 번째';
+      setRo(4, '무늬', S.particle ? '두 줄' : (j === 'con' ? (m === 0 ? '가운데 밝은 무늬' : nth(m) + ' 밝은 무늬') : j === 'des' ? nth(Math.ceil(m)) + ' 어두운 무늬' : '경계'), '');
       setRo(5, '두 빛이 P에서 만나는 위상', S.particle ? '입자라면 간섭이 없다' : {con: '같은 위상 → 서로 키움', des: '반대 위상 → 둘 다 왔지만 합 0', mid: '조금 어긋남'}[j], '');
       h1.textContent = CN[S.col] + '빛 ' + NM[S.col] + ' nm'; h2.textContent = '그림은 파장을 크게 과장';
     } else if (S.scene === 'film') {
@@ -788,7 +800,7 @@
       setRo(1, '이용', u.name, 'cu');
       setRo(2, '간섭', con ? '보강 간섭' : '상쇄 간섭', con ? 'acc' : 'neg');
       setRo(3, '만나는 위상', con ? '같은 위상' : '반대 위상', '');
-      setRo(4, '결과', {noise: S.anc ? '소음이 줄어듦' : '(꺼짐) 소음 그대로', inst: '특정 소리가 크고 선명', stone: '결석만 깨짐', ink: '각도마다 다른 색'}[S.use], '');
+      setRo(4, '결과', {noise: S.anc ? '소음이 줄어듦' : '소음 그대로', inst: '크고 선명한 소리', stone: '결석만 깨짐', ink: '각도마다 다른 색'}[S.use], '');
       setRo(5, '분류', '상쇄: 헤드폰·무반사 코팅 / 보강: 악기·결석 파쇄·색 변환 잉크', '');
       h1.textContent = u.name; h2.textContent = con ? '보강 간섭' : '상쇄 간섭';
     }
@@ -806,6 +818,7 @@
     $('panB').hidden = sc === 'use'; $('panC').hidden = sc === 'use'; $('panD').hidden = sc !== 'use';
     const lg = $('legend'); lg.innerHTML = legends[sc]; lg.hidden = !legends[sc];
     if (titles[sc]) { $('pbTitle').innerHTML = titles[sc][0]; $('pbCap').innerHTML = titles[sc][1]; $('pcTitle').innerHTML = titles[sc][2]; $('pcCap').innerHTML = titles[sc][3]; }
+    if (sc === 'film') $('pcTitle').innerHTML = '두께에 따른 반사색 <small>' + (S.light === 'w' ? '백색광' : CN[S.light] + '빛: 밝고 어두운 띠') + '</small>';
     $('particle').setAttribute('aria-pressed', String(S.particle));
     $('thick').value = S.thick; $('tc').value = S.tc; $('ang').value = S.angle; $('anc').checked = S.anc;
     sceneG.set(sc, true); colG.set(S.col, true); lightG.set(S.light, true); useG.set(S.use, true); speedG.set(S.speed, true);

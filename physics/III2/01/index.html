@@ -11,7 +11,7 @@
 <style>
 /* Layout: 왼쪽 무대(같은 빛, 세 실험: 이중 슬릿 · 광전 효과 · 콤프턴 산란)와 조작판, 오른쪽 지금 수치 · 장면 그래프 · 현상 분류 */
 #stage{aspect-ratio:16/10.2}
-#sg{aspect-ratio:10/7}
+#sg{aspect-ratio:10/6.3}
 .sort{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .sort li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;align-items:center;background:var(--bg);border-radius:12px;padding:7px 10px}
 .sort .nm{font-weight:700;font-size:15px}
@@ -302,7 +302,7 @@
 
   // 이중 슬릿 배치
   function slitGeo() {
-    const W = stage.W, H = stage.H, narrow = W < 520, top = 58, bot = H - (narrow ? 64 : 48);
+    const W = stage.W, H = stage.H, narrow = W < 520, top = 58, bot = H - (narrow ? 74 : 48);
     const cy = (top + bot) / 2 + 8, SH = (bot - top) / 2 - 20;
     const xs = narrow ? W * 0.62 : W * 0.66, sw = narrow ? 22 : 28;
     return {W, H, narrow, top, bot, cy, SH, lx: narrow ? 30 : 52, xb: narrow ? W * 0.29 : W * 0.31, xs, sw,
@@ -358,7 +358,8 @@
     ctx.fillStyle = plate; ctx.fillRect(G.xs, G.cy - G.SH, G.sw, 2 * G.SH);
     text(ctx, '화면', G.xs + G.sw / 2, G.cy - G.SH - 12, {size: 13.5, w: 700});
     ctx.fillStyle = col;
-    for (const h of hits) ctx.fillRect(G.xs + 3 + h.x * (G.sw - 6) - 1.3, yPx(G, h.y) - 1.3, 2.6, 2.6);
+    const ds = hits.length < 150 ? 4.2 : hits.length < 1500 ? 3 : 2.4;
+    for (const h of hits) ctx.fillRect(G.xs + 3 + h.x * (G.sw - 6) - ds / 2, yPx(G, h.y) - ds / 2, ds, ds);
     if (newest && newest.t < 1.4) {
       const nx = G.xs + 3 + newest.x * (G.sw - 6), ny = yPx(G, newest.y);
       ctx.save(); ctx.globalAlpha = Math.min(1, (1.4 - newest.t) / 0.4);
@@ -379,7 +380,7 @@
       for (let i = 0; i <= 200; i++) { const y = -YMAX + 2 * YMAX * i / 200; pts.push([G.hx0 + Math.min(1.05, M.slitIntensity(y, o) * sc) * ww, yPx(G, y)]); }
       Lab.line(ctx, pts, C.ink, 2, [5, 4]);
     }
-    text(ctx, `N = ${hits.length}`, G.hx1, G.cy + G.SH + 14, {size: 13.5, w: 700, mono: true, align: 'right'});
+    if (!G.narrow) text(ctx, `N = ${hits.length}`, G.hx1, G.cy + G.SH + 14, {size: 13.5, w: 700, mono: true, align: 'right'});
   }
 
   // 광전 효과 (III2-02·03 과 같은 광전관)
@@ -467,13 +468,13 @@
     const xin = 16, Lin = G.cx - 12 - xin;
     ctx.save(); ctx.globalAlpha = 0.35; wave(ctx, xin, G.cy, 1, 0, Lin, l1, C.violet, 0, 2); ctx.restore();
     text(ctx, '입사 X선 (파장 λ)', xin + 4, G.cy - 24, {size: 13.5, w: 700, color: C.violet, align: 'left', halo: true});
-    if (!hit) photon(ctx, xin + 36 + (Lin - 36) * t / 1.1, G.cy, 1, 0, C.violet, l1, l1 * 3, true);
+    if (!hit) photon(ctx, xin + 36 + (Lin - 36) * t / 1.1, G.cy, 1, 0, C.violet, l1, l1 * 3);
     // 산란 X선 (파장 λ′)
     const Ls = G.R - 14;
     ctx.save(); ctx.globalAlpha = 0.35; wave(ctx, G.cx + ux * 14, G.cy + uy * 14, ux, uy, Ls, l2, C.violet, 0, 2); ctx.restore();
     const lx = G.cx + ux * (G.R + 4), ly = G.cy + uy * (G.R + 4);
     text(ctx, '산란 X선 (파장 λ′ > λ)', Math.min(lx, G.W - 10), Math.max(G.top + 6, ly - 14), {size: 13.5, w: 700, color: C.violet, align: lx > G.W * 0.6 ? 'right' : 'center', halo: true});
-    if (hit && t < 2.9) { const k = (t - 1.1) / 1.8; photon(ctx, G.cx + ux * (24 + k * (Ls - 10)), G.cy + uy * (24 + k * (Ls - 10)), ux, uy, C.violet, l2, l2 * 3, true); }
+    if (hit && t < 2.9) { const k = (t - 1.1) / 1.8; photon(ctx, G.cx + ux * (24 + k * (Ls - 10)), G.cy + uy * (24 + k * (Ls - 10)), ux, uy, C.violet, l2, l2 * 3); }
     // 전자: 정지 → 충돌 뒤 튕겨 나감
     const ex = Math.cos(ph), ey = Math.sin(ph), Le = G.R * 0.62;
     Lab.line(ctx, [[G.cx, G.cy], [G.cx + ex * Le, G.cy + ey * Le]], C.vel, 1.4, [4, 4]);
@@ -482,6 +483,14 @@
     electron(ctx, exx, eyy, C.vel, 8);
     text(ctx, hit ? '튕겨 나간 전자 (에너지 일부를 받음)' : '정지한 전자', G.cx + ex * Le * (hit ? 1 : 0) + (hit ? 0 : 0), G.cy + (hit ? ey * Le + 22 : 26), {size: 13, w: 700, color: C.vel, halo: true, align: hit && ex * Le + G.cx > G.W * 0.7 ? 'right' : 'center'});
     if (t >= 1.1 && t < 1.35) { ctx.save(); ctx.globalAlpha = 1 - (t - 1.1) / 0.25; Lab.circle(ctx, G.cx, G.cy, 10 + 40 * (t - 1.1), {stroke: C.energy, width: 3}); ctx.restore(); }
+    // 에너지 장부: 충돌 전 광자 hf = 충돌 뒤 광자 hf′ + 전자가 받은 에너지
+    const bx0 = G.narrow ? 14 : G.W * 0.6, bx1 = G.W - 16, bwE = bx1 - bx0, y0 = G.bot - 64, f2 = c.E2 / c.E1;
+    text(ctx, '충돌 전: 광자 hf', bx0, y0, {size: 13, w: 700, align: 'left', halo: true});
+    ctx.fillStyle = C.violet; ctx.fillRect(bx0, y0 + 10, bwE, 13);
+    text(ctx, '충돌 뒤: 광자 hf′ + 전자 운동 에너지', bx0, y0 + 38, {size: 13, w: 700, align: 'left', halo: true});
+    ctx.save(); ctx.globalAlpha = hit ? 1 : 0.35;
+    ctx.fillStyle = C.violet; ctx.fillRect(bx0, y0 + 48, bwE * f2, 13); ctx.fillStyle = C.vel; ctx.fillRect(bx0 + bwE * f2 + 2, y0 + 48, bwE * (1 - f2) - 2, 13);
+    ctx.restore();
   }
   function compStep(dt) { ct = (ct + dt) % CT; }
 
@@ -512,7 +521,8 @@
         if (i < 2 && hits.length < n) text(ctx, `(아직 ${hits.length}개)`, 10, y + h / 2 + 18, {size: 13, w: 500, align: 'left', color: C.muted});
         ctx.fillStyle = plate; ctx.fillRect(x0, y, x1 - x0, h);
         ctx.fillStyle = col;
-        for (let k = 0; k < m; k++) { const hh = hits[k]; ctx.fillRect(x0 + (hh.y + YMAX) / (2 * YMAX) * (x1 - x0) - 1.3, y + 3 + hh.x * (h - 6) - 1.3, 2.6, 2.6); }
+        const ds = m < 150 ? 4.2 : m < 1500 ? 3 : 2.2;
+        for (let k = 0; k < m; k++) { const hh = hits[k]; ctx.fillRect(x0 + (hh.y + YMAX) / (2 * YMAX) * (x1 - x0) - ds / 2, y + 3 + hh.x * (h - 6) - ds / 2, ds, ds); }
       });
     } else if (S.scene === 'photo') {
       const x0 = 112, x1 = W - 20, Emax = 3.6, X = (E) => x0 + E / Emax * (x1 - x0), xW = X(NA);
@@ -526,7 +536,7 @@
         if (hf > NA) { ctx.fillStyle = C.acc; ctx.fillRect(xW, y, X(hf) - xW, bh); }
         ctx.restore();
         if (hf < NA) { ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = C.neg; ctx.lineWidth = 1.6; ctx.strokeRect(X(hf), y + 1, xW - X(hf), bh - 2); ctx.restore(); }
-        text(ctx, `${fmt(hf, 1)} eV`, X(hf) + 6, y + bh / 2, {size: 13, w: 700, align: 'left', color: hf > NA ? C.acc : C.neg, halo: true, mono: true});
+        text(ctx, `${fmt(hf, 1)} eV`, X(Math.max(hf, NA)) + 6, y + bh / 2, {size: 13, w: 700, align: 'left', color: hf > NA ? C.acc : C.neg, halo: true, mono: true});
         if (on) { ctx.save(); Lab.rrect(ctx, x0 - 3, y - 3, x1 - x0 + 6, bh + 6, 6); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.4; ctx.stroke(); ctx.restore(); }
       });
       const yb = 34 + 2 * (bh + 16);
@@ -551,7 +561,7 @@
       const r = {x: 52, y: 132, w: W - 52 - 24, h: H - 132 - 30};
       const A = Lab.axes(ctx, r, {xmin: 0, xmax: 180, ymin: 9, ymax: 15.5, xlabel: '산란각 θ', ylabel: 'λ′ (pm)', xticks: [0, 90, 180], yticks: [10, 12, 14], fmtX: (v) => v + '°'});
       Lab.line(ctx, [[A.X(0), A.Y(10)], [A.X(180), A.Y(10)]], C.muted, 1.4, [4, 4]);
-      text(ctx, 'λ (입사)', A.X(178), A.Y(10) + 12, {size: 13, w: 600, color: C.muted, align: 'right'});
+      text(ctx, 'λ (입사)', A.X(132), A.Y(10) + 11, {size: 13, w: 600, color: C.muted});
       const pts = []; for (let d = 0; d <= 180; d += 3) pts.push([A.X(d), A.Y(M.compton(XL, d).lam2 * 1e12)]);
       Lab.line(ctx, pts, C.violet, 3);
       Lab.circle(ctx, A.X(S.theta), A.Y(c.lam2 * 1e12), 6, {fill: C.copper, stroke: C.paper, width: 1.6});
@@ -563,7 +573,7 @@
   // ── 읽기 값·예제 확인 ────────────────────────────────────
   const setRo = (i, label, val) => { $('l' + i).textContent = label; $('r' + i).textContent = val; };
   const LEG = {
-    slit: '<span><i class="lc"></i>광자 1개가 찍힌 점</span><span><i style="background:var(--copper)"></i>방금 찍힌 점</span><span><b class="lc"></b>위치별 쌓인 수</span>',
+    slit: '<span><i class="lc"></i>점 = 광자 1개</span><span><i style="background:var(--copper)"></i>방금 찍힌 점</span><span><b class="lc"></b>쌓인 수</span>',
     photo: '<span><b class="lc"></b>광자 (촘촘할수록 진동수 큼)</span><span><b style="background:var(--acc)"></b>광전류</span><span><i style="background:var(--vel)"></i>광전자</span><span><i style="background:var(--copper)"></i>따라가는 광자</span>',
     compton: '<span><b style="background:var(--violet)"></b>X선 광자</span><span><i style="background:var(--vel)"></i>전자</span><span><b style="background:var(--copper)"></b>산란각 θ</span>',
   };
