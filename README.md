@@ -14,7 +14,7 @@
 | `sims/geologic-game/` | 지질시대 온라인 게임 |
 | `sims/phone-sextant/` | 폰 육분의: 카메라·기울기 센서로 해·달·별의 고도를 재서 위치 찾기. 계산은 `phone-sextant-model.js` |
 | `sims/sun/` 외 7개 | 행성우주과학 Ⅱ·Ⅲ단원 실험실: `sun`(태양 관측소), `star-distance`(별까지의 거리), `star-motion`(별의 공간 운동), `cluster-cmd`(성단 C-M도), `milky-way`(우리은하 지도), `dust`(성간 티끌), `redshift-survey`(은하 적색 편이 탐사), `cosmic-web`(우주거대구조 모의실험). 변광성 실험실(`sims/variables/`)과 같은 틀이고 계산은 폴더마다 `*-model.js`. 주소 끝에 `#s2`처럼 붙이면 그 실험부터 열립니다(QR 코드용) |
-| `physics/` | 물리 실험실(물리학 Ⅰ·Ⅱ 시뮬레이션). 첫 화면(`index.html`)에는 연결하지 않은 따로 페이지라 주소(`…/physics/`)로 들어갑니다. 목록은 `physics/index.html`의 `SIMS` 배열에 한 줄씩 추가. `dc-motor/`: 직류 전동기 3D — 전류가 흐르는 길, 정류자·브러시, 변이 받는 힘과 돌림힘, 정류자를 뺐을 때·전지나 자석을 뒤집었을 때. 계산은 `dc-motor-model.js` |
+| `physics/` | 물리 실험실(물리학 Ⅰ·Ⅱ 시뮬레이션). 모음 페이지는 `…/physics/`, 목록은 `physics/index.html`의 `SIMS` 배열. 첫 화면에도 '🧲 물리' 분류로 올립니다(`index.html`의 `simulations`). `dc-motor/`: 직류 전동기 3D — 전류가 흐르는 길, 정류자·브러시, 변이 받는 힘과 돌림힘, 정류자를 뺐을 때·전지나 자석을 뒤집었을 때. 계산은 `dc-motor-model.js` |
 | `widgets/` | 첫 화면에 붙는 작은 기능 (체육대회 우천 레이더) |
 | `tests/` | 계산 모형 테스트: `node --test tests/*.test.cjs` |
 | `archive/` | 지금은 쓰지 않는 예전 파일 |

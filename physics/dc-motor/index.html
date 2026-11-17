@@ -332,6 +332,8 @@ canvas.flat{display:block;width:100%;border-radius:12px}
   const $ = id => document.getElementById(id);
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // 과학 실험실 첫 화면 안(iframe)에서 열렸으면 '← 물리 실험실'은 감춘다 (첫 화면에 돌아가기 버튼이 있다)
+  try { if (window.self !== window.top) { const b = document.querySelector('.back'); if (b) b.hidden = true; } } catch (e) {}
 
   // ── 상태 ────────────────────────────────────────────────
   const S = {
