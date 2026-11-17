@@ -373,7 +373,7 @@
       ctx.save(); ctx.globalAlpha = 0.55;
       for (const yy of [g.cy - g.gh * 0.3, g.cy + g.gh * 0.3]) arrow(ctx, d > 0 ? xa : xb, yy, d > 0 ? xb : xa, yy, C.violet, 2, 9);
       ctx.restore();
-      text(ctx, '전기장', (xa + xb) / 2, g.cy - g.gh * 0.3 - 13, {size: 13, w: 600, color: C.violet, halo: true});
+      if (!Gm.narrow) text(ctx, '전기장', (xa + xb) / 2, g.cy - g.gh * 0.3 - 13, {size: 13, w: 600, color: C.violet, halo: true});
       text(ctx, S.V < 0 ? '+' : '−', g.kx - 18, g.gy + g.gh * 0.22, {size: 16, w: 700, color: S.V < 0 ? C.force : C.vel});
       text(ctx, S.V < 0 ? '−' : '+', g.px + 16, g.pTop + 8, {size: 16, w: 700, color: S.V < 0 ? C.vel : C.force});
     }
@@ -426,7 +426,7 @@
     Lab.line(ctx, [[xd - 9, Y(-Wm - dd)], [xd + 9, Y(-Wm - dd)]], C.vel, 2.4);
     if (Y(-Wm - dd + E) > top) arrow(ctx, xd, Y(-Wm - dd), xd, Y(-Wm - dd + E), wlColor(n), 3, 9);
     ctx.restore();
-    text(ctx, '더 깊은 전자', xd + 12, Y(-Wm - dd) + 13, {size: 13, w: 500, color: C.muted, align: 'left'});
+    if (W >= 400) text(ctx, '더 깊은 전자', xd + 12, Y(-Wm - dd) + 13, {size: 13, w: 500, color: C.muted, align: 'left'});
     // 광자 hf 화살표, W, E_k,max
     arrow(ctx, xa, Y(-Wm), xa, Y(K), wlColor(n), 4.4, 12);
     text(ctx, 'hf', xa - 9, (Y(-Wm) + Y(K)) / 2, {size: 14, w: 700, align: 'right', color: n < 380 ? C.violet : C.ink, halo: true});
