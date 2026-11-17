@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>광전 방정식과 정지 전압</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* Layout: 왼쪽 무대(광전관 + 전압을 바꾸는 전원)와 조작판, 오른쪽 지금 수치 · 에너지 장부 · E_k,max–f 그래프 · 광전류–전압 그래프 */
+#stage{aspect-ratio:16/10.4}
+#led{aspect-ratio:10/7.6}
+#kf{aspect-ratio:10/7.4}
+#iv{aspect-ratio:10/6.4}
+.metal .btn{min-width:64px}
+.quiz .tag{white-space:nowrap}
+@media (max-width:640px){ #stage{aspect-ratio:1/1.3} #led{aspect-ratio:10/8.6} }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="back" href="../../">← 물리 실험실</a>
+    <div class="crumbs"><span class="id">III2-03</span><span class="kicker">물리학 Ⅰ · 빛과 물질의 이중성</span></div>
+    <h1>광양자설과 광전 방정식</h1>
+    <p class="lead">광자 하나의 에너지 hf는 전자 하나에게 통째로 넘어가, 일함수 W만큼 떼어 내는 데 쓰이고 남은 것이 운동 에너지가 된다: <b>hf = W + E<sub>k,max</sub></b>. P에 역전압을 걸어 올리면, 구리색 <b>가장 빠른 광전자</b>까지 P 앞에서 되돌아오는 전압이 정지 전압 V<sub>s</sub>다 (<b>eV<sub>s</sub> = E<sub>k,max</sub></b>).</p>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <div class="stage">
+        <canvas id="stage" aria-label="광전관의 금속판 K에 광자가 닿아 광전자가 나온다. P에 역전압을 걸면 광전자가 느려지다 되돌아온다."></canvas>
+        <div class="hud"><span class="pill" id="hudM">금속 A · W = 2 eV</span><span class="pill num" id="hudV">V = −3.0 V</span><span class="pill" id="hudI">광전류 0</span></div>
+        <div class="legend">
+          <span><b style="background:var(--violet)"></b>광자 hf</span>
+          <span><i style="background:var(--vel)"></i>광전자</span>
+          <span><i style="background:var(--copper)"></i>가장 빠른 광전자</span>
+          <span><b style="background:var(--force)"></b>전기력</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="group metal" role="group" aria-label="금속판 K">
+            <span class="gl">금속</span>
+            <button type="button" class="btn" data-metal="A" aria-pressed="true">A 2.0</button>
+            <button type="button" class="btn" data-metal="B" aria-pressed="false">B 4.0</button>
+            <button type="button" class="btn" data-metal="Na" aria-pressed="false">나트륨 2.3</button>
+            <button type="button" class="btn" data-metal="Zn" aria-pressed="false">아연 4.3</button>
+          </div>
+          <span class="ctl-label">(일함수 W, eV)</span>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <label class="ctl-label" for="E">광자 에너지 hf (진동수 f) <output id="EOut">5.0 eV</output></label>
+            <input id="E" type="range" min="1" max="10" step="0.1" value="5">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="inten">빛의 세기 (광자 수) <output id="inOut">50 %</output></label>
+            <input id="inten" type="range" min="10" max="100" step="10" value="50">
+          </div>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <label class="ctl-label" for="V">P의 전압 V (− = 역전압) <output id="VOut">−3.0 V</output></label>
+            <input id="V" type="range" min="-8" max="4" step="0.1" value="-3">
+          </div>
+          <button type="button" class="btn" id="toVs">V = −V<sub>s</sub> 맞추기</button>
+          <button type="button" class="btn" id="sweep">역전압 올리며 재기</button>
+        </div>
+        <div class="row toggles">
+          <label class="chk"><input type="checkbox" id="c2">비교: 세기 2배 곡선</label>
+          <span class="spacer"></span>
+          <div class="group" role="group" aria-label="시간 빠르기">
+            <span class="gl">빠르기</span>
+            <button type="button" class="btn mono" data-speed="0.4" aria-pressed="false">×0.4</button>
+            <button type="button" class="btn mono" data-speed="1" aria-pressed="true">×1</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>지금 수치</h2>
+        <div class="readouts">
+          <div class="ro cu"><span>광자 에너지 hf</span><b id="rE">5 eV</b></div>
+          <div class="ro"><span id="lW">일함수 W</span><b id="rW">2 eV</b></div>
+          <div class="ro acc"><span>E<sub>k,max</sub> = hf − W</span><b id="rK">3 eV</b></div>
+          <div class="ro vel"><span>정지 전압 V<sub>s</sub></span><b id="rVs">3 V</b></div>
+        </div>
+        <p class="cap" id="roCap"></p>
+        <p class="check" id="exCheck"></p>
+      </section>
+      <section class="panel">
+        <h2>전자 하나의 에너지 장부 <small>hf = W + E<sub>k,max</sub></small></h2>
+        <canvas class="flat" id="led" aria-label="금속 속 전자가 광자 에너지 hf를 받아 일함수 W를 쓰고 남은 운동 에너지로 나온 뒤, 역전압이 만든 에너지 언덕을 오른다."></canvas>
+        <p class="cap">구리색 점 = 가장 빠른 광전자. 초록 막대(운동 에너지)가 빨간 언덕(eV)을 오르며 줄어든다. 언덕 높이가 E<sub>k,max</sub>와 같아지는 전압이 정지 전압이다.</p>
+      </section>
+      <section class="panel">
+        <h2><span>E<sub>k,max</sub>–f 그래프</span> <small>금속마다 평행한 직선</small></h2>
+        <canvas class="flat" id="kf" aria-label="진동수와 광전자의 최대 운동 에너지 그래프. 기울기 h, 가로 절편 문턱 진동수, 세로 절편 −W."></canvas>
+        <p class="cap">기울기 = <b>h</b> (모든 금속 공통), 가로 절편 = <b>f₀</b>, 세로 절편 = <b>−W</b>. 같은 f에서 아래쪽 직선이 일함수가 큰 금속이다.</p>
+      </section>
+      <section class="panel">
+        <h2>광전류–전압 그래프 <small>점 = 지금 V</small></h2>
+        <canvas class="flat" id="iv" aria-label="P의 전압에 따른 광전류. 역전압이 정지 전압에 이르면 0이 된다."></canvas>
+        <p class="cap">광전류가 0이 되는 전압이 −V<sub>s</sub>. 세기를 바꾸면 곡선의 높이만 바뀌고 −V<sub>s</sub>는 그대로다.</p>
+      </section>
+    </aside>
+  </main>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">개념 정리</h2>
+    <div class="concepts">
+      <article class="concept">
+        <h3>광양자설</h3>
+        <p>광자 하나의 에너지는 <span class="eq">E = hf</span> (h = 6.6 × 10⁻³⁴ J·s). 금속 속 전자 하나는 광자 하나를 <b>통째로</b> 흡수한다.</p>
+        <p>그래서 빛의 <b>세기</b>는 광자의 수에, 광자 하나의 에너지는 <b>진동수</b>에 대응한다.</p>
+      </article>
+      <article class="concept">
+        <h3>광전 방정식</h3>
+        <p>전자를 떼어 내는 최소 에너지가 일함수 W. 표면 가까운 전자가 W만 쓰고 나올 때가 최대: <span class="eq">hf = W + E<sub>k,max</sub></span>, <span class="eq">W = hf₀</span>.</p>
+        <p><span class="eq">E<sub>k,max</sub> = h(f − f₀)</span>: 기울기 h, 가로 절편 f₀, 세로 절편 −W인 직선. hf &lt; W이면 광자가 아무리 많아도 나오지 못한다.</p>
+      </article>
+      <article class="concept">
+        <h3>정지 전압</h3>
+        <p>P를 (−)로 하는 역전압을 키우면 가장 빠른 광전자까지 되돌아와 광전류가 0이 되는 전압 V<sub>s</sub>가 있다: <span class="eq">eV<sub>s</sub> = E<sub>k,max</sub></span>.</p>
+        <p>V<sub>s</sub>는 진동수와 일함수로만 정해지고 빛의 세기와 무관하다. 세기는 광전류의 크기만 바꾼다.</p>
+      </article>
+    </div>
+    <p class="compare">진동수를 2배로 해도 최대 운동 에너지는 2배가 아니다: E′ = 2hf − W = 2E + W로 2배보다 크다. 두 금속의 E<sub>k,max</sub>–f 직선은 평행하므로, 같은 두 빛을 비출 때 정지 전압의 <b>차</b>는 금속과 관계없이 같다.</p>
+
+    <h2>스스로 확인</h2>
+    <ol class="quiz">
+      <li>
+        <p class="q"><span>1</span>일함수가 2 eV인 금속에 광자 에너지 5 eV인 빛을 비춘다. 광전자의 최대 운동 에너지와 정지 전압은? 광자 에너지를 8 eV로 바꾸면?<span class="tag">개념서 예제</span></p>
+        <div class="acts">
+          <button type="button" class="btn" data-try="ex">예제 상황으로 (5 eV)</button>
+          <button type="button" class="btn" data-try="ex8">광자 8 eV로</button>
+        </div>
+        <details><summary>답 보기</summary><p>E<sub>k,max</sub> = hf − W = 5 − 2 = <b>3 eV</b>, eV<sub>s</sub> = E<sub>k,max</sub>이므로 정지 전압 <b>3 V</b>. 8 eV이면 8 − 2 = <b>6 eV</b>, <b>6 V</b>. 광자 에너지는 1.6배인데 최대 운동 에너지는 2배가 된다. 무대에서 V = −V<sub>s</sub>일 때 구리색 전자가 P 바로 앞에서 멈춘다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>2</span>일함수 W인 금속에 진동수 f인 빛을 비추었더니 최대 운동 에너지가 E였다. 진동수 2f인 빛이면 최대 운동 에너지는?</p>
+        <div class="acts"><button type="button" class="btn" data-try="f2">진동수 2배 (5 → 10 eV)</button></div>
+        <details><summary>답 보기</summary><p>hf = E + W이므로 E′ = 2hf − W = 2(E + W) − W = <b>2E + W</b>. 예제 금속이면 E = 3 eV → E′ = 8 eV (2배인 6 eV보다 크다). 그래프에서 두 점은 원점이 아니라 f₀에서 출발하는 직선 위에 있다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>3</span>금속 A, B의 E<sub>k</sub>–f 직선이 가로축과 만나는 점이 f₀, 2f₀이다. 진동수 3f₀인 빛을 비출 때 최대 운동 에너지는 A가 B의 몇 배일까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="ab">금속 A·B에 3f₀ 빛</button></div>
+        <details><summary>답 보기</summary><p><b>2배</b>. 두 직선은 기울기 h로 평행하다. A: h(3f₀ − f₀) = 2hf₀, B: h(3f₀ − 2f₀) = hf₀. 일함수는 B가 A의 2배이고, 진동수 1.5f₀인 빛은 B에서 광전자를 내지 못한다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>4</span>진동수는 그대로 두고 빛의 세기만 2배로 하면 정지 전압과 최대 광전류는 어떻게 될까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="int2">세기 2배 곡선과 비교</button></div>
+        <details><summary>답 보기</summary><p><b>정지 전압은 그대로, 최대 광전류만 커진다.</b> eV<sub>s</sub> = hf − W는 진동수와 일함수로만 정해진다. 세기를 키우면 광자 수가 늘어 광전자 수(광전류)만 늘어난다. 두 곡선이 같은 −V<sub>s</sub>에서 0이 된다.</p></details>
+      </li>
+    </ol>
+    <nav class="pager"><a href="../02/">← III2-02 광전 효과의 실험 사실</a><a class="home" href="../../">물리 실험실</a><a href="../04/">III2-04 광전 효과의 이용 →</a></nav>
+  </section>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="III2-03-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.III2_03;
+  const {$, C, text, arrow} = Lab;
+  const fmt = Lab.fmt;
+  const TAU = Math.PI * 2;
+
+  // ── 상태 ────────────────────────────────────────────────
+  // 예제: 일함수 2 eV(금속 A), 광자 5 eV → E_k,max 3 eV, V_s 3 V.  기본 V = −V_s (가장 빠른 전자가 P 앞에서 겨우 멈춤)
+  const EX = {metal: 'A', E: 5, I: 0.5, V: -3};
+  const S = {metal: EX.metal, E: EX.E, I: EX.I, V: EX.V, playing: !Lab.reduceMotion, speed: 1, cmp2: false, focus: null, ghostE: null,
+    sweep: null, meas: []};
+  const Wf = () => M.metal(S.metal).W;
+  const Kmax = () => M.kmax(S.E, Wf());
+  const Vs = () => M.stopV(S.E, Wf());
+  const nm = () => M.lambdaNm(S.E);
+
+  // ── 공통 그림 (III2-01·02·03 같은 모양): 빛의 색, 광자, 전자, 광전관 ──────────
+  const isDark = () => { const p = C.paper || ''; return p[0] === '#' && parseInt(p.slice(1, 3), 16) < 128; };
+  function wlColor(nm) {                                   // 파장(nm) → 빛의 색. 자외선 = violet, 적외선 = muted 토큰
+    if (nm < 380) return C.violet;
+    if (nm > 760) return C.muted;
+    let r = 0, g = 0, b = 0;
+    if (nm < 440) { r = (440 - nm) / 60; b = 1; } else if (nm < 490) { g = (nm - 440) / 50; b = 1; }
+    else if (nm < 510) { g = 1; b = (510 - nm) / 20; } else if (nm < 580) { r = (nm - 510) / 70; g = 1; }
+    else if (nm < 645) { r = 1; g = (645 - nm) / 65; } else r = 1;
+    const edge = nm < 420 ? 0.6 + 0.4 * (nm - 380) / 40 : nm > 700 ? 0.6 + 0.4 * (760 - nm) / 60 : 1;
+    const k = isDark() ? 1 : 0.84;                         // 흰 바탕에서는 조금 진하게
+    return 'rgb(' + [r, g, b].map((v) => Math.round(255 * k * Math.pow(v * edge, 0.8))).join(',') + ')';
+  }
+  const bandName = (nm) => (nm < 380 ? '자외선' : nm > 760 ? '적외선' : nm < 425 ? '보라' : nm < 450 ? '남색' : nm < 495 ? '파랑'
+    : nm < 570 ? '초록' : nm < 590 ? '노랑' : nm < 620 ? '주황' : '빨강');
+  const wlPx = (nm) => Math.max(6, Math.min(22, 4 + 9.5 * nm / 700));   // 그림 속 물결 간격: 파장이 짧을수록 촘촘
+  // 광자: (x, y) = 머리, (ux, uy) = 진행 방향
+  function photon(ctx, x, y, ux, uy, col, wl, len = 34, ring = false) {
+    const pts = [];
+    for (let s = -len; s <= 0.01; s += 1.4) {
+      const env = Math.pow(Math.sin(Math.PI * (s + len) / len), 0.7);
+      const a = 4.6 * env * Math.sin(TAU * s / wl);
+      pts.push([x + ux * s - uy * a, y + uy * s + ux * a]);
+    }
+    if (ring) Lab.circle(ctx, x - ux * len * 0.45, y - uy * len * 0.45, len * 0.62, {stroke: C.copper, width: 2.6});
+    if (!isDark()) { ctx.save(); ctx.globalAlpha = 0.3; Lab.line(ctx, pts, C.ink, 4.8); ctx.restore(); }
+    Lab.line(ctx, pts, col, 2.6);
+    const hx = x + ux * 2, hy = y + uy * 2;
+    ctx.beginPath(); ctx.moveTo(hx + ux * 5, hy + uy * 5);
+    ctx.lineTo(hx - ux * 5 - uy * 5, hy - uy * 5 + ux * 5); ctx.lineTo(hx - ux * 5 + uy * 5, hy - uy * 5 - ux * 5);
+    ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+  }
+  // 전자: 파란 공에 (−) 표시. 꼬리(tail)는 속력에 비례
+  function electron(ctx, x, y, col, r = 6.5, tx = 0, ty = 0) {
+    if (tx || ty) { ctx.save(); ctx.globalAlpha = 0.4; Lab.line(ctx, [[x - tx, y - ty], [x, y]], col, 3.4); ctx.restore(); }
+    ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fillStyle = col; ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = C.paper; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x - r * 0.48, y); ctx.lineTo(x + r * 0.48, y); ctx.lineWidth = 2; ctx.stroke();
+  }
+  // 광원: (x, y) 에서 (tx, ty) 쪽을 보는 등
+  function lamp(ctx, x, y, tx, ty, col, on) {
+    const a = Math.atan2(ty - y, tx - x);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+    Lab.rrect(ctx, -26, -13, 30, 26, 6); ctx.fillStyle = C.paper; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.ink; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(5, 0, 5, 12, 0, 0, TAU); ctx.fillStyle = on ? col : C.line; ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.restore();
+  }
+  // 광전관 배치: 유리관(g*), K 원호(가장 깊은 점 kx, 반지름 kR, 반각 kSpan), P 막대(px), 회로(wireY, 전류계 ax, 전지 bx)
+  function tubeGeo(W, H, narrow, top) {
+    const gx = narrow ? 18 : W * 0.2, gw = narrow ? W - 36 : W * 0.64;
+    const gy = top + (narrow ? 104 : 92), gh = narrow ? Math.min(170, H * 0.3) : Math.min(196, H * 0.36);
+    const cy = gy + gh / 2, kR = gh * 0.62, kSpan = 0.62;
+    const kx = gx + (narrow ? 26 : 40), px = gx + gw - (narrow ? 30 : 46);
+    const wireY = gy + gh + (narrow ? 48 : 58);
+    return {gx, gy, gw, gh, cy, kR, kSpan, kx, px, pTop: cy - gh * 0.3, pBot: cy + gh * 0.3, wireY, ax: gx + gw * 0.34, bx: gx + gw + (narrow ? 0 : 18)};
+  }
+  const kPoint = (g, a) => [g.kx + g.kR - g.kR * Math.cos(a), g.cy + g.kR * Math.sin(a)];   // K 표면 위의 점 (a: −kSpan~kSpan)
+  // 광전관 그리기. o = {current 0~1 (전류계 바늘), battery: 'P+' | {V} (전원 장치), label}
+  function drawTube(ctx, g, o) {
+    // 회로 도선
+    const lx = g.gx - 14, rx = g.bx;
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(g.kx - 4, g.cy); ctx.lineTo(lx, g.cy); ctx.lineTo(lx, g.wireY); ctx.lineTo(rx, g.wireY); ctx.lineTo(rx, g.cy); ctx.lineTo(g.px + 3, g.cy); ctx.stroke();
+    ctx.restore();
+    // 유리관
+    ctx.save(); Lab.rrect(ctx, g.gx, g.gy, g.gw, g.gh, g.gh / 2);
+    ctx.fillStyle = C['line-soft']; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.lineWidth = 2; ctx.strokeStyle = C.muted; ctx.stroke(); ctx.restore();
+    text(ctx, '진공 유리관', g.gx + g.gw - g.gh * 0.42, g.gy + g.gh + 14, {size: 13, w: 500, color: C.muted, align: 'right'});
+    // K: 오목한 금속판
+    ctx.save(); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(g.kx + g.kR, g.cy, g.kR, Math.PI - g.kSpan, Math.PI + g.kSpan);
+    ctx.lineWidth = 10; ctx.strokeStyle = C.muted; ctx.stroke();
+    ctx.beginPath(); ctx.arc(g.kx + g.kR, g.cy, g.kR - 3.5, Math.PI - g.kSpan * 0.92, Math.PI + g.kSpan * 0.92);
+    ctx.lineWidth = 2; ctx.strokeStyle = C.paper; ctx.globalAlpha = 0.55; ctx.stroke();
+    ctx.restore();
+    text(ctx, 'K', g.kx + 2, g.gy + g.gh + 15, {size: 15, w: 700, align: 'left'});
+    text(ctx, o.label || '금속판', g.kx + 17, g.gy + g.gh + 15, {size: 13, w: 500, color: C.muted, align: 'left'});
+    // P: 전극
+    ctx.fillStyle = C.ink; ctx.fillRect(g.px - 3.5, g.pTop, 7, g.pBot - g.pTop);
+    text(ctx, 'P', g.px, g.pTop - 14, {size: 15, w: 700});
+    // 전류계
+    const ar = 21, ax = g.ax, ay = g.wireY;
+    Lab.circle(ctx, ax, ay, ar, {fill: C.paper, stroke: C.ink, width: 2});
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(ax, ay + 3, ar - 6, -Math.PI * 0.82, -Math.PI * 0.18); ctx.stroke(); ctx.restore();
+    const na = -Math.PI / 2 + (-0.62 + 1.24 * Math.max(0, Math.min(1, o.current))) * 1.0;
+    Lab.line(ctx, [[ax, ay + 3], [ax + Math.cos(na) * (ar - 5), ay + 3 + Math.sin(na) * (ar - 5)]], C.acc, 2.6);
+    Lab.circle(ctx, ax, ay + 3, 2.6, {fill: C.ink});
+    text(ctx, 'A', ax, ay + 13, {size: 13, w: 700});
+    // 광전류 화살표 (바깥 도선: 전자와 반대 방향)
+    if (o.current > 0.01) {
+      const x0 = ax + ar + 14, x1 = Math.min(x0 + 74, rx - 26);
+      arrow(ctx, x0, ay, x1, ay, C.acc, 3, 10);
+      text(ctx, '광전류', (x0 + x1) / 2, ay + 17, {size: 13, color: C.acc, w: 700});
+    }
+    // 전지(P 쪽이 +) 또는 전원 장치
+    const by = (g.cy + g.wireY) / 2 + 4;
+    if (o.battery === 'P+') {
+      ctx.save(); ctx.fillStyle = C.paper; ctx.fillRect(rx - 16, by - 9, 32, 18); ctx.restore();
+      Lab.line(ctx, [[rx - 15, by - 6], [rx + 15, by - 6]], C.ink, 2.4);
+      Lab.line(ctx, [[rx - 8, by + 5], [rx + 8, by + 5]], C.ink, 5);
+      text(ctx, '+', rx + 22, by - 8, {size: 14, w: 700, color: C.force, align: 'left'});
+      text(ctx, '−', rx + 22, by + 7, {size: 14, w: 700, color: C.vel, align: 'left'});
+    }
+  }
+
+  // ── 무대: 광자 → 전자, 전압이 만드는 에너지 언덕 ──────────
+  const stage = Lab.canvas('stage', draw), led = Lab.canvas('led', draw), kf = Lab.canvas('kf', draw), iv = Lab.canvas('iv', draw);
+  const PR = 12;                                   // 세기 100 % 일 때 1초에 K 에 닿는 광자 수 (그림)
+  let photons = [], electrons = [], flashes = [], acc = 0, gold = null, goldT = 1.6, meter = 0, warmed = false, lastWH = '', clock = 0;
+  const vStr = (v) => (Math.abs(v) < 0.05 ? '0.0' : (v < 0 ? '−' : '+') + Math.abs(v).toFixed(1)) + ' V';
+  function geom() {
+    const W = stage.W, H = stage.H, narrow = W < 520, top = 54, g = tubeGeo(W, H, narrow, top);
+    return {W, H, narrow, top, g, lp: [g.gx + g.gw * (narrow ? 0.52 : 0.4), top + (narrow ? 64 : 30)]};
+  }
+  // 전자 하나: 운동 에너지 KE(u) = Ef + V·u/len (eV), 속력 = κ√KE → 가속도 κ²V/(2 len) (그림 단위)
+  const kappa = (g) => (g.px - g.kx) / (1.15 * Math.sqrt(3));
+  function launch(g, x0, y0, Ef, isGold) {
+    if (Ef <= 0 && !M.reaches(Ef, S.V)) return null;                    // 나오자마자 되돌아가는 느린 전자는 생략
+    const x1 = g.px - 7, y1 = isGold ? y0 : g.cy + (y0 - g.cy) * 0.45 + (Math.random() - 0.5) * 12;
+    const e = {x0, y0, x1, y1, len: Math.hypot(x1 - x0, y1 - y0), u: 0, w: kappa(g) * Math.sqrt(Math.max(0, Ef)), Ef, gold: isGold};
+    electrons.push(e); return e;
+  }
+  function step(dt) {
+    if (!stage.W) return;
+    const {g, lp} = geom(), W = Wf(), ok = M.emits(S.E, W), k = kappa(g);
+    clock += dt;
+    if (S.sweep) {
+      const sw = S.sweep; sw.t += dt; sw.m += dt;
+      setV(sw.v0 + (sw.v1 - sw.v0) * Math.min(1, sw.t / sw.T));
+      if (sw.m > 0.18) { sw.m = 0; S.meas.push([S.V, M.current(S.V, S.E, W, S.I)]); }
+      if (sw.t >= sw.T) S.sweep = null;
+    }
+    acc += dt * PR * S.I; goldT += dt;
+    const shoot = (a, tag) => {
+      const [tx, ty] = kPoint(g, a), x0 = lp[0] + (Math.random() - 0.5) * 10, y0 = lp[1] + (Math.random() - 0.5) * 10;
+      photons.push({x0, y0, x1: tx + 7, y1: ty, t: 0, T: Math.hypot(tx - x0, ty - y0) / 330, tag});
+    };
+    while (acc >= 1) { acc -= 1; shoot((Math.random() * 2 - 1) * g.kSpan * 0.82, false); }
+    if (goldT > 2.4 && !gold && !photons.some((p) => p.tag)) { goldT = 0; shoot(0, true); }
+    for (let i = photons.length - 1; i >= 0; i--) {
+      const p = photons[i]; p.t += dt; if (p.t < p.T) continue;
+      photons.splice(i, 1);
+      if (!ok) { flashes.push({x: p.x1, y: p.y1, t: 0}); continue; }
+      if (p.tag) gold = launch(g, p.x1 + 3, g.cy, M.kmax(S.E, W), true);
+      else launch(g, p.x1 + 3, p.y1, M.sampleEf(Math.random, S.E, W), false);
+    }
+    for (let i = electrons.length - 1; i >= 0; i--) {
+      const e = electrons[i];
+      e.w += k * k * S.V / (2 * e.len) * dt; e.u += e.w * dt;
+      if (e.u >= e.len || e.u < 0) { electrons.splice(i, 1); if (e === gold) gold = null; }
+    }
+    for (let i = flashes.length - 1; i >= 0; i--) { flashes[i].t += dt; if (flashes[i].t > 0.4) flashes.splice(i, 1); }
+    meter += (M.current(S.V, S.E, W, S.I) - meter) * Math.min(1, dt * 5);
+  }
+  function clearParticles() { photons = []; electrons = []; flashes = []; gold = null; goldT = 1.6; }
+
+  function drawSupply(ctx, g) {
+    const rx = g.bx, by = (g.cy + g.wireY) / 2 + 4, V = S.V, z = Math.abs(V) < 0.05;
+    ctx.save(); ctx.fillStyle = C.paper; ctx.fillRect(rx - 18, by - 10, 36, 20); ctx.restore();
+    const longTop = V > 0, col = z ? C.muted : C.ink;
+    Lab.line(ctx, [[rx - 15, by + (longTop ? -6 : 6)], [rx + 15, by + (longTop ? -6 : 6)]], col, 2.4);
+    Lab.line(ctx, [[rx - 8, by + (longTop ? 6 : -6)], [rx + 8, by + (longTop ? 6 : -6)]], col, 5);
+    arrow(ctx, rx - 17, by + 15, rx + 17, by - 15, C.ink, 1.6, 7);                       // 가변 전원
+    if (!z) {
+      text(ctx, '+', rx - 24, by + (longTop ? -7 : 7), {size: 14, w: 700, color: C.force, align: 'right'});
+      text(ctx, '−', rx - 24, by + (longTop ? 7 : -7), {size: 14, w: 700, color: C.vel, align: 'right'});
+    }
+    text(ctx, `V = ${vStr(V)}${V < -0.04 ? ' (역전압: P가 −)' : V > 0.04 ? ' (P가 +)' : ''}`, rx, g.wireY + 18, {size: 13.5, w: 700, align: 'right', color: V < -0.04 ? C.force : C.ink});
+  }
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    const wh = W + 'x' + H; if (wh !== lastWH) { lastWH = wh; clearParticles(); }
+    if (!warmed) { warmed = true; for (let i = 0; i < 80; i++) step(1 / 30); }
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    const Gm = geom(), g = Gm.g, Wm = Wf(), n = nm(), col = wlColor(n), ok = M.emits(S.E, Wm), K = Kmax();
+    // 빛줄기
+    const tgt = [kPoint(g, -g.kSpan * 0.85), kPoint(g, g.kSpan * 0.85)];
+    ctx.save(); ctx.globalAlpha = 0.05 + 0.17 * S.I; ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(Gm.lp[0], Gm.lp[1]);
+    tgt.forEach((p) => ctx.lineTo(p[0] + 7, p[1])); ctx.closePath(); ctx.fill(); ctx.restore();
+    drawTube(ctx, g, {current: Math.min(1, meter), battery: null, label: `${M.metal(S.metal).name} (W = ${fmt(Wm, 1)} eV)`});
+    drawSupply(ctx, g);
+    // 전기장(보라)과 극
+    if (Math.abs(S.V) >= 0.1) {
+      const d = S.V < 0 ? 1 : -1, xa = g.kx + (g.px - g.kx) * 0.3, xb = g.kx + (g.px - g.kx) * 0.62;
+      ctx.save(); ctx.globalAlpha = 0.55;
+      for (const yy of [g.cy - g.gh * 0.3, g.cy + g.gh * 0.3]) arrow(ctx, d > 0 ? xa : xb, yy, d > 0 ? xb : xa, yy, C.violet, 2, 9);
+      ctx.restore();
+      if (!Gm.narrow) text(ctx, '전기장', (xa + xb) / 2, g.cy - g.gh * 0.3 - 13, {size: 13, w: 600, color: C.violet, halo: true});
+      text(ctx, S.V < 0 ? '+' : '−', g.kx - 18, g.gy + g.gh * 0.22, {size: 16, w: 700, color: S.V < 0 ? C.force : C.vel});
+      text(ctx, S.V < 0 ? '−' : '+', g.px + 16, g.pTop + 8, {size: 16, w: 700, color: S.V < 0 ? C.vel : C.force});
+    }
+    // 가장 빠른 전자가 되돌아서는 곳
+    if (ok && S.V < 0 && K <= -S.V + 1e-9) {
+      const x0 = kPoint(g, 0)[0] + 3, xt = x0 + (g.px - 7 - x0) * Math.max(0, K) / -S.V;
+      Lab.line(ctx, [[xt, g.cy - 15], [xt, g.cy + 15]], C.copper, 2.4);
+      text(ctx, Math.abs(K + S.V) < 0.05 ? 'P 바로 앞에서 멈춤' : '여기서 되돌아감', xt - (xt > g.px - 80 ? 10 : 0), g.cy - 30, {size: 13.5, w: 700, color: C.copper, halo: true, align: xt > g.px - 80 ? 'right' : 'center'});
+    }
+    for (const f of flashes) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - f.t / 0.4); Lab.circle(ctx, f.x, f.y, 4 + 11 * f.t / 0.4, {stroke: col, width: 2.2}); ctx.restore(); }
+    for (const e of electrons) {
+      const kk = e.u / e.len, x = e.x0 + (e.x1 - e.x0) * kk, y = e.y0 + (e.y1 - e.y0) * kk;
+      const ux = (e.x1 - e.x0) / e.len, uy = (e.y1 - e.y0) / e.len, tl = e.w * 0.07;
+      electron(ctx, x, y, e.gold ? C.copper : C.vel, e.gold ? 8 : 6.5, ux * tl, uy * tl);
+      if (e.gold) {
+        if (Math.abs(S.V) >= 0.1) arrow(ctx, x + (S.V < 0 ? -11 : 11), y, x + (S.V < 0 ? -40 : 40), y, C.force, 3, 9);
+        const ly2 = g.gy + g.gh - 16;
+        Lab.line(ctx, [[x, y + 10], [x, ly2 - 9]], C.copper, 1.4);
+        text(ctx, '가장 빠른 전자 (E_k,max)', x, ly2, {size: 13, w: 700, color: C.copper, halo: true, align: x > g.px - 90 ? 'right' : x < g.kx + 90 ? 'left' : 'center'});
+      }
+    }
+    for (const p of photons) {
+      const kk = p.t / p.T, L = Math.hypot(p.x1 - p.x0, p.y1 - p.y0);
+      photon(ctx, p.x0 + (p.x1 - p.x0) * kk, p.y0 + (p.y1 - p.y0) * kk, (p.x1 - p.x0) / L, (p.y1 - p.y0) / L, col, wlPx(n), 32, p.tag);
+    }
+    lamp(ctx, Gm.lp[0], Gm.lp[1], g.kx, g.cy, col, true);
+    const lx = Gm.narrow ? 12 : Gm.lp[0] + 30, ly = Gm.narrow ? Gm.top + 4 : Gm.lp[1] - 8;
+    text(ctx, `광자 hf = ${fmt(S.E, 1)} eV · ${Math.round(n)} nm ${bandName(n)}`, lx, ly, {size: 13.5, w: 700, align: 'left', halo: true});
+    text(ctx, ok ? `세기 ${Math.round(S.I * 100)} % · hf > W → 방출` : 'hf < W → 아무리 세도 방출 없음', lx, ly + 19, {size: 13.5, w: 700, align: 'left', halo: true, color: ok ? C.acc : C.neg});
+  }
+
+  // ── 에너지 장부: hf = W + E_k,max, 그리고 역전압이 만든 언덕 eV ──
+  function drawLed() {
+    const {ctx, W, H} = led; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const Wm = Wf(), E = S.E, K = E - Wm, V = S.V, ok = K >= 0, n = nm();
+    const Emin = -Math.max(Wm, 2) - 2, Emax = Math.max(3, K, -V) + 1.3, top = 30, bot = H - 10;   // 지금 값에 맞춘 눈금
+    const Y = (e) => bot - (e - Emin) / (Emax - Emin) * (bot - top);
+    const xm0 = 12, xm1 = Math.min(W * 0.4, 190), xP = W - 46, xa = xm1 - 58;
+    text(ctx, ok ? `${fmt(E, 1)} eV = ${fmt(Wm, 1)} eV + ${fmt(K, 1)} eV` : `${fmt(E, 1)} eV < W = ${fmt(Wm, 1)} eV → 못 나온다`, 10, 13, {size: 14.5, w: 700, align: 'left', color: ok ? C.copper : C.neg});
+    // 금속: 위 표면(가장 얕은 전자) = −W
+    ctx.fillStyle = C.line; ctx.fillRect(xm0, Y(-Wm), xm1 - xm0, bot - Y(-Wm));
+    for (let x = xm0 + 9; x < xm1 - 6; x += 15) Lab.circle(ctx, x, Y(-Wm) + 8, 4.5, {fill: C.vel});
+    text(ctx, '금속 K', xm1 - 6, bot - 12, {size: 13, w: 700, align: 'right', color: C.muted});
+    Lab.line(ctx, [[xm0, Y(0)], [W - 8, Y(0)]], C.muted, 1.4, [5, 4]);
+    text(ctx, 'E = 0 (금속 밖에서 정지)', xm1 + 8, Y(0) + 13, {size: 13, w: 500, color: C.muted, align: 'left'});
+    // 더 깊은 전자: 같은 hf 를 받아도 더 작은 운동 에너지
+    const dd = 1.4, xd = xm0 + 26;
+    ctx.save(); ctx.globalAlpha = 0.45;
+    Lab.line(ctx, [[xd - 9, Y(-Wm - dd)], [xd + 9, Y(-Wm - dd)]], C.vel, 2.4);
+    if (Y(-Wm - dd + E) > top) arrow(ctx, xd, Y(-Wm - dd), xd, Y(-Wm - dd + E), wlColor(n), 3, 9);
+    ctx.restore();
+    if (W >= 400) text(ctx, '더 깊은 전자', xd + 12, Y(-Wm - dd) + 13, {size: 13, w: 500, color: C.muted, align: 'left'});
+    // 광자 hf 화살표, W, E_k,max
+    arrow(ctx, xa, Y(-Wm), xa, Y(K), wlColor(n), 4.4, 12);
+    text(ctx, 'hf', xa - 9, (Y(-Wm) + Y(K)) / 2, {size: 14, w: 700, align: 'right', color: n < 380 ? C.violet : C.ink, halo: true});
+    Lab.vbracket(ctx, xa + 18, Y(-Wm), Y(0), C.energy, 'W');
+    if (ok && K > 0.05) Lab.vbracket(ctx, xa + 18, Y(0), Y(K), C.acc, 'E_k,max');
+    // 틈(K→P)의 에너지 언덕: 전자의 위치 에너지가 0 → −eV (역전압이면 오르막)
+    ctx.save(); ctx.beginPath(); ctx.moveTo(xm1, Y(0)); ctx.lineTo(xP, Y(-V)); ctx.lineTo(xP, Y(0)); ctx.closePath();
+    ctx.fillStyle = Lab.alpha(C.force, 0.14); ctx.fill(); ctx.restore();
+    Lab.line(ctx, [[xm1, Y(0)], [xP, Y(-V)]], C.force, 2.6);
+    ctx.fillStyle = C.ink; ctx.fillRect(xP - 2, top + 8, 4, bot - top - 8);
+    text(ctx, 'P', xP, top - 1, {size: 14, w: 700});
+    if (Math.abs(V) >= 0.15) Lab.vbracket(ctx, xP + 12, Y(0), Y(-V), C.force, V < 0 ? 'eV' : '');
+    // 가장 빠른 전자: 총에너지 = E_k,max (구리 점선), 운동 에너지 = 점선과 언덕 사이 (초록)
+    if (ok) {
+      const reach = !(V < 0 && K <= -V), fT = reach ? 1 : Math.max(0, K) / -V, xT = xm1 + (xP - xm1) * fT;
+      Lab.line(ctx, [[xa, Y(K)], [xT, Y(K)]], C.copper, 2, [5, 4]);
+      let fr = 0;
+      if (gold) fr = Math.max(0, Math.min(1, gold.u / gold.len));
+      const x = xm1 + (xP - xm1) * fr, U = -V * fr, KE = K - U;
+      if (KE > 0.02) Lab.line(ctx, [[x, Y(U)], [x, Y(K)]], C.acc, 5);
+      Lab.circle(ctx, x, Y(K), 6.5, {fill: C.copper, stroke: C.paper, width: 1.6});
+      if (!reach) text(ctx, Math.abs(K + V) < 0.05 ? 'P 앞에서 멈춤' : '되돌아감', xT - (xT > xP - 40 ? 8 : 0), Y(K) - 14, {size: 13, w: 700, color: C.copper, halo: true, align: xT > xP - 40 ? 'right' : 'center'});
+    }
+  }
+
+  // ── E_k,max–f 그래프 ────────────────────────────────────
+  function drawKf() {
+    const {ctx, W, H} = kf; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const fmax = 2.5, ymax = 8.6, ymin = -5;
+    const r = {x: 46, y: 22, w: W - 46 - 34, h: H - 22 - 28};
+    const A = Lab.axes(ctx, r, {xmin: 0, xmax: fmax, ymin, ymax, xlabel: 'f (×10¹⁵ Hz)', ylabel: 'E_k,max (eV)', xticks: [0.5, 1, 1.5, 2], yticks: [-4, -2, 2, 4, 6, 8], grid: true});
+    const F = (E) => M.freq(E) / 1e15, Kat = (f, w) => M.kmaxF(f * 1e15, w), labs = [];
+    for (const m of M.METALS) {
+      const curM = m.id === S.metal, hl = curM || (S.focus === 'ab' && (m.id === 'A' || m.id === 'B'));
+      const col = curM ? C.vel : hl ? C.violet : C.muted, f0 = F(m.W);
+      const fEnd = Math.min(fmax, F(ymax + m.W));
+      ctx.save(); if (!hl) ctx.globalAlpha = 0.6;
+      Lab.line(ctx, [[A.X(0), A.Y(-m.W)], [A.X(f0), A.Y(0)]], col, hl ? 2 : 1.3, [5, 4]);
+      Lab.line(ctx, [[A.X(f0), A.Y(0)], [A.X(fEnd), A.Y(Kat(fEnd, m.W))]], col, hl ? 3 : 1.6);
+      ctx.restore();
+      labs.push({t: m.id, y: A.Y(Kat(fEnd, m.W)), x: A.X(fEnd) + 5, col});
+    }
+    labs.sort((p, q) => p.y - q.y);                                  // 끝 이름표가 겹치지 않게 아래로 밀기
+    for (let i = 1; i < labs.length; i++) labs[i].y = Math.max(labs[i].y, labs[i - 1].y + 15);
+    labs.forEach((l) => text(ctx, l.t, l.x, l.y, {size: 13, w: 700, color: l.col, align: 'left', halo: true}));
+    const Wm = Wf(), f0 = F(Wm);
+    // 절편: f₀, −W
+    Lab.circle(ctx, A.X(f0), A.Y(0), 4.5, {fill: C.copper});
+    text(ctx, 'f₀', A.X(f0) - 6, A.Y(0) - 12, {size: 14, w: 700, color: C.copper, align: 'right', halo: true});
+    Lab.circle(ctx, A.X(0), A.Y(-Wm), 4.5, {fill: C.copper});
+    text(ctx, `−W = −${fmt(Wm, 1)}`, A.X(0) + 9, A.Y(-Wm) + 1, {size: 13, w: 700, color: C.copper, align: 'left', halo: true});
+    // 기울기 h 삼각형
+    const fN = F(S.E), fa = Kat(fN + 0.7, Wm) < ymax - 0.6 ? Math.max(f0 + 0.1, fN + 0.28) : Math.max(f0 + 0.08, fN - 0.75), fb = fa + 0.4;
+    if (Kat(fb, Wm) < ymax) {
+      Lab.line(ctx, [[A.X(fa), A.Y(Kat(fa, Wm))], [A.X(fb), A.Y(Kat(fa, Wm))], [A.X(fb), A.Y(Kat(fb, Wm))]], C.acc, 2.2);
+      text(ctx, '기울기 h', A.X(fb) + 6, A.Y((Kat(fa, Wm) + Kat(fb, Wm)) / 2) + 2, {size: 13, w: 700, color: C.acc, align: 'left', halo: true});
+    }
+    // 지금 점, 비교 점
+    const fNow = F(S.E), kNow = S.E - Wm;
+    if (S.focus === 'f2' && S.ghostE) {
+      const fg = F(S.ghostE), kg = S.ghostE - Wm;
+      Lab.circle(ctx, A.X(fg), A.Y(kg), 6, {fill: C.paper, stroke: C.copper, width: 2.4});
+      text(ctx, `f: E = ${fmt(kg, 1)}`, A.X(fg) + 9, A.Y(kg) + 14, {size: 13, w: 700, color: C.copper, align: 'left', halo: true});
+      text(ctx, `2f: ${fmt(kNow, 1)} = 2E + W`, A.X(fNow) - 10, A.Y(kNow) + 4, {size: 13, w: 700, color: C.copper, align: 'right', halo: true});
+    }
+    if (S.focus === 'ab') {
+      const ka = S.E - M.metal('A').W, kb = S.E - M.metal('B').W;
+      Lab.line(ctx, [[A.X(fNow), A.Y(0)], [A.X(fNow), A.Y(ka)]], C.copper, 1.4, [3, 3]);
+      Lab.circle(ctx, A.X(fNow), A.Y(ka), 6, {fill: C.copper, stroke: C.paper, width: 1.6});
+      text(ctx, `A ${fmt(ka, 1)} eV`, A.X(fNow) + 10, A.Y(ka), {size: 13, w: 700, color: C.copper, align: 'left', halo: true});
+      text(ctx, `B ${fmt(kb, 1)} eV`, A.X(fNow) + 10, A.Y(kb) + 3, {size: 13, w: 700, color: C.copper, align: 'left', halo: true});
+      text(ctx, '3f₀(A)', A.X(fNow), A.Y(0) + 26, {size: 13, w: 700, color: C.copper});
+    }
+    Lab.line(ctx, [[A.X(fNow), A.Y(0)], [A.X(fNow), A.Y(Math.max(ymin, kNow))]], C.copper, 1.2, [3, 3]);
+    if (kNow >= 0) Lab.circle(ctx, A.X(fNow), A.Y(kNow), 6.5, {fill: C.copper, stroke: C.paper, width: 1.6});
+    else { Lab.circle(ctx, A.X(fNow), A.Y(kNow), 6, {fill: C.paper, stroke: C.neg, width: 2.2}); text(ctx, '방출 없음', A.X(fNow) + 10, A.Y(kNow), {size: 13, w: 700, color: C.neg, align: 'left', halo: true}); }
+  }
+
+  // ── 광전류–전압 그래프 ──────────────────────────────────
+  function drawIv() {
+    const {ctx, W, H} = iv; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const Wm = Wf(), ymax = S.cmp2 ? 2.25 : 1.15, Vs0 = Vs(), ok = M.emits(S.E, Wm);
+    const r = {x: 24, y: 24, w: W - 24 - 26, h: H - 24 - 46};
+    const A = Lab.axes(ctx, r, {xmin: -8.5, xmax: 4.3, ymin: 0, ymax, xlabel: 'V (V)', ylabel: '광전류', xticks: [-8, -6, -4, -2, 2, 4], fmtX: (v) => fmt(v, 0)});
+    const curve = (I) => { const pts = []; for (let v = -8.5; v <= 4.3001; v += 0.05) pts.push([A.X(v), A.Y(M.current(v, S.E, Wm, I))]); return pts; };
+    if (S.cmp2) {
+      Lab.line(ctx, curve(2 * S.I), C.vel, 2.2, [6, 4]);
+      text(ctx, '세기 2배', A.X(3.6), A.Y(M.current(3.6, S.E, Wm, 2 * S.I)) - 12, {size: 13, w: 700, color: C.vel, align: 'right', halo: true});
+    }
+    Lab.line(ctx, curve(S.I), C.vel, 3);
+    if (ok) {
+      Lab.line(ctx, [[A.X(-Vs0), A.y0 - 7], [A.X(-Vs0), A.y0 + 7]], C.copper, 3);
+      text(ctx, `−V_s = −${fmt(Vs0, 1)} V`, A.X(-Vs0), A.y0 + 31, {size: 13, w: 700, color: C.copper, halo: true, align: Vs0 > 6.5 ? 'left' : 'center'});
+    } else text(ctx, 'hf < W: 어떤 전압에서도 0', A.X(-2), A.Y(ymax * 0.5), {size: 13, w: 700, color: C.neg, halo: true});
+    for (const [v, c] of S.meas) Lab.circle(ctx, A.X(v), A.Y(c), 3.6, {fill: C.copper});
+    const cNow = M.current(S.V, S.E, Wm, S.I);
+    Lab.line(ctx, [[A.X(S.V), A.y0], [A.X(S.V), A.Y(ymax * 0.98)]], C.copper, 1.2, [3, 4]);
+    Lab.circle(ctx, A.X(S.V), A.Y(cNow), 6.5, {fill: C.copper, stroke: C.paper, width: 1.6});
+  }
+
+  function draw() { drawStage(); drawLed(); drawKf(); drawIv(); }
+
+  // ── 읽기 값·예제 확인 ────────────────────────────────────
+  function readouts() {
+    const Wm = Wf(), K = S.E - Wm, ok = K >= 0, n = nm();
+    $('EOut').textContent = S.E.toFixed(1) + ' eV'; $('inOut').textContent = Math.round(S.I * 100) + ' %'; $('VOut').textContent = vStr(S.V);
+    $('rE').textContent = fmt(S.E, 1) + ' eV';
+    $('lW').textContent = `일함수 W (${M.metal(S.metal).name})`; $('rW').textContent = fmt(Wm, 1) + ' eV';
+    $('rK').textContent = ok ? fmt(K, 1) + ' eV' : '방출 없음'; $('rK').style.color = ok ? '' : 'var(--neg)';
+    $('rVs').textContent = ok ? fmt(K, 1) + ' V' : '–';
+    $('roCap').innerHTML = `빛의 진동수 f = ${Lab.sci(M.freq(S.E), 2)} Hz (${Math.round(n)} nm ${bandName(n)}), 문턱 진동수 f₀ = ${Lab.sci(M.f0(Wm), 2)} Hz`;
+    $('hudM').textContent = `${M.metal(S.metal).name} · W = ${fmt(Wm, 1)} eV`;
+    const e5 = Math.abs(S.E - 5) < 1e-9, e8 = Math.abs(S.E - 8) < 1e-9;
+    Lab.check('exCheck', S.metal === 'A' && (e5 || e8),
+      e8 ? '예제: W = 2 eV, 광자 8 eV → E_k,max = 6 eV, 정지 전압 6 V (광자 1.6배 → E_k,max 2배)' : '예제: W = 2 eV, 광자 5 eV → E_k,max = 3 eV, 정지 전압 3 V',
+      '예제: 일함수 2 eV 금속에 광자 5 eV(8 eV) — ‘스스로 확인 1’로 돌아갈 수 있어요');
+    hud();
+  }
+  function hud() {
+    $('hudV').textContent = 'V = ' + vStr(S.V);
+    const c = M.current(S.V, S.E, Wf(), S.I) > 0.004, el = $('hudI');
+    el.textContent = c ? '광전류 흐름' : '광전류 0'; el.className = 'pill ' + (c ? 'up' : 'down');
+  }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const Ein = $('E'), Iin = $('inten'), Vin = $('V');
+  function setV(v) { S.V = Math.max(-8, Math.min(4, Math.round(v * 10) / 10)); Vin.value = S.V; $('VOut').textContent = vStr(S.V); hud(); }
+  const changed = () => { S.meas = []; S.sweep = null; S.focus = null; S.ghostE = null; };
+  const metalG = Lab.group('[data-metal]', 'metal', (v) => { S.metal = v; changed(); clearParticles(); readouts(); draw(); }, S.metal);
+  Ein.addEventListener('input', () => { S.E = +Ein.value; changed(); readouts(); draw(); });
+  Iin.addEventListener('input', () => { S.I = +Iin.value / 100; S.meas = []; S.sweep = null; readouts(); draw(); });
+  Vin.addEventListener('input', () => { S.sweep = null; setV(+Vin.value); readouts(); draw(); });
+  $('toVs').addEventListener('click', () => { S.sweep = null; setV(-Vs()); readouts(); draw(); });
+  $('sweep').addEventListener('click', () => {
+    S.meas = []; S.sweep = {t: 0, m: 0, T: 7, v0: 2, v1: Math.max(-8, -(Vs() + 1.2))};
+    setV(2); playCtl.set(true); readouts(); draw();
+  });
+  $('c2').addEventListener('change', (e) => { S.cmp2 = e.target.checked; draw(); });
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+
+  // 스스로 확인: 그 상황으로 바꾸기
+  const set = (o) => { changed(); Object.assign(S, o); };
+  const TRY = {
+    ex: () => set({metal: 'A', E: 5, I: 0.5, V: -3, cmp2: false}),
+    ex8: () => set({metal: 'A', E: 8, I: 0.5, V: -6, cmp2: false}),
+    f2: () => { set({metal: 'A', E: 10, I: 0.5, V: -8, cmp2: false}); S.focus = 'f2'; S.ghostE = 5; },
+    ab: () => { set({metal: 'B', E: 6, I: 0.5, V: -2, cmp2: false}); S.focus = 'ab'; },
+    int2: () => set({metal: 'A', E: 5, I: 0.5, V: -1, cmp2: true}),
+  };
+  Lab.tries(TRY, () => {
+    metalG.set(S.metal, true); Ein.value = S.E; Iin.value = Math.round(S.I * 100); setV(S.V); $('c2').checked = S.cmp2;
+    clearParticles(); for (let i = 0; i < 70; i++) step(1 / 30);
+    playCtl.set(true); readouts(); draw();
+  });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    if (!S.playing) return;
+    const sw = !!S.sweep;
+    step(dt * S.speed); draw();
+    if (sw) readouts();
+  });
+  readouts();
+})();
+</script>
+</body>
+</html>

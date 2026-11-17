@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전자기파의 이용</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* Layout: 왼쪽 무대(위 = 영역별 이용 장면, 아래 = 누를 수 있는 스펙트럼 띠)와 조작판, 오른쪽 영역 카드·7영역 지도·짝 맞히기 */
+#stage{aspect-ratio:16/11}
+#map{aspect-ratio:10/7.4}
+.pill i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
+#mUse{margin:0 0 10px;font-size:21px;font-weight:800;line-height:1.35}
+@media (max-width:980px){ #map{aspect-ratio:10/10.4} }
+@media (max-width:640px){ #stage{aspect-ratio:1/1.48} .ro b{font-size:17px} }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="back" href="../../">← 물리 실험실</a>
+    <div class="crumbs"><span class="id">III1-09</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+    <h1>전자기파의 이용</h1>
+    <p class="lead">무대 아래 스펙트럼 띠에서 영역을 누르면 그 전자기파가 쓰이는 장면이 움직인다. 용도를 외우기보다 <b>성질 → 용도</b>로 이어 보자: 투과력(감마선·X선), DNA 변형·형광(자외선), 열작용(적외선), 물 분자 흔들기(마이크로파), 회절(라디오파).</p>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <div class="stage">
+        <canvas id="stage" aria-label="선택한 영역의 전자기파가 쓰이는 장면 애니메이션과, 아래의 누를 수 있는 전자기파 스펙트럼 띠"></canvas>
+        <div class="hud"><span class="pill" id="hudReg"><i id="hudDot"></i><span id="hudRegT">X선</span></span><span class="pill" id="hudProp">성질</span></div>
+        <div class="legend">
+          <span><b id="legBeam" style="background:var(--violet)"></b><span id="legBeamT">X선 (전자기파)</span></span>
+          <span><i style="background:var(--copper)"></i>지켜볼 것</span>
+          <span id="legHint"></span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="group" role="group" aria-label="영역">
+            <span class="gl">영역</span>
+            <button type="button" class="btn" data-reg="gamma" aria-pressed="false">감마선</button>
+            <button type="button" class="btn" data-reg="xray" aria-pressed="true">X선</button>
+            <button type="button" class="btn" data-reg="uv" aria-pressed="false">자외선</button>
+            <button type="button" class="btn" data-reg="vis" aria-pressed="false">가시광선</button>
+            <button type="button" class="btn" data-reg="ir" aria-pressed="false">적외선</button>
+            <button type="button" class="btn" data-reg="mw" aria-pressed="false">마이크로파</button>
+            <button type="button" class="btn" data-reg="radio" aria-pressed="false">라디오파</button>
+          </div>
+        </div>
+        <div class="row toggles">
+          <div class="group" role="group" aria-label="이용 장면" id="gCase"></div>
+          <span class="spacer"></span>
+          <button type="button" class="btn" data-reg="us" aria-pressed="false">비교: 초음파 검사</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2><span id="cName">X선</span> <small id="cRank">진동수 2번째로 큼</small></h2>
+        <div class="readouts">
+          <div class="ro cu"><span id="rLamL">대표 파장</span><b id="rLam">0.1 nm</b></div>
+          <div class="ro vel"><span id="rFL">대표 진동수 f = c/λ</span><b id="rF">3 × 10¹⁸ Hz</b></div>
+          <div class="ro"><span id="rEL">광자 에너지 E = hf</span><b id="rE">2 × 10⁻¹⁵ J</b></div>
+          <div class="ro"><span id="rCL">진공에서 속력</span><b id="rC">3 × 10⁸ m/s</b></div>
+        </div>
+        <p class="cap" id="cText"></p>
+        <p class="check" id="exCheck"></p>
+      </section>
+      <section class="panel">
+        <h2>7영역 지도 <small>누르면 그 장면으로</small></h2>
+        <canvas class="flat" id="map" aria-label="진동수가 큰 순서로 늘어놓은 7영역의 파장 범위와 성질"></canvas>
+        <p class="cap">위에서 아래로 진동수가 작아지고 파장은 길어진다. 진공에서 속력은 모두 c로 같다. <b>마이크로파 + 라디오파 = 전파</b>.</p>
+      </section>
+      <section class="panel wide">
+        <h2>짝 맞히기 <small id="mScore">맞힌 수 0 / 0</small></h2>
+        <p id="mUse">공항 수하물 검색</p>
+        <div class="group" role="group" aria-label="고를 영역" id="mOpts">
+          <button type="button" class="btn" data-pick="gamma">감마선</button>
+          <button type="button" class="btn" data-pick="xray">X선</button>
+          <button type="button" class="btn" data-pick="uv">자외선</button>
+          <button type="button" class="btn" data-pick="vis">가시광선</button>
+          <button type="button" class="btn" data-pick="ir">적외선</button>
+          <button type="button" class="btn" data-pick="mw">마이크로파</button>
+          <button type="button" class="btn" data-pick="radio">라디오파</button>
+          <button type="button" class="btn" data-pick="none">전자기파 아님</button>
+        </div>
+        <p class="check" id="mFb">이 이용에 쓰는 것을 고르세요.</p>
+        <div class="row" style="margin-top:10px"><button type="button" class="btn" id="mNext">다음 문제</button></div>
+      </section>
+    </aside>
+  </main>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">개념 정리</h2>
+    <div class="concepts">
+      <article class="concept">
+        <h3>에너지가 큰 쪽: 감마선·X선·자외선</h3>
+        <p><b>감마선</b>은 원자핵의 변화(방사성 붕괴·핵반응)에서 나오고 에너지·투과력이 가장 크다 → 암 치료, 식품·의료 기구 멸균, 비파괴 검사. <b>X선</b>은 투과력이 강하다 → X선 사진·CT, 공항 수하물 검색.</p>
+        <p><b>자외선</b>은 세균의 DNA·RNA를 변형시킨다 → 살균 소독기. 형광 물질에 흡수되면 가시광선을 낸다 → 위조지폐 감별. 비타민 D 합성을 돕지만 지나치면 피부 노화.</p>
+      </article>
+      <article class="concept">
+        <h3>가운데: 가시광선·적외선</h3>
+        <p><b>가시광선</b>은 눈이 감지하는 빛이다 → 조명, 광학 기기(카메라·현미경), 광통신.</p>
+        <p><b>적외선</b>은 빨간빛보다 파장이 길고 열작용이 강해 열선이라고도 한다 → 열화상 카메라, 적외선(비접촉) 체온계, 야간 투시경, 적외선 센서, 리모컨, 물리 치료기.</p>
+      </article>
+      <article class="concept">
+        <h3>파장이 긴 쪽: 마이크로파·라디오파 (전파)</h3>
+        <p><b>마이크로파</b>: 전자레인지는 약 2.45 GHz(파장 약 12 cm)의 전기장으로 물 분자를 흔들어 데운다. 휴대 전화, 와이파이·블루투스(EBS 분류), 레이더, 위성 통신.</p>
+        <p><b>라디오파</b>는 파장이 가장 길어 회절이 잘 된다 → 라디오·TV 방송, 무선 통신. 마이크로파와 라디오파를 묶어 <b>전파</b>라고도 한다.</p>
+      </article>
+    </div>
+    <p class="compare"><b>헷갈리는 짝</b> — 감마선(원자핵에서, 에너지·투과력 최대) vs X선(투과 촬영) · 자외선(가시광선보다 진동수 큼: 살균·형광) vs 적외선(진동수 작음: 열) · 마이크로파(전자레인지·와이파이) vs 라디오파(방송) · 초음파는 매질이 필요한 음파라 전자기파가 아니다.</p>
+
+    <h2>스스로 확인</h2>
+    <ol class="quiz">
+      <li>
+        <p class="q"><span>1</span>전자기파의 이용과 그 영역을 바르게 짝지은 것은? ① 전자레인지 – 적외선 ② 공항 수하물 검색 – X선 ③ 열화상 카메라 – 자외선 ④ 살균 소독기 – 마이크로파 ⑤ 라디오 방송 – 감마선<span class="tag">개념 체크 예제</span></p>
+        <div class="acts"><button type="button" class="btn" data-try="ex">수하물 검색 장면으로</button></div>
+        <details><summary>답 보기</summary><p><b>② 공항 수하물 검색 – X선.</b> X선은 투과력이 강해 가방 속을 찍는다(금속은 많이 흡수해 진하게 보인다). 전자레인지는 마이크로파, 열화상 카메라는 적외선, 살균 소독기는 자외선, 라디오 방송은 회절이 잘 되는 라디오파를 쓴다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>2</span>전자레인지는 어떤 전자기파로 어떻게 음식을 데울까? 와이파이·블루투스는 어느 영역일까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="mw">전자레인지 속 물 분자 보기</button></div>
+        <details><summary>답 보기</summary><p><b>마이크로파.</b> 약 2.45 GHz(파장 약 12 cm) 마이크로파의 전기장이 극성 분자인 물 분자를 흔들어 회전시키고, 물 분자가 이웃 분자와 부딪히며 음식이 데워진다. 와이파이·블루투스도 EBS 기준 <b>마이크로파</b>다(라디오파와 묶어 전파).</p></details>
+      </li>
+      <li>
+        <p class="q"><span>3</span>살균 소독기와 열화상 카메라에 쓰는 전자기파는 각각 무엇이고, 어느 쪽의 진동수가 더 클까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="uv">살균 소독기</button><button type="button" class="btn" data-try="ir">열화상 카메라</button></div>
+        <details><summary>답 보기</summary><p>살균 소독기는 <b>자외선</b>(세균의 DNA 변형), 열화상 카메라는 <b>적외선</b>(물체가 온도에 따라 내는 열선)을 쓴다. 자외선은 가시광선보다, 적외선은 가시광선보다 진동수가 작은 쪽이므로 <b>자외선의 진동수가 더 크다</b>.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>4</span>산 너머 마을에서도 라디오 방송을 들을 수 있는 까닭은? 같은 자리에 빛은 왜 닿지 않을까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="radio">산 너머 방송 보기</button></div>
+        <details><summary>답 보기</summary><p>라디오파는 파장이 길어(수 m ~ 수 km) <b>회절이 잘 되므로</b> 산 꼭대기를 지나 산 뒤쪽으로 휘어 들어간다. 빛은 파장이 아주 짧아 거의 직진하므로 산 뒤에 그림자가 생긴다.</p></details>
+      </li>
+    </ol>
+    <nav class="pager"><a href="../08/">← III1-08 전자기파와 스펙트럼</a><a class="home" href="../../">물리 실험실</a><a href="../10/">III1-10 중첩 원리 →</a></nav>
+  </section>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="III1-09-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.III1_09;
+  const {$, C, text, arrow} = Lab;
+  const AL = Lab.alpha, TAU = 2 * Math.PI;
+
+  // ── 장면 목록 ───────────────────────────────────────────
+  const SCENES = {
+    gamma: [{id: 'therapy', name: '암 치료', uses: ['암 치료'], hint: '빔이 모이는 곳 = 암세포'}],
+    xray: [{id: 'bag', name: '공항 수하물 검색', uses: ['공항 수하물 검색'], hint: '진할수록 X선을 많이 흡수'}, {id: 'hand', name: '뼈 사진', uses: ['X선 사진·CT'], hint: '하얀 곳 = 많이 흡수(뼈)'}],
+    uv: [{id: 'steril', name: '살균 소독기', uses: ['살균 소독기'], hint: '회색 = DNA가 변형된 세균'}, {id: 'fluor', name: '위조지폐 감별', uses: ['위조지폐 감별'], hint: '초록 빛 = 형광'}],
+    vis: [{id: 'prism', name: '조명·광학 기기', uses: ['조명', '광학 기기'], hint: '400~700 nm만 눈에 보인다'}],
+    ir: [{id: 'thermal', name: '열화상 카메라', uses: ['열화상 카메라', '적외선 체온계', '야간 투시경'], hint: '물결 수 ∝ 내는 적외선'}, {id: 'remote', name: '리모컨', uses: ['리모컨'], hint: '적외선은 눈에 보이지 않는다'}],
+    mw: [{id: 'oven', name: '전자레인지', uses: ['전자레인지'], hint: '물 분자가 전기장을 따라 흔들림'}, {id: 'radar', name: '레이더·통신', uses: ['레이더', '휴대 전화', '와이파이·블루투스', '위성 통신'], hint: '돌아온 시간 → 거리'}],
+    radio: [{id: 'tv', name: '라디오·TV 방송', uses: ['라디오·TV 방송', '무선 통신'], hint: '산 뒤로 휘어 들어감(회절)'}],
+    us: [{id: 'ultra', name: '초음파 검사', uses: [], hint: '매질이 진동하는 음파'}],
+  };
+  const PROP = {gamma: '원자핵에서 · 에너지·투과력 최대', xray: '투과력이 강함', uv: 'DNA 변형 · 형광', vis: '눈에 보임',
+    ir: '열작용 (열선)', mw: '물 분자를 흔듦 · 통신', radio: '파장이 길어 회절이 잘 됨', us: '음파 — 전자기파 아님'};
+  const KEY = {gamma: '원자핵 · 투과력 최대', xray: '투과력 강함', uv: 'DNA 변형 · 형광', vis: '눈에 보임', ir: '열작용 (열선)', mw: '물 분자 흔듦 · 통신', radio: '회절 잘 됨'};
+  const PAIR = {gamma: '감마선 vs X선 — 감마선은 원자핵에서 나오고 에너지·투과력이 가장 크다.', xray: '감마선 vs X선 — 감마선은 원자핵에서 나오고 에너지·투과력이 가장 크다.',
+    uv: '자외선 vs 적외선 — 자외선은 가시광선보다 진동수가 커서 살균·형광, 적외선은 작아서 열작용.', ir: '자외선 vs 적외선 — 자외선은 가시광선보다 진동수가 커서 살균·형광, 적외선은 작아서 열작용.',
+    vis: '가시광선은 약 400 nm(보라) ~ 700 nm(빨강)의 아주 좁은 구간이다.', mw: '마이크로파 vs 라디오파 — 마이크로파가 파장이 짧다. 둘을 묶어 전파라 한다.',
+    radio: '마이크로파 vs 라디오파 — 마이크로파가 파장이 짧다. 둘을 묶어 전파라 한다.', us: '전자기파 vs 초음파 — 초음파는 매질이 필요한 음파로, 진공에서 전달되지 않는다.'};
+  const T0 = {therapy: 4, bag: 5.2, hand: 2.6, steril: 4.2, fluor: 2, prism: 2, thermal: 2, remote: 1.6, oven: 6, radar: 1.4, tv: 3, ultra: 2};
+  const USE_SCENE = {'암 치료': ['gamma', 'therapy'], '식품·의료 기구 멸균': ['gamma', 'therapy'], '공항 수하물 검색': ['xray', 'bag'], '뼈 사진·CT': ['xray', 'hand'],
+    '살균 소독기': ['uv', 'steril'], '위조지폐 감별': ['uv', 'fluor'], '조명·광학 기기': ['vis', 'prism'], '열화상 카메라': ['ir', 'thermal'], '적외선 체온계': ['ir', 'thermal'],
+    '야간 투시경': ['ir', 'thermal'], '리모컨': ['ir', 'remote'], '전자레인지': ['mw', 'oven'], '와이파이·블루투스': ['mw', 'radar'], '레이더': ['mw', 'radar'],
+    '휴대 전화': ['mw', 'radar'], '라디오·TV 방송': ['radio', 'tv'], '초음파 검사': ['us', 'ultra']};
+
+  const S = {reg: 'xray', cs: 'bag', t: T0.bag, playing: !Lab.reduceMotion};
+  const scene = () => SCENES[S.reg].find((s) => s.id === S.cs);
+
+  // ── 도우미 ──────────────────────────────────────────────
+  const regName = (id) => (id === 'us' ? '초음파' : id === 'none' ? '전자기파 아님' : M.byId(id).name);
+  const tint = (id, k = 1) => ({gamma: AL(C.violet, 0.36 * k), xray: AL(C.violet, 0.26 * k), uv: AL(C.violet, 0.15 * k),
+    ir: AL(C.neg, 0.18 * k), mw: AL(C.energy, 0.28 * k), radio: AL(C.energy, 0.15 * k)})[id];
+  const beamCol = (id) => ({gamma: C.violet, xray: C.violet, uv: C.violet, vis: C.ink, ir: C.neg, mw: C.energy, radio: C.energy, us: C.muted})[id];
+  const cssVar = (id) => ({gamma: 'var(--violet)', xray: 'var(--violet)', uv: 'var(--violet)', ir: 'var(--neg)', mw: 'var(--energy)', radio: 'var(--energy)', us: 'var(--muted)'})[id];
+  function visRGB(nm, a = 1) {                      // 가시광선의 실제 색 (파장 → RGB)
+    let r = 0, g = 0, b = 0;
+    if (nm < 440) { r = (440 - nm) / 60; b = 1; } else if (nm < 490) { g = (nm - 440) / 50; b = 1; } else if (nm < 510) { g = 1; b = (510 - nm) / 20; }
+    else if (nm < 580) { r = (nm - 510) / 70; g = 1; } else if (nm < 645) { r = 1; g = (645 - nm) / 65; } else r = 1;
+    const k = nm > 700 ? 0.35 + 0.65 * (780 - nm) / 80 : nm < 420 ? 0.35 + 0.65 * (nm - 380) / 40 : 1;
+    const c = (v) => Math.round(255 * Math.pow(v * k, 0.8));
+    return `rgba(${c(r)},${c(g)},${c(b)},${a})`;
+  }
+  const RAINBOW = (a = 1) => [400, 440, 480, 520, 560, 600, 650, 700].map((nm) => visRGB(nm, a));
+  function isDark() { const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(C.paper || ''); return m ? (parseInt(m[1], 16) + parseInt(m[2], 16) + parseInt(m[3], 16)) / 3 < 110 : false; }
+  const filmBg = () => (isDark() ? C.bg : C.ink), filmFg = () => (isDark() ? C.ink : C.paper);
+  const SUPS = {'-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹'};
+  const pow10 = (k) => '10' + String(k).split('').map((ch) => SUPS[ch]).join('');
+  const sig = (v) => parseFloat(v.toPrecision(2));
+  function fmtLen(m) {
+    const U = [[1e3, 'km', 1e3], [1, 'm', 1], [1e-2, 'cm', 1e-2], [1e-3, 'mm', 1e-3], [1e-7, 'μm', 1e-6], [1e-10, 'nm', 1e-9], [1e-13, 'pm', 1e-12], [0, 'fm', 1e-15]];
+    for (const [mn, u, s] of U) if (m >= mn) return Lab.fmt(m / s, 2) + ' ' + u;
+    return '';
+  }
+  const fmtHz = (f) => Lab.sci(sig(f), 2) + ' Hz';
+  function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+  function rr(ctx, x, y, w, h, r, fill, stroke, lw = 1.6) {
+    Lab.rrect(ctx, x, y, w, h, r);
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
+  }
+  function circ(ctx, x, y, r, fill, stroke, lw = 1.6) {
+    ctx.beginPath(); ctx.arc(x, y, Math.max(0.5, r), 0, TAU);
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
+  }
+  const lbl = (ctx, s, x, y, o = {}) => text(ctx, s, x, y, Object.assign({size: 13, w: 700, halo: true}, o));
+  // 파동 묶음(광자처럼 그림): 중심 (x,y), 진행 방향 (ux,uy)
+  function packet(ctx, x, y, ux, uy, len, lp, a, col, w = 2.6) {
+    const nx = -uy, ny = ux, n = Math.max(12, Math.round(len / 2));
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const s = -len / 2 + len * i / n, off = a * Math.sin(Math.PI * i / n) * Math.sin(TAU * s / lp);
+      const px = x + ux * s + nx * off, py = y + uy * s + ny * off;
+      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+    }
+    ctx.stroke(); ctx.restore();
+  }
+  // a → b 를 따라 흐르는 파동 묶음들
+  function flow(ctx, ax, ay, bx, by, t, o) {
+    const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy); if (L < 4) return;
+    const ux = dx / L, uy = dy / L, gap = o.gap || 70, len = Math.min(o.len || 30, L * 0.8);
+    const s0 = (((t * (o.speed || 110)) % gap) + gap) % gap;
+    for (let s = s0; s <= L; s += gap) {
+      const a = Math.max(0, Math.min(1, s / 24, (L - s) / 24));
+      if (a <= 0.02) continue;
+      ctx.save(); ctx.globalAlpha = a * (o.alpha || 1);
+      packet(ctx, ax + ux * s, ay + uy * s, ux, uy, len, o.lp || 8, o.amp || 4, o.col, o.w || 2.6);
+      ctx.restore();
+    }
+  }
+  const lerp = (a, b, k) => a + (b - a) * k;
+
+  // ── 장면: 감마선 · 암 치료 ───────────────────────────────
+  function sTherapy(ctx, R, t, nar) {
+    const cx = R.x + R.w * (nar ? 0.5 : 0.43), cy = R.y + R.h * (nar ? 0.66 : 0.62);
+    const rh = Math.min(R.h * (nar ? 0.2 : 0.26), R.w * (nar ? 0.27 : 0.16));
+    const fx = cx + rh * 0.2, fy = cy - rh * 0.15, N = 7, Rs = rh * (nar ? 1.75 : 1.95);
+    const cyc = (t % 9) / 9;
+    const src = [];
+    for (let i = 0; i < N; i++) {
+      const a = Math.PI * (1.1 + 0.8 * i / (N - 1));
+      src.push({a, sx: fx + Rs * Math.cos(a), sy: fy + Rs * Math.sin(a), ex: fx - Math.cos(a) * rh * 1.5, ey: fy - Math.sin(a) * rh * 1.5});
+    }
+    // 머리(단면)
+    ctx.beginPath(); ctx.ellipse(cx, cy, rh, rh * 1.12, 0, 0, TAU); ctx.fillStyle = AL(C.neg, 0.07); ctx.fill(); ctx.strokeStyle = C.muted; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx, cy, rh * 0.9, rh * 1.0, 0, 0, TAU); ctx.strokeStyle = AL(C.muted, 0.45); ctx.lineWidth = 5; ctx.stroke();
+    // 빔 길
+    ctx.save(); ctx.lineCap = 'round';
+    src.forEach((s) => { ctx.strokeStyle = AL(C.violet, 0.13); ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(s.sx, s.sy); ctx.lineTo(s.ex, s.ey); ctx.stroke(); });
+    ctx.restore();
+    circ(ctx, fx, fy, rh * 0.42, AL(C.violet, 0.12));
+    // 암세포: 쪼인 양이 쌓일수록 줄어든다
+    const rt = rh * 0.22 * (1 - 0.55 * cyc);
+    circ(ctx, fx, fy, rt, AL(C.neg, 0.55 - 0.3 * cyc), C.copper, 2.8);
+    src.forEach((s, i) => flow(ctx, s.sx, s.sy, s.ex, s.ey, t + i * 0.11, {col: C.violet, lp: 7, amp: 4, len: 24, gap: 58, speed: 120}));
+    // 선원(원자핵이 붕괴하며 감마선을 냄)
+    src.forEach((s, i) => {
+      ctx.save(); ctx.translate(s.sx, s.sy); ctx.rotate(s.a);
+      rr(ctx, -6, -11, 22, 22, 4, C.ink);
+      circ(ctx, -6, 0, 4, C.violet);
+      ctx.restore();
+    });
+    const s0 = src[0], s6 = src[N - 1];
+    if (!nar) { lbl(ctx, '원자핵에서 나오는', s0.sx - 16, s0.sy - 9, {align: 'right', color: C.violet, size: 14}); lbl(ctx, '감마선 (⁶⁰Co 등)', s0.sx - 16, s0.sy + 10, {align: 'right', color: C.violet, size: 14}); }
+    lbl(ctx, '암세포', fx + rt + 8, fy + rh * 0.36, {align: 'left', color: C.copper, size: 14});
+    lbl(ctx, '몸을 뚫고 나간다 (투과력 최대)', cx, Math.min(R.y + R.h - 8, cy + rh * 1.12 + 16), {w: 600, color: C.muted});
+    // 쪼인 양 비교
+    const ratio = M.focusDoseRatio(N);
+    const bx = nar ? R.x + 4 : s6.sx + 30, by = nar ? R.y + 10 : R.y + R.h * 0.28, bw = nar ? R.w * 0.42 : R.x + R.w - 12 - bx;
+    if (!nar) {
+      lbl(ctx, '쪼이는 양 비교', bx, by, {align: 'left', size: 14});
+      const bar = (y, k, s, col) => { rr(ctx, bx, y, Math.max(4, bw * 0.62 * k), 12, 4, col); lbl(ctx, s, bx, y - 9, {align: 'left', w: 600, color: C.muted}); };
+      bar(by + 34, 1 / ratio, '빔 하나만 지나는 곳', AL(C.violet, 0.5));
+      bar(by + 76, 1, '빔 ' + N + '개가 모인 곳(암세포): ' + ratio + '배', C.violet);
+      lbl(ctx, '→ 암세포만 집중해서 파괴', bx, by + 112, {align: 'left', color: C.copper});
+    } else {
+      lbl(ctx, '원자핵에서 나온 감마선 빔 ' + N + '개', R.x + 4, R.y + 6, {align: 'left', color: C.violet});
+      lbl(ctx, '→ 모이는 암세포는 ' + ratio + '배를 받는다', R.x + 4, R.y + 25, {align: 'left', color: C.copper});
+    }
+  }
+
+  // ── 장면: X선 · 수하물 검색 ──────────────────────────────
+  const BAG = [   // 가방 속 물건 (가방 안 비율 좌표), 재질과 두께(cm)
+    {k: 'cloth', d: 2.2, sh: 'blob', x: 0.06, y: 0.16, w: 0.46, h: 0.36},
+    {k: 'cloth', d: 2.2, sh: 'blob', x: 0.08, y: 0.56, w: 0.52, h: 0.34},
+    {k: 'water', d: 1.5, sh: 'bottle', x: 0.6, y: 0.12, w: 0.13, h: 0.74},
+    {k: 'metal', d: 0.5, sh: 'scissors', x: 0.66, y: 0.5, w: 0.3, h: 0.38},
+    {k: 'metal', d: 0.5, sh: 'keys', x: 0.2, y: 0.22, w: 0.2, h: 0.22},
+  ];
+  function bagItem(ctx, it, X, Y, W, H, col, lw) {
+    const x = X + it.x * W, y = Y + it.y * H, w = it.w * W, h = it.h * H;
+    ctx.save(); ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = lw;
+    if (it.sh === 'blob') { Lab.rrect(ctx, x, y, w, h, Math.min(w, h) * 0.45); ctx.fill(); }
+    else if (it.sh === 'bottle') { Lab.rrect(ctx, x, y + h * 0.18, w, h * 0.82, w * 0.3); ctx.fill(); ctx.fillRect(x + w * 0.3, y, w * 0.4, h * 0.2); }
+    else if (it.sh === 'scissors') {
+      ctx.lineWidth = Math.max(2, w * 0.07); ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(x + w * 0.3, y + h * 0.62); ctx.lineTo(x + w, y); ctx.moveTo(x + w * 0.3, y + h * 0.38); ctx.lineTo(x + w, y + h * 0.98); ctx.stroke();
+      ctx.lineWidth = Math.max(2, w * 0.06);
+      ctx.beginPath(); ctx.arc(x + w * 0.15, y + h * 0.22, w * 0.14, 0, TAU); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x + w * 0.15, y + h * 0.78, w * 0.14, 0, TAU); ctx.stroke();
+    } else if (it.sh === 'keys') {
+      ctx.lineWidth = Math.max(1.6, w * 0.08);
+      ctx.beginPath(); ctx.arc(x + w * 0.3, y + h * 0.35, w * 0.22, 0, TAU); ctx.stroke();
+      ctx.fillRect(x + w * 0.45, y + h * 0.3, w * 0.55, h * 0.16); ctx.fillRect(x + w * 0.8, y + h * 0.3, w * 0.1, h * 0.36);
+      ctx.fillRect(x + w * 0.35, y + h * 0.55, w * 0.14, h * 0.45);
+    }
+    ctx.restore();
+  }
+  function sBag(ctx, R, t, nar) {
+    const by = R.y + R.h * (nar ? 0.42 : 0.78), x0 = R.x + 6, x1 = R.x + R.w * (nar ? 1 : 0.6) - 6;
+    const tx0 = lerp(x0, x1, 0.36), tx1 = lerp(x0, x1, 0.64), ty = R.y + R.h * (nar ? 0.08 : 0.18);
+    const bxL = (tx0 + tx1) / 2, bw = (x1 - x0) * 0.25, bh = Math.min((by - ty) * 0.6, bw * 0.72);
+    const per = 9, p = (t % per) / per, xb = lerp(x0 + 2, x1 - bw - 2, p), yb = by - bh;
+    // 벨트
+    ctx.save(); ctx.fillStyle = AL(C.muted, 0.18); ctx.fillRect(x0, by, x1 - x0, 12);
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(x0, by); ctx.lineTo(x1, by); ctx.stroke(); ctx.restore();
+    for (let x = x0 + 10; x < x1; x += 34) { circ(ctx, x, by + 6, 5, C.paper, C.muted, 1.4); const a = t * 3; ctx.save(); ctx.strokeStyle = C.muted; ctx.beginPath(); ctx.moveTo(x, by + 6); ctx.lineTo(x + 4 * Math.cos(a), by + 6 + 4 * Math.sin(a)); ctx.stroke(); ctx.restore(); }
+    // 가방(겉) — 속은 보이지 않는다
+    rr(ctx, xb, yb, bw, bh, 9, AL(C.muted, 0.55), C.ink, 2);
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(xb + bw * 0.35, yb); ctx.quadraticCurveTo(xb + bw * 0.5, yb - bh * 0.28, xb + bw * 0.65, yb); ctx.stroke(); ctx.restore();
+    // 검색대 터널
+    ctx.save(); ctx.fillStyle = AL(C.paper, 0.72); ctx.fillRect(tx0, ty, tx1 - tx0, by - ty); ctx.restore();
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(tx0, by); ctx.lineTo(tx0, ty); ctx.lineTo(tx1, ty); ctx.lineTo(tx1, by); ctx.stroke(); ctx.restore();
+    for (let k = 0; k < 4; k++) { ctx.save(); ctx.strokeStyle = AL(C.muted, 0.6); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(tx0 + 3, ty + 4 + k * (by - ty) / 4); ctx.lineTo(tx0 + 3, ty + (k + 0.8) * (by - ty) / 4); ctx.moveTo(tx1 - 3, ty + 4 + k * (by - ty) / 4); ctx.lineTo(tx1 - 3, ty + (k + 0.8) * (by - ty) / 4); ctx.stroke(); ctx.restore(); }
+    // X선 발생 장치와 부채꼴 빔
+    rr(ctx, bxL - 20, ty + 4, 40, 16, 4, C.ink);
+    ctx.save(); ctx.fillStyle = AL(C.violet, 0.14); ctx.beginPath(); ctx.moveTo(bxL, ty + 20); ctx.lineTo(bxL - 16, by); ctx.lineTo(bxL + 16, by); ctx.closePath(); ctx.fill(); ctx.restore();
+    [-12, 0, 12].forEach((dx, i) => flow(ctx, bxL + dx * 0.15, ty + 22, bxL + dx, by - 2, t + i * 0.2, {col: C.violet, lp: 6, amp: 3, len: 20, gap: 44, speed: 120, w: 2.6}));
+    ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(bxL - 18, by + 3); ctx.lineTo(bxL + 18, by + 3); ctx.stroke(); ctx.restore();
+    lbl(ctx, 'X선 발생 장치', bxL, ty - 10, {color: C.violet, size: 14});
+    if (!nar) lbl(ctx, '검출기', bxL, by + 26, {color: C.copper});
+    // 모니터: 지나간 부분만 찍힌다
+    let mx0, my0, mw, mh;
+    if (nar) { mw = R.w * 0.6; mh = R.h * 0.27; mx0 = R.x + (R.w - mw) / 2; my0 = R.y + R.h * 0.6; }
+    else { mx0 = R.x + R.w * 0.65; mw = R.x + R.w - 8 - mx0; my0 = R.y + R.h * 0.13; mh = R.h * 0.6; }
+    rr(ctx, mx0 - 6, my0 - 6, mw + 12, mh + 12, 10, C.ink);
+    rr(ctx, mx0, my0, mw, mh, 5, C.paper);
+    if (!nar) { ctx.save(); ctx.fillStyle = C.ink; ctx.fillRect(mx0 + mw / 2 - 6, my0 + mh + 6, 12, 14); ctx.fillRect(mx0 + mw / 2 - 26, my0 + mh + 18, 52, 5); ctx.restore(); }
+    lbl(ctx, '모니터: 투과 영상', mx0 + mw / 2, my0 - 18, {size: 14});
+    const umin = Math.max(0, Math.min(1, (bxL - xb) / bw));
+    if (umin < 1) {
+      const iw = mw * 0.82, ih = Math.min(mh * 0.8, iw * bh / bw), ix = mx0 + (mw - iw) / 2, iy = my0 + (mh - ih) / 2;
+      ctx.save(); ctx.beginPath(); ctx.rect(ix + umin * iw, my0, iw * (1 - umin) + 2, mh); ctx.clip();
+      rr(ctx, ix, iy, iw, ih, 8, null, AL(C.ink, 0.35), 1.4);
+      BAG.forEach((it) => bagItem(ctx, it, ix, iy, iw, ih, AL(C.ink, 1 - M.transmit(it.k, it.d)), 2));
+      bagItem(ctx, BAG[3], ix, iy, iw, ih, C.copper, 2);                 // 지켜볼 것: 가위
+      ctx.restore();
+      if (umin > 0) { ctx.save(); ctx.strokeStyle = C.violet; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ix + umin * iw, my0 + 4); ctx.lineTo(ix + umin * iw, my0 + mh - 4); ctx.stroke(); ctx.restore(); }
+    } else lbl(ctx, '가방이 지나가면 찍힌다', mx0 + mw / 2, my0 + mh / 2, {w: 600, color: C.muted});
+    if (nar) lbl(ctx, '진함 = 금속(많이 흡수) · 옅음 = 옷', mx0 + mw / 2, my0 + mh + 20, {w: 600});
+    else { const ly = my0 + mh + 44; lbl(ctx, '진함: 금속이 X선을 많이 흡수', mx0 + mw / 2, ly, {w: 600}); lbl(ctx, '옅음: 옷·물병은 잘 통과', mx0 + mw / 2, ly + 19, {w: 600, color: C.muted}); }
+  }
+
+  // ── 장면: X선 · 뼈 사진 ──────────────────────────────────
+  function handShape(ctx, ox, oy, s, layer, col) {   // ox,oy: 손 상자 왼쪽 위, 크기 s (높이 1.25 s)
+    ctx.save(); ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineCap = 'round';
+    const R_ = (x, y, w, h, r) => { Lab.rrect(ctx, ox + x * s, oy + y * s, w * s, h * s, r * s); ctx.fill(); };
+    const F = [[0.3, 0.13, 0.12], [0.44, 0.05, 0.125], [0.58, 0.1, 0.12], [0.71, 0.21, 0.105]];
+    if (layer === 'soft') {
+      R_(0.22, 0.46, 0.56, 0.5, 0.1); R_(0.3, 0.9, 0.4, 0.36, 0.08);
+      F.forEach(([x, top, w]) => R_(x - w / 2, top, w, 0.52 - top, w / 2));
+      ctx.save(); ctx.translate(ox + 0.25 * s, oy + 0.66 * s); ctx.rotate(-0.85); Lab.rrect(ctx, -0.065 * s, -0.34 * s, 0.13 * s, 0.36 * s, 0.06 * s); ctx.fill(); ctx.restore();
+    } else {
+      F.forEach(([x, top, w]) => {
+        const bw = w * 0.42, len = 0.52 - top, seg = [0.3, 0.27, 0.33];
+        let y = top + 0.015;
+        seg.forEach((k) => { R_(x - bw / 2, y, bw, len * k - 0.012, bw / 2); y += len * k; });
+        const xb = 0.5 + (x - 0.5) * 0.72;
+        ctx.lineWidth = bw * s; ctx.beginPath(); ctx.moveTo(ox + x * s, oy + 0.55 * s); ctx.lineTo(ox + xb * s, oy + 0.86 * s); ctx.stroke();
+      });
+      ctx.save(); ctx.translate(ox + 0.25 * s, oy + 0.66 * s); ctx.rotate(-0.85);
+      Lab.rrect(ctx, -0.025 * s, -0.31 * s, 0.05 * s, 0.13 * s, 0.025 * s); ctx.fill();
+      Lab.rrect(ctx, -0.025 * s, -0.17 * s, 0.05 * s, 0.12 * s, 0.025 * s); ctx.fill(); ctx.restore();
+      ctx.lineWidth = 0.05 * s; ctx.beginPath(); ctx.moveTo(ox + 0.27 * s, oy + 0.66 * s); ctx.lineTo(ox + 0.4 * s, oy + 0.88 * s); ctx.stroke();
+      [[0.4, 0.92], [0.48, 0.91], [0.56, 0.92], [0.44, 0.97], [0.53, 0.97]].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(ox + x * s, oy + y * s, 0.034 * s, 0, TAU); ctx.fill(); });
+      ctx.lineWidth = 0.07 * s; ctx.beginPath(); ctx.moveTo(ox + 0.42 * s, oy + 1.01 * s); ctx.lineTo(ox + 0.43 * s, oy + 1.25 * s);
+      ctx.moveTo(ox + 0.58 * s, oy + 1.01 * s); ctx.lineTo(ox + 0.58 * s, oy + 1.25 * s); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function sHand(ctx, R, t, nar) {
+    const e = Math.min(1, (t % 7) / 2.6);                                  // 찍히는 정도 (노출)
+    const lw = R.w * (nar ? 0.52 : 0.5), s = Math.min(R.h * 0.62 / 1.25, lw * 0.5);
+    const hx = R.x + lw / 2 - s / 2, hy = R.y + R.h * 0.26, plateY = hy + 1.25 * s + 6;
+    const tubeY = R.y + 8;
+    rr(ctx, hx - s * 0.2, plateY - 1.25 * s - 14, s * 1.4, 1.25 * s + 24, 6, AL(C.muted, 0.12), AL(C.muted, 0.6), 1.4);
+    handShape(ctx, hx, hy, s, 'soft', AL(C.neg, 0.28));
+    rr(ctx, R.x + lw / 2 - 22, tubeY, 44, 16, 4, C.ink);
+    ctx.save(); ctx.fillStyle = AL(C.violet, 0.1); ctx.beginPath(); ctx.moveTo(R.x + lw / 2, tubeY + 16); ctx.lineTo(hx - s * 0.15, plateY); ctx.lineTo(hx + s * 1.15, plateY); ctx.closePath(); ctx.fill(); ctx.restore();
+    for (let i = 0; i < 5; i++) { const xx = lerp(hx - s * 0.05, hx + s * 1.05, i / 4); flow(ctx, R.x + lw / 2 + (xx - R.x - lw / 2) * 0.08, tubeY + 18, xx, plateY - 4, t + i * 0.17, {col: C.violet, lp: 6, amp: 3, len: 18, gap: 48, speed: 110, w: 2.6}); }
+    lbl(ctx, 'X선', R.x + lw / 2 + 30, tubeY + 8, {align: 'left', color: C.violet, size: 14});
+    if (!nar) lbl(ctx, '검출판 (필름)', hx + s * 0.5, plateY + 16, {w: 600, color: C.muted});
+    // 필름
+    let fx, fy, fw, fh;
+    fx = R.x + R.w * 0.55; fw = R.x + R.w - (nar ? 4 : 10) - fx; fy = R.y + 6; fh = R.h * (nar ? 0.7 : 0.78);
+    rr(ctx, fx, fy, fw, fh, 8, filmBg(), C.copper, 2.4);
+    const s2 = Math.min(fh * 0.86 / 1.25, fw * 0.8), ox2 = fx + (fw - s2) / 2, oy2 = fy + (fh - 1.25 * s2) / 2;
+    ctx.save(); Lab.rrect(ctx, fx, fy, fw, fh, 8); ctx.clip();
+    handShape(ctx, ox2, oy2, s2, 'soft', AL(filmFg(), 0.32 * e));
+    handShape(ctx, ox2, oy2, s2, 'bone', AL(filmFg(), 0.95 * e));
+    ctx.restore();
+    const ly = fy + fh + 18;
+    lbl(ctx, nar ? '뼈: 흡수 → 하얗게' : '뼈: X선을 많이 흡수 → 하얗게', fx + fw / 2, ly, {w: 600});
+    lbl(ctx, nar ? '살: 통과 → 검게' : '살: 잘 통과 → 필름이 검게', fx + fw / 2, ly + 19, {w: 600, color: C.muted});
+  }
+
+  // ── 장면: 자외선 · 살균 소독기 ───────────────────────────
+  const BUGS = (() => {   // 4 × 3 격자를 조금씩 흔든 자리 (겹치지 않게), 죽는 차례는 섞어서
+    const r = rng(7), a = [], order = [5, 0, 9, 3, 11, 7, 1, 10, 4, 8, 2, 6];
+    for (let i = 0; i < 12; i++) { const c = i % 4, w = Math.floor(i / 4); a.push({x: 0.14 + 0.24 * c + (r() - 0.5) * 0.1, y: 0.22 + 0.3 * w + (r() - 0.5) * 0.12, a: r() * TAU, die: 1 + order[i] * 0.6, ph: r() * TAU}); }
+    return a;
+  })();
+  function bug(ctx, x, y, ang, L, alive, t, ph, col) {
+    const wob = alive ? 0.25 * Math.sin(t * 3 + ph) : 0, W = L * 0.42;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang + wob);
+    rr(ctx, -L / 2, -W / 2, L, W, W / 2, alive ? AL(C.acc, 0.25) : AL(C.muted, 0.22), col || (alive ? C.acc : C.muted), col ? 2.4 : 1.4);
+    // DNA (작은 이중 나선)
+    ctx.strokeStyle = alive ? C.acc : C.muted; ctx.lineWidth = 1.2;
+    for (const sgn of [1, -1]) {
+      ctx.beginPath();
+      for (let i = 0; i <= 16; i++) { const u = -L * 0.32 + L * 0.64 * i / 16; if (!alive && Math.abs(u) < L * 0.07) { ctx.stroke(); ctx.beginPath(); continue; } const v = sgn * W * 0.18 * Math.sin(u / L * 14); i ? ctx.lineTo(u, v) : ctx.moveTo(u, v); }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function helix(ctx, x0, x1, yc, amp, broken, t, k) {   // 확대한 DNA 사다리
+    const n = 60, gap0 = (x0 + x1) / 2 - (x1 - x0) * 0.07, gap1 = (x0 + x1) / 2 + (x1 - x0) * 0.07;
+    const Y = (x, sgn) => yc + sgn * amp * Math.sin((x - x0) / (x1 - x0) * TAU * 2.2 + t * 0.6);
+    ctx.save(); ctx.lineWidth = 1.6; ctx.strokeStyle = AL(C.acc, 0.6);
+    for (let i = 0; i <= 22; i++) { const x = lerp(x0, x1, i / 22); if (broken && x > gap0 && x < gap1) continue; ctx.beginPath(); ctx.moveTo(x, Y(x, 1)); ctx.lineTo(x, Y(x, -1)); ctx.stroke(); }
+    ctx.restore();
+    for (const sgn of [1, -1]) {
+      ctx.save(); ctx.strokeStyle = C.acc; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath();
+      let pen = false;
+      for (let i = 0; i <= n; i++) {
+        const x = lerp(x0, x1, i / n), y = Y(x, sgn) + (broken && x > gap0 - 6 && x < gap1 + 6 ? sgn * 6 * k : 0);
+        if (broken && x > gap0 && x < gap1) { pen = false; continue; }
+        pen ? ctx.lineTo(x, y) : ctx.moveTo(x, y); pen = true;
+      }
+      ctx.stroke(); ctx.restore();
+    }
+  }
+  function sSteril(ctx, R, t, nar) {
+    const cx0 = R.x + 4, cw = R.w * (nar ? 0.6 : 0.54), cy0 = R.y + 4, ch = R.h - 8;
+    const cyc = t % 9.5;
+    rr(ctx, cx0, cy0, cw, ch, 14, AL(C.muted, 0.08), C.ink, 2.4);
+    // 자외선 램프
+    const ly = cy0 + 22;
+    rr(ctx, cx0 + cw * 0.1, ly - 8, cw * 0.8, 16, 8, AL(C.violet, 0.35), C.violet, 2);
+    ctx.save(); ctx.fillStyle = AL(C.violet, 0.06); ctx.fillRect(cx0 + 6, ly + 8, cw - 12, ch - 40); ctx.restore();
+    lbl(ctx, '자외선 램프', cx0 + cw / 2, ly - 1, {color: C.violet});
+    // 선반과 컵
+    const shy = cy0 + ch - 26;
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx0 + 8, shy); ctx.lineTo(cx0 + cw - 8, shy); ctx.stroke(); ctx.restore();
+    [0.25, 0.7].forEach((k) => { const x = cx0 + cw * k; ctx.save(); ctx.strokeStyle = C.muted; ctx.fillStyle = AL(C.muted, 0.16); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x - 13, shy - 30); ctx.lineTo(x - 10, shy); ctx.lineTo(x + 10, shy); ctx.lineTo(x + 13, shy - 30); ctx.fill(); ctx.stroke(); ctx.restore(); });
+    // 세균과 자외선
+    const L = nar ? 20 : 28, HL = 5;
+    let alive = 0;
+    BUGS.forEach((b, i) => {
+      const x = cx0 + cw * b.x, y = cy0 + 34 + (ch - 70) * b.y, on = cyc < b.die;
+      if (on) { alive++; flow(ctx, x, ly + 10, x, y - 8, t + i * 0.3, {col: C.violet, lp: 6, amp: 3, len: 16, gap: 46, speed: 120, w: 2.6}); }
+      bug(ctx, x, y, b.a, L, on, t, b.ph, i === HL ? C.copper : null);
+    });
+    lbl(ctx, '살아 있는 세균 ' + alive + ' / ' + BUGS.length, cx0 + cw / 2, cy0 + ch - 10, {size: 14, color: alive ? C.acc : C.muted});
+    // 확대: 지켜보는 세균의 DNA
+    const hb = BUGS[HL], hx = cx0 + cw * hb.x, hy = cy0 + 34 + (ch - 70) * hb.y;
+    const rb = Math.min(R.h * 0.38, (R.x + R.w - (cx0 + cw)) * 0.44), bcx = cx0 + cw + (R.x + R.w - cx0 - cw) / 2, bcy = R.y + R.h * 0.46;
+    ctx.save(); ctx.strokeStyle = AL(C.copper, 0.7); ctx.setLineDash([4, 4]); ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(hx, hy - 6); ctx.lineTo(bcx - rb * 0.7, bcy - rb * 0.7); ctx.moveTo(hx, hy + 6); ctx.lineTo(bcx - rb * 0.7, bcy + rb * 0.7); ctx.stroke(); ctx.restore();
+    circ(ctx, bcx, bcy, rb, C.paper, C.copper, 2.4);
+    const dead = cyc >= hb.die, k = Math.min(1, Math.max(0, (cyc - hb.die) * 2));
+    ctx.save(); ctx.beginPath(); ctx.arc(bcx, bcy, rb - 2, 0, TAU); ctx.clip();
+    helix(ctx, bcx - rb * 0.8, bcx + rb * 0.8, bcy + rb * 0.12, rb * 0.2, dead, t, k);
+    if (!dead) for (let i = 0; i < 3; i++) flow(ctx, bcx - rb * 0.5 + i * rb * 0.35, bcy - rb, bcx - rb * 0.1 + i * rb * 0.1, bcy + rb * 0.05, t + i * 0.25, {col: C.violet, lp: 7, amp: 4, len: 22, gap: rb * 1.2, speed: 70});
+    ctx.restore();
+    lbl(ctx, nar ? 'DNA (확대)' : '세균의 DNA (확대)', bcx, bcy - rb - 14, {size: 14, color: C.copper});
+    lbl(ctx, dead ? (nar ? 'DNA 변형!' : 'DNA가 변형 → 번식 못 함') : (nar ? '자외선 흡수' : '자외선이 DNA에 흡수된다'), bcx, bcy + rb + 16, {color: dead ? C.neg : C.violet, size: 14});
+    if (!nar) lbl(ctx, '자외선은 세균의 DNA·RNA를 변형시킨다 → 살균', bcx, bcy + rb + 36, {w: 600, color: C.muted});
+  }
+
+  // ── 장면: 자외선 · 위조지폐 감별 ─────────────────────────
+  function note(ctx, x, y, w, h, real, glow, t) {
+    rr(ctx, x, y, w, h, 6, AL(filmFg(), 0.16), AL(filmFg(), 0.45), 1.4);
+    ctx.save(); ctx.strokeStyle = AL(filmFg(), 0.3); ctx.lineWidth = 1;
+    for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(x + w * 0.08, y + h * i / 4); ctx.lineTo(x + w * 0.5, y + h * i / 4); ctx.stroke(); }
+    ctx.restore();
+    circ(ctx, x + w * 0.73, y + h * 0.5, h * 0.24, null, AL(filmFg(), 0.4), 1.4);
+    text(ctx, '50000', x + w * 0.27, y + h * 0.82, {size: 13, w: 700, mono: true, color: AL(filmFg(), 0.6)});
+    if (real && glow > 0) {
+      const g = visRGB(520, 0.95 * glow);
+      ctx.save(); ctx.shadowColor = visRGB(520, 0.9 * glow); ctx.shadowBlur = 14;
+      circ(ctx, x + w * 0.73, y + h * 0.5, h * 0.24, null, g, 3.2);
+      circ(ctx, x + w * 0.73, y + h * 0.5, h * 0.1, g);
+      ctx.strokeStyle = g; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(x + w * 0.08, y + h * 0.2); ctx.lineTo(x + w * 0.52, y + h * 0.2); ctx.stroke();
+      for (let i = 0; i < 9; i++) { ctx.beginPath(); ctx.arc(x + w * (0.1 + 0.045 * i), y + h * 0.55 + 4 * Math.sin(i * 1.7), 1.8, 0, TAU); ctx.fillStyle = g; ctx.fill(); }
+      ctx.restore();
+    }
+  }
+  function sFluor(ctx, R, t, nar) {
+    const bx = R.x + 4, bw = R.w - 8, by0 = R.y + 4, bh = R.h - 8;
+    rr(ctx, bx, by0, bw, bh, 14, filmBg(), C.ink, 2);
+    const lyy = by0 + 22;
+    rr(ctx, bx + bw * 0.2, lyy - 8, bw * 0.6, 16, 8, AL(C.violet, 0.5), C.violet, 2);
+    lbl(ctx, '자외선 램프 (보이지 않는 빛)', bx + bw / 2, lyy - 1, {color: filmFg(), halo: filmBg()});
+    const nw = nar ? bw * 0.42 : bw * 0.3, nh = nw * 0.5, ny = by0 + bh * (nar ? 0.42 : 0.46);
+    const n1 = bx + bw * (nar ? 0.05 : 0.12), n2 = bx + bw * (nar ? 0.53 : 0.58);
+    const glow = 0.75 + 0.25 * Math.sin(t * 2.4);
+    [n1, n2].forEach((nx, j) => [0.2, 0.5, 0.8].forEach((k, i) => flow(ctx, nx + nw * k, lyy + 10, nx + nw * k, ny - 4, t + i * 0.3 + j * 0.15, {col: C.violet, lp: 6, amp: 3, len: 18, gap: 50, speed: 110, w: 2.6})));
+    note(ctx, n1, ny, nw, nh, true, glow, t);
+    note(ctx, n2, ny, nw, nh, false, 0, t);
+    // 형광으로 나오는 가시광선 (초록)
+    const sx = n1 + nw * 0.73, sy = ny + nh * 0.5;
+    [-2.3, -1.6, -0.9].forEach((a, i) => { const L2 = nh * 1.1; flow(ctx, sx + Math.cos(a) * nh * 0.3, sy + Math.sin(a) * nh * 0.3, sx + Math.cos(a) * L2, sy + Math.sin(a) * L2, t + i * 0.2, {col: visRGB(520), lp: 11, amp: 3.5, len: 20, gap: 42, speed: 60, w: 2.6}); });
+    circ(ctx, sx, sy, nh * 0.3, null, C.copper, 2.2);
+    const ly = ny + nh + 24;
+    lbl(ctx, nar ? '진짜: 빛난다' : '진짜: 형광 무늬가 빛난다', n1 + nw / 2, ly, {color: visRGB(530), halo: filmBg(), size: 14});
+    lbl(ctx, nar ? '가짜: 그대로' : '가짜: 빛나지 않는다', n2 + nw / 2, ly, {color: filmFg(), halo: filmBg(), size: 14});
+    lbl(ctx, nar ? '형광: 자외선 흡수 → 가시광선' : '형광 물질: 자외선(짧은 파장)을 흡수하고 가시광선(긴 파장)을 낸다', bx + bw / 2, by0 + bh - 18, {color: filmFg(), halo: filmBg(), w: 600});
+  }
+
+  // ── 장면: 가시광선 · 조명과 광학 기기 ─────────────────────
+  function sPrism(ctx, R, t, nar) {
+    const lx = R.x + R.w * (nar ? 0.1 : 0.09), ly = R.y + R.h * 0.42;
+    const pc = {x: R.x + R.w * (nar ? 0.45 : 0.44), y: R.y + R.h * 0.5}, side = Math.min(R.h * 0.56, R.w * (nar ? 0.36 : 0.24));
+    const A = {x: pc.x, y: pc.y - side * 0.58}, B = {x: pc.x - side / 2, y: pc.y + side * 0.29}, Cc = {x: pc.x + side / 2, y: pc.y + side * 0.29};
+    const sx = R.x + R.w * (nar ? 0.86 : 0.78), sy0 = R.y + R.h * 0.18, sy1 = R.y + R.h * 0.72;
+    // 조명
+    circ(ctx, lx, ly, 26, AL(C.energy, 0.18));
+    circ(ctx, lx, ly, 15, AL(C.energy, 0.55), C.energy, 2);
+    rr(ctx, lx - 8, ly + 14, 16, 14, 3, C.muted);
+    lbl(ctx, nar ? '조명' : '조명 (백색광)', lx, ly + 44, {size: 14});
+    // 입사 백색광
+    const ein = {x: lerp(B.x, A.x, 0.52), y: lerp(B.y, A.y, 0.52)};
+    ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = AL(C.muted, 0.4); ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(lx + 16, ly); ctx.lineTo(ein.x, ein.y); ctx.stroke(); ctx.restore();
+    flow(ctx, lx + 18, ly, ein.x, ein.y, t, {col: C.ink, lp: 9, amp: 3.5, len: 24, gap: 52, speed: 90, w: 2.6});
+    // 프리즘
+    ctx.save(); ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(Cc.x, Cc.y); ctx.closePath(); ctx.fillStyle = AL(C.vel, 0.12); ctx.fill(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    lbl(ctx, nar ? '프리즘' : '프리즘 (광학 기기)', pc.x, B.y + 20, {size: 14, color: C.vel});
+    // 꺾여 나가는 색들: 보라가 가장 많이 꺾인다
+    const NM = [700, 650, 600, 575, 530, 480, 420];
+    NM.forEach((nm, i) => {
+      const k = i / (NM.length - 1);
+      const ex = {x: lerp(A.x, Cc.x, 0.42 + 0.14 * k), y: lerp(A.y, Cc.y, 0.42 + 0.14 * k)};
+      const sy = lerp(sy0 + 8, sy1 - 8, k), col = visRGB(nm);
+      ctx.save(); ctx.strokeStyle = visRGB(nm, 0.5); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ein.x, ein.y); ctx.lineTo(ex.x, ex.y); ctx.lineTo(sx, sy); ctx.stroke(); ctx.restore();
+      flow(ctx, ex.x, ex.y, sx, sy, t + i * 0.07, {col, lp: 7 + nm / 100, amp: 3, len: 20, gap: 64, speed: 90, w: 2.6});
+    });
+    // 스크린의 무지개
+    const gr = ctx.createLinearGradient(0, sy0, 0, sy1);
+    RAINBOW().slice().reverse().forEach((c, i, arr) => gr.addColorStop(i / (arr.length - 1), c));
+    ctx.fillStyle = gr; ctx.fillRect(sx, sy0, 12, sy1 - sy0);
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.strokeRect(sx, sy0, 12, sy1 - sy0); ctx.restore();
+    if (nar) { lbl(ctx, '빨강 700 nm', sx + 12, sy0 - 12, {align: 'right', w: 600}); lbl(ctx, '보라 400 nm', sx + 12, sy1 + 13, {align: 'right', w: 600}); }
+    else { lbl(ctx, '700 nm 빨강', sx + 18, sy0 + 8, {align: 'left', w: 600}); lbl(ctx, '400 nm 보라', sx + 18, sy1 - 8, {align: 'left', w: 600}); }
+    // 눈
+    const ex = nar ? R.x + R.w * 0.66 : R.x + R.w * 0.62, ey = R.y + R.h * 0.86;
+    ctx.save(); ctx.beginPath(); ctx.moveTo(ex - 20, ey); ctx.quadraticCurveTo(ex, ey - 15, ex + 20, ey); ctx.quadraticCurveTo(ex, ey + 15, ex - 20, ey); ctx.closePath();
+    ctx.fillStyle = C.paper; ctx.fill(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.4; ctx.stroke(); ctx.restore();
+    circ(ctx, ex + 3, ey, 6.5, C.vel); circ(ctx, ex + 3, ey, 2.6, C.ink);
+    ctx.save(); ctx.strokeStyle = AL(C.copper, 0.6); ctx.setLineDash([3, 4]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(ex + 18, ey - 6); ctx.lineTo(sx - 4, (sy0 + sy1) / 2 + 30); ctx.stroke(); ctx.restore();
+    lbl(ctx, nar ? '눈: 400~700 nm만 감지' : '눈이 감지하는 빛 = 가시광선 (약 400~700 nm)', ex - 26, ey, {align: 'right', w: 700});
+    if (!nar) lbl(ctx, '조명, 카메라·현미경 같은 광학 기기, 광통신에 쓰인다', R.x + R.w * 0.3, R.y + 12, {w: 600, color: C.muted});
+  }
+
+  // ── 장면: 적외선 · 열화상 카메라 ─────────────────────────
+  function person(ctx, x, gy, h, col) {
+    ctx.save(); ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(x, gy - h * 0.9, h * 0.1, 0, TAU); ctx.fill();
+    Lab.rrect(ctx, x - h * 0.15, gy - h * 0.77, h * 0.3, h * 0.42, h * 0.08); ctx.fill();
+    ctx.fillRect(x - h * 0.12, gy - h * 0.4, h * 0.1, h * 0.4); ctx.fillRect(x + h * 0.02, gy - h * 0.4, h * 0.1, h * 0.4);
+    ctx.restore();
+  }
+  function mug(ctx, x, gy, h, col, stroke) {
+    ctx.save(); Lab.rrect(ctx, x - h * 0.4, gy - h, h * 0.8, h, h * 0.12); ctx.fillStyle = col; ctx.fill();
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2.4; ctx.stroke(); }
+    ctx.lineWidth = h * 0.12; ctx.strokeStyle = stroke || col; ctx.beginPath(); ctx.arc(x + h * 0.45, gy - h * 0.55, h * 0.2, -1.2, 1.2); ctx.stroke(); ctx.restore();
+  }
+  function can(ctx, x, gy, h, col, stroke) { rr(ctx, x - h * 0.27, gy - h, h * 0.54, h, h * 0.08, col, stroke, 1.6); }
+  function sThermal(ctx, R, t, nar) {
+    const gy = R.y + R.h * (nar ? 0.48 : 0.8), aw = nar ? R.w : R.w * 0.52;
+    const ph = R.h * (nar ? 0.36 : 0.62), objs = [
+      {x: R.x + aw * 0.14, h: ph, T: 36, kind: 'person'},
+      {x: R.x + aw * 0.42, h: ph * 0.2, T: 80, kind: 'mug'},
+      {x: R.x + aw * 0.62, h: ph * 0.24, T: 2, kind: 'can'},
+    ];
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(R.x + aw * 0.3, gy); ctx.lineTo(R.x + aw * 0.75, gy); ctx.stroke(); ctx.restore();
+    const camX = nar ? R.x + R.w * 0.9 : R.x + R.w * 0.6, camY = nar ? R.y + R.h * 0.22 : R.y + R.h * 0.42;
+    // 각 물체가 내는 적외선 (온도가 높을수록 많이)
+    objs.forEach((o, i) => {
+      const oy = gy - o.h * 0.55, gap = 120 / M.irPower(o.T);
+      flow(ctx, o.x + (o.kind === 'person' ? o.h * 0.1 : o.h * 0.4), oy, camX - 26, camY, t + i * 0.37, {col: C.neg, lp: 13, amp: 4, len: 26, gap, speed: 80, w: 2.6});
+    });
+    person(ctx, objs[0].x, gy, objs[0].h, AL(C.ink, 0.75));
+    mug(ctx, objs[1].x, gy, objs[1].h, AL(C.ink, 0.75), C.copper);
+    can(ctx, objs[2].x, gy, objs[2].h, AL(C.vel, 0.5), C.vel);
+    for (let i = 0; i < 3; i++) { const sx = objs[1].x - 8 + i * 8, s0 = (t * 18 + i * 9) % 26; ctx.save(); ctx.globalAlpha = 1 - s0 / 26; ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(sx, gy - objs[1].h - 4 - s0); ctx.quadraticCurveTo(sx + 5, gy - objs[1].h - 10 - s0, sx, gy - objs[1].h - 16 - s0); ctx.stroke(); ctx.restore(); }
+    lbl(ctx, '36 °C', objs[0].x, gy + 16, {w: 600}); lbl(ctx, '80 °C', objs[1].x, gy + 16, {w: 600, color: C.copper}); lbl(ctx, '2 °C', objs[2].x, gy + 16, {w: 600, color: C.vel});
+    // 카메라
+    rr(ctx, camX - 22, camY - 16, 50, 32, 6, C.ink); circ(ctx, camX - 24, camY, 10, C.muted, C.ink, 2);
+    lbl(ctx, '열화상 카메라', camX, camY + 30, {size: 14, align: nar ? 'right' : 'center'});
+    // 화면: 온도를 색으로
+    let dx, dy, dw, dh;
+    if (nar) { dw = R.w * 0.74; dh = R.h * 0.25; dx = R.x + (R.w - dw) / 2; dy = R.y + R.h * 0.6; }
+    else { dx = R.x + R.w * 0.7; dw = R.x + R.w - 8 - dx; dy = R.y + 10; dh = R.h * 0.66; }
+    rr(ctx, dx - 5, dy - 5, dw + 10, dh + 10, 9, C.ink);
+    rr(ctx, dx, dy, dw, dh, 5, AL(C.violet, 0.75));
+    const sc = Math.min(dw / (aw * 0.75), dh / (ph * 1.15)), mapX = (x) => dx + (x - R.x - aw * 0.02) * sc, gy2 = dy + dh - 8;
+    ctx.save(); Lab.rrect(ctx, dx, dy, dw, dh, 5); ctx.clip();
+    person(ctx, mapX(objs[0].x), gy2, objs[0].h * sc, C.force);
+    mug(ctx, mapX(objs[1].x), gy2, objs[1].h * sc, C.energy);
+    can(ctx, mapX(objs[2].x), gy2, objs[2].h * sc, C.vel);
+    ctx.restore();
+    const gb = ctx.createLinearGradient(dx, 0, dx + dw, 0);
+    [C.vel, C.violet, C.force, C.energy].forEach((c, i) => gb.addColorStop(i / 3, c));
+    const yb = dy + dh + 14;
+    ctx.fillStyle = gb; ctx.fillRect(dx, yb, dw, 9);
+    lbl(ctx, '낮음', dx, yb + 20, {align: 'left', w: 600, color: C.muted}); lbl(ctx, '온도', dx + dw / 2, yb + 20, {w: 600, color: C.muted}); lbl(ctx, '높음', dx + dw, yb + 20, {align: 'right', w: 600, color: C.muted});
+    if (!nar) lbl(ctx, '모든 물체는 온도에 따라 적외선을 낸다 — 뜨거울수록 많이', R.x + aw * 0.42, R.y + 12, {w: 600, color: C.neg});
+    else lbl(ctx, '뜨거울수록 적외선을 많이 낸다', R.x + 4, R.y + 10, {align: 'left', w: 600, color: C.neg});
+  }
+
+  // ── 장면: 적외선 · 리모컨 ────────────────────────────────
+  function sRemote(ctx, R, t, nar) {
+    const rx = R.x + R.w * (nar ? 0.16 : 0.13), ry = R.y + R.h * 0.58, ang = 0.45;   // 위끝(발광부)이 TV 쪽으로
+    const tvx0 = R.x + R.w * (nar ? 0.5 : 0.56), tvx1 = R.x + R.w - (nar ? 6 : 24), tvy0 = R.y + R.h * (nar ? 0.12 : 0.1), tvy1 = R.y + R.h * (nar ? 0.56 : 0.66);
+    const per = 3, cyc = t % per, n = Math.floor(t / per);
+    // 리모컨
+    ctx.save(); ctx.translate(rx, ry); ctx.rotate(ang);
+    rr(ctx, -20, -60, 40, 124, 12, C.ink);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) circ(ctx, -8 + j * 16, -18 + i * 18, 4.5, AL(C.paper, cyc < 0.25 && i === 0 && j === 1 ? 0.95 : 0.4));
+    rr(ctx, -6, -66, 12, 8, 3, AL(C.neg, 0.8));
+    ctx.restore();
+    const led = {x: rx + 66 * Math.sin(ang), y: ry - 66 * Math.cos(ang)};
+    // TV
+    rr(ctx, tvx0, tvy0, tvx1 - tvx0, tvy1 - tvy0, 10, C.ink);
+    rr(ctx, tvx0 + 8, tvy0 + 8, tvx1 - tvx0 - 16, tvy1 - tvy0 - 26, 5, AL(C.vel, 0.28));
+    ctx.save(); ctx.fillStyle = C.ink; ctx.fillRect((tvx0 + tvx1) / 2 - 7, tvy1, 14, 16); ctx.fillRect((tvx0 + tvx1) / 2 - 36, tvy1 + 14, 72, 6); ctx.restore();
+    const sen = {x: tvx0 + 26, y: tvy1 - 9};
+    circ(ctx, sen.x, sen.y, 5, AL(C.neg, 0.7), C.copper, 2.2);
+    // 신호: 1 0 1 1 (켜짐·꺼짐)
+    const dx = sen.x - led.x, dy = sen.y - led.y, Ld = Math.hypot(dx, dy), ux = dx / Ld, uy = dy / Ld, v = Ld / 1.2;
+    const code = [1, 0, 1, 1], gap = 30;
+    code.forEach((b, i) => {
+      if (!b) return;
+      const s = v * cyc - i * gap;
+      if (s < 0 || s > Ld) return;
+      packet(ctx, led.x + ux * s, led.y + uy * s, ux, uy, 22, 9, 4, C.neg, 2.6);
+    });
+    const arrived = cyc > (Ld + 3 * gap) / v ? 1 : 0, ch = 7 + ((n + arrived) % 3);
+    text(ctx, String(ch), (tvx0 + tvx1) / 2, (tvy0 + tvy1) / 2 - 8, {size: nar ? 30 : 44, w: 700, mono: true, color: C.ink});
+    text(ctx, '채널', (tvx0 + tvx1) / 2, tvy0 + 24, {size: 13, w: 600, color: C.muted});
+    lbl(ctx, '적외선 센서', sen.x, tvy1 + 30, {color: C.copper, align: 'left'});
+    lbl(ctx, nar ? '신호 1 0 1 1' : '적외선 신호 1 0 1 1 (켜짐·꺼짐)', (led.x + sen.x) / 2, (led.y + sen.y) / 2 - 26, {color: C.neg});
+    lbl(ctx, '리모컨', rx, ry + 82, {size: 14});
+    lbl(ctx, nar ? '눈에는 보이지 않는다' : '적외선은 눈에 보이지 않는다 (스마트폰 카메라에는 보인다)', R.x + R.w / 2, R.y + R.h - 10, {w: 600, color: C.muted});
+  }
+
+  // ── 장면: 마이크로파 · 전자레인지 ─────────────────────────
+  const MOL = (() => { const r = rng(11); const a = []; for (let i = 0; i < 9; i++) a.push({x: (i % 3 + 0.5) / 3 + (r() - 0.5) * 0.08, y: (Math.floor(i / 3) + 0.5) / 3 + (r() - 0.5) * 0.08, b: (r() - 0.5) * 1.2, ph: r() * TAU}); return a; })();
+  function water(ctx, x, y, ang, s, hl) {
+    const hx = (k) => x + Math.cos(ang + k) * s * 1.25, hy = (k) => y + Math.sin(ang + k) * s * 1.25;
+    [0.9, -0.9].forEach((k) => { circ(ctx, hx(k), hy(k), s * 0.6, AL(C.force, 0.3), C.force, 1.4); text(ctx, '+', hx(k), hy(k), {size: 13, w: 700, color: C.force}); });
+    circ(ctx, x, y, s, AL(C.vel, 0.3), hl ? C.copper : C.vel, hl ? 2.8 : 1.6);
+    text(ctx, '−', x, y, {size: 13, w: 700, color: C.vel});
+  }
+  function sOven(ctx, R, t, nar) {
+    const ow = R.w * (nar ? 0.6 : 0.56), oh = nar ? R.h * 0.66 : R.h - 16, ox = R.x + 4, oy = R.y + (nar ? 4 : 8);
+    const temp = 20 + 70 * Math.min(1, (t % 13) / 10), ph = TAU * 0.7 * t, E = Math.sin(ph);
+    rr(ctx, ox, oy, ow, oh, 12, AL(C.muted, 0.12), C.ink, 2.4);
+    const cw = ow * (nar ? 0.64 : 0.74), cx0 = ox + 10, cy0 = oy + 10, chh = oh - 20;
+    rr(ctx, cx0, cy0, cw, chh, 6, AL(C.paper, 0.7), C.muted, 1.4);
+    // 조작판
+    const px = cx0 + cw + 10, pw = ox + ow - 10 - px;
+    rr(ctx, px, cy0 + 4, pw, 30, 5, C.ink);
+    text(ctx, Math.round(temp) + (nar ? '°' : ' °C'), px + pw / 2, cy0 + 19, {size: nar ? 13 : 14, w: 700, mono: true, color: C.energy});
+    // 마그네트론(옆 칸)과 도파관 → 공동으로 마이크로파
+    const mgy = cy0 + Math.min(chh * 0.32, 60), mgx = px + pw / 2 - (nar ? 13 : 16);
+    ctx.save(); ctx.fillStyle = AL(C.energy, 0.3); ctx.fillRect(cx0 + cw - 2, mgy + 4, mgx - cx0 - cw + 4, 16); ctx.restore();
+    rr(ctx, mgx, mgy, nar ? 26 : 32, 24, 4, C.energy);
+    if (!nar) text(ctx, '마그네트론', px + pw / 2, mgy + 40, {size: 13, w: 700, color: C.energy});
+    if (!nar) text(ctx, '2.45 GHz', px + pw / 2, mgy + 57, {size: 13, w: 600, color: C.energy, mono: true});
+    [0.25, 0.5, 0.75].forEach((k, i) => flow(ctx, cx0 + cw - 4, mgy + 12, cx0 + 14, cy0 + chh * k, t + i * 0.4, {col: C.energy, lp: 26, amp: 6, len: 52, gap: 120, speed: 90, w: 2.6}));
+    // 공동 안의 전기장 (방향이 계속 바뀜)
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) {
+      const x = cx0 + cw * (0.14 + 0.22 * i), y = cy0 + chh * (0.3 + 0.28 * j), l = 15 * E * (i % 2 ? -1 : 1);
+      if (Math.abs(l) > 2) arrow(ctx, x, y + l, x, y - l, AL(C.violet, 0.75), 2, 7);
+    }
+    // 그릇
+    const bcx = cx0 + cw * 0.5, bcy = cy0 + chh - 14;
+    ctx.save(); ctx.beginPath(); ctx.ellipse(bcx, bcy + 4, cw * 0.3, 7, 0, 0, TAU); ctx.fillStyle = AL(C.muted, 0.35); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.moveTo(bcx - cw * 0.18, bcy - 26); ctx.quadraticCurveTo(bcx, bcy + 22, bcx + cw * 0.18, bcy - 26); ctx.closePath(); ctx.fillStyle = AL(C.energy, 0.35); ctx.fill(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.4; ctx.stroke(); ctx.restore();
+    const steam = Math.round((temp - 20) / 70 * 4);
+    for (let i = 0; i < steam; i++) { const sx = bcx - 18 + i * 12, s0 = (t * 16 + i * 7) % 24; ctx.save(); ctx.globalAlpha = 1 - s0 / 24; ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(sx, bcy - 30 - s0); ctx.quadraticCurveTo(sx + 5, bcy - 36 - s0, sx, bcy - 42 - s0); ctx.stroke(); ctx.restore(); }
+    // 확대: 물 분자
+    let bx, byy, rb;
+    if (nar) { rb = Math.min(R.h * 0.26, (R.x + R.w - ox - ow) * 0.46); bx = ox + ow + (R.x + R.w - ox - ow) / 2 + 2; byy = R.y + R.h * 0.4; }
+    else { rb = Math.min(R.h * 0.38, (R.x + R.w - ox - ow) * 0.42); bx = ox + ow + (R.x + R.w - ox - ow) / 2 + 6; byy = R.y + R.h * 0.47; }
+    ctx.save(); ctx.strokeStyle = AL(C.copper, 0.6); ctx.setLineDash([4, 4]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(bcx + 10, bcy - 10); ctx.lineTo(bx - rb * 0.9, byy + (nar ? -rb * 0.4 : rb * 0.3)); ctx.stroke(); ctx.restore();
+    circ(ctx, bx, byy, rb, C.paper, C.copper, 2.4);
+    ctx.save(); ctx.beginPath(); ctx.arc(bx, byy, rb - 2, 0, TAU); ctx.clip();
+    const s = rb * 0.085;
+    MOL.forEach((m, i) => {
+      const jig = 0.6 + (temp - 20) / 70;
+      const x = bx - rb * 0.42 + rb * 1.12 * m.x + jig * 2 * Math.sin(t * 7 + m.ph), y = byy - rb * 0.62 + rb * 1.2 * m.y + jig * 2 * Math.cos(t * 6 + m.ph);
+      water(ctx, x, y, m.ph + M.dipoleAngle(ph - 0.4, 0.9), s, i === 4);   // 전기장을 따라 함께 돌았다 돌아왔다
+    });
+    ctx.restore();
+    const ea = rb * 0.5 * E;
+    if (Math.abs(ea) > 3) arrow(ctx, bx - rb * 0.78, byy + ea, bx - rb * 0.78, byy - ea, C.violet, 3, 10);
+    lbl(ctx, '전기장 E', bx - rb * 0.78, byy + rb * 0.62, {color: C.violet});
+    lbl(ctx, '물 분자 (확대)', bx, byy - rb - 12, {size: 14, color: C.copper});
+    if (nar) {
+      lbl(ctx, '전기장을 따라 흔들림 → 충돌 → 열', R.x + R.w / 2, oy + oh + 18, {w: 600});
+      lbl(ctx, '마그네트론(주황 상자) → 약 2.45 GHz · 파장 약 ' + Lab.fmt(M.wavelength(M.OVEN_F) * 100, 0) + ' cm', R.x + R.w / 2, oy + oh + 37, {w: 600, color: C.energy});
+    } else {
+      lbl(ctx, '전기장을 따라 흔들리며 돌고 → 부딪혀 → 열', bx, byy + rb + 16, {w: 600});
+      lbl(ctx, '마이크로파: 파장 약 ' + Lab.fmt(M.wavelength(M.OVEN_F) * 100, 0) + ' cm', bx, byy + rb + 35, {w: 600, color: C.energy});
+    }
+  }
+
+  // ── 장면: 마이크로파 · 레이더와 통신 ──────────────────────
+  function sRadar(ctx, R, t, nar) {
+    const gy = R.y + R.h * 0.9, dx = R.x + R.w * 0.1, dy = gy - 34;
+    const per = 16, pp = (t % per) / per, plx = R.x + R.w * lerp(nar ? 0.85 : 0.62, nar ? 0.55 : 0.4, pp), ply = R.y + R.h * 0.2;
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(R.x, gy); ctx.lineTo(R.x + R.w, gy); ctx.stroke(); ctx.restore();
+    // 안테나
+    const ang = Math.atan2(ply - dy, plx - dx);
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(dx, dy); ctx.lineTo(dx - 12, gy); ctx.moveTo(dx, dy); ctx.lineTo(dx + 12, gy); ctx.stroke();
+    ctx.translate(dx, dy); ctx.rotate(ang);
+    ctx.beginPath(); ctx.moveTo(-6, -26); ctx.quadraticCurveTo(12, 0, -6, 26); ctx.quadraticCurveTo(2, 0, -6, -26); ctx.closePath(); ctx.fillStyle = C.ink; ctx.fill();
+    ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(3, -16); ctx.lineTo(18, 0); ctx.lineTo(3, 16); ctx.stroke(); circ(ctx, 18, 0, 3.5, C.energy); ctx.restore();
+    lbl(ctx, '레이더', dx, gy + 16, {size: 14});
+    // 비행기
+    ctx.save(); ctx.translate(plx, ply); ctx.fillStyle = C.ink; ctx.strokeStyle = C.copper; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, 0, 30, 6, 0, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(8, -20); ctx.lineTo(14, -20); ctx.lineTo(8, 0); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(8, 18); ctx.lineTo(14, 18); ctx.lineTo(8, 0); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(22, -2); ctx.lineTo(30, -14); ctx.lineTo(34, -14); ctx.lineTo(31, 0); ctx.closePath(); ctx.fill(); ctx.restore();
+    // 펄스와 반사파
+    const d = Math.hypot(plx - dx, ply - dy), v = d / 0.9, P = 2.4, tp = t % P;
+    const out = v * tp, back = v * (tp - d / v);
+    const arc = (cx, cy, r, a0, half, col, w, al) => { if (r <= 0) return; ctx.save(); ctx.globalAlpha = al; ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(cx, cy, r, a0 - half, a0 + half); ctx.stroke(); ctx.restore(); };
+    if (out < d) [0, 1, 2].forEach((k) => arc(dx, dy, out - k * 9, ang, 0.18, C.energy, 3, 1 - k * 0.3));
+    if (back > 0 && back < d) [0, 1, 2].forEach((k) => arc(plx, ply, back - k * 9, ang + Math.PI, 0.2, C.energy, 2.4, 0.6 - k * 0.18));
+    if (out < d && !nar) lbl(ctx, '마이크로파 펄스', dx + Math.cos(ang) * out + 10, dy + Math.sin(ang) * out + 18, {align: 'left', color: C.energy});
+    else if (back > 0 && back < d && !nar) lbl(ctx, '반사파', plx - Math.cos(ang) * back + 10, ply - Math.sin(ang) * back + 18, {align: 'left', color: C.energy});
+    // 화면
+    const sr = Math.min(R.h * (nar ? 0.22 : 0.27), R.w * (nar ? 0.2 : 0.13)), scx = R.x + R.w - sr - (nar ? 6 : 16), scy = nar ? gy - sr - 34 : R.y + R.h * 0.42;
+    circ(ctx, scx, scy, sr, filmBg(), C.ink, 2);
+    for (let k = 1; k <= 3; k++) circ(ctx, scx, scy, sr * k / 3.2, null, AL(filmFg(), 0.25), 1);
+    const sw = t * 1.6;
+    ctx.save(); ctx.strokeStyle = C.acc; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(scx, scy); ctx.lineTo(scx + sr * Math.cos(sw), scy + sr * Math.sin(sw)); ctx.stroke(); ctx.restore();
+    const br = sr * Math.min(0.9, d / (R.w * 0.8)), ba = ang;
+    circ(ctx, scx + br * Math.cos(ba), scy + br * Math.sin(ba), 5, C.copper);
+    if (nar) lbl(ctx, '거리 = c × 왕복 시간 ÷ 2', R.x + 4, R.y + 29, {w: 700, align: 'left'});
+    else lbl(ctx, '거리 = c × 왕복 시간 ÷ 2', scx, scy + sr + 16, {w: 700});
+    if (!nar) lbl(ctx, '예: 왕복 2 × 10⁻⁴ s → ' + Lab.fmt(M.radarDistance(2e-4) / 1000, 0) + ' km', scx, scy + sr + 35, {w: 600, color: C.muted, mono: true});
+    lbl(ctx, nar ? '휴대 전화·와이파이도 마이크로파' : '휴대 전화·와이파이·블루투스·위성 통신도 마이크로파', R.x + 4, R.y + 10, {align: 'left', w: 600, color: C.energy});
+  }
+
+  // ── 장면: 라디오파 · 방송 (회절) ─────────────────────────
+  function sTV(ctx, R, t, nar) {
+    const gy = R.y + R.h * 0.92, T = {x: R.x + R.w * 0.09, y: R.y + R.h * 0.4};
+    const K = {x: R.x + R.w * 0.47, y: R.y + R.h * 0.24}, mL = R.x + R.w * 0.27, mR = R.x + R.w * 0.7;
+    const hx = R.x + R.w * (nar ? 0.84 : 0.82), hw = nar ? 34 : 46;
+    // 산과 그림자 영역
+    const mtn = [[mL, gy], [lerp(mL, K.x, 0.5), lerp(gy, K.y, 0.6)], [K.x - 12, K.y + 10], [K.x, K.y], [K.x + 16, K.y + 14], [lerp(K.x, mR, 0.55), lerp(K.y, gy, 0.5)], [mR, gy]];
+    const ux = K.x - T.x, uy = K.y - T.y, ul = Math.hypot(ux, uy), far = R.w * 2;
+    const shadow = [[K.x, K.y], [K.x + ux / ul * far, K.y + uy / ul * far], [R.x + R.w + far, gy], [mR, gy]];
+    const path = (pts) => { ctx.moveTo(pts[0][0], pts[0][1]); pts.slice(1).forEach((p) => ctx.lineTo(p[0], p[1])); ctx.closePath(); };
+    ctx.save(); ctx.beginPath(); path(shadow); ctx.fillStyle = AL(C.muted, 0.08); ctx.fill(); ctx.restore();
+    const lp = nar ? 34 : 46, v = 60, rmax = Math.hypot(R.w, R.h) * 1.1, a0 = Math.atan2(uy, ux);
+    // 곧게 퍼지는 파면 (산과 그림자 영역 밖)
+    ctx.save(); ctx.beginPath(); ctx.rect(R.x, R.y, R.w, gy - R.y); path(mtn); path(shadow); ctx.clip('evenodd');
+    ctx.strokeStyle = C.energy; ctx.lineWidth = 2.6;
+    for (let r = (t * v) % lp; r < rmax; r += lp) { ctx.globalAlpha = Math.max(0.15, 1 - r / rmax); ctx.beginPath(); ctx.arc(T.x, T.y, r, -1.45, 1.2); ctx.stroke(); }
+    ctx.restore();
+    // 회절해 들어가는 파면 (산꼭대기를 중심으로)
+    ctx.save(); ctx.beginPath(); path(shadow); ctx.clip();
+    for (let r = (t * v) % lp; r < rmax; r += lp) {
+      const r2 = r - ul; if (r2 <= 0) continue;
+      for (let k = 0; k < 8; k++) {
+        const b0 = a0 + (Math.PI / 2 - a0 + 0.3) * k / 8, b1 = a0 + (Math.PI / 2 - a0 + 0.3) * (k + 1) / 8;
+        ctx.globalAlpha = Math.max(0.12, 1 - r / rmax) * (1 - k / 9); ctx.strokeStyle = C.energy; ctx.lineWidth = 2.6;
+        ctx.beginPath(); ctx.arc(K.x, K.y, r2, b0, b1); ctx.stroke();
+      }
+    }
+    ctx.restore();
+    // 산
+    ctx.save(); ctx.beginPath(); path(mtn); ctx.fillStyle = AL(C.acc, 0.3); ctx.fill(); ctx.strokeStyle = C.acc; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(R.x, gy); ctx.lineTo(R.x + R.w, gy); ctx.stroke(); ctx.restore();
+    // 빛이라면: 직진 → 그림자
+    ctx.save(); ctx.strokeStyle = AL(C.ink, 0.55); ctx.setLineDash([6, 5]); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(T.x, T.y); ctx.lineTo(K.x + ux / ul * R.w * 0.5, K.y + uy / ul * R.w * 0.5); ctx.stroke(); ctx.restore();
+    // 방송탑
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(T.x - 16, gy); ctx.lineTo(T.x, T.y); ctx.lineTo(T.x + 16, gy);
+    for (let k = 1; k < 5; k++) { const y = lerp(T.y, gy, k / 5), w = 16 * k / 5; ctx.moveTo(T.x - w, y); ctx.lineTo(T.x + w, y + (gy - T.y) / 5); } ctx.stroke(); ctx.restore();
+    circ(ctx, T.x, T.y - 3, 4, C.force);
+    lbl(ctx, '방송탑', T.x, gy + 14, {size: 14});
+    // 산 뒤의 집
+    const hy = gy - hw * 0.7;
+    rr(ctx, hx - hw / 2, hy, hw, hw * 0.7, 3, C.paper, C.copper, 2.4);
+    ctx.save(); ctx.beginPath(); ctx.moveTo(hx - hw * 0.62, hy); ctx.lineTo(hx, hy - hw * 0.45); ctx.lineTo(hx + hw * 0.62, hy); ctx.closePath(); ctx.fillStyle = C.copper; ctx.fill(); ctx.restore();
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(hx + hw * 0.2, hy - hw * 0.25); ctx.lineTo(hx + hw * 0.2, hy - hw * 0.75); ctx.moveTo(hx + hw * 0.05, hy - hw * 0.65); ctx.lineTo(hx + hw * 0.35, hy - hw * 0.65); ctx.stroke(); ctx.restore();
+    for (let i = 0; i < 2; i++) { const s0 = (t * 14 + i * 13) % 26; ctx.save(); ctx.globalAlpha = 1 - s0 / 26; text(ctx, '♪', hx - hw * 0.15 - i * 10, hy - hw * 0.5 - s0, {size: 15, w: 700, color: C.copper}); ctx.restore(); }
+    lbl(ctx, '산 뒤의 집', hx, gy + 14, {size: 14, color: C.copper});
+    lbl(ctx, nar ? '빛: 직진 → 그림자' : '빛이라면: 파장이 짧아 직진 → 산 뒤는 그림자', K.x + (nar ? 20 : 30), K.y + (nar ? 64 : 58), {align: 'left', w: 600, color: C.muted});
+    lbl(ctx, nar ? '라디오파: 회절 → 산 뒤까지' : '라디오파: 파장이 길어 회절이 잘 된다 → 산 뒤까지 전달', R.x + R.w / 2, R.y + 12, {color: C.energy, size: 14});
+  }
+
+  // ── 장면: 비교 · 초음파 검사 (전자기파 아님) ───────────────
+  function sUltra(ctx, R, t, nar) {
+    const bw = nar ? R.w * 0.9 : R.w * 0.56, cx = R.x + bw * 0.52, top = R.y + R.h * (nar ? 0.38 : 0.32);
+    // 배 (몸)
+    ctx.save(); ctx.beginPath(); ctx.ellipse(cx, top + R.h * 0.9, bw * 0.5, R.h * 0.9, 0, Math.PI, TAU); ctx.closePath(); ctx.fillStyle = AL(C.neg, 0.12); ctx.fill(); ctx.strokeStyle = C.muted; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    // 아기 (검사 대상)
+    const fx = cx + bw * 0.04, fy = top + R.h * 0.42, fr = Math.min(R.h * 0.11, bw * 0.08);
+    circ(ctx, fx - fr * 0.8, fy - fr * 0.2, fr, AL(C.copper, 0.25), C.copper, 2.2);
+    ctx.save(); ctx.beginPath(); ctx.ellipse(fx + fr * 0.9, fy + fr * 0.35, fr * 1.4, fr * 0.85, 0.35, 0, TAU); ctx.fillStyle = AL(C.copper, 0.2); ctx.fill(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
+    // 탐촉자와 젤
+    const px = cx - bw * 0.05, py = top - 4;
+    ctx.save(); ctx.beginPath(); ctx.ellipse(px, py + 4, 26, 7, 0, 0, TAU); ctx.fillStyle = AL(C.acc, 0.35); ctx.fill(); ctx.restore();
+    rr(ctx, px - 18, py - 18, 36, 18, 6, C.ink); rr(ctx, px - 8, py - 62, 16, 46, 5, C.muted);
+    // 음파: 매질(몸)이 진동 — 점의 밀·소
+    for (let r = (t * 46) % 16; r < R.h * 0.5; r += 16) {
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - r / (R.h * 0.5)); ctx.fillStyle = C.ink;
+      for (let a = -0.5; a <= 0.5; a += 0.09) { ctx.beginPath(); ctx.arc(px + Math.sin(a) * r, py + 8 + Math.cos(a) * r, 1.8, 0, TAU); ctx.fill(); }
+      ctx.restore();
+    }
+    for (let r = (t * 46 + 8) % 16; r < R.h * 0.3; r += 16) {
+      ctx.save(); ctx.globalAlpha = 0.45 * Math.max(0, 1 - r / (R.h * 0.3)); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.4; ctx.setLineDash([2, 4]);
+      ctx.beginPath(); ctx.arc(fx - fr * 0.8, fy - fr * 1.2, r, -2.6, -0.6); ctx.stroke(); ctx.restore();
+    }
+    lbl(ctx, '탐촉자', px + 16, py - 46, {align: 'left', size: 14});
+    lbl(ctx, '젤: 공기층을 없앤다', px + 32, py + 8, {align: 'left', w: 600, color: C.acc});
+    // 화면
+    if (!nar) {
+      const sx = R.x + R.w * 0.68, sw = R.x + R.w - 8 - sx, sy = R.y + 10, sh = R.h * 0.62;
+      rr(ctx, sx, sy, sw, sh, 8, filmBg(), C.ink, 2);
+      ctx.save(); ctx.beginPath(); ctx.moveTo(sx + sw / 2, sy + 8); ctx.arc(sx + sw / 2, sy + 8, sh * 0.9, Math.PI / 2 - 0.55, Math.PI / 2 + 0.55); ctx.closePath(); ctx.fillStyle = AL(filmFg(), 0.16); ctx.fill(); ctx.clip();
+      circ(ctx, sx + sw * 0.42, sy + sh * 0.5, sh * 0.13, AL(filmFg(), 0.55)); ctx.beginPath(); ctx.ellipse(sx + sw * 0.6, sy + sh * 0.6, sh * 0.18, sh * 0.11, 0.35, 0, TAU); ctx.fillStyle = AL(filmFg(), 0.45); ctx.fill();
+      ctx.restore();
+      lbl(ctx, '반사된 소리로 만든 영상', sx + sw / 2, sy + sh + 16, {w: 600});
+    }
+    if (nar) {
+      lbl(ctx, '초음파: 몸(매질)을 진동시키는 음파', R.x + 4, R.y + 10, {align: 'left', size: 14, color: C.neg});
+      lbl(ctx, '→ 전자기파가 아니다 · 진공에서 전달 안 됨', R.x + 4, R.y + 29, {align: 'left', w: 600, color: C.muted});
+    } else {
+      lbl(ctx, '초음파: 몸(매질)을 진동시키는 음파 — 전자기파가 아니다', R.x + 8, R.y + 12, {align: 'left', size: 14, color: C.neg});
+      lbl(ctx, '매질이 없는 진공에서는 전달되지 않는다 · 몸속 약 1500 m/s (빛 3 × 10⁸ m/s)', R.x + 8, R.y + 32, {align: 'left', w: 600, color: C.muted});
+    }
+  }
+
+  const DRAW = {therapy: sTherapy, bag: sBag, hand: sHand, steril: sSteril, fluor: sFluor, prism: sPrism, thermal: sThermal, remote: sRemote, oven: sOven, radar: sRadar, tv: sTV, ultra: sUltra};
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', draw), map = Lab.canvas('map', draw);
+  const hudEl = document.querySelector('.stage .hud'), legEl = document.querySelector('.stage .legend');
+  let G = null;
+  function geom() {
+    const {W, H} = stage, narrow = W < 520, pad = narrow ? 8 : 14;
+    const legH = (legEl.offsetHeight || 32) + 16, top = 12 + (hudEl.offsetHeight || 30) + 10;
+    const hs = narrow ? 36 : 46, bandH = 22 + hs + 4, bandY = H - legH - bandH;
+    return {W, H, narrow, R: {x: pad, y: top, w: W - 2 * pad, h: bandY - top - 10}, band: {x: pad, y: bandY, w: W - 2 * pad, h: bandH, hs}};
+  }
+  function drawBand(ctx, g) {
+    const b = g.band, sz = g.narrow ? 13 : 14, ids = M.REGIONS.map((r) => r.id);
+    const need = ids.map((id) => Lab.measure(ctx, M.byId(id).name, {size: sz, w: 700}) + (g.narrow ? 6 : 18));
+    const tot = need.reduce((a, v) => a + v, 0);
+    const ws = need.some((v) => v > b.w / 7) ? need.map((v) => v * b.w / tot) : ids.map(() => b.w / 7);
+    text(ctx, g.narrow ? '← 진동수·에너지 큼' : '← 진동수 큼 · 광자 에너지 큼 (파장 짧음)', b.x, b.y + 8, {size: 13, w: 700, color: C.violet, align: 'left'});
+    text(ctx, g.narrow ? '파장 김 →' : '파장 김 · 회절 잘 됨 →', b.x + b.w, b.y + 8, {size: 13, w: 700, color: C.energy, align: 'right'});
+    const yS = b.y + 20, hs = b.hs;
+    g.segs = [];
+    let x = b.x;
+    ids.forEach((id, i) => {
+      const w = ws[i], on = id === S.reg;
+      if (id === 'vis') { const gr = ctx.createLinearGradient(x, 0, x + w, 0); RAINBOW(0.75).forEach((c, k, a) => gr.addColorStop(k / (a.length - 1), c)); ctx.fillStyle = gr; }
+      else ctx.fillStyle = tint(id);
+      ctx.fillRect(x, yS, w, hs);
+      if (i) { ctx.save(); ctx.strokeStyle = C.paper; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, yS); ctx.lineTo(x, yS + hs); ctx.stroke(); ctx.restore(); }
+      const nm = M.byId(id).name;
+      text(ctx, nm, x + w / 2, yS + (g.narrow ? hs / 2 : 15), {size: sz, w: 700, color: on ? C.copper : C.ink, halo: id === 'vis'});
+      if (!g.narrow) text(ctx, '~' + fmtLen(M.byId(id).rep), x + w / 2, yS + 33, {size: 13, w: 500, mono: true, color: C.muted, halo: id === 'vis'});
+      g.segs.push({id, x0: x, x1: x + w});
+      x += w;
+    });
+    ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(b.x, yS, b.w, hs); ctx.restore();
+    const cur = g.segs.find((s) => s.id === S.reg);
+    if (cur) {
+      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 3; ctx.strokeRect(cur.x0 + 1.5, yS + 1.5, cur.x1 - cur.x0 - 3, hs - 3); ctx.restore();
+    }
+    g.yS = yS;
+  }
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    G = geom();
+    ctx.save(); ctx.beginPath(); ctx.rect(0, G.R.y - 6, W, G.R.h + 12); ctx.clip();
+    DRAW[S.cs](ctx, G.R, S.t, G.narrow);
+    ctx.restore();
+    drawBand(ctx, G);
+  }
+
+  // ── 7영역 지도 ──────────────────────────────────────────
+  let MG = null;
+  function drawMap() {
+    const {ctx, W, H} = map; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 400, top = 34, rh = (H - top - 4) / 7, nameW = nar ? 72 : 84, bx0 = 8 + nameW, bx1 = nar ? W - 10 : W * 0.6, kx = nar ? bx0 : bx1 + 12;
+    const LX = (l) => bx0 + (l + 14) / 18 * (bx1 - bx0);
+    text(ctx, '진동수 큰 순서 ↓', 6, 11, {size: 13, w: 700, color: C.muted, align: 'left'});
+    if (!nar) text(ctx, '성질', kx, 11, {size: 13, w: 700, color: C.muted, align: 'left'});
+    else text(ctx, '파장 (로그)', W - 8, 11, {size: 13, w: 700, color: C.muted, align: 'right'});
+    [-12, -9, -6, -3, 0, 3].forEach((l) => {
+      const x = LX(l);
+      ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, top - 4); ctx.lineTo(x, H - 4); ctx.stroke(); ctx.restore();
+      const s = (nar ? {'-12': '1 pm', '-9': '1 nm', '-6': '1 μm', '-3': '1 mm', 0: '1 m', 3: '1 km'} : {'-12': '1 pm', '-6': '1 μm', 0: '1 m'})[l];
+      if (s) text(ctx, s, x, 27, {size: 13, w: 500, color: C.muted, mono: true});
+    });
+    MG = {top, rh};
+    M.REGIONS.forEach((r, i) => {
+      const y = top + i * rh, on = r.id === S.reg, cy = nar ? y + rh * 0.34 : y + rh / 2;
+      if (on) rr(ctx, 1, y + 1, W - 2, rh - 2, 8, C['copper-soft']);
+      text(ctx, r.name, 8, cy, {size: 14, w: 700, align: 'left', color: on ? C.copper : C.ink});
+      const a = LX(Math.max(-14, r.lam[0] > 0 ? Math.log10(r.lam[0]) : -14)), z = LX(Math.min(4, isFinite(r.lam[1]) ? Math.log10(r.lam[1]) : 4));
+      if (r.id === 'vis') { const gr = ctx.createLinearGradient(a, 0, z, 0); RAINBOW().forEach((c, k, arr) => gr.addColorStop(k / (arr.length - 1), c)); ctx.fillStyle = gr; }
+      else ctx.fillStyle = tint(r.id, 1.6);
+      ctx.fillRect(a, cy - 7, Math.max(3, z - a), 14);
+      circ(ctx, LX(Math.log10(r.rep)), cy, 4, on ? C.copper : C.ink);
+      text(ctx, KEY[r.id], kx, nar ? y + rh * 0.74 : cy, {size: 13, w: on ? 700 : 500, align: 'left', color: on ? C.ink : C.muted});
+    });
+  }
+
+  function draw() { drawStage(); drawMap(); }
+
+  // ── 영역 카드·HUD·예제 확인 ──────────────────────────────
+  function card() {
+    const id = S.reg, sc = scene(), us = id === 'us';
+    $('cName').textContent = us ? '초음파 (비교)' : M.byId(id).name;
+    $('cRank').textContent = us ? '전자기파가 아님' : '진동수 ' + (M.REGIONS.findIndex((r) => r.id === id) + 1) + '번째로 큼';
+    if (us) {
+      $('rLamL').textContent = '몸속 파장 (5 MHz)'; $('rLam').textContent = fmtLen(1500 / 5e6);
+      $('rFL').textContent = '진동수 (음파)'; $('rF').textContent = fmtHz(5e6);
+      $('rEL').textContent = '몸속 속력'; $('rE').textContent = '1500 m/s';
+      $('rCL').textContent = '진공에서'; $('rC').textContent = '전달 안 됨';
+      $('cText').innerHTML = '<b>성질</b> 매질(몸·젤)을 진동시키는 음파(종파)다. 진공에서는 전달되지 않고 속력도 빛보다 훨씬 느리다.<br><b>헷갈리는 짝</b> ' + PAIR.us;
+    } else {
+      const r = M.byId(id), lam = r.rep, f = M.freq(lam);
+      $('rLamL').textContent = '대표 파장'; $('rLam').textContent = fmtLen(lam);
+      $('rFL').textContent = '대표 진동수 f = c/λ'; $('rF').textContent = fmtHz(f);
+      $('rEL').textContent = '광자 에너지 E = hf'; $('rE').textContent = Lab.sci(sig(M.photonEnergy(lam)), 2) + ' J';
+      $('rCL').textContent = '진공에서 속력'; $('rC').textContent = '3 × 10⁸ m/s';
+      const lo = r.lam[0], hi = r.lam[1];
+      const lr = lo === 0 ? fmtLen(hi) + ' 이하' : !isFinite(hi) ? fmtLen(lo) + ' 이상' : fmtLen(lo) + ' ~ ' + fmtLen(hi);
+      const fr = lo === 0 ? fmtHz(M.freq(hi)) + ' 이상' : !isFinite(hi) ? fmtHz(M.freq(lo)) + ' 이하' : fmtHz(M.freq(hi)) + ' ~ ' + fmtHz(M.freq(lo));
+      const uses = r.uses.map((u) => (sc.uses.includes(u) ? '<b>' + u + '</b>' : u)).join(', ');
+      $('cText').innerHTML = '<b>범위</b> 파장 ' + lr + ' · 진동수 ' + fr + '<br><b>성질</b> ' + r.prop + '<br><b>이용</b> ' + uses + '<br><b>헷갈리는 짝</b> ' + PAIR[id];
+    }
+    // HUD·범례
+    $('hudRegT').textContent = (us ? '초음파' : M.byId(id).name) + ' · ' + sc.name;
+    $('hudDot').style.background = id === 'vis' ? 'linear-gradient(90deg,' + RAINBOW().join(',') + ')' : cssVar(id);
+    $('hudProp').textContent = '성질: ' + PROP[id];
+    $('legBeam').style.background = id === 'vis' ? 'linear-gradient(90deg,' + RAINBOW().join(',') + ')' : cssVar(id);
+    $('legBeamT').textContent = us ? '초음파 (음파)' : M.byId(id).name + (id === 'vis' ? ' (실제 색)' : ' (눈에 안 보임, 색은 표시용)');
+    $('legHint').textContent = sc.hint;
+    const ok = id === 'xray' && S.cs === 'bag';
+    Lab.check('exCheck', ok, '개념 체크 예제: 공항 수하물 검색 – X선 (투과력이 강해 가방 속이 찍힌다)', '예제: 전자기파의 이용과 그 영역을 바르게 짝지은 것은? — ‘스스로 확인 1’');
+    // 장면 버튼
+    const gc = $('gCase');
+    gc.innerHTML = '<span class="gl">장면</span>' + SCENES[id].map((s) => '<button type="button" class="btn" data-case="' + s.id + '" aria-pressed="' + (s.id === S.cs) + '">' + s.name + '</button>').join('');
+    Lab.group('#gCase [data-case]', 'case', (v) => setScene(S.reg, v), S.cs);
+  }
+  function setScene(reg, cs) {
+    S.reg = reg; S.cs = cs || SCENES[reg][0].id; S.t = T0[S.cs] || 0;
+    regG.set(reg, true);
+    card(); draw();
+  }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const regG = Lab.group('[data-reg]', 'reg', (v) => setScene(v), S.reg);
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  Lab.pointer(stage.el, {
+    down(x, y) {
+      if (!G || !G.segs || y < G.yS - 12 || y > G.yS + G.band.hs + 8) return;
+      const s = G.segs.find((q) => x >= q.x0 && x < q.x1); if (s && s.id !== S.reg) setScene(s.id);
+    },
+  });
+  Lab.pointer(map.el, {
+    down(x, y) { if (!MG) return; const i = Math.floor((y - MG.top) / MG.rh); if (i >= 0 && i < 7 && M.REGIONS[i].id !== S.reg) setScene(M.REGIONS[i].id); },
+  });
+
+  // ── 짝 맞히기 ───────────────────────────────────────────
+  const deck = (() => { const r = rng(3), a = M.USES.map((u) => u.use); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; })();
+  const Q = {i: 0, done: false, right: 0, tried: 0};
+  const opts = [...document.querySelectorAll('[data-pick]')];
+  function showQ() {
+    Q.done = false;
+    $('mUse').textContent = deck[Q.i];
+    opts.forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    $('mFb').className = 'check'; $('mFb').textContent = '이 이용에 쓰는 것을 고르세요. (' + (Q.i + 1) + ' / ' + deck.length + ')';
+  }
+  opts.forEach((b) => b.addEventListener('click', () => {
+    if (Q.done) return;
+    const u = M.findUse(deck[Q.i]), pick = b.dataset.pick, ok = pick === u.region;
+    Q.done = true; Q.tried++; if (ok) Q.right++;
+    opts.forEach((o) => o.setAttribute('aria-pressed', String(o.dataset.pick === u.region)));
+    const fb = $('mFb');
+    fb.className = 'check' + (ok ? ' ok' : '');
+    const jo = (w) => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c < 11172 && c % 28 ? '이' : '가'; };
+    const pn = pick === 'none' ? '‘전자기파 아님’' : regName(pick);
+    fb.textContent = (ok ? '✓ 정답! ' : '✗ ' + pn + (pick === 'none' ? '이' : jo(pn)) + ' 아니라 ' + regName(u.region) + '. ') + u.why;
+    $('mScore').textContent = '맞힌 수 ' + Q.right + ' / ' + Q.tried;
+    const sc = USE_SCENE[u.use]; if (sc) setScene(sc[0], sc[1]);
+  }));
+  $('mNext').addEventListener('click', () => { Q.i = (Q.i + 1) % deck.length; showQ(); });
+  showQ();
+
+  // ── 스스로 확인 ─────────────────────────────────────────
+  const TRY = {
+    ex: () => setScene('xray', 'bag'), mw: () => setScene('mw', 'oven'), uv: () => setScene('uv', 'steril'),
+    ir: () => setScene('ir', 'thermal'), radio: () => setScene('radio', 'tv'),
+  };
+  Lab.tries(TRY, () => { playCtl.set(true); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => { if (S.playing) { S.t += dt; drawStage(); } });
+  setScene('xray', 'bag');
+})();
+</script>
+</body>
+</html>

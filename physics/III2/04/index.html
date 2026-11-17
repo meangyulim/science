@@ -1,0 +1,1137 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>경보기와 센서 — 광전 효과의 이용</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* Layout: 왼쪽 무대(위 = 방·하늘, 아래 = 회로)와 조작판, 오른쪽 지금 상태·신호의 사슬·시간 기록·장치 비교표 */
+#stage{aspect-ratio:16/11}
+#chain{aspect-ratio:10/3.2}
+#strip{aspect-ratio:10/5.2}
+.quiz .opts{margin:0;font-size:14.5px;line-height:1.8;color:var(--muted)}
+.devs{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5}
+.devs th,.devs td{padding:6px 8px;text-align:left;vertical-align:top;border-top:1px solid var(--line-soft)}
+.devs th{border-top:0;font-size:13px;font-weight:600;color:var(--muted)}
+.devs td:first-child{font-weight:700}
+.devs tr.on td{background:var(--copper-soft)}
+@media (max-width:640px){ #stage{aspect-ratio:1/1.5} }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="back" href="../../">← 물리 실험실</a>
+    <div class="crumbs"><span class="id">III2-04</span><span class="kicker">물리학 Ⅰ · 빛과 물질의 이중성</span></div>
+    <h1>광전 효과의 이용: 경보기와 센서</h1>
+    <p class="lead">빛(광자)이 광전관에 닿으면 광전자가 튀어나와 <b>광전류</b>가 흐르고, 빛이 없으면 광전류는 0이다. 장치마다 <b>전류가 끊길 때</b> 울리는지, <b>전류가 생길 때</b> 울리는지 회로를 따라가 보세요.</p>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <div class="stage">
+        <canvas id="stage" aria-label="광전 효과를 이용한 장치. 광자가 센서에 닿아 광전류가 흐르는지에 따라 전자석·스위치·경보 장치가 움직인다."></canvas>
+        <div class="hud"><span class="pill" id="hudScene">도난 경보기</span><span class="pill up" id="hudState">조용</span><span class="pill" id="hudSlow">빠르기 ×1</span></div>
+        <div class="legend">
+          <span><i style="background:var(--energy)"></i>광자(빛)</span>
+          <span><i style="background:var(--vel)"></i>전자</span>
+          <span><b style="background:var(--acc)"></b>광전류</span>
+          <span><b style="background:var(--force)"></b>힘·경보</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="group scene" role="group" aria-label="장치">
+            <span class="gl">장치</span>
+            <button type="button" class="btn" data-scene="burglar" aria-pressed="true">도난 경보기</button>
+            <button type="button" class="btn" data-scene="fire" aria-pressed="false">화재 경보기</button>
+            <button type="button" class="btn" data-scene="street" aria-pressed="false">가로등</button>
+            <button type="button" class="btn" data-scene="solar" aria-pressed="false">태양 전지</button>
+          </div>
+        </div>
+        <div class="row" id="rowBurglar">
+          <div class="group" role="group" aria-label="침입자">
+            <span class="gl">침입자</span>
+            <button type="button" class="btn" data-who="none" aria-pressed="false">없음</button>
+            <button type="button" class="btn" data-who="walk" aria-pressed="true">금고로 걸어오기</button>
+            <button type="button" class="btn" data-who="stand" aria-pressed="false">빛 가리고 서기</button>
+          </div>
+          <div class="group" role="group" aria-label="광원의 빛">
+            <span class="gl">광원</span>
+            <button type="button" class="btn" data-src="violet" aria-pressed="true">보라색 빛 (f &gt; f₀)</button>
+            <button type="button" class="btn" data-src="red" aria-pressed="false">빨간빛 (f &lt; f₀)</button>
+          </div>
+        </div>
+        <div class="row" id="rowFire" hidden>
+          <div class="grow">
+            <label class="ctl-label" for="smoke">경보기에 들어오는 연기의 양 <output id="smokeOut">0 %</output></label>
+            <input id="smoke" type="range" min="0" max="100" step="5" value="0">
+          </div>
+        </div>
+        <div class="row" id="rowStreet" hidden>
+          <div class="grow">
+            <label class="ctl-label" for="hour">시각 (해의 위치) <output id="hourOut">12:00</output></label>
+            <input id="hour" type="range" min="0" max="24" step="0.25" value="12">
+          </div>
+          <label class="chk"><input type="checkbox" id="auto" checked>시간 흐르게</label>
+        </div>
+        <div class="row" id="rowSolar" hidden>
+          <div class="grow">
+            <label class="ctl-label" for="sol">태양 전지에 닿는 빛의 세기 <output id="solOut">50 %</output></label>
+            <input id="sol" type="range" min="0" max="100" step="5" value="50">
+          </div>
+        </div>
+        <div class="row toggles">
+          <label class="chk"><input type="checkbox" id="cForce" checked>힘 화살표</label>
+          <span class="spacer"></span>
+          <div class="group" role="group" aria-label="시간 빠르기">
+            <span class="gl">빠르기</span>
+            <button type="button" class="btn mono" data-speed="0.25" aria-pressed="false">×0.25</button>
+            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="false">×0.5</button>
+            <button type="button" class="btn mono" data-speed="1" aria-pressed="true">×1</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>지금 상태 <small id="sideScene">도난 경보기</small></h2>
+        <div class="readouts">
+          <div class="ro cu"><span id="l1">센서에 닿는 빛</span><b id="r1">있음</b></div>
+          <div class="ro acc"><span id="l2">광전류 (상댓값)</span><b id="r2">1.0</b></div>
+          <div class="ro"><span id="l3">스위치</span><b id="r3">열림</b></div>
+          <div class="ro"><span id="l4">경보 장치</span><b id="r4">조용</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </section>
+      <section class="panel">
+        <h2>신호의 사슬 <small id="chainSub">전류가 끊길 때 울림</small></h2>
+        <canvas class="flat" id="chain" aria-label="빛에서 경보까지 이어지는 신호의 사슬. 지금 켜진 단계가 색으로 표시된다."></canvas>
+        <p class="cap" id="chainCap">빛 → 광전류 → 전자석 → 스위치 → 경보. 빛이 끊기면 사슬이 차례로 뒤집힌다.</p>
+      </section>
+      <section class="panel">
+        <h2>시간 기록 <small>최근 8초</small></h2>
+        <canvas class="flat" id="strip" aria-label="센서에 닿는 빛, 광전류, 경보 장치의 상태를 시간에 따라 기록한 그래프"></canvas>
+        <p class="cap" id="stripCap">도난 경보기: 광전류가 0인 동안 경보가 울린다.</p>
+        <p class="cap">광자의 진행과 전자석·막대의 움직임은 보기 쉽게 느리게 그렸다. 실제로는 빛이 가려지는 순간 거의 동시에 일어난다.</p>
+      </section>
+      <section class="panel wide">
+        <h2>장치마다 작동 조건</h2>
+        <table class="devs" id="devs">
+          <thead><tr><th>장치</th><th>언제 작동?</th><th>그때 광전류는?</th></tr></thead>
+          <tbody>
+            <tr data-dev="burglar"><td>도난 경보기</td><td>빛이 가려질 때 경보</td><td>끊긴다 (0)</td></tr>
+            <tr data-dev="fire"><td>화재 경보기</td><td>연기에 산란된 빛이 닿을 때 경보</td><td>생긴다</td></tr>
+            <tr data-dev="street"><td>가로등 자동 점멸</td><td>어두워질 때 켜짐</td><td>(거의) 끊긴다</td></tr>
+            <tr data-dev="solar"><td>태양 전지·조도계</td><td>빛을 받는 동안 전류를 공급·눈금 표시</td><td>빛의 세기에 비례</td></tr>
+          </tbody>
+        </table>
+        <p class="cap">모두 빛을 받으면 전자가 튀어나오는 <b>광전 효과</b>, 곧 <b>빛의 입자성</b>을 이용한다. 자동문도 빛줄기가 가려지는 것을 광센서로 알아챈다.</p>
+      </section>
+    </aside>
+  </main>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">개념 정리</h2>
+    <div class="concepts">
+      <article class="concept">
+        <h3>공통 원리: 빛이 닿으면 광전류</h3>
+        <p>문턱 진동수보다 진동수가 큰 빛의 광자가 금속(광 다이오드)에서 전자를 떼어 내면 <b>광전류</b>가 흐르고, 빛이 없으면 광전류는 0이다.</p>
+        <p>광전류는 닿는 빛의 세기(광자 수)에 비례한다. 장치가 <b>전류가 끊길 때</b> 작동하는지 <b>생길 때</b> 작동하는지는 회로 구조로 정해진다.</p>
+      </article>
+      <article class="concept">
+        <h3>도난 경보기: 전류가 끊길 때 울림</h3>
+        <p>평소에는 광전류가 전자석에 흘러 금속 막대를 끌어당기므로 스위치가 열려 있다.</p>
+        <p>침입자가 빛을 가리면 광전류 0 → 전자석이 힘을 잃음 → 용수철이 막대를 당겨 스위치가 닫힘 → <b>경보</b>.</p>
+      </article>
+      <article class="concept">
+        <h3>화재 경보기: 전류가 생길 때 울림</h3>
+        <p>평소 LED 빛은 직진해 흡수판에 닿고 광센서에는 닿지 않아 광전류가 0이다.</p>
+        <p>연기가 들어오면 연기 입자에 <b>산란된 빛</b>이 광센서에 닿아 광전류가 생기고 경보가 울린다. 연기가 많을수록 산란광이 세져 광전류가 크다.</p>
+      </article>
+    </div>
+    <p class="compare">자동문·가로등 자동 점멸 장치·조도계도 빛을 받으면 전류가 생기는 광센서를 쓰고, 태양 전지는 광 다이오드를 많이 연결해 빛 에너지를 전기 에너지로 바꾼다. 모두 광전 효과, 곧 빛의 입자성을 이용한 장치다.</p>
+
+    <h2>스스로 확인</h2>
+    <ol class="quiz">
+      <li>
+        <p class="q"><span>1</span>광원과 광전관을 이용한 도난 경보기에서 경보가 울리는 순간에 대한 설명으로 옳은 것은?<span class="tag">개념 체크</span></p>
+        <p class="opts">① 광전관에 빛이 닿아 광전류가 가장 크게 흐른다<br>② 전자석이 금속 막대를 더 세게 끌어당긴다<br>③ 광원의 진동수가 문턱 진동수보다 작아진다<br>④ 빛이 가려져 광전류가 끊기고 전자석이 힘을 잃는다<br>⑤ 광전관에서 광전자가 더 많이 방출된다</p>
+        <div class="acts"><button type="button" class="btn" data-try="ex">침입자가 빛을 가리는 순간 (느린 화면)</button></div>
+        <details><summary>답 보기</summary><p><b>④</b>. 평소에는 광전류가 전자석에 흘러 막대를 끌어당겨 스위치가 열려 있다. 침입자가 빛을 가리면 광전자가 나오지 않아 광전류가 0이 되고, 전자석이 힘을 잃어 용수철이 스위치를 닫으며 경보가 울린다. 이때 광원의 진동수는 그대로다(③ ✗). 만약 처음부터 문턱 진동수보다 작은 빛을 쓰면 침입자가 없어도 늘 울린다 — ‘빨간빛’으로 확인해 보자.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>2</span>광전식 화재 경보기는 평소에는 왜 조용하고, 연기가 들어오면 왜 울릴까? 연기가 짙어지면 광전류는?</p>
+        <div class="acts"><button type="button" class="btn" data-try="fire">연기 피우기</button><button type="button" class="btn" data-try="smoke2">연기 짙게</button></div>
+        <details><summary>답 보기</summary><p>평소 LED 빛은 직진해 흡수판에 닿을 뿐 광센서에는 닿지 않아 광전류가 0이다. 연기 입자에 산란된 빛이 광센서에 닿으면 광전류가 생겨 경보가 울린다 — 도난 경보기와 반대로 <b>전류가 생길 때</b> 울린다. 연기가 짙을수록 산란되는 광자가 많아져 광전류가 커진다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>3</span>가로등 자동 점멸 장치도 광센서 · 전자석 · 스위치로 되어 있다. 해가 지면 가로등은 왜 켜질까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="dusk">해 질 녘으로</button></div>
+        <details><summary>답 보기</summary><p>낮에는 햇빛 때문에 광전류가 흘러 전자석이 막대를 끌어당기므로 스위치가 열려 꺼져 있다. 해가 지면 광전류가 작아져 전자석이 막대를 붙잡지 못하고, 용수철이 스위치를 닫아 가로등이 켜진다. 도난 경보기와 같은 구조라 <b>전류가 끊길 때</b> 작동한다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>4</span>태양 전지에 닿는 빛의 세기를 2배로 하면 전류는 어떻게 될까? 이런 장치들은 빛의 어떤 성질을 이용할까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="solar">빛의 세기 50 % → 100 %</button></div>
+        <details><summary>답 보기</summary><p>닿는 광자 수가 2배가 되어 떼어 내는 전자 수도 2배 → 전류도 <b>2배</b>(전류계 눈금이 2배 — 조도계의 원리). 경보기 · 광센서 · 태양 전지 · CCD는 모두 빛을 광자의 흐름으로 보아야 설명되는 광전 효과, 곧 <b>빛의 입자성</b>을 이용한다.</p></details>
+      </li>
+    </ol>
+    <nav class="pager"><a href="../03/">← III2-03 광전 방정식</a><a class="home" href="../../">물리 실험실</a><a href="../05/">III2-05 CCD →</a></nav>
+  </section>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="III2-04-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.III2_04;
+  const {$, C, text, arrow} = Lab;
+  const A = Lab.alpha;
+  const TAU = Math.PI * 2;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const ease = (cur, tgt, dt, tau) => cur + (tgt - cur) * (1 - Math.exp(-dt / tau));
+  const fmt = Lab.fmt;
+  const isDark = () => { const m = A(C.paper, 1).match(/[\d.]+/g) || [255, 255, 255]; return (+m[0] + +m[1] + +m[2]) < 300; };
+  const shade = () => (isDark() ? C.bg : C.ink);           // 테마와 관계없이 어두운 색 (밤하늘·흡수판)
+
+  // 빛의 색: 파장 → RGB (물리적으로 정해진 색). 어두운 테마에서는 조금 밝혀 잘 보이게
+  function wlRGB(nm) {
+    let r = 0, g = 0, b = 0;
+    if (nm < 440) { r = (440 - nm) / 60; b = 1; } else if (nm < 490) { g = (nm - 440) / 50; b = 1; }
+    else if (nm < 510) { g = 1; b = (510 - nm) / 20; } else if (nm < 580) { r = (nm - 510) / 70; g = 1; }
+    else if (nm < 645) { r = 1; g = (645 - nm) / 65; } else r = 1;
+    const f = nm < 420 ? 0.3 + 0.7 * (nm - 380) / 40 : nm > 700 ? 0.3 + 0.7 * (780 - nm) / 80 : 1;
+    return [r, g, b].map((v) => Math.round(255 * Math.pow(Math.max(0, v * f), 0.8)));
+  }
+  function lightCol(nm, a = 1) {
+    let [r, g, b] = wlRGB(nm);
+    if (isDark()) { r += (255 - r) * 0.38; g += (255 - g) * 0.38; b += (255 - b) * 0.38; }
+    return `rgba(${Math.round(r)},${Math.round(g)},${Math.round(b)},${a})`;
+  }
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = {
+    scene: 'burglar', playing: !Lab.reduceMotion, speed: 1, t: 0, forces: true,
+    who: 'walk', wx: 1.1, wPhase: 'gone', wT: 0.6, face: -1, step: 0,       // 침입자 (wx = 몸 중심 x / W)
+    src: 'violet',
+    smokeT: 0, smoke: 0,
+    hour: 12, auto: true,
+    sol: 0.5,
+    sensor: 1, I: 1, mag: 1, lever: 0, ring: 0, spin: 0,                     // 애니메이션 상태
+  };
+  const SCENES = {burglar: '도난 경보기', fire: '화재 경보기', street: '가로등 자동 점멸', solar: '태양 전지·조도계'};
+  let photons = [], elecs = [], flashes = [], smokeP = [], script = [];
+  let emitAcc = 0, dotOff1 = 0, dotOff2 = 0, sensorQ = [], lastBlocked = null;
+  const HIST = []; let lastRec = -1;
+  const VP = 360, RATE = 14;                          // 광자가 화면에서 움직이는 빠르기 (px/s, 느리게 그림)·광원이 1초에 내는 광자 수(그림용)
+
+  // ── 배치 ────────────────────────────────────────────────
+  function geo(W, H) {
+    const n = W < 520, g = {n, W, H};
+    g.pad = n ? 12 : 22;
+    g.top = 58;
+    g.bot = H - (n ? 70 : 48);
+    g.split = Math.round(g.top + (g.bot - g.top) * (n ? 0.41 : 0.42));
+    const zh = g.bot - g.split;
+    g.sx = Math.round(W * 0.2);
+    g.cx = W * (n ? 0.53 : 0.5);
+    g.bx = Math.round(W * 0.86);
+    g.xL = g.pad + 2;
+    g.rx = n ? 21 : 27; g.ry = n ? 25 : 31;
+    g.yT = Math.round(g.split + Math.max(g.ry + 12, zh * 0.2));
+    g.yA = g.yT - 5;                                  // 양극(고리) 높이 = 음극 그릇의 중심
+    g.rc = g.rx * 0.74;                               // 음극(금속판) 그릇 반지름
+    g.yK = Math.round(g.yA + 0.37 * g.rc);            // 음극 쪽 도선 높이
+    g.Lv = n ? W * 0.4 : Math.min(250, W * 0.3);
+    g.px = g.cx - 0.45 * g.Lv;
+    g.mx = g.cx + 0.22 * g.Lv;
+    g.cw = n ? 14 : 18;
+    g.yB = g.yT + (n ? 50 : 60);
+    g.py = g.yB + 13;
+    g.drop = n ? 16 : 22;
+    g.aMax = Math.asin(g.drop / g.Lv);
+    g.yC = g.py + g.drop + 8;
+    g.yBot = g.bot - 12;
+    g.spX = g.px + 0.32 * g.Lv;
+    g.spBase = g.yBot - 20;
+    g.batX = (g.xL + g.px) / 2 - 8;
+    g.bellR = n ? 14 : 19;
+    g.bat2Y = Math.round((g.yC + g.yBot) / 2 + 6);
+    g.ph = Math.min(130, (g.split - g.top) * 0.72);   // 사람 키 (px)
+    g.beamHalf = n ? 6 : 8;
+    g.bowlY = g.yA + g.rc;                            // 광자가 음극에 닿는 높이
+    g.headTop = g.split - g.ph;
+    g.torso = 0.13 * g.ph;
+    g.safeX = g.sx - (n ? 30 : 40);
+    // 화재 경보기
+    g.fx0 = g.pad; g.fx1 = W - g.pad;
+    g.fy0 = g.top + 2; g.fy1 = Math.round(g.top + (g.bot - g.top) * (n ? 0.52 : 0.55));
+    g.fyb = Math.round(g.fy0 + (g.fy1 - g.fy0) * 0.36);
+    g.fxs = Math.round(g.fx0 + (g.fx1 - g.fx0) * 0.42);
+    g.fsw = n ? 50 : 66;
+    g.fyTop = g.fy1 + (n ? 38 : 44);
+    g.fxL = g.fx0 + (n ? 14 : 26);
+    g.amR = n ? 19 : 25;
+    // 가로등
+    g.cabTop = g.split - (n ? 50 : 62);
+    g.sensY = g.cabTop - 10;
+    g.armY = g.top + (n ? 16 : 20);
+    g.lampX = g.bx - (n ? 36 : 48);
+    // 태양 전지
+    g.sunX = g.pad + (n ? 28 : 40); g.sunY = g.top + (n ? 22 : 30);
+    return g;
+  }
+
+  // 사람이 보이나, 빛을 가리나
+  const personOn = () => S.scene === 'burglar' && S.who !== 'none' && S.wPhase !== 'gone';
+  const blocked = (g) => personOn() && M.blocks(S.wx * g.W, g.torso, g.sx);
+  const nmSrc = () => M.LIGHT[S.src];
+  const fSrc = () => M.freq(nmSrc());
+
+  // ── 회로 경로 (전자가 움직이는 방향) ─────────────────────
+  function leverEnd(g) { const a = S.lever * g.aMax; return [g.px + g.Lv * Math.cos(a), g.py + g.Lv * Math.sin(a)]; }
+  const leverY = (g, x) => g.py + (x - g.px) * Math.tan(S.lever * g.aMax);
+  function path1(g) {                                 // 광센서 → 전자석 → 전원 → 광센서
+    const cxw = g.mx - g.cw / 2 - 4;
+    if (S.scene === 'street') return [[g.sx + 6, g.sensY], [g.sx + 6, g.yA], [cxw, g.yA], [cxw, g.yB], [g.xL, g.yB], [g.xL, g.yK], [g.sx - 6, g.yK], [g.sx - 6, g.sensY]];
+    return [[g.sx, g.yA], [cxw, g.yA], [cxw, g.yB], [g.xL, g.yB], [g.xL, g.yK], [g.sx - 0.93 * g.rc, g.yK]];
+  }
+  function path2(g) {                                 // 전원 → 막대 → 접점 → 경보 장치(전등) → 전원
+    const E = leverEnd(g), Fx = g.px + g.Lv * Math.cos(g.aMax);
+    const head = [[g.bx, g.bat2Y + 8], [g.bx, g.yBot], [g.px, g.yBot], [g.px, g.py], E, [Fx, g.yC]];
+    if (S.scene === 'street') {
+      return head.concat([[g.bx - 5, g.yC], [g.bx - 5, g.armY - 3], [g.lampX, g.armY - 3], [g.lampX, g.armY + 9],
+        [g.lampX + 7, g.armY + 3], [g.bx + 5, g.armY + 3], [g.bx + 5, g.bat2Y - 12], [g.bx, g.bat2Y - 5]]);
+    }
+    return head.concat([[g.bx, g.yC], [g.bx, g.bat2Y - 5]]);
+  }
+  function pathFire(g) {                              // 전원(−) → 아래 → 오른쪽 → 전류계 → 경보 장치 → 광센서 → 전원(+)
+    const yB = g.yBot, batY = (g.fyTop + yB) / 2, s = g.fsw * 0.3;
+    return [[g.fxL, batY + 8], [g.fxL, yB], [g.bx, yB], [g.bx, g.fyTop], [g.fxs + s, g.fyTop], [g.fxs + s, g.fy1 - 6],
+      [g.fxs - s, g.fy1 - 6], [g.fxs - s, g.fyTop], [g.fxL, g.fyTop], [g.fxL, batY - 5]];
+  }
+  function solarGeo(g) {
+    const w = g.n ? g.W * 0.52 : g.W * 0.36, cx = g.W * (g.n ? 0.56 : 0.52), yb = g.split - (g.n ? 20 : 26), ht = g.n ? 46 : 58, sk = g.n ? 16 : 24;
+    const P = {BL: [cx - w / 2, yb], BR: [cx + w / 2, yb], TR: [cx + w / 2 - sk, yb - ht], TL: [cx - w / 2 - sk, yb - ht]};
+    P.xa = g.W * (g.n ? 0.2 : 0.26); P.xb = g.W * (g.n ? 0.8 : 0.76);
+    P.yTop = g.split + (g.n ? 34 : 40); P.yMid = (P.yTop + g.yBot) / 2;
+    return P;
+  }
+  function pathSolar(g, P) {                          // 태양 전지(−) → 전류계 → 전동기 → 태양 전지(+)
+    return [[P.BL[0] + 6, P.BL[1]], [P.BL[0] + 6, P.yTop], [P.xa, P.yTop], [P.xa, g.yBot], [P.xb, g.yBot], [P.xb, P.yTop], [P.BR[0] - 6, P.yTop], [P.BR[0] - 6, P.BR[1]]];
+  }
+  function pathLen(P) { let L = 0; for (let i = 1; i < P.length; i++) L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); return L; }
+  // 경로 위에 같은 간격으로 전자 점 (skip(i) 가 참인 구간에는 그리지 않음)
+  function dots(ctx, P, off, gap, skip) {
+    const L = pathLen(P); if (L < 1) return;
+    let s = ((off % gap) + gap) % gap, i = 1, acc = 0;
+    ctx.save(); ctx.fillStyle = C.vel;
+    for (; s < L; s += gap) {
+      while (i < P.length) {
+        const sl = Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+        if (s <= acc + sl) {
+          if (!(skip && skip(i))) {
+            const u = sl ? (s - acc) / sl : 0;
+            ctx.beginPath(); ctx.arc(P[i - 1][0] + (P[i][0] - P[i - 1][0]) * u, P[i - 1][1] + (P[i][1] - P[i - 1][1]) * u, 4, 0, TAU); ctx.fill();
+          }
+          break;
+        }
+        acc += sl; i++;
+      }
+    }
+    ctx.restore();
+  }
+  const wire = (ctx, pts) => Lab.line(ctx, pts, C.ink, 2.4);
+
+  // ── 부품 그리기 ─────────────────────────────────────────
+  function battery(ctx, x, y, vertical, label, lx, ly, la) {   // 긴 판 = (+)
+    ctx.save(); ctx.fillStyle = C.ink;
+    if (vertical) {                                 // 세로 도선 위: 위가 (+) 긴 판
+      ctx.fillRect(x - 14, y - 5, 28, 2.6); ctx.fillRect(x - 8, y + 3, 16, 5);
+      text(ctx, '+', x + 20, y - 8, {size: 13, color: C.muted, w: 700});
+    } else {                                        // 가로 도선 위: 오른쪽이 (+) 긴 판
+      ctx.fillRect(x + 3, y - 14, 2.6, 28); ctx.fillRect(x - 8, y - 8, 5, 16);
+      text(ctx, '+', x + 12, y - 18, {size: 13, color: C.muted, w: 700});
+    }
+    ctx.restore();
+    if (label) text(ctx, label, lx, ly, {size: 13, color: C.muted, w: 600, align: la || 'center'});
+  }
+  function bell(ctx, x, y, r, ring, label, side) {  // (x, y) = 도선이 꺾이는 곳, 종은 그 위에 놓임
+    const t = S.t;
+    ctx.save(); ctx.translate(x, y - 5);
+    ctx.fillStyle = C.ink; ctx.fillRect(-r - 5, -1, 2 * r + 10, 5);
+    if (ring) ctx.rotate(Math.sin(t * 46) * 0.13);
+    ctx.beginPath(); ctx.arc(0, -1, r, Math.PI, TAU); ctx.closePath();
+    ctx.fillStyle = ring ? A(C.force, 0.3) : C.paper; ctx.fill(); ctx.lineWidth = 2.2; ctx.strokeStyle = ring ? C.force : C.ink; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -r - 3, 3.4, 0, TAU); ctx.fillStyle = ring ? C.force : C.ink; ctx.fill();
+    ctx.restore();
+    if (ring) {                                     // 소리 물결
+      ctx.save(); ctx.strokeStyle = C.force; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+      for (let k = 0; k < 3; k++) {
+        const ph = (t * 1.6 + k / 3) % 1, rr = r + 6 + ph * r * 1.1;
+        ctx.globalAlpha = (1 - ph) * 0.9;
+        ctx.beginPath(); ctx.arc(x, y - 6 - r * 0.4, rr, -0.42 * Math.PI, -0.12 * Math.PI); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y - 6 - r * 0.4, rr, -0.88 * Math.PI, -0.58 * Math.PI); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    if (!label) return;
+    const o = {size: ring ? 14 : 13, color: ring ? C.force : C.muted, w: 700, halo: true};
+    if (side === 'left') text(ctx, ring ? '경보 울림!' : label, x - r - (ring ? 24 : 12), y - 16, Object.assign(o, {align: 'right'}));
+    else text(ctx, ring ? '경보 울림!' : label, x, y - r - (ring ? 30 : 22), o);
+  }
+  function meter(ctx, x, y, r, I, label, lx, la) {   // 전류계: 바늘 각 ∝ 전류
+    ctx.save();
+    ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fillStyle = C.paper; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.ink; ctx.stroke();
+    const a0 = Math.PI * 1.18, a1 = Math.PI * 1.82, cy = y + r * 0.28, rr = r * 0.78;
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(x, cy, rr, a0, a1); ctx.stroke();
+    for (let k = 0; k <= 4; k++) { const a = a0 + (a1 - a0) * k / 4; ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * rr, cy + Math.sin(a) * rr); ctx.lineTo(x + Math.cos(a) * (rr - 5), cy + Math.sin(a) * (rr - 5)); ctx.stroke(); }
+    const a = a0 + (a1 - a0) * clamp(I, 0, 1.05) / 1.05;
+    ctx.strokeStyle = C.copper; ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x, cy); ctx.lineTo(x + Math.cos(a) * (rr + 2), cy + Math.sin(a) * (rr + 2)); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, cy, 3.2, 0, TAU); ctx.fillStyle = C.ink; ctx.fill();
+    ctx.restore();
+    text(ctx, 'A', x, y + r * 0.62, {size: 13, color: C.muted, w: 700});
+    if (label) text(ctx, label, lx, y, {size: 13, color: C.muted, w: 600, align: la || 'right'});
+  }
+  function photon(ctx, p, col) {                    // 파동 묶음 + 머리
+    const sp = Math.hypot(p.vx, p.vy) || 1, dx = p.vx / sp, dy = p.vy / sp, nx = -dy, ny = dx, len = 18, wl = p.wl || 7;
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2.2; ctx.lineCap = 'round'; ctx.beginPath();
+    for (let i = 0; i <= 18; i++) {
+      const s = i / 18 * len, w = Math.sin((s + p.ph) / wl * TAU) * 3.2 * Math.sin(Math.PI * i / 18);
+      const x = p.x - dx * s + nx * w, y = p.y - dy * s + ny * w;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.stroke(); ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, TAU); ctx.fillStyle = col; ctx.fill(); ctx.restore();
+  }
+  function drawFlashes(ctx) {
+    for (const f of flashes) {
+      const u = f.t / f.d;
+      ctx.save(); ctx.globalAlpha = (1 - u) * 0.9; ctx.strokeStyle = f.col; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(f.x, f.y, 3 + u * (f.r || 11), 0, TAU); ctx.stroke(); ctx.restore();
+    }
+  }
+  function drawElecs(ctx) { for (const e of elecs) { const u = Math.min(1, e.t / e.d); Lab.circle(ctx, e.x0 + (e.x1 - e.x0) * u, e.y0 + (e.y1 - e.y0) * u, 4, {fill: C.vel}); } }
+
+  // 계전기: 전자석·막대·용수철·접점
+  function relayParts(ctx, g) {
+    const top = g.yA - 14, bot = g.py - 5, xl = g.mx - g.cw / 2;
+    // 자기장 (전자석에 전류가 흐를 때)
+    if (S.mag > 0.02) {
+      ctx.save(); ctx.strokeStyle = C.violet; ctx.lineWidth = 1.7; ctx.globalAlpha = Math.min(1, S.mag) * 0.75;
+      for (let k = 1; k <= 2; k++) {
+        for (const sd of [-1, 1]) {
+          const x0 = g.mx + sd * g.cw / 2;
+          ctx.beginPath(); ctx.moveTo(g.mx + sd * 3, bot); ctx.bezierCurveTo(g.mx + sd * (g.cw / 2 + 10 * k), bot + 6 + 4 * k, x0 + sd * (7 * k + 4), bot - 26 - 6 * k, x0 + sd, bot - 34 - 6 * k); ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+    // 철심과 코일 (구리 도선)
+    ctx.save(); ctx.fillStyle = A(C.muted, 0.45); ctx.fillRect(xl, top, g.cw, bot - top); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.4; ctx.strokeRect(xl, top, g.cw, bot - top);
+    ctx.strokeStyle = C.copper; ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+    for (let y = g.yA + 3; y < g.yB - 1; y += 6) { ctx.beginPath(); ctx.moveTo(xl - 3, y + 2); ctx.lineTo(xl + g.cw + 3, y - 3); ctx.stroke(); }
+    ctx.restore();
+    // 막대·용수철·접점
+    const sa = [g.spX, leverY(g, g.spX)];
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.beginPath();
+    const N = 9, w = g.n ? 7 : 9, y0 = sa[1] + 4, y1 = g.spBase;
+    ctx.moveTo(sa[0], y0);
+    for (let k = 1; k < N; k++) ctx.lineTo(sa[0] + (k % 2 ? w : -w), y0 + (y1 - y0) * k / N);
+    ctx.lineTo(sa[0], y1); ctx.stroke();
+    ctx.lineWidth = 2.4; ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.moveTo(sa[0] - 14, y1); ctx.lineTo(sa[0] + 14, y1); ctx.stroke();
+    ctx.lineWidth = 1.4; for (let k = -12; k <= 12; k += 6) { ctx.beginPath(); ctx.moveTo(sa[0] + k, y1); ctx.lineTo(sa[0] + k - 5, y1 + 6); ctx.stroke(); }
+    ctx.restore();
+    // 고정 접점
+    Lab.circle(ctx, g.px + g.Lv * Math.cos(g.aMax), g.yC, 4.6, {fill: C.ink});
+    const [Ex, Ey] = leverEnd(g);
+    // 막대 (구리색 = 관찰 대상)
+    ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 7; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(g.px, g.py); ctx.lineTo(Ex, Ey); ctx.stroke(); ctx.restore();
+    Lab.circle(ctx, Ex, Ey, 4.6, {fill: C.copper, stroke: C.paper, width: 1.5});
+    Lab.circle(ctx, g.px, g.py, 6, {fill: C.paper, stroke: C.ink, width: 2});
+    // 힘 화살표
+    if (S.forces) {                                 // 막대가 받는 힘: 자기력(위) · 용수철의 탄성력(아래)
+      const yl = leverY(g, g.mx), fm = S.mag >= M.HOLD ? 30 * Math.min(1, S.mag) : 0;
+      if (fm > 4) {
+        arrow(ctx, g.mx, yl + 8 + fm, g.mx, yl + 5, C.force, 2.8, 9);
+        if (!g.n) text(ctx, '자기력', g.mx + 9, yl + 8 + fm * 0.6, {size: 13, color: C.force, w: 700, align: 'left', halo: true});
+      }
+      const ys = leverY(g, g.spX);
+      arrow(ctx, g.spX - 15, ys + 3, g.spX - 15, ys + 29, C.force, 2.8, 9);
+      if (!g.n) text(ctx, '탄성력', g.spX - 22, ys + 20, {size: 13, color: C.force, w: 700, align: 'right', halo: true});
+    }
+  }
+
+  // ── 장면: 도난 경보기 ───────────────────────────────────
+  function drawRoom(ctx, g) {
+    const {W} = g, col = lightCol(nmSrc()), blk = blocked(g);
+    // 천장·바닥
+    ctx.save(); ctx.fillStyle = A(C.muted, 0.14); ctx.fillRect(0, g.top - 10, W, 10); ctx.fillRect(0, g.split, g.sx - g.beamHalf - 4, 7); ctx.fillRect(g.sx + g.beamHalf + 4, g.split, W, 7);
+    ctx.fillStyle = A(C.vel, 0.2); ctx.fillRect(g.sx - g.beamHalf - 4, g.split, 2 * g.beamHalf + 8, 7); ctx.restore();
+    Lab.line(ctx, [[0, g.top], [W, g.top]], C.muted, 2);
+    Lab.line(ctx, [[0, g.split], [g.sx - g.beamHalf - 4, g.split]], C.muted, 2); Lab.line(ctx, [[g.sx + g.beamHalf + 4, g.split], [W, g.split]], C.muted, 2);
+    // 금고 (빛줄기 바로 뒤)
+    const sw = 0.36 * g.ph, sh = 0.42 * g.ph, open = personOn() && (S.wPhase === 'stand' || S.who === 'hold') && blk;
+    ctx.save(); Lab.rrect(ctx, g.safeX - sw / 2, g.split - sh, sw, sh, 5); ctx.fillStyle = A(C.muted, 0.2); ctx.fill(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.8; ctx.stroke();
+    ctx.beginPath(); ctx.arc(g.safeX, g.split - sh / 2, sw * 0.2, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(g.safeX, g.split - sh / 2); ctx.lineTo(g.safeX + Math.cos(open ? S.t * 4 : -1) * sw * 0.16, g.split - sh / 2 + Math.sin(open ? S.t * 4 : -1) * sw * 0.16); ctx.stroke(); ctx.restore();
+    text(ctx, '금고', g.safeX, g.split - sh - 12, {size: 13, color: C.muted, w: 600});
+    // 빛줄기 (광원 → 바닥 창 → 광전관)
+    const endTop = blk ? g.headTop + 4 : g.split;
+    ctx.save(); ctx.fillStyle = lightCol(nmSrc(), 0.16);
+    ctx.fillRect(g.sx - g.beamHalf, g.top + 12, 2 * g.beamHalf, endTop - g.top - 12);
+    if (S.sensor > 0.5) ctx.fillRect(g.sx - g.beamHalf, g.split, 2 * g.beamHalf, g.bowlY - g.split);
+    ctx.restore();
+    // 광원
+    ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.fillRect(g.sx - 21, g.top - 4, 42, 13); ctx.strokeRect(g.sx - 21, g.top - 4, 42, 13);
+    ctx.beginPath(); ctx.arc(g.sx, g.top + 9, 8, 0, Math.PI); ctx.fillStyle = col; ctx.fill(); ctx.restore();
+    text(ctx, '광원', g.sx + 28, g.top + 6, {size: 13.5, w: 700, align: 'left'});
+    text(ctx, S.src === 'violet' ? 'f > f₀' : 'f < f₀', g.sx + 28, g.top + 25, {size: 13, w: 700, align: 'left', color: col, mono: true});
+    // 광자
+    for (const p of photons) photon(ctx, p, col);
+    // 침입자
+    if (personOn()) drawPerson(ctx, g, S.wx * W);
+    // 바닥 아래 회로 표시
+    text(ctx, '바닥 아래 회로', W - g.pad, g.split + 16, {size: 13, color: C.muted, w: 600, align: 'right'});
+  }
+  function drawPerson(ctx, g, x) {
+    const fy = g.split - 1, ph = g.ph, hipY = fy - 0.47 * ph, shY = fy - 0.79 * ph, face = S.face;
+    const walking = S.who === 'walk' && (S.wPhase === 'enter' || S.wPhase === 'exit');
+    const sw = walking ? Math.sin(S.step) * 0.5 : 0, reach = !walking;
+    const lw = Math.max(6, 0.09 * ph), col = C.muted;
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = col;
+    const limb = (x0, y0, a, l1, l2, bend) => {
+      const kx = x0 + Math.sin(a) * l1, ky = y0 + Math.cos(a) * l1, b = a + bend;
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(kx, ky); ctx.lineTo(kx + Math.sin(b) * l2, ky + Math.cos(b) * l2); ctx.stroke();
+    };
+    ctx.lineWidth = lw;
+    ctx.globalAlpha = 0.7; limb(x, hipY, -sw * face, 0.25 * ph, 0.23 * ph, face * 0.1); limb(x, shY + 4, sw * face * 0.8, 0.17 * ph, 0.16 * ph, -face * 0.3);
+    ctx.globalAlpha = 1;
+    // 몸통·머리
+    ctx.fillStyle = col; Lab.rrect(ctx, x - g.torso, shY - 4, 2 * g.torso, hipY - shY + 10, g.torso * 0.6); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + face * 2, fy - 0.9 * ph, 0.085 * ph, 0, TAU); ctx.fill();
+    ctx.fillStyle = shade(); ctx.globalAlpha = 0.85; ctx.fillRect(x + face * 2 - 0.085 * ph, fy - 0.915 * ph, 0.17 * ph, 0.045 * ph); ctx.globalAlpha = 1;
+    limb(x, hipY, sw * face, 0.25 * ph, 0.23 * ph, face * 0.1);
+    if (reach) limb(x, shY + 4, face * 1.35, 0.17 * ph, 0.17 * ph, face * 0.25);
+    else limb(x, shY + 4, -sw * face * 0.8, 0.17 * ph, 0.16 * ph, -face * 0.3);
+    ctx.restore();
+    // 이름표: 머리 옆 (무대 밖으로 나가면 반대쪽)
+    const lw2 = Lab.measure(ctx, '침입자', {size: 13.5}), off = 0.12 * ph + 8;
+    let side = -face;
+    if (side > 0 && x + off + lw2 > g.W - 4) side = -1;
+    if (side < 0 && x - off - lw2 < 4) side = 1;
+    text(ctx, '침입자', x + side * off, fy - 0.9 * ph, {size: 13.5, w: 700, halo: true, align: side > 0 ? 'left' : 'right'});
+  }
+  function drawBurglarCircuit(ctx, g) {
+    const cxw = g.mx - g.cw / 2 - 4, I = S.I;
+    // 회로 1: 광전관 – 전자석 – 전원
+    wire(ctx, [[g.sx + g.rx, g.yA], [cxw, g.yA], [cxw, g.yB], [g.batX + 5, g.yB]]);
+    wire(ctx, [[g.batX - 8, g.yB], [g.xL, g.yB], [g.xL, g.yK], [g.sx - g.rx, g.yK]]);
+    battery(ctx, g.batX, g.yB, false, '전원', g.batX, g.yB + 25);
+    // 광전관
+    ctx.save(); ctx.beginPath(); ctx.ellipse(g.sx, g.yT, g.rx, g.ry, 0, 0, TAU); ctx.fillStyle = A(C.vel, 0.06); ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = C.muted; ctx.stroke();
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 4.5; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(g.sx, g.yA, g.rc, 0.12 * Math.PI, 0.88 * Math.PI); ctx.stroke();
+    ctx.lineWidth = 2; ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.moveTo(g.sx - 0.93 * g.rc, g.yK); ctx.lineTo(g.sx - g.rx, g.yK); ctx.moveTo(g.sx + 4, g.yA); ctx.lineTo(g.sx + g.rx, g.yA); ctx.stroke();
+    ctx.beginPath(); ctx.arc(g.sx, g.yA, 4, 0, TAU); ctx.stroke(); ctx.restore();
+    text(ctx, '광전관', g.sx + g.rx + 6, g.yT - g.ry + 4, {size: 13.5, w: 700, align: 'left'});
+    if (!g.n) text(ctx, '금속판(−)', g.sx - g.rx - 6, g.yT + g.ry - 2, {size: 13, color: C.muted, w: 500, align: 'right'});
+    if (S.src === 'red' && S.sensor > 0.5) text(ctx, 'f < f₀ → 광전자 없음', g.sx, g.yT + g.ry + 14, {size: 13, color: C.neg, w: 700, halo: true});
+    // 광전류 방향 (전자와 반대)
+    if (I > 0.05) {
+      const x0 = Math.min(cxw - 16, g.sx + g.rx + (g.n ? 64 : 120)), x1 = x0 - (g.n ? 34 : 46), yy = g.yA + 13;
+      ctx.save(); ctx.globalAlpha = Math.min(1, I); arrow(ctx, x0, yy, x1, yy, C.acc, 2.8, 9); ctx.restore();
+      text(ctx, '광전류', x0 + 6, yy, {size: 13, color: C.acc, w: 700, align: 'left', halo: true});
+    }
+    // 계전기 + 회로 2 (경보 장치)
+    const E0 = [g.px + g.Lv * Math.cos(g.aMax), g.yC];
+    wire(ctx, [[g.bx, g.bat2Y + 8], [g.bx, g.yBot], [g.px, g.yBot], [g.px, g.py + 6]]);
+    wire(ctx, [[E0[0], g.yC], [g.bx, g.yC], [g.bx, g.bat2Y - 5]]);
+    battery(ctx, g.bx, g.bat2Y, true, '전원', g.bx - 24, g.bat2Y, 'right');
+    relayParts(ctx, g);
+    text(ctx, '전자석', g.mx + g.cw / 2 + (g.n ? 8 : 34), (g.yA + g.yB) / 2 - 8, {size: 13.5, w: 700, align: 'left'});
+    if (g.n) text(ctx, '막대', g.px + 0.5 * g.Lv, leverY(g, g.px + 0.5 * g.Lv) + 17, {size: 13, color: C.copper, w: 700, halo: true});
+    else text(ctx, '금속 막대', g.px + 0.9 * g.Lv, leverY(g, g.px + 0.9 * g.Lv) - 14, {size: 13, color: C.copper, w: 700, halo: true});
+    text(ctx, '용수철', g.spX + 12, (g.py + g.spBase) / 2 + 8, {size: 13, color: C.muted, w: 600, align: 'left'});
+    text(ctx, '접점', E0[0] + 12, g.yC + 14, {size: 13, color: C.muted, w: 600, align: 'left'});
+    const closed = S.lever > 0.97;
+    // 전자: 회로 1 은 광전류만큼, 회로 2 는 스위치가 닫혔을 때
+    dots(ctx, path1(g), dotOff1, 17);
+    dots(ctx, path2(g), dotOff2, 17, (i) => i === 5 && !closed);
+    bell(ctx, g.bx, g.yC, g.bellR, closed, '경보 장치');
+    // 광전자 (음극 → 양극) · 섬광
+    drawElecs(ctx); drawFlashes(ctx);
+  }
+
+  // ── 장면: 화재 경보기 ───────────────────────────────────
+  function drawFire(ctx, g) {
+    const {fx0: x0, fx1: x1, fy0: y0, fy1: y1} = g, vents = [0.3, 0.52, 0.74].map((u) => x0 + (x1 - x0) * u), vw = g.n ? 12 : 16;
+    // 상자 (단면)
+    ctx.save(); Lab.rrect(ctx, x0, y0, x1 - x0, y1 - y0, 14); ctx.fillStyle = A(C.muted, 0.09); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2.4; ctx.lineJoin = 'round'; ctx.beginPath();
+    ctx.moveTo(vents[0] - vw, y0); ctx.lineTo(x0 + 14, y0); ctx.arcTo(x0, y0, x0, y0 + 14, 14); ctx.lineTo(x0, y1 - 14); ctx.arcTo(x0, y1, x0 + 14, y1, 14);
+    ctx.lineTo(x1 - 14, y1); ctx.arcTo(x1, y1, x1, y1 - 14, 14); ctx.lineTo(x1, y0 + 14); ctx.arcTo(x1, y0, x1 - 14, y0, 14); ctx.lineTo(vents[2] + vw, y0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(vents[0] + vw, y0); ctx.lineTo(vents[1] - vw, y0); ctx.moveTo(vents[1] + vw, y0); ctx.lineTo(vents[2] - vw, y0); ctx.stroke();
+    ctx.lineWidth = 1.6; ctx.strokeStyle = C.muted;
+    for (const v of vents) for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(v + s * vw, y0); ctx.lineTo(v + s * (vw - 7), y0 + 9); ctx.stroke(); }
+    ctx.restore();
+    text(ctx, '연기 들어오는 틈', vents[0], y0 + 22, {size: 13, color: C.muted, w: 600});
+    // LED · 빛줄기 · 흡수판
+    const lx = x0 + 10, lw = g.n ? 20 : 26;
+    ctx.save(); ctx.fillStyle = A(C.energy, 0.15); ctx.fillRect(lx + lw, g.fyb - 4, x1 - 22 - lx - lw, 8); ctx.restore();
+    ctx.save(); ctx.fillStyle = A(C.energy, 0.4); ctx.strokeStyle = C.energy; ctx.lineWidth = 2; ctx.fillRect(lx, g.fyb - 10, lw, 20); ctx.strokeRect(lx, g.fyb - 10, lw, 20); ctx.restore();
+    text(ctx, 'LED', lx + lw / 2, g.fyb - 22, {size: 13.5, w: 700});
+    ctx.save(); ctx.fillStyle = shade(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.4; ctx.fillRect(x1 - 20, g.fyb - 26, 12, 52); ctx.strokeRect(x1 - 20, g.fyb - 26, 12, 52); ctx.restore();
+    text(ctx, '빛 흡수판', x1 - 26, g.fyb - 38, {size: 13, color: C.muted, w: 600, align: 'right'});
+    // 연기 입자
+    ctx.save(); ctx.fillStyle = A(C.muted, isDark() ? 0.7 : 0.55);
+    for (const s of smokeP) { ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU); ctx.fill(); }
+    ctx.restore();
+    // 광센서
+    const sw = g.fsw;
+    ctx.save(); ctx.fillStyle = A(C.vel, 0.28); ctx.strokeStyle = C.vel; ctx.lineWidth = 2; ctx.fillRect(g.fxs - sw / 2, g.fy1 - 18, sw, 14); ctx.strokeRect(g.fxs - sw / 2, g.fy1 - 18, sw, 14); ctx.restore();
+    text(ctx, g.n ? '광센서' : '광센서(광 다이오드)', g.fxs + sw / 2 + 8, g.fy1 - 12, {size: 13.5, w: 700, align: 'left', color: C.vel});
+    for (const p of photons) photon(ctx, p, C.energy);
+    // 회로
+    const batY = (g.fyTop + g.yBot) / 2, s = sw * 0.3, amY = Math.round((g.fyTop + g.yBot) / 2 + (g.n ? 8 : 12));
+    wire(ctx, [[g.fxs - s, g.fy1 - 4], [g.fxs - s, g.fyTop], [g.fxL, g.fyTop], [g.fxL, batY - 5]]);
+    wire(ctx, [[g.fxL, batY + 8], [g.fxL, g.yBot], [g.bx, g.yBot], [g.bx, amY + g.amR]]);
+    wire(ctx, [[g.bx, amY - g.amR], [g.bx, g.fyTop], [g.fxs + s, g.fyTop], [g.fxs + s, g.fy1 - 4]]);
+    battery(ctx, g.fxL, batY, true, '전원', g.fxL + 24, batY + 18, 'left');
+    dots(ctx, pathFire(g), dotOff1, 17);
+    meter(ctx, g.bx, amY, g.amR, S.I, g.n ? '광전류' : '광전류계', g.bx - g.amR - 8);
+    bell(ctx, g.bx, g.fyTop, g.bellR, S.I > 0.001, '경보 장치', 'left');
+    drawElecs(ctx); drawFlashes(ctx);
+  }
+
+  // ── 장면: 가로등 자동 점멸 ──────────────────────────────
+  function drawStreet(ctx, g) {
+    const {W} = g, L = M.sunlight(S.hour), lampOn = S.lever > 0.97;
+    // 밤하늘
+    ctx.save(); ctx.fillStyle = shade(); ctx.globalAlpha = (1 - Math.min(1, L * 1.6)) * (isDark() ? 0.55 : 0.5); ctx.fillRect(0, 0, W, g.split); ctx.restore();
+    const night = 1 - Math.min(1, L * 2.2);
+    if (night > 0.05) {
+      ctx.save(); ctx.fillStyle = isDark() ? C.ink : C.paper; ctx.globalAlpha = night * 0.8;
+      for (let k = 0; k < 14; k++) { const sx = (k * 97 % 100) / 100 * W, sy = g.top + 6 + (k * 53 % 100) / 100 * (g.split - g.top) * 0.55; ctx.beginPath(); ctx.arc(sx, sy, 1.6, 0, TAU); ctx.fill(); }
+      ctx.restore();
+    }
+    // 해·달
+    const sun = sunPos(g, S.hour);
+    if (sun) {
+      ctx.save(); ctx.strokeStyle = C.energy; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+      for (let k = 0; k < 8; k++) { const a = k / 8 * TAU; ctx.beginPath(); ctx.moveTo(sun[0] + Math.cos(a) * 20, sun[1] + Math.sin(a) * 20); ctx.lineTo(sun[0] + Math.cos(a) * 27, sun[1] + Math.sin(a) * 27); ctx.stroke(); }
+      ctx.beginPath(); ctx.arc(sun[0], sun[1], 15, 0, TAU); ctx.fillStyle = C.energy; ctx.fill(); ctx.restore();
+    } else {
+      const mx = W * 0.46, my = g.top + 30;
+      ctx.save(); ctx.fillStyle = isDark() ? C.ink : C.paper; ctx.globalAlpha = night; ctx.beginPath(); ctx.arc(mx, my, 12, 0.35 * Math.PI, 1.65 * Math.PI); ctx.arc(mx + 6, my - 2, 10, 1.55 * Math.PI, 0.45 * Math.PI, true); ctx.fill(); ctx.restore();
+    }
+    // 땅
+    ctx.save(); ctx.fillStyle = A(C.muted, 0.14); ctx.fillRect(0, g.split, W, 7); ctx.restore();
+    Lab.line(ctx, [[0, g.split], [W, g.split]], C.muted, 2);
+    // 점멸기 (광센서가 달린 상자)
+    ctx.save(); ctx.fillStyle = A(C.paper, 0.75); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.8; ctx.fillRect(g.sx - 22, g.cabTop, 44, g.split - g.cabTop); ctx.strokeRect(g.sx - 22, g.cabTop, 44, g.split - g.cabTop);
+    ctx.beginPath(); ctx.arc(g.sx, g.cabTop, 11, Math.PI, TAU); ctx.closePath(); ctx.fillStyle = A(C.vel, 0.3); ctx.fill(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    text(ctx, '광센서', g.sx + 18, g.cabTop - 16, {size: 13.5, w: 700, align: 'left', color: C.vel, halo: true});
+    text(ctx, '점멸기', g.sx - 28, (g.cabTop + g.split) / 2, {size: 13, w: 600, align: 'right', color: C.muted, halo: true});
+    // 가로등
+    const pw = 20;
+    ctx.save(); ctx.fillStyle = A(C.muted, 0.16); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6;
+    ctx.fillRect(g.bx - pw / 2, g.armY - 6, pw, g.yC - g.armY + 6); ctx.strokeRect(g.bx - pw / 2, g.armY - 6, pw, g.yC - g.armY + 6);
+    ctx.fillRect(g.lampX - 6, g.armY - 6, g.bx - g.lampX + 6, 12); ctx.strokeRect(g.lampX - 6, g.armY - 6, g.bx - g.lampX + 6, 12); ctx.restore();
+    if (lampOn) {
+      ctx.save(); ctx.fillStyle = A(C.energy, 0.14); ctx.beginPath(); ctx.moveTo(g.lampX - 10, g.armY + 12); ctx.lineTo(g.lampX + 10, g.armY + 12); ctx.lineTo(g.lampX + 70, g.split); ctx.lineTo(g.lampX - 70, g.split); ctx.closePath(); ctx.fill();
+      const rg = ctx.createRadialGradient(g.lampX, g.armY + 12, 2, g.lampX, g.armY + 12, 44); rg.addColorStop(0, A(C.energy, 0.6)); rg.addColorStop(1, A(C.energy, 0));
+      ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(g.lampX, g.armY + 12, 44, 0, TAU); ctx.fill(); ctx.restore();
+    }
+    Lab.circle(ctx, g.lampX, g.armY + 12, 8, {fill: lampOn ? C.energy : C.paper, stroke: C.ink, width: 2});
+    text(ctx, lampOn ? '가로등 켜짐' : '가로등 꺼짐', g.bx - 10, g.armY + 40, {size: 13.5, w: 700, align: 'right', color: lampOn ? C.energy : C.muted, halo: true});
+    for (const p of photons) photon(ctx, p, C.energy);
+    // 회로
+    const cxw = g.mx - g.cw / 2 - 4;
+    wire(ctx, [[g.sx + 6, g.sensY + 4], [g.sx + 6, g.yA], [cxw, g.yA], [cxw, g.yB], [g.batX + 5, g.yB]]);
+    wire(ctx, [[g.batX - 8, g.yB], [g.xL, g.yB], [g.xL, g.yK], [g.sx - 6, g.yK], [g.sx - 6, g.sensY + 4]]);
+    battery(ctx, g.batX, g.yB, false, '전원', g.batX, g.yB + 25);
+    const E0 = [g.px + g.Lv * Math.cos(g.aMax), g.yC];
+    wire(ctx, [[g.bx, g.bat2Y + 8], [g.bx, g.yBot], [g.px, g.yBot], [g.px, g.py + 6]]);
+    wire(ctx, [[E0[0], g.yC], [g.bx - 5, g.yC], [g.bx - 5, g.armY - 3], [g.lampX, g.armY - 3], [g.lampX, g.armY + 4]]);
+    wire(ctx, [[g.lampX + 7, g.armY + 3], [g.bx + 5, g.armY + 3], [g.bx + 5, g.bat2Y - 12], [g.bx, g.bat2Y - 5]]);
+    battery(ctx, g.bx, g.bat2Y, true, '전원', g.bx - 24, g.bat2Y, 'right');
+    relayParts(ctx, g);
+    text(ctx, '전자석', g.mx + g.cw / 2 + (g.n ? 8 : 34), (g.yA + g.yB) / 2 - 8, {size: 13.5, w: 700, align: 'left'});
+    text(ctx, '용수철', g.spX + 12, (g.py + g.spBase) / 2 + 8, {size: 13, color: C.muted, w: 600, align: 'left'});
+    if (S.I > 0.05) {
+      const x0 = Math.min(cxw - 16, g.sx + (g.n ? 70 : 130)), x1 = x0 - (g.n ? 34 : 46), yy = g.yA + 13;
+      ctx.save(); ctx.globalAlpha = Math.min(1, S.I * 1.5); arrow(ctx, x0, yy, x1, yy, C.acc, 2.8, 9); ctx.restore();
+      text(ctx, '광전류', x0 + 6, yy, {size: 13, color: C.acc, w: 700, align: 'left', halo: true});
+    }
+    dots(ctx, path1(g), dotOff1, 17);
+    dots(ctx, path2(g), dotOff2, 17, (i) => i === 5 && !lampOn);
+    drawFlashes(ctx);
+  }
+  function sunPos(g, hour) {
+    if (hour <= 6 || hour >= 18) return null;
+    const u = (hour - 6) / 12;
+    return [g.pad + 30 + u * (g.W - 2 * g.pad - 60), g.split - 24 - (g.split - g.top - 50) * Math.sin(Math.PI * u)];
+  }
+
+  // ── 장면: 태양 전지 ─────────────────────────────────────
+  function drawSolar(ctx, g) {
+    const P = solarGeo(g), {W} = g;
+    // 해
+    ctx.save(); ctx.strokeStyle = C.energy; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+    for (let k = 0; k < 8; k++) { const a = k / 8 * TAU; ctx.beginPath(); ctx.moveTo(g.sunX + Math.cos(a) * 21, g.sunY + Math.sin(a) * 21); ctx.lineTo(g.sunX + Math.cos(a) * 28, g.sunY + Math.sin(a) * 28); ctx.stroke(); }
+    ctx.beginPath(); ctx.arc(g.sunX, g.sunY, 16, 0, TAU); ctx.fillStyle = C.energy; ctx.globalAlpha = 0.35 + 0.65 * S.sol; ctx.fill(); ctx.restore();
+    // 땅
+    ctx.save(); ctx.fillStyle = A(C.muted, 0.14); ctx.fillRect(0, g.split, W, 7); ctx.restore();
+    Lab.line(ctx, [[0, g.split], [W, g.split]], C.muted, 2);
+    // 받침대와 판
+    Lab.line(ctx, [[P.BL[0] + 14, P.BL[1]], [P.BL[0] + 14, g.split]], C.muted, 3);
+    Lab.line(ctx, [[P.BR[0] - 14, P.BR[1]], [P.BR[0] - 14, g.split]], C.muted, 3);
+    const cols = g.n ? 4 : 6, rows = 2, q = (u, v) => [
+      P.BL[0] + (P.BR[0] - P.BL[0]) * u + (P.TL[0] - P.BL[0]) * v, P.BL[1] + (P.TL[1] - P.BL[1]) * v];
+    ctx.save();
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+      const a = q(i / cols, j / rows), b = q((i + 1) / cols, j / rows), c = q((i + 1) / cols, (j + 1) / rows), d = q(i / cols, (j + 1) / rows);
+      ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.lineTo(...c); ctx.lineTo(...d); ctx.closePath();
+      ctx.fillStyle = A(C.vel, 0.3 + 0.12 * ((i + j) % 2)); ctx.fill(); ctx.strokeStyle = C.paper; ctx.lineWidth = 1.6; ctx.stroke();
+    }
+    ctx.beginPath(); ctx.moveTo(...P.BL); ctx.lineTo(...P.BR); ctx.lineTo(...P.TR); ctx.lineTo(...P.TL); ctx.closePath(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
+    text(ctx, '태양 전지', P.TR[0] + 14, P.TR[1] + 6, {size: 13.5, w: 700, align: 'left', halo: true});
+    if (!g.n) text(ctx, '광 다이오드 여러 개', P.TR[0] + 14, P.TR[1] + 26, {size: 13, w: 500, align: 'left', color: C.muted, halo: true});
+    for (const p of photons) photon(ctx, p, C.energy);
+    drawElecs(ctx);
+    // 회로 (전원 없음)
+    wire(ctx, [[P.BL[0] + 6, P.BL[1]], [P.BL[0] + 6, P.yTop], [P.xa, P.yTop], [P.xa, P.yMid - g.amR]]);
+    wire(ctx, [[P.xa, P.yMid + g.amR], [P.xa, g.yBot], [P.xb, g.yBot], [P.xb, P.yMid + 20]]);
+    wire(ctx, [[P.xb, P.yMid - 20], [P.xb, P.yTop], [P.BR[0] - 6, P.yTop], [P.BR[0] - 6, P.BR[1]]]);
+    dots(ctx, pathSolar(g, P), dotOff1, 17);
+    meter(ctx, P.xa, P.yMid, g.amR, S.I, g.n ? '전류계' : '전류계(조도계)', P.xa - g.amR - 8);
+    // 전동기 + 날개
+    Lab.circle(ctx, P.xb, P.yMid, 20, {fill: C.paper, stroke: C.ink, width: 2});
+    text(ctx, 'M', P.xb, P.yMid + 1, {size: 15, w: 700});
+    Lab.line(ctx, [[P.xb + 20, P.yMid], [P.xb + 34, P.yMid]], C.ink, 3);
+    ctx.save(); ctx.translate(P.xb + 34, P.yMid); ctx.fillStyle = A(C.acc, 0.55); ctx.strokeStyle = C.acc; ctx.lineWidth = 1.6;
+    for (let k = 0; k < 3; k++) { ctx.save(); ctx.rotate(S.spin + k * TAU / 3); ctx.beginPath(); ctx.ellipse(0, -13, 5, 13, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore(); }
+    ctx.restore();
+    Lab.circle(ctx, P.xb + 34, P.yMid, 3.4, {fill: C.ink});
+    text(ctx, '전동기', P.xb + 34, P.yMid + 40, {size: 13, color: C.muted, w: 600});
+    text(ctx, g.n ? '전지 없이 전류' : '전지 없이 빛만으로 전류가 흐른다', (P.xa + P.xb) / 2, P.yMid, {size: 13.5, color: C.muted, w: 600});
+    drawFlashes(ctx);
+  }
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawAll), chain = Lab.canvas('chain', drawAll), strip = Lab.canvas('strip', drawAll);
+  let G = null;
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    const first = !G;
+    if (!G || G.W !== W) $('hudSlow').hidden = W < 520;
+    G = geo(W, H);
+    if (first) settle();                              // 처음(멈춘 채 시작해도): 빛줄기를 광자로 채운 평형 상태
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (S.scene === 'burglar' || S.scene === 'street' || S.scene === 'solar') {
+      ctx.save(); ctx.fillStyle = A(C.muted, 0.05); ctx.fillRect(0, G.split, W, G.bot - G.split + 4); ctx.restore();
+    }
+    if (S.scene === 'burglar') { drawRoom(ctx, G); drawBurglarCircuit(ctx, G); }
+    else if (S.scene === 'fire') drawFire(ctx, G);
+    else if (S.scene === 'street') drawStreet(ctx, G);
+    else drawSolar(ctx, G);
+  }
+
+  // ── 상태 요약 (사슬·기록·수치가 같이 씀) ─────────────────
+  function snap() {
+    const closed = S.lever > 0.97;
+    if (S.scene === 'burglar') return {light: S.sensor, I: S.I, out: closed ? 1 : 0, closed};
+    if (S.scene === 'fire') return {light: S.smoke, I: S.I, out: S.I > 0.001 ? 1 : 0};
+    if (S.scene === 'street') return {light: M.sunlight(S.hour), I: S.I, out: closed ? 1 : 0, closed};
+    return {light: S.sol, I: S.I, out: S.I};
+  }
+  const CHAINS = {
+    burglar: [
+      {k: '빛', s: (z) => (z.light > 0.5 ? '닿음' : '가려짐'), on: (z) => z.light > 0.5, c: 'energy'},
+      {k: '광전류', s: (z) => (z.I > 0.05 ? '흐름' : '0'), on: (z) => z.I > 0.05, c: 'acc'},
+      {k: '전자석', s: () => (S.mag >= M.HOLD ? '당김' : '힘 잃음'), on: () => S.mag >= M.HOLD, c: 'violet'},
+      {k: '스위치', s: (z) => (z.closed ? '닫힘' : '열림'), on: (z) => z.closed, c: 'copper'},
+      {k: '경보', s: (z) => (z.out ? '울림' : '조용'), on: (z) => !!z.out, c: 'force'},
+    ],
+    fire: [
+      {k: '연기', s: (z) => (z.light > 0.001 ? '있음' : '없음'), on: (z) => z.light > 0.001, c: 'muted'},
+      {k: '산란광', s: (z) => (z.light > 0.001 ? '닿음' : '안 닿음'), on: (z) => z.light > 0.001, c: 'energy'},
+      {k: '광전류', s: (z) => (z.I > 0.001 ? '흐름' : '0'), on: (z) => z.I > 0.001, c: 'acc'},
+      {k: '경보', s: (z) => (z.out ? '울림' : '조용'), on: (z) => !!z.out, c: 'force'},
+    ],
+    street: [
+      {k: '햇빛', s: (z) => (z.light >= M.HOLD ? '밝음' : '어두움'), on: (z) => z.light >= M.HOLD, c: 'energy'},
+      {k: '광전류', s: (z) => (z.I >= M.HOLD ? '흐름' : z.I > 0.01 ? '작음' : '0'), on: (z) => z.I >= M.HOLD, c: 'acc'},
+      {k: '전자석', s: () => (S.mag >= M.HOLD ? '당김' : '힘 잃음'), on: () => S.mag >= M.HOLD, c: 'violet'},
+      {k: '스위치', s: (z) => (z.closed ? '닫힘' : '열림'), on: (z) => z.closed, c: 'copper'},
+      {k: '가로등', s: (z) => (z.out ? '켜짐' : '꺼짐'), on: (z) => !!z.out, c: 'energy'},
+    ],
+    solar: [
+      {k: '빛', s: (z) => Math.round(z.light * 100) + ' %', on: (z) => z.light > 0, c: 'energy'},
+      {k: '광전자', s: (z) => (z.light > 0 ? '튀어나옴' : '없음'), on: (z) => z.light > 0, c: 'vel'},
+      {k: '전류', s: (z) => z.I.toFixed(2), on: (z) => z.I > 0.01, c: 'acc'},
+      {k: '전동기', s: (z) => (z.I > 0.01 ? '회전' : '멈춤'), on: (z) => z.I > 0.01, c: 'acc'},
+    ],
+  };
+  const pulse = {}; let pulseUntil = 0, dirty = true;
+  function drawChain() {
+    const {ctx, W, H} = chain; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nodes = CHAINS[S.scene], z = snap(), n = nodes.length, gap = W < 420 ? 12 : 18;
+    const bw = (W - gap * (n - 1) - 4) / n, bh = Math.min(68, H - 16), y = (H - bh) / 2, now = performance.now();
+    nodes.forEach((nd, i) => {
+      const x = 2 + i * (bw + gap), on = nd.on(z), col = C[nd.c];
+      const key = S.scene + i;
+      if (pulse[key] && pulse[key].on !== on) { pulse[key].t = now; pulseUntil = now + 950; }
+      if (!pulse[key]) pulse[key] = {on, t: 0};
+      pulse[key].on = on;
+      const age = (now - pulse[key].t) / 900;
+      ctx.save(); Lab.rrect(ctx, x, y, bw, bh, 10);
+      ctx.fillStyle = on ? A(col, 0.16) : C.bg; ctx.fill();
+      ctx.lineWidth = on ? 2.4 : 1.4; ctx.strokeStyle = on ? col : C.line; ctx.stroke();
+      if (age < 1) { ctx.globalAlpha = 1 - age; ctx.lineWidth = 3; ctx.strokeStyle = C.copper; Lab.rrect(ctx, x - 3, y - 3, bw + 6, bh + 6, 12); ctx.stroke(); }
+      ctx.restore();
+      text(ctx, nd.k, x + bw / 2, y + bh * 0.32, {size: W < 420 ? 13 : 14, w: 700, color: on ? col : C.muted});
+      text(ctx, nd.s(z), x + bw / 2, y + bh * 0.7, {size: 13, w: 700, color: on ? C.ink : C.muted});
+      if (i < n - 1) arrow(ctx, x + bw + 2, y + bh / 2, x + bw + gap - 1, y + bh / 2, C.muted, 1.8, 7);
+    });
+  }
+  const LANES = {burglar: ['센서의 빛', '광전류', '경보'], fire: ['산란광', '광전류', '경보'], street: ['햇빛', '광전류', '가로등'], solar: ['빛의 세기', '전류', '전동기']};
+  function drawStrip() {
+    const {ctx, W, H} = strip; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const lab = W < 420 ? 64 : 74, r = {x: lab, y: 8, w: W - lab - 10, h: H - 34}, lh = r.h / 3, span = 8, t0 = S.t - span;
+    const cols = [C.energy, C.acc, S.scene === 'street' ? C.energy : S.scene === 'solar' ? C.acc : C.force];
+    const keys = ['a', 'b', 'c'];
+    for (let k = 0; k < 3; k++) {
+      const yb = r.y + lh * (k + 1) - 6, yt = r.y + lh * k + 8;
+      text(ctx, LANES[S.scene][k], lab - 8, (yb + yt) / 2, {size: 13, w: 700, color: cols[k], align: 'right'});
+      Lab.line(ctx, [[r.x, yb], [r.x + r.w, yb]], C.line, 1);
+      const X = (t) => r.x + (t - t0) / span * r.w, Y = (v) => yb - clamp(v, 0, 1.05) / 1.05 * (yb - yt);
+      const pts = HIST.filter((h) => h.t >= t0).map((h) => [X(h.t), Y(h[keys[k]])]);
+      if (pts.length > 1) {
+        ctx.save(); ctx.beginPath(); ctx.moveTo(pts[0][0], yb); pts.forEach((p) => ctx.lineTo(p[0], p[1])); ctx.lineTo(pts[pts.length - 1][0], yb); ctx.closePath();
+        ctx.fillStyle = A(cols[k], 0.16); ctx.fill(); ctx.restore();
+        Lab.line(ctx, pts, cols[k], 2.6);
+      }
+    }
+    text(ctx, '8초 전', r.x, H - 12, {size: 13, color: C.muted, w: 500, align: 'left'});
+    text(ctx, '지금 →', r.x + r.w, H - 12, {size: 13, color: C.muted, w: 600, align: 'right'});
+  }
+  function drawAll() { drawStage(); drawChain(); drawStrip(); }
+
+  // ── 움직임 ──────────────────────────────────────────────
+  function travel(g) { return Math.max(0, (g.bowlY - g.headTop) / VP); }
+  function walk(dt, g) {
+    if (S.who !== 'walk') return;
+    const xs = (g.sx + (g.n ? 3 : 4)) / g.W, v = 0.2;
+    S.wT += dt;
+    if (S.wPhase === 'enter') { S.face = -1; S.wx -= v * dt; S.step += dt * 9; if (S.wx <= xs) { S.wx = xs; S.wPhase = 'stand'; S.wT = 0; } }
+    else if (S.wPhase === 'stand') { if (S.wT > 3.2) { S.wPhase = 'exit'; S.wT = 0; } }
+    else if (S.wPhase === 'exit') { S.face = 1; S.wx += v * dt; S.step += dt * 9; if (S.wx > 1.1) { S.wPhase = 'gone'; S.wT = 0; } }
+    else if (S.wPhase === 'gone' && S.wT > 1.6) { S.wPhase = 'enter'; S.wx = 1.1; S.wT = 0; }
+  }
+  function relayStep(dt, I) {
+    S.mag = ease(S.mag, I, dt, 0.07);
+    const tgt = S.mag >= M.HOLD ? 0 : 1;
+    S.lever = tgt > S.lever ? Math.min(tgt, S.lever + dt / 0.28) : Math.max(tgt, S.lever - dt / 0.2);
+  }
+  function update(dt) {
+    const g = G; if (!g) return;
+    S.t += dt;
+    while (script.length && script[0].at <= S.t) script.shift().fn();
+    for (const f of flashes) f.t += dt;
+    flashes = flashes.filter((f) => f.t < f.d);
+    for (const e of elecs) e.t += dt;
+    elecs = elecs.filter((e) => e.t < e.d);
+    if (S.scene === 'burglar') updBurglar(dt, g);
+    else if (S.scene === 'fire') updFire(dt, g);
+    else if (S.scene === 'street') updStreet(dt, g);
+    else updSolar(dt, g);
+    if (S.t - lastRec >= 0.03) { const z = snap(); HIST.push({t: S.t, a: z.light, b: z.I, c: z.out}); lastRec = S.t; while (HIST.length && HIST[0].t < S.t - 8.5) HIST.shift(); }
+  }
+  function updBurglar(dt, g) {
+    walk(dt, g);
+    const b = blocked(g);
+    if (lastBlocked === null) lastBlocked = b;
+    if (b !== lastBlocked) { sensorQ.push({at: S.t + travel(g), v: b ? 0 : 1}); lastBlocked = b; }
+    while (sensorQ.length && sensorQ[0].at <= S.t) S.sensor = sensorQ.shift().v;
+    // 광자: 일정한 간격으로 광원에서 나옴
+    emitAcc += dt * RATE;
+    while (emitAcc >= 1) { emitAcc -= 1; photons.push({x: g.sx + rnd(-0.6, 0.6) * g.beamHalf, y: g.top + 14, vx: 0, vy: VP, ph: rnd(0, 10), wl: S.src === 'violet' ? 6 : 10}); }
+    const em = M.emits(fSrc());
+    photons = photons.filter((p) => {
+      const y0 = p.y; p.y += p.vy * dt;
+      if (b && y0 < g.headTop + 4 && p.y >= g.headTop + 4) { flashes.push({x: p.x, y: g.headTop + 4, t: 0, d: 0.3, col: lightCol(nmSrc()), r: 8}); return false; }
+      const yb = g.yA + Math.sqrt(Math.max(0, g.rc * g.rc - (p.x - g.sx) ** 2));
+      if (p.y >= yb) {
+        if (em) elecs.push({x0: p.x, y0: yb - 3, x1: g.sx, y1: g.yA + 3, t: 0, d: 0.2});
+        else flashes.push({x: p.x, y: yb - 2, t: 0, d: 0.25, col: lightCol(nmSrc()), r: 6});
+        return false;
+      }
+      return true;
+    });
+    S.I = ease(S.I, M.photoCurrent(S.sensor, fSrc()), dt, 0.12);
+    relayStep(dt, S.I);
+    dotOff1 += dt * 70 * S.I;
+    dotOff2 += dt * 70 * (S.lever > 0.97 ? 1 : 0);
+  }
+  function updFire(dt, g) {
+    S.smoke = Math.abs(S.smokeT - S.smoke) < 0.004 ? S.smokeT : ease(S.smoke, S.smokeT, dt, 0.9);
+    syncSmoke(g, false);
+    const {fx0: x0, fx1: x1, fy0: y0, fy1: y1} = g;
+    for (const s of smokeP) {                       // 연기 입자: 상자 안의 아무 곳으로 천천히 떠돈다
+      const dx = s.tx - s.x, dy = s.ty - s.y, d = Math.hypot(dx, dy);
+      if (d < 6) { s.tx = rnd(x0 + 40, x1 - 40); s.ty = rnd(y0 + 14, y1 - 36); }
+      else { s.x += dx / d * s.sp * dt + Math.sin(S.t * 3 + s.r * 7) * 6 * dt; s.y += dy / d * s.sp * dt; }
+    }
+    emitAcc += dt * 12;
+    const lx = x0 + 10 + (g.n ? 20 : 26);
+    while (emitAcc >= 1) { emitAcc -= 1; photons.push({x: lx, y: g.fyb + rnd(-3, 3), vx: VP * 0.9, vy: 0, ph: rnd(0, 10), wl: 7, sc: false}); }
+    const sw = g.fsw;
+    photons = photons.filter((p) => {
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      if (!p.sc) for (const s of smokeP) {
+        if (Math.abs(s.x - p.x) < 7 && Math.abs(s.y - p.y) < 7 && Math.random() < 0.5) {
+          p.sc = true; flashes.push({x: s.x, y: s.y, t: 0, d: 0.25, col: C.energy, r: 7});
+          let tx, ty;
+          if (Math.random() < 0.55) { tx = g.fxs + rnd(-0.45, 0.45) * sw; ty = g.fy1 - 16; } else { const a = rnd(0, TAU); tx = p.x + Math.cos(a) * 100; ty = p.y + Math.sin(a) * 100; }
+          const d = Math.hypot(tx - p.x, ty - p.y) || 1; p.vx = (tx - p.x) / d * VP * 0.9; p.vy = (ty - p.y) / d * VP * 0.9;
+          break;
+        }
+      }
+      if (p.y >= g.fy1 - 18 && Math.abs(p.x - g.fxs) <= sw / 2) {
+        flashes.push({x: p.x, y: g.fy1 - 18, t: 0, d: 0.3, col: C.vel, r: 9});
+        elecs.push({x0: p.x, y0: g.fy1 - 12, x1: g.fxs + sw * 0.3, y1: g.fy1 - 4, t: 0, d: 0.2});
+        return false;
+      }
+      if (!p.sc && p.x >= x1 - 22) return false;
+      return p.x > x0 + 4 && p.x < x1 - 4 && p.y > y0 + 4 && p.y < y1 - 4;
+    });
+    S.I = M.fire({smoke: S.smoke}).I;
+    dotOff1 += dt * 90 * S.I;
+  }
+  function syncSmoke(g, instant) {
+    const N = g.n ? 30 : 46, want = Math.round(S.smoke * N);
+    const vents = [0.3, 0.52, 0.74].map((u) => g.fx0 + (g.fx1 - g.fx0) * u);
+    while (smokeP.length < want) {
+      const tx = rnd(g.fx0 + 40, g.fx1 - 40), ty = rnd(g.fy0 + 14, g.fy1 - 36), sp = rnd(30, 60), r = rnd(3.5, 5.2);
+      if (instant) smokeP.push({x: tx, y: ty, tx: rnd(g.fx0 + 40, g.fx1 - 40), ty: rnd(g.fy0 + 14, g.fy1 - 36), sp, r});
+      else smokeP.push({x: vents[smokeP.length % 3] + rnd(-6, 6), y: g.fy0 - 2, tx, ty, sp: sp * 1.6, r});
+    }
+    while (smokeP.length > want) smokeP.splice(Math.floor(Math.random() * smokeP.length), 1);
+  }
+  function updStreet(dt, g) {
+    if (S.auto) { S.hour = (S.hour + dt * 1.5) % 24; $('hour').value = S.hour; }
+    const L = M.sunlight(S.hour), sun = sunPos(g, S.hour);
+    if (sun) {
+      emitAcc += dt * 18 * L;
+      while (emitAcc >= 1) {
+        emitAcc -= 1;
+        const tx = g.sx + rnd(-6, 6), ty = g.cabTop - 8, d = Math.hypot(tx - sun[0], ty - sun[1]) || 1;
+        photons.push({x: sun[0], y: sun[1], vx: (tx - sun[0]) / d * VP, vy: (ty - sun[1]) / d * VP, ph: rnd(0, 10), wl: 7, tx, ty});
+      }
+    }
+    photons = photons.filter((p) => {
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      if ((p.tx - p.x) * p.vx + (p.ty - p.y) * p.vy <= 0) { flashes.push({x: p.tx, y: p.ty, t: 0, d: 0.3, col: C.vel, r: 8}); return false; }
+      return true;
+    });
+    S.I = ease(S.I, M.streetlight({hour: S.hour}).I, dt, 0.1);
+    relayStep(dt, S.I);
+    dotOff1 += dt * 70 * S.I;
+    dotOff2 += dt * 70 * (S.lever > 0.97 ? 1 : 0);
+  }
+  function updSolar(dt, g) {
+    const P = solarGeo(g);
+    emitAcc += dt * 18 * S.sol;
+    while (emitAcc >= 1) {
+      emitAcc -= 1;
+      const u = rnd(0.05, 0.95), v = rnd(0.1, 0.9);
+      const tx = P.BL[0] + (P.BR[0] - P.BL[0]) * u + (P.TL[0] - P.BL[0]) * v, ty = P.BL[1] + (P.TL[1] - P.BL[1]) * v;
+      const d = Math.hypot(tx - g.sunX, ty - g.sunY) || 1;
+      photons.push({x: g.sunX, y: g.sunY, vx: (tx - g.sunX) / d * VP, vy: (ty - g.sunY) / d * VP, ph: rnd(0, 10), wl: 7, tx, ty});
+    }
+    photons = photons.filter((p) => {
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      if ((p.tx - p.x) * p.vx + (p.ty - p.y) * p.vy <= 0) {
+        flashes.push({x: p.tx, y: p.ty, t: 0, d: 0.25, col: C.energy, r: 7});
+        elecs.push({x0: p.tx, y0: p.ty, x1: P.BR[0] - 6, y1: P.BR[1] - 4, t: 0, d: 0.45});
+        return false;
+      }
+      return true;
+    });
+    S.I = ease(S.I, M.solar({light: S.sol}).I, dt, 0.15);
+    S.spin += dt * 9 * S.I;
+    dotOff1 += dt * 80 * S.I;
+  }
+  // 멈춘 채 조작했을 때: 바로 평형 상태로
+  function settle() {
+    const g = G || (stage.W ? geo(stage.W, stage.H) : null); if (!g) return;
+    if (S.scene === 'burglar') {
+      const b = blocked(g); lastBlocked = b; sensorQ = []; S.sensor = b ? 0 : 1;
+      photons = []; elecs = [];
+      const step = VP / RATE, yEnd = b ? g.headTop : g.bowlY - 6;
+      for (let y = g.top + 14; y < yEnd; y += step) photons.push({x: g.sx + rnd(-0.6, 0.6) * g.beamHalf, y, vx: 0, vy: VP, ph: rnd(0, 10), wl: S.src === 'violet' ? 6 : 10});
+      S.I = M.burglar({blocked: b, nm: nmSrc()}).I;
+    } else if (S.scene === 'fire') { S.smoke = S.smokeT; syncSmoke(g, true); S.I = M.fire({smoke: S.smoke}).I; }
+    else if (S.scene === 'street') S.I = M.streetlight({hour: S.hour}).I;
+    else S.I = M.solar({light: S.sol}).I;
+    S.mag = S.I; S.lever = S.mag >= M.HOLD ? 0 : 1;
+  }
+
+  // ── 읽기 값·예제 확인·HUD ────────────────────────────────
+  let lastTxt = '';
+  function readouts() {
+    const z = snap(), sc = S.scene, closed = S.lever > 0.97;
+    let L = [], R = [];
+    if (sc === 'burglar') {
+      L = ['센서에 닿는 빛', '광전류 (상댓값)', '스위치', '경보 장치'];
+      R = [z.light > 0.5 ? '있음' : '없음', S.I.toFixed(1), closed ? '닫힘' : '열림', closed ? '울림!' : '조용'];
+    } else if (sc === 'fire') {
+      L = ['연기의 양', '센서에 닿는 산란광', '광전류 (상댓값)', '경보 장치'];
+      R = [Math.round(S.smoke * 100) + ' %', Math.round(z.light * 100) + ' %', S.I.toFixed(2), z.out ? '울림!' : '조용'];
+    } else if (sc === 'street') {
+      L = ['햇빛의 세기', '광전류 (상댓값)', '스위치', '가로등'];
+      R = [Math.round(z.light * 100) + ' %', S.I.toFixed(2), closed ? '닫힘' : '열림', closed ? '켜짐' : '꺼짐'];
+    } else {
+      L = ['빛의 세기', '전류 (상댓값)', '전동기 빠르기', '에너지'];
+      R = [Math.round(S.sol * 100) + ' %', S.I.toFixed(2), Math.round(S.I * 100) + ' %', '빛 → 전기'];
+    }
+    const key = sc + L.join() + R.join();
+    if (key !== lastTxt) {
+      lastTxt = key;
+      for (let k = 0; k < 4; k++) { $('l' + (k + 1)).textContent = L[k]; $('r' + (k + 1)).textContent = R[k]; }
+      const alarm = (sc === 'burglar' && closed) || (sc === 'fire' && z.out);
+      const hs = $('hudState');
+      hs.className = 'pill' + ((sc === 'burglar' || sc === 'fire') ? (alarm ? ' down' : ' up') : '');
+      hs.textContent = sc === 'burglar' ? (alarm ? '광전류 0 · 경보!' : S.I > 0.05 ? '광전류 흐름 · 조용' : '광전류 0 · 조용')
+        : sc === 'fire' ? (alarm ? '산란광 → 광전류 · 경보!' : '광전류 0 · 조용')
+          : sc === 'street' ? (closed ? '광전류 작음 → 켜짐' : '광전류 흐름 → 꺼짐') : '전류 ∝ 빛의 세기';
+      const ok = sc === 'burglar' && S.src === 'violet' && blocked(G || geo(stage.W, stage.H)) && z.light < 0.5 && closed;
+      Lab.check('exCheck', ok, '개념 체크 ④ 확인: 빛이 가려져 광전류 0 → 전자석이 힘을 잃음 → 용수철이 스위치를 닫아 경보',
+        '개념 체크: 경보가 울리는 순간 무엇이 바뀔까? — 도난 경보기에서 침입자를 빛줄기 속으로 끌어 보세요');
+    }
+  }
+  function sceneText() {
+    const sc = S.scene;
+    $('hudScene').textContent = SCENES[sc];
+    $('sideScene').textContent = SCENES[sc];
+    $('chainSub').textContent = {burglar: '전류가 끊길 때 울림', fire: '전류가 생길 때 울림', street: '전류가 끊길 때 켜짐', solar: '전류 ∝ 빛의 세기'}[sc];
+    $('chainCap').textContent = {
+      burglar: '빛이 가려지면 광전류 → 전자석 → 스위치가 차례로 뒤집혀 경보가 울린다.',
+      fire: '연기에 산란된 빛이 센서에 닿아야 광전류가 생긴다. 도난 경보기와 반대.',
+      street: '도난 경보기와 같은 구조. 빛(햇빛)이 약해지면 스위치가 닫혀 가로등이 켜진다.',
+      solar: '광자 수 ∝ 빛의 세기 → 튀어나오는 전자 수 → 전류. 전지 없이 빛 에너지가 전기 에너지로.',
+    }[sc];
+    $('stripCap').textContent = {
+      burglar: '도난 경보기: 광전류가 0인 동안 경보가 울린다 (광전류와 경보가 서로 반대).',
+      fire: '화재 경보기: 광전류가 생기는 동안 경보가 울린다 (광전류와 경보가 같이).',
+      street: '가로등: 광전류가 기준보다 작아지면(어두워지면) 켜진다.',
+      solar: '태양 전지: 빛의 세기, 전류, 전동기 빠르기가 함께 오르내린다.',
+    }[sc];
+    document.querySelectorAll('#devs tr[data-dev]').forEach((tr) => tr.classList.toggle('on', tr.dataset.dev === sc));
+    $('rowBurglar').hidden = sc !== 'burglar'; $('rowFire').hidden = sc !== 'fire'; $('rowStreet').hidden = sc !== 'street'; $('rowSolar').hidden = sc !== 'solar';
+    $('hudSlow').textContent = S.speed < 1 ? '느린 화면 ×' + S.speed : '빠르기 ×1';
+    $('hudSlow').hidden = stage.W > 0 && stage.W < 520;
+  }
+  function hourText(h) { const hh = Math.floor(h) % 24, mm = Math.round((h - Math.floor(h)) * 60); return String(hh).padStart(2, '0') + ':' + String(mm % 60).padStart(2, '0'); }
+  function controlsText() {
+    $('smokeOut').textContent = Math.round(S.smokeT * 100) + ' %';
+    $('hourOut').textContent = hourText(S.hour);
+    $('solOut').textContent = Math.round(S.sol * 100) + ' %';
+  }
+
+  // ── 조작 ────────────────────────────────────────────────
+  function setScene(sc) {
+    S.scene = sc; photons = []; elecs = []; flashes = []; emitAcc = 0; script = [];
+    HIST.length = 0; lastRec = -1; lastBlocked = null; sensorQ = [];
+    if (sc === 'fire') { smokeP = []; }
+    settle(); sceneText(); lastTxt = '';
+  }
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => { setScene(v); after(); }, S.scene);
+  const whoG = Lab.group('[data-who]', 'who', (v) => {
+    const g = G || geo(stage.W, stage.H);
+    if (v === 'none') S.who = 'none';
+    else if (v === 'walk') { S.who = 'walk'; S.wPhase = 'enter'; S.wx = 1.1; S.wT = 0; }
+    else { S.who = 'hold'; S.wPhase = 'hold'; S.wx = (g.sx + 4) / g.W; S.face = -1; }
+    if (!S.playing) settle();
+    after();
+  }, 'walk');
+  const srcG = Lab.group('[data-src]', 'src', (v) => { S.src = v; photons.forEach((p) => { p.wl = v === 'violet' ? 6 : 10; }); if (!S.playing) settle(); after(); }, S.src);
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; sceneText(); }, S.speed);
+  const smoke = $('smoke'), hour = $('hour'), sol = $('sol');
+  smoke.addEventListener('input', () => { S.smokeT = +smoke.value / 100; if (!S.playing) settle(); after(); });
+  hour.addEventListener('input', () => { S.hour = +hour.value; if (!S.playing) settle(); after(); });
+  sol.addEventListener('input', () => { S.sol = +sol.value / 100; if (!S.playing) settle(); after(); });
+  $('auto').addEventListener('change', (e) => { S.auto = e.target.checked; });
+  $('cForce').addEventListener('change', (e) => { S.forces = e.target.checked; dirty = true; });
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  function after() { controlsText(); readouts(); dirty = true; }
+
+  // 무대 위 끌기: 도난 경보기 = 침입자, 가로등 = 해(시각)
+  let drag = false;
+  Lab.pointer(stage.el, {
+    down(x, y) {
+      const g = G; if (!g) return;
+      if (S.scene === 'burglar' && y > g.top && y < g.split + 4) { drag = true; S.who = 'hold'; S.wPhase = 'hold'; whoG.set('hold', true); this.move(x, y); }
+      else if (S.scene === 'street' && y < g.split) { drag = true; S.auto = false; $('auto').checked = false; this.move(x, y); }
+    },
+    move(x) {
+      if (!drag) return;
+      const g = G;
+      if (S.scene === 'burglar') { S.wx = clamp(x / g.W, 0.04, 0.96); S.face = -1; }
+      else if (S.scene === 'street') { S.hour = clamp(6 + 12 * (x - g.pad - 30) / (g.W - 2 * g.pad - 60), 4.5, 19.5); hour.value = S.hour; }
+      if (!S.playing) settle();
+      after();
+    },
+    up() { drag = false; },
+  });
+  stage.el.addEventListener('pointermove', (e) => {
+    const g = G; if (!g) return;
+    const r = stage.el.getBoundingClientRect(), y = e.clientY - r.top;
+    stage.el.style.cursor = (S.scene === 'burglar' && y > g.top && y < g.split) || (S.scene === 'street' && y < g.split) ? (drag ? 'grabbing' : 'grab') : 'default';
+  });
+
+  // 스스로 확인: 그 상황으로 바꾸기
+  const TRY = {
+    ex: () => {
+      setScene('burglar'); S.src = 'violet'; srcG.set('violet', true);
+      const g = G || geo(stage.W, stage.H);
+      S.who = 'walk'; S.wPhase = 'enter'; S.wT = 0; S.wx = (g.sx + (g.n ? 46 : 70)) / g.W; S.face = -1;
+      whoG.set('walk', true); settle();
+      S.speed = 0.25; speedG.set(0.25, true); playCtl.set(true);
+    },
+    fire: () => { setScene('fire'); S.smokeT = 0; smoke.value = 0; settle(); S.smokeT = 0.4; smoke.value = 40; S.speed = 1; speedG.set(1, true); playCtl.set(true); },
+    smoke2: () => { if (S.scene !== 'fire') { setScene('fire'); S.smokeT = 0.4; smoke.value = 40; settle(); } S.smokeT = 1; smoke.value = 100; S.speed = 1; speedG.set(1, true); playCtl.set(true); },
+    dusk: () => { setScene('street'); S.hour = 15.5; hour.value = 15.5; S.auto = true; $('auto').checked = true; settle(); S.speed = 0.5; speedG.set(0.5, true); playCtl.set(true); },
+    solar: () => {
+      setScene('solar'); S.sol = 0.5; sol.value = 50; settle();
+      script.push({at: S.t + 2.5, fn: () => { S.sol = 1; sol.value = 100; controlsText(); }});
+      S.speed = 1; speedG.set(1, true); playCtl.set(true);
+    },
+  };
+  Lab.tries(TRY, () => { sceneG.set(S.scene, true); sceneText(); after(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    if (S.playing && G) { update(dt * S.speed); dirty = true; }
+    if (dirty || performance.now() < pulseUntil) { drawAll(); readouts(); dirty = false; }
+    if (S.scene === 'street' && S.playing && S.auto) $('hourOut').textContent = hourText(S.hour);
+  });
+  sceneText(); controlsText();
+})();
+</script>
+</body>
+</html>

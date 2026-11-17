@@ -7,13 +7,14 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
 <style>
 /* Layout: 과목(물리학 Ⅰ, Ⅱ)별로 단원 순서대로 카드를 늘어놓은 목록 한 장 */
 :root{
   --bg:#eef1ef; --paper:#ffffff; --ink:#18232b; --muted:#56656d; --line:#d3dbdb; --line-soft:#e5eaea;
   --copper:#a95a22; --copper-soft:#f5e7dc; --north:#c8412f; --south:#2a5b8c; --thumb:#f4f6f5;
-  --font-ui:"IBM Plex Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-display:"Black Han Sans","Noto Sans KR",system-ui,sans-serif;
+  --font-ui:"Noto Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --font-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
@@ -41,7 +42,7 @@ header{padding-block:18px 8px;display:grid;gap:6px}
 .beta{display:inline-block;vertical-align:.35em;margin-left:8px;font:700 12px/1 var(--font-num);padding:4px 8px;border-radius:999px;
   background:var(--copper);color:var(--paper);letter-spacing:.04em}
 .kicker{font:600 12.5px/1 var(--font-num);letter-spacing:.08em;color:var(--copper)}
-h1{margin:0;font-size:clamp(28px,4.4vw,40px);font-weight:700;letter-spacing:-.025em;line-height:1.2}
+h1{margin:0;font-size:clamp(28px,4.4vw,40px);font-family:var(--font-display);font-weight:400;letter-spacing:-.025em;line-height:1.2}
 .lead{margin:0;color:var(--muted);max-width:60ch}
 .course{margin-top:34px}
 .course h2{margin:0 0 14px;font-size:18px;font-weight:700;display:flex;align-items:baseline;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
@@ -59,6 +60,24 @@ h1{margin:0;font-size:clamp(28px,4.4vw,40px);font-weight:700;letter-spacing:-.02
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .chips span{font:600 11.5px var(--font-num);padding:2px 8px;border-radius:999px;background:var(--copper-soft);color:var(--copper)}
 .empty{margin:0;padding:18px;border:1px dashed var(--line);border-radius:16px;color:var(--muted);font-size:14px}
+/* 개념 실험 지도: 과목 → 대단원(접기) → 단원 → 개념 칩 */
+.sub{margin:22px 0 10px;font-size:15px;font-weight:700;display:flex;align-items:baseline;gap:8px}
+.sub small{font:500 12.5px var(--font-num);color:var(--muted)}
+.bu{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin-top:10px}
+.bu summary{cursor:pointer;font-weight:700;font-size:15.5px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;list-style-position:inside}
+.bu summary small{font:600 12.5px var(--font-num);color:var(--muted);white-space:nowrap}
+.bu[open] summary{margin-bottom:6px}
+.un{padding-top:10px;margin-top:10px;border-top:1px solid var(--line-soft)}
+.un h4{margin:0 0 8px;font-size:14.5px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.un h4 a{color:inherit;text-decoration:none;border-bottom:1.5px solid var(--copper)}
+.un h4 small{font:600 12px var(--font-num);color:var(--muted)}
+.cl{display:flex;flex-wrap:wrap;gap:6px}
+.cl a,.cl span{display:inline-flex;align-items:baseline;gap:6px;font-size:13.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);max-width:100%}
+.cl a{border-color:var(--copper);background:var(--copper-soft);color:var(--ink);text-decoration:none;font-weight:600}
+.cl a:hover{background:var(--paper)}
+.cl span{color:var(--muted)}
+.cl b{font:600 12px var(--font-num);color:var(--copper)}
+.cl span b{color:var(--muted)}
 @media (prefers-reduced-motion: reduce){.card{transition:none}.card:hover{transform:none}}
 </style>
 </head>
@@ -68,7 +87,7 @@ h1{margin:0;font-size:clamp(28px,4.4vw,40px);font-weight:700;letter-spacing:-.02
     <a class="home" href="../">← 민규쌤의 과학 실험실 (지구과학)</a>
     <div class="kicker">PHYSICS LAB</div>
     <h1>물리 실험실<span class="beta">BETA</span></h1>
-    <p class="lead">물리학 Ⅰ·Ⅱ 개념을 직접 움직여 보면서 공부하는 시뮬레이션 모음. 하나씩 만들어 가는 중이에요.</p>
+    <p class="lead">물리학 Ⅰ·Ⅱ 개념을 직접 움직여 보면서 공부하는 실험 모음. 개념서의 개념 158개를 하나씩 실험 페이지로 만들어 가는 중이에요.</p>
   </header>
   <main id="list"></main>
 </div>
@@ -99,18 +118,52 @@ const THUMBS = {
 };
 
 const list = document.getElementById('list');
+const mapBoxes = {};
 for (const c of COURSES) {
   const items = SIMS.filter(s => s.course === c.id);
   const sec = document.createElement('section');
   sec.className = 'course';
-  sec.innerHTML = `<h2>${c.name} <small>${items.length}개</small></h2>` + (items.length
-    ? '<div class="grid">' + items.map(s => `<a class="card" href="${s.href}">
+  sec.innerHTML = `<h2>${c.name}</h2>` + (items.length
+    ? `<h3 class="sub">3D 실험 <small>${items.length}개</small></h3><div class="grid">` + items.map(s => `<a class="card" href="${s.href}">
         <div class="thumb">${THUMBS[s.thumb] || ''}</div>
         <div class="body"><span class="unit">${s.unit}</span><h3>${s.title}</h3><p>${s.desc}</p>
           <div class="chips">${(s.tags || []).map(t => `<span>${t}</span>`).join('')}</div></div></a>`).join('') + '</div>'
-    : '<p class="empty">아직 없어요. 공부하면서 하나씩 채워 갈 자리예요.</p>');
+    : '') + '<div class="map"><p class="empty">개념 실험 목록을 불러오는 중…</p></div>';
+  mapBoxes[c.id] = sec.querySelector('.map');
   list.appendChild(sec);
 }
+
+// 개념 실험: data/physics_concepts.json(개념 158개) + data/built.json(만든 개념, physics/tools/build_index.py 가 갱신)
+const SUBJ = {'물리학Ⅰ': 1, '물리학Ⅱ': 2};
+const short = (t) => t.split(':')[0].replace(/\s*\(.*?\)\s*$/, '');
+Promise.all([fetch('data/physics_concepts.json').then(r => r.json()), fetch('data/built.json').then(r => r.json())])
+  .then(([d, b]) => {
+    const built = new Set(b.built);
+    for (const c of COURSES) {
+      const cs = d.concepts.filter(x => SUBJ[x.subject] === c.id);
+      const nb = cs.filter(x => built.has(x.id)).length;
+      const bigs = [...new Set(cs.map(x => x.big_unit))];
+      let h = `<h3 class="sub">개념 실험 <small>${nb} / ${cs.length}개</small></h3>`;
+      for (const bu of bigs) {
+        const inBu = cs.filter(x => x.big_unit === bu);
+        const nbu = inBu.filter(x => built.has(x.id)).length;
+        const unitsIn = [...new Set(inBu.map(x => x.unit_code))];
+        h += `<details class="bu"${nbu ? ' open' : ''}><summary>${bu}<small>${nbu} / ${inBu.length}</small></summary>`;
+        for (const u of unitsIn) {
+          const us = inBu.filter(x => x.unit_code === u), nu = us.filter(x => built.has(x.id)).length;
+          const name = us[0].unit;
+          h += `<div class="un"><h4>${nu ? `<a href="${u}/">${name}</a>` : name}<small>${u} · ${nu} / ${us.length}</small></h4><div class="cl">`;
+          h += us.map(x => built.has(x.id)
+            ? `<a href="${u}/${String(x.no).padStart(2, '0')}/"><b>${String(x.no).padStart(2, '0')}</b>${short(x.concept)}</a>`
+            : `<span><b>${String(x.no).padStart(2, '0')}</b>${short(x.concept)}</span>`).join('');
+          h += '</div></div>';
+        }
+        h += '</details>';
+      }
+      mapBoxes[c.id].innerHTML = h;
+    }
+  })
+  .catch(() => { Object.values(mapBoxes).forEach(m => { m.innerHTML = '<p class="empty">개념 실험 목록을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.</p>'; }); });
 </script>
 </body>
 </html>
