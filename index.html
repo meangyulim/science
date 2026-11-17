@@ -208,6 +208,7 @@
         .cat-geo   .card-icon { background: #fef3c7; }
         .cat-air   .card-icon { background: #e0f2fe; }
         .cat-space .card-icon { background: #ede9fe; }
+        .cat-physics .card-icon { background: #fde4d4; }
         .cat-etc   .card-icon { background: #f1f5f9; }
 
         .empty { margin: 32px 0; text-align: center; font-size: 14px; color: #94a3b8; }
@@ -312,6 +313,7 @@
             { id: 'geo',   name: '지질·고체지구', icon: '⛰️' },
             { id: 'air',   name: '대기·해양',     icon: '🌦️' },
             { id: 'space', name: '천체·우주',     icon: '🪐' },
+            { id: 'physics', name: '물리',        icon: '🧲' },
             { id: 'etc',   name: '그 밖의 것',    icon: '🧩' }
         ];
 
@@ -532,6 +534,14 @@
                 icon: '🪑',
                 category: 'activity',
                 phone: true
+            },
+            {
+                id: 'dc-motor',
+                name: '직류 전동기 3D · 정류자가 전류를 뒤집는 순간',
+                desc: '전류가 흐르는 길, 변이 받는 힘과 돌림힘을 3D로 돌려 보기',
+                url: 'physics/dc-motor/',
+                icon: '🧲',
+                category: 'physics'
             }
         ];
         const NEW_COUNT = 9;
