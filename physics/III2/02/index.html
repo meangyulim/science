@@ -11,7 +11,7 @@
 <style>
 /* Layout: 왼쪽 무대(두 빛 A·B / 빛 하나 / 아연판 검전기)와 조작판, 오른쪽 지금 수치 · 파동설 예측 vs 실제 · 세 가지 실험 사실 그래프 */
 #stage{aspect-ratio:16/10.6}
-#cmp{aspect-ratio:10/7.2}
+#cmp{aspect-ratio:10/6.4}
 #facts{aspect-ratio:10/11.6}
 .quiz .tag{white-space:nowrap}
 @media (max-width:980px) and (min-width:641px){ #facts{aspect-ratio:10/3.9} }
@@ -33,10 +33,10 @@
         <canvas id="stage" aria-label="진공 광전관의 금속판 K에 두 빛을 비춘다. 진동수가 문턱보다 작은 빛의 광자는 흡수만 되고, 문턱보다 큰 빛의 광자는 전자를 하나씩 떼어 내 P로 보낸다."></canvas>
         <div class="hud"><span class="pill" id="hudScene">두 빛 A·B · 나트륨</span><span class="pill num" id="hudT">빛 켠 뒤 0.0 s</span></div>
         <div class="legend">
-          <span><b style="background:var(--violet)"></b>광자 (물결이 촘촘할수록 진동수 큼)</span>
-          <span><i style="background:var(--vel)"></i>광전자 (꼬리가 길수록 빠름)</span>
+          <span><b style="background:var(--violet)"></b>광자 (촘촘할수록 진동수 큼)</span>
           <span><b style="background:var(--acc)"></b>광전류</span>
-          <span><i style="background:var(--copper)"></i>지금 따라가는 광자</span>
+          <span><i style="background:var(--vel)"></i>광전자 (꼬리 길수록 빠름)</span>
+          <span><i style="background:var(--copper)"></i>따라가는 광자</span>
         </div>
       </div>
 
@@ -267,7 +267,7 @@
     ctx.save(); Lab.rrect(ctx, g.gx, g.gy, g.gw, g.gh, g.gh / 2);
     ctx.fillStyle = C['line-soft']; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
     ctx.lineWidth = 2; ctx.strokeStyle = C.muted; ctx.stroke(); ctx.restore();
-    text(ctx, '진공 유리관', g.gx + g.gh * 0.42, g.gy - 11, {size: 13, w: 500, color: C.muted, align: 'left'});
+    text(ctx, '진공 유리관', g.gx + g.gw - g.gh * 0.42, g.gy + g.gh + 14, {size: 13, w: 500, color: C.muted, align: 'right'});
     // K: 오목한 금속판
     ctx.save(); ctx.lineCap = 'round';
     ctx.beginPath(); ctx.arc(g.kx + g.kR, g.cy, g.kR, Math.PI - g.kSpan, Math.PI + g.kSpan);
@@ -275,9 +275,8 @@
     ctx.beginPath(); ctx.arc(g.kx + g.kR, g.cy, g.kR - 3.5, Math.PI - g.kSpan * 0.92, Math.PI + g.kSpan * 0.92);
     ctx.lineWidth = 2; ctx.strokeStyle = C.paper; ctx.globalAlpha = 0.55; ctx.stroke();
     ctx.restore();
-    const [kbx, kby] = kPoint(g, g.kSpan);
-    text(ctx, 'K', kbx + 2, kby + 16, {size: 15, w: 700, align: 'left'});
-    text(ctx, o.label || '금속판', kbx + 16, kby + 16, {size: 13, w: 500, color: C.muted, align: 'left'});
+    text(ctx, 'K', g.kx + 2, g.gy + g.gh + 15, {size: 15, w: 700, align: 'left'});
+    text(ctx, o.label || '금속판', g.kx + 17, g.gy + g.gh + 15, {size: 13, w: 500, color: C.muted, align: 'left'});
     // P: 전극
     ctx.fillStyle = C.ink; ctx.fillRect(g.px - 3.5, g.pTop, 7, g.pBot - g.pTop);
     text(ctx, 'P', g.px, g.pTop - 14, {size: 15, w: 700});
@@ -306,7 +305,374 @@
     }
   }
 
-  /*__PART_B__*/
+  // ── 무대: 광자·전자 움직임 ──────────────────────────────
+  const stage = Lab.canvas('stage', draw), cmp = Lab.canvas('cmp', draw), facts = Lab.canvas('facts', draw);
+  const RATE = 18;                        // 세기 100 % 일 때 1초에 K 에 닿는 광자 수 (그림)
+  let photons = [], electrons = [], flashes = [], tagMsg = null, tagT = 1.2, tagNext = 'A', meter = 0, clock = 0;
+  const emitAcc = {}, lastHit = {};
+  let warmed = false, lastWH = '';
+
+  function scopeGeo(W, H, narrow, top) {
+    const cx = narrow ? W * 0.56 : W * 0.5, plateW = narrow ? 150 : 190;
+    const plateY = top + (narrow ? 150 : 132);
+    const fr = narrow ? 70 : Math.min(90, H * 0.17), fy = plateY + fr + (narrow ? 56 : 50);
+    return {cx, plateW, plateY, fr, fy, leafTop: fy - 6, leafLen: fr * 0.66};
+  }
+  function geom() {
+    const W = stage.W, H = stage.H, narrow = W < 520, top = 54;
+    const g = tubeGeo(W, H, narrow, top), s = scopeGeo(W, H, narrow, top);
+    const ly = top + (narrow ? 62 : 30);
+    let lamps;
+    if (S.scene === 'two') lamps = {A: [g.gx + g.gw * (narrow ? 0.34 : 0.27), ly], B: [g.gx + g.gw * (narrow ? 0.7 : 0.55), ly]};
+    else if (S.scene === 'tube') lamps = {'빛': [g.gx + g.gw * 0.42, ly]};
+    else lamps = {'빛': [s.cx - (narrow ? 104 : 190), top + (narrow ? 86 : 72)]};
+    return {W, H, narrow, top, g, s, lamps};
+  }
+  const lightCol = (L) => wlColor(M.lambdaNm(L.r, metalW()));
+
+  function spawn(Gm, L) {
+    const lp = Gm.lamps[L.id] || Gm.lamps['빛'];
+    let tx, ty;
+    if (S.scene === 'scope') { tx = Gm.s.cx + (Math.random() * 2 - 1) * Gm.s.plateW * 0.38; ty = Gm.s.plateY - 8; }
+    else { [tx, ty] = kPoint(Gm.g, (Math.random() * 2 - 1) * Gm.g.kSpan * 0.82); tx += 7; }
+    const x0 = lp[0] + (Math.random() - 0.5) * 10, y0 = lp[1] + (Math.random() - 0.5) * 10;
+    let tag = false;
+    const ids = active().filter((q) => q.I > 0).map((q) => q.id);
+    if (tagT > 1.8 && (L.id === tagNext || !ids.includes(tagNext))) {
+      tag = true; tagT = 0; tagNext = ids.length > 1 ? ids[(ids.indexOf(L.id) + 1) % ids.length] : L.id;
+    }
+    photons.push({x0, y0, x1: tx, y1: ty, t: 0, T: Math.hypot(tx - x0, ty - y0) / 330, id: L.id, r: L.r, tag});
+  }
+  function hit(Gm, p) {
+    const W = metalW(), ok = M.emits(p.r);
+    lastHit[p.id] = clock;
+    if (S.scene === 'scope') {
+      if (ok && S.sc.q < M.Q_CAP - 1e-9) {
+        S.sc.q = Math.min(M.Q_CAP, S.sc.q + M.SCOPE_RATE / RATE);
+        const Ef = M.kmax(p.r, W) * (0.4 + 0.6 * Math.random());
+        const x1 = p.x1 + 20 + Math.random() * 70, y1 = p.y1 - 150, len = Math.hypot(x1 - p.x1, y1 - p.y1);
+        electrons.push({x0: p.x1, y0: p.y1 - 3, x1, y1, len, u: 0, w: 70 + 120 * Math.sqrt(Ef), a: 0, tag: p.tag, fade: true});
+      } else flashes.push({x: p.x1, y: p.y1, t: 0, col: wlColor(M.lambdaNm(p.r, W))});
+    } else if (ok) {
+      const g = Gm.g, Ef = M.kmax(p.r, W) * (p.tag ? 1 : 0.3 + 0.7 * Math.random());
+      const y1 = g.cy + (p.y1 - g.cy) * 0.45 + (Math.random() - 0.5) * 14, x0 = p.x1 + 3, x1 = g.px - 7;
+      electrons.push({x0, y0: p.y1, x1, y1, len: Math.hypot(x1 - x0, y1 - p.y1), u: 0, w: 28 + 165 * Math.sqrt(Ef), a: 45, tag: p.tag});
+    } else flashes.push({x: p.x1, y: p.y1, t: 0, col: wlColor(M.lambdaNm(p.r, W))});
+    if (p.tag) tagMsg = {x: p.x1, y: p.y1, t: 0, ok: ok && !(S.scene === 'scope' && S.sc.q >= M.Q_CAP - 1e-9), id: p.id};
+  }
+  function step(dt) {
+    if (!stage.W) return;
+    const Gm = geom();
+    clock += dt; tagT += dt;
+    if (S.light) S.onT += dt;
+    for (const L of active()) {
+      if (!(L.I > 0)) continue;
+      emitAcc[L.id] = (emitAcc[L.id] || 0) + dt * RATE * L.I;
+      while (emitAcc[L.id] >= 1) { emitAcc[L.id] -= 1; spawn(Gm, L); }
+    }
+    for (let i = photons.length - 1; i >= 0; i--) { const p = photons[i]; p.t += dt; if (p.t >= p.T) { photons.splice(i, 1); hit(Gm, p); } }
+    for (let i = electrons.length - 1; i >= 0; i--) { const e = electrons[i]; e.w += e.a * dt; e.u += e.w * dt; if (e.u >= e.len || e.u < 0) electrons.splice(i, 1); }
+    for (let i = flashes.length - 1; i >= 0; i--) { flashes[i].t += dt; if (flashes[i].t > 0.4) flashes.splice(i, 1); }
+    if (tagMsg) { tagMsg.t += dt; if (tagMsg.t > 1.7) tagMsg = null; }
+    const target = S.scene === 'scope' ? 0 : M.combine(active(), metalW()).rate;
+    meter += (Math.min(1, target / 1.6) - meter) * Math.min(1, dt * 6);
+  }
+  function clearParticles() { photons = []; electrons = []; flashes = []; tagMsg = null; }
+
+  // ── 무대 그리기 ──────────────────────────────────────────
+  function drawParticles(ctx, anc) {
+    for (const f of flashes) {                                       // 흡수만 된 광자: 퍼지는 고리
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - f.t / 0.4);
+      Lab.circle(ctx, f.x, f.y, 4 + 11 * f.t / 0.4, {stroke: f.col, width: 2.2}); ctx.restore();
+    }
+    for (const e of electrons) {
+      const k = e.u / e.len, x = e.x0 + (e.x1 - e.x0) * k, y = e.y0 + (e.y1 - e.y0) * k;
+      const ux = (e.x1 - e.x0) / e.len, uy = (e.y1 - e.y0) / e.len, tl = Math.max(0, e.w) * 0.085;
+      ctx.save(); if (e.fade) ctx.globalAlpha = Math.max(0, 1 - k);
+      electron(ctx, x, y, e.tag ? C.copper : C.vel, e.tag ? 7.5 : 6.5, ux * tl, uy * tl); ctx.restore();
+    }
+    for (const p of photons) {
+      const k = p.t / p.T, x = p.x0 + (p.x1 - p.x0) * k, y = p.y0 + (p.y1 - p.y0) * k;
+      const L = Math.hypot(p.x1 - p.x0, p.y1 - p.y0), nm = M.lambdaNm(p.r, metalW());
+      photon(stage.ctx, x, y, (p.x1 - p.x0) / L, (p.y1 - p.y0) / L, wlColor(nm), wlPx(nm), 32, p.tag);
+    }
+    if (tagMsg) {
+      const a = Math.min(1, (1.7 - tagMsg.t) / 0.4), sc = S.scene === 'scope';
+      ctx.save(); ctx.globalAlpha = a;
+      Lab.circle(ctx, tagMsg.x, tagMsg.y, 13, {stroke: C.copper, width: 2.6});
+      const msg = tagMsg.ok ? '광자 1개 → 전자 1개' : (sc && M.emits(S.sc.r) ? '(+)가 끌어당겨 못 나감' : '광자 1개 흡수 → 방출 없음');
+      const dx = anc.x - tagMsg.x, dy = anc.y - tagMsg.y, d = Math.hypot(dx, dy);
+      if (d > 30) Lab.line(ctx, [[tagMsg.x + dx / d * 14, tagMsg.y + dy / d * 14], [anc.x - dx / d * 4, anc.y - dy / d * 4]], C.copper, 1.4);
+      text(ctx, msg, anc.x, anc.y, {size: 13.5, w: 700, color: tagMsg.ok ? C.acc : C.neg, halo: true, align: anc.align});
+      ctx.restore();
+    }
+  }
+  function beam(ctx, from, pts, col, I) {
+    ctx.save(); ctx.globalAlpha = 0.05 + 0.17 * I; ctx.fillStyle = col;
+    ctx.beginPath(); ctx.moveTo(from[0], from[1]); pts.forEach((p) => ctx.lineTo(p[0], p[1])); ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function lampLabel(ctx, L, x, y, align) {
+    const W = metalW(), nm = M.lambdaNm(L.r, W), on = S.light && L.on && L.I > 0;
+    const name = S.scene === 'two' ? '빛 ' + L.id : bandName(nm);
+    text(ctx, `${name} · ${L.r.toFixed(2)} f₀ · ${Math.round(L.I * 100)} %`, x, y, {size: 13.5, w: 700, align, halo: true});
+    const st = !on ? ['꺼짐', C.muted] : M.emits(L.r) ? ['hf ≥ W → 방출', C.acc] : ['hf < W → 방출 없음', C.neg];
+    text(ctx, st[0], x, y + 19, {size: 13.5, w: 700, align, color: st[1], halo: true});
+  }
+  function drawTubeScene(ctx, Gm) {
+    const {g, lamps, narrow} = Gm;
+    const tgt = [kPoint(g, -g.kSpan * 0.85), kPoint(g, g.kSpan * 0.85)].map((p) => [p[0] + 7, p[1]]);
+    for (const L of lights()) { const p = lamps[L.id] || lamps['빛']; if (S.light && L.on && L.I > 0) beam(ctx, p, tgt, lightCol(L), L.I); }
+    drawTube(ctx, g, {current: meter, battery: 'P+', label: '나트륨'});
+    if (electrons.length) text(ctx, '광전자 →', (g.kx + g.px) / 2 + 20, g.gy + 16, {size: 13, w: 700, color: C.vel, halo: true});
+    drawParticles(ctx, {x: g.kx + 26, y: g.gy + g.gh - 20, align: 'left'});
+    const aim = kPoint(g, 0);
+    lights().forEach((L, i) => {
+      const p = lamps[L.id] || lamps['빛'];
+      lamp(ctx, p[0], p[1], aim[0], aim[1], lightCol(L), S.light && L.on && L.I > 0);
+      if (S.scene === 'two') {
+        if (narrow) lampLabel(ctx, L, i ? Gm.W - 10 : 10, Gm.top + 4, i ? 'right' : 'left');
+        else lampLabel(ctx, L, p[0] + (i ? 30 : -34), p[1] - 8, i ? 'left' : 'right');
+      } else lampLabel(ctx, L, p[0] + 30, p[1] - 8, 'left');
+    });
+  }
+  function drawScope(ctx, Gm) {
+    const s = Gm.s, q = S.sc.q, th = M.leafAngle(q) * Math.PI / 180, L = S.sc, lp = Gm.lamps['빛'];
+    const on = S.light && L.on && L.I > 0;
+    if (on) beam(ctx, lp, [[s.cx - s.plateW * 0.42, s.plateY - 8], [s.cx + s.plateW * 0.42, s.plateY - 8]], lightCol(L), L.I);
+    // 검전기 몸통
+    ctx.save(); ctx.beginPath(); ctx.arc(s.cx, s.fy, s.fr, 0, TAU); ctx.fillStyle = C['line-soft']; ctx.globalAlpha = 0.7; ctx.fill();
+    ctx.globalAlpha = 1; ctx.lineWidth = 2; ctx.strokeStyle = C.muted; ctx.stroke(); ctx.restore();
+    ctx.fillStyle = C.line; ctx.fillRect(s.cx - 13, s.fy - s.fr - 8, 26, 16);
+    Lab.line(ctx, [[s.cx, s.plateY + 6], [s.cx, s.leafTop]], C.ink, 4);
+    // 금속박 (구리색 = 관찰 대상)
+    for (const sg of [-1, 1]) Lab.line(ctx, [[s.cx, s.leafTop], [s.cx + sg * Math.sin(th) * s.leafLen, s.leafTop + Math.cos(th) * s.leafLen]], C.copper, 5);
+    // 아연판
+    ctx.fillStyle = C.muted; ctx.fillRect(s.cx - s.plateW / 2, s.plateY - 7, s.plateW, 14);
+    ctx.lineWidth = 1.6; ctx.strokeStyle = C.ink; ctx.strokeRect(s.cx - s.plateW / 2, s.plateY - 7, s.plateW, 14);
+    text(ctx, '아연판', s.cx + s.plateW / 2 + 10, s.plateY, {size: 14, w: 700, align: 'left'});
+    text(ctx, 'W = 4.3 eV', s.cx + s.plateW / 2 + 10, s.plateY + 18, {size: 13, w: 500, color: C.muted, align: 'left', mono: true});
+    // 전하 표시
+    const n = Math.round(Math.abs(q) * 9), sign = q < 0 ? '−' : '+', sc = q < 0 ? C.vel : C.force;
+    for (let i = 0; i < n; i++) text(ctx, sign, s.cx - s.plateW * 0.42 + (n > 1 ? i * s.plateW * 0.84 / (n - 1) : s.plateW * 0.42), s.plateY - 20, {size: 17, w: 700, color: sc});
+    if (Math.abs(q) > 0.1) for (const sg of [-1, 1]) text(ctx, sign, s.cx + sg * (Math.sin(th) * s.leafLen * 0.6 + 13), s.leafTop + Math.cos(th) * s.leafLen * 0.6, {size: 16, w: 700, color: sc});
+    text(ctx, '금속박', s.cx - s.fr - 10, s.fy + s.fr * 0.35, {size: 13, w: 500, color: C.muted, align: 'right'});
+    drawParticles(ctx, {x: s.cx - s.plateW / 2 - 8, y: s.plateY + 30, align: 'right'});
+    lamp(ctx, lp[0], lp[1], s.cx, s.plateY, lightCol(L), on);
+    lampLabel(ctx, L, lp[0] + 24, lp[1] - 42, 'left');
+    // 상태
+    let st, sub = '';
+    if (!on) st = ['빛을 켜 보세요', C.muted];
+    else if (!M.emits(L.r)) { st = ['금속박 그대로 → 방출 없음', C.neg]; sub = '광자 1개의 에너지가 아연의 W보다 작다'; }
+    else if (q < -0.02) { st = ['금속박이 오므라드는 중 → 광전자 방출', C.acc]; sub = '전자가 빠져나가 (−)전하가 줄어든다'; }
+    else if (q <= 0.02) st = ['중성 → 금속박이 닫힘', C.acc];
+    else { st = ['(+)로 대전 → 금속박이 벌어짐', C.force]; sub = q >= M.Q_CAP - 0.01 ? '(+)가 커지면 튀어나온 전자를 다시 끌어당겨 더 늘지 않는다' : '전자가 빠져나간 만큼 (+)가 남는다'; }
+    const sy = Math.min(Gm.H - (Gm.narrow ? 92 : 70), s.fy + s.fr + 24);
+    text(ctx, st[0], s.cx, sy, {size: 15, w: 700, color: st[1], halo: true});
+    if (sub) text(ctx, sub, s.cx, sy + 20, {size: 13, w: 500, color: C.muted, halo: true});
+  }
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    const wh = W + 'x' + H; if (wh !== lastWH) { lastWH = wh; clearParticles(); }
+    if (!warmed) { warmed = true; for (let i = 0; i < 100; i++) step(1 / 30); }
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    const Gm = geom();
+    if (S.scene === 'scope') drawScope(ctx, Gm); else drawTubeScene(ctx, Gm);
+  }
+
+  // ── 파동설 예측 vs 실제 ─────────────────────────────────
+  function drawCmp() {
+    const {ctx, W, H} = cmp; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const Wm = metalW(), Emax = 2.15 * Wm, x0 = 44, x1 = W - 18;
+    const X = (E) => x0 + Math.min(1, E / Emax) * (x1 - x0), xW = X(Wm);
+    const Ls = active().filter((L) => L.I > 0);
+    // 파동설: 전자 하나에 에너지가 계속 쌓인다
+    text(ctx, '파동설 예측', 12, 14, {size: 14, w: 700, color: C.neg, align: 'left'});
+    const P = Ls.reduce((s, L) => s + L.I, 0), wt = M.waveTheory(Ls, Wm);
+    const gy = 28, gh = 18;
+    ctx.fillStyle = C.bg; ctx.fillRect(x0, gy, x1 - x0, gh);
+    if (P > 0) {
+      const cyc = wt.delay + 0.9, tt = S.onT % cyc, fired = tt >= wt.delay;
+      ctx.fillStyle = C.energy; ctx.fillRect(x0, gy, X(fired ? Wm : M.waveStored(P, tt)) - x0, gh);
+      if (fired) { electron(ctx, xW + 14, gy + gh / 2, C.vel, 6.5); text(ctx, '방출 (예측)', xW + 26, gy + gh / 2, {size: 13, w: 700, color: C.neg, align: 'left'}); }
+    }
+    text(ctx, '쌓임', x0 - 8, gy + gh / 2, {size: 13, w: 600, color: C.muted, align: 'right'});
+    ctx.lineWidth = 1.2; ctx.strokeStyle = C.line; ctx.strokeRect(x0, gy, x1 - x0, gh);
+    text(ctx, P > 0 ? `${fmt(wt.delay, 1)} s 뒤 W에 닿아 방출 예상 · 진동수 무관` : '빛이 없으면 쌓이지 않는다', x0, gy + gh + 14, {size: 13, w: 500, color: C.muted, align: 'left'});
+    // 실제: 광자 1개의 에너지 hf 를 한 번에
+    const y2 = 86;
+    text(ctx, '실제 (광자 1개씩, 한 번에 hf)', 12, y2, {size: 14, w: 700, color: C.acc, align: 'left'});
+    let by = y2 + 14;
+    const bh = 18;
+    if (!Ls.length) { text(ctx, '빛을 켜 보세요', x0, by + 10, {size: 13, w: 500, color: C.muted, align: 'left'}); by += bh + 8; }
+    for (const L of Ls) {
+      const hf = M.photonEV(L.r, Wm), col = lightCol(L);
+      const fl = Math.exp(-Math.max(0, clock - (lastHit[L.id] ?? -9)) / 0.22);
+      text(ctx, S.scene === 'two' ? L.id : 'hf', x0 - 8, by + bh / 2, {size: 13.5, w: 700, align: 'right'});
+      ctx.fillStyle = C.bg; ctx.fillRect(x0, by, x1 - x0, bh);
+      ctx.save(); ctx.globalAlpha = 0.55 + 0.45 * fl; ctx.fillStyle = col; ctx.fillRect(x0, by, X(Math.min(hf, Wm)) - x0, bh); ctx.restore();
+      if (hf >= Wm) {
+        ctx.fillStyle = C.acc; ctx.fillRect(xW, by, X(hf) - xW, bh);
+        const lab = `E_k,max ${fmt(hf - Wm, 2)} eV`, right = X(hf) + 112 > x1;
+        text(ctx, lab, right ? x1 - 2 : X(hf) + 6, by + bh / 2, {size: 13, w: 700, color: right ? C.paper : C.acc, align: right ? 'right' : 'left', halo: right ? C.acc : true});
+      } else {
+        ctx.save(); ctx.setLineDash([4, 3]); ctx.lineWidth = 1.6; ctx.strokeStyle = C.neg; ctx.strokeRect(X(hf), by + 1, xW - X(hf), bh - 2); ctx.restore();
+        text(ctx, '모자람 → 방출 없음', xW + 8, by + bh / 2, {size: 13, w: 700, color: C.neg, align: 'left', halo: true});
+      }
+      by += bh + 8;
+    }
+    // W 표시 (두 줄을 잇는 기준선)
+    ctx.save(); ctx.setLineDash([5, 4]); ctx.lineWidth = 2; ctx.strokeStyle = C.copper;
+    ctx.beginPath(); ctx.moveTo(xW, gy - 4); ctx.lineTo(xW, by - 4); ctx.stroke(); ctx.restore();
+    text(ctx, 'W', xW, gy - 13, {size: 13.5, w: 700, color: C.copper});
+    // 판정 (빛마다)
+    let fy = by + 12;
+    for (const L of Ls) {
+      const d = M.waveTheory([L], Wm).delay, ok = M.emits(L.r);
+      const who = S.scene === 'two' ? L.id + ': ' : '';
+      text(ctx, `${who}파동설 ${fmt(d, 1)} s 뒤 방출 → 실제 ${ok ? '즉시 방출' : '방출 없음'}`, 12, fy, {size: 13, w: 700, color: ok ? C.acc : C.neg, align: 'left'});
+      fy += 19;
+    }
+  }
+
+  // ── 세 가지 실험 사실 ───────────────────────────────────
+  function drawFacts() {
+    const {ctx, W, H} = facts; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const Wm = metalW(), Ls = lights(), row = W >= 560, n = 3;
+    const cw = row ? W / n : W, ch = row ? H : H / n;
+    const ymax = 1.15 * Wm, sel = cur();
+    const titles = ['① 진동수가 정한다', '② 세기와 무관', '③ 세기 → 광전자 수'];
+    for (let k = 0; k < n; k++) {
+      const cx = row ? k * cw : 0, cy = row ? 0 : k * ch;
+      text(ctx, titles[k], cx + 12, cy + 14, {size: 14, w: 700, align: 'left'});
+      const r = {x: cx + 50, y: cy + 50, w: cw - 50 - 26, h: ch - 50 - 30};
+      if (k === 0) {
+        const A = Lab.axes(ctx, r, {xmin: 0, xmax: 2.15, ymin: 0, ymax, xlabel: '진동수 f', ylabel: 'E_k,max', xticks: [1, 2], fmtX: (v) => (v === 1 ? 'f₀' : '2f₀')});
+        Lab.line(ctx, [[A.X(0), A.Y(0)], [A.X(1), A.Y(0)]], C.neg, 4);
+        text(ctx, '방출 없음', A.X(0.5), A.Y(0) - 13, {size: 13, w: 700, color: C.neg});
+        Lab.line(ctx, [[A.X(1), A.Y(0)], [A.X(2.15), A.Y(ymax)]], C.acc, 3);
+        Ls.forEach((L) => dot(ctx, A.X(L.r), A.Y(M.one({...L, on: true, I: 1}, Wm).kmax), L, L === sel));
+      } else {
+        const A = Lab.axes(ctx, r, {xmin: 0, xmax: 118, ymin: 0, ymax: k === 1 ? ymax : 1.15, xlabel: '세기', ylabel: k === 1 ? 'E_k,max' : '광전류', xticks: [50, 100], fmtX: (v) => v + '%'});
+        if (k === 1) {
+          Lab.line(ctx, [[A.X(0), A.Y(ymax * 0.12)], [A.X(112), A.Y(ymax * 0.98)]], C.neg, 2.6, [6, 5]);
+          text(ctx, '파동설 예측', A.X(64), A.Y(ymax * 0.62) - 6, {size: 13, w: 700, color: C.neg, align: 'right', base: 'bottom', halo: true});
+        }
+        Ls.forEach((L) => {
+          const ok = M.emits(L.r), yv = k === 1 ? (ok ? M.kmax(L.r, Wm) : 0) : 0;
+          if (k === 1) Lab.line(ctx, [[A.X(0), A.Y(yv)], [A.X(112), A.Y(yv)]], ok ? C.acc : C.neg, 3);
+          else Lab.line(ctx, [[A.X(0), A.Y(0)], [A.X(112), A.Y(ok ? 1.12 : 0)]], ok ? C.acc : C.neg, 3);
+        });
+        if (S.ghost && S.scene === 'tube') {
+          const g = S.ghost, yv = k === 1 ? M.kmax(g.r, Wm) : g.I;
+          Lab.circle(ctx, A.X(g.I * 100), A.Y(yv), 6, {fill: C.paper, stroke: C.muted, width: 2.2});
+          text(ctx, '처음', A.X(g.I * 100), A.Y(yv) + 16, {size: 13, w: 600, color: C.muted});
+        }
+        Ls.forEach((L) => {
+          const o = M.one({...L, on: true}, Wm), yv = k === 1 ? (o.emits ? o.kmax : 0) : o.rate;
+          dot(ctx, A.X(L.I * 100), A.Y(yv), L, L === sel);
+        });
+      }
+    }
+  }
+  function dot(ctx, x, y, L, isSel) {
+    if (isSel) Lab.circle(ctx, x, y, 10, {stroke: C.copper, width: 2.6});
+    Lab.circle(ctx, x, y, 6, {fill: lightCol(L), stroke: C.paper, width: 1.6});
+    if (S.scene === 'two') text(ctx, L.id, x + 13, y - 11, {size: 13, w: 700, align: 'left', halo: true, color: L.on ? C.ink : C.muted});
+  }
+
+  function draw() { drawStage(); drawCmp(); drawFacts(); }
+
+  // ── 읽기 값·예제 확인 ────────────────────────────────────
+  const setRo = (i, label, val, col) => { $('l' + i).textContent = label; const b = $('r' + i); b.textContent = val; b.style.color = col ? `var(--${col})` : ''; };
+  function readouts() {
+    const Wm = metalW(), Lc = cur(), sc = S.scene;
+    const pre = sc === 'two' ? '빛 ' + S.sel + '의 ' : '';
+    $('frLab').textContent = pre + '진동수 f'; $('inLab').textContent = pre + '세기';
+    $('frOut').textContent = Lc.r.toFixed(2) + ' f₀'; $('inOut').textContent = Math.round(Lc.I * 100) + ' %';
+    $('hudScene').textContent = sc === 'two' ? '두 빛 A·B · 나트륨 W = 2.3 eV' : sc === 'tube' ? '빛 하나 · 나트륨 W = 2.3 eV' : '아연판 검전기 · 아연 W = 4.3 eV';
+    $('metalNote').textContent = sc === 'scope' ? `아연판: 문턱 진동수 f₀ = ${Lab.sci(M.f0(4.3), 2)} Hz (자외선 ${Math.round(M.lambdaNm(1, 4.3))} nm)`
+      : `금속판 K: 나트륨, 문턱 진동수 f₀ = ${Lab.sci(M.f0(2.3), 2)} Hz (${Math.round(M.lambdaNm(1, 2.3))} nm 초록빛)`;
+    const st = (L) => (!(S.light && L.on && L.I > 0) ? ['꺼짐', null] : M.emits(L.r) ? ['방출', 'acc'] : ['방출 없음', 'neg']);
+    if (sc === 'two') {
+      const {A, B} = S.L, both = M.combine(active(), Wm);
+      setRo(1, `빛 A · ${A.r.toFixed(2)} f₀ · ${Math.round(A.I * 100)} %`, ...st(A));
+      setRo(2, `빛 B · ${B.r.toFixed(2)} f₀ · ${Math.round(B.I * 100)} %`, ...st(B));
+      setRo(3, '함께 비출 때 광전자', !both.emits ? '없음' : both.by.length > 1 ? 'A + B 모두' : both.by[0] + '에 의한 것만', both.emits ? 'vel' : 'neg');
+      setRo(4, '최대 운동 에너지', both.emits ? fmt(both.kmax, 2) + ' eV' : '–', 'acc');
+    } else if (sc === 'tube') {
+      const o = M.one({...Lc, on: S.light}, Wm), nm = M.lambdaNm(Lc.r, Wm);
+      setRo(1, '진동수 f (파장)', `${Lc.r.toFixed(2)} f₀ · ${Math.round(nm)} nm`, 'copper');
+      setRo(2, '광자 1개 에너지 hf (W = 2.3)', fmt(M.photonEV(Lc.r, Wm), 2) + ' eV', null);
+      setRo(3, '광전자 수 (상댓값)', String(Math.round(o.rate * 100)), 'vel');
+      setRo(4, '최대 운동 에너지', o.emits ? fmt(o.kmax, 2) + ' eV' : '방출 없음', o.emits ? 'acc' : 'neg');
+    } else {
+      const q = S.sc.q, nm = M.lambdaNm(Lc.r, Wm), on = S.light && Lc.I > 0, em = on && M.emits(Lc.r);
+      setRo(1, '빛 (아연 기준)', `${bandName(nm)} ${Lc.r.toFixed(2)} f₀`, 'copper');
+      setRo(2, '광자 1개 에너지 hf (W = 4.3)', fmt(M.photonEV(Lc.r, Wm), 2) + ' eV', null);
+      setRo(3, `검전기 전하 (처음 ${S.sc.q0 < 0 ? '−1' : '0'})`, Math.abs(q) < 0.005 ? '0' : Lab.sg(q, 2), q < 0 ? 'vel' : 'force');
+      setRo(4, '금속박', !em ? '그대로' : q < -0.02 ? '오므라드는 중' : q <= 0.02 ? '닫힘' : q >= M.Q_CAP - 0.01 ? '벌어짐 (멈춤)' : '벌어지는 중', 'copper');
+    }
+    const {A, B} = S.L;
+    const ok = sc === 'two' && S.light && A.on && B.on && Math.abs(A.r - EX.A.r) < 1e-9 && Math.abs(B.r - EX.B.r) < 1e-9 && A.I >= 0.8 && B.I > 0 && B.I <= 0.3;
+    Lab.check('exCheck', ok, '예제: A(0.8f₀, 매우 세게) 방출 없음 · B(1.2f₀, 약하게) 방출 · 함께 비추면 B에 의한 광전자만',
+      '예제: 0.8f₀ 빛 A를 매우 세게, 1.2f₀ 빛 B를 약하게 비추면? — ‘스스로 확인 1’로 돌아갈 수 있어요');
+  }
+  function hud() { $('hudT').textContent = S.light ? '빛 켠 뒤 ' + S.onT.toFixed(1) + ' s' : '빛 꺼짐'; }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const fr = $('fr'), inten = $('inten');
+  const syncSliders = () => { fr.value = cur().r; inten.value = Math.round(cur().I * 100); };
+  const markKind = () => { const nm = M.lambdaNm(S.sc.r, 4.3); kindG.set(nm < 380 ? 'uv' : nm <= 760 ? 'vis' : '', true); };
+  function setScene(v) {
+    S.scene = v; $('rowTwo').hidden = v !== 'two'; $('rowScope').hidden = v !== 'scope';
+    clearParticles(); syncSliders(); if (v === 'scope') markKind();
+  }
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => { setScene(v); S.ghost = null; readouts(); draw(); }, S.scene);
+  const selG = Lab.group('[data-sel]', 'sel', (v) => { S.sel = v; syncSliders(); readouts(); draw(); }, S.sel);
+  const kindG = Lab.group('[data-kind]', 'kind', (v) => { S.sc.r = v === 'uv' ? 1.2 : 0.5; syncSliders(); readouts(); draw(); }, 'uv');
+  const q0G = Lab.group('[data-q0]', 'q0', (v) => { S.sc.q0 = +v; S.sc.q = +v; clearParticles(); readouts(); draw(); }, -1);
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  const lightBtn = $('lightBtn');
+  const setLight = (on) => { S.light = on; if (on) S.onT = 0; lightBtn.setAttribute('aria-pressed', String(on)); lightBtn.textContent = on ? '빛 켜짐' : '빛 꺼짐'; };
+  lightBtn.addEventListener('click', () => { setLight(!S.light); readouts(); hud(); draw(); });
+  $('onA').addEventListener('change', (e) => { S.L.A.on = e.target.checked; readouts(); draw(); });
+  $('onB').addEventListener('change', (e) => { S.L.B.on = e.target.checked; readouts(); draw(); });
+  $('reset').addEventListener('click', () => { S.sc.q = S.sc.q0; clearParticles(); readouts(); draw(); });
+  fr.addEventListener('input', () => { cur().r = +fr.value; if (S.scene === 'scope') markKind(); readouts(); draw(); });
+  inten.addEventListener('input', () => { cur().I = +inten.value / 100; readouts(); draw(); });
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+
+  // 스스로 확인: 그 상황으로 바꾸기
+  const exLights = () => { Object.assign(S.L.A, {r: EX.A.r, I: EX.A.I, on: true}); Object.assign(S.L.B, {r: EX.B.r, I: EX.B.I, on: true}); };
+  const TRY = {
+    ex: () => { exLights(); S.sel = 'A'; setScene('two'); },
+    exA: () => { exLights(); S.L.B.on = false; S.sel = 'A'; setScene('two'); },
+    exB: () => { exLights(); S.L.A.on = false; S.sel = 'B'; setScene('two'); },
+    double: () => { Object.assign(S.one, {r: 1.4, I: 0.6}); S.ghost = {r: 1.4, I: 0.3}; setScene('tube'); },
+    neutral: () => { Object.assign(S.sc, {r: 1.2, I: 0.5, q0: 0, q: 0}); setScene('scope'); },
+    visible: () => { Object.assign(S.sc, {r: 0.5, I: 1, q0: -1, q: -1}); setScene('scope'); },
+    sub2: () => { Object.assign(S.L.A, {r: 0.7, I: 1, on: true}); Object.assign(S.L.B, {r: 0.9, I: 1, on: true}); S.sel = 'A'; setScene('two'); },
+  };
+  Lab.tries(TRY, (k) => {
+    if (k !== 'double') S.ghost = null;
+    sceneG.set(S.scene, true); selG.set(S.sel, true); q0G.set(S.sc.q0, true); syncSliders(); markKind();
+    $('onA').checked = S.L.A.on; $('onB').checked = S.L.B.on;
+    setLight(true); playCtl.set(true);
+    for (let i = 0; i < 45; i++) step(1 / 30);
+    readouts(); hud(); draw();
+  });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing) return;
+    step(dt * S.speed); draw(); hud();
+    roT += dt; if (roT > 0.25) { roT = 0; if (S.scene === 'scope') readouts(); }
+  });
+  readouts(); hud();
 })();
 </script>
 </body>

@@ -11,7 +11,7 @@
 <style>
 /* Layout: 왼쪽 무대(두 매질을 지나는 파동 + 경계 양쪽 측정선 A·B 의 마루 세기 + 따라가는 마루)와 조작판, 오른쪽 수치·마루 기록 띠·v-λ 직선·소리의 속력 */
 #stage{aspect-ratio:16/11.2}
-#tape{aspect-ratio:10/4.4}
+#tape{aspect-ratio:10/4.6}
 #vl{aspect-ratio:10/6.6}
 #bars{aspect-ratio:10/5.2}
 .scene .btn{min-width:66px}
@@ -234,7 +234,7 @@
     const padL = narrow ? 46 : 74, padR = narrow ? 14 : 24;
     const ppu = (W - padL - padR) / s.L;
     const X = (x) => padL + x * ppu;
-    const axisY = H - (narrow ? 100 : 60);
+    const axisY = H - (narrow ? 100 : 66);
     const bTop = narrow ? 48 : 50, bH = 46;
     const top = bTop + bH + 18;
     return {narrow, padL, padR, ppu, X, axisY, bTop, bH, top};
@@ -267,7 +267,7 @@
         const now = passRel(xg, S.n0, S.n);
         const X0 = M.waves(xg, m), last = Math.floor(S.n - X0 + 1e-9) + X0;   // 마지막으로 마루가 지난 n
         const ago = (S.n - last) / S.f / slow();                              // 실제 초
-        const flash = ago < 0.28 && S.n > 0.3;
+        const flash = ago < 0.28 && S.n > 0.3 && (S.playing || S.goal !== null);
         const gx = X(xg);
         ctx.save(); ctx.strokeStyle = flash ? C.acc : C.ink; ctx.globalAlpha = flash ? 1 : 0.5; ctx.lineWidth = flash ? 3.2 : 1.5;
         if (!flash) ctx.setLineDash([5, 5]);
@@ -377,7 +377,7 @@
     }
     // 옆에서 본 단면
     text(ctx, '옆에서 본 단면', X(0) + 6, sTop - 6, {size: 13, color: C.muted, w: 600, align: 'left', halo: true});
-    const aS = narrow ? 5 : 7, D = sBot - surf - 4;
+    const aS = narrow ? 5 : 7, D = sBot - surf;
     const vmx = Math.max(S.v1, S.v2);
     const depth = (v) => D * Math.pow(v / vmx, 2);
     const ySurf = (x) => surf - aS * M.disp(S.n, x, m);
@@ -391,7 +391,7 @@
     ctx.stroke(); ctx.restore();
     // 유리판
     for (const [a, b, fl] of [[0, xb, fl1], [xb, L, fl2]]) {
-      if (sBot - fl < 3) continue;
+      if (sBot - fl < 5) continue;
       ctx.save(); ctx.fillStyle = C['line-soft']; ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2;
       ctx.fillRect(X(a), fl, X(b) - X(a), sBot - fl); ctx.strokeRect(X(a), fl, X(b) - X(a), sBot - fl); ctx.restore();
       if (sBot - fl > 17) text(ctx, '유리판', (X(a) + X(b)) / 2, (fl + sBot) / 2, {size: 13, color: C.muted, w: 600});
@@ -540,23 +540,23 @@
     const {ctx, W, H} = tape; if (!W) return;
     ctx.clearRect(0, 0, W, H);
     const s = sc(), win = s.win, nm = names();
-    const r = {x: 70, y: 16, w: W - 92, h: H - 46};
+    const r = {x: 40, y: 6, w: W - 58, h: H - 30};
     const X = (tt) => r.x + tt / win * r.w;
     const [xa, xb] = gates();
     const cur = [passRel(xa, S.n0, S.n), passRel(xb, S.n0, S.n)];
     const prev = S.prev ? [S.prev.A, S.prev.B] : [[], []];
-    const rows = [r.y + r.h * 0.27, r.y + r.h * 0.78], th = Math.min(30, r.h * 0.36);
+    const th = Math.min(28, r.h * 0.2), rows = [r.y + r.h * 0.3, r.y + r.h * 0.8];
     // 시간 눈금
     const ms = S.scene === 'sound';
     for (let k = 0; k <= 10; k++) {
       const tt = win * k / 10, x = X(tt);
       ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, r.y); ctx.lineTo(x, r.y + r.h); ctx.stroke(); ctx.restore();
-      if (k % 5 === 0) text(ctx, fmt(ms ? tt * 1000 : tt, 2) + (k === 10 ? (ms ? ' ms' : ' s') : ''), x, r.y + r.h + 14, {size: 13, color: C.muted, w: 500, mono: true, align: k === 10 ? 'right' : 'center'});
+      if (k % 5 === 0) text(ctx, fmt(ms ? tt * 1000 : tt, 2) + (k === 10 ? (ms ? ' ms' : ' s') : ''), x, r.y + r.h + 13, {size: 13, color: C.muted, w: 500, mono: true, align: k === 10 ? 'right' : 'center'});
     }
     rows.forEach((y, i) => {
       ctx.save(); Lab.rrect(ctx, r.x, y - th / 2, r.w, th, 7); ctx.fillStyle = C['line-soft']; ctx.fill(); ctx.restore();
-      text(ctx, i ? 'B' : 'A', 16, y - 7, {size: 15, w: 800, color: C.ink});
-      text(ctx, nm[i], 8, y + 11, {size: 13, w: 600, color: C.muted, align: 'left'});
+      text(ctx, i ? 'B' : 'A', 18, y, {size: 16, w: 800, color: C.ink});
+      text(ctx, nm[i], r.x + 2, y - th / 2 - 10, {size: 13, w: 600, color: C.muted, align: 'left'});
       // 지난 기록(옅게), 지금 기록
       ctx.save(); ctx.strokeStyle = C.muted; ctx.globalAlpha = 0.35; ctx.lineWidth = 2;
       for (const tt of prev[i]) { if (cur[i].length && tt <= cur[i][cur[i].length - 1] + 1e-9) continue; ctx.beginPath(); ctx.moveTo(X(tt), y - th / 2 + 4); ctx.lineTo(X(tt), y + th / 2 - 4); ctx.stroke(); }
@@ -565,17 +565,21 @@
       for (const tt of cur[i]) { ctx.beginPath(); ctx.moveTo(X(tt), y - th / 2 + 3); ctx.lineTo(X(tt), y + th / 2 - 3); ctx.stroke(); }
       ctx.restore();
     });
-    // 주기 자 (B 띠 위)
+    // 주기 자: B 띠 한가운데, 이름표 오른쪽의 이웃한 두 눈금 사이
     const ref = cur[1].length >= 2 ? cur[1] : prev[1];
-    if (ref.length >= 2) bracket(ctx, X(ref[0]), X(ref[1]), rows[1] - th / 2 - 9, C.copper, 'T', true);
+    const nameEnd = r.x + 2 + Lab.measure(ctx, nm[1], {size: 13, w: 600}) + 18;
+    for (let i = 0; i + 1 < ref.length; i++) {
+      if (X(ref[i]) < nameEnd - 8) continue;
+      bracket(ctx, X(ref[i]), X(ref[i + 1]), rows[1], C.copper, null);
+      text(ctx, 'T', (X(ref[i]) + X(ref[i + 1])) / 2, rows[1] - th / 2 - 10, {size: 13.5, color: C.copper, w: 700, mono: true, halo: true});
+      break;
+    }
     // 지금
     const now = Math.min(win, S.t - S.win0);
-    ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(now), r.y - 4); ctx.lineTo(X(now), r.y + r.h + 2); ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(now), r.y); ctx.lineTo(X(now), r.y + r.h + 2); ctx.stroke(); ctx.restore();
     // 개수
-    const done = S.prev && cur[0].length === 0 && cur[1].length === 0;
-    const na = done ? S.prev.A.length : cur[0].length, nb = done ? S.prev.B.length : cur[1].length;
     $('tapeTitle').textContent = s.winLab + ' 동안 지나간 ' + s.mark;
-    setTxt('tapeCount', 'A ' + na + '개 · B ' + nb + '개' + (S.prev ? ' (지난 ' + s.winLab + ': ' + S.prev.A.length + '개 = ' + S.prev.B.length + '개)' : ''));
+    setTxt('tapeCount', '지금 A ' + cur[0].length + '개 · B ' + cur[1].length + '개' + (S.prev ? '  |  지난 ' + s.winLab + ': A ' + S.prev.A.length + '개 = B ' + S.prev.B.length + '개' : ''));
   }
 
   // ── 패널: v-λ 직선 ──────────────────────────────────────
@@ -595,14 +599,14 @@
       return l1;
     };
     if (S.ghost) {
-      const lg = line(S.ghost.f, C.muted, [5, 5], 2);
-      text(ctx, 'f = ' + fmt(S.ghost.f, 0) + ' Hz', A.X(lg) - 6, A.Y(S.ghost.f * lg) + 14, {size: 13, color: C.muted, w: 600, align: 'right', halo: true});
+      line(S.ghost.f, C.muted, [5, 5], 2);
+      text(ctx, '점선: 처음 f = ' + fmt(S.ghost.f, 0) + ' Hz', r.x + r.w, A.y0 - 56, {size: 13, color: C.muted, w: 600, align: 'right', halo: true});
       const lgp = S.v1 / S.ghost.f;
       Lab.circle(ctx, A.X(lgp), A.Y(S.v1), 6, {stroke: C.muted, width: 2});
       arrow(ctx, A.X(lgp) - 8, A.Y(S.v1), A.X(S.v1 / S.f) + 9, A.Y(S.v1), C.muted, 1.8, 7);
     }
-    const lEnd = line(S.f, C.acc, null, 2.8);
-    text(ctx, '기울기 = f = ' + fmt(S.f, 0) + ' Hz', A.X(lEnd) - 4, A.Y(S.f * lEnd) - 12, {size: 13, color: C.acc, w: 700, align: 'right', halo: true});
+    line(S.f, C.acc, null, 2.8);
+    text(ctx, '기울기 = f = ' + fmt(S.f, 0) + ' Hz', r.x + r.w, A.y0 - 34, {size: 13.5, color: C.acc, w: 700, align: 'right', halo: true});
     const nm = names(), pts = [[S.v1 / S.f, S.v1, nm[0], 1], [S.v2 / S.f, S.v2, nm[1], 2]];
     for (const [l, v] of pts) {
       Lab.line(ctx, [[A.X(l), A.Y(0)], [A.X(l), A.Y(v)], [A.X(0), A.Y(v)]], C.muted, 1.2, [3, 4]);
@@ -621,7 +625,7 @@
   function drawBars() {
     const {ctx, W, H} = bars; if (!W || S.scene !== 'sound') return;
     ctx.clearRect(0, 0, W, H);
-    const list = M.SOUND, r = {x: 104, y: 8, w: W - 190, h: H - 16}, bh = r.h / list.length;
+    const list = M.SOUND, r = {x: 104, y: 8, w: W - 104 - 108, h: H - 16}, bh = r.h / list.length;
     const vmax = 5100;
     list.forEach((it, i) => {
       const y = r.y + bh * i + bh * 0.18, h = bh * 0.64, w = Math.max(3, it.v / vmax * r.w);
@@ -708,7 +712,7 @@
 
   // ── 스스로 확인: 그 상황으로 ───────────────────────────────
   const TRY = {
-    ex: () => { applyScene('water', {f: 10, v1: 30, v2: 20}); advance(0.35); setPlay(false); },
+    ex: () => { applyScene('water', {f: 10, v1: 30, v2: 20}); advance(0.33); setPlay(false); },
     double: () => { applyScene('rope', {f: 4, v1: 2, v2: 2}); S.ghost = {f: 2, n: 0}; setPlay(true); },
     sound: () => { applyScene('sound', {f: 1000, i1: 1, i2: 3}); advance(0.0042); setPlay(true); },
     rev: () => { applyScene('water', {f: 10, v1: 20, v2: 30}); advance(0.35); setPlay(true); },

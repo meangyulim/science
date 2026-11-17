@@ -503,13 +503,13 @@
     setTxt('rLam', fmt(S.lambda, 1) + ' cm'); setTxt('rT', fmt(S.T, 2) + ' s'); setTxt('rV', fmt(M.speed(S.lambda, S.T), 2) + ' cm/s');
     const w = wave(), t = S.t, P = S.pName;
     const mv = moveOf(S.xP, t, w);
-    setTxt('rPn', '점 ' + P + ' 의 운동');
     const chain = $('chain');
     if (judging()) {
       chain.classList.add('rev');
       const given = J.clue === 'arrow';
       const m0 = moveOf(S.xP, 0, w);
-      setTxt('rP', given ? MV[m0][0] + ' · 주어짐' : '?', given ? MV[m0][1] : 'q');
+      setTxt('rP', given ? MV[m0][0] : '?', given ? MV[m0][1] : 'q');
+      setTxt('rPn', '점 ' + P + ' 의 운동' + (given ? ' (주어짐)' : ''));
       setTxt('c3h', '③ y-t 그래프 · t = 0 직후의 기울기');
       setTxt('c3', given ? '(이번 단서는 운동 방향)' : '부호는? 그래프에서 읽기', 'q');
       setTxt('c2h', '② 점 ' + P + ' 의 운동');
@@ -519,6 +519,7 @@
       setTxt('ytNow', given ? '단서(' + (m0 > 0 ? '위로' : '아래로') + ')를 y-t 로 그리면 t = 0 직후 ' + (m0 > 0 ? '올라가는' : '내려가는') + ' 그래프' : 't = 0 직후 그래프가 올라가는지 내려가는지 보세요.', 'status');
     } else {
       chain.classList.remove('rev');
+      setTxt('rPn', '점 ' + P + ' 의 운동');
       setTxt('rP', MV[mv][0], MV[mv][1]);
       setTxt('c1h', '① y-x 그래프 · 진행 방향 ' + (S.dir > 0 ? '→' : '←'));
       setTxt('c1', mv === 0 ? ARROW(S.dir) + '으로 밀어도 ' + P + ' 자리 값은 거의 그대로(마루·골)' : ARROW(S.dir) + '으로 살짝 밀면 ' + P + ' 자리 값이 ' + (mv > 0 ? '올라감' : '내려감'), '');
