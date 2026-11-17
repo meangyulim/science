@@ -1,0 +1,1215 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>직류 전동기 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: 실험대 — 왼쪽 큰 3D 무대와 조작판, 오른쪽에 교과서식 정면도·전류 경로·돌림힘 그래프, 아래 개념 정리 */
+:root{
+  --bg:#eef1ef; --paper:#ffffff; --ink:#18232b; --muted:#56656d; --line:#d3dbdb; --line-soft:#e5eaea;
+  --stage-top:#f8faf9; --stage-bot:#dbe2df; --glass:rgba(255,255,255,.82);
+  --copper:#a95a22; --on-copper:#ffffff; --brass:#c79a2e; --copper-soft:#f5e7dc;
+  --north:#c8412f; --south:#2a5b8c; --force:#d63a2a; --turn:#24865a;
+  --current:#e3a000; --current-ink:#8a5f00; --electron:#2b86cf; --field:#8a8fc4;
+  --gap:rgba(200,65,47,.10); --base3d:#e1e5e2;
+  --font-ui:"IBM Plex Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1315; --paper:#151c1f; --ink:#e4eaec; --muted:#97a6ad; --line:#2b373c; --line-soft:#212b2f;
+    --stage-top:#1c262a; --stage-bot:#0d1214; --glass:rgba(21,28,31,.82);
+    --copper:#e39a62; --on-copper:#1d1108; --brass:#e0bb5c; --copper-soft:#33241a;
+    --north:#ec6a55; --south:#6a9fd6; --force:#ff6b57; --turn:#4fc58b;
+    --current:#ffc629; --current-ink:#ffd466; --electron:#62b8ff; --field:#9296d8;
+    --gap:rgba(236,106,85,.14); --base3d:#283135;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1315; --paper:#151c1f; --ink:#e4eaec; --muted:#97a6ad; --line:#2b373c; --line-soft:#212b2f;
+  --stage-top:#1c262a; --stage-bot:#0d1214; --glass:rgba(21,28,31,.82);
+  --copper:#e39a62; --on-copper:#1d1108; --brass:#e0bb5c; --copper-soft:#33241a;
+  --north:#ec6a55; --south:#6a9fd6; --force:#ff6b57; --turn:#4fc58b;
+  --current:#ffc629; --current-ink:#ffd466; --electron:#62b8ff; --field:#9296d8;
+  --gap:rgba(236,106,85,.14); --base3d:#283135;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 56px}
+.page{max-width:1280px;margin:0 auto}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+
+header.top{padding-block:20px 16px;display:grid;gap:4px}
+.back{font-size:13px;color:var(--muted);text-decoration:none;width:max-content}
+.back:hover{color:var(--ink)}
+.kicker{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--copper)}
+h1{margin:0;font-size:clamp(26px,3.6vw,36px);font-weight:700;letter-spacing:-.02em;line-height:1.25;text-wrap:balance}
+.lead{margin:2px 0 0;color:var(--muted);max-width:68ch;font-size:15px}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);gap:18px;align-items:start}
+.left,.side{min-width:0}
+
+/* 3D 무대 */
+.stage{position:relative;width:100%;aspect-ratio:4/3;max-height:74vh;border-radius:18px;overflow:hidden;border:1px solid var(--line);
+  background:radial-gradient(120% 95% at 50% 18%,var(--stage-top),var(--stage-bot))}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#gl.dragging{cursor:grabbing}
+.tags{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.tag{position:absolute;left:0;top:0;font:600 12px/1.2 var(--font-ui);padding:3px 7px;border-radius:7px;background:var(--glass);
+  border:1px solid var(--line);white-space:nowrap;will-change:transform}
+.tag.edge{font-weight:700;font-size:14px;padding:3px 8px}
+.sym{display:inline-block;position:relative;width:1em;height:1em;border:.12em solid currentColor;border-radius:50%;vertical-align:-.16em;margin-left:.15em}
+.sym.out::after{content:"";position:absolute;inset:.22em;border-radius:50%;background:currentColor}
+.sym.in::before,.sym.in::after{content:"";position:absolute;left:50%;top:50%;width:.72em;height:.12em;background:currentColor;transform:translate(-50%,-50%) rotate(45deg)}
+.sym.in::after{transform:translate(-50%,-50%) rotate(-45deg)}
+.tag.seg{font:600 12px/1.2 var(--font-num);color:var(--copper)}
+.tag.pole{font-weight:700}
+.tag.pole.plus,.tag.term.plus{color:var(--north);border-color:currentColor}
+.tag.pole.minus,.tag.term.minus{color:var(--ink)}
+.tag.term{font:700 14px/1 var(--font-num);padding:3px 6px}
+.tag.f{background:none;border:0;color:var(--force);font:700 15px/1 var(--font-num);padding:0}
+.tag.bf{background:none;border:0;color:var(--field);font:700 15px/1 var(--font-num);padding:0}
+.hud{position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none;max-width:calc(100% - 210px)}
+.pill{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--line);white-space:nowrap}
+.pill.num{font-family:var(--font-num)}
+.pill.off{color:var(--north);border-color:currentColor}
+.views{position:absolute;top:10px;right:10px;display:flex;gap:2px;padding:3px;border-radius:12px;background:var(--glass);border:1px solid var(--line)}
+.views button{border:0;background:none;padding:5px 10px;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.views button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.legend{position:absolute;left:12px;bottom:10px;display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);
+  background:var(--glass);border:1px solid var(--line);border-radius:10px;padding:5px 10px;pointer-events:none;max-width:calc(100% - 24px)}
+.legend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--current)}
+.legend i.e{background:var(--electron)}
+.legend b{display:inline-block;width:14px;height:3px;border-radius:2px}
+.drag-hint{position:absolute;right:12px;bottom:12px;font-size:11.5px;color:var(--muted);pointer-events:none}
+.stall{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);width:min(440px,calc(100% - 24px));background:var(--paper);
+  border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.14);font-size:13.5px;display:grid;gap:8px}
+.stall button{justify-self:start}
+.no3d{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:var(--muted)}
+
+/* 조작판 */
+.controls{margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:grid;gap:14px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.grow{flex:1 1 220px;min-width:0}
+.ctl-label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:600;color:var(--muted)}
+.ctl-label output{font:600 14px var(--font-num);color:var(--ink)}
+input[type=range]{width:100%;height:30px;margin:2px 0 0;accent-color:var(--copper)}
+.btn{border:1px solid var(--line);background:var(--paper);padding:7px 12px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.play{display:inline-flex;align-items:center;gap:8px;border:0;background:var(--copper);color:var(--on-copper);padding:10px 16px;border-radius:12px;
+  font-size:14.5px;font-weight:700;cursor:pointer;min-width:118px;justify-content:center}
+.play svg{width:14px;height:14px;fill:currentColor}
+.group{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.group .gl{font-size:13px;font-weight:600;color:var(--muted);margin-right:4px}
+.group .btn{font-family:var(--font-num);font-weight:600}
+.held{font-size:12.5px;color:var(--muted);margin:-4px 0 0}
+.toggles{border-top:1px solid var(--line-soft);padding-top:12px}
+.tog{display:inline-flex;align-items:center;gap:8px}
+.tog::before{content:"";width:12px;height:12px;border-radius:50%;border:2px solid var(--muted);flex:none}
+.tog[aria-pressed="true"]{background:var(--copper-soft);border-color:var(--copper);color:var(--ink)}
+.tog[aria-pressed="true"]::before{border-color:var(--copper);background:var(--copper);box-shadow:inset 0 0 0 2px var(--copper-soft)}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;cursor:pointer;white-space:nowrap}
+.chk input{width:17px;height:17px;accent-color:var(--copper);margin:0}
+.spacer{flex:1}
+
+/* 오른쪽 패널 */
+.side{display:grid;gap:14px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px 16px;min-width:0}
+.panel h2{margin:0 0 8px;font-size:15px;font-weight:700;letter-spacing:-.01em;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h2 small{font-size:12px;font-weight:500;color:var(--muted)}
+canvas.flat{display:block;width:100%;border-radius:12px}
+#front{aspect-ratio:10/7.4}
+#graph{aspect-ratio:10/5.2}
+.cap{margin:8px 0 0;font-size:12.5px;color:var(--muted)}
+.status{margin:8px 0 0;font-size:14px;font-weight:600}
+.status .n{font-family:var(--font-num)}
+.path{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 4px;align-items:center}
+.path li{display:inline-flex;align-items:center;gap:4px;font-size:13px}
+.path li+li::before{content:"→";color:var(--muted);margin-right:2px}
+.path .chip{padding:3px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);white-space:nowrap}
+.path .chip.coil{border-color:var(--copper);background:var(--copper-soft);font-weight:600}
+.path .chip.end{font-weight:600}
+.pathnote{margin:10px 0 0;font-size:12.5px;color:var(--muted)}
+.cut{margin:0;padding:10px 12px;border-radius:10px;background:var(--gap);font-size:13.5px}
+
+/* 개념·확인 */
+.notes{margin-top:30px;display:grid;gap:18px}
+.notes > h2{margin:0;font-size:20px;letter-spacing:-.01em}
+.concepts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.concept{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px}
+.concept h3{margin:0 0 6px;font-size:15.5px}
+.concept p{margin:0;font-size:14px;color:var(--ink)}
+.concept p + p{margin-top:8px}
+.concept .eq{font-family:var(--font-num);font-weight:600;color:var(--copper)}
+.compare{margin:0;font-size:13.5px;color:var(--muted)}
+.quiz{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.quiz li{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:10px;align-content:start}
+.quiz .q{margin:0;font-weight:600;font-size:14.5px}
+.quiz .q span{font-family:var(--font-num);color:var(--copper);margin-right:6px}
+.quiz .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.quiz details{font-size:14px}
+.quiz summary{cursor:pointer;color:var(--copper);font-weight:600;width:max-content}
+.quiz details p{margin:8px 0 0}
+
+@media (max-width:980px){
+  .lab{grid-template-columns:minmax(0,1fr)}
+  .side{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .side .wide{grid-column:1/-1}
+  .concepts{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:640px){
+  .stage{aspect-ratio:1/1.15}
+  .side{grid-template-columns:minmax(0,1fr)}
+  .quiz{grid-template-columns:minmax(0,1fr)}
+  .hud{max-width:calc(100% - 24px);top:52px}
+  .drag-hint{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="back" href="../" data-repo-only>← 물리 실험실</a>
+    <div class="kicker">물리학 Ⅰ · 전류의 자기 작용</div>
+    <h1>직류 전동기</h1>
+    <p class="lead">자기장 속 코일의 두 변이 반대 방향으로 힘을 받아 돌고, 정류자가 반 바퀴마다 전류를 뒤집어 한 방향으로 계속 돈다. 노란 점이 전지 (+)극에서 나와 코일을 지나 (−)극으로 돌아가는 길을 따라가 보세요.</p>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <div class="stage" id="stage">
+        <div class="tags" id="tags"></div>
+        <div class="hud">
+          <span class="pill num" id="hudTheta">θ = 20°</span>
+          <span class="pill" id="hudFlow">전류 흐름</span>
+        </div>
+        <div class="views" role="group" aria-label="보는 방향">
+          <button type="button" data-view="oblique" aria-pressed="true">비스듬히</button>
+          <button type="button" data-view="front" aria-pressed="false">정면</button>
+          <button type="button" data-view="top" aria-pressed="false">위</button>
+        </div>
+        <div class="legend" id="legend">
+          <span><i id="dotKey"></i><em id="dotText" style="font-style:normal">전류 (＋→−)</em></span>
+          <span><b style="background:var(--force)"></b>힘 F</span>
+          <span><b style="background:var(--turn)"></b>돌리려는 방향</span>
+          <span><b style="background:var(--field)"></b>자기장 B</span>
+        </div>
+        <div class="drag-hint">끌어서 돌려 보기 · 두 손가락으로 확대</div>
+        <div class="stall" id="stall" hidden>
+          <div id="stallText"></div>
+          <button type="button" class="btn" id="stallBtn">살짝 밀기</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="play" id="play" aria-pressed="true">
+            <svg viewBox="0 0 14 14" aria-hidden="true" id="playIcon"><rect x="2" y="1.5" width="3.6" height="11" rx="1"/><rect x="8.4" y="1.5" width="3.6" height="11" rx="1"/></svg>
+            <span id="playText">멈추기</span>
+          </button>
+          <div class="grow">
+            <label class="ctl-label" for="theta">코일의 각 θ <output id="thetaOut" for="theta">20°</output></label>
+            <input id="theta" type="range" min="0" max="359" step="1" value="20">
+          </div>
+          <div class="group" role="group" aria-label="각도 바로 가기">
+            <button type="button" class="btn" data-angle="0">0°</button>
+            <button type="button" class="btn" data-angle="90">90°</button>
+            <button type="button" class="btn" data-angle="180">180°</button>
+            <button type="button" class="btn" data-angle="270">270°</button>
+          </div>
+        </div>
+        <p class="held" id="held" hidden>코일을 손으로 잡고 있는 상태예요. 멈춰 있어도 전류는 흐르고 힘도 받아요.</p>
+        <div class="row">
+          <div class="grow">
+            <label class="ctl-label" for="current">전류의 세기 <output id="currentOut" for="current">×1.0</output></label>
+            <input id="current" type="range" min="0.5" max="2" step="0.1" value="1">
+          </div>
+          <div class="group" role="group" aria-label="시간 빠르기">
+            <span class="gl">빠르기</span>
+            <button type="button" class="btn" data-speed="0.2" aria-pressed="false">×0.2</button>
+            <button type="button" class="btn" data-speed="0.5" aria-pressed="true">×0.5</button>
+            <button type="button" class="btn" data-speed="1" aria-pressed="false">×1</button>
+          </div>
+        </div>
+        <div class="row toggles">
+          <button type="button" class="btn tog" id="tComm" aria-pressed="true">정류자</button>
+          <button type="button" class="btn tog" id="tBatt" aria-pressed="false">전지 뒤집기</button>
+          <button type="button" class="btn tog" id="tField" aria-pressed="false">자석 뒤집기</button>
+          <span class="spacer"></span>
+          <label class="chk"><input type="checkbox" id="cField" checked>자기장선</label>
+          <label class="chk"><input type="checkbox" id="cForce" checked>힘</label>
+          <label class="chk"><input type="checkbox" id="cElec">전자의 이동으로</label>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>정면에서 본 코일 <small>정류자 쪽에서 축을 바라봄</small></h2>
+        <canvas class="flat" id="front" aria-label="정면에서 본 코일: 두 변의 전류 방향과 힘, 정류자와 브러시"></canvas>
+        <p class="status" id="frontStatus"></p>
+        <p class="cap"><i class="sym out"></i> 앞(보는 사람 쪽)으로 나오는 전류 · <i class="sym in"></i> 뒤로 들어가는 전류</p>
+      </section>
+      <section class="panel wide">
+        <h2>전류가 흐르는 길</h2>
+        <div id="pathBox"></div>
+        <p class="pathnote" id="pathNote"></p>
+      </section>
+      <section class="panel">
+        <h2>돌림힘 <small>시계 방향을 +로</small></h2>
+        <canvas class="flat" id="graph" aria-label="코일의 각에 따른 돌림힘 그래프"></canvas>
+        <p class="cap" id="graphCap">굵은 선: 지금 설정 · 점선: 정류자가 없을 때</p>
+      </section>
+    </aside>
+  </main>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">개념 정리</h2>
+    <div class="concepts">
+      <article class="concept">
+        <h3>변이 받는 힘</h3>
+        <p>자기장 속에서 전류가 흐르는 도선은 힘을 받는다. 크기는 <span class="eq">F = BIL</span>.</p>
+        <p>방향은 오른손으로 정한다. 네 손가락을 자기장(N → S) 방향, 엄지를 전류 방향으로 두면 손바닥이 향하는 쪽이 힘의 방향. 왼쪽 변(<i class="sym out" aria-label="앞으로 나오는 전류"></i>)은 위로, 오른쪽 변(<i class="sym in" aria-label="뒤로 들어가는 전류"></i>)은 아래로 밀려 코일이 시계 방향으로 돈다.</p>
+      </article>
+      <article class="concept">
+        <h3>돌림힘이 0이 되는 자리</h3>
+        <p>두 변이 받는 힘은 언제나 위·아래 방향이고 크기도 BIL로 같다. 하지만 코일을 돌리는 효과(돌림힘)는 각에 따라 변한다.</p>
+        <p>코일면이 자기장과 나란한 0°·180°에서 가장 크고, 자기장에 수직인 90°·270°에서는 두 힘이 축을 지나는 한 직선 위에서 서로 반대라 0이 된다.</p>
+      </article>
+      <article class="concept">
+        <h3>정류자의 역할</h3>
+        <p>90°를 지날 때 정류자의 틈이 브러시를 지나면서 코일에 흐르는 전류의 방향이 바뀐다. 그래서 왼쪽(N극 쪽)에 온 변에는 늘 <i class="sym out" aria-label="앞으로 나오는"></i> 전류가 흘러 위로 힘을 받고, 코일은 한 방향으로 계속 돈다.</p>
+        <p>정류자가 없으면 반 바퀴가 지날 때 돌림힘이 반대가 되어, 코일은 90° 근처에서 흔들리다 멈춘다.</p>
+      </article>
+    </div>
+    <p class="compare">전동기는 전류 → 힘(회전), 발전기는 회전 → 전류(전자기 유도). 에너지 전환 방향이 서로 반대다.</p>
+
+    <h2>스스로 확인</h2>
+    <ol class="quiz">
+      <li>
+        <p class="q"><span>1</span>코일면이 자기장에 수직(θ = 90°)일 때 코일이 받는 돌림힘은?</p>
+        <div class="acts"><button type="button" class="btn" data-try="q1">90°에서 보기</button></div>
+        <details><summary>답 보기</summary><p>0이다. 정류자의 틈이 브러시에 걸려 전류가 잠깐 끊기고, 전류가 흐르더라도 두 힘이 같은 직선 위에서 반대 방향이라 코일을 돌리지 못한다. 돌던 코일은 관성으로 이 자리를 지나간다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>2</span>정류자 대신 통짜 고리 두 개(슬립 링)를 쓰면 코일은 어떻게 될까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="q2">정류자 없이 돌려 보기</button></div>
+        <details><summary>답 보기</summary><p>코일 속 전류 방향이 바뀌지 않으므로 90°를 넘어가면 돌림힘이 반대가 된다. 코일은 90° 근처에서 앞뒤로 흔들리다 멈춘다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>3</span>전지의 (+)극과 (−)극을 바꾸면 회전 방향은?</p>
+        <div class="acts"><button type="button" class="btn" data-try="q3">전지 뒤집어 보기</button></div>
+        <details><summary>답 보기</summary><p>반대(반시계 방향)가 된다. 자석의 N극과 S극을 바꿔도 반대가 되고, 둘 다 바꾸면 원래 방향(시계 방향)으로 돈다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>4</span>전류의 세기를 2배로 하면 한 변이 받는 힘의 크기는?</p>
+        <div class="acts"><button type="button" class="btn" data-try="q4">전류 2배로 보기</button></div>
+        <details><summary>답 보기</summary><p>F = BIL이므로 2배가 된다. 돌림힘도 2배가 되어 코일이 더 빨리 돈다.</p></details>
+      </li>
+    </ol>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="dc-motor-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.DCMotorModel;
+  const DEG = Math.PI / 180;
+  const $ = id => document.getElementById(id);
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = {
+    theta: 20, omega: 0, playing: !reduceMotion, I: 1, timeScale: 0.5,
+    commutator: true, battery: 1, field: 1,
+    showField: true, showForce: true, electron: false
+  };
+  const opt = () => ({commutator: S.commutator, battery: S.battery, field: S.field});
+  if (S.playing) S.omega = M.terminalOmega(S.I, opt());
+  let tween = null, stallTime = 0;
+
+  // ── 색 토큰 ─────────────────────────────────────────────
+  let T = {};
+  function readTokens() {
+    const cs = getComputedStyle(document.documentElement);
+    const g = n => cs.getPropertyValue(n).trim();
+    T = {ink: g('--ink'), muted: g('--muted'), paper: g('--paper'), line: g('--line'), lineSoft: g('--line-soft'),
+      north: g('--north'), south: g('--south'), force: g('--force'), turn: g('--turn'), current: g('--current'),
+      electron: g('--electron'), copper: g('--copper'), brass: g('--brass'), field: g('--field'), gap: g('--gap'),
+      base3d: g('--base3d'), bg: g('--bg'), font: getComputedStyle(document.body).fontFamily};
+  }
+  readTokens();
+
+  // ── 치수 (3D 단위) ──────────────────────────────────────
+  const R = 1.6, HL = 2.0;               // 코일 반지름(축에서 변까지), 변 길이의 절반
+  const RC = 0.42, ZC = 3.0;             // 정류자 반지름, 정류자 가운데 z
+  const RING = {A: 2.72, B: 3.28};       // 정류자를 빼면 쓰는 고리 두 개의 z
+  const BW = 0.3;                        // 브러시 두께(x)
+  const BY = -2.8, WX = 1.35;            // 전지 높이, 도선이 내려가는 x
+  const BASE_TOP = -3.125;
+
+  // ════════════════════════════════════════════════════════
+  // 3D
+  // ════════════════════════════════════════════════════════
+  function build3D() {
+    const stage = $('stage');
+    let renderer;
+    try { renderer = new THREE.WebGLRenderer({antialias: true, alpha: true}); }
+    catch (e) { return null; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    const canvas = renderer.domElement;
+    canvas.id = 'gl';
+    canvas.setAttribute('aria-label', '직류 전동기 3D 모형. 끌어서 보는 방향을 바꿀 수 있습니다.');
+    canvas.setAttribute('role', 'img');
+    stage.prepend(canvas);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(30, 4 / 3, 0.1, 200);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x77818a, 0.8));
+    const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+    sun.position.set(4, 10, 7);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024);
+    Object.assign(sun.shadow.camera, {left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 30});
+    scene.add(sun);
+    const fill = new THREE.DirectionalLight(0xffffff, 0.32);
+    fill.position.set(-6, 3, 8);
+    scene.add(fill);
+
+    const col = c => new THREE.Color(c).convertSRGBToLinear();
+    const std = (c, o) => new THREE.MeshStandardMaterial(Object.assign({color: col(c), roughness: 0.55, metalness: 0.1}, o || {}));
+    const MAT = {
+      copper: std('#b86a30', {metalness: 0.55, roughness: 0.32}),
+      segA: std('#c4703a', {metalness: 0.55, roughness: 0.3}),
+      segB: std('#d6b052', {metalness: 0.55, roughness: 0.3}),
+      axle: std('#a3abb2', {metalness: 0.5, roughness: 0.35}),
+      brush: std('#2b2e33', {roughness: 0.9}),
+      wire: std('#3a424a', {roughness: 0.6}),
+      base: std(T.base3d, {roughness: 0.9}),
+      post: std('#9aa29f', {roughness: 0.8}),
+      batt: std('#33404c', {roughness: 0.45}),
+      battPlus: std('#cf4e3b', {roughness: 0.45}),
+      terminal: std('#c2c8cd', {metalness: 0.7, roughness: 0.3}),
+      force: new THREE.MeshStandardMaterial({color: col('#e2412c'), emissive: col('#6e1207'), roughness: 0.45}),
+      turn: new THREE.MeshStandardMaterial({color: col('#2e9a5d'), emissive: col('#0b3a20'), roughness: 0.5}),
+      plane: new THREE.MeshBasicMaterial({color: col('#c27a40'), transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false}),
+      field: new THREE.MeshBasicMaterial({color: col(T.field), transparent: true, opacity: 0.6, depthWrite: false})
+    };
+    const UP = new THREE.Vector3(0, 1, 0);
+
+    function rod(p, q, r, m) {
+      const a = new THREE.Vector3(...p), b = new THREE.Vector3(...q);
+      const d = b.clone().sub(a), len = d.length();
+      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 14), m);
+      mesh.position.copy(a).addScaledVector(d, 0.5);
+      mesh.quaternion.setFromUnitVectors(UP, d.normalize());
+      mesh.castShadow = true;
+      return mesh;
+    }
+    function polyRod(points, r, m, group) {
+      for (let i = 0; i < points.length - 1; i++) {
+        const [p, q] = [points[i], points[i + 1]];
+        if (Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < 1e-6) continue;
+        group.add(rod(p, q, r, m));
+      }
+      for (let i = 1; i < points.length - 1; i++) {
+        const s = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 10), m);
+        s.position.set(...points[i]);
+        group.add(s);
+      }
+    }
+    function box(w, h, d, m, x, y, z) {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true; mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    // 받침
+    const base = box(9.4, 0.15, 7.6, MAT.base, 0, BASE_TOP - 0.075, 0.45);
+    base.castShadow = false;
+    scene.add(base);
+
+    // 자석: 안쪽 면, 윗면, 앞면에 N/S 글자
+    function letterTex(letter, bg, w, h, cy) {
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      const g = cv.getContext('2d');
+      g.fillStyle = bg; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#ffffff';
+      g.font = `700 ${Math.round(Math.min(w, h) * 0.6)}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(letter, w / 2, h * cy);
+      const t = new THREE.CanvasTexture(cv);
+      t.encoding = THREE.sRGBEncoding;
+      t.anisotropy = 4;
+      return t;
+    }
+    function magnetMats(letter, bg, inner) {
+      const plain = std(bg, {roughness: 0.5});
+      const face = (w, h, cy) => new THREE.MeshStandardMaterial({map: letterTex(letter, bg, w, h, cy), roughness: 0.5, metalness: 0.1});
+      const m = [plain, plain, face(100, 440, 0.5), plain, face(100, 470, 0.3), plain];
+      m[inner] = face(420, 470, 0.34);
+      return m;
+    }
+    const MAG = {
+      N: {left: magnetMats('N', '#c8412f', 0), right: magnetMats('N', '#c8412f', 1)},
+      S: {left: magnetMats('S', '#2a5b8c', 0), right: magnetMats('S', '#2a5b8c', 1)}
+    };
+    const magH = 1.55 - BASE_TOP;
+    const magL = new THREE.Mesh(new THREE.BoxGeometry(1.0, magH, 4.2), MAG.N.left);
+    const magR = new THREE.Mesh(new THREE.BoxGeometry(1.0, magH, 4.2), MAG.S.right);
+    magL.position.set(-3.05, BASE_TOP + magH / 2, 0);
+    magR.position.set(3.05, BASE_TOP + magH / 2, 0);
+    for (const m of [magL, magR]) { m.castShadow = true; m.receiveShadow = true; scene.add(m); }
+
+    // 자기장선
+    const fieldGroup = new THREE.Group();
+    scene.add(fieldGroup);
+    const fieldCones = [];
+    for (const y of [-1.05, 0, 1.05]) for (const z of [-1.5, 0, 1.5]) {
+      fieldGroup.add(rod([-2.53, y, z], [2.53, y, z], 0.014, MAT.field));
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.22, 10), MAT.field);
+      cone.position.set(2.1, y, z);
+      fieldGroup.add(cone);
+      fieldCones.push(cone);
+    }
+    fieldGroup.traverse(o => { o.castShadow = false; });
+
+    // 축과 받침 기둥
+    scene.add(rod([0, 0, -3.0], [0, 0, ZC + 0.62], 0.1, MAT.axle));
+    scene.add(box(0.34, -BASE_TOP, 0.34, MAT.post, 0, BASE_TOP / 2, -2.95));
+
+    // 전지 (가로로 누운 원통, 기본은 +극이 오른쪽)
+    const battery = new THREE.Group();
+    battery.position.set(0, BY, ZC);
+    const cylX = (r, len, m, x) => {
+      const c = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 28), m);
+      c.rotation.z = Math.PI / 2; c.position.x = x; c.castShadow = true;
+      return c;
+    };
+    battery.add(cylX(0.36, 1.2, MAT.batt, -0.15));
+    battery.add(cylX(0.362, 0.36, MAT.battPlus, 0.63));
+    battery.add(cylX(0.13, 0.12, MAT.terminal, 0.87));
+    battery.add(cylX(0.3, 0.04, MAT.terminal, -0.77));
+    scene.add(battery);
+
+    // 코일(돌아가는 부분)과 회로(고정된 부분)
+    const coil = new THREE.Group();
+    const circuit = new THREE.Group();
+    scene.add(coil, circuit);
+    const arcs = {cw: new THREE.Group(), ccw: new THREE.Group()};
+
+    function clearGroup(g) {
+      g.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+      while (g.children.length) g.remove(g.children[0]);
+    }
+    function arcArrow(a0, a1, rr, z) {
+      const g = new THREE.Group();
+      const pts = [];
+      for (let i = 0; i <= 24; i++) {
+        const t = a0 + (a1 - a0) * i / 24;
+        pts.push(new THREE.Vector3(rr * Math.cos(t), rr * Math.sin(t), z));
+      }
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 32, 0.035, 8, false), MAT.turn));
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.28, 12), MAT.turn);
+      const s = Math.sign(a1 - a0);
+      const tan = new THREE.Vector3(-Math.sin(a1) * s, Math.cos(a1) * s, 0);
+      cone.position.copy(pts[24]).addScaledVector(tan, 0.1);
+      cone.quaternion.setFromUnitVectors(UP, tan);
+      g.add(cone);
+      return g;
+    }
+
+    let pathE = null, pathC = null;
+    const brushZ = () => S.commutator ? {L: ZC, R: ZC} : {L: RING.A, R: RING.B};
+
+    function rebuild() {
+      clearGroup(coil); clearGroup(circuit);
+      // 코일: 변 a(왼쪽) → 뒤쪽 짧은 변 → 변 b(오른쪽)
+      polyRod([[-R, 0, HL], [-R, 0, -HL], [R, 0, -HL], [R, 0, HL]], 0.06, MAT.copper, coil);
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(2 * R, 2 * HL), MAT.plane);
+      plane.rotation.x = -Math.PI / 2;
+      coil.add(plane);
+      const lead = 0.04;
+      let cPts;
+      if (S.commutator) {
+        polyRod([[-R, 0, HL], [-RC + 0.03, 0, HL], [-RC + 0.03, 0, ZC - 0.3]], lead, MAT.copper, coil);
+        polyRod([[R, 0, HL], [RC - 0.03, 0, HL], [RC - 0.03, 0, ZC - 0.3]], lead, MAT.copper, coil);
+        // 반쪽 고리 두 개. 원통의 θ=0 이 아래(−y)로 가도록 x축으로 눕힌다 → 틈은 위·아래
+        const gap = M.GAP_DEG * DEG;
+        const half = (start, m) => {
+          const h = new THREE.Mesh(new THREE.CylinderGeometry(RC, RC, 0.6, 40, 1, false, start, Math.PI - 2 * gap), m);
+          h.rotation.x = Math.PI / 2; h.position.z = ZC; h.castShadow = true;
+          return h;
+        };
+        coil.add(half(Math.PI + gap, MAT.segA), half(gap, MAT.segB));
+        cPts = [[-RC, 0, ZC], [-RC + 0.03, 0, ZC - 0.3], [-RC + 0.03, 0, HL], [-R, 0, HL], [-R, 0, -HL], [R, 0, -HL],
+          [R, 0, HL], [RC - 0.03, 0, HL], [RC - 0.03, 0, ZC - 0.3], [RC, 0, ZC]];
+      } else {
+        polyRod([[-R, 0, HL], [-RC + 0.03, 0, HL], [-RC + 0.03, 0, RING.A - 0.13]], lead, MAT.copper, coil);
+        polyRod([[R, 0, HL], [0.26, 0, HL], [0.26, 0, RING.B - 0.13]], lead, MAT.copper, coil);
+        const ring = (z, m) => {
+          const h = new THREE.Mesh(new THREE.CylinderGeometry(RC, RC, 0.26, 40), m);
+          h.rotation.x = Math.PI / 2; h.position.z = z; h.castShadow = true;
+          return h;
+        };
+        coil.add(ring(RING.A, MAT.segA), ring(RING.B, MAT.segB));
+        cPts = [[-RC, 0, RING.A], [-RC + 0.03, 0, RING.A - 0.13], [-RC + 0.03, 0, HL], [-R, 0, HL], [-R, 0, -HL], [R, 0, -HL],
+          [R, 0, HL], [0.26, 0, HL], [0.26, 0, RING.B - 0.13], [RC, 0, RING.B]];
+      }
+      // 돌리려는 방향 화살표 (변 a·b 에서 시작, 코일과 함께 돈다)
+      clearGroup(arcs.cw); clearGroup(arcs.ccw);
+      const rr = R + 0.34;
+      arcs.cw.add(arcArrow(Math.PI - 0.16, Math.PI - 1.05, rr, 0), arcArrow(-0.16, -1.05, rr, 0));
+      arcs.ccw.add(arcArrow(Math.PI + 0.16, Math.PI + 1.05, rr, 0), arcArrow(0.16, 1.05, rr, 0));
+      coil.add(arcs.cw, arcs.ccw);
+
+      // 브러시와 도선
+      const z = brushZ();
+      circuit.add(box(BW, 0.2, 0.24, MAT.brush, -(RC + BW / 2), 0, z.L));
+      circuit.add(box(BW, 0.2, 0.24, MAT.brush, RC + BW / 2, 0, z.R));
+      const wl = [[-(RC + BW), 0, z.L], [-WX, 0, z.L], [-WX, BY, z.L], [-WX, BY, ZC], [-0.98, BY, ZC]];
+      const wr = [[RC + BW, 0, z.R], [WX, 0, z.R], [WX, BY, z.R], [WX, BY, ZC], [0.98, BY, ZC]];
+      polyRod(wl, 0.04, MAT.wire, circuit);
+      polyRod(wr, 0.04, MAT.wire, circuit);
+
+      // 점이 지나갈 길. 바깥 회로 E: 왼쪽 브러시 → 전지 → 오른쪽 브러시, 코일 C: 조각 A → … → 조각 B
+      pathE = mkPath([[-RC, 0, z.L], ...wl, [0.98, BY, ZC], ...wr.slice().reverse(), [RC, 0, z.R]]);
+      pathC = mkPath(cPts);
+      seed();
+    }
+
+    // ── 전류 점 ──
+    function mkPath(arr) {
+      const pts = [];
+      for (const p of arr) {
+        const v = new THREE.Vector3(...p);
+        if (!pts.length || pts[pts.length - 1].distanceTo(v) > 1e-6) pts.push(v);
+      }
+      const cum = [0];
+      for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+      return {pts, cum, len: cum[cum.length - 1]};
+    }
+    function at(path, s, out) {
+      let i = 1;
+      while (i < path.cum.length - 1 && path.cum[i] < s) i++;
+      const s0 = path.cum[i - 1], seg = path.cum[i] - s0;
+      return out.copy(path.pts[i - 1]).lerp(path.pts[i], seg > 0 ? (s - s0) / seg : 0);
+    }
+    const SPACING = 0.42;
+    let sE = [], sC = [];
+    function seed() {
+      const nE = Math.round(pathE.len / SPACING), nC = Math.round(pathC.len / SPACING);
+      sE = Array.from({length: nE}, (_, i) => i * pathE.len / nE);
+      sC = Array.from({length: nC}, (_, i) => i * pathC.len / nC);
+    }
+    const pMat = new THREE.MeshBasicMaterial({color: col(T.current), transparent: true});
+    const parts = new THREE.InstancedMesh(new THREE.SphereGeometry(0.095, 12, 8), pMat, 260);
+    parts.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    parts.frustumCulled = false;
+    scene.add(parts);
+    const mtx = new THREE.Matrix4(), tmp = new THREE.Vector3();
+    const wrapS = (s, L) => ((s % L) + L) % L;
+
+    function updateParticles(st, sdt) {
+      const v0 = 2.0 * S.I * (S.electron ? -1 : 1);
+      if (st.flowing) {
+        const dE = v0 * S.battery * sdt, dC = v0 * st.coil * sdt;
+        for (let i = 0; i < sE.length; i++) sE[i] = wrapS(sE[i] + dE, pathE.len);
+        for (let i = 0; i < sC.length; i++) sC[i] = wrapS(sC[i] + dC, pathC.len);
+      }
+      let k = 0;
+      for (const s of sE) { at(pathE, s, tmp); mtx.makeTranslation(tmp.x, tmp.y, tmp.z); parts.setMatrixAt(k++, mtx); }
+      const c = Math.cos(-S.theta * DEG), sn = Math.sin(-S.theta * DEG);
+      for (const s of sC) {
+        at(pathC, s, tmp);
+        mtx.makeTranslation(tmp.x * c - tmp.y * sn, tmp.x * sn + tmp.y * c, tmp.z);
+        parts.setMatrixAt(k++, mtx);
+      }
+      parts.count = k;
+      parts.instanceMatrix.needsUpdate = true;
+      pMat.opacity = st.flowing ? 1 : 0.35;
+    }
+
+    // ── 힘 화살표 ──
+    function makeArrow() {
+      const g = new THREE.Group();
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.048, 1, 12), MAT.force);
+      const head = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.32, 14), MAT.force);
+      shaft.castShadow = head.castShadow = true;
+      g.add(shaft, head);
+      g.userData = {shaft, head};
+      scene.add(g);
+      return g;
+    }
+    const arrowA = makeArrow(), arrowB = makeArrow();
+    function setArrow(g, x, y, dir, len) {
+      g.visible = len > 0.01;
+      if (!g.visible) return;
+      g.position.set(x, y + dir * 0.09, 0);
+      g.rotation.z = dir > 0 ? 0 : Math.PI;
+      const sl = Math.max(0.01, len - 0.32);
+      g.userData.shaft.scale.y = sl;
+      g.userData.shaft.position.y = sl / 2;
+      g.userData.head.position.y = sl + 0.16;
+    }
+
+    // ── 이름표(HTML) ──
+    const tagsEl = $('tags');
+    const mk = (cls, text) => { const d = document.createElement('div'); d.className = 'tag ' + cls; d.textContent = text || ''; tagsEl.appendChild(d); return d; };
+    const TAG = {
+      a: mk('edge'), b: mk('edge'), A: mk('seg', 'A'), B: mk('seg', 'B'),
+      bl: mk('pole'), br: mk('pole'), tl: mk('term'), tr: mk('term'),
+      Fa: mk('f', 'F'), Fb: mk('f', 'F'), Bf: mk('bf', 'B')
+    };
+    let W = 1, H = 1;
+    const pv = new THREE.Vector3();
+    function place(el, x, y, z) {
+      pv.set(x, y, z).project(camera);
+      const hide = pv.z > 1 || pv.z < -1;
+      if (el.hidden !== hide) el.hidden = hide;
+      if (hide) return;
+      el.style.transform = `translate(${((pv.x + 1) / 2 * W).toFixed(1)}px,${((1 - pv.y) / 2 * H).toFixed(1)}px) translate(-50%,-50%)`;
+    }
+    function setText(el, t) { if (el.textContent !== t) el.textContent = t; }
+    function setSide(el, name, v) {
+      const key = name + v;
+      if (el.dataset.k === key) return;
+      el.dataset.k = key;
+      el.innerHTML = name + (v ? ` <i class="sym ${v > 0 ? 'out' : 'in'}" aria-label="${v > 0 ? '앞으로 나옴' : '뒤로 들어감'}"></i>` : '');
+    }
+    function setCls(el, cls) { const c = 'tag ' + cls; if (el.className !== c) el.className = c; }
+
+    // ── 카메라 ──
+    const VIEWS = {oblique: {az: 24, el: 30}, front: {az: 0, el: 0}, top: {az: 0, el: 80}};
+    const cam = {az: 24, el: 30, zoom: 1, target: new THREE.Vector3(0, -0.7, 0.5)};
+    let camTween = null;
+    function fitDist() {
+      const vh = Math.tan(camera.fov * DEG / 2), hh = vh * camera.aspect;
+      return Math.max(5.6 / hh, 4.3 / vh) + 3.5;
+    }
+    function placeCamera() {
+      const d = fitDist() * cam.zoom, a = cam.az * DEG, e = cam.el * DEG;
+      camera.position.set(cam.target.x + d * Math.cos(e) * Math.sin(a), cam.target.y + d * Math.sin(e), cam.target.z + d * Math.cos(e) * Math.cos(a));
+      camera.lookAt(cam.target);
+    }
+    function markView(name) {
+      document.querySelectorAll('.views button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === name)));
+    }
+    function setView(name) {
+      const v = VIEWS[name];
+      markView(name);
+      let daz = ((v.az - cam.az) % 360 + 540) % 360 - 180;
+      camTween = {az0: cam.az, el0: cam.el, z0: cam.zoom, daz, del: v.el - cam.el, dz: 1 - cam.zoom, t: 0, dur: reduceMotion ? 0.001 : 0.6};
+    }
+    const pointers = new Map();
+    let pinch0 = 0, zoom0 = 1;
+    const spread = () => { const p = [...pointers.values()]; return Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y); };
+    canvas.addEventListener('pointerdown', e => {
+      canvas.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+      camTween = null; markView(null);
+      canvas.classList.add('dragging');
+      if (pointers.size === 2) { pinch0 = spread(); zoom0 = cam.zoom; }
+    });
+    canvas.addEventListener('pointermove', e => {
+      const p = pointers.get(e.pointerId);
+      if (!p) return;
+      const dx = e.clientX - p.x, dy = e.clientY - p.y;
+      p.x = e.clientX; p.y = e.clientY;
+      if (pointers.size === 1) { cam.az -= dx * 0.35; cam.el = clamp(cam.el + dy * 0.3, -20, 85); }
+      else if (pointers.size === 2 && pinch0 > 0) cam.zoom = clamp(zoom0 * pinch0 / spread(), 0.5, 1.8);
+      placeCamera();
+    });
+    const endPtr = e => {
+      pointers.delete(e.pointerId);
+      if (pointers.size < 2) pinch0 = 0;
+      if (!pointers.size) canvas.classList.remove('dragging');
+    };
+    canvas.addEventListener('pointerup', endPtr);
+    canvas.addEventListener('pointercancel', endPtr);
+    canvas.addEventListener('wheel', e => {
+      if (!e.ctrlKey) return;              // 트랙패드 핀치만 확대로 쓴다 (일반 스크롤은 페이지로)
+      e.preventDefault();
+      cam.zoom = clamp(cam.zoom * Math.exp(e.deltaY * 0.01), 0.5, 1.8);
+      placeCamera();
+    }, {passive: false});
+    document.querySelectorAll('.views button').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+
+    function resize() {
+      W = Math.max(1, stage.clientWidth); H = Math.max(1, stage.clientHeight);
+      renderer.setSize(W, H, false);
+      camera.aspect = W / H;
+      camera.updateProjectionMatrix();
+      placeCamera();
+    }
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
+    else window.addEventListener('resize', resize);
+
+    function setTheme() {
+      MAT.base.color.copy(col(T.base3d));
+      MAT.field.color.copy(col(T.field));
+      pMat.color.copy(col(S.electron ? T.electron : T.current));
+    }
+
+    let lastField = 0, lastBatt = 0;
+    function update(st, sdt, dt) {
+      if (camTween) {
+        camTween.t += dt;
+        const k = Math.min(1, camTween.t / camTween.dur), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+        cam.az = camTween.az0 + camTween.daz * e;
+        cam.el = camTween.el0 + camTween.del * e;
+        cam.zoom = camTween.z0 + camTween.dz * e;
+        placeCamera();
+        if (k >= 1) camTween = null;
+      }
+      if (lastField !== S.field) {
+        lastField = S.field;
+        magL.material = S.field > 0 ? MAG.N.left : MAG.S.left;
+        magR.material = S.field > 0 ? MAG.S.right : MAG.N.right;
+        for (const c of fieldCones) { c.position.x = 2.1 * S.field; c.rotation.z = -Math.PI / 2 * S.field; }
+      }
+      if (lastBatt !== S.battery) { lastBatt = S.battery; battery.rotation.y = S.battery > 0 ? 0 : Math.PI; }
+      fieldGroup.visible = S.showField;
+
+      coil.rotation.z = -S.theta * DEG;
+      updateParticles(st, sdt);
+
+      // 힘: 변 a, b 의 가운데에서 위·아래로
+      const p = M.sidePos(S.theta, R);
+      const len = 0.78 * S.I;
+      setArrow(arrowA, p.a[0], p.a[1], st.forceA, S.showForce && st.forceA ? len : 0);
+      setArrow(arrowB, p.b[0], p.b[1], -st.forceA, S.showForce && st.forceA ? len : 0);
+      const turn = st.torque > 0.03 ? 1 : st.torque < -0.03 ? -1 : 0;
+      arcs.cw.visible = S.showForce && turn > 0;
+      arcs.ccw.visible = S.showForce && turn < 0;
+
+      renderer.render(scene, camera);
+
+      // 이름표
+      const th = -S.theta * DEG, c = Math.cos(th), sn = Math.sin(th);
+      const rot = (x, y, z, el) => place(el, x * c - y * sn, x * sn + y * c, z);
+      setSide(TAG.a, 'a', st.a);
+      setSide(TAG.b, 'b', st.b);
+      // 변의 뒤쪽 끝, 힘과 반대쪽(위로 힘을 받으면 아래)에
+      const fy = st.forceA ? Math.sign(st.forceA) : 1;
+      place(TAG.a, p.a[0] * 1.12, p.a[1] - fy * 0.42, -1.3);
+      place(TAG.b, p.b[0] * 1.12, p.b[1] + fy * 0.42, -1.3);
+      if (S.commutator) { rot(-0.21, 0, ZC + 0.4, TAG.A); rot(0.21, 0, ZC + 0.4, TAG.B); }
+      else { place(TAG.A, 0, RC + 0.25, RING.A); place(TAG.B, 0, RC + 0.25, RING.B); }
+      const z = brushZ();
+      const lp = S.battery < 0;     // 왼쪽 브러시가 (+)인가
+      const bw = W < 560 ? '' : ' 브러시';
+      setText(TAG.bl, (lp ? '+' : '−') + bw); setCls(TAG.bl, 'pole ' + (lp ? 'plus' : 'minus'));
+      setText(TAG.br, (lp ? '−' : '+') + bw); setCls(TAG.br, 'pole ' + (lp ? 'minus' : 'plus'));
+      place(TAG.bl, -(RC + BW + 0.2), 0.42, z.L);
+      place(TAG.br, RC + BW + 0.2, 0.42, z.R);
+      setText(TAG.tl, lp ? '+' : '−'); setCls(TAG.tl, 'term ' + (lp ? 'plus' : 'minus'));
+      setText(TAG.tr, lp ? '−' : '+'); setCls(TAG.tr, 'term ' + (lp ? 'minus' : 'plus'));
+      place(TAG.tl, -0.62, BY + 0.62, ZC + 0.1);
+      place(TAG.tr, 0.62, BY + 0.62, ZC + 0.1);
+      if (arrowA.visible) {
+        place(TAG.Fa, p.a[0] + 0.24, p.a[1] + st.forceA * (len + 0.18), 0);
+        place(TAG.Fb, p.b[0] + 0.24, p.b[1] - st.forceA * (len + 0.18), 0);
+      } else { TAG.Fa.hidden = TAG.Fb.hidden = true; }
+      if (S.showField) place(TAG.Bf, -2.15 * S.field, 1.3, 1.5); else TAG.Bf.hidden = true;
+    }
+
+    rebuild();
+    resize();
+    return {update, rebuild, setTheme};
+  }
+
+  let G = null;
+  if (window.THREE) {
+    try { G = build3D(); } catch (e) { console.error(e); G = null; }
+  }
+  if (!G) {
+    const d = document.createElement('div');
+    d.className = 'no3d';
+    d.textContent = '3D 화면을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요. 오른쪽 정면 그림과 그래프는 그대로 쓸 수 있어요.';
+    $('stage').appendChild(d);
+  }
+
+  // ════════════════════════════════════════════════════════
+  // 2D: 정면도와 돌림힘 그래프
+  // ════════════════════════════════════════════════════════
+  const front = $('front'), graph = $('graph');
+  const fctx = front.getContext('2d'), gctx = graph.getContext('2d');
+  const dims = new Map();
+  function fitCanvas(cv) {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    dims.set(cv, {w, h, dpr});
+  }
+  const fitAll = () => { fitCanvas(front); fitCanvas(graph); };
+  fitAll();
+  if (window.ResizeObserver) { const ro = new ResizeObserver(fitAll); ro.observe(front); ro.observe(graph); }
+  else window.addEventListener('resize', fitAll);
+
+  function arrowHead(c, x, y, ang, size) {
+    c.beginPath();
+    c.moveTo(x, y);
+    c.lineTo(x - size * Math.cos(ang - 0.42), y - size * Math.sin(ang - 0.42));
+    c.lineTo(x - size * Math.cos(ang + 0.42), y - size * Math.sin(ang + 0.42));
+    c.closePath(); c.fill();
+  }
+
+  function drawFront(st) {
+    const {w, h, dpr} = dims.get(front);
+    const c = fctx;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.fillStyle = T.paper; c.fillRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2 + 2;
+    const R2 = Math.min(w * 0.235, h * 0.3);
+    const mw = Math.max(26, w * 0.085), mh = h * 0.72, my = cy - mh / 2;
+    const leftN = S.field > 0;
+    // 자석
+    const magnet = (x, isN) => {
+      c.fillStyle = isN ? '#c8412f' : '#2a5b8c';
+      c.fillRect(x, my, mw, mh);
+      c.fillStyle = '#ffffff';
+      c.font = `700 ${Math.round(mw * 0.62)}px ${T.font}`;
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(isN ? 'N' : 'S', x + mw / 2, cy);
+    };
+    magnet(6, leftN); magnet(w - 6 - mw, !leftN);
+    // 자기장선
+    if (S.showField) {
+      c.strokeStyle = T.field; c.fillStyle = T.field; c.lineWidth = 1.4; c.globalAlpha = 0.75;
+      const x0 = 6 + mw + 6, x1 = w - 6 - mw - 6;
+      for (const dy of [-R2 * 0.95, 0, R2 * 0.95]) {
+        c.beginPath(); c.moveTo(x0, cy + dy); c.lineTo(x1, cy + dy); c.stroke();
+        const ax = S.field > 0 ? x1 - 4 : x0 + 4;
+        arrowHead(c, ax, cy + dy, S.field > 0 ? 0 : Math.PI, 8);
+      }
+      c.globalAlpha = 1;
+    }
+    // 코일이 지나는 원
+    c.setLineDash([3, 5]); c.strokeStyle = T.line; c.lineWidth = 1.2;
+    c.beginPath(); c.arc(cx, cy, R2, 0, Math.PI * 2); c.stroke();
+    const p = M.sidePos(S.theta, R2);
+    const A = {x: cx + p.a[0], y: cy - p.a[1]}, B = {x: cx + p.b[0], y: cy - p.b[1]};
+    // 코일면(점선)과 θ
+    c.strokeStyle = T.muted; c.lineWidth = 1.4;
+    c.beginPath(); c.moveTo(A.x, A.y); c.lineTo(B.x, B.y); c.stroke();
+    c.setLineDash([]);
+    const th = S.theta * DEG;
+    if (S.theta > 2 && S.theta < 358) {
+      c.strokeStyle = T.muted; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(cx - R2 * 0.42 - 8, cy); c.lineTo(cx - R2 * 0.2, cy); c.stroke();
+      c.beginPath(); c.arc(cx, cy, R2 * 0.36, Math.PI, Math.PI + th, false); c.stroke();
+      const mid = Math.PI + th / 2;
+      c.fillStyle = T.muted; c.font = `600 12px ${T.font}`;
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText('θ', cx + Math.cos(mid) * (R2 * 0.36 + 10), cy + Math.sin(mid) * (R2 * 0.36 + 10));
+    }
+    // 정류자와 브러시 (축 위, 보는 사람 쪽)
+    const rc = Math.max(12, R2 * 0.2);
+    c.fillStyle = T.paper; c.beginPath(); c.arc(cx, cy, rc + 4, 0, Math.PI * 2); c.fill();
+    c.lineWidth = 6; c.lineCap = 'butt';
+    if (S.commutator) {
+      const gap = M.GAP_DEG * DEG, phiA = Math.PI + th, phiB = th;
+      c.strokeStyle = '#c4703a'; c.beginPath(); c.arc(cx, cy, rc, phiA - Math.PI / 2 + gap, phiA + Math.PI / 2 - gap); c.stroke();
+      c.strokeStyle = '#d6b052'; c.beginPath(); c.arc(cx, cy, rc, phiB - Math.PI / 2 + gap, phiB + Math.PI / 2 - gap); c.stroke();
+      c.font = `700 10px ${T.font}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillStyle = T.ink;
+      c.fillText('A', cx + Math.cos(phiA) * (rc - 9), cy + Math.sin(phiA) * (rc - 9));
+      c.fillText('B', cx + Math.cos(phiB) * (rc - 9), cy + Math.sin(phiB) * (rc - 9));
+    } else {
+      c.strokeStyle = '#d6b052'; c.beginPath(); c.arc(cx, cy, rc, 0, Math.PI * 2); c.stroke();
+    }
+    // 브러시
+    c.fillStyle = '#2b2e33';
+    c.fillRect(cx - rc - 13, cy - 5, 9, 10);
+    c.fillRect(cx + rc + 4, cy - 5, 9, 10);
+    c.font = `700 13px ${T.font}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    const rightPlus = S.battery > 0;
+    c.fillStyle = rightPlus ? T.north : T.ink; c.fillText(rightPlus ? '+' : '−', cx + rc + 8.5, cy - 14);
+    c.fillStyle = rightPlus ? T.ink : T.north; c.fillText(rightPlus ? '−' : '+', cx - rc - 8.5, cy - 14);
+    // 돌리려는 방향
+    if (S.showForce && Math.abs(st.torque) > 0.03) {
+      const dir = st.torque > 0 ? 1 : -1;        // 캔버스에서 각이 커지면 시계 방향
+      c.strokeStyle = T.turn; c.fillStyle = T.turn; c.lineWidth = 2.2;
+      c.globalAlpha = 0.45 + 0.55 * Math.min(1, Math.abs(st.torque));
+      const rr = R2 + 17;
+      for (const phi of [Math.PI + th, th]) {
+        const a0 = phi + dir * 0.22, a1 = phi + dir * 0.95;
+        c.beginPath(); c.arc(cx, cy, rr, a0, a1, dir < 0); c.stroke();
+        const ex = cx + rr * Math.cos(a1), ey = cy + rr * Math.sin(a1);
+        arrowHead(c, ex, ey, a1 + dir * Math.PI / 2, 9);
+      }
+      c.globalAlpha = 1;
+    }
+    // 힘
+    const fl = R2 * 0.42 * S.I;
+    if (S.showForce && st.forceA) {
+      c.strokeStyle = T.force; c.fillStyle = T.force; c.lineWidth = 3;
+      for (const [P, d] of [[A, st.forceA], [B, -st.forceA]]) {
+        const y0 = P.y - d * 12, y1 = P.y - d * (12 + fl);
+        c.beginPath(); c.moveTo(P.x, y0); c.lineTo(P.x, y1 + d * 6); c.stroke();
+        arrowHead(c, P.x, y1, d > 0 ? -Math.PI / 2 : Math.PI / 2, 11);
+        c.font = `700 13px ${T.font}`; c.textAlign = 'left';
+        c.fillText('F', P.x + 7, y1 + d * 8);
+      }
+    }
+    // 두 변 (⊙ / ⊗)
+    const side = (P, v, name, fdir) => {
+      c.fillStyle = T.paper; c.strokeStyle = T.ink; c.lineWidth = 2;
+      c.beginPath(); c.arc(P.x, P.y, 10.5, 0, Math.PI * 2); c.fill(); c.stroke();
+      c.fillStyle = T.ink;
+      if (v > 0) { c.beginPath(); c.arc(P.x, P.y, 3.4, 0, Math.PI * 2); c.fill(); }
+      else if (v < 0) {
+        c.lineWidth = 1.8; c.beginPath();
+        c.moveTo(P.x - 6, P.y - 6); c.lineTo(P.x + 6, P.y + 6); c.moveTo(P.x + 6, P.y - 6); c.lineTo(P.x - 6, P.y + 6); c.stroke();
+      }
+      // 이름은 힘과 반대쪽(위로 힘을 받으면 아래)에 적는다
+      c.font = `600 14px ${T.font}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(name, P.x, P.y + (fdir < 0 ? -23 : 23));
+    };
+    side(A, st.a, 'a', S.showForce ? st.forceA : 0); side(B, st.b, 'b', S.showForce ? -st.forceA : 0);
+  }
+
+  function drawGraph(st) {
+    const {w, h, dpr} = dims.get(graph);
+    const c = gctx;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.fillStyle = T.paper; c.fillRect(0, 0, w, h);
+    const L = 34, Rm = 10, Tp = 10, Bm = 22;
+    const X = d => L + (w - L - Rm) * d / 360;
+    const Y = v => Tp + (h - Tp - Bm) * (1 - (v + 1.15) / 2.3);
+    const font = T.font;
+    // 정류자 틈
+    if (S.commutator) {
+      c.fillStyle = T.gap;
+      for (const g of [90, 270]) c.fillRect(X(g - M.GAP_DEG), Tp, X(g + M.GAP_DEG) - X(g - M.GAP_DEG), h - Tp - Bm);
+    }
+    // 눈금
+    c.strokeStyle = T.lineSoft; c.lineWidth = 1;
+    c.fillStyle = T.muted; c.font = `500 11px ${font}`; c.textBaseline = 'top'; c.textAlign = 'center';
+    for (const d of [0, 90, 180, 270, 360]) {
+      c.beginPath(); c.moveTo(X(d), Tp); c.lineTo(X(d), h - Bm); c.stroke();
+      c.textAlign = d === 360 ? 'right' : 'center';
+      c.fillText(d + '°', d === 360 ? X(d) + 4 : X(d), h - Bm + 5);
+    }
+    c.textAlign = 'right'; c.textBaseline = 'middle';
+    for (const [v, t] of [[1, '+최대'], [0, '0'], [-1, '−최대']]) {
+      c.strokeStyle = v === 0 ? T.line : T.lineSoft;
+      c.beginPath(); c.moveTo(L, Y(v)); c.lineTo(w - Rm, Y(v)); c.stroke();
+      c.fillText(t, L - 4, Y(v));
+    }
+    const curve = (o, color, width, dash) => {
+      c.strokeStyle = color; c.lineWidth = width; c.setLineDash(dash || []);
+      c.beginPath();
+      for (let d = 0; d <= 360; d += 1) {
+        const v = M.state(d, o).torque;
+        if (d === 0) c.moveTo(X(d), Y(v)); else c.lineTo(X(d), Y(v));
+      }
+      c.stroke(); c.setLineDash([]);
+    };
+    const o = opt();
+    curve(Object.assign({}, o, {commutator: !o.commutator}), T.muted, 1.4, [4, 4]);
+    curve(o, T.copper, 2.6);
+    // 지금 위치
+    c.strokeStyle = T.ink; c.lineWidth = 1; c.setLineDash([2, 3]);
+    c.beginPath(); c.moveTo(X(S.theta), Tp); c.lineTo(X(S.theta), h - Bm); c.stroke(); c.setLineDash([]);
+    c.fillStyle = T.copper; c.strokeStyle = T.paper; c.lineWidth = 2;
+    c.beginPath(); c.arc(X(S.theta), Y(st.torque), 5.5, 0, Math.PI * 2); c.fill(); c.stroke();
+  }
+
+  // ════════════════════════════════════════════════════════
+  // 글과 조작
+  // ════════════════════════════════════════════════════════
+  const ui = {
+    play: $('play'), playText: $('playText'), playIcon: $('playIcon'),
+    theta: $('theta'), thetaOut: $('thetaOut'), current: $('current'), currentOut: $('currentOut'),
+    held: $('held'), hudTheta: $('hudTheta'), hudFlow: $('hudFlow'), frontStatus: $('frontStatus'),
+    pathBox: $('pathBox'), pathNote: $('pathNote'), graphCap: $('graphCap'),
+    stall: $('stall'), stallText: $('stallText'), stallBtn: $('stallBtn'),
+    dotKey: $('dotKey'), dotText: $('dotText')
+  };
+  const PAUSE = '<rect x="2" y="1.5" width="3.6" height="11" rx="1"/><rect x="8.4" y="1.5" width="3.6" height="11" rx="1"/>';
+  const PLAY = '<path d="M3 1.6v10.8a.8.8 0 0 0 1.2.7l8.6-5.4a.8.8 0 0 0 0-1.4L4.2.9A.8.8 0 0 0 3 1.6z"/>';
+  function syncPlay() {
+    ui.play.setAttribute('aria-pressed', String(S.playing));
+    ui.playText.textContent = S.playing ? '멈추기' : '돌리기';
+    ui.playIcon.innerHTML = S.playing ? PAUSE : PLAY;
+    ui.held.hidden = S.playing;
+  }
+  function hold() { S.playing = false; S.omega = 0; stallTime = 0; syncPlay(); }
+  function goAngle(deg) {
+    hold();
+    let d = M.wrap360(deg - S.theta);
+    if (d > 180) d -= 360;
+    tween = {from: S.theta, delta: d, t: 0, dur: reduceMotion ? 0.001 : 0.45};
+  }
+
+  ui.play.addEventListener('click', () => {
+    tween = null;
+    if (S.playing) hold();
+    else { S.playing = true; stallTime = 0; syncPlay(); }
+  });
+  ui.theta.addEventListener('input', () => { tween = null; hold(); S.theta = +ui.theta.value; });
+  ui.theta.addEventListener('pointerdown', () => { sliding = true; });
+  window.addEventListener('pointerup', () => { sliding = false; });
+  window.addEventListener('pointercancel', () => { sliding = false; });
+  document.querySelectorAll('[data-angle]').forEach(b => b.addEventListener('click', () => goAngle(+b.dataset.angle)));
+  ui.current.addEventListener('input', () => { S.I = +ui.current.value; });
+  document.querySelectorAll('[data-speed]').forEach(b => b.addEventListener('click', () => {
+    S.timeScale = +b.dataset.speed;
+    document.querySelectorAll('[data-speed]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+  function setComm(on) {
+    S.commutator = on;
+    $('tComm').setAttribute('aria-pressed', String(on));
+    $('tComm').textContent = on ? '정류자' : '정류자 없음 (고리 2개)';
+    if (G) G.rebuild();
+  }
+  function setBatt(flip) { S.battery = flip ? -1 : 1; $('tBatt').setAttribute('aria-pressed', String(flip)); }
+  function setField(flip) { S.field = flip ? -1 : 1; $('tField').setAttribute('aria-pressed', String(flip)); }
+  $('tComm').addEventListener('click', () => setComm(!S.commutator));
+  $('tBatt').addEventListener('click', () => setBatt(S.battery > 0));
+  $('tField').addEventListener('click', () => setField(S.field > 0));
+  $('cField').addEventListener('change', e => { S.showField = e.target.checked; });
+  $('cForce').addEventListener('change', e => { S.showForce = e.target.checked; });
+  $('cElec').addEventListener('change', e => {
+    S.electron = e.target.checked;
+    ui.dotKey.className = S.electron ? 'e' : '';
+    ui.dotText.textContent = S.electron ? '전자 (−→＋)' : '전류 (＋→−)';
+    if (G) G.setTheme();
+  });
+  ui.stallBtn.addEventListener('click', () => {
+    if (!S.commutator) { setComm(true); }
+    S.playing = true; syncPlay();
+    S.omega = 60 * S.battery * S.field;
+    stallTime = 0;
+  });
+
+  // 스스로 확인: 시뮬레이션을 그 상황으로 맞춘다
+  const TRY = {
+    q1: () => { setComm(true); setBatt(false); setField(false); goAngle(90); },
+    q2: () => { setComm(false); setBatt(false); setField(false); tween = null; S.theta = 0; S.omega = 0; S.playing = true; stallTime = 0; syncPlay(); },
+    q3: () => { setComm(true); setField(false); setBatt(true); tween = null; if (!S.playing) { S.playing = true; stallTime = 0; syncPlay(); } },
+    q4: () => { setComm(true); S.I = 2; ui.current.value = 2; goAngle(0); }
+  };
+  document.querySelectorAll('[data-try]').forEach(b => b.addEventListener('click', () => {
+    TRY[b.dataset.try]();
+    $('stage').scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block: 'center'});
+  }));
+
+  let pathSig = '', lastMsg = '', sliding = false;
+  function updateText(st) {
+    const t = Math.round(S.theta) % 360;
+    const tt = t + '°';
+    if (ui.thetaOut.textContent !== tt) {
+      ui.thetaOut.textContent = tt;
+      ui.hudTheta.textContent = 'θ = ' + tt;
+      if (!sliding) ui.theta.value = t;
+    }
+    ui.currentOut.textContent = '×' + S.I.toFixed(1);
+    const flowTxt = st.flowing ? (S.electron ? '전자 이동 중' : '전류 흐름') : '정류자 틈 · 전류 0';
+    if (ui.hudFlow.textContent !== flowTxt) { ui.hudFlow.textContent = flowTxt; ui.hudFlow.className = 'pill' + (st.flowing ? '' : ' off'); }
+
+    // 정면 패널 아래 한 줄
+    let msg;
+    const pct = Math.round(Math.abs(st.torque) * 100);
+    if (!st.flowing) msg = '돌림힘 <span class="n">0</span> · 정류자 틈에 브러시가 걸려 전류가 끊겼어요';
+    else if (pct < 3) msg = '힘은 받지만 돌림힘은 <span class="n">0</span> · 두 힘이 축을 지나는 한 직선 위에 있어요';
+    else msg = `돌림힘 <span class="n">${pct}%</span> · ${st.torque > 0 ? '시계' : '반시계'} 방향으로 돌리려 해요`;
+    if (lastMsg !== msg) { lastMsg = msg; ui.frontStatus.innerHTML = msg; }
+
+    // 전류의 길
+    const steps = M.pathSteps(S.theta, opt());
+    const sig = steps ? steps.map(s => s.text).join('|') + S.electron : 'cut';
+    if (sig !== pathSig) {
+      pathSig = sig;
+      if (!steps) ui.pathBox.innerHTML = '<p class="cut">정류자의 틈이 브러시를 지나는 중이라 회로가 잠깐 끊겼어요. 전류도 돌림힘도 0이지만, 돌던 코일은 관성으로 지나가요. 이 틈을 지나면 코일 속 전류 방향이 반대로 바뀌어요.</p>';
+      else {
+        const list = S.electron ? steps.slice().reverse() : steps;
+        ui.pathBox.innerHTML = '<ol class="path">' + list.map(s => {
+          const cls = s.key.startsWith('side') ? 'chip coil' : (s.key === 'plus' || s.key === 'minus') ? 'chip end' : 'chip';
+          const t = s.text.replace('⊙', '<i class="sym out" aria-label="앞으로 나옴"></i>').replace('⊗', '<i class="sym in" aria-label="뒤로 들어감"></i>');
+          return `<li><span class="${cls}">${t}</span></li>`;
+        }).join('') + '</ol>';
+      }
+      ui.pathNote.textContent = (S.electron
+        ? '전자는 (−)극에서 나와 전류와 반대 방향으로 움직여요. 힘의 방향은 전류 방향으로 정해요.'
+        : '노란 점은 전류의 방향((+)극 → (−)극)으로 움직여요.')
+        + (S.commutator ? ' 코일을 반 바퀴 돌려 보면 정류자 A·B가 닿는 브러시가 바뀌어요.' : ' 고리 A는 늘 왼쪽, B는 늘 오른쪽 브러시에 닿아 코일 속 전류 방향이 바뀌지 않아요.');
+    }
+    ui.graphCap.textContent = S.commutator ? '굵은 선: 지금 설정 · 점선: 정류자가 없을 때 · 붉은 띠: 정류자 틈' : '굵은 선: 지금 설정(정류자 없음) · 점선: 정류자가 있을 때';
+  }
+
+  function updateStall(st, dt) {
+    if (S.playing && !tween && Math.abs(S.omega) < 4 && Math.abs(st.torque) < 0.06) stallTime += dt; else stallTime = 0;
+    const show = stallTime > 0.9;
+    if (show && ui.stall.hidden) {
+      if (S.commutator) {
+        ui.stallText.textContent = `θ = ${Math.round(S.theta)}°는 돌림힘이 0인 자리예요. 여기서 멈춰 있으면 코일이 스스로 출발하지 못해요. 실제 전동기도 이럴 때 살짝 밀어 주거나 코일을 여러 개 감아요.`;
+        ui.stallBtn.textContent = '살짝 밀기';
+      } else {
+        ui.stallText.textContent = `정류자가 없으니 코일이 θ = ${Math.round(S.theta)}°(코일면이 자기장에 수직)에서 멈췄어요. 이 자리를 넘으면 돌림힘이 반대가 되어 되돌아오기 때문이에요.`;
+        ui.stallBtn.textContent = '정류자 달고 다시 돌리기';
+      }
+    }
+    if (ui.stall.hidden === show) ui.stall.hidden = !show;
+  }
+
+  // ── 테마가 바뀌면 색을 다시 읽는다 ──
+  const onTheme = () => { readTokens(); if (G) G.setTheme(); };
+  if (window.matchMedia) {
+    const mq = matchMedia('(prefers-color-scheme: dark)');
+    if (mq.addEventListener) mq.addEventListener('change', onTheme); else if (mq.addListener) mq.addListener(onTheme);
+  }
+  new MutationObserver(onTheme).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme', 'class']});
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { pathSig = ''; });
+
+  // ── 한 장면씩 ──
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+    last = now;
+    const sdt = dt * S.timeScale;
+    if (tween) {
+      tween.t += dt;
+      const k = Math.min(1, tween.t / tween.dur), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      S.theta = M.wrap360(tween.from + tween.delta * e);
+      if (k >= 1) { S.theta = M.wrap360(Math.round(tween.from + tween.delta)); tween = null; }
+    } else if (S.playing) {
+      const n = M.step(S, sdt, S.I, opt());
+      S.theta = n.theta; S.omega = n.omega;
+    }
+    const st = M.state(S.theta, opt());
+    if (G) G.update(st, sdt, dt);
+    drawFront(st);
+    drawGraph(st);
+    updateText(st);
+    updateStall(st, dt);
+    requestAnimationFrame(frame);
+  }
+  syncPlay();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

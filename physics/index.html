@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>물리 실험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: 과목(물리학 Ⅰ, Ⅱ)별로 단원 순서대로 카드를 늘어놓은 목록 한 장 */
+:root{
+  --bg:#eef1ef; --paper:#ffffff; --ink:#18232b; --muted:#56656d; --line:#d3dbdb; --line-soft:#e5eaea;
+  --copper:#a95a22; --copper-soft:#f5e7dc; --north:#c8412f; --south:#2a5b8c; --thumb:#f4f6f5;
+  --font-ui:"IBM Plex Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1315; --paper:#151c1f; --ink:#e4eaec; --muted:#97a6ad; --line:#2b373c; --line-soft:#212b2f;
+    --copper:#e39a62; --copper-soft:#33241a; --north:#ec6a55; --south:#6a9fd6; --thumb:#1b2427;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1315; --paper:#151c1f; --ink:#e4eaec; --muted:#97a6ad; --line:#2b373c; --line-soft:#212b2f;
+  --copper:#e39a62; --copper-soft:#33241a; --north:#ec6a55; --south:#6a9fd6; --thumb:#1b2427;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 56px}
+.page{max-width:1040px;margin:0 auto}
+:focus-visible{outline:2px solid var(--copper);outline-offset:3px}
+header{padding-block:36px 8px;display:grid;gap:6px}
+.kicker{font:600 12.5px/1 var(--font-num);letter-spacing:.08em;color:var(--copper)}
+h1{margin:0;font-size:clamp(28px,4.4vw,40px);font-weight:700;letter-spacing:-.025em;line-height:1.2}
+.lead{margin:0;color:var(--muted);max-width:60ch}
+.course{margin-top:34px}
+.course h2{margin:0 0 14px;font-size:18px;font-weight:700;display:flex;align-items:baseline;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.course h2 small{font:500 12.5px var(--font-num);color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.card{display:grid;grid-template-rows:auto 1fr;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;
+  color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
+.card:hover{border-color:var(--copper);transform:translateY(-2px)}
+.thumb{background:var(--thumb);border-bottom:1px solid var(--line-soft);aspect-ratio:16/8.5;display:grid;place-items:center}
+.thumb svg{width:100%;height:100%;display:block}
+.body{padding:14px 16px 16px;display:grid;gap:4px;align-content:start}
+.unit{font-size:12.5px;font-weight:600;color:var(--copper)}
+.card h3{margin:0;font-size:17px;letter-spacing:-.01em}
+.card p{margin:0;font-size:14px;color:var(--muted)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chips span{font:600 11.5px var(--font-num);padding:2px 8px;border-radius:999px;background:var(--copper-soft);color:var(--copper)}
+.empty{margin:0;padding:18px;border:1px dashed var(--line);border-radius:16px;color:var(--muted);font-size:14px}
+@media (prefers-reduced-motion: reduce){.card{transition:none}.card:hover{transform:none}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="kicker">PHYSICS LAB</div>
+    <h1>물리 실험실</h1>
+    <p class="lead">물리학 Ⅰ·Ⅱ 개념을 직접 움직여 보면서 공부하는 시뮬레이션 모음.</p>
+  </header>
+  <main id="list"></main>
+</div>
+<script>
+// 새 시뮬레이션은 여기 한 줄 추가. course: 1 = 물리학 Ⅰ, 2 = 물리학 Ⅱ. 같은 과목 안에서는 적은 순서대로 보인다.
+const SIMS = [
+  {course: 1, href: 'dc-motor/', unit: '전류의 자기 작용', title: '직류 전동기',
+   desc: '자기장 속 코일이 받는 힘, 정류자가 반 바퀴마다 전류를 뒤집는 모습을 3D로 돌려 본다.', tags: ['3D', '전류 흐름', '돌림힘'], thumb: 'motor'}
+];
+const COURSES = [{id: 1, name: '물리학 Ⅰ'}, {id: 2, name: '물리학 Ⅱ'}];
+
+// 카드 그림 (색은 테마 토큰을 따른다)
+const THUMBS = {
+  motor: `<svg viewBox="0 0 320 170" aria-hidden="true">
+    <rect x="22" y="30" width="34" height="110" rx="3" fill="var(--north)"/>
+    <rect x="264" y="30" width="34" height="110" rx="3" fill="var(--south)"/>
+    <text x="39" y="92" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="20" fill="#fff">N</text>
+    <text x="281" y="92" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="20" fill="#fff">S</text>
+    <g stroke="var(--muted)" stroke-opacity=".35" stroke-width="1.5"><line x1="64" y1="50" x2="256" y2="50"/><line x1="64" y1="85" x2="256" y2="85"/><line x1="64" y1="120" x2="256" y2="120"/></g>
+    <circle cx="160" cy="85" r="52" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>
+    <line x1="115" y1="59" x2="205" y2="111" stroke="var(--copper)" stroke-width="3"/>
+    <circle cx="115" cy="59" r="9" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/><circle cx="115" cy="59" r="3" fill="var(--ink)"/>
+    <circle cx="205" cy="111" r="9" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/>
+    <path d="M200 106l10 10M210 106l-10 10" stroke="var(--ink)" stroke-width="1.8"/>
+    <path d="M100 44a62 62 0 0 1 44-22" fill="none" stroke="var(--copper)" stroke-width="2.4"/><path d="M146 17l8 5-9 4z" fill="var(--copper)"/>
+    <path d="M220 126a62 62 0 0 1-44 22" fill="none" stroke="var(--copper)" stroke-width="2.4"/><path d="M174 153l-8-5 9-4z" fill="var(--copper)"/>
+  </svg>`
+};
+
+const list = document.getElementById('list');
+for (const c of COURSES) {
+  const items = SIMS.filter(s => s.course === c.id);
+  const sec = document.createElement('section');
+  sec.className = 'course';
+  sec.innerHTML = `<h2>${c.name} <small>${items.length}개</small></h2>` + (items.length
+    ? '<div class="grid">' + items.map(s => `<a class="card" href="${s.href}">
+        <div class="thumb">${THUMBS[s.thumb] || ''}</div>
+        <div class="body"><span class="unit">${s.unit}</span><h3>${s.title}</h3><p>${s.desc}</p>
+          <div class="chips">${(s.tags || []).map(t => `<span>${t}</span>`).join('')}</div></div></a>`).join('') + '</div>'
+    : '<p class="empty">아직 없어요. 공부하면서 하나씩 채워 갈 자리예요.</p>');
+  list.appendChild(sec);
+}
+</script>
+</body>
+</html>
