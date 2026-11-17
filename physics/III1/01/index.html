@@ -42,7 +42,7 @@
 
       <div class="controls">
         <div class="row">
-          <button type="button" class="play" id="play" aria-pressed="true"><svg viewBox="0 0 14 14" aria-hidden="true" id="playIcon"></svg><span id="playText">멈추기</span></button>
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
           <button type="button" class="btn" id="stepQ">¼ 주기 앞으로</button>
           <div class="group mode" role="group" aria-label="보기">
             <span class="gl">보기</span>
@@ -165,14 +165,15 @@
   </section>
 </div>
 
-<script src="../III1-model.js"></script>
+<script src="../../kit/lab.js"></script>
+<script src="III1-01-model.js"></script>
 <script>
 (function () {
   'use strict';
-  const M = window.III1Model;
-  const $ = (id) => document.getElementById(id);
-  const reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-  try { if (window.self !== window.top) document.querySelector('.back').hidden = true; } catch (e) {}
+  const M = window.III1_01;
+  const {$, C, text, arrow, bracket} = Lab;
+  const reduceMotion = Lab.reduceMotion;
+  const fmt = (v, d = 2) => String(+v.toFixed(d));
 
   // ── 상태 ────────────────────────────────────────────────
   const EX = {lambda: 0.4, f: 5, A: 3};
@@ -182,59 +183,8 @@
   const XP = 0.5;                  // 점 P 의 평형 위치 (m)
   const wave = () => ({A: S.A, f: S.f, lambda: S.lambda, dir: S.dir});
 
-  // ── 색 (테마가 바뀌면 다시 읽음) ───────────────────────────
-  let C = {};
-  const readColors = () => {
-    const cs = getComputedStyle(document.documentElement);
-    for (const k of ['ink', 'muted', 'grid', 'line', 'line-soft', 'paper', 'bg', 'copper', 'copper-soft', 'vel', 'vel-soft', 'acc', 'acc-soft', 'neg', 'neg-soft', 'violet'])
-      C[k] = cs.getPropertyValue('--' + k).trim();
-  };
-  readColors();
-  if (window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); });
-
-  // ── 캔버스 도우미 ────────────────────────────────────────
-  const views = {};
-  function view(id) {
-    const el = $(id), ctx = el.getContext('2d'), v = {el, ctx, W: 0, H: 0};
-    const fit = () => {
-      const r = el.getBoundingClientRect(), dpr = Math.min(2.5, window.devicePixelRatio || 1);
-      v.W = r.width; v.H = r.height;
-      el.width = Math.round(r.width * dpr); el.height = Math.round(r.height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      draw();
-    };
-    new ResizeObserver(fit).observe(el);
-    views[id] = v;
-    return v;
-  }
-  // 캔버스 글자: 폰에서도 읽히게 최소 13px, 기본보다 한 단계 크게
-  const FONT = (s, w = 600, mono = false) => `${w >= 600 ? 700 : 500} ${Math.max(13, s + 1.5)}px ${mono ? '"IBM Plex Mono",ui-monospace,monospace' : '"Noto Sans KR",system-ui,sans-serif'}`;
-  function text(ctx, s, x, y, o = {}) {
-    ctx.save(); ctx.font = FONT(o.size || 12, o.w || 600, o.mono); ctx.fillStyle = o.color || C.ink;
-    ctx.textAlign = o.align || 'center'; ctx.textBaseline = o.base || 'middle';
-    if (o.halo) { ctx.lineWidth = 4; ctx.strokeStyle = o.halo; ctx.lineJoin = 'round'; ctx.strokeText(s, x, y); }
-    ctx.fillText(s, x, y); ctx.restore();
-  }
-  function arrow(ctx, x0, y0, x1, y1, col, w = 2.5, h = 9) {
-    const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy); if (L < 1) return;
-    const ux = dx / L, uy = dy / L, hh = Math.min(h, L * 0.6);
-    ctx.save(); ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - ux * hh * 0.8, y1 - uy * hh * 0.8); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 - ux * hh - uy * hh * 0.5, y1 - uy * hh + ux * hh * 0.5);
-    ctx.lineTo(x1 - ux * hh + uy * hh * 0.5, y1 - uy * hh - ux * hh * 0.5); ctx.closePath(); ctx.fill(); ctx.restore();
-  }
-  function bracket(ctx, x0, x1, y, col, label, up = true) {   // 가로 자: |——λ——|
-    const t = up ? -5 : 5;
-    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.moveTo(x0, y + t); ctx.lineTo(x0, y - t); ctx.moveTo(x1, y + t); ctx.lineTo(x1, y - t); ctx.stroke();
-    ctx.restore();
-    arrow(ctx, (x0 + x1) / 2, y, x0 + 1, y, col, 1.6, 7); arrow(ctx, (x0 + x1) / 2, y, x1 - 1, y, col, 1.6, 7);
-    text(ctx, label, (x0 + x1) / 2, y + (up ? -12 : 13), {size: 12, color: col, w: 700, mono: true, halo: C.paper});
-  }
-  const fmt = (v, d = 2) => String(+v.toFixed(d));
-
   // ── 무대 ────────────────────────────────────────────────
-  const stage = view('stage'), yx = view('yx'), yt = view('yt'), strobe = view('strobe');
+  const stage = Lab.canvas('stage', draw), yx = Lab.canvas('yx', draw), yt = Lab.canvas('yt', draw), strobe = Lab.canvas('strobe', draw);
 
   function drawStage() {
     const {ctx, W, H} = stage; if (!W) return;
@@ -263,7 +213,7 @@
     // 공통: 진행 방향 화살표
     const ax = W - pad - 50, ay = narrow ? 58 : 26;
     arrow(ctx, ax - S.dir * 30, ay, ax + S.dir * 30, ay, C.vel, 3, 10);
-    text(ctx, '진행 방향', ax - 44, ay, {size: 11.5, color: C.vel, align: 'right'});
+    text(ctx, '진행 방향', ax - 44, ay, {size: 13, color: C.vel, align: 'right'});
     // 마루 위치
     const crestXs = M.crests(t, w, -S.lambda, XW + S.lambda);
     const inView = crestXs.filter((x) => x >= 0 && x <= XW);
@@ -274,14 +224,14 @@
       // 평형선
       ctx.save(); ctx.strokeStyle = C.line; ctx.setLineDash([4, 5]); ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(pad - 10, yT); ctx.lineTo(W - pad + 10, yT); ctx.stroke(); ctx.restore();
-      text(ctx, '횡파 · 줄', pad - 4, labT, {size: 12.5, w: 700, align: 'left'});
-      text(ctx, '진동 ⊥ 진행', pad + 82, labT, {size: 11.5, w: 500, align: 'left', color: C.muted});
+      text(ctx, '횡파 · 줄', pad - 4, labT, {size: 14, w: 700, align: 'left'});
+      text(ctx, '진동 ⊥ 진행', pad + 82, labT, {size: 13, w: 500, align: 'left', color: C.muted});
       // 줄
       ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.beginPath();
       for (let i = 0; i <= 240; i++) { const x = XW * i / 240; const px = X(x), py = pT(x); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
       ctx.stroke(); ctx.restore();
       // 매질 구슬
-      const N = narrow ? 24 : 32;
+      const N = Math.max(narrow ? 24 : 32, Math.ceil(XW / S.lambda * 8));   // 한 파장에 구슬 8개 이상
       for (let i = 0; i <= N; i++) { const x = XW * i / N; ctx.beginPath(); ctx.arc(X(x), pT(x), narrow ? 3.6 : 4.4, 0, 7); ctx.fillStyle = C.vel; ctx.fill(); }
       // 진폭·파장 자
       if (S.ruler && inView.length >= 2) {
@@ -290,12 +240,12 @@
         // 진폭: 가장 오른쪽 마루에서 평형선까지
         const ca = inView[inView.length - 1], xa = Math.min(X(ca) + 16, W - pad);
         arrow(ctx, xa, yT, xa, yT - ampPx + 1, C.violet, 1.6, 7); arrow(ctx, xa, yT - ampPx, xa, yT - 1, C.violet, 1.6, 7);
-        text(ctx, 'A', xa + 10, yT - ampPx / 2, {size: 12, color: C.violet, w: 700});
+        text(ctx, 'A', xa + 10, yT - ampPx / 2, {size: 13.5, color: C.violet, w: 700});
       }
       if (trackX !== null) {
         const px = X(trackX), py = pT(trackX);
         ctx.beginPath(); ctx.moveTo(px, py - 8); ctx.lineTo(px - 7, py - 19); ctx.lineTo(px + 7, py - 19); ctx.closePath(); ctx.fillStyle = C.vel; ctx.fill();
-        text(ctx, '마루', px - 11, py - 14, {size: 11.5, color: C.vel, w: 700, halo: C.paper, align: 'right'});
+        text(ctx, '마루', px - 11, py - 14, {size: 13, color: C.vel, w: 700, halo: true, align: 'right'});
       }
       // 점 P
       const px = X(XP), py = pT(XP);
@@ -307,12 +257,12 @@
       const vmax = S.A * M.TAU * S.f;
       if (Math.abs(vy) > vmax * 0.08) arrow(ctx, px + 14, py, px + 14, py + Math.sign(vy) * (8 + 18 * Math.abs(vy) / vmax), C.acc, 2.5, 8);
       ctx.beginPath(); ctx.arc(px, py, 9, 0, 7); ctx.fillStyle = C.copper; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.paper; ctx.stroke();
-      text(ctx, 'P', px - 15, py - 10, {size: 13, color: C.copper, w: 700, halo: C.paper});
+      text(ctx, 'P', px - 15, py - 10, {size: 14.5, color: C.copper, w: 700, halo: true});
     }
 
     if (showL) {
-      text(ctx, '종파 · 용수철', pad - 4, labL, {size: 12.5, w: 700, align: 'left'});
-      text(ctx, '진동 ∥ 진행', pad + 116, labL, {size: 11.5, w: 500, align: 'left', color: C.muted});
+      text(ctx, '종파 · 용수철', pad - 4, labL, {size: 14, w: 700, align: 'left'});
+      text(ctx, '진동 ∥ 진행', pad + 116, labL, {size: 13, w: 500, align: 'left', color: C.muted});
       // 변위를 과장해서 그림: 최대 변형률 0.75 이하가 되게
       const sScale = 0.12 * S.lambda * (S.A / 5);                    // 최대 변위 (m, 그림용)
       const s = (x) => sScale * M.disp(x, t, w) / S.A;
@@ -338,8 +288,8 @@
         // 밀: 변위 0 이고 ∂s/∂x < 0 인 곳 → 오른쪽 진행이면 위상 f t − x/λ = k
         const xd = S.dir * S.lambda * (S.f * t - k);
         const xr = xd + S.lambda / 2;
-        if (xd >= 0.02 && xd <= XW - 0.02) text(ctx, '밀', X(xd), ys, {size: 12, color: C.vel, w: 700});
-        if (xr >= 0.02 && xr <= XW - 0.02) text(ctx, '소', X(xr), ys, {size: 12, color: C.muted, w: 600});
+        if (xd >= 0.02 && xd <= XW - 0.02) text(ctx, '밀', X(xd), ys, {size: 13.5, color: C.vel, w: 700});
+        if (xr >= 0.02 && xr <= XW - 0.02) text(ctx, '소', X(xr), ys, {size: 13.5, color: C.muted, w: 600});
       }
       if (S.ruler) {
         const ds = []; for (let k = -2; k < 12; k++) { const xd = S.dir * S.lambda * (S.f * t - k); if (xd >= 0 && xd <= XW) ds.push(xd); }
@@ -354,7 +304,7 @@
       }
       ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 3.4;
       ctx.beginPath(); ctx.ellipse(px, yL, 3.6, hL * 0.82, 0, 0, 7); ctx.stroke(); ctx.restore();
-      text(ctx, 'P', px, yL - hL - 16, {size: 13, color: C.copper, w: 700, halo: C.paper});
+      text(ctx, 'P', px, yL - hL - 16, {size: 14.5, color: C.copper, w: 700, halo: true});
       const vx = M.vel(XP, t, w), vmax = S.A * M.TAU * S.f;
       if (Math.abs(vx) > vmax * 0.08) arrow(ctx, px, yL + hL * 0.5, px + Math.sign(vx) * (8 + 18 * Math.abs(vx) / vmax), yL + hL * 0.5, C.acc, 2.5, 8);
       // 횡파와 맞대기: 같은 x 에서의 밀·마루 관계 (둘 다 볼 때)
@@ -374,10 +324,10 @@
     for (let k = 0; k <= XW * 10 + 1e-9; k++) {
       const x = X(k / 10), big = k % 2 === 0;
       ctx.beginPath(); ctx.moveTo(x, ty - (big ? 4 : 2)); ctx.lineTo(x, ty + (big ? 4 : 2)); ctx.stroke();
-      if (big && (!narrow || k % 4 === 0)) text(ctx, fmt(k / 10, 1), x, ty + 11, {size: 10, color: C.muted, w: 500, mono: true});
+      if (big && (!narrow || k % 4 === 0)) text(ctx, fmt(k / 10, 1), x, ty + 11, {size: 11.5, color: C.muted, w: 500, mono: true});
     }
     ctx.restore();
-    text(ctx, 'm', X(XW) + 12, ty + 11, {size: 10, color: C.muted, w: 500});
+    text(ctx, 'm', X(XW) + 12, ty + 11, {size: 11.5, color: C.muted, w: 500});
   }
 
   // ── y-x 그래프 ──────────────────────────────────────────
@@ -386,8 +336,8 @@
     arrow(ctx, r.x, r.y + r.h / 2, r.x + r.w + 8, r.y + r.h / 2, C.muted, 1.2, 6);
     arrow(ctx, r.x, r.y + r.h, r.x, r.y - 6, C.muted, 1.2, 6);
     ctx.restore();
-    text(ctx, xl, r.x + r.w + 4, r.y + r.h / 2 + 13, {size: 11, color: C.muted, w: 500, align: 'right'});
-    text(ctx, yl, r.x + 6, r.y - 2, {size: 11, color: C.muted, w: 500, align: 'left'});
+    text(ctx, xl, r.x + r.w + 4, r.y + r.h / 2 + 13, {size: 12.5, color: C.muted, w: 500, align: 'right'});
+    text(ctx, yl, r.x + 6, r.y - 2, {size: 12.5, color: C.muted, w: 500, align: 'left'});
   }
   function drawYX() {
     const {ctx, W, H} = yx; if (!W) return;
@@ -403,14 +353,14 @@
     // P 와 '다음 순간' 위치: 진행 방향의 반대쪽 이웃의 높이
     const yP = M.disp(XP, S.t, w), up = M.vel(XP, S.t, w);
     ctx.beginPath(); ctx.arc(X(XP), Y(yP), 5.5, 0, 7); ctx.fillStyle = C.copper; ctx.fill();
-    text(ctx, 'P', X(XP) - 11, Y(yP) - 9, {size: 12, color: C.copper, w: 700, halo: C.paper});
+    text(ctx, 'P', X(XP) - 11, Y(yP) - 9, {size: 13.5, color: C.copper, w: 700, halo: true});
     if (Math.abs(up) > 1e-6) arrow(ctx, X(XP) + 11, Y(yP), X(XP) + 11, Y(yP) - Math.sign(up) * 16, C.acc, 2.2, 7);
     // 파선: 조금 뒤의 모양 (진행 방향으로 밀린 모양)
     const dt = 0.08 / S.f;
     ctx.save(); ctx.strokeStyle = C.vel; ctx.globalAlpha = 0.45; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.4; ctx.beginPath();
     for (let i = 0; i <= 200; i++) { const x = XW * i / 200; i ? ctx.lineTo(X(x), Y(M.disp(x, S.t + dt, w))) : ctx.moveTo(X(x), Y(M.disp(x, S.t + dt, w))); }
     ctx.stroke(); ctx.restore();
-    text(ctx, '점선 = 조금 뒤', r.x + r.w, r.y + 2, {size: 10.5, color: C.muted, w: 500, align: 'right'});
+    text(ctx, '점선 = 조금 뒤', r.x + r.w, r.y + 2, {size: 12, color: C.muted, w: 500, align: 'right'});
   }
 
   // ── y-t 그래프 (점 P) ───────────────────────────────────
@@ -453,7 +403,7 @@
       const tt = t0 + k * T / 4, yc = top + rh * (k + 0.5), amp = rh * 0.32;
       const on = Math.abs(cur - k / 4) < 0.125 || (k === 4 && cur > 0.875);
       if (on) { ctx.fillStyle = C['copper-soft']; ctx.fillRect(0, yc - rh / 2 + 1, W, rh - 2); }
-      text(ctx, ['0', 'T/4', 'T/2', '3T/4', 'T'][k], 32, yc, {size: 11.5, w: 700, mono: true, color: on ? C.copper : C.muted});
+      text(ctx, ['0', 'T/4', 'T/2', '3T/4', 'T'][k], 32, yc, {size: 13, w: 700, mono: true, color: on ? C.copper : C.muted});
       ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(0), yc); ctx.lineTo(X(L), yc); ctx.stroke();
       ctx.strokeStyle = C.vel; ctx.lineWidth = 2.6; ctx.beginPath();
       for (let i = 0; i <= 120; i++) { const x = L * i / 120, y = yc - amp * M.disp(x, tt, w) / S.A; i ? ctx.lineTo(X(x), y) : ctx.moveTo(X(x), y); }
@@ -467,7 +417,7 @@
             ctx.beginPath(); ctx.moveTo(X(c0), top + rh * 0.5 - amp); ctx.lineTo(X(c0), yc - amp); ctx.stroke(); ctx.restore();
             arrow(ctx, X(c0), yc - amp - 9, X(xc), yc - amp - 9, C.copper, 1.6, 6);
           }
-          if (k === 4) text(ctx, 'λ', (X(c0) + X(xc)) / 2, yc - amp - 20, {size: 12, w: 700, color: C.copper, halo: C.paper});
+          if (k === 4) text(ctx, 'λ', (X(c0) + X(xc)) / 2, yc - amp - 20, {size: 13.5, w: 700, color: C.copper, halo: true});
         }
       }
     }
@@ -486,9 +436,7 @@
     $('rV').textContent = fmt(M.speed(S.f, S.lambda), 3) + ' m/s';
     $('hudSlow').textContent = '느린 화면 ×' + S.slow;
     const ok = Math.abs(S.lambda - EX.lambda) < 1e-9 && Math.abs(S.f - EX.f) < 1e-9;
-    const c = $('exCheck');
-    c.className = 'check' + (ok ? ' ok' : '');
-    c.textContent = ok ? '✓ 개념서 예제 상황 (λ = 0.4 m, f = 5 Hz) → v = 2 m/s, T = 0.2 s' : '예제: λ = 0.4 m, f = 5 Hz일 때 v와 T는? — ‘스스로 확인 1’로 돌아갈 수 있어요';
+    Lab.check('exCheck', ok, '개념서 예제 상황 (λ = 0.4 m, f = 5 Hz) → v = 2 m/s, T = 0.2 s', '예제: λ = 0.4 m, f = 5 Hz일 때 v와 T는? — ‘스스로 확인 1’로 돌아갈 수 있어요');
   }
 
   // ── 조작 ────────────────────────────────────────────────
@@ -504,21 +452,14 @@
   $('lock').addEventListener('change', (e) => {
     S.lock = e.target.checked; S.vLock = S.f * S.lambda; lam.disabled = S.lock; draw();
   });
-  const press = (sel, attr, val) => document.querySelectorAll(sel).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset[attr] === String(val))));
-  document.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => { S.mode = b.dataset.mode; S.focus = null; press('[data-mode]', 'mode', S.mode); draw(); }));
-  document.querySelectorAll('[data-dir]').forEach((b) => b.addEventListener('click', () => { S.dir = +b.dataset.dir; press('[data-dir]', 'dir', S.dir); draw(); }));
-  document.querySelectorAll('[data-speed]').forEach((b) => b.addEventListener('click', () => { S.slow = +b.dataset.speed; press('[data-speed]', 'speed', S.slow); readouts(); }));
+  const modeG = Lab.group('[data-mode]', 'mode', (v) => { S.mode = v; S.focus = null; draw(); }, S.mode);
+  Lab.group('[data-dir]', 'dir', (v) => { S.dir = +v; draw(); }, S.dir);
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.slow = +v; readouts(); }, S.slow);
   $('cRuler').addEventListener('change', (e) => { S.ruler = e.target.checked; draw(); });
   $('cCrest').addEventListener('change', (e) => { S.crest = e.target.checked; draw(); });
   $('cTrack').addEventListener('change', (e) => { S.track = e.target.checked; draw(); });
-  const playIcon = $('playIcon');
-  function setPlay(on) {
-    S.playing = on;
-    $('play').setAttribute('aria-pressed', String(on));
-    $('playText').textContent = on ? '멈추기' : '움직이기';
-    playIcon.innerHTML = on ? '<rect x="2" y="1.5" width="3.6" height="11" rx="1"/><rect x="8.4" y="1.5" width="3.6" height="11" rx="1"/>' : '<path d="M3 1.5v11l9-5.5z"/>';
-  }
-  $('play').addEventListener('click', () => setPlay(!S.playing));
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  const setPlay = (on) => playCtl.set(on);
   $('stepQ').addEventListener('click', () => {
     setPlay(false);
     const q = 1 / S.f / 4;
@@ -532,24 +473,12 @@
     double: () => { setLam(0.4); S.f = 5; S.lock = true; $('lock').checked = true; lam.disabled = true; S.vLock = 2; S.f = 10; freq.value = 10; S.lambda = 0.2; lam.value = 0.2; S.mode = 'trans'; setPlay(true); },
     dense: () => { S.mode = 'both'; S.focus = 'dense'; setPlay(false); },
   };
-  document.querySelectorAll('[data-try]').forEach((b) => b.addEventListener('click', () => {
-    TRY[b.dataset.try]();
-    press('[data-mode]', 'mode', S.mode); press('[data-speed]', 'speed', S.slow);
-    readouts(); draw(); hud();
-    document.querySelector('.stage').scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block: 'center'});
-  }));
+  Lab.tries(TRY, () => { modeG.set(S.mode, true); speedG.set(S.slow, true); readouts(); draw(); hud(); });
 
   // ── 돌리기 ──────────────────────────────────────────────
   function hud() { $('hudT').textContent = 't = ' + S.t.toFixed(3) + ' s'; }
-  let last = 0;
-  function frame(ts) {
-    const dt = last ? Math.min(0.05, (ts - last) / 1000) : 0; last = ts;
-    if (S.playing && !document.hidden) { S.t += dt * S.slow; draw(); hud(); }
-    requestAnimationFrame(frame);
-  }
-  setPlay(S.playing);
+  Lab.loop((dt) => { if (S.playing) { S.t += dt * S.slow; draw(); hud(); } });
   readouts(); hud();
-  requestAnimationFrame(frame);
 })();
 </script>
 </body>

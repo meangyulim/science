@@ -1,6 +1,6 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const M = require('../physics/III1/III1-model.js');
+const M = require('../physics/III1/01/III1-01-model.js');
 const close = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} ≠ ${b}`);
 
 test('III1-01 예제: 마루 사이 0.4 m, 1초에 5번 진동 → v = 2 m/s, T = 0.2 s', () => {

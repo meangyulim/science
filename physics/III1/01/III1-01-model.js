@@ -1,4 +1,4 @@
-/* 물리학Ⅰ Ⅲ-1 파동의 성질과 활용 — 계산 모형. 브라우저(window.III1Model)와 Node 테스트(tests/III1-model.test.cjs)에서 같이 쓴다.
+/* III1-01 파동의 기본 요소 — 계산 모형. 브라우저(window.III1_01)와 Node 테스트(tests/III1-01-model.test.cjs)에서 같이 쓴다.
    부호 약속: 파동은 +x(오른쪽)로 진행(dir = +1)하거나 −x(dir = −1). 횡파 변위 y 는 위가 +, 종파 변위 s 는 +x 쪽이 +. */
 (function (root) {
   'use strict';
@@ -31,5 +31,5 @@
 
   const api = {TAU, speed, period, disp, vel, crests, density};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
-  else root.III1Model = api;
+  else root.III1_01 = api;
 })(typeof window !== 'undefined' ? window : globalThis);
