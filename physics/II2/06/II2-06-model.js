@@ -1,4 +1,5 @@
-/* 직류 전동기 계산 모형. 브라우저(window.DCMotorModel)와 Node 테스트에서 같이 쓴다.
+/* II2-06 자기장 속 전류가 받는 힘과 전동기 — 직류 전동기 계산 모형.
+   브라우저(window.II2_06, 예전 이름 window.DCMotorModel)와 Node 테스트에서 같이 쓴다.
 
    좌표 (정면 = 정류자 쪽에서 축을 바라본 방향)
      x: 오른쪽, y: 위, z: 보는 사람 쪽(⊙)
@@ -111,5 +112,5 @@
 
   const api = {DEG, TAU, GAP_DEG, wrap360, inGap, state, sidePos, DYN, step, terminalOmega, pathSteps};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
-  else root.DCMotorModel = api;
+  else { root.II2_06 = api; root.DCMotorModel = api; }
 })(typeof window !== 'undefined' ? window : this);

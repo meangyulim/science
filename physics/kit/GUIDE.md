@@ -18,7 +18,16 @@
   - `node:test` 로 예제 값 → 예제 답을 그대로 검증한다.
   - 개념의 핵심 성질도 2~4개 검증한다.
   - 정성 개념도 판정·분류 함수를 만들어 테스트한다.
-- 새 페이지를 만든 뒤에는 `python3 physics/tools/build_index.py` 를 돌린다. 첫 화면 개념 지도(`data/built.json`)와 단원 목록(`<단원>/index.html`)이 갱신된다.
+- 새 페이지를 만든 뒤에는 두 가지를 돌린다.
+  1. `python3 physics/tools/build_index.py`: 첫 화면 개념 지도(`data/built.json`)와 단원 목록(`<단원>/index.html`)이 갱신된다.
+  2. `node physics/tools/thumbs.cjs <ID>`: 그 페이지의 무대(`.stage`)를 밝은·어두운 테마로 찍어 카드 그림 `data/thumbs/<ID>.webp`, `<ID>-dark.webp`(폭 560px)을 만든다. 첫 화면과 단원 목록 카드가 이 그림을 쓴다. 무대 모양을 크게 바꿨을 때도 다시 찍는다. ID 없이 돌리면 전부 다시 찍는다.
+- 첫 화면(`physics/index.html`)의 구성은 다음과 같다. 개념 목록은 JSON에서 읽으므로 첫 화면을 손으로 고칠 일은 거의 없다.
+  - 모눈종이 머리판: 제목과 개념 158칸 지도(색칠된 칸 = 실험 있음, 누르면 열림)
+  - 과목 탭과 개념 찾기
+  - 대단원 띠(Ⅰ 역학 = 파랑, Ⅱ 전자기 = 보라, Ⅲ 파동 = 초록)
+  - 단원마다 실험 카드(무대 그림·번호·제목·질문)와 「준비 중인 개념」 접기
+  - 카드에 작은 표시(예: `3D`)를 붙이려면 첫 화면 스크립트의 `EXTRA` 에 적는다.
+- 직류 전동기는 II2-06 자리(`physics/II2/06/`)에 있다. 이 페이지만 `lab.css`·`lab.js` 를 쓰지 않는 3D 페이지다(three.js). 옛 주소 `physics/dc-motor/` 는 `404.html` 이 새 주소로 보낸다.
 - 이전·다음 링크 형식: `<nav class="pager"><a href="../03/">← III1-03 짧은 이름</a><a class="home" href="../../">물리 실험실</a><a href="../05/">III1-05 짧은 이름 →</a></nav>`. 없는 쪽은 `<span></span>`.
 
 ## 설계

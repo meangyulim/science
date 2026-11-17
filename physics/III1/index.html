@@ -11,7 +11,12 @@
 <style>
 /* 단원 목록: 개념 카드를 원고 순서대로 */
 .u-list{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.u-card{display:grid;gap:4px;align-content:start;height:100%;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:inherit;text-decoration:none}
+.u-card{display:grid;gap:4px;align-content:start;height:100%;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:inherit;text-decoration:none;overflow:hidden}
+.u-thumb{display:block;margin:-14px -16px 8px;aspect-ratio:16/10;overflow:hidden;border-bottom:1px solid var(--line-soft);background:var(--copper-soft)}
+.u-thumb img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}
+.u-thumb .dk{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .u-thumb .lt{display:none} :root:not([data-theme="light"]) .u-thumb .dk{display:block}}
+:root[data-theme="dark"] .u-thumb .lt{display:none} :root[data-theme="dark"] .u-thumb .dk{display:block}
 a.u-card:hover{border-color:var(--copper)}
 .u-card b{font-size:16.5px;line-height:1.45}
 .u-card .u-q{font-size:14px;color:var(--muted);line-height:1.6}
@@ -31,61 +36,73 @@ a.u-card:hover{border-color:var(--copper)}
   </header>
   <ol class="u-list">
     <li><a class="u-card" href="01/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-01.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-01-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-01</span></span>
       <b>파동의 기본 요소: 횡파와 종파</b>
       <span class="u-q">매질은 제자리에서 흔들리기만 하는데, 앞으로 나아가는 것은 무엇일까?</span>
     </a></li>
     <li><a class="u-card" href="02/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-02.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-02-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-02</span><span class="u-qual">원리 애니메이션</span></span>
       <b>파동 그래프 두 가지와 진행 방향 판단</b>
       <span class="u-q">같은 사인 곡선인데 왜 한 그래프에서는 파장이, 다른 그래프에서는 주기가 읽힐까?</span>
     </a></li>
     <li><a class="u-card" href="03/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-03.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-03-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-03</span></span>
       <b>매질이 바뀔 때: 진동수 불변, 속력과 파장 변화</b>
       <span class="u-q">파동이 다른 매질로 넘어가면 무엇이 그대로이고 무엇이 바뀔까?</span>
     </a></li>
     <li><a class="u-card" href="04/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-04.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-04-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-04</span></span>
       <b>굴절과 스넬 법칙</b>
       <span class="u-q">파동은 왜 경계에서 꺾이고, 얼마나 꺾일지는 무엇이 정할까?</span>
     </a></li>
     <li><a class="u-card" href="05/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-05.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-05-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-05</span><span class="u-qual">원리 애니메이션</span></span>
       <b>생활 속 굴절 현상</b>
       <span class="u-q">신기루, 밤에 잘 들리는 소리, 얕아 보이는 물은 모두 같은 원리일까?</span>
     </a></li>
     <li><a class="u-card" href="06/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-06.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-06-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-06</span></span>
       <b>여러 매질의 굴절과 물결파 굴절</b>
       <span class="u-q">매질이 세 개 이상이거나 그래프로 주어지면 굴절률 순서를 어떻게 정할까?</span>
     </a></li>
     <li><a class="u-card" href="07/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-07.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-07-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-07</span></span>
       <b>전반사, 광섬유와 광통신</b>
       <span class="u-q">빛이 경계를 빠져나가지 못하고 전부 되돌아오는 조건은 무엇일까?</span>
     </a></li>
     <li><a class="u-card" href="08/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-08.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-08-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-08</span></span>
       <b>전자기파의 본질과 스펙트럼</b>
       <span class="u-q">전자기파는 무엇이 진동하는 파동이고, 종류는 무엇으로 나뉠까?</span>
     </a></li>
     <li><a class="u-card" href="09/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-09.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-09-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-09</span><span class="u-qual">원리 애니메이션</span></span>
       <b>전자기파의 이용</b>
       <span class="u-q">각 전자기파는 어떤 성질 때문에 그 용도에 쓰일까?</span>
     </a></li>
     <li><a class="u-card" href="10/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-10.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-10-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-10</span><span class="u-qual">원리 애니메이션</span></span>
       <b>중첩 원리와 마주 진행하는 두 파동</b>
       <span class="u-q">두 파동이 만나면 어떻게 합쳐지고, 지나간 뒤에는 어떻게 될까?</span>
     </a></li>
     <li><a class="u-card" href="11/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-11.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-11-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-11</span></span>
       <b>물결파·소리의 간섭: 경로차 조건</b>
       <span class="u-q">두 파원에서 나온 파동이 만날 때 어디는 크게 출렁이고 어디는 잠잠할까?</span>
     </a></li>
     <li><a class="u-card" href="12/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III1-12.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III1-12-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III1-12</span><span class="u-qual">원리 애니메이션</span></span>
       <b>빛의 간섭과 간섭의 이용</b>
       <span class="u-q">빛도 간섭한다는 것은 무엇으로 확인하고, 간섭은 어디에 쓰일까?</span>

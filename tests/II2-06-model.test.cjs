@@ -1,6 +1,6 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const M = require('../physics/dc-motor/dc-motor-model.js');
+const M = require('../physics/II2/06/II2-06-model.js');
 const close = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) < eps, `${a} ≠ ${b}`);
 
 test('θ = 0°: 노트 그림 (가) — 왼쪽 변 a ⊙ 위로, 오른쪽 변 b ⊗ 아래로, 시계 방향', () => {

@@ -39,6 +39,7 @@ for code, cs in units.items():
         tag = '<span class="u-qual">원리 애니메이션</span>' if c['qualitative'] else ''
         if c['id'] in built:
             items.append(f'''    <li><a class="u-card" href="{c['no']:02d}/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/{c['id']}.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/{c['id']}-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">{c['id']}</span>{tag}</span>
       <b>{title}</b>
       <span class="u-q">{q}</span>
@@ -60,7 +61,12 @@ for code, cs in units.items():
 <style>
 /* 단원 목록: 개념 카드를 원고 순서대로 */
 .u-list{{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}}
-.u-card{{display:grid;gap:4px;align-content:start;height:100%;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:inherit;text-decoration:none}}
+.u-card{{display:grid;gap:4px;align-content:start;height:100%;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:inherit;text-decoration:none;overflow:hidden}}
+.u-thumb{{display:block;margin:-14px -16px 8px;aspect-ratio:16/10;overflow:hidden;border-bottom:1px solid var(--line-soft);background:var(--copper-soft)}}
+.u-thumb img{{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}}
+.u-thumb .dk{{display:none}}
+@media (prefers-color-scheme: dark){{:root:not([data-theme="light"]) .u-thumb .lt{{display:none}} :root:not([data-theme="light"]) .u-thumb .dk{{display:block}}}}
+:root[data-theme="dark"] .u-thumb .lt{{display:none}} :root[data-theme="dark"] .u-thumb .dk{{display:block}}
 a.u-card:hover{{border-color:var(--copper)}}
 .u-card b{{font-size:16.5px;line-height:1.45}}
 .u-card .u-q{{font-size:14px;color:var(--muted);line-height:1.6}}
