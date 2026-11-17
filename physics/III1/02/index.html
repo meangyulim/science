@@ -28,10 +28,12 @@
 .chain .link span{display:block;font-size:13px;color:var(--muted);font-weight:600}
 .chain .link b{font-size:15.5px;font-weight:700}
 .chain .join{text-align:center;color:var(--muted);font-size:15px;line-height:1.2}
+.chain b.q{color:var(--muted);font-weight:600}
 .up{color:var(--acc)} .down{color:var(--neg)}
 #ytNow{margin-top:8px}
 .quiz .tag{white-space:nowrap}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.17} .stage.tall #stage{aspect-ratio:1/1.42} }
+.controls .note{margin:0}
+@media (max-width:640px){ #stage{aspect-ratio:1/1.17} .stage.tall #stage{aspect-ratio:1/1.42} .pager a:last-child{margin-left:auto} }
 </style>
 </head>
 <body>
@@ -110,6 +112,7 @@
             <button type="button" class="btn mono" data-speed="1" aria-pressed="false">×1</button>
           </div>
         </div>
+        <p class="cap note">화살표 길이 = 그 구슬이 T/12 동안 움직일 거리라서 화살표 끝이 점선(λ/12 민 파형) 근처에 놓인다. 진폭은 보기 좋게 키운 것이다.</p>
       </div>
     </div>
 
@@ -310,7 +313,7 @@
 
     // 구슬과 운동 방향 화살표 (길이 = T/12 동안 움직일 거리 ≈ 점선까지)
     let n = 16; while (n > 4 && lamPx / n < (narrow ? 13 : 18)) n = n === 16 ? 12 : n === 12 ? 8 : n === 8 ? 6 : 4;
-    const ds = S.lambda / n, rB = narrow ? 3.8 : 4.4;
+    const ds = S.lambda / n, rB = narrow ? 4 : 4.4;
     const beads = []; for (let i = 0; i * ds <= XW + 1e-9; i++) beads.push(i * ds);
     const vs = S.T * PUSH * amp;                       // 속도 → 화살표 픽셀
     for (const x of beads) {

@@ -19,7 +19,8 @@
 .ratio b{color:var(--vel)}
 .legend .bar{width:3px!important;height:13px!important;border-radius:1px}
 .quiz .tag{white-space:nowrap}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.42} }
+.controls .note{margin:0}
+@media (max-width:640px){ #stage{aspect-ratio:1/1.42} .pager a:last-child{margin-left:auto} }
 </style>
 </head>
 <body>
@@ -81,6 +82,7 @@
             <button type="button" class="btn" data-vis="2" aria-pressed="false">빠르게</button>
           </div>
         </div>
+        <p class="cap note">그림은 물결의 높이와 공기·물 입자의 밀림을 크게 과장했고, 경계에서 되돌아오는 반사파와 진폭 변화는 그리지 않았다.</p>
       </div>
     </div>
 
@@ -189,7 +191,6 @@
   const med = () => ({xb: sc().xb, l1: S.v1 / S.f, l2: S.v2 / S.f});
   const slow = () => S.vis / sc().f[3];
   const gates = () => [sc().xb * 0.5, sc().xb + (sc().L - sc().xb) * 0.5];
-  const sub = (i) => (i === 1 ? '₁' : '₂');
   function names() {
     const a = S.v1, b = S.v2;
     if (S.scene === 'water') return a > b ? ['깊은 곳', '얕은 곳'] : a < b ? ['얕은 곳', '깊은 곳'] : ['같은 깊이', '같은 깊이'];
@@ -286,7 +287,7 @@
     for (let k = 0; k <= nT; k++) {
       const x = k * s.tick, big = Math.abs(x / s.lab - Math.round(x / s.lab)) < 1e-9;
       ctx.beginPath(); ctx.moveTo(X(x), G.axisY - (big ? 5 : 2.5)); ctx.lineTo(X(x), G.axisY + (big ? 5 : 2.5)); ctx.stroke();
-      if (big && (!narrow || Math.round(x / s.lab) % (S.scene === 'water' ? 1 : 1) === 0)) text(ctx, fmt(x, 2), X(x), G.axisY + 14, {size: 13, color: C.muted, w: 500, mono: true});
+      if (big) text(ctx, fmt(x, 2), X(x), G.axisY + 14, {size: 13, color: C.muted, w: 500, mono: true});
     }
     ctx.restore();
     text(ctx, '(' + s.unit + ')', X(0) - 14, G.axisY + 14, {size: 13, color: C.muted, w: 500, align: 'right'});
