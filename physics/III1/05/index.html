@@ -364,15 +364,12 @@
   }
   // 기온(빠르기)에 따른 바탕 색: 빠른(따뜻한) 쪽 주황, 느린(찬) 쪽 파랑
   function tintStrips(ctx, X0, X1, Yof, y0, y1, prof, ref, span) {
-    const n = 48;
-    for (let i = 0; i < n; i++) {
-      const ya = y0 + (y1 - y0) * i / n, yb = y0 + (y1 - y0) * (i + 1) / n, d = prof.T((ya + yb) / 2) - ref;
-      const a = Math.min(1, Math.abs(d) / span) * 0.26;
-      if (a < 0.01) continue;
-      ctx.fillStyle = Lab.alpha(d > 0 ? C.energy : C.vel, a);
-      const pa = Yof(ya), pb = Yof(yb);
-      ctx.fillRect(X0, Math.min(pa, pb), X1 - X0, Math.abs(pb - pa) + 0.6);
+    const p0 = Yof(y0), p1 = Yof(y1), n = 64, g = ctx.createLinearGradient(0, p0, 0, p1);
+    for (let i = 0; i <= n; i++) {
+      const d = prof.T(y0 + (y1 - y0) * i / n) - ref, a = Math.min(1, Math.abs(d) / span) * 0.26;
+      g.addColorStop(i / n, Lab.alpha(d >= 0 ? C.energy : C.vel, a));
     }
+    ctx.fillStyle = g; ctx.fillRect(X0, Math.min(p0, p1), X1 - X0, Math.abs(p1 - p0));
   }
   function hatch(ctx, x0, x1, y) {
     ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
@@ -505,8 +502,11 @@
     // 기온 표시
     const slowUp = G.bend === 'up', slowDn = G.bend === 'down';
     const topY = narrow ? F.top + 26 : F.top + 8;
-    twoTone(ctx, `위 ${S.Tt} °C: ${S.Tt < S.Tg ? '차가움' : S.Tt > S.Tg ? '따뜻함' : '같음'} → `, slowUp ? '느림' : slowDn ? '빠름' : '같음', W - 14, topY, slowUp ? C.copper : C.ink, {align: 'right'});
-    twoTone(ctx, `지면 근처 ${S.Tg} °C: ${S.Tg < S.Tt ? '차가움' : S.Tg > S.Tt ? '따뜻함' : '같음'} → `, slowDn ? '느림' : slowUp ? '빠름' : '같음', W - 14, narrow ? topY + 22 : gy + 19, slowDn ? C.copper : C.ink, {align: 'right'});
+    if (G.bend === 'none') text(ctx, `기온이 높이에 상관없이 ${S.Tg} °C → 속력이 같아 곧게 퍼진다`, W - 14, topY, {size: 13.5, w: 600, align: 'right', halo: true});
+    else {
+      twoTone(ctx, `위 ${S.Tt} °C: ${S.Tt < S.Tg ? '차가움' : '따뜻함'} → `, slowUp ? '느림' : '빠름', W - 14, topY, slowUp ? C.copper : C.ink, {align: 'right'});
+      twoTone(ctx, `지면 근처 ${S.Tg} °C: ${S.Tg < S.Tt ? '차가움' : '따뜻함'} → `, slowDn ? '느림' : '빠름', W - 14, narrow ? topY + 22 : gy + 19, slowDn ? C.copper : C.ink, {align: 'right'});
+    }
   }
 
   // ② 신기루
@@ -784,7 +784,7 @@
   function setRO(i, name, val) { $('r' + i + 'n').textContent = name; $('r' + i).textContent = val; }
   function readouts() {
     const sc = sceneOf(), c = CASE[S.key];
-    $('hudCase').textContent = c.name;
+    $('hudCase').textContent = sc === 'sound' && G ? (G.bend === 'down' ? '밤의 소리 (지면이 차가움)' : G.bend === 'up' ? '낮의 소리 (지면이 따뜻함)' : '기온이 고를 때') : c.name;
     $('legRay').textContent = sc === 'sound' ? '소리의 경로' : '빛의 경로';
     $('legWave').hidden = sc === 'mirage'; $('chkWave').hidden = sc === 'mirage';
     $('hudNote').textContent = sc === 'mirage' ? '휘는 정도 크게 과장' : sc === 'sound' ? '휘는 정도 과장'

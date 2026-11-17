@@ -369,7 +369,7 @@
   // ② 광섬유
   function drawFiber(ctx, W, H) {
     const fb = frameBox(W, H), narrow = fb.narrow;
-    const xf = narrow ? W * 0.3 : W * 0.24, a = Math.min(fb.avail * 0.16, 52), cl = a * 0.62, jk = 9;
+    const xf = narrow ? W * 0.3 : W * 0.24, a = narrow ? Math.min(fb.avail * 0.21, 56) : Math.min(fb.avail * 0.16, 52), cl = a * 0.62, jk = 9;
     const yc = fb.top + fb.avail * (narrow ? 0.46 : 0.47), Ll = Math.min(xf - 16, narrow ? 84 : 128), xe = W + 30;
     GF = {xf, yc, Ll};
     const f = M.fiber(S.fi, S.nCore, S.nClad), r = f.r * DEG;
