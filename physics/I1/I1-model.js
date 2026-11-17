@@ -40,8 +40,8 @@
     }
     return {v, x, dist, tTurn};
   }
-  // 정지에서 출발해 처음 T 초 동안 s1 을 갔다면 a = 2 s1 / T²
-  const accelFromFirst = (s1, T) => 2 * s1 / (T * T);
+  // 처음 속도 v0 으로 출발해 처음 T 초 동안 s1 을 갔다면 s1 = v0 T + ½aT² → a = 2(s1 − v0 T) / T²
+  const accelFromFirst = (s1, T, v0 = 0) => 2 * (s1 - v0 * T) / (T * T);
   // n 번째 T 초 동안(시각 (n−1)T ~ nT) 간 변위 (방향 전환이 없을 때)
   const nthInterval = (v0, a, n, T) => v0 * T + 0.5 * a * T * T * (2 * n - 1);
 
