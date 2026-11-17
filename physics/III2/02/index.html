@@ -11,11 +11,11 @@
 <style>
 /* Layout: 왼쪽 무대(두 빛 A·B / 빛 하나 / 아연판 검전기)와 조작판, 오른쪽 지금 수치 · 파동설 예측 vs 실제 · 세 가지 실험 사실 그래프 */
 #stage{aspect-ratio:16/10.6}
-#cmp{aspect-ratio:10/6.4}
+#cmp{aspect-ratio:10/5.4}
 #facts{aspect-ratio:10/11.6}
 .quiz .tag{white-space:nowrap}
-@media (max-width:980px) and (min-width:641px){ #facts{aspect-ratio:10/3.9} }
-@media (max-width:640px){ #stage{aspect-ratio:1/1.36} #facts{aspect-ratio:10/12.6} }
+@media (max-width:980px) and (min-width:641px){ #facts{aspect-ratio:10/3.9} #cmp{aspect-ratio:10/6.1} }
+@media (max-width:640px){ #stage{aspect-ratio:1/1.36} #facts{aspect-ratio:10/12.6} #cmp{aspect-ratio:10/6.9} }
 </style>
 </head>
 <body>
@@ -487,10 +487,11 @@
     const Wm = metalW(), Emax = 2.15 * Wm, x0 = 44, x1 = W - 18;
     const X = (E) => x0 + Math.min(1, E / Emax) * (x1 - x0), xW = X(Wm);
     const Ls = active().filter((L) => L.I > 0);
+    const oy = Math.max(0, (H - (106 + Math.max(1, Ls.length) * 26 + Ls.length * 19)) / 2);   // 내용을 세로 가운데로
     // 파동설: 전자 하나에 에너지가 계속 쌓인다
-    text(ctx, '파동설 예측', 12, 14, {size: 14, w: 700, color: C.neg, align: 'left'});
+    text(ctx, '파동설 예측', 12, oy + 14, {size: 14, w: 700, color: C.neg, align: 'left'});
     const P = Ls.reduce((s, L) => s + L.I, 0), wt = M.waveTheory(Ls, Wm);
-    const gy = 28, gh = 18;
+    const gy = oy + 28, gh = 18;
     ctx.fillStyle = C.bg; ctx.fillRect(x0, gy, x1 - x0, gh);
     if (P > 0) {
       const cyc = wt.delay + 0.9, tt = S.onT % cyc, fired = tt >= wt.delay;
@@ -501,7 +502,7 @@
     ctx.lineWidth = 1.2; ctx.strokeStyle = C.line; ctx.strokeRect(x0, gy, x1 - x0, gh);
     text(ctx, P > 0 ? `${fmt(wt.delay, 1)} s 뒤 W에 닿아 방출 예상 · 진동수 무관` : '빛이 없으면 쌓이지 않는다', x0, gy + gh + 14, {size: 13, w: 500, color: C.muted, align: 'left'});
     // 실제: 광자 1개의 에너지 hf 를 한 번에
-    const y2 = 86;
+    const y2 = oy + 86;
     text(ctx, '실제 (광자 1개씩, 한 번에 hf)', 12, y2, {size: 14, w: 700, color: C.acc, align: 'left'});
     let by = y2 + 14;
     const bh = 18;

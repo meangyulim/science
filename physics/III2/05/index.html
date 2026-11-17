@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전하 결합 소자(CCD) — 영상 정보의 기록</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* Layout: 왼쪽 무대(CCD 한 줄의 단면: 빛 → 필터 → 전극 → 규소 속 전자 우물 → 출력·측정 → 읽은 값·재구성한 색)와 조작판,
+   오른쪽 지금 수치·화소 배열(위에서 본 모습)·전자 수-노출 시간 그래프·재구성한 색 */
+#stage{aspect-ratio:16/11}
+#mosaic{aspect-ratio:10/6.4}
+#graph{aspect-ratio:10/6.2}
+#recon{aspect-ratio:10/3.3}
+@media (max-width:640px){ #stage{aspect-ratio:1/1.36} }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="back" href="../../">← 물리 실험실</a>
+    <div class="crumbs"><span class="id">III2-05</span><span class="kicker">물리학 Ⅰ · 빛과 물질의 이중성</span></div>
+    <h1>영상 정보의 기록: 전하 결합 소자(CCD)</h1>
+    <p class="lead">CCD의 화소는 작은 광 다이오드다. 광자가 들어오면 전자가 생겨 (+) 전극 아래에 쌓이고(<b>전자 수 ∝ 빛의 세기 × 노출 시간</b>), 전극 전압을 차례로 바꾸면 전자 묶음이 옆 칸으로 옮겨져 끝에서 읽힌다. 색은 <b>필터</b>가 나눈다.</p>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <div class="stage">
+        <canvas id="stage" aria-label="CCD 한 줄의 단면. 색 필터를 통과한 광자가 규소에서 전자를 만들고, 전자가 (+) 전극 아래에 모였다가 전극 전압이 바뀔 때마다 옆 칸으로 옮겨져 출력에서 측정된다."></canvas>
+        <div class="hud"><span class="pill" id="hudPhase">① 빛 받기</span><span class="pill num" id="hudStep">0.0 / 2 s</span><span class="pill" id="hudSlow">빠르기 ×1</span></div>
+        <div class="legend">
+          <span><b style="background:var(--muted)"></b>광자(빛의 색)</span>
+          <span><i style="background:var(--vel)"></i>전자</span>
+          <span><i style="background:var(--force)"></i>양공</span>
+          <span><b style="background:var(--violet)"></b>(+) 전극 아래 전자가 모이는 곳</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <button type="button" class="btn" id="step">한 단계 앞으로</button>
+          <button type="button" class="btn" id="shoot">새로 찍기</button>
+          <span class="spacer"></span>
+          <div class="group" role="group" aria-label="시간 빠르기">
+            <span class="gl">빠르기</span>
+            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="false">×0.5</button>
+            <button type="button" class="btn mono" data-speed="1" aria-pressed="true">×1</button>
+            <button type="button" class="btn mono" data-speed="2" aria-pressed="false">×2</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <label class="ctl-label" for="iR">빨간빛의 세기 <output id="iROut">1</output></label>
+            <input id="iR" type="range" min="0" max="2" step="0.5" value="1">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="iG">초록빛의 세기 <output id="iGOut">0</output></label>
+            <input id="iG" type="range" min="0" max="2" step="0.5" value="0">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="iB">파란빛의 세기 <output id="iBOut">0.5</output></label>
+            <input id="iB" type="range" min="0" max="2" step="0.5" value="0.5">
+          </div>
+        </div>
+        <div class="row toggles">
+          <div class="grow">
+            <label class="ctl-label" for="tExp">노출 시간 T (셔터가 열린 시간) <output id="tOut">2 s</output></label>
+            <input id="tExp" type="range" min="0.5" max="2" step="0.5" value="2">
+          </div>
+          <label class="chk"><input type="checkbox" id="noFilter">색 필터 없애기</label>
+          <label class="chk"><input type="checkbox" id="auto" checked>되풀이해 찍기</label>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>지금 수치 <small>노출이 끝났을 때</small></h2>
+        <div class="readouts">
+          <div class="ro"><span id="lR">빨강 화소의 전자</span><b id="rR">8개</b></div>
+          <div class="ro"><span id="lG">초록 화소의 전자</span><b id="rG">0개</b></div>
+          <div class="ro"><span id="lB">파랑 화소의 전자</span><b id="rB">4개</b></div>
+          <div class="ro cu"><span>입사광에 든 색</span><b id="rC">빨강 + 파랑</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </section>
+      <section class="panel">
+        <h2>화소 배열 <small>위에서 본 모습</small></h2>
+        <canvas class="flat" id="mosaic" aria-label="빨강·초록·파랑 필터가 엇갈려 덮인 화소 배열과 화소마다 쌓인 전자 수"></canvas>
+        <p class="cap">숫자 = 쌓인 전자 수. 구리색 테두리가 무대에 보이는 줄(단면)이다. 필터를 통과한 색만 그 화소에 전자를 만든다.</p>
+      </section>
+      <section class="panel">
+        <h2>전자 수 ∝ 세기 × 노출 시간</h2>
+        <canvas class="flat" id="graph" aria-label="노출 시간에 따라 화소마다 쌓이는 전자 수. 기울기는 그 화소에 들어온 빛의 세기에 비례한다."></canvas>
+        <p class="cap">기울기 = 그 화소에 들어온 빛의 세기. 노출 시간 동안 일정하게 쌓인다. 빛의 진동수(색)는 기울기를 바꾸지 않는다.</p>
+      </section>
+      <section class="panel wide">
+        <h2>읽어 낸 값 → 재구성한 색</h2>
+        <canvas class="flat" id="recon" aria-label="실제 입사광의 색과 CCD 화소 값으로 재구성한 색 비교"></canvas>
+        <p class="cap">CCD는 화소마다 <b>세기만</b> 잰다. 빨강·초록·파랑 필터 화소의 값을 합쳐 색을 계산하므로, 필터가 없으면 모든 화소 값이 같아져 흑백이 된다.</p>
+      </section>
+    </aside>
+  </main>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">개념 정리</h2>
+    <div class="concepts">
+      <article class="concept">
+        <h3>① 빛 → 전자: 광전 효과</h3>
+        <p>화소(규소 광 다이오드)에 띠 간격 이상의 에너지를 가진 광자가 들어오면 전자-양공 쌍이 생기고, 전자는 (+)전압이 걸린 전극 아래에 모인다.</p>
+        <p>한 화소의 전자 수는 그 화소에 들어온 <b>빛의 세기(광자 수)</b>와 <b>노출 시간</b>에 비례한다. 빛의 입자성을 이용하는 장치다.</p>
+      </article>
+      <article class="concept">
+        <h3>②③ 전하 결합: 묶음 옮기기</h3>
+        <p>이웃 전극에도 (+)전압을 걸면 전자가 두 전극 아래로 고르게 퍼지고, 앞 전극을 0으로 하면 다음 전극 아래로 모두 옮겨 간다.</p>
+        <p>이것을 차례로 되풀이해 전자 묶음을 끝의 전하량 측정 장치까지 옮겨 화소마다 세기를 읽고, 디지털 신호로 바꿔 그림 파일로 저장한다.</p>
+      </article>
+      <article class="concept">
+        <h3>색은 필터가 나눈다</h3>
+        <p>CCD는 빛의 세기만 재므로 그대로는 흑백이다. 화소 위에 빨강·초록·파랑 필터를 엇갈려 덮으면 필터를 통과한 색의 세기에 비례하는 전자가 쌓인다.</p>
+        <p>전자가 없는 화소의 필터 색은 입사광에 없다. 필터가 막는 색은 아무리 세도 그 화소에 전자를 만들지 못한다.</p>
+      </article>
+    </div>
+    <p class="compare">전자 수를 정하는 것은 빛의 진동수가 아니라 세기(광자 수)다. 진동수는 전자가 생기느냐(띠 간격을 넘는지, 필터를 통과하는지)만 정한다. CCD는 디지털카메라·광학 스캐너·비디오카메라·천체 망원경에 쓰인다.</p>
+
+    <h2>스스로 확인</h2>
+    <ol class="quiz">
+      <li>
+        <p class="q"><span>1</span>빨강·초록·파랑 필터 화소가 있는 CCD에 어떤 빛을 비췄더니 빨강 화소와 파랑 화소에만 전자가 쌓였다. 입사광에 포함된 색은? 빛의 세기를 2배로 하면 각 화소의 전자 수는?<span class="tag">개념서 예제</span></p>
+        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="ex2">세기 2배로</button></div>
+        <details><summary>답 보기</summary><p>전자가 생긴 화소의 필터 색만 입사광에 들어 있다 → <b>빨강과 파랑</b>(초록 화소에 전자가 없으므로 초록빛은 없다). 전자 수는 통과한 빛의 세기에 비례하므로 세기를 2배로 하면 <b>빨강·파랑 화소의 전자 수가 2배</b>(무대: 8개 → 16개, 4개 → 8개)가 되고 <b>초록 화소는 여전히 0</b>이다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>2</span>초록 필터 화소에 빨간빛을 아주 세게 비추면 전자가 많이 쌓일까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="red">빨간빛만 아주 세게</button></div>
+        <details><summary>답 보기</summary><p>아니다. 초록 필터가 빨간빛을 막아 광자가 화소에 닿지 못하므로 전자는 <b>0개</b>다. CCD는 색을 직접 구별하지 못하고, 필터가 막는 색은 아무리 세도 그 화소에 전자를 만들지 못한다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>3</span>화소에 모인 전자는 스스로 옆 칸으로 이동할까? 어떻게 측정 장치까지 옮겨질까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="shift">전하 옮기기를 한 단계씩</button></div>
+        <details><summary>답 보기</summary><p>스스로 이동하지 않는다. 이웃 전극에도 (+)전압을 걸면 전자가 두 전극 아래로 고르게 퍼지고(②), 앞 전극의 전압을 0으로 하면 다음 전극 아래로 모두 옮겨 간다(③). 전극 전압을 차례로 바꾸는 이 과정을 되풀이해 전자 묶음을 끝까지 옮긴 뒤 화소마다 전하량(= 빛의 세기)을 읽는다. ‘한 단계 앞으로’를 눌러 확인해 보자.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>4</span>색 필터를 모두 없애면 화소의 전자 수와 재구성한 영상은 어떻게 될까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="nofilter">필터 없애기</button></div>
+        <details><summary>답 보기</summary><p>모든 색의 빛이 들어와 화소마다 전자 수가 <b>늘어난다</b>(예제 빛: 8 + 4 = 12개). 하지만 화소마다 세기만 기록되어 어느 색인지 알 수 없으므로 모든 화소 값이 같아져 <b>흑백 영상</b>이 된다. CCD는 세기만 재고, 색은 필터가 나눈다.</p></details>
+      </li>
+    </ol>
+    <nav class="pager"><a href="../04/">← III2-04 광전 효과의 이용: 경보기와 센서</a><a href="../../">물리 실험실</a><a href="../06/">III2-06 물질파(드브로이 파) →</a></nav>
+  </section>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="III2-05-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.III2_05;
+  const {$, C, text, arrow} = Lab;
+  const A = Lab.alpha;
+  const TAU = Math.PI * 2;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const isDark = () => { const m = A(C.paper, 1).match(/[\d.]+/g) || [255, 255, 255]; return (+m[0] + +m[1] + +m[2]) < 300; };
+  const shade = () => (isDark() ? C.bg : C.ink);
+
+  // 빨강·초록·파랑 빛의 색: 파장 → RGB 로 계산 (물리적으로 정해진 색). 밝은 테마에서는 조금 어둡게, 어두운 테마에서는 밝게
+  function wlRGB(nm) {
+    let r = 0, g = 0, b = 0;
+    if (nm < 440) { r = (440 - nm) / 60; b = 1; } else if (nm < 490) { g = (nm - 440) / 50; b = 1; }
+    else if (nm < 510) { g = 1; b = (510 - nm) / 20; } else if (nm < 580) { r = (nm - 510) / 70; g = 1; }
+    else if (nm < 645) { r = 1; g = (645 - nm) / 65; } else r = 1;
+    return [r, g, b].map((v) => 255 * Math.pow(Math.max(0, v), 0.8));
+  }
+  const DIM = {R: 0.86, G: 0.6, B: 0.9};
+  function col(c, a = 1) {
+    let [r, g, b] = wlRGB(M.NM[c]);
+    if (isDark()) { r += (255 - r) * 0.32; g += (255 - g) * 0.32; b += (255 - b) * 0.32; }
+    else { r *= DIM[c]; g *= DIM[c]; b *= DIM[c]; }
+    return `rgba(${Math.round(r)},${Math.round(g)},${Math.round(b)},${a})`;
+  }
+  const rgb = (r, g, b) => `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;   // 재구성한 색 (화소 값 그대로)
+  const onSwatch = (r, g, b) => ((0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5 ? (isDark() ? C.ink : C.paper) : (isDark() ? C.bg : C.ink));
+
+  // ── 상태 ────────────────────────────────────────────────
+  const EX = {R: 1, G: 0, B: 0.5, T: 2};
+  const S = {
+    I: {R: 1, G: 0, B: 0.5}, T: 2, filters: true, auto: true, playing: !Lab.reduceMotion, speed: 1,
+    tg: 0, phase: 'expose', tOpen: 0, pt: 0, s: 0, shut: 0,
+  };
+  const STEP = 0.2, VP = 380, SETTLE = 0.5;          // 전압 한 단계 시간(s)·광자 빠르기(px/s, 느리게 그림)·노출 끝 뒤 기다림
+  let G = null, N = 6;
+  let packets = [], elist = [], holes = [], photons = [], flashes = [], sched = [], vals = [], meas = null, lastRead = null, lastVals = null;
+
+  // ── 배치 ────────────────────────────────────────────────
+  function geo(W, H) {
+    const n = W < 520, g = {n, W, H};
+    g.N = n ? 3 : 6;
+    g.pad = n ? 10 : 18;
+    g.top = 54;
+    g.bot = H - (n ? 76 : 46);
+    const U = g.bot - g.top;
+    g.boxW = n ? 70 : 112;
+    g.x0 = g.pad;
+    g.pixW = (W - 2 * g.pad - g.boxW - 8) / (g.N + 1 / 3);
+    g.ew = g.pixW / 3;
+    g.x1 = g.x0 + g.N * g.pixW;
+    g.bx0 = W - g.pad - g.boxW;
+    g.yS = Math.round(g.top + U * (n ? 0.25 : 0.22));
+    g.fy = g.yS + 11; g.fh = n ? 20 : 24;
+    g.ey = g.fy + g.fh + 4; g.eh = n ? 18 : 20;
+    g.siTop = g.ey + g.eh + 3;
+    g.siBot = Math.round(g.siTop + U * (n ? 0.33 : 0.34));
+    g.wellD = Math.min((g.siBot - g.siTop) * 0.8, g.n ? 72 : 84);
+    g.vy = g.siBot + 22; g.vh = n ? 26 : 30;
+    g.ry = g.vy + g.vh + 10; g.rh = n ? 24 : 28;
+    g.spawnY = g.top + (n ? 24 : 30);
+    return g;
+  }
+  const exL = (g, e) => g.x0 + e * g.ew + 1.5, exR = (g, e) => g.x0 + (e + 1) * g.ew - 1.5;
+  const filt = (p) => (S.filters ? M.filterAt(0, p) : null);
+
+  // ── 광자 일정: 화소 p 에 색 c 의 광자가 (j + φ)/rate 시각에 셔터를 지난다 ──
+  function makeSched() {
+    sched = [];
+    for (let p = 0; p < N; p++) {
+      sched[p] = {};
+      for (const c of M.COLORS) {
+        const rate = M.K * S.I[c], ph = rnd(0.05, 0.95);
+        sched[p][c] = {rate, ph, j: rate > 0 ? Math.ceil(rate * S.tg - ph) : 0};
+      }
+    }
+  }
+  function spawnPhotons(g) {
+    const fall = (g.yS - g.spawnY) / VP;
+    for (let p = 0; p < N; p++) for (const c of M.COLORS) {
+      const q = sched[p] && sched[p][c]; if (!q || q.rate <= 0) continue;
+      for (;;) {
+        const tc = (q.j + q.ph) / q.rate;
+        if (tc - fall > S.tg) break;
+        const y = g.yS - (tc - S.tg) * VP;
+        photons.push({p, c, tc, x: g.x0 + (p + rnd(0.12, 0.88)) * g.pixW, y, st: 0, dep: rnd(0.18, 0.75), ph: rnd(0, 10)});
+        q.j++;
+      }
+    }
+  }
+  const inWindow = (tc) => tc >= S.tOpen && tc < S.tOpen + S.T - 1e-9;
+
+  // ── 한 장 찍기 ──────────────────────────────────────────
+  function newFrame(clearPhotons) {
+    const g = G; if (!g) return;
+    N = g.N;
+    packets = Array.from({length: N}, () => ({n: 0, out: false}));
+    elist = []; holes = []; vals = new Array(N).fill(null); meas = null;
+    S.phase = 'expose'; S.tOpen = S.tg; S.pt = 0; S.s = 0;
+    if (clearPhotons) { photons = []; makeSched(); }
+    spawnPhotons(g);
+    dirty = true;
+  }
+  function addElectron(g, p, x, y) {
+    const k = packets[p].n++;
+    elist.push({p, k, x, y, out: false, a: 1});
+  }
+  // 노출을 바로 끝내기 (한 단계 앞으로): 남은 광자 몫을 그대로 채운다
+  function finishExposure() {
+    const g = G;
+    for (let p = 0; p < N; p++) {
+      const want = M.electrons(S.I, S.T, filt(p));
+      while (packets[p].n < want) addElectron(g, p, 0, 0);
+    }
+    photons = photons.filter((ph) => ph.y < g.yS);
+    elist.forEach((e) => { const t = slot(g, e); e.x = t[0]; e.y = t[1]; });
+    S.tOpen = S.tg - S.T - 1;                      // 셔터 닫힘
+    S.phase = 'shift'; S.s = 0; S.pt = 0;
+  }
+  function clockStep() {
+    S.s++;
+    for (let p = 0; p < N; p++) {
+      if (!packets[p].out && S.s >= M.readStep(p, N)) {
+        packets[p].out = true;
+        const n = packets[p].n;
+        vals[p] = M.digital(n);
+        meas = {p, n, v: vals[p], t: 0};
+        lastRead = meas;
+        elist.forEach((e) => { if (e.p === p) e.out = true; });
+      }
+    }
+    if (S.s >= 6 * N) { S.phase = 'done'; S.pt = 0; lastVals = vals.slice(); }
+  }
+
+  // 전자의 자리: 묶음이 차지한 (+) 전극 아래, 우물 바닥부터 쌓인다
+  function slot(g, e) {
+    const pk = packets[e.p];
+    if (e.out) return [g.bx0 + g.boxW / 2, (g.ey + g.siBot) / 2];
+    const s = S.phase === 'shift' || S.phase === 'done' ? S.s : 0;
+    const [a, b] = M.span(3 * e.p, s);
+    const xa = exL(g, a) + 2, xb = exR(g, b) - 2, per = Math.max(1, Math.floor((xb - xa) / 8));
+    const rows = Math.ceil(pk.n / per), dy = Math.min(8, (g.wellD - 10) / Math.max(1, rows));
+    return [xa + ((e.k % per) + 0.5) * (xb - xa) / per, g.siTop + g.wellD - 6 - Math.floor(e.k / per) * dy];
+  }
+
+  // ── 움직임 ──────────────────────────────────────────────
+  function update(dt) {
+    const g = G; if (!g) return;
+    S.tg += dt;
+    spawnPhotons(g);
+    // 광자: 셔터 → 필터 → 규소
+    photons = photons.filter((ph) => {
+      ph.y += VP * dt;
+      if (ph.st === 0 && ph.y >= g.yS) {
+        if (!inWindow(ph.tc)) { flashes.push({x: ph.x, y: g.yS, t: 0, d: 0.25, col: col(ph.c), r: 6}); return false; }
+        ph.st = 1;
+      }
+      if (ph.st === 1 && ph.y >= g.fy + 2) {
+        if (!M.passes(filt(ph.p), ph.c)) { flashes.push({x: ph.x, y: g.fy + 2, t: 0, d: 0.3, col: col(ph.c), r: 8}); return false; }
+        ph.st = 2;
+      }
+      if (ph.st === 2 && ph.y >= g.siTop + ph.dep * g.wellD) {
+        flashes.push({x: ph.x, y: ph.y, t: 0, d: 0.3, col: C.energy, r: 9});
+        addElectron(g, ph.p, ph.x - 3, ph.y);
+        holes.push({x: ph.x + 3, y: ph.y, t: 0});
+        return false;
+      }
+      return ph.y < g.siBot;
+    });
+    for (const f of flashes) f.t += dt;
+    flashes = flashes.filter((f) => f.t < f.d);
+    for (const h of holes) { h.t += dt; h.y = Math.min(g.siBot - 6, h.y + 46 * dt); }
+    holes = holes.filter((h) => h.t < 0.9);
+    // 단계
+    if (S.phase === 'expose' && S.tg >= S.tOpen + S.T) { S.phase = 'settle'; S.pt = 0; }
+    else if (S.phase === 'settle') { S.pt += dt; if (S.pt >= SETTLE) { S.phase = 'shift'; S.pt = 0; S.s = 0; } }
+    else if (S.phase === 'shift') { S.pt += dt; if (S.pt >= STEP) { S.pt -= STEP; clockStep(); } }
+    else if (S.phase === 'done') { S.pt += dt; if (S.pt > 2.4 && S.auto) newFrame(false); }
+    S.shut = clamp(S.shut + (S.phase === 'expose' ? -1 : 1) * dt / 0.12, 0, 1);
+    if (meas) meas.t += dt;
+    moveElectrons(dt);
+  }
+  function moveElectrons(dt) {
+    const g = G, k = 1 - Math.exp(-dt / 0.07);
+    for (const e of elist) {
+      const [tx, ty] = slot(g, e);
+      e.x += (tx - e.x) * (e.out ? 1 - Math.exp(-dt / 0.12) : k); e.y += (ty - e.y) * (e.out ? 1 - Math.exp(-dt / 0.12) : k);
+      if (e.out) e.a = Math.max(0, e.a - dt / 0.4);
+    }
+    elist = elist.filter((e) => e.a > 0);
+  }
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawAll), mosaic = Lab.canvas('mosaic', drawAll), graph = Lab.canvas('graph', drawAll), recon = Lab.canvas('recon', drawAll);
+  function photon(ctx, ph) {
+    const wl = {R: 10, G: 8, B: 6}[ph.c], len = 17;
+    ctx.save(); ctx.strokeStyle = col(ph.c); ctx.lineWidth = 2.2; ctx.lineCap = 'round'; ctx.beginPath();
+    for (let i = 0; i <= 16; i++) {
+      const s = i / 16 * len, w = Math.sin((s + ph.ph) / wl * TAU) * 3 * Math.sin(Math.PI * i / 16);
+      i ? ctx.lineTo(ph.x + w, ph.y - s) : ctx.moveTo(ph.x + w, ph.y - s);
+    }
+    ctx.stroke(); ctx.beginPath(); ctx.arc(ph.x, ph.y, 4, 0, TAU); ctx.fillStyle = col(ph.c); ctx.fill(); ctx.restore();
+  }
+  function caption() {
+    const n = G && G.n;
+    if (S.phase === 'expose') return n ? '① 광자 1개 → 전자 1개' : '① 광자 1개가 전자 1개를 만들고, 전자는 (+) 전극 아래에 모인다';
+    if (S.phase === 'settle') return n ? '① 노출 끝 · 셔터 닫힘' : '① 노출 끝 — 셔터가 닫혀 더 이상 전자가 생기지 않는다';
+    if (S.phase === 'shift') {
+      if (S.s === 0) return n ? '전하 옮기기 준비' : '이제 전극 전압을 차례로 바꿔 전자 묶음을 옮긴다';
+      return S.s % 2 ? (n ? '② 이웃 전극도 (+) → 퍼짐' : '② 이웃 전극에도 (+) → 전자가 두 전극 아래로 고르게 퍼진다')
+        : (n ? '③ 앞 전극 0 → 다음 칸으로' : '③ 앞 전극을 0으로 → 전자가 다음 전극 아래로 옮겨 모인다');
+    }
+    return n ? '읽기 끝 → 색 재구성' : '모든 묶음을 읽었다 → 화소 값으로 색을 재구성한다';
+  }
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    const fresh = !G || G.W !== W || G.H !== H;
+    G = geo(W, H);
+    if (fresh) { $('hudSlow').hidden = G.n; if (N !== G.N || !packets.length) { N = G.N; makeSched(); newFrame(true); } }
+    const g = G, s = S.phase === 'shift' || S.phase === 'done' ? S.s : 0;
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    text(ctx, caption(), g.n ? W / 2 : (g.x0 + g.x1) / 2, g.top + 4, {size: 13.5, w: 700, color: C.ink, halo: true});
+    // 입사광 (빛의 섞임)
+    const mixC = rgb(255 * Math.min(1, S.I.R / 2), 255 * Math.min(1, S.I.G / 2), 255 * Math.min(1, S.I.B / 2));
+    // 광자
+    for (const ph of photons) photon(ctx, ph);
+    // 셔터
+    const sx0 = g.x0 - 4, sw = g.x1 + g.ew - g.x0 + 8, off = (1 - S.shut) * (sw + 40);
+    ctx.save(); ctx.setLineDash([3, 5]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(sx0, g.yS + 3); ctx.lineTo(sx0 + sw, g.yS + 3); ctx.stroke(); ctx.restore();
+    if (S.shut > 0.01) { ctx.save(); ctx.fillStyle = shade(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.fillRect(sx0 - off, g.yS - 1, sw, 8); ctx.strokeRect(sx0 - off, g.yS - 1, sw, 8); ctx.restore(); }
+    text(ctx, S.shut > 0.5 ? '셔터 닫힘' : '셔터 열림', g.bx0 + g.boxW / 2, g.yS + 3, {size: 13, w: 700, color: S.shut > 0.5 ? C.muted : C.acc});
+    // 필터
+    for (let p = 0; p < N; p++) {
+      const x = g.x0 + p * g.pixW + 2, w = g.pixW - 4, f = filt(p);
+      ctx.save();
+      if (f) { ctx.fillStyle = col(f, isDark() ? 0.3 : 0.22); ctx.fillRect(x, g.fy, w, g.fh); ctx.strokeStyle = col(f); ctx.lineWidth = 1.6; ctx.strokeRect(x, g.fy, w, g.fh); }
+      else { ctx.setLineDash([4, 4]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.strokeRect(x, g.fy, w, g.fh); }
+      ctx.restore();
+      const lab = f ? (g.n ? f : M.NAME[f] + ' 필터') : (g.n ? '없음' : '필터 없음');
+      text(ctx, lab, x + w / 2, g.fy + g.fh / 2, {size: 13, w: 700, color: f ? col(f) : C.muted});
+    }
+    // 출력 칸 (화소가 아님)
+    const oe = 3 * N;
+    ctx.save(); ctx.setLineDash([3, 3]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.strokeRect(exL(g, oe), g.fy, exR(g, oe) - exL(g, oe), g.fh); ctx.restore();
+    if (!g.n) text(ctx, '출력', (exL(g, oe) + exR(g, oe)) / 2, g.fy + g.fh / 2, {size: 13, w: 700, color: C.muted});
+    // 규소
+    ctx.save(); ctx.fillStyle = A(C.copper, isDark() ? 0.16 : 0.11); ctx.fillRect(g.x0, g.siTop, exR(g, oe) + 1.5 - g.x0, g.siBot - g.siTop);
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.strokeRect(g.x0, g.siTop, exR(g, oe) + 1.5 - g.x0, g.siBot - g.siTop); ctx.restore();
+    Lab.line(ctx, [[g.x0, g.siTop - 1.5], [exR(g, oe) + 1.5, g.siTop - 1.5]], C.muted, 2);
+    text(ctx, '규소', g.x0 + 5, g.siBot - 11, {size: 13, w: 600, color: C.muted, align: 'left'});
+    // 화소 경계
+    ctx.save(); ctx.strokeStyle = C.line; ctx.setLineDash([2, 4]); ctx.lineWidth = 1;
+    for (let p = 1; p <= N; p++) { const x = g.x0 + p * g.pixW; ctx.beginPath(); ctx.moveTo(x, g.siTop + 2); ctx.lineTo(x, g.siBot); ctx.stroke(); }
+    ctx.restore();
+    // 전극과 전압
+    for (let e = 0; e <= oe; e++) {
+      const v = M.volt(e, s), x = exL(g, e), w = exR(g, e) - x;
+      ctx.save(); ctx.fillStyle = v ? A(C.force, 0.18) : C.paper; ctx.fillRect(x, g.ey, w, g.eh); ctx.strokeStyle = v ? C.force : C.muted; ctx.lineWidth = v ? 1.8 : 1.2; ctx.strokeRect(x, g.ey, w, g.eh); ctx.restore();
+      text(ctx, v ? '+' : '0', x + w / 2, g.ey + g.eh / 2 + 0.5, {size: 13, w: 700, color: v ? C.force : C.muted, mono: true});
+    }
+    // 전자가 모이는 곳 (+) 전극 아래
+    let a = -1;
+    for (let e = 0; e <= oe + 1; e++) {
+      const on = e <= oe && M.volt(e, s);
+      if (on && a < 0) a = e;
+      if (!on && a >= 0) {
+        const xa = exL(g, a) + 1, xb = exR(g, e - 1) - 1, yb = g.siTop + g.wellD, r = Math.min(10, (xb - xa) / 3);
+        ctx.save(); ctx.fillStyle = A(C.violet, 0.07); ctx.strokeStyle = C.violet; ctx.lineWidth = 1.6; ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.moveTo(xa, g.siTop + 1); ctx.lineTo(xa, yb - r); ctx.quadraticCurveTo(xa, yb, xa + r, yb); ctx.lineTo(xb - r, yb); ctx.quadraticCurveTo(xb, yb, xb, yb - r); ctx.lineTo(xb, g.siTop + 1);
+        ctx.fill(); ctx.stroke(); ctx.restore();
+        a = -1;
+      }
+    }
+    // 양공·전자
+    for (const h of holes) {
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - h.t / 0.9); ctx.strokeStyle = C.force; ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.arc(h.x, h.y, 4.2, 0, TAU); ctx.stroke(); ctx.beginPath(); ctx.moveTo(h.x - 2.4, h.y); ctx.lineTo(h.x + 2.4, h.y); ctx.moveTo(h.x, h.y - 2.4); ctx.lineTo(h.x, h.y + 2.4); ctx.stroke(); ctx.restore();
+    }
+    ctx.save(); ctx.fillStyle = C.vel;
+    for (const e of elist) { ctx.globalAlpha = e.a; ctx.beginPath(); ctx.arc(e.x, e.y, 3.8, 0, TAU); ctx.fill(); }
+    ctx.restore();
+    for (const f of flashes) { const u = f.t / f.d; ctx.save(); ctx.globalAlpha = (1 - u) * 0.9; ctx.strokeStyle = f.col; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(f.x, f.y, 3 + u * f.r, 0, TAU); ctx.stroke(); ctx.restore(); }
+    // 묶음마다 전자 수 (전송 중)
+    if (S.phase === 'shift' || S.phase === 'settle' || S.phase === 'done') {
+      for (let p = 0; p < N; p++) {
+        if (packets[p].out) continue;
+        const [aa, bb] = M.span(3 * p, s);
+        text(ctx, packets[p].n + '', (exL(g, aa) + exR(g, bb)) / 2, g.siTop + 12, {size: 13, w: 700, color: C.vel, mono: true, halo: true});
+      }
+    }
+    // 측정 장치
+    const by0 = g.ey, by1 = g.siBot;
+    ctx.save(); Lab.rrect(ctx, g.bx0, by0, g.boxW, by1 - by0, 10); ctx.fillStyle = C.paper; ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.8; ctx.stroke(); ctx.restore();
+    arrow(ctx, exR(g, oe) + 2, (g.siTop + g.siTop + g.wellD) / 2, g.bx0 - 2, (g.siTop + g.siTop + g.wellD) / 2, C.muted, 1.8, 7);
+    const cx = g.bx0 + g.boxW / 2;
+    text(ctx, g.n ? '출력 측정' : '전하량 측정', cx, by0 + 15, {size: 13, w: 700});
+    const lr = lastRead;
+    const hi = meas && meas.t < 0.6;
+    text(ctx, lr ? lr.n + '개' : '–', cx, by0 + (by1 - by0) * 0.42, {size: g.n ? 16 : 19, w: 700, mono: true, color: hi ? C.copper : C.vel});
+    text(ctx, lr ? '→ ' + lr.v : '', cx, by0 + (by1 - by0) * 0.64, {size: g.n ? 14 : 16, w: 700, mono: true, color: hi ? C.copper : C.ink});
+    if (!g.n) text(ctx, '디지털 값 (0~255)', cx, by0 + (by1 - by0) * 0.84, {size: 13, w: 500, color: C.muted});
+    // 읽은 값 줄
+    text(ctx, g.n ? '읽은 값' : '읽은 값 (디지털, 0~255)', g.x0, g.vy - 10, {size: 13, w: 700, color: C.muted, align: 'left'});
+    for (let p = 0; p < N; p++) {
+      const x = g.x0 + p * g.pixW + 3, w = g.pixW - 6, f = M.filterAt(0, p), v = vals[p], flash = meas && meas.p === p && meas.t < 0.6;
+      ctx.save(); Lab.rrect(ctx, x, g.vy, w, g.vh, 7);
+      ctx.fillStyle = v == null ? C.paper : (S.filters ? col(f, 0.16) : A(C.muted, 0.14)); ctx.fill();
+      ctx.lineWidth = flash ? 2.6 : 1.4; ctx.strokeStyle = flash ? C.copper : (S.filters ? col(f) : C.muted); if (v == null) ctx.setLineDash([3, 4]); ctx.stroke(); ctx.restore();
+      text(ctx, v == null ? '–' : String(v), x + w / 2, g.vy + g.vh / 2 + 0.5, {size: g.n ? 14 : 15, w: 700, mono: true, color: v == null ? C.muted : C.ink});
+    }
+    // 재구성한 색 (R·G·B 세 화소마다)
+    for (let k = 0; k < N / 3; k++) {
+      const x = g.x0 + 3 * k * g.pixW + 3, w = 3 * g.pixW - 6, ok = [0, 1, 2].every((i) => vals[3 * k + i] != null);
+      ctx.save(); Lab.rrect(ctx, x, g.ry, w, g.rh, 7);
+      if (ok) { ctx.fillStyle = rgb(vals[3 * k], vals[3 * k + 1], vals[3 * k + 2]); ctx.fill(); }
+      ctx.strokeStyle = C.line; ctx.lineWidth = 1.4; if (!ok) ctx.setLineDash([3, 4]); ctx.stroke(); ctx.restore();
+      text(ctx, ok ? (g.n ? '재구성한 색' : '재구성한 색 (세 화소 값으로)') : '재구성 대기', x + w / 2, g.ry + g.rh / 2 + 0.5, {size: 13, w: 700, color: ok ? onSwatch(vals[3 * k], vals[3 * k + 1], vals[3 * k + 2]) : C.muted});
+    }
+    // 입사광 견본
+    const lx = g.bx0, ly = g.ry;
+    ctx.save(); Lab.rrect(ctx, lx, ly, g.boxW, g.rh, 7); ctx.fillStyle = mixC; ctx.fill(); ctx.strokeStyle = C.line; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
+    text(ctx, '입사광', lx + g.boxW / 2, ly + g.rh / 2 + 0.5, {size: 13, w: 700, color: onSwatch(255 * Math.min(1, S.I.R / 2), 255 * Math.min(1, S.I.G / 2), 255 * Math.min(1, S.I.B / 2))});
+  }
+
+  // ── 오른쪽: 화소 배열 ───────────────────────────────────
+  function liveCount(c) {                          // 무대에서 그 필터 색 화소의 지금 전자 수
+    if (!S.filters) return packets[0] ? packets[0].n : 0;
+    const p = M.COLORS.indexOf(c);
+    return packets[p] ? packets[p].n : 0;
+  }
+  function drawMosaic() {
+    const {ctx, W, H} = mosaic; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const rows = 4, cols = 6, gap = 5, cw = (W - gap * (cols - 1) - 4) / cols, ch = (H - gap * (rows - 1) - 4) / rows;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const f = M.filterAt(r, c), x = 2 + c * (cw + gap), y = 2 + r * (ch + gap), n = liveCount(f);
+      ctx.save(); Lab.rrect(ctx, x, y, cw, ch, 7);
+      ctx.fillStyle = S.filters ? col(f, isDark() ? 0.3 : 0.22) : A(C.muted, 0.12); ctx.fill();
+      ctx.strokeStyle = S.filters ? col(f, 0.8) : C.line; ctx.lineWidth = 1.2; ctx.stroke(); ctx.restore();
+      text(ctx, S.filters ? f : '–', x + 9, y + 11, {size: 13, w: 700, color: S.filters ? col(f) : C.muted, align: 'left'});
+      text(ctx, String(n), x + cw / 2, y + ch * 0.58, {size: ch > 44 ? 18 : 15, w: 700, mono: true, color: n ? C.vel : C.muted});
+    }
+    // 무대에 보이는 단면 (첫 줄)
+    const N0 = G ? G.N : 6, wN = N0 * cw + (N0 - 1) * gap;
+    ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.6; Lab.rrect(ctx, 0.5, 0.5, wN + 3, ch + 3, 9); ctx.stroke(); ctx.restore();
+  }
+
+  // ── 오른쪽: 전자 수 – 노출 시간 ─────────────────────────
+  function drawGraph() {
+    const {ctx, W, H} = graph; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const sum = S.I.R + S.I.G + S.I.B, ymax = S.filters ? 16 : Math.max(16, Math.ceil(M.K * 2 * sum / 8) * 8);
+    const r = {x: 44, y: 22, w: W - 64, h: H - 70};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 2, ymin: 0, ymax, xticks: [0, 0.5, 1, 1.5, 2], yticks: [0, ymax / 4, ymax / 2, 3 * ymax / 4, ymax],
+      ylabel: '전자 수 (개)', grid: true});
+    text(ctx, '노출 시간 t (s)', r.x + r.w / 2, r.y + r.h + 32, {size: 13, w: 600, color: C.muted});
+    const tNow = S.phase === 'expose' ? clamp(S.tg - S.tOpen, 0, S.T) : S.T;
+    // 노출 시간 T
+    ctx.save(); ctx.strokeStyle = C.copper; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(ax.X(S.T), r.y); ctx.lineTo(ax.X(S.T), r.y + r.h); ctx.stroke(); ctx.restore();
+    text(ctx, 'T = ' + Lab.fmt(S.T, 1) + ' s', ax.X(S.T) + (S.T > 1.6 ? -6 : 6), r.y + 4, {size: 13, w: 700, color: C.copper, align: S.T > 1.6 ? 'right' : 'left', mono: true, halo: true});
+    const lines = S.filters ? M.COLORS.map((c) => ({c, k: M.K * S.I[c], name: M.NAME[c]})) : [{c: null, k: M.K * sum, name: '모든 화소'}];
+    const used = [];
+    lines.forEach((L) => {
+      const cc = L.c ? col(L.c) : C.muted;
+      Lab.line(ctx, [[ax.X(0), ax.Y(0)], [ax.X(2), ax.Y(Math.min(ymax, L.k * 2))]], A(cc === C.muted ? C.muted : cc, 0.35), 1.4, [4, 4]);
+      Lab.line(ctx, [[ax.X(0), ax.Y(0)], [ax.X(tNow), ax.Y(L.k * tNow)]], cc, 3);
+      Lab.circle(ctx, ax.X(tNow), ax.Y(L.k * tNow), 5, {fill: cc, stroke: C.paper, width: 1.5});
+      const right = ax.X(tNow) > r.x + r.w - 70;
+      let ly = ax.Y(L.k * tNow) - (right ? 12 : 0);
+      while (used.some((u) => Math.abs(u - ly) < 15)) ly -= 15;
+      used.push(ly);
+      text(ctx, L.name + ' ' + Math.round(L.k * tNow) + '개', ax.X(tNow) + (right ? -9 : 9), ly, {size: 13, w: 700, color: cc, align: right ? 'right' : 'left', halo: true});
+    });
+  }
+
+  // ── 오른쪽: 재구성한 색 ─────────────────────────────────
+  function drawRecon() {
+    const {ctx, W, H} = recon; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const c = M.counts(S.I, S.T, S.filters), rc = M.reconstruct(c);
+    const cur = vals.length && vals.slice(0, 3).every((v) => v != null) ? vals : lastVals, ready = !!cur;
+    const sw = Math.min(150, (W - 40) / 2.6), sh = H - 44, y = 6;
+    const x1 = 4, x2 = W - sw - 4;
+    const mixC = rgb(255 * Math.min(1, S.I.R / 2), 255 * Math.min(1, S.I.G / 2), 255 * Math.min(1, S.I.B / 2));
+    ctx.save(); Lab.rrect(ctx, x1, y, sw, sh, 10); ctx.fillStyle = mixC; ctx.fill(); ctx.strokeStyle = C.line; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
+    text(ctx, '입사광', x1 + sw / 2, y + sh + 14, {size: 13, w: 700});
+    ctx.save(); Lab.rrect(ctx, x2, y, sw, sh, 10);
+    if (ready) { ctx.fillStyle = rgb(cur[0], cur[1], cur[2]); ctx.fill(); }
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.4; if (!ready) ctx.setLineDash([4, 4]); ctx.stroke(); ctx.restore();
+    text(ctx, ready ? 'CCD로 재구성' : '읽는 중…', x2 + sw / 2, ready ? y + sh + 14 : y + sh / 2, {size: 13, w: 700, color: ready ? C.ink : C.muted});
+    // 가운데: 화소 값
+    const mx = (x1 + sw + x2) / 2;
+    arrow(ctx, x1 + sw + 8, y + sh / 2, x2 - 8, y + sh / 2, C.muted, 1.8, 8);
+    const show = ready ? {r: cur[0], g: cur[1], b: cur[2]} : {r: '–', g: '–', b: '–'};
+    [['R', show.r], ['G', show.g], ['B', show.b]].forEach(([k, v], i) => {
+      text(ctx, k + ' ' + v, mx, y + sh / 2 - 26 + i * 17, {size: 13, w: 700, mono: true, color: S.filters ? col(k) : C.muted, halo: true});
+    });
+    void rc;
+    if (!S.filters) text(ctx, '필터 없음 → 회색(흑백)', mx, y + sh + 14, {size: 13, w: 700, color: C.neg});
+  }
+  let dirty = true;
+  function drawAll() { drawStage(); drawMosaic(); drawGraph(); drawRecon(); }
+
+  // ── 읽기 값·예제 확인·HUD ────────────────────────────────
+  function readouts() {
+    const c = M.counts(S.I, S.T, S.filters);
+    if (S.filters) {
+      $('lR').textContent = '빨강 화소의 전자'; $('lG').textContent = '초록 화소의 전자'; $('lB').textContent = '파랑 화소의 전자';
+      $('rC').textContent = M.detect(c).length ? M.detect(c).map((k) => M.NAME[k]).join(' + ') : '빛 없음';
+    } else {
+      $('lR').textContent = '1번 화소의 전자'; $('lG').textContent = '2번 화소의 전자'; $('lB').textContent = '3번 화소의 전자';
+      $('rC').textContent = '알 수 없음(흑백)';
+    }
+    $('rR').textContent = c.R + '개'; $('rG').textContent = c.G + '개'; $('rB').textContent = c.B + '개';
+    const same = (o) => S.filters && S.T === EX.T && S.I.R === o.R && S.I.G === o.G && S.I.B === o.B;
+    const ex1 = same(EX), ex2 = same({R: 2 * EX.R, G: 0, B: 2 * EX.B});
+    Lab.check('exCheck', ex1 || ex2,
+      ex1 ? '예제: 빨강·파랑 화소에만 전자(8개·4개), 초록 0개 → 입사광 = 빨강 + 파랑' : '세기 2배: 빨강 16개·파랑 8개(각각 2배), 초록은 여전히 0개',
+      '예제: 빨강·파랑 화소에만 전자가 쌓이는 빛은? 세기 2배면? — ‘스스로 확인 1’로 돌아갈 수 있어요');
+  }
+  let lastHud = '';
+  function hud() {
+    let a, b;
+    if (S.phase === 'expose') { a = '① 빛 받기 (노출)'; b = clamp(S.tg - S.tOpen, 0, S.T).toFixed(1) + ' / ' + Lab.fmt(S.T, 1) + ' s'; }
+    else if (S.phase === 'settle') { a = '① 노출 끝'; b = '셔터 닫힘'; }
+    else if (S.phase === 'shift') { a = S.s % 2 ? '② 두 전극으로 퍼짐' : S.s ? '③ 다음 전극으로 이동' : '전하 옮기기 준비'; b = '전압 단계 ' + S.s + ' / ' + 6 * N; }
+    else { a = '④ 읽기 끝'; b = '색 재구성'; }
+    const key = a + b + S.speed;
+    if (key === lastHud) return;
+    lastHud = key;
+    $('hudPhase').textContent = a; $('hudStep').textContent = b;
+    $('hudSlow').textContent = S.speed < 1 ? '느린 화면 ×' + S.speed : '빠르기 ×' + S.speed;
+  }
+  function controlsText() {
+    $('iROut').textContent = Lab.fmt(S.I.R, 1); $('iGOut').textContent = Lab.fmt(S.I.G, 1); $('iBOut').textContent = Lab.fmt(S.I.B, 1);
+    $('tOut').textContent = Lab.fmt(S.T, 1) + ' s';
+  }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const sl = {R: $('iR'), G: $('iG'), B: $('iB')}, tExp = $('tExp');
+  const change = () => { lastVals = null; lastRead = null; makeSched(); newFrame(true); controlsText(); readouts(); dirty = true; };
+  M.COLORS.forEach((c) => sl[c].addEventListener('input', () => { S.I[c] = +sl[c].value; change(); }));
+  tExp.addEventListener('input', () => { S.T = +tExp.value; change(); });
+  $('noFilter').addEventListener('change', (e) => { S.filters = !e.target.checked; change(); });
+  $('auto').addEventListener('change', (e) => { S.auto = e.target.checked; });
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; dirty = true; }, S.speed);
+  $('shoot').addEventListener('click', () => { newFrame(false); playCtl.set(true); });
+  $('step').addEventListener('click', () => {
+    playCtl.set(false);
+    if (S.phase === 'expose' || S.phase === 'settle') finishExposure();
+    else if (S.phase === 'shift') clockStep();
+    else { newFrame(false); finishExposure(); }
+    snapElectrons(); dirty = true;
+  });
+  function snapElectrons() { const g = G; if (!g) return; elist = elist.filter((e) => !e.out); elist.forEach((e) => { const t = slot(g, e); e.x = t[0]; e.y = t[1]; }); }
+  function setLight(I, T, filters) {
+    S.I = {R: I.R, G: I.G, B: I.B}; S.T = T; S.filters = filters;
+    M.COLORS.forEach((c) => { sl[c].value = S.I[c]; }); tExp.value = T; $('noFilter').checked = !filters;
+  }
+  // 스스로 확인: 그 상황으로 바꾸기
+  const TRY = {
+    ex: () => { setLight(EX, EX.T, true); change(); playCtl.set(true); },
+    ex2: () => { setLight({R: 2 * EX.R, G: 0, B: 2 * EX.B}, EX.T, true); change(); playCtl.set(true); },
+    red: () => { setLight({R: 2, G: 0, B: 0}, 2, true); change(); playCtl.set(true); },
+    shift: () => { setLight(EX, EX.T, true); change(); finishExposure(); snapElectrons(); playCtl.set(false); },
+    nofilter: () => { setLight(EX, EX.T, false); change(); playCtl.set(true); },
+  };
+  Lab.tries(TRY, () => { speedG.set(S.speed, true); controlsText(); readouts(); dirty = true; });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    if (S.playing && G) { update(dt * S.speed); dirty = true; }
+    if (dirty) { drawAll(); hud(); dirty = false; }
+  });
+  controlsText(); readouts();
+})();
+</script>
+</body>
+</html>

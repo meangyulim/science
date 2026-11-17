@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전반사와 광섬유</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* Layout: 왼쪽 무대(반원 유리 · 광섬유 · 광통신 세 보기)와 조작판, 오른쪽 수치와 보기별 그래프 */
+#stage{aspect-ratio:16/10.5}
+#ang{aspect-ratio:10/9}
+#crit{aspect-ratio:10/6.4}
+#fib{aspect-ratio:10/7.2}
+#sig{aspect-ratio:10/8}
+.ro b.txt{font-family:var(--font-ui);font-weight:700}
+.status.good{color:var(--acc)} .status.bad{color:var(--neg)}
+@media (max-width:640px){ #stage{aspect-ratio:1/1.15} }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="back" href="../../">← 물리 실험실</a>
+    <div class="crumbs"><span class="id">III1-07</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+    <h1>전반사, 광섬유와 광통신</h1>
+    <p class="lead">반원 유리의 중심으로 빛을 보내고 광원을 끌어 입사각을 키워 보자. 굴절각이 먼저 90°에 이르고(임계각), 그보다 크면 <b>굴절 광선이 사라지고 빛이 모두 반사</b>된다. 선의 굵기와 빛 알갱이의 밝기가 빛의 세기다.</p>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <div class="stage">
+        <canvas id="stage" aria-label="반원 유리, 광섬유, 광통신 장치에서 빛이 굴절·반사·전반사하는 모습"></canvas>
+        <div class="hud"><span class="pill" id="hudState">③ 전반사</span><span class="pill num" id="hudInfo">n₁ = 2 → n₂ = 1</span></div>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="group" role="group" aria-label="보기">
+            <span class="gl">보기</span>
+            <button type="button" class="btn" data-mode="semi" aria-pressed="true">반원 유리</button>
+            <button type="button" class="btn" data-mode="fiber" aria-pressed="false">광섬유</button>
+            <button type="button" class="btn" data-mode="comm" aria-pressed="false">광통신</button>
+          </div>
+        </div>
+        <div class="row" id="rowSemi">
+          <div class="grow">
+            <label class="ctl-label" for="th">입사각 θ (평면 경계에서) <output id="thOut">45°</output></label>
+            <input id="th" type="range" min="0" max="89.5" step="0.5" value="45">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="n1">반원 매질 굴절률 n₁ <output id="n1Out">2.00</output></label>
+            <input id="n1" type="range" min="1" max="2.6" step="0.01" value="2">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="n2">바깥 매질 굴절률 n₂ <output id="n2Out">1.00</output></label>
+            <input id="n2" type="range" min="1" max="2" step="0.01" value="1">
+          </div>
+        </div>
+        <div class="row" id="rowSemi2">
+          <div class="group" role="group" aria-label="반원 매질">
+            <span class="gl">반원 매질</span>
+            <button type="button" class="btn" data-mat="1.33">물 1.33</button>
+            <button type="button" class="btn" data-mat="1.5">유리 1.5</button>
+            <button type="button" class="btn" data-mat="2">n = 2</button>
+            <button type="button" class="btn" data-mat="2.42">다이아몬드 2.42</button>
+          </div>
+          <div class="group" role="group" aria-label="빛의 방향">
+            <span class="gl">빛의 방향</span>
+            <button type="button" class="btn" data-dir="out" aria-pressed="true">반원 → 바깥</button>
+            <button type="button" class="btn" data-dir="in" aria-pressed="false">바깥 → 반원</button>
+          </div>
+        </div>
+        <div class="row" id="rowFiber" hidden>
+          <div class="grow">
+            <label class="ctl-label" for="fi">끝면 입사각 i <output id="fiOut">30°</output></label>
+            <input id="fi" type="range" min="0" max="85" step="0.5" value="30">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="nc">코어 굴절률 <output id="ncOut">1.50</output></label>
+            <input id="nc" type="range" min="1.3" max="2" step="0.01" value="1.5">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="nd">클래딩 굴절률 <output id="ndOut">1.20</output></label>
+            <input id="nd" type="range" min="1" max="1.9" step="0.01" value="1.2">
+          </div>
+        </div>
+        <div class="row" id="rowComm" hidden>
+          <label class="chk"><input type="checkbox" id="cCu">구리 도선과 비교 (오른쪽 그래프)</label>
+        </div>
+        <div class="row toggles">
+          <label class="chk"><input type="checkbox" id="cPulse" checked>빛 알갱이(펄스)</label>
+          <label class="chk"><input type="checkbox" id="cAng" checked>각도 표시</label>
+          <label class="chk"><input type="checkbox" id="cCrit" checked>임계각 표시</label>
+          <span class="spacer"></span>
+          <span class="cap" id="dragHint" style="margin:0">무대를 끌면 광원이 움직인다</span>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>지금 수치</h2>
+        <div class="readouts">
+          <div class="ro cu"><span id="r1n">임계각 θc</span><b id="r1">30°</b></div>
+          <div class="ro"><span id="r2n">입사각 θ</span><b id="r2">45°</b></div>
+          <div class="ro vel"><span id="r3n">굴절각 θ₂</span><b id="r3">없음</b></div>
+          <div class="ro acc"><span id="r4n">반사되는 빛</span><b id="r4">100 %</b></div>
+        </div>
+        <p class="status" id="result" style="margin-top:10px"></p>
+        <p class="check" id="exCheck"></p>
+      </section>
+      <section class="panel" id="pAng">
+        <h2>입사각을 키우면 <small>굴절각과 반사되는 빛</small></h2>
+        <canvas class="flat" id="ang" aria-label="입사각에 따른 굴절각과 반사되는 빛의 세기 그래프"></canvas>
+        <p class="cap">굴절각이 90°에 닿는 입사각이 <b>임계각</b>. 그 순간 반사가 100 %가 되고, 더 크면 굴절할 각이 없다(전반사). 세기는 편광하지 않은 빛으로 계산한 참고값.</p>
+      </section>
+      <section class="panel" id="pCrit">
+        <h2>임계각과 굴절률 <small>sinθc = n₂/n₁</small></h2>
+        <canvas class="flat" id="crit" aria-label="반원 매질의 굴절률에 따른 임계각 그래프"></canvas>
+        <p class="cap">굴절률 차(비)가 클수록 임계각이 작아 <b>더 작은 입사각부터</b> 전반사가 시작된다.</p>
+      </section>
+      <section class="panel" id="pFib" hidden>
+        <h2>끝면 입사각과 경계면 입사각 <small>90° − r</small></h2>
+        <canvas class="flat" id="fib" aria-label="광섬유 끝면 입사각에 따른 코어-클래딩 경계면 입사각 그래프"></canvas>
+        <p class="cap">끝면 입사각 i가 작을수록 굴절각 r이 작아 경계면 입사각 90° − r이 커진다 → 임계각보다 크면 전반사로 갇힌다.</p>
+      </section>
+      <section class="panel" id="pSig" hidden>
+        <h2>신호의 모양 <small>오른쪽 끝이 지금</small></h2>
+        <canvas class="flat" id="sig" aria-label="보낸 전기 신호, 빛 펄스, 받은 전기 신호의 시간 그래프"></canvas>
+        <p class="cap">실어 나르는 것은 전압 → 빛 → 전류로 바뀌어도 신호의 모양(정보)은 그대로다. 받은 신호는 전송 시간만큼 늦게 나온다.</p>
+      </section>
+    </aside>
+  </main>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">개념 정리</h2>
+    <div class="concepts">
+      <article class="concept">
+        <h3>임계각과 전반사</h3>
+        <p>굴절률이 큰 쪽에서 작은 쪽으로 갈 때 굴절각이 입사각보다 커서, 입사각을 키우면 굴절각이 먼저 90°가 된다. 이때의 입사각이 <b>임계각</b>: <span class="eq">n₁ sinθc = n₂ sin90°</span> → <span class="eq">sinθc = n₂/n₁</span>.</p>
+        <p>입사각이 임계각보다 크면 굴절할 각이 없어 빛이 모두 반사된다(전반사). 반사는 늘 일어나고, 임계각에 가까울수록 강해진다.</p>
+      </article>
+      <article class="concept">
+        <h3>두 조건과 반원 매질</h3>
+        <p>전반사 = <b>굴절률 큰 → 작은 쪽</b> 그리고 <b>입사각 &gt; 임계각</b>. 작은 → 큰 쪽이면 n₂/n₁ &gt; 1이라 어떤 각에서도 없다.</p>
+        <p>굴절률 비가 클수록 임계각이 작다(1.5 → 공기 약 41.8°, 2 → 30°, 다이아몬드 약 24°). 반원 매질의 곡면 쪽에서 중심을 향한 빛은 수직 입사라 꺾이지 않으므로 평면 경계의 입사각만 임계각과 비교한다.</p>
+      </article>
+      <article class="concept">
+        <h3>광섬유와 광통신</h3>
+        <p>굴절률이 큰 <b>코어</b>를 작은 <b>클래딩</b>이 감싼다. 끝면 입사각 i가 작을수록 경계면 입사각 90° − r이 커서 전반사에 유리하다.</p>
+        <p>광통신: 소리·영상 → 전기 신호 → <b>발광 다이오드·레이저</b>(전기 → 빛) → 광섬유 → <b>광 다이오드</b>(빛 → 전기) → 소리·영상. 많은 정보를 적은 손실로, 외부 전파의 혼선 없이 보내지만 끊어지면 잇기 어렵다.</p>
+      </article>
+    </div>
+    <p class="compare">임계각이 ‘작을수록’ 전반사가 잘 일어난다 — 더 작은 입사각부터 전반사가 시작되기 때문이다. 판정은 늘 진행 방향(큰 → 작은 굴절률)부터 확인하고, 그다음 입사각과 임계각을 비교한다.</p>
+
+    <h2>스스로 확인</h2>
+    <ol class="quiz">
+      <li>
+        <p class="q"><span>1</span>굴절률 2인 매질에서 공기(n = 1)로 빛이 입사각 45°로 나가려 한다. 전반사가 일어날까?<span class="tag">개념서 예제</span></p>
+        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button></div>
+        <details><summary>답 보기</summary><p>굴절률 큰 쪽 → 작은 쪽이므로 첫 조건 만족. sinθc = 1/2 → <b>θc = 30°</b>. 입사각 45° &gt; 30°이므로 <b>전반사가 일어난다</b>. 무대에서 굴절 광선이 없고 반사광이 100 %인 것을 확인한다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>2</span>굴절률이 1.5, 2.0, 2.4인 매질 A, B, C에서 공기로 빛이 나갈 때 임계각의 크기를 비교하면?<span class="tag">개념 체크</span></p>
+        <div class="acts"><button type="button" class="btn" data-try="nA">A (1.5)</button><button type="button" class="btn" data-try="nB">B (2.0)</button><button type="button" class="btn" data-try="nC">C (2.4)</button></div>
+        <details><summary>답 보기</summary><p><b>A &gt; B &gt; C</b> (약 41.8°, 30°, 24.6°). sinθc = 1/n이므로 굴절률이 클수록 임계각이 작다. 세 버튼 모두 입사각 35°인데, A에서는 굴절하고 B·C에서는 전반사한다. 임계각이 클수록 전반사가 잘 일어난다는 생각은 거꾸로다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>3</span>굴절률 √2인 반원 유리의 곡면 쪽에서 중심으로 빛을 보낸다. 30°, 40°, 45°, 50° 가운데 평면 경계에서 전반사가 일어나는 입사각은? 빛을 바깥(공기)에서 넣으면?<span class="tag">개념 체크</span></p>
+        <div class="acts"><button type="button" class="btn" data-try="s45">√2, 45°</button><button type="button" class="btn" data-try="s50">√2, 50°</button><button type="button" class="btn" data-try="rev">바깥 → 반원</button></div>
+        <details><summary>답 보기</summary><p><b>50°</b>. 곡면에는 수직으로 들어가 꺾이지 않고, 평면 경계의 임계각은 sinθc = 1/√2 → 45°. 45°에서는 굴절각이 90°인 경계 상황이고, 50°에서 전반사한다. 공기 → 유리로 넣으면 굴절률 작은 → 큰 쪽이라 입사각을 아무리 키워도 전반사가 없다(굴절각이 45°를 넘지 못한다).</p></details>
+      </li>
+      <li>
+        <p class="q"><span>4</span>옳은 것만 고르면? ㄱ. 코어의 굴절률은 클래딩보다 크다. ㄴ. 끝면 입사각이 작을수록 코어-클래딩 경계에서 전반사가 잘 일어난다. ㄷ. 수신기에서는 발광 다이오드가 빛 신호를 전기 신호로 바꾼다.<span class="tag">개념 체크</span></p>
+        <div class="acts"><button type="button" class="btn" data-try="fib">끝면 입사각 작게</button><button type="button" class="btn" data-try="leak">끝면 입사각 크게</button><button type="button" class="btn" data-try="comm">광통신 보기</button></div>
+        <details><summary>답 보기</summary><p><b>ㄱ, ㄴ</b>. 전반사는 굴절률 큰 쪽 → 작은 쪽에서만 일어나므로 코어가 더 크다(ㄱ). i가 작을수록 r이 작아져 경계면 입사각 90° − r이 커지므로 임계각을 넘기 쉽다(ㄴ). 빛 → 전기는 <b>광 다이오드</b>가 하고, 발광 다이오드는 발신기에서 전기 → 빛을 맡는다(ㄷ 틀림).</p></details>
+      </li>
+    </ol>
+    <nav class="pager"><a href="../06/">← III1-06 여러 매질의 굴절</a><a href="../../">물리 실험실</a><a href="../08/">III1-08 전자기파의 본질과 스펙트럼 →</a></nav>
+  </section>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="III1-07-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.III1_07;
+  const {$, C, text, arrow} = Lab;
+  const fmt = Lab.fmt, DEG = M.DEG, PI = Math.PI;
+
+  // ── 상태 ────────────────────────────────────────────────
+  const EX = {n1: 2, n2: 1, th: 45};
+  const S = {mode: 'semi', dir: 'out', n1: 2, n2: 1, n1Name: null, th: 45, fi: 30, nCore: 1.5, nClad: 1.2, cu: false,
+    pulse: true, ang: true, crit: true, t: 0.3, playing: !Lab.reduceMotion};
+  const V = 230;                                    // 그림 속 진공에서의 빛 속력 (px/s)
+  const TW = 0.4, TF = 2.4, DP = 0.1;               // 광통신: 도선 지연, 광섬유 전송 시간, 펄스 간격 (그림 속 시간)
+  const msg = (t) => 0.62 * Math.sin(2 * PI * 1.2 * t) + 0.3 * Math.sin(2 * PI * 2.3 * t + 1.1);
+  const noise = (t) => 0.5 * Math.sin(2 * PI * 7.3 * t) + 0.3 * Math.sin(2 * PI * 11.9 * t + 2) + 0.25 * Math.sin(2 * PI * 17.1 * t + 4.2);
+
+  // 반원 보기: 빛이 지금 있는 매질 → 나갈 매질
+  const pair = () => (S.dir === 'out' ? [S.n1, S.n2] : [S.n2, S.n1]);
+  const n1Text = () => S.n1Name || fmt(S.n1, 2);
+
+  // ── 그리기 도우미 ───────────────────────────────────────
+  function poly(ctx, pts, col, w, o = {}) {
+    if (pts.length < 2) return;
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    if (o.alpha != null) ctx.globalAlpha = o.alpha;
+    if (o.dash) ctx.setLineDash(o.dash);
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.stroke(); ctx.restore();
+  }
+  function beam(ctx, x0, y0, x1, y1, I, o = {}) {      // 세기 I 를 굵기·밝기로
+    if (I < 0.003) return;
+    const k = Math.min(1, I);
+    ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = C.vel;
+    ctx.globalAlpha = 0.14 * Math.min(1, k * 1.5); ctx.lineWidth = 9 + 9 * k;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    ctx.globalAlpha = 0.28 + 0.72 * k; ctx.lineWidth = 1.5 + 2.9 * k;
+    if (o.dash) ctx.setLineDash(o.dash);
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    ctx.restore();
+    if (o.head !== false) {
+      const f = o.head || 0.55, x = x0 + (x1 - x0) * f, y = y0 + (y1 - y0) * f, an = Math.atan2(y1 - y0, x1 - x0), s = 7 + 4 * k;
+      ctx.save(); ctx.globalAlpha = 0.35 + 0.65 * k; ctx.fillStyle = C.vel; ctx.beginPath();
+      ctx.moveTo(x + Math.cos(an) * s, y + Math.sin(an) * s);
+      ctx.lineTo(x - Math.cos(an) * s * 0.6 - Math.sin(an) * s * 0.55, y - Math.sin(an) * s * 0.6 + Math.cos(an) * s * 0.55);
+      ctx.lineTo(x - Math.cos(an) * s * 0.6 + Math.sin(an) * s * 0.55, y - Math.sin(an) * s * 0.6 - Math.cos(an) * s * 0.55);
+      ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+  }
+  function dot(ctx, x, y, I) {                           // 빛 알갱이(펄스): 밝기 = 세기
+    if (I < 0.02) return;
+    const k = Math.min(1, I);
+    ctx.save(); ctx.fillStyle = C.energy;
+    ctx.globalAlpha = 0.22 * k; ctx.beginPath(); ctx.arc(x, y, 7 + 5 * k, 0, 7); ctx.fill();
+    ctx.globalAlpha = 0.35 + 0.65 * k; ctx.beginPath(); ctx.arc(x, y, 2.6 + 2.6 * k, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+  function arcBetween(ctx, cx, cy, r, a0, a1, col, w = 2) {
+    let d = a1 - a0; while (d > PI) d -= 2 * PI; while (d < -PI) d += 2 * PI;
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(cx, cy, r, a0, a0 + d, d < 0); ctx.stroke(); ctx.restore();
+    return a0 + d / 2;
+  }
+  function angLabel(ctx, cx, cy, r, mid, s, col) { text(ctx, s, cx + Math.cos(mid) * r, cy + Math.sin(mid) * r, {size: 13.5, w: 700, color: col || C.copper, halo: true}); }
+  function toEdge(x, y, a, W, H, m = 6) {               // (x,y) 에서 각 a 방향으로 무대 끝까지 거리
+    const c = Math.cos(a), s = Math.sin(a); let t = 1e9;
+    if (c > 1e-9) t = Math.min(t, (W - m - x) / c); if (c < -1e-9) t = Math.min(t, (m - x) / c);
+    if (s > 1e-9) t = Math.min(t, (H - m - y) / s); if (s < -1e-9) t = Math.min(t, (m - y) / s);
+    return Math.max(0, t);
+  }
+  function laser(ctx, x, y, a, lab, below) {             // a = 빛이 나가는 방향
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+    ctx.fillStyle = C.ink; Lab.rrect(ctx, -30, -8, 30, 16, 4); ctx.fill();
+    ctx.fillStyle = C.energy; ctx.fillRect(-3, -4, 4, 8);
+    ctx.restore();
+    text(ctx, lab, x - Math.cos(a) * 16, y - Math.sin(a) * 16 + (below ? 22 : -20), {size: 13.5, w: 700, halo: true});
+  }
+  function box(ctx, x, y, w, h, col, label) {
+    ctx.save(); ctx.fillStyle = Lab.alpha(col, 0.12); ctx.strokeStyle = col; ctx.lineWidth = 2;
+    Lab.rrect(ctx, x - w / 2, y - h / 2, w, h, 9); ctx.fill(); ctx.stroke(); ctx.restore();
+    if (label) text(ctx, label, x, y, {size: 13, w: 700, color: col});
+  }
+  // 경로(점 목록 + 구간 속력)를 시간 a 만큼 갔을 때의 점
+  function along(pts, vs, a) {
+    let t = a;
+    for (let i = 1; i < pts.length; i++) {
+      const L = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]), dt = L / vs[i - 1];
+      if (t <= dt) { const f = t / dt; return [pts[i - 1][0] + f * (pts[i][0] - pts[i - 1][0]), pts[i - 1][1] + f * (pts[i][1] - pts[i - 1][1])]; }
+      t -= dt;
+    }
+    return null;
+  }
+  const pathTime = (pts, vs) => { let T = 0; for (let i = 1; i < pts.length; i++) T += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]) / vs[i - 1]; return T; };
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', draw);
+  const angV = Lab.canvas('ang', draw), critV = Lab.canvas('crit', draw), fibV = Lab.canvas('fib', draw), sigV = Lab.canvas('sig', draw);
+  let GS = null, GF = null;                               // 끌기에 쓰는 반원·광섬유 배치
+
+  function frameBox(W, H) { const narrow = W < 520; const top = narrow ? 84 : 58, bot = narrow ? 70 : 52; return {narrow, top, bot, avail: H - top - bot}; }
+
+  // ① 반원 유리
+  function drawSemi(ctx, W, H) {
+    const fb = frameBox(W, H), out = S.dir === 'out';
+    const R = Math.min(W * (fb.narrow ? 0.36 : 0.3), (fb.avail - 46) / 2), ox = W / 2, oy = fb.top + fb.avail - R - 6;
+    GS = {ox, oy, R};
+    const [na, nb] = pair(), th = S.th, tc = M.criticalAngle(na, nb), reg = M.regime(na, nb, th);
+    const t2 = M.refractionAngle(na, nb, th), Rf = M.reflectance(na, nb, th), Tf = 1 - Rf;
+    // 바깥 매질과 반원
+    if (S.n2 > 1.005) { ctx.fillStyle = Lab.alpha(C.vel, Math.min(0.14, (S.n2 - 1) * 0.13)); ctx.fillRect(0, 0, W, H); }
+    ctx.save(); ctx.beginPath(); ctx.moveTo(ox + R, oy); ctx.arc(ox, oy, R, 0, PI, false); ctx.closePath();
+    ctx.fillStyle = C.paper; ctx.fill(); ctx.fillStyle = Lab.alpha(C.vel, Math.min(0.24, 0.06 + 0.07 * (S.n1 - 1))); ctx.fill();
+    ctx.strokeStyle = C.vel; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    poly(ctx, [[ox - R, oy], [ox + R, oy]], C.vel, 2.8);
+    // 법선
+    poly(ctx, [[ox, oy - R - 30], [ox, oy + R + 12]], C.muted, 1.4, {dash: [6, 5]});
+    text(ctx, '법선', ox + 8, oy - R - 22, {size: 13, w: 600, color: C.muted, align: 'left'});
+    const nIn = out ? PI / 2 : -PI / 2, nOut = -nIn, sg = out ? 1 : -1;
+    const aInc = nIn + sg * th * DEG, aRefl = nIn - sg * th * DEG, aRefr = isFinite(t2) ? nOut + sg * t2 * DEG : null;
+    // 임계각 표시 (전반사가 가능할 때만)
+    if (S.crit && isFinite(tc)) {
+      const a0 = nIn + sg * tc * DEG, a1 = out ? PI : -PI;
+      ctx.save(); ctx.beginPath(); ctx.moveTo(ox, oy); ctx.arc(ox, oy, R * 0.97, a0, a1, !out); ctx.closePath();
+      ctx.fillStyle = Lab.alpha(C.copper, 0.1); ctx.fill(); ctx.restore();
+      poly(ctx, [[ox, oy], [ox + Math.cos(a0) * R, oy + Math.sin(a0) * R]], C.copper, 2, {dash: [7, 5]});
+      const am = (a0 + a1) / 2, ap = a0 - sg * PI / 2;
+      if (!fb.narrow) {
+        text(ctx, '전반사 영역', ox + Math.cos(am) * R * 0.7, oy + Math.sin(am) * R * 0.7, {size: 13, w: 700, color: C.copper, halo: true});
+        text(ctx, 'θc = ' + fmt(tc, 1) + '°', ox + Math.cos(a0) * R * 0.5 + Math.cos(ap) * 26, oy + Math.sin(a0) * R * 0.5 + Math.sin(ap) * 26, {size: 13.5, w: 700, color: C.copper, halo: true});
+      } else text(ctx, 'θc', ox + Math.cos(a0) * R * 0.8 + Math.cos(ap) * 12, oy + Math.sin(a0) * R * 0.8 + Math.sin(ap) * 12, {size: 13.5, w: 700, color: C.copper, halo: true});
+    }
+    // 광선
+    const L = R + 40, lx = ox + Math.cos(aInc) * L, ly = oy + Math.sin(aInc) * L;
+    beam(ctx, lx, ly, ox, oy, 1, {head: 0.42});
+    const dRefl = toEdge(ox, oy, aRefl, W, H);
+    beam(ctx, ox, oy, ox + Math.cos(aRefl) * dRefl, oy + Math.sin(aRefl) * dRefl, Rf, {head: Math.min(0.6, R * 0.6 / dRefl)});
+    let dRefr = 0;
+    if (aRefr !== null) {
+      dRefr = toEdge(ox, oy, aRefr, W, H);
+      if (reg === 'critical') { const d = Math.min(dRefr, R + 70); beam(ctx, ox, oy, ox + Math.cos(aRefr) * d, oy + Math.sin(aRefr) * d, Math.max(Tf, 0.45), {dash: [8, 5]}); }
+      else beam(ctx, ox, oy, ox + Math.cos(aRefr) * dRefr, oy + Math.sin(aRefr) * dRefr, Tf, {head: Math.min(0.6, R * 0.55 / dRefr)});
+    }
+    // 빛 알갱이: 바깥(nb·na 매질)과 반원 속에서 속력이 다르다 (v = c/n)
+    if (S.pulse) {
+      const inc = out ? [[lx, ly], [ox + Math.cos(aInc) * R, oy + Math.sin(aInc) * R], [ox, oy]] : [[lx, ly], [ox, oy]];
+      const vInc = out ? [V / S.n2, V / S.n1] : [V / S.n2];
+      const refl = out ? [[ox, oy], [ox + Math.cos(aRefl) * R, oy + Math.sin(aRefl) * R], [ox + Math.cos(aRefl) * dRefl, oy + Math.sin(aRefl) * dRefl]] : [[ox, oy], [ox + Math.cos(aRefl) * dRefl, oy + Math.sin(aRefl) * dRefl]];
+      const vRefl = out ? [V / S.n1, V / S.n2] : [V / S.n2];
+      let refr = null, vRefr = null;
+      if (aRefr !== null && reg !== 'critical') {
+        refr = out ? [[ox, oy], [ox + Math.cos(aRefr) * dRefr, oy + Math.sin(aRefr) * dRefr]] : [[ox, oy], [ox + Math.cos(aRefr) * R, oy + Math.sin(aRefr) * R], [ox + Math.cos(aRefr) * dRefr, oy + Math.sin(aRefr) * dRefr]];
+        vRefr = out ? [V / S.n2] : [V / S.n1, V / S.n2];
+      }
+      const tIn = pathTime(inc, vInc), period = 0.5, tMax = tIn + Math.max(pathTime(refl, vRefl), refr ? pathTime(refr, vRefr) : 0);
+      for (let a = S.t % period; a < tMax; a += period) {
+        if (a < tIn) { const p = along(inc, vInc, a); if (p) dot(ctx, p[0], p[1], 1); continue; }
+        const p1 = along(refl, vRefl, a - tIn); if (p1) dot(ctx, p1[0], p1[1], Rf);
+        if (refr) { const p2 = along(refr, vRefr, a - tIn); if (p2) dot(ctx, p2[0], p2[1], Tf); }
+      }
+    }
+    // 각
+    if (S.ang) {
+      angLabel(ctx, ox, oy, 62, arcBetween(ctx, ox, oy, 44, nIn, aInc, C.copper, 2.2), 'θ', C.copper);
+      angLabel(ctx, ox, oy, 52, arcBetween(ctx, ox, oy, 34, nIn, aRefl, C.copper, 1.6), 'θ', C.copper);
+      if (aRefr !== null) angLabel(ctx, ox, oy, 70, arcBetween(ctx, ox, oy, 50, nOut, aRefr, C.vel, 2), 'θ₂', C.vel);
+    }
+    // 매질 이름
+    text(ctx, `바깥 n₂ = ${fmt(S.n2, 2)}${S.n2 === 1 ? ' (공기)' : ''}`, 14, fb.top + 4, {size: 14, w: 700, align: 'left', halo: true});
+    text(ctx, `반원 매질 n₁ = ${n1Text()}`, ox, fb.narrow ? oy + R + 16 : oy + R * 0.82, {size: 14, w: 700, halo: true});
+    laser(ctx, lx, ly, aInc + PI, '광원', !out);
+    // 상태 글
+    if (reg === 'tir') {
+      const s = '굴절 광선 없음 → 100 % 반사', w = Lab.measure(ctx, s, {size: 14, w: 700}) + 20, bx = Math.min(ox + 22, W - w - 10), by = out ? oy - 58 : oy + 40;
+      ctx.save(); ctx.fillStyle = C['neg-soft']; Lab.rrect(ctx, bx, by - 15, w, 30, 9); ctx.fill(); ctx.restore();
+      text(ctx, s, bx + 10, by, {size: 14, w: 700, color: C.neg, align: 'left'});
+    } else if (reg === 'critical') {
+      text(ctx, '굴절각 90°: 경계를 따라 스침', Math.min(ox + R * 0.25, W - 210), oy + (out ? -16 : 18), {size: 13.5, w: 700, color: C.vel, align: 'left', halo: true});
+    }
+  }
+
+  // ② 광섬유
+  function drawFiber(ctx, W, H) {
+    const fb = frameBox(W, H), narrow = fb.narrow;
+    const xf = narrow ? W * 0.3 : W * 0.24, a = Math.min(fb.avail * 0.16, 52), cl = a * 0.62, jk = 9;
+    const yc = fb.top + fb.avail * (narrow ? 0.46 : 0.47), Ll = Math.min(xf - 16, narrow ? 84 : 128), xe = W + 30;
+    GF = {xf, yc, Ll};
+    const f = M.fiber(S.fi, S.nCore, S.nClad), r = f.r * DEG;
+    // 층: 피복 · 클래딩 · 코어
+    const yT = yc - a - cl - jk, yB = yc + a + cl;
+    ctx.fillStyle = Lab.alpha(C.muted, 0.42); ctx.fillRect(xf, yT, xe - xf, jk); ctx.fillRect(xf, yB, xe - xf, jk);
+    ctx.fillStyle = C.paper; ctx.fillRect(xf, yc - a - cl, xe - xf, 2 * (a + cl));
+    ctx.fillStyle = Lab.alpha(C.energy, 0.16); ctx.fillRect(xf, yc - a - cl, xe - xf, cl); ctx.fillRect(xf, yc + a, xe - xf, cl);
+    ctx.fillStyle = Lab.alpha(C.vel, Math.min(0.22, 0.08 + 0.1 * (S.nCore - 1))); ctx.fillRect(xf, yc - a, xe - xf, 2 * a);
+    poly(ctx, [[xf, yc - a], [xe, yc - a]], C.vel, 1.8); poly(ctx, [[xf, yc + a], [xe, yc + a]], C.vel, 1.8);
+    poly(ctx, [[xf, yT], [xe, yT]], C.muted, 1.2); poly(ctx, [[xf, yB + jk], [xe, yB + jk]], C.muted, 1.2);
+    poly(ctx, [[xf, yT], [xf, yB + jk]], C.ink, 2.6);
+    poly(ctx, [[xf - Ll * 0.95, yc], [xf + 26, yc]], C.muted, 1.3, {dash: [5, 5]});
+    // 지그재그 경로와 새어 나가는 빛
+    const pts = [[xf, yc]], Ib = [1];
+    const Rb = f.tir ? 1 : M.reflectance(S.nCore, S.nClad, f.boundary);
+    const leaks = [];
+    if (r < 0.004) pts.push([xe, yc]);
+    else {
+      const dx = a / Math.tan(r);
+      let x = xf + dx, side = 1, I = 1;
+      while (true) {
+        if (x > xe) { const [px, py] = pts[pts.length - 1]; const f2 = (xe - px) / (x - px); pts.push([xe, py + f2 * (yc + side * a - py)]); Ib.push(I); break; }
+        pts.push([x, yc + side * a]);
+        if (!f.tir && S.nCore > 0) {
+          const st = Math.min(1, S.nCore * Math.sin(f.boundary * DEG) / S.nClad), tt = Math.asin(st);
+          const len = (cl + jk) / Math.max(0.08, Math.cos(tt));
+          leaks.push({x, y: yc + side * a, dx: Math.sin(tt), dy: side * Math.cos(tt), len, I: I * (1 - Rb)});
+        }
+        I *= Rb; Ib.push(I); x += 2 * dx; side = -side;
+      }
+    }
+    for (let i = 1; i < pts.length; i++) beam(ctx, pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1], Ib[i - 1], {head: i < 4 ? 0.55 : false});
+    for (const lk of leaks) beam(ctx, lk.x, lk.y, lk.x + lk.dx * lk.len, lk.y + lk.dy * lk.len, lk.I, {head: 0.6});
+    // 광원과 입사 광선 (공기 → 끝면)
+    const i = S.fi * DEG, lx = xf - Math.cos(i) * Ll, ly = yc - Math.sin(i) * Ll;
+    beam(ctx, lx, ly, xf, yc, 1, {head: 0.5});
+    // 빛 알갱이
+    if (S.pulse) {
+      const vC = V / S.nCore, tA = Ll / V, period = 0.55;
+      const cum = [0]; for (let k = 1; k < pts.length; k++) cum.push(cum[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
+      const total = tA + cum[cum.length - 1] / vC;
+      for (let ag = S.t % period; ag < total; ag += period) {
+        if (ag < tA) { const u = ag / tA; dot(ctx, lx + u * (xf - lx), ly + u * (yc - ly), 1); continue; }
+        const d = (ag - tA) * vC;
+        let k = 1; while (k < cum.length - 1 && cum[k] < d) k++;
+        const u = (d - cum[k - 1]) / (cum[k] - cum[k - 1] || 1);
+        dot(ctx, pts[k - 1][0] + u * (pts[k][0] - pts[k - 1][0]), pts[k - 1][1] + u * (pts[k][1] - pts[k - 1][1]), Ib[k - 1]);
+        for (let j = 0; j < leaks.length && j + 1 < k; j++) {          // 지나간 반사점에서 새어 나간 알갱이
+          const dl = (d - cum[j + 1]) * S.nCore / S.nClad;
+          if (dl > 0 && dl < leaks[j].len) dot(ctx, leaks[j].x + leaks[j].dx * dl, leaks[j].y + leaks[j].dy * dl, leaks[j].I);
+        }
+      }
+    }
+    // 각과 임계각
+    if (pts.length > 2 && r >= 0.004) {
+      // 첫 반사점이 끝면에 너무 가까우면 두 번째 반사점에 각을 표시한다
+      const kb = (pts[1][0] - xf > 160 || pts.length < 4) ? 1 : 2;
+      const [bx, by] = pts[kb], [px, py] = pts[kb - 1], bot = by > yc, nrm = bot ? -PI / 2 : PI / 2, back = Math.atan2(py - by, px - bx);
+      if (S.crit && isFinite(f.thetaC)) {                      // 법선 맞은편(반사 쪽)에 임계각 방향
+        const ac = nrm + (bot ? 1 : -1) * f.thetaC * DEG, lc = Math.min(a * 1.5, 80);
+        poly(ctx, [[bx, by], [bx + Math.cos(ac) * lc, by + Math.sin(ac) * lc]], C.copper, 2, {dash: [6, 5]});
+        text(ctx, 'θc', bx + Math.cos(ac) * (lc + 12), by + Math.sin(ac) * (lc + 12), {size: 13.5, w: 700, color: C.copper, halo: true});
+      }
+      if (S.ang) {
+        poly(ctx, [[bx, by], [bx + Math.cos(nrm) * a * 0.9, by + Math.sin(nrm) * a * 0.9]], C.muted, 1.2, {dash: [3, 4]});
+        const m3 = arcBetween(ctx, bx, by, 26, nrm, back, C.copper, 2);
+        angLabel(ctx, bx, by, 26 + 28, m3 + (bot ? -0.15 : 0.15), '90° − r', C.copper);
+      }
+    }
+    if (S.ang) {
+      angLabel(ctx, xf, yc, 52, arcBetween(ctx, xf, yc, 36, PI, Math.atan2(ly - yc, lx - xf), C.copper, 2.2), 'i', C.copper);
+      if (r >= 0.004) angLabel(ctx, xf, yc, 64, arcBetween(ctx, xf, yc, 48, 0, r, C.copper, 2), 'r', C.copper);
+    }
+    laser(ctx, lx, ly, Math.atan2(yc - ly, xf - lx), '광원', false);
+    // 이름표
+    text(ctx, `코어 n₁ = ${fmt(S.nCore, 2)}`, xf + 12, yc - a * 0.58, {size: 13.5, w: 700, align: 'left', halo: true});
+    text(ctx, `클래딩 n₂ = ${fmt(S.nClad, 2)}`, xf + 12, yc - a - cl / 2, {size: 13.5, w: 700, align: 'left', halo: true});
+    text(ctx, '끝면', xf, yT - 12, {size: 13, w: 600, color: C.muted});
+    const left = f.tir ? 1 : Math.pow(Rb, Math.max(0, pts.length - 2));
+    text(ctx, f.tir ? '전반사 → 끝까지 전달' : `새어 나감 → 남는 빛 ${fmt(left * 100, 0)} %`, W - 12, yT - 14,
+      {size: 14, w: 700, color: f.tir ? C.acc : C.neg, align: 'right', halo: true});
+    // 단면
+    if (W >= 640) {
+      const cx = W - 62, cy = H - fb.bot - 44;
+      Lab.circle(ctx, cx, cy, 36, {fill: Lab.alpha(C.muted, 0.42)}); Lab.circle(ctx, cx, cy, 29, {fill: C.paper});
+      Lab.circle(ctx, cx, cy, 29, {fill: Lab.alpha(C.energy, 0.18), stroke: C.muted, width: 1});
+      Lab.circle(ctx, cx, cy, 15, {fill: Lab.alpha(C.vel, 0.24), stroke: C.vel, width: 1.6});
+      text(ctx, '단면', cx, cy - 50, {size: 13, w: 700, color: C.muted});
+      text(ctx, '코어', cx - 48, cy - 2, {size: 13, w: 600, align: 'right', halo: true});
+      text(ctx, '클래딩·피복', cx - 48, cy + 18, {size: 13, w: 600, align: 'right', color: C.muted, halo: true});
+    }
+  }
+
+  // ③ 광통신
+  function commLayout(W, H) {
+    const fb = frameBox(W, H);
+    if (!fb.narrow) {
+      const y = fb.top + fb.avail * 0.36, bw = 88, bh = 62;
+      const tx = {x: W * 0.27, y}, rx = {x: W * 0.73, y};
+      return {fb, narrow: false, mic: {x: 42, y}, spk: {x: W - 42, y}, tx, rx, bw, bh,
+        w1: [[64, y], [tx.x - bw / 2, y]], w2: [[rx.x + bw / 2, y], [W - 66, y]], fiber: [[tx.x + bw / 2, y], [rx.x - bw / 2, y]], fr: 19};
+    }
+    const y1 = fb.top + fb.avail * 0.2, y2 = fb.top + fb.avail * 0.8, rad = (y2 - y1) / 2, xr = W - 22 - rad, bw = 72, bh = 46;
+    const tx = {x: W * 0.43, y: y1}, rx = {x: W * 0.43, y: y2};
+    const fiber = [[tx.x + bw / 2, y1], [xr, y1]];
+    for (let k = 1; k < 28; k++) { const an = -PI / 2 + PI * k / 28; fiber.push([xr + rad * Math.cos(an), (y1 + y2) / 2 + rad * Math.sin(an)]); }
+    fiber.push([xr, y2], [rx.x + bw / 2, y2]);
+    return {fb, narrow: true, mic: {x: 30, y: y1}, spk: {x: 30, y: y2}, tx, rx, bw, bh, rad, xr,
+      w1: [[50, y1], [tx.x - bw / 2, y1]], w2: [[rx.x - bw / 2, y2], [52, y2]], fiber, fr: 13};
+  }
+  const sent = (t) => msg(t - TW);                       // 발신기에 들어가는 전기 신호
+  const pulseAmp = (k) => 0.55 + 0.42 * sent(k * DP);    // k 번째 빛 펄스의 세기
+  function wire(ctx, p0, p1, sig, col) {                 // 도선 위를 지나가는 전기 신호(모양 그대로)
+    const n = 60, dx = p1[0] - p0[0], dy = p1[1] - p0[1], L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L, pts = [];
+    poly(ctx, [p0, p1], C.muted, 1.4);
+    for (let i = 0; i <= n; i++) { const f = i / n, v = sig(f) * 11; pts.push([p0[0] + f * dx + nx * v, p0[1] + f * dy + ny * v]); }
+    poly(ctx, pts, col, 2.8);
+    const ux = dx / L, uy = dy / L;                          // 신호가 가는 쪽
+    arrow(ctx, p1[0] - ux * 16 + nx * 15, p1[1] - uy * 16 + ny * 15, p1[0] - ux * 4 + nx * 15, p1[1] - uy * 4 + ny * 15, C.muted, 1.6, 7);
+  }
+  function drawComm(ctx, W, H) {
+    const L = commLayout(W, H), t = S.t;
+    // 광섬유 관
+    const fp = L.fiber, cum = [0];
+    for (let k = 1; k < fp.length; k++) cum.push(cum[k - 1] + Math.hypot(fp[k][0] - fp[k - 1][0], fp[k][1] - fp[k - 1][1]));
+    const total = cum[cum.length - 1];
+    const at = (d) => { let k = 1; while (k < cum.length - 1 && cum[k] < d) k++; const u = (d - cum[k - 1]) / (cum[k] - cum[k - 1] || 1);
+      const x = fp[k - 1][0] + u * (fp[k][0] - fp[k - 1][0]), y = fp[k - 1][1] + u * (fp[k][1] - fp[k - 1][1]), an = Math.atan2(fp[k][1] - fp[k - 1][1], fp[k][0] - fp[k - 1][0]);
+      return [x, y, -Math.sin(an), Math.cos(an)]; };
+    const tube = (off) => { const pts = []; for (let d = 0; d <= total + 0.1; d += 4) { const [x, y, nx, ny] = at(Math.min(d, total)); pts.push([x + nx * off, y + ny * off]); } return pts; };
+    poly(ctx, tube(0), Lab.alpha(C.energy, 0.2), 2 * (L.fr + 7));
+    poly(ctx, tube(0), C.paper, 2 * L.fr);
+    poly(ctx, tube(0), Lab.alpha(C.vel, 0.16), 2 * L.fr);
+    poly(ctx, tube(L.fr), C.vel, 1.4); poly(ctx, tube(-L.fr), C.vel, 1.4);
+    const zz = (d) => { const per = L.fr * 4.2, ph = (d / per) % 1, tri = ph < 0.5 ? 4 * ph - 1 : 3 - 4 * ph; return tri * L.fr * 0.82; };
+    const zpath = []; for (let d = 0; d <= total; d += 3) { const [x, y, nx, ny] = at(d); const o = zz(d); zpath.push([x + nx * o, y + ny * o]); }
+    poly(ctx, zpath, C.vel, 1.4, {alpha: 0.45});
+    // 빛 펄스: k 번째는 t_k = k·DP 에 발신기를 떠나 TF 동안 광섬유를 지난다
+    let rxGlow = 0, txGlow = 0;
+    if (S.pulse) {
+      for (let k = Math.floor((t - TF) / DP); k <= Math.floor(t / DP); k++) {
+        const ag = t - k * DP; if (ag < 0 || ag > TF) continue;
+        const d = ag / TF * total, [x, y, nx, ny] = at(d), o = zz(d), b = pulseAmp(k);
+        dot(ctx, x + nx * o, y + ny * o, b);
+        if (ag < 0.07) txGlow = Math.max(txGlow, b);
+        if (TF - ag < 0.07) rxGlow = Math.max(rxGlow, b);
+      }
+    } else { txGlow = pulseAmp(Math.floor(t / DP)); rxGlow = pulseAmp(Math.floor((t - TF) / DP)); }
+    // 도선의 전기 신호
+    wire(ctx, L.w1[0], L.w1[1], (f) => msg(t - f * TW), C.acc);
+    wire(ctx, L.w2[0], L.w2[1], (f) => sent(t - TF - f * TW), C.acc);
+    // 마이크와 들어오는 소리
+    const m = L.mic, sIn = msg(t);
+    ctx.save(); ctx.strokeStyle = C.violet; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+    for (let k = 0; k < 3; k++) { ctx.globalAlpha = 0.25 + 0.6 * Math.abs(msg(t - 0.12 * k)); ctx.beginPath(); ctx.arc(m.x - 4, m.y, 14 + 7 * k, PI * 0.72, PI * 1.28); ctx.stroke(); }
+    ctx.restore();
+    ctx.save(); ctx.fillStyle = C.ink; Lab.rrect(ctx, m.x - 6, m.y - 13, 12, 20, 6); ctx.fill(); ctx.fillRect(m.x - 1.5, m.y + 7, 3, 9); ctx.fillRect(m.x - 7, m.y + 15, 14, 3); ctx.restore();
+    // 스피커와 나가는 소리
+    const sp = L.spk, sOut = sent(t - TF - TW), dirOut = L.narrow ? -1 : 1;
+    ctx.save(); ctx.fillStyle = C.ink;
+    ctx.beginPath(); ctx.moveTo(sp.x - dirOut * 9, sp.y - 6); ctx.lineTo(sp.x - dirOut * 2, sp.y - 6); ctx.lineTo(sp.x + dirOut * 8, sp.y - 14); ctx.lineTo(sp.x + dirOut * 8, sp.y + 14); ctx.lineTo(sp.x - dirOut * 2, sp.y + 6); ctx.lineTo(sp.x - dirOut * 9, sp.y + 6); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = C.violet; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+    for (let k = 0; k < 3; k++) { ctx.globalAlpha = 0.25 + 0.6 * Math.abs(sent(t - TF - TW - 0.12 * k)); ctx.beginPath();
+      if (dirOut > 0) ctx.arc(sp.x + 6, sp.y, 12 + 7 * k, -PI * 0.28, PI * 0.28); else ctx.arc(sp.x - 6, sp.y, 12 + 7 * k, PI * 0.72, PI * 1.28); ctx.stroke(); }
+    ctx.restore();
+    // 발신기·수신기
+    const tx = L.tx, rx = L.rx;
+    box(ctx, tx.x, tx.y, L.bw, L.bh, C.energy, '');
+    box(ctx, rx.x, rx.y, L.bw, L.bh, C.vel, '');
+    // LED 기호(빛을 냄)
+    ctx.save(); ctx.globalAlpha = 0.15 + 0.85 * txGlow; ctx.fillStyle = C.energy; ctx.beginPath(); ctx.arc(tx.x + 10, tx.y, 15, 0, 7); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.fillStyle = C.ink; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(tx.x - 12, tx.y - 9); ctx.lineTo(tx.x - 12, tx.y + 9); ctx.lineTo(tx.x + 2, tx.y); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(tx.x + 3, tx.y - 9); ctx.lineTo(tx.x + 3, tx.y + 9); ctx.stroke(); ctx.restore();
+    arrow(ctx, tx.x + 6, tx.y - 12, tx.x + 16, tx.y - 22, C.energy, 2, 6); arrow(ctx, tx.x + 12, tx.y - 8, tx.x + 22, tx.y - 18, C.energy, 2, 6);
+    // 광 다이오드 기호(빛을 받음)
+    ctx.save(); ctx.globalAlpha = 0.12 + 0.6 * rxGlow; ctx.fillStyle = C.acc; ctx.beginPath(); ctx.arc(rx.x, rx.y, 16, 0, 7); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.fillStyle = C.ink; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(rx.x - 6, rx.y - 9); ctx.lineTo(rx.x - 6, rx.y + 9); ctx.lineTo(rx.x + 8, rx.y); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(rx.x + 9, rx.y - 9); ctx.lineTo(rx.x + 9, rx.y + 9); ctx.stroke(); ctx.restore();
+    arrow(ctx, rx.x - 26, rx.y - 22, rx.x - 14, rx.y - 11, C.energy, 2, 6); arrow(ctx, rx.x - 20, rx.y - 26, rx.x - 8, rx.y - 15, C.energy, 2, 6);
+    // 이름표
+    const lab = (x, y, a, b, col, al) => { text(ctx, a, x, y, {size: 13.5, w: 700, color: col || C.ink, align: al || 'center', halo: true}); text(ctx, b, x, y + 18, {size: 13, w: 600, color: C.muted, align: al || 'center', halo: true}); };
+    if (!L.narrow) {
+      const dy = L.bh / 2 + 22;
+      lab(m.x, m.y + dy, '마이크', '소리 → 전기');
+      lab(tx.x, tx.y + dy, '발신기: LED·레이저', '전기 → 빛', C.energy);
+      lab((tx.x + rx.x) / 2, tx.y + dy + 6, '광섬유', '빛이 전반사하며 전송', C.vel);
+      lab(rx.x, rx.y + dy, '수신기: 광 다이오드', '빛 → 전기', C.vel);
+      lab(sp.x, sp.y + dy, '스피커', '전기 → 소리');
+      text(ctx, '전기 신호', (L.w1[0][0] + L.w1[1][0]) / 2, m.y - 30, {size: 13, w: 700, color: C.acc, halo: true});
+      text(ctx, '전기 신호', (L.w2[0][0] + L.w2[1][0]) / 2, m.y - 30, {size: 13, w: 700, color: C.acc, halo: true});
+      text(ctx, '빛 펄스', (tx.x + rx.x) / 2, tx.y - L.fr - 22, {size: 13, w: 700, color: C.energy, halo: true});
+      // 바뀌어 가는 차례 (교과서 그림 ③)
+      const yh = L.fb.top + 6, chain = [[m.x, '소리', C.violet], [(L.w1[0][0] + L.w1[1][0]) / 2, '전기', C.acc], [(tx.x + rx.x) / 2, '빛', C.energy], [(L.w2[0][0] + L.w2[1][0]) / 2, '전기', C.acc], [sp.x, '소리', C.violet]];
+      chain.forEach(([x, s2, col], k) => {
+        text(ctx, s2, x, yh, {size: 16, w: 800, color: col, halo: true});
+        if (k) arrow(ctx, chain[k - 1][0] + 26, yh, x - 26, yh, C.muted, 1.6, 8);
+      });
+      // 광섬유 속 확대
+      const zx = (tx.x + rx.x) / 2, zw = Math.min(W * 0.5, 420), zh = 92, zy = L.fb.top + L.fb.avail - zh - 6, zr = 30;
+      const mx = zx - 26, mw = 52;
+      ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.setLineDash([3, 4]);
+      ctx.strokeRect(mx, tx.y - L.fr - 3, mw, 2 * L.fr + 6);
+      ctx.beginPath(); ctx.moveTo(mx, tx.y + L.fr + 3); ctx.lineTo(zx - zw / 2, zy); ctx.moveTo(mx + mw, tx.y + L.fr + 3); ctx.lineTo(zx + zw / 2, zy); ctx.stroke(); ctx.restore();
+      ctx.save(); Lab.rrect(ctx, zx - zw / 2, zy, zw, zh, 10); ctx.clip();
+      ctx.fillStyle = Lab.alpha(C.energy, 0.18); ctx.fillRect(zx - zw / 2, zy, zw, zh);
+      ctx.fillStyle = C.paper; ctx.fillRect(zx - zw / 2, zy + zh / 2 - zr, zw, 2 * zr);
+      ctx.fillStyle = Lab.alpha(C.vel, 0.16); ctx.fillRect(zx - zw / 2, zy + zh / 2 - zr, zw, 2 * zr);
+      poly(ctx, [[zx - zw / 2, zy + zh / 2 - zr], [zx + zw / 2, zy + zh / 2 - zr]], C.vel, 1.6);
+      poly(ctx, [[zx - zw / 2, zy + zh / 2 + zr], [zx + zw / 2, zy + zh / 2 + zr]], C.vel, 1.6);
+      const per = 4.4 * zr, gap = per * 0.37;              // 경로는 그대로, 빛 펄스만 경로를 따라 움직인다
+      const zig = (u) => { const q = (((u % per) + per) % per) / per; return (q < 0.5 ? 4 * q - 1 : 3 - 4 * q) * zr; };
+      const zl = []; for (let x = -zw / 2; x <= zw / 2; x += 3) zl.push([zx + x, zy + zh / 2 + zig(x + zw / 2)]);
+      poly(ctx, zl, C.vel, 2.8);
+      if (S.pulse) for (let x0 = -zw / 2 + ((t * 70) % gap); x0 <= zw / 2; x0 += gap) dot(ctx, zx + x0, zy + zh / 2 + zig(x0 + zw / 2), 0.9);
+      ctx.restore();
+      ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; Lab.rrect(ctx, zx - zw / 2, zy, zw, zh, 10); ctx.stroke(); ctx.restore();
+      text(ctx, '광섬유 속 확대: 코어-클래딩 경계에서 전반사', zx, zy - 12, {size: 13, w: 700, color: C.ink, halo: true});
+      text(ctx, '코어', zx - zw / 2 + 10, zy + zh / 2, {size: 13, w: 700, align: 'left', halo: true});
+      text(ctx, '클래딩', zx + zw / 2 - 10, zy + 11, {size: 13, w: 600, align: 'right', color: C.muted, halo: true});
+    } else {
+      lab(10, m.y + L.bh / 2 + 14, '마이크', '소리 → 전기', null, 'left');
+      lab(tx.x + 8, tx.y + L.bh / 2 + 14, '발신기 LED·레이저', '전기 → 빛', C.energy);
+      lab(rx.x + 8, rx.y - L.bh / 2 - 34, '수신기 광 다이오드', '빛 → 전기', C.vel);
+      lab(10, sp.y - L.bh / 2 - 34, '스피커', '전기 → 소리', null, 'left');
+      lab(L.xr - 6, (tx.y + rx.y) / 2 - 9, '광섬유', '전반사로 전송', C.vel);
+    }
+  }
+
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    if (S.mode === 'semi') drawSemi(ctx, W, H); else if (S.mode === 'fiber') drawFiber(ctx, W, H); else drawComm(ctx, W, H);
+  }
+
+  // ── 그래프: 입사각을 키우면 ─────────────────────────────
+  function drawAng() {
+    const {ctx, W, H} = angV; if (!W || S.mode !== 'semi') return;
+    ctx.clearRect(0, 0, W, H);
+    const [na, nb] = pair(), tc = M.criticalAngle(na, nb), th = S.th;
+    const half = (H - 40) / 2;
+    const r1 = {x: 46, y: 22, w: W - 70, h: half - 34}, r2 = {x: 46, y: 22 + half + 8, w: W - 70, h: half - 34};
+    const a1 = Lab.axes(ctx, r1, {xmin: 0, xmax: 90, ymin: 0, ymax: 90, yticks: [0, 45, 90], fmtY: (v) => v + '°', grid: true, ylabel: '굴절각 θ₂'});
+    const a2 = Lab.axes(ctx, r2, {xmin: 0, xmax: 90, ymin: 0, ymax: 100, xticks: [0, 30, 60, 90], yticks: [0, 50, 100], fmtX: (v) => v + '°', fmtY: (v) => v, grid: true, xlabel: '입사각 θ', ylabel: '반사되는 빛 (%)'});
+    if (isFinite(tc)) {
+      for (const [ax, r] of [[a1, r1], [a2, r2]]) {
+        ctx.fillStyle = Lab.alpha(C.neg, 0.08); ctx.fillRect(ax.X(tc), r.y, ax.X(90) - ax.X(tc), r.h);
+        poly(ctx, [[ax.X(tc), r.y - 4], [ax.X(tc), r.y + r.h]], C.copper, 1.8, {dash: [5, 4]});
+      }
+      text(ctx, '전반사 (굴절 없음)', (a1.X(tc) + a1.X(90)) / 2, r1.y + r1.h * 0.55, {size: 13, w: 700, color: C.neg, halo: true});
+      text(ctx, 'θc = ' + fmt(tc, 1) + '°', a1.X(tc) + 6, r1.y + 6, {size: 13, w: 700, color: C.copper, align: 'left', halo: true});
+    }
+    poly(ctx, [[a1.X(0), a1.Y(0)], [a1.X(90), a1.Y(90)]], C.muted, 1, {dash: [3, 4], alpha: 0.7});
+    const c1 = [], c2 = [];
+    for (let d = 0; d <= 90; d += 0.25) {
+      const t2 = M.refractionAngle(na, nb, Math.min(d, 89.999)); if (isFinite(t2)) c1.push([a1.X(d), a1.Y(t2)]);
+      c2.push([a2.X(d), a2.Y(100 * M.reflectance(na, nb, Math.min(d, 89.999)))]);
+    }
+    if (isFinite(tc)) c1.push([a1.X(tc), a1.Y(90)]);
+    poly(ctx, c1, C.vel, 3); poly(ctx, c2, C.energy, 3);
+    // 지금 입사각
+    for (const [ax, r] of [[a1, r1], [a2, r2]]) poly(ctx, [[ax.X(th), r.y], [ax.X(th), r.y + r.h]], C.copper, 1.4, {alpha: 0.7});
+    const t2 = M.refractionAngle(na, nb, th), Rf = M.reflectance(na, nb, th);
+    if (isFinite(t2)) Lab.circle(ctx, a1.X(th), a1.Y(t2), 6, {fill: C.copper, stroke: C.paper, width: 2});
+    else text(ctx, '굴절각 없음', Math.min(a1.X(th), r1.x + r1.w - 40), a1.Y(68), {size: 13, w: 700, color: C.copper, halo: true});
+    Lab.circle(ctx, a2.X(th), a2.Y(100 * Rf), 6, {fill: C.copper, stroke: C.paper, width: 2});
+    if (!isFinite(tc)) text(ctx, '작은 → 큰 굴절률: 굴절각이 90°에 못 미침', r1.x + r1.w / 2, r1.y + 6, {size: 13, w: 700, color: C.muted, halo: true});
+  }
+
+  // ── 그래프: 임계각과 굴절률 ─────────────────────────────
+  function drawCrit() {
+    const {ctx, W, H} = critV; if (!W || S.mode !== 'semi') return;
+    ctx.clearRect(0, 0, W, H);
+    const r = {x: 46, y: 22, w: W - 70, h: H - 62}, n2 = S.n2;
+    const ax = Lab.axes(ctx, r, {xmin: 1, xmax: 2.6, ymin: 0, ymax: 90, xticks: [1, 1.5, 2, 2.5], yticks: [0, 30, 60, 90], fmtX: (v) => fmt(v, 1), fmtY: (v) => v + '°', grid: true, xlabel: '반원 매질 n₁', ylabel: '임계각 θc'});
+    const pts = [];
+    for (let n = n2 + 0.001; n <= 2.6; n += 0.01) pts.push([ax.X(n), ax.Y(M.criticalAngle(n, n2))]);
+    poly(ctx, pts, C.copper, 3);
+    if (n2 > 1) { ctx.fillStyle = Lab.alpha(C.muted, 0.12); ctx.fillRect(r.x, r.y, ax.X(n2) - r.x, r.h); text(ctx, '임계각 없음', (r.x + ax.X(n2)) / 2, r.y + r.h / 2, {size: 13, w: 700, color: C.muted}); }
+    const marks = [['물', 1.33], ['유리', 1.5], ['n=2', 2], ['다이아몬드', 2.42]];
+    marks.forEach(([s, n]) => {
+      const tc = M.criticalAngle(n, n2); if (!isFinite(tc)) return;
+      Lab.circle(ctx, ax.X(n), ax.Y(tc), 4.5, {fill: C.ink});
+      text(ctx, s, ax.X(n), ax.Y(tc) - 15, {size: 13, w: 600, halo: true});
+    });
+    const tcNow = M.criticalAngle(S.n1, n2);
+    if (isFinite(tcNow)) {
+      Lab.circle(ctx, ax.X(S.n1), ax.Y(tcNow), 7, {fill: C.copper, stroke: C.paper, width: 2});
+      text(ctx, 'θc ' + fmt(tcNow, 1) + '°', ax.X(S.n1) - 8, ax.Y(tcNow) + 18, {size: 13, w: 700, color: C.copper, align: 'right', halo: true, mono: true});
+    }
+  }
+
+  // ── 그래프: 광섬유 ──────────────────────────────────────
+  function drawFib() {
+    const {ctx, W, H} = fibV; if (!W || S.mode !== 'fiber') return;
+    ctx.clearRect(0, 0, W, H);
+    const r = {x: 46, y: 22, w: W - 70, h: H - 62};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 90, ymin: 0, ymax: 90, xticks: [0, 30, 60, 90], yticks: [0, 30, 60, 90], fmtX: (v) => v + '°', fmtY: (v) => v + '°', grid: true, xlabel: '끝면 입사각 i', ylabel: '경계면 입사각 90° − r'});
+    const f = M.fiber(S.fi, S.nCore, S.nClad), tc = f.thetaC;
+    if (isFinite(tc)) {
+      ctx.fillStyle = Lab.alpha(C.acc, 0.1); ctx.fillRect(r.x, r.y, r.w, ax.Y(tc) - r.y);
+      ctx.fillStyle = Lab.alpha(C.neg, 0.08); ctx.fillRect(r.x, ax.Y(tc), r.w, r.y + r.h - ax.Y(tc));
+      poly(ctx, [[r.x, ax.Y(tc)], [r.x + r.w, ax.Y(tc)]], C.copper, 2, {dash: [6, 4]});
+      text(ctx, 'θc = ' + fmt(tc, 1) + '°', r.x + r.w - 4, ax.Y(tc) - 12, {size: 13, w: 700, color: C.copper, align: 'right', halo: true});
+      text(ctx, '전반사로 갇힘', r.x + r.w - 8, r.y + 14, {size: 13, w: 700, color: C.acc, align: 'right', halo: true});
+      text(ctx, '새어 나감', r.x + 8, r.y + r.h - 12, {size: 13, w: 700, color: C.neg, align: 'left', halo: true});
+      const im = M.maxEntry(S.nCore, S.nClad);
+      if (im < 90) { poly(ctx, [[ax.X(im), r.y], [ax.X(im), r.y + r.h]], C.muted, 1.4, {dash: [3, 4]}); text(ctx, 'i = ' + fmt(im, 1) + '°', ax.X(im) - 6, r.y + r.h * 0.66, {size: 13, w: 700, align: 'right', halo: true}); }
+    } else { ctx.fillStyle = Lab.alpha(C.neg, 0.08); ctx.fillRect(r.x, r.y, r.w, r.h); text(ctx, '클래딩 ≥ 코어: 어떤 각에서도 새어 나감', r.x + r.w / 2, r.y + 14, {size: 13, w: 700, color: C.neg, halo: true}); }
+    const pts = []; for (let d = 0; d <= 90; d += 0.5) pts.push([ax.X(d), ax.Y(M.fiber(Math.min(d, 89.99), S.nCore, S.nClad).boundary)]);
+    poly(ctx, pts, C.vel, 3);
+    Lab.circle(ctx, ax.X(S.fi), ax.Y(f.boundary), 7, {fill: C.copper, stroke: C.paper, width: 2});
+    text(ctx, fmt(f.boundary, 1) + '°', ax.X(S.fi) + 10, ax.Y(f.boundary) - 14, {size: 13, w: 700, color: C.copper, align: 'left', halo: true, mono: true});
+  }
+
+  // ── 그래프: 신호의 모양 ─────────────────────────────────
+  function drawSig() {
+    const {ctx, W, H} = sigV; if (!W || S.mode !== 'comm') return;
+    ctx.clearRect(0, 0, W, H);
+    const rows = S.cu ? 4 : 3, top = 8, bot = 30, rh = (H - top - bot) / rows, x0 = 14, x1 = W - 12, span = 3.6, t = S.t;
+    const X = (tt) => x0 + (tt - (t - span)) / span * (x1 - x0);
+    const names = [['보낸 전기 신호', C.acc], ['빛 펄스의 세기', C.energy], ['받은 전기 신호', C.acc], ['구리 도선이었다면 (손실·혼선)', C.neg]];
+    for (let k = 0; k < rows; k++) {
+      const yc = top + rh * (k + 0.62), amp = rh * 0.3;
+      poly(ctx, [[x0, yc], [x1, yc]], C.line, 1);
+      text(ctx, names[k][0], x0, top + rh * k + 11, {size: 13, w: 700, color: names[k][1], align: 'left', halo: true});
+      if (k === 1) {
+        for (let j = Math.ceil((t - span) / DP); j * DP <= t; j++) {
+          const b = pulseAmp(j), x = X(j * DP);
+          ctx.save(); ctx.globalAlpha = 0.4 + 0.6 * b; ctx.strokeStyle = C.energy; ctx.lineWidth = 4; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(x, yc + amp); ctx.lineTo(x, yc + amp - 2 * amp * b); ctx.stroke(); ctx.restore();
+        }
+        continue;
+      }
+      const f = k === 0 ? (tt) => sent(tt) : k === 2 ? (tt) => sent(tt - TF) : (tt) => 0.45 * sent(tt - TF) + 0.4 * noise(tt);
+      const pts = []; for (let i = 0; i <= 240; i++) { const tt = t - span + span * i / 240; pts.push([X(tt), yc - amp * f(tt)]); }
+      poly(ctx, pts, names[k][1], 2.8);
+    }
+    arrow(ctx, x0, H - 8, x1, H - 8, C.muted, 1.2, 6);
+    text(ctx, '시간', x1 - 4, H - 20, {size: 13, w: 600, color: C.muted, align: 'right'});
+    // 전송 시간: 보낸 신호의 한 점이 받은 신호에 나타나는 시간
+    const tA = t - TF - 0.9;
+    if (tA > t - span) {
+      const ya = top + rh * 0.62, yb = top + rh * 2.62;
+      poly(ctx, [[X(tA), ya], [X(tA), yb]], C.copper, 1.4, {dash: [3, 4]});
+      poly(ctx, [[X(tA + TF), yb - rh * 0.3], [X(tA + TF), yb + rh * 0.3]], C.copper, 1.4, {dash: [3, 4]});
+      Lab.bracket(ctx, X(tA), X(tA + TF), yb + rh * 0.34, C.copper, '전송 시간', true);
+    }
+  }
+
+  function draw() { drawStage(); drawAng(); drawCrit(); drawFib(); drawSig(); }
+
+  // ── 수치·문구 ───────────────────────────────────────────
+  const LEG = {
+    semi: '<span><b style="background:var(--vel)"></b>빛 (굵기·밝기 = 세기)</span><span><i style="background:var(--energy)"></i>빛 알갱이</span><span><b style="background:var(--copper)"></b>각·임계각</span>',
+    fiber: '<span><b style="background:var(--vel)"></b>빛 (굵기·밝기 = 세기)</span><span><i style="background:var(--energy)"></i>빛 알갱이</span><span><b style="background:var(--copper)"></b>각·임계각</span>',
+    comm: '<span><b style="background:var(--violet)"></b>소리</span><span><b style="background:var(--acc)"></b>전기 신호</span><span><i style="background:var(--energy)"></i>빛 펄스</span>',
+  };
+  function setRO(i, name, val, txt) { $('r' + i + 'n').textContent = name; const b = $('r' + i); b.textContent = val; b.classList.toggle('txt', !!txt); }
+  function readouts() {
+    const md = S.mode;
+    $('legend').innerHTML = LEG[md];
+    $('rowSemi').hidden = md !== 'semi'; $('rowSemi2').hidden = md !== 'semi'; $('rowFiber').hidden = md !== 'fiber'; $('rowComm').hidden = md !== 'comm';
+    $('pAng').hidden = md !== 'semi'; $('pCrit').hidden = md !== 'semi'; $('pFib').hidden = md !== 'fiber'; $('pSig').hidden = md !== 'comm';
+    $('cAng').parentElement.hidden = md === 'comm'; $('cCrit').parentElement.hidden = md === 'comm';
+    $('dragHint').textContent = md === 'comm' ? '전기 → 빛 → 전기로 바뀌는 차례를 따라가 보자' : '무대를 끌면 광원이 움직인다';
+    $('thOut').textContent = fmt(S.th, 1) + '°'; $('n1Out').textContent = n1Text(); $('n2Out').textContent = fmt(S.n2, 2);
+    $('fiOut').textContent = fmt(S.fi, 1) + '°'; $('ncOut').textContent = fmt(S.nCore, 2); $('ndOut').textContent = fmt(S.nClad, 2);
+    const hs = $('hudState'), hi = $('hudInfo'), res = $('result');
+    let good = null, msgTxt = '';
+    if (md === 'semi') {
+      const [na, nb] = pair(), tc = M.criticalAngle(na, nb), reg = M.regime(na, nb, S.th), t2 = M.refractionAngle(na, nb, S.th), Rf = M.reflectance(na, nb, S.th);
+      setRO(1, '임계각 θc', isFinite(tc) ? fmt(tc, 1) + '°' : '없음', !isFinite(tc));
+      setRO(2, '입사각 θ', fmt(S.th, 1) + '°');
+      setRO(3, '굴절각 θ₂', isFinite(t2) ? fmt(t2, 1) + '°' : '없음', !isFinite(t2));
+      setRO(4, '반사되는 빛', fmt(Rf * 100, Rf > 0.995 && Rf < 1 ? 1 : 0) + ' %');
+      hs.textContent = reg === 'tir' ? '③ θ > θc: 전반사' : reg === 'critical' ? '② θ = θc: 굴절각 90°' : isFinite(tc) ? '① θ < θc: 굴절 + 약한 반사' : '작은 → 큰 굴절률: 굴절 + 약한 반사';
+      hs.className = 'pill ' + (reg === 'tir' ? 'down' : 'up');
+      hi.textContent = `n ${S.dir === 'out' ? n1Text() : fmt(S.n2, 2)} → ${S.dir === 'out' ? fmt(S.n2, 2) : n1Text()}`;
+      const c1 = na > nb, c2 = isFinite(tc) && S.th > tc;
+      msgTxt = `조건 ① 굴절률 큰 → 작은 쪽 ${c1 ? '✓' : '✗'} · 조건 ② θ > θc ${!c1 ? '–' : c2 ? '✓' : '✗'} → ${c1 && c2 ? '전반사' : '전반사 없음'}`;
+      good = c1 && c2;
+    } else if (md === 'fiber') {
+      const f = M.fiber(S.fi, S.nCore, S.nClad);
+      setRO(1, '임계각 θc (코어 → 클래딩)', isFinite(f.thetaC) ? fmt(f.thetaC, 1) + '°' : '없음', !isFinite(f.thetaC));
+      setRO(2, '굴절각 r', fmt(f.r, 1) + '°');
+      setRO(3, '경계면 입사각 90° − r', fmt(f.boundary, 1) + '°');
+      setRO(4, '경계에서 반사', f.tir ? '100 %' : fmt(M.reflectance(S.nCore, S.nClad, f.boundary) * 100, 0) + ' %');
+      hs.textContent = f.tir ? '전반사 → 빛이 코어에 갇힘' : '경계에서 새어 나감'; hs.className = 'pill ' + (f.tir ? 'up' : 'down');
+      hi.textContent = `코어 ${fmt(S.nCore, 2)} · 클래딩 ${fmt(S.nClad, 2)}`;
+      msgTxt = !(S.nCore > S.nClad) ? '클래딩 굴절률이 코어보다 크거나 같으면 전반사가 없다' : f.tir ? `90° − r = ${fmt(f.boundary, 1)}° > θc = ${fmt(f.thetaC, 1)}° → 전반사하며 끝까지` : `90° − r = ${fmt(f.boundary, 1)}° < θc = ${fmt(f.thetaC, 1)}° → 새어 나감 (i를 줄이자)`;
+      good = f.tir;
+    } else {
+      setRO(1, '발신기 (전기 → 빛)', 'LED·레이저', true);
+      setRO(2, '광섬유 속', '전반사', true);
+      setRO(3, '수신기 (빛 → 전기)', '광 다이오드', true);
+      setRO(4, '광섬유의 장점', '대용량·저손실', true);
+      hs.textContent = '광통신'; hs.className = 'pill'; hi.textContent = '전기 → 빛 → 전기';
+      msgTxt = '외부 전파에 의한 혼선이 없다 · 한 번 끊어지면 다시 잇기 어렵다'; good = null;
+    }
+    res.textContent = msgTxt; res.className = 'status' + (good === true ? ' good' : good === false ? ' bad' : '');
+    const ok = md === 'semi' && S.dir === 'out' && Math.abs(S.n1 - EX.n1) < 1e-9 && Math.abs(S.n2 - EX.n2) < 1e-9 && Math.abs(S.th - EX.th) < 1e-9;
+    Lab.check('exCheck', ok, '개념서 예제 (n = 2 → 공기, θ = 45°): sinθc = 1/2 → θc = 30°, 45° > 30° 이므로 전반사가 일어난다',
+      '예제: 굴절률 2인 매질 → 공기, 입사각 45°에서 전반사가 일어날까? — ‘스스로 확인 1’로 돌아갈 수 있어요');
+  }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const th = $('th'), n1 = $('n1'), n2 = $('n2'), fi = $('fi'), nc = $('nc'), nd = $('nd');
+  const upd = () => { readouts(); draw(); };
+  th.addEventListener('input', () => { S.th = +th.value; upd(); });
+  n1.addEventListener('input', () => { S.n1 = +n1.value; S.n1Name = null; matG.set(null, true); upd(); });
+  n2.addEventListener('input', () => { S.n2 = +n2.value; upd(); });
+  fi.addEventListener('input', () => { S.fi = +fi.value; upd(); });
+  nc.addEventListener('input', () => { S.nCore = +nc.value; upd(); });
+  nd.addEventListener('input', () => { S.nClad = +nd.value; upd(); });
+  const modeG = Lab.group('[data-mode]', 'mode', (v) => { S.mode = v; upd(); }, S.mode);
+  const dirG = Lab.group('[data-dir]', 'dir', (v) => { S.dir = v; upd(); }, S.dir);
+  const matG = Lab.group('[data-mat]', 'mat', (v) => { if (v == null || v === 'null') return; S.n1 = +v; S.n1Name = null; n1.value = S.n1; upd(); });
+  Lab.toggle('cPulse', (b) => { S.pulse = b; draw(); });
+  Lab.toggle('cAng', (b) => { S.ang = b; draw(); });
+  Lab.toggle('cCrit', (b) => { S.crit = b; draw(); });
+  Lab.toggle('cCu', (b) => { S.cu = b; draw(); });
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+
+  // 무대 끌기: 반원 = 광원 위치(입사각), 광섬유 = 광원 위치(끝면 입사각)
+  Lab.pointer(stage.el, {down: (x, y) => drag(x, y), move: (x, y) => drag(x, y)});
+  function drag(x, y) {
+    if (S.mode === 'semi' && GS) {
+      const vx = x - GS.ox, vy = y - GS.oy;
+      let d = S.dir === 'out' ? Math.atan2(-vx, vy) / DEG : Math.atan2(-vx, -vy) / DEG;
+      d = Math.max(0, Math.min(89.5, Math.abs(d)));
+      S.th = Math.round(d * 2) / 2; th.value = S.th;
+    } else if (S.mode === 'fiber' && GF) {
+      const vx = x - GF.xf, vy = y - GF.yc;
+      let d = Math.atan2(-vy, -vx) / DEG; if (vx > 0) d = vy < 0 ? 85 : 0;
+      S.fi = Math.round(Math.max(0, Math.min(85, d)) * 2) / 2; fi.value = S.fi;
+    } else return;
+    upd();
+  }
+
+  // 스스로 확인
+  const semi = (o) => { S.mode = 'semi'; S.dir = o.dir || 'out'; S.n1 = o.n1; S.n1Name = o.name || null; S.n2 = 1; S.th = o.th; n1.value = S.n1; n2.value = 1; th.value = S.th; };
+  const TRY = {
+    ex: () => semi({n1: 2, th: 45}),
+    nA: () => semi({n1: 1.5, th: 35}), nB: () => semi({n1: 2, th: 35}), nC: () => semi({n1: 2.4, th: 35}),
+    s45: () => semi({n1: Math.SQRT2, name: '√2', th: 45}), s50: () => semi({n1: Math.SQRT2, name: '√2', th: 50}),
+    rev: () => semi({n1: 1.5, th: 75, dir: 'in'}),
+    fib: () => { S.mode = 'fiber'; S.fi = 20; S.nCore = 1.5; S.nClad = 1.2; fi.value = 20; nc.value = 1.5; nd.value = 1.2; },
+    leak: () => { S.mode = 'fiber'; S.fi = 75; S.nCore = 1.5; S.nClad = 1.2; fi.value = 75; nc.value = 1.5; nd.value = 1.2; },
+    comm: () => { S.mode = 'comm'; },
+  };
+  Lab.tries(TRY, () => { modeG.set(S.mode, true); dirG.set(S.dir, true); matG.set(S.n1Name ? null : S.n1, true); S.t = 0.2; playCtl.set(!Lab.reduceMotion); upd(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => { if (S.playing) { S.t += dt; drawStage(); if (S.mode === 'comm') drawSig(); } });
+  matG.set(S.n1, true);
+  readouts();
+})();
+</script>
+</body>
+</html>
