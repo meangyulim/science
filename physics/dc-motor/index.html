@@ -7,7 +7,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
 <style>
 /* Layout: 실험대 — 왼쪽 큰 3D 무대와 조작판, 오른쪽에 교과서식 정면도·전류 경로·돌림힘 그래프, 아래 개념 정리 */
 :root{
@@ -17,7 +17,8 @@
   --north:#c8412f; --south:#2a5b8c; --force:#d63a2a; --turn:#24865a;
   --current:#e3a000; --current-ink:#8a5f00; --electron:#2b86cf; --field:#8a8fc4;
   --gap:rgba(200,65,47,.10); --base3d:#e1e5e2;
-  --font-ui:"IBM Plex Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-display:"Black Han Sans","Noto Sans KR",system-ui,sans-serif;
+  --font-ui:"Noto Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --font-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
@@ -53,7 +54,7 @@ header.top{padding-block:20px 16px;display:grid;gap:4px}
 .back{font-size:13px;color:var(--muted);text-decoration:none;width:max-content}
 .back:hover{color:var(--ink)}
 .kicker{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--copper)}
-h1{margin:0;font-size:clamp(26px,3.6vw,36px);font-weight:700;letter-spacing:-.02em;line-height:1.25;text-wrap:balance}
+h1{margin:0;font-size:clamp(26px,3.6vw,36px);font-family:var(--font-display);font-weight:400;letter-spacing:-.02em;line-height:1.25;text-wrap:balance}
 .lead{margin:2px 0 0;color:var(--muted);max-width:68ch;font-size:15px}
 
 .lab{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);gap:18px;align-items:start}

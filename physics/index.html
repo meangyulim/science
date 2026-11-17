@@ -7,13 +7,14 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
 <style>
 /* Layout: 과목(물리학 Ⅰ, Ⅱ)별로 단원 순서대로 카드를 늘어놓은 목록 한 장 */
 :root{
   --bg:#eef1ef; --paper:#ffffff; --ink:#18232b; --muted:#56656d; --line:#d3dbdb; --line-soft:#e5eaea;
   --copper:#a95a22; --copper-soft:#f5e7dc; --north:#c8412f; --south:#2a5b8c; --thumb:#f4f6f5;
-  --font-ui:"IBM Plex Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-display:"Black Han Sans","Noto Sans KR",system-ui,sans-serif;
+  --font-ui:"Noto Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --font-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
@@ -41,7 +42,7 @@ header{padding-block:18px 8px;display:grid;gap:6px}
 .beta{display:inline-block;vertical-align:.35em;margin-left:8px;font:700 12px/1 var(--font-num);padding:4px 8px;border-radius:999px;
   background:var(--copper);color:var(--paper);letter-spacing:.04em}
 .kicker{font:600 12.5px/1 var(--font-num);letter-spacing:.08em;color:var(--copper)}
-h1{margin:0;font-size:clamp(28px,4.4vw,40px);font-weight:700;letter-spacing:-.025em;line-height:1.2}
+h1{margin:0;font-size:clamp(28px,4.4vw,40px);font-family:var(--font-display);font-weight:400;letter-spacing:-.025em;line-height:1.2}
 .lead{margin:0;color:var(--muted);max-width:60ch}
 .course{margin-top:34px}
 .course h2{margin:0 0 14px;font-size:18px;font-weight:700;display:flex;align-items:baseline;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
