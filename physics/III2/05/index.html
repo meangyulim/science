@@ -97,7 +97,7 @@
       <section class="panel">
         <h2>전자 수 ∝ 세기 × 노출 시간</h2>
         <canvas class="flat" id="graph" aria-label="노출 시간에 따라 화소마다 쌓이는 전자 수. 기울기는 그 화소에 들어온 빛의 세기에 비례한다."></canvas>
-        <p class="cap">기울기 = 그 화소에 들어온 빛의 세기. 노출 시간 동안 일정하게 쌓인다. 빛의 진동수(색)는 기울기를 바꾸지 않는다.</p>
+        <p class="cap">기울기 = 그 화소에 들어온 빛의 세기. 노출 시간 동안 일정하게 쌓인다. 빛의 진동수(색)는 기울기를 바꾸지 않는다. 그림은 전자 수를 줄여 그렸다(세기 1, 1초 → 4개). 실제 화소에는 수천 개 이상이 쌓인다.</p>
       </section>
       <section class="panel wide">
         <h2>읽어 낸 값 → 재구성한 색</h2>
@@ -257,7 +257,7 @@
     N = g.N;
     packets = Array.from({length: N}, () => ({n: 0, out: false}));
     elist = []; holes = []; vals = new Array(N).fill(null); meas = null;
-    S.phase = 'expose'; S.tOpen = S.tg; S.pt = 0; S.s = 0;
+    S.phase = 'expose'; S.tOpen = S.tg; S.pt = 0; S.s = 0; S.shut = 0; flashes = [];
     if (clearPhotons) { photons = []; makeSched(); }
     spawnPhotons(g);
     dirty = true;
@@ -276,7 +276,8 @@
     photons = photons.filter((ph) => ph.y < g.yS);
     elist.forEach((e) => { const t = slot(g, e); e.x = t[0]; e.y = t[1]; });
     S.tOpen = S.tg - S.T - 1;                      // 셔터 닫힘
-    S.phase = 'shift'; S.s = 0; S.pt = 0;
+    S.phase = 'shift'; S.s = 0; S.pt = 0; S.shut = 1;
+    flashes = []; holes = [];
   }
   function clockStep() {
     S.s++;
@@ -611,7 +612,7 @@
   $('step').addEventListener('click', () => {
     playCtl.set(false);
     if (S.phase === 'expose' || S.phase === 'settle') finishExposure();
-    else if (S.phase === 'shift') clockStep();
+    else if (S.phase === 'shift') { clockStep(); flashes = []; holes = []; }
     else { newFrame(false); finishExposure(); }
     snapElectrons(); dirty = true;
   });

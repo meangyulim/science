@@ -560,7 +560,8 @@
     ctx.fillStyle = Lab.alpha(C.ink, 0.07); ctx.fill(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6; ctx.stroke(); ctx.restore();
     syncAcc(g);
     ctx.drawImage(accL.cv, 0, 0, g.W, g.H);
-    text(ctx, '형광판', P[1][0] - 2, frontY + 15, {size: 13.5, w: 700, align: 'right', color: C.muted});
+    if (narrow) text(ctx, '형광판', P[2][0] - 4, g.backY - 10, {size: 13.5, w: 700, align: 'right', color: C.muted});
+    else text(ctx, '형광판', P[1][0] - 2, frontY + 15, {size: 13.5, w: 700, align: 'right', color: C.muted});
     // 빛 → 금속판 (광전 효과) → 가속 → 이중 슬릿
     const lampX = xc + (narrow ? 96 : 150), lampY = plateY - 34;
     ctx.save(); ctx.beginPath(); ctx.arc(lampX, lampY, 9, 0, TAU); ctx.fillStyle = C.energy; ctx.fill(); ctx.restore();
@@ -983,8 +984,10 @@
     else if (S.scene === 'thomson') { drawRadial(); drawCone(); }
     else { drawOmega(); drawCollision(); }
   }
+  let measured = false;
   function draw() {
     if (!stage.W) return;
+    if (!measured) { measured = true; readouts(); }          // 무대 크기를 안 뒤 (폰/넓은 화면 문구)
     stage.ctx.clearRect(0, 0, stage.W, stage.H);
     if (S.scene === 'dg') drawDG();
     else if (S.scene === 'slit') drawSlit();
@@ -998,7 +1001,7 @@
     dg: {legend: '<span><i style="background:var(--vel)"></i>전자 (알갱이)</span><span><b style="background:var(--violet)"></b>물질파의 마루</span><span><i style="background:var(--copper)"></i>검출기</span>',
       tB: '튀어나온 전자 수 <small>검출기 각도에 따라</small>', cB: '검출기가 지나간 각도는 실선으로 그려진다. 54 V 전자선은 50° 근처에서만 뚜렷하게 많아진다 → 보강 간섭.',
       tC: '왜 50°일까? <small>이웃한 두 원자 A, B</small>', cC: '두 원자에서 튀어나온 물질파의 경로차(굵은 선)가 꼭 한 파장(λ 자)이 되는 방향에서 마루와 마루가 겹친다. X선 회절과 같은 원리다.'},
-    slit: {legend: '<span><i style="background:var(--vel)"></i>광전자 · 도착한 점</span><span><b style="background:var(--violet)"></b>전자의 물질파</span><span><b style="background:var(--energy)"></b>빛(광자)</span>',
+    slit: {legend: '<span><i style="background:var(--vel)"></i>광전자 · 도착한 점</span><span><b style="background:var(--violet)"></b>전자의 물질파 (파장 크게 과장)</span><span><b style="background:var(--energy)"></b>빛(광자)</span>',
       tB: '도착한 위치별 전자 수 <small>막대 = 실제로 쌓인 수</small>', cB: '전자가 많아질수록 막대가 초록 곡선(파동으로 예상한 무늬)을 따라간다. 입자로만 행동한다면 점선처럼 두 줄만 생겨야 한다.',
       tC: '쌓이는 순서 <small>처음 20개 · 300개 · 5000개</small>', cC: '처음 몇 개는 아무렇게나 찍힌 점 같지만, 쌓일수록 밝은 줄과 어두운 줄이 드러난다.'},
     thomson: {legend: '<span><b style="background:var(--energy)"></b>X선</span><span><i style="background:var(--vel)"></i>전자</span><span><b style="background:var(--muted)"></b>금속박</span>',

@@ -303,7 +303,7 @@
   const xbOf = (g, k) => g.Ox + g.L1 * (FREQ * S.t - k) / g.s1;
   function updTrackW(g) {
     if (g.s1 < 0.03) { S.track = null; return; }
-    const xa = g.W * (g.narrow ? 0.62 : 0.57), xz = g.W * 0.97;
+    const xa = g.W * (g.narrow ? 0.58 : 0.55), xz = g.W - (g.narrow ? 62 : 104);
     if (S.track === null || xbOf(g, S.track) > xz || xbOf(g, S.track) < xa - g.L1 / g.s1 - 1) S.track = Math.floor(FREQ * S.t - (xa - g.Ox) * g.s1 / g.L1);
   }
   function drawWave(ctx, g) {
@@ -371,11 +371,11 @@
   const NAMES = ['공기', 'A', 'B', 'C', '공기'];
   function lgeo(W, H) {
     const narrow = W < 520, ns = [1, S.nA, S.nB, S.nC, 1], th = M.layers(ns, S.th0), tn = th.map((a) => Math.tan(a * RAD));
-    const y1 = Math.round(H * (narrow ? 0.29 : 0.31)), d = Math.round(H * (narrow ? 0.15 : 0.15)), ys = [y1, y1 + d, y1 + 2 * d, y1 + 3 * d];
+    const y1 = Math.round(H * (narrow ? 0.3 : 0.31)), d = Math.round(H * (narrow ? 0.11 : 0.15)), ys = [y1, y1 + d, y1 + 2 * d, y1 + 3 * d];
     const s0 = M.sinD(S.th0), c0 = M.cosD(S.th0), u0 = [s0, c0], u4 = [M.sinD(th[4]), M.cosD(th[4])];
-    const topY = narrow ? 92 : 86, inDx = Math.min((y1 - topY) * tn[0], W * 0.3);
+    const topY = narrow ? 92 : 86, inDx = Math.min((y1 - topY) * tn[0], W * (narrow ? 0.18 : 0.3));
     const span = d * (tn[1] + tn[2] + tn[3]), outDx = (H - 10 - ys[3]) * tn[4];
-    const xe = Math.max(16 + inDx, W / 2 - (span + outDx - inDx) / 2);
+    const xe = Math.max(16 + inDx + 40 * s0, W / 2 - (span + outDx - inDx) / 2);    // 레이저 몸통까지 화면 안에
     const pts = [[xe, ys[0]]];
     for (let i = 1; i <= 3; i++) pts.push([pts[i - 1][0] + d * tn[i], ys[i]]);
     const Lin = s0 > 1e-6 ? Math.min((y1 - topY) / c0, inDx / s0) : y1 - topY;
@@ -400,20 +400,36 @@
     for (let i = 0; i < 3; i++) { ctx.globalAlpha = tint(ns[i + 1]); ctx.fillRect(0, ys[i], W, ys[i + 1] - ys[i]); }
     ctx.restore();
     ys.forEach((y) => Lab.line(ctx, [[0, y], [W, y]], C.ink, 1.6));
-    const rowY = [ys[0] - 18, (ys[0] + ys[1]) / 2, (ys[1] + ys[2]) / 2, (ys[2] + ys[3]) / 2, ys[3] + 20];
+    const rowY = [ys[0] - 18, (ys[0] + ys[1]) / 2, (ys[1] + ys[2]) / 2, (ys[2] + ys[3]) / 2, ys[3] + 44];
     const iMax = [1, 2, 3].reduce((m, i) => (th[i] < th[m] ? i : m), 1);
     rowY.forEach((y, i) => {
-      text(ctx, NAMES[i] + ' · n = ' + (i % 4 ? fmt(ns[i], 2) : '1'), 14, y, {size: 15, w: 700, align: 'left', halo: true, color: i === iMax ? C.copper : C.ink});
-      if (!S.inv) return;
-      const s = narrow ? 'n sinθ = ' + fmt(L.K, 2) : fmt(ns[i], 2) + ' × sin' + fmt(th[i], 1) + '° = ' + fmt(L.K, 2);
-      text(ctx, s, W - 14, y, {size: 14, w: 700, align: 'right', color: C.acc, halo: true, mono: !narrow});
+      const name = NAMES[i] + ' · n = ' + (i % 4 ? fmt(ns[i], 2) : '1'), col = i === iMax ? C.copper : C.ink;
+      if (narrow) {          // 폰: 경로는 오른쪽으로만 가므로 층 이름과 n sinθ 를 왼쪽에 두 줄로 (위 공기는 오른쪽)
+        const inv = 'n sinθ = ' + fmt(L.K, 2);
+        if (i === 0) {
+          text(ctx, name, W - 14, ys[0] - (S.inv ? 38 : 18), {size: 14, w: 700, align: 'right', halo: true});
+          if (S.inv) text(ctx, inv, W - 14, ys[0] - 17, {size: 13.5, w: 700, align: 'right', color: C.acc, halo: true});
+        } else if (i === 4) text(ctx, name, 14, y, {size: 14, w: 700, align: 'left', halo: true});
+        else {
+          text(ctx, name, 12, y - (S.inv ? 9 : 0), {size: 14, w: 700, align: 'left', halo: true, color: col});
+          if (S.inv) text(ctx, inv, 12, y + 11, {size: 13, w: 700, align: 'left', color: C.acc, halo: true});
+        }
+        return;
+      }
+      text(ctx, name, 14, y, {size: 15, w: 700, align: 'left', halo: true, color: col});
+      if (S.inv) text(ctx, fmt(ns[i], 2) + ' × sin' + fmt(th[i], 1) + '° = ' + fmt(L.K, 2), W - 14, y, {size: 14, w: 700, align: 'right', color: C.acc, halo: true, mono: true});
     });
     // 처음 방향 연장선과 옆으로 밀린 거리
     if (S.ghost) {
       Lab.line(ctx, [pts[0], add(pts[0], L.u0, toEdge(pts[0], L.u0, W, H, 4))], C.muted, 1.8, [7, 6]);
       const E = add(pts[3], L.u4, Math.min(110, toEdge(pts[3], L.u4, W, H, 4) * 0.62)), tt = (E[0] - pts[0][0]) * L.u0[0] + (E[1] - pts[0][1]) * L.u0[1];
       const F = add(pts[0], L.u0, tt), dd = Math.hypot(F[0] - E[0], F[1] - E[1]);
-      if (dd > 8) dim(ctx, E, F, L.u0, C.copper, '옆으로 밀림', 22);
+      if (dd > 8) {
+        dim(ctx, E, F, L.u0, C.copper, '');
+        const mx = (E[0] + F[0]) / 2 + L.u0[0] * 26, my = (E[1] + F[1]) / 2 + L.u0[1] * 26;
+        if (mx > W - 64) text(ctx, '옆으로 밀림', E[0] - 12, E[1] + 18, {size: 14, w: 700, color: C.copper, align: 'right', halo: true});
+        else text(ctx, '옆으로 밀림', Math.max(52, mx), Math.min(H - 12, my), {size: 14, w: 700, color: C.copper, halo: true});
+      }
     }
     // 경계마다 법선과 각
     pts.forEach((P) => Lab.line(ctx, [[P[0], P[1] - 32], [P[0], P[1] + 32]], C.muted, 1.3, [5, 4]));
@@ -421,7 +437,8 @@
     pts.forEach((P, i) => {
       const a = th[i + 1], col = i === 3 ? C.ink : C.acc; if (a < 1) return;
       angArc(ctx, P, 26, Math.PI / 2 - a * RAD, Math.PI / 2, col);
-      text(ctx, fmt(a, 1) + '°', P[0] - 8, P[1] + 19, {size: 14, w: 700, color: col, align: 'right', halo: true});
+      const al = Math.max(8, 90 - a - 30) * RAD;          // 광선 바깥쪽(오른쪽)에 글자
+      text(ctx, fmt(a, 1) + '°', P[0] + Math.cos(al) * 54, P[1] + Math.sin(al) * 54, {size: 14, w: 700, color: col, halo: true});
     });
     // 빛의 경로
     ray(ctx, L.src, pts[0], C.vel, 3.2);
@@ -575,14 +592,14 @@
       set(6, '다시 공기로 나온 각', fmt(th[4], 1) + '°');
       const rk = $('rank'); rk.hidden = false;
       rk.textContent = '굴절률 큰 순: ' + M.rankByAngle(['A', 'B', 'C'], th.slice(1, 4)).join(' > ') + '  (각이 작은 순)';
-      $('hud1').textContent = 'n sinθ = ' + fmt(K, 3) + ' (모든 층)'; $('hud2').textContent = '빛 펄스: 느린 층에서 느리게'; $('hud2').className = 'pill';
+      $('hud1').textContent = 'n sinθ = ' + fmt(K, 3); $('hud2').textContent = '느린 층에서 느린 빛'; $('hud2').className = 'pill';
     }
     const ok = S.scene === 'wave' && !S.rev && Math.abs(S.th - EX.th) < 1e-9 && Math.abs(S.lam - EX.lam) < 1e-9 && Math.abs(S.rat - EX.rat) < 1e-9;
     Lab.check('exCheck', ok, '개념서 예제 (깊은 곳 60°, λ₁ = 2√3 cm → 굴절각 30°) → 얕은 곳 파장 λ₂ = 2 cm',
       '예제: 입사각 60°, 파장 2√3 cm 인 물결파가 얕은 곳에서 30°로 꺾이면 λ₂ 는? — ‘스스로 확인 1’로 돌아갈 수 있어요');
   }
   const CAP = {
-    wave: ['P·Q 의 y-t 그래프', '깊이가 달라도', '깊은 곳 P 와 얕은 곳 Q 의 주기 T 가 같다(진동수는 파원이 정함). 그래서 느린 곳에서는 λ = vT 가 짧다.',
+    wave: ['P·Q 의 y-t 그래프', '깊이가 달라도', '위 영역의 P 와 아래 영역의 Q 는 주기 T 가 같다(진동수는 파원이 정함). 그래서 느린 얕은 곳에서는 λ = vT 가 짧다.',
       '물결파', '원점을 지나는 직선, 기울기 = v₂/v₁ (빛이면 n₁/n₂). 얕은 곳 → 깊은 곳(기울기 > 1)은 sin r = 1 에서 끝나고, 그 sin i 가 임계각의 사인이다.'],
     layers: ['n sinθ 넓이', '가로 n · 세로 sinθ', '모든 직사각형의 넓이(n × sinθ)가 같다. 넓을수록(굴절률이 클수록) 낮다(각이 작다). 구리색 = 굴절률이 가장 큰 층.',
       '공기 → 각 층', '공기에서 각 층으로 들어갈 때의 직선(기울기 1/n). 같은 입사각(세로 점선)에서 점이 낮을수록 굴절률이 크다.'],

@@ -120,6 +120,7 @@
         <h2>시간 기록 <small>최근 8초</small></h2>
         <canvas class="flat" id="strip" aria-label="센서에 닿는 빛, 광전류, 경보 장치의 상태를 시간에 따라 기록한 그래프"></canvas>
         <p class="cap" id="stripCap">도난 경보기: 광전류가 0인 동안 경보가 울린다.</p>
+        <p class="cap">광자의 진행과 전자석·막대의 움직임은 보기 쉽게 느리게 그렸다. 실제로는 빛이 가려지는 순간 거의 동시에 일어난다.</p>
       </section>
       <section class="panel wide">
         <h2>장치마다 작동 조건</h2>
@@ -422,7 +423,7 @@
   function drawElecs(ctx) { for (const e of elecs) { const u = Math.min(1, e.t / e.d); Lab.circle(ctx, e.x0 + (e.x1 - e.x0) * u, e.y0 + (e.y1 - e.y0) * u, 4, {fill: C.vel}); } }
 
   // 계전기: 전자석·막대·용수철·접점
-  function relayParts(ctx, g, I) {
+  function relayParts(ctx, g) {
     const top = g.yA - 14, bot = g.py - 5, xl = g.mx - g.cw / 2;
     // 자기장 (전자석에 전류가 흐를 때)
     if (S.mag > 0.02) {
@@ -532,7 +533,7 @@
     text(ctx, '침입자', x + side * off, fy - 0.9 * ph, {size: 13.5, w: 700, halo: true, align: side > 0 ? 'left' : 'right'});
   }
   function drawBurglarCircuit(ctx, g) {
-    const col = lightCol(nmSrc()), cxw = g.mx - g.cw / 2 - 4, I = S.I;
+    const cxw = g.mx - g.cw / 2 - 4, I = S.I;
     // 회로 1: 광전관 – 전자석 – 전원
     wire(ctx, [[g.sx + g.rx, g.yA], [cxw, g.yA], [cxw, g.yB], [g.batX + 5, g.yB]]);
     wire(ctx, [[g.batX - 8, g.yB], [g.xL, g.yB], [g.xL, g.yK], [g.sx - g.rx, g.yK]]);
@@ -556,7 +557,7 @@
     wire(ctx, [[g.bx, g.bat2Y + 8], [g.bx, g.yBot], [g.px, g.yBot], [g.px, g.py + 6]]);
     wire(ctx, [[E0[0], g.yC], [g.bx, g.yC], [g.bx, g.bat2Y - 5]]);
     battery(ctx, g.bx, g.bat2Y, true, '전원', g.bx - 24, g.bat2Y, 'right');
-    relayParts(ctx, g, I);
+    relayParts(ctx, g);
     text(ctx, '전자석', g.mx + g.cw / 2 + (g.n ? 8 : 34), (g.yA + g.yB) / 2 - 8, {size: 13.5, w: 700, align: 'left'});
     if (g.n) text(ctx, '막대', g.px + 0.5 * g.Lv, leverY(g, g.px + 0.5 * g.Lv) + 17, {size: 13, color: C.copper, w: 700, halo: true});
     else text(ctx, '금속 막대', g.px + 0.9 * g.Lv, leverY(g, g.px + 0.9 * g.Lv) - 14, {size: 13, color: C.copper, w: 700, halo: true});
@@ -569,7 +570,6 @@
     bell(ctx, g.bx, g.yC, g.bellR, closed, '경보 장치');
     // 광전자 (음극 → 양극) · 섬광
     drawElecs(ctx); drawFlashes(ctx);
-    void col;
   }
 
   // ── 장면: 화재 경보기 ───────────────────────────────────
@@ -665,7 +665,7 @@
     wire(ctx, [[E0[0], g.yC], [g.bx - 5, g.yC], [g.bx - 5, g.armY - 3], [g.lampX, g.armY - 3], [g.lampX, g.armY + 4]]);
     wire(ctx, [[g.lampX + 7, g.armY + 3], [g.bx + 5, g.armY + 3], [g.bx + 5, g.bat2Y - 12], [g.bx, g.bat2Y - 5]]);
     battery(ctx, g.bx, g.bat2Y, true, '전원', g.bx - 24, g.bat2Y, 'right');
-    relayParts(ctx, g, S.I);
+    relayParts(ctx, g);
     text(ctx, '전자석', g.mx + g.cw / 2 + (g.n ? 8 : 34), (g.yA + g.yB) / 2 - 8, {size: 13.5, w: 700, align: 'left'});
     text(ctx, '용수철', g.spX + 12, (g.py + g.spBase) / 2 + 8, {size: 13, color: C.muted, w: 600, align: 'left'});
     if (S.I > 0.05) {
@@ -733,8 +733,10 @@
   let G = null;
   function drawStage() {
     const {ctx, W, H} = stage; if (!W) return;
+    const first = !G;
     if (!G || G.W !== W) $('hudSlow').hidden = W < 520;
     G = geo(W, H);
+    if (first) settle();                              // 처음(멈춘 채 시작해도): 빛줄기를 광자로 채운 평형 상태
     ctx.clearRect(0, 0, W, H);
     Lab.paper(ctx, W, H, 24);
     if (S.scene === 'burglar' || S.scene === 'street' || S.scene === 'solar') {
