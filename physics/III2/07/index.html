@@ -26,7 +26,7 @@
 .qt th,.qt td{border:1px solid var(--line);padding:3px 14px;text-align:center}
 .qt th{background:var(--bg);font-weight:600}
 .quiz .tag{white-space:nowrap}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.82} }
+@media (max-width:640px){ #stage{aspect-ratio:1/1.86} }
 </style>
 </head>
 <body>
@@ -229,13 +229,15 @@
 
   function layout(W, H) {
     const narrow = W < 520, x0 = narrow ? 12 : 20, x1 = W - x0, top = narrow ? 44 : 48;
-    const legendH = narrow ? 70 : 54, rowH = narrow ? 44 : 40, barsH = S.bars ? rowH * 5 + 34 : 0;
+    const legendH = narrow ? 84 : 54, rowH = narrow ? 44 : 40, barsH = S.bars ? rowH * 5 + 34 : 0;
     const barsTop = H - legendH - barsH, laneH = (barsTop - top - 6) / 2;
     return {narrow, x0, x1, laneW: x1 - x0, top, rowH, barsTop, lanes: [{key: 'A', y0: top, h: laneH}, {key: 'B', y0: top + laneH, h: laneH}]};
   }
   const geo = (L, ln, q) => {
     const r = (L.narrow ? 10 : 11) * Math.cbrt(q.m), sigma = L.laneW * 0.09;
-    return {r, sigma, yc: ln.y0 + ln.h * 0.6, amp: Math.min(ln.h * 0.25, 50), packFrac: (5 * sigma + r + 2) / L.laneW};
+    // 물결 마루 위의 파장 자 글자가 이름표 줄(위 23 px)과 겹치지 않게 기준선을 내린다
+    const amp = Math.min(ln.h * 0.25, 50), yc = ln.y0 + Math.min(ln.h - amp - 4, Math.max(ln.h * 0.6, 58 + amp));
+    return {r, sigma, yc, amp, packFrac: (5 * sigma + r + 2) / L.laneW};
   };
   const lamPxOf = (L, q) => q.lam * L.laneW * 0.2;          // λ = h/√(2mE) 가 무대 폭의 0.2
   const arrowLen = (L, q) => (L.narrow ? 8 : 10) + (L.narrow ? 15 : 22) * q.v;

@@ -158,7 +158,7 @@
       </article>
       <article class="concept">
         <h3>무엇이 같은지부터 본다</h3>
-        <p><b>같은 운동량</b> → 질량과 관계없이 파장이 같다. <b>같은 운동 에너지</b> → 무거울수록 짧다(λ ∝ 1/√m). <b>같은 속력</b> → λ ∝ 1/m.</p>
+        <p><b>같은 운동량</b> → 질량과 관계없이 파장이 같다. <b>같은 운동 에너지</b> → 무거울수록 짧다(λ&nbsp;∝&nbsp;1/√m). <b>같은 속력</b> → λ&nbsp;∝&nbsp;1/m.</p>
         <p>같은 입자에서 λ는 √E<sub>k</sub>에 반비례한다. 운동 에너지 4배 → 파장 <b>1/2배</b>, 속력 2배 → 파장 1/2배.</p>
       </article>
       <article class="concept">
@@ -371,7 +371,9 @@
   }
   const geo = (L, ln, st) => {
     const r = RAD[st.type] * (L.narrow ? 0.9 : 1), sigma = L.laneW * 0.09;
-    return {r, sigma, yc: ln.y0 + ln.h * 0.6, amp: Math.min(ln.h * 0.25, 50), packFrac: (5 * sigma + r + 2) / L.laneW};
+    // 물결 마루 위의 파장 자 글자가 이름표 줄(위 23 px)과 겹치지 않게 기준선을 내린다
+    const amp = Math.min(ln.h * 0.25, 50), yc = ln.y0 + Math.min(ln.h - amp - 4, Math.max(ln.h * 0.6, 58 + amp));
+    return {r, sigma, yc, amp, packFrac: (5 * sigma + r + 2) / L.laneW};
   };
 
   function drawStage() {
@@ -520,7 +522,7 @@
     });
   }
   function noteOut(ctx, r) {
-    if (S.view === 'two' && mixed()) text(ctx, 'B(' + P[S.B.type].name + ')는 단위가 달라 그래프 밖', r.x + r.w, r.y + 4, {size: 13, w: 600, align: 'right', color: C.muted, halo: true});
+    if (S.view === 'two' && mixed()) text(ctx, 'B(' + P[S.B.type].name + ')는 단위가 달라 그래프 밖', r.x + 10, r.y + r.h - 14, {size: 13, w: 600, align: 'left', color: C.muted, halo: true});
   }
   const legItem = (col, s, dash) => '<span><b style="background:' + (dash ? 'repeating-linear-gradient(90deg,var(--muted) 0 5px,transparent 5px 9px)' : 'var(--' + col + ')') + '"></b><span>' + s + '</span></span>';
   function frameAxes(ctx, W, H, xm, ym, xl, yl) {
@@ -564,7 +566,7 @@
     if (S.trap && same && Math.abs(pts[1].f.E / A.E - 1) > 1e-6) {   // 1/E_k 였다면 B 는 여기
       const B = pts[1].f, xw = X(B.E), yw = Y(A.lam * A.E / B.E), left = xw > r.x + r.w * 0.55;
       Lab.circle(ctx, xw, yw, 6, {fill: C.paper, stroke: C.muted, width: 2});
-      rich(ctx, '1/E_k였다면', xw + (left ? -11 : 11), yw + (left ? 2 : 13), {size: 13, w: 600, color: C.muted, align: left ? 'right' : 'left', halo: true});
+      rich(ctx, '1/E_k였다면', xw + (left ? -9 : 11), yw + 13, {size: 13, w: 600, color: C.muted, align: left ? 'right' : 'left', halo: true});
     }
     points(ctx, list);
     noteOut(ctx, r);
