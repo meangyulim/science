@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>굴절과 스넬 법칙</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* Layout: 왼쪽 무대(위 = 매질 1, 아래 = 매질 2; 평행 광선 다발의 파면이 경계에서 꺾임)와 조작판, 오른쪽 수치·단위원 작도·sin 그래프·속력과 파장 */
+#stage{aspect-ratio:16/10.5;cursor:grab}
+#uc{aspect-ratio:10/7.2}
+#sg{aspect-ratio:10/8}
+#vw{aspect-ratio:10/6.2}
+.med .btn{padding:7px 11px}
+.quiz .tag{white-space:nowrap}
+/* 범례가 굴절 광선을 가리지 않게: 넓은 화면은 왼쪽 아래 세로 한 줄씩, 폰은 무대 아래로 */
+@media (min-width:641px){ .stage .legend{flex-direction:column;gap:0} }
+@media (min-width:641px) and (max-width:980px){ #vw{aspect-ratio:10/3.6} }
+@media (max-width:640px){ #stage{aspect-ratio:1/1.34} #vw{aspect-ratio:10/6.6} .stage .legend{position:static;margin:0 10px 10px;max-width:none} }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="back" href="../../">← 물리 실험실</a>
+    <div class="crumbs"><span class="id">III1-04</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+    <h1>굴절과 스넬 법칙</h1>
+    <p class="lead">비스듬히 들어간 파면은 <b>먼저 닿은 끝(A)부터 느려지고</b>, 나머지 끝(B)은 아직 빠르게 달린다. 그래서 파면이 돌아가고 진행 방향이 꺾인다. 구리색 파면 하나를 따라가며 같은 시간에 간 거리 v₁t 와 v₂t 를 비교해 보면 <span class="eq">sinθ₁/sinθ₂ = v₁/v₂</span> 가 보인다.</p>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <div class="stage">
+        <canvas id="stage" aria-label="위 매질에서 아래 매질로 비스듬히 들어가는 평행 광선 다발. 파면(마루선)이 경계에서 꺾이고, 하위헌스 작도로 같은 시간에 간 거리를 비교한다. 광원을 끌어 입사각을 바꿀 수 있다."></canvas>
+        <div class="hud"><span class="pill num" id="hud1">θ₁ = 60°</span><span class="pill num" id="hud2">θ₂ = 30°</span><span class="pill" id="hud3">느린 화면</span></div>
+        <div class="legend">
+          <span><b style="background:var(--vel)"></b>광선(진행 방향)</span>
+          <span><b style="background:var(--violet)"></b>파면(마루선)</span>
+          <span><i style="background:var(--copper)"></i>따라가는 파면</span>
+          <span><b style="background:var(--acc)"></b>같은 시간에 간 거리</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <button type="button" class="btn" id="step">작도 ¼ 단계 ▸</button>
+          <button type="button" class="btn" id="rev">↕ 거꾸로 보내기</button>
+          <span class="spacer"></span>
+          <div class="group" role="group" aria-label="빠르기">
+            <span class="gl">빠르기</span>
+            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="false">×0.5</button>
+            <button type="button" class="btn mono" data-speed="1" aria-pressed="true">×1</button>
+            <button type="button" class="btn mono" data-speed="2" aria-pressed="false">×2</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <label class="ctl-label" for="th">입사각 θ₁ (법선과 진행 방향 사이, 무대의 광원을 끌어도 된다) <output id="thOut">60°</output></label>
+            <input id="th" type="range" min="0" max="89" step="1" value="60">
+          </div>
+        </div>
+        <div class="row">
+          <div class="group med" role="group" aria-label="매질 1 (위)">
+            <span class="gl">매질 1 (위)</span>
+            <button type="button" class="btn" data-m1="air" aria-pressed="true">공기 1</button>
+            <button type="button" class="btn" data-m1="water" aria-pressed="false">물 1.33</button>
+            <button type="button" class="btn" data-m1="glass" aria-pressed="false">유리 1.5</button>
+            <button type="button" class="btn" data-m1="r3" aria-pressed="false">유리 √3</button>
+            <button type="button" class="btn" data-m1="dia" aria-pressed="false">다이아몬드 2.42</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="group med" role="group" aria-label="매질 2 (아래)">
+            <span class="gl">매질 2 (아래)</span>
+            <button type="button" class="btn" data-m2="air" aria-pressed="false">공기 1</button>
+            <button type="button" class="btn" data-m2="water" aria-pressed="false">물 1.33</button>
+            <button type="button" class="btn" data-m2="glass" aria-pressed="false">유리 1.5</button>
+            <button type="button" class="btn" data-m2="r3" aria-pressed="true">유리 √3</button>
+            <button type="button" class="btn" data-m2="dia" aria-pressed="false">다이아몬드 2.42</button>
+          </div>
+        </div>
+        <div class="row toggles">
+          <label class="chk"><input type="checkbox" id="cFront" checked>파면(마루선)</label>
+          <label class="chk"><input type="checkbox" id="cHuy" checked>하위헌스 작도 (A·B·D·E)</label>
+          <label class="chk"><input type="checkbox" id="cDisp">빨간빛·보라색 빛 (색마다 굴절률 다름)</label>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>지금 수치</h2>
+        <div class="readouts">
+          <div class="ro cu"><span>입사각 θ₁</span><b id="rTh1">60°</b></div>
+          <div class="ro acc"><span>굴절각 θ₂</span><b id="rTh2">30°</b></div>
+          <div class="ro"><span>n₁ sinθ₁ = n₂ sinθ₂</span><b id="rInv">0.866</b></div>
+          <div class="ro vel"><span>매질 2 속력 v₂ = c/n₂</span><b id="rV2">1.73 × 10⁸ m/s</b></div>
+          <div class="ro"><span>상대 굴절률 n₂/n₁ = v₁/v₂</span><b id="rRel">1.73</b></div>
+          <div class="ro"><span>파장 λ₂/λ₁ = n₁/n₂</span><b id="rLam">0.577</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </section>
+      <section class="panel">
+        <h2>sinθ 작도 <small>반지름 1인 원</small></h2>
+        <canvas class="flat" id="uc" aria-label="입사점을 중심으로 반지름 1인 원을 그리면 광선과 원이 만나는 점에서 법선까지의 거리가 sinθ."></canvas>
+        <p class="cap">원과 광선이 만나는 점에서 법선까지의 거리가 <b>sinθ</b>. 두 선분의 길이 비가 <span class="eq">sinθ₁ : sinθ₂ = n₂ : n₁</span> 이다.</p>
+      </section>
+      <section class="panel">
+        <h2>sinθ₁–sinθ₂ 그래프 <small>매질 2를 바꿔 보자</small></h2>
+        <canvas class="flat" id="sg" aria-label="가로축 sinθ1, 세로축 sinθ2. 원점을 지나는 직선이고 기울기는 n1/n2."></canvas>
+        <p class="cap">원점을 지나는 직선, <b>기울기 = n₁/n₂</b>. 굴절률이 큰 매질일수록 기울기가 작아 같은 입사각에서 더 많이 꺾인다.</p>
+      </section>
+      <section class="panel wide">
+        <h2>매질 속 속력과 파장 <small>같은 시간 동안</small></h2>
+        <canvas class="flat" id="vw" aria-label="같은 파원에서 온 빛이 두 매질에서 같은 진동수로 진동하지만, 느린 매질에서는 파장이 짧다."></canvas>
+        <p class="cap">진동수 f 는 파원이 정하므로 그대로. 느려진 만큼 파장이 짧아진다: <span class="eq">v₂/v₁ = λ₂/λ₁ = n₁/n₂</span></p>
+      </section>
+    </aside>
+  </main>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">개념 정리</h2>
+    <div class="concepts">
+      <article class="concept">
+        <h3>꺾이는 까닭은 속력 차이</h3>
+        <p>파면 AB 의 A 가 먼저 경계에 닿는다. B 가 v₁t 를 가서 D 에 닿는 동안, A 에서 느린 매질로 나간 파는 v₂t 만 가서 E 에 이른다. 새 파면 ED 는 경계 쪽으로 돌아간다.</p>
+        <p>줄지어 걷던 대열이 비스듬히 진흙밭에 들어가면 먼저 들어간 쪽부터 느려져 대열이 도는 것과 같다.</p>
+      </article>
+      <article class="concept">
+        <h3>스넬 법칙</h3>
+        <p>직각삼각형 ABD 와 AED 는 빗변 AD 를 공유하므로 sinθ₁ = v₁t/AD, sinθ₂ = v₂t/AD. 나누면 <span class="eq">sinθ₁/sinθ₂ = v₁/v₂ = λ₁/λ₂</span>.</p>
+        <p>빛은 n = c/v 이므로 <span class="eq">n₁ sinθ₁ = n₂ sinθ₂</span>. θ 는 진행 방향과 법선 사이 각이며, 파면과 경계면 사이 각과 같다.</p>
+      </article>
+      <article class="concept">
+        <h3>각이 작은 쪽 = 느린 쪽</h3>
+        <p>각이 작은 쪽이 느린 쪽이고, 빛에서는 굴절률이 큰 쪽, 파장이 짧은 쪽과 같은 말이다. 공기 약 1.0003, 물 1.33, 유리 약 1.5~1.9, 다이아몬드 2.42.</p>
+        <p>수직으로 들어가면 꺾이지 않지만 속력과 파장은 바뀐다. 빛의 경로는 거꾸로도 성립한다(가역성).</p>
+      </article>
+    </div>
+    <p class="compare">같은 입사각 60°라도 굴절률 1.5인 매질에서는 약 35°, √3인 매질에서는 30°로 꺾인다 — 굴절률이 클수록 더 많이 꺾인다. 같은 유리라도 보라색 빛의 굴절률이 빨간빛보다 조금 커서 보라색 빛이 더 꺾이고 유리 속에서 더 느리다(분산).</p>
+
+    <h2>스스로 확인</h2>
+    <ol class="quiz">
+      <li>
+        <p class="q"><span>1</span>공기(n = 1)에서 굴절률 √3인 유리로 입사각 60°로 빛이 들어간다. 굴절각과 유리 속 빛의 속력은? (c = 3 × 10⁸ m/s)<span class="tag">개념서 예제</span></p>
+        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button></div>
+        <details><summary>답 보기</summary><p>1 × sin60° = √3 × sinθ₂ 에서 sinθ₂ = 1/2, <b>θ₂ = 30°</b>. v = c/n = 3 × 10⁸ ÷ √3 = √3 × 10⁸ ≈ <b>1.7 × 10⁸ m/s</b>. 단위원 작도의 두 선분도 0.87 : 0.5 = √3 : 1 이다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>2</span>빛이 공기에서 어떤 매질로 입사각 45°로 들어가 굴절각 30°로 꺾였다. 이 매질의 굴절률과 매질 속 빛의 속력은?</p>
+        <div class="acts"><button type="button" class="btn" data-try="r2">45° → 30° 상황 보기</button></div>
+        <details><summary>답 보기</summary><p>1 × sin45° = n × sin30° 에서 n = (√2/2) ÷ (1/2) = <b>√2</b>, v = c/√2 ≈ <b>2.1 × 10⁸ m/s</b>. 매질 속 빛이 c 보다 빠를 수는 없으므로 4.2 × 10⁸ m/s 같은 값은 바로 지운다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>3</span>빨간빛과 보라색 빛이 공기에서 같은 유리로 같은 입사각으로 들어간다. 더 많이 꺾이는 빛과, 유리 속에서 더 느린 빛은?</p>
+        <div class="acts"><button type="button" class="btn" data-try="disp">두 색을 같이 보내기</button></div>
+        <details><summary>답 보기</summary><p>둘 다 <b>보라색 빛</b>. 보라색 빛에 대한 유리의 굴절률이 더 커서 굴절각이 작고, v = c/n 이 작다. 각 빛의 진동수는 매질이 바뀌어도 그대로다. (무대는 굴절률 차이를 과장해 그렸다.)</p></details>
+      </li>
+      <li>
+        <p class="q"><span>4</span>빛이 경계에 수직으로(θ₁ = 0°) 들어가면 꺾이지 않는다. 그렇다면 속력과 파장도 그대로일까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="normal">수직으로 보내기</button></div>
+        <details><summary>답 보기</summary><p>아니다. 방향만 그대로이고, 유리 속에서는 속력이 c/n 으로 느려지고 파장도 n₁/n₂ 배로 짧아진다(마루선 간격이 좁아진다). 꺾이려면 비스듬히 들어가 파면의 양 끝이 경계에 닿는 시각이 달라야 한다.</p></details>
+      </li>
+    </ol>
+    <nav class="pager"><a href="../03/">← III1-03 매질이 바뀔 때</a><a href="../../">물리 실험실</a><a href="../05/">III1-05 생활 속 굴절 현상 →</a></nav>
+  </section>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="III1-04-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.III1_04;
+  const {$, C, text, arrow, fmt} = Lab;
+  const R3 = Math.sqrt(3), R2 = Math.SQRT2;
+  const MED = {
+    air: {name: '공기', n: 1, tag: '1'}, water: {name: '물', n: 1.33, tag: '1.33'}, glass: {name: '유리', n: 1.5, tag: '1.5'},
+    r3: {name: '유리', n: R3, tag: '√3'}, dia: {name: '다이아몬드', n: 2.42, tag: '2.42'}, r2: {name: '어떤 매질', n: R2, tag: '√2'},
+  };
+  const nStr = (v) => (Math.abs(v - R3) < 1e-9 ? '√3' : Math.abs(v - R2) < 1e-9 ? '√2' : fmt(v, 2));
+
+  // ── 상태 ────────────────────────────────────────────────
+  const EX = {th: 60, m1: 'air', m2: 'r3'};
+  const S = {th: 60, m1: 'air', m2: 'r3', t: 0, playing: !Lab.reduceMotion, speed: 1, fronts: true, huy: true, disp: false, track: null, drag: false};
+  const F = 0.5;            // 화면 속 진동수 (Hz). 실제 빛은 1초에 10¹⁴번 넘게 진동한다 → 아주 느린 화면
+  const DISP = 0.13;        // 분산을 보이려고 과장한 굴절률 차이 (빨강 −, 보라 +)
+  const n1 = () => MED[S.m1].n, n2 = () => MED[S.m2].n;
+  const RAD = Math.PI / 180;
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  const add = (P, v, k) => [P[0] + v[0] * k, P[1] + v[1] * k];
+  const poly = (ctx, pts) => { ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath(); };
+  const seg = (ctx, s) => { if (s) { ctx.moveTo(s[0][0], s[0][1]); ctx.lineTo(s[1][0], s[1][1]); } };
+  const rgbOf = (col) => Lab.alpha(col, 1).match(/[\d.]+/g).slice(0, 3).map(Number);
+  const isDark = () => rgbOf(C.paper).reduce((a, b) => a + b, 0) / 3 < 110;
+  // 가시광선 파장(nm) → 색. 빛의 색은 물리적으로 정해진 색이라 토큰 대신 계산한다(어두운 바탕에서는 밝게 올림)
+  function spec(nm) {
+    let r = 0, g = 0, b = 0;
+    if (nm < 440) { r = (440 - nm) / 60; b = 1; } else if (nm < 490) { g = (nm - 440) / 50; b = 1; }
+    else if (nm < 510) { g = 1; b = (510 - nm) / 20; } else if (nm < 580) { r = (nm - 510) / 70; g = 1; }
+    else if (nm < 645) { r = 1; g = (645 - nm) / 65; } else r = 1;
+    const k = nm < 420 ? 0.3 + 0.7 * (nm - 380) / 40 : 1, lift = isDark() ? 0.32 : 0;
+    const ch = (v) => Math.round(255 * Math.min(1, v * k * (1 - lift) + lift));
+    return `rgb(${ch(r)},${ch(g)},${ch(b)})`;
+  }
+  // 선분 PQ 에서 경계(y = yB) 위쪽(up) 또는 아래쪽 부분만 남기기
+  function clipY(P, Q, yB, up) {
+    const inn = (p) => (up ? p[1] <= yB + 1e-9 : p[1] >= yB - 1e-9);
+    const a = inn(P), b = inn(Q);
+    if (a && b) return [P, Q];
+    if (!a && !b) return null;
+    const u = (yB - P[1]) / (Q[1] - P[1]), X = [P[0] + u * (Q[0] - P[0]), yB];
+    return a ? [P, X] : [X, Q];
+  }
+  // P 에서 u 방향으로 캔버스 가장자리(여백 m)까지 거리
+  function toEdge(P, u, W, H, m = 6) {
+    let L = 1e9;
+    if (u[0] > 1e-9) L = Math.min(L, (W - m - P[0]) / u[0]); else if (u[0] < -1e-9) L = Math.min(L, (m - P[0]) / u[0]);
+    if (u[1] > 1e-9) L = Math.min(L, (H - m - P[1]) / u[1]); else if (u[1] < -1e-9) L = Math.min(L, (m - P[1]) / u[1]);
+    return Math.max(0, L);
+  }
+  // 광선: 선 + 가운데 화살촉
+  function ray(ctx, P, Q, col, w, at = 0.55) {
+    Lab.line(ctx, [P, Q], col, w);
+    const L = Math.hypot(Q[0] - P[0], Q[1] - P[1]); if (L < 40) return;
+    const ux = (Q[0] - P[0]) / L, uy = (Q[1] - P[1]) / L, mx = P[0] + (Q[0] - P[0]) * at, my = P[1] + (Q[1] - P[1]) * at;
+    arrow(ctx, mx - ux * 16, my - uy * 16, mx + ux * 5, my + uy * 5, col, w, 13);
+  }
+  function angArc(ctx, O, r, a0, a1, col, label, lr) {
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(O[0], O[1], r, a0, a1); ctx.stroke(); ctx.restore();
+    if (label) { const m = (a0 + a1) / 2; text(ctx, label, O[0] + Math.cos(m) * lr, O[1] + Math.sin(m) * lr, {size: 14, w: 700, color: col, halo: true}); }
+  }
+
+  // ── 무대 기하 ───────────────────────────────────────────
+  // 경계 y = yB, 입사점 O. 광선 다발(반폭 h)이 왼쪽 위에서 들어온다. u = 진행 방향, p = 파면 방향(오른쪽 위로)
+  function geo(W, H) {
+    const narrow = W < 520;
+    const yB = Math.round(H * (narrow ? 0.42 : 0.5)), Ox = W * (narrow ? 0.57 : 0.47);
+    const h = narrow ? W * 0.125 : H * 0.15, lam0 = narrow ? 30 : 42;
+    const a = n1(), b = n2(), th1 = S.th, th2 = M.refract(a, b, th1), tir = Number.isNaN(th2);
+    const s1 = M.sinD(th1), c1 = M.cosD(th1);
+    const g = {narrow, W, H, yB, Ox, h, a, b, th1, th2, tir, s1, c1, u1: [s1, c1], p1: [c1, -s1], ur: [s1, -c1],
+      lam1: lam0 / a, lam2: lam0 / b, tan1: s1 / Math.max(c1, 1e-6)};
+    if (!tir) { const s2 = M.sinD(th2), c2 = M.cosD(th2); Object.assign(g, {s2, c2, u2: [s2, c2], p2: [c2, -s2], h2: M.bandAfter(h, th1, th2)}); }
+    const top = 54;
+    g.Ls = Math.max(50, Math.min(H * 0.6, (Ox - h * c1 - 14) / Math.max(s1, 1e-6), (yB - top - h * s1) / Math.max(c1, 1e-6)));
+    g.A = [Ox - h / Math.max(c1, 1e-6), yB]; g.D = [Ox + h / Math.max(c1, 1e-6), yB];
+    return g;
+  }
+  // 마루 k 의 위치: 매질 1 에서 (X − O)·u₁ = λ₁(ft − k). 매질 2 의 마루는 경계에서 이어진다(λ₁/sinθ₁ = λ₂/sinθ₂)
+  function crest(g, k, t) {
+    const O = [g.Ox, g.yB], q = F * t - k, s = g.lam1 * q, out = {a: null, b: null};
+    if (s < -g.Ls - 1e-6) return out;                                   // 아직 광원에서 나오지 않음
+    const c = add(O, g.u1, s), P = add(c, g.p1, -g.h), Q = add(c, g.p1, g.h);
+    out.a = clipY(P, Q, g.yB, true);
+    if (!g.tir) { const c2 = add(O, g.u2, g.lam2 * q); out.b = clipY(add(c2, g.p2, -g.h2), add(c2, g.p2, g.h2), g.yB, false); }
+    else { const past = clipY(P, Q, g.yB, false); out.b = past && past.map((p) => [p[0], 2 * g.yB - p[1]]); }   // 전반사: 경계를 지난 부분을 거울에 비춘 것
+    return out;
+  }
+  function kRange(g, t) {
+    const ft = F * t, L2 = Math.hypot(Math.max(g.Ox, g.W - g.Ox), Math.max(g.yB, g.H - g.yB)) + 3 * g.h;
+    return [Math.ceil(ft - L2 / Math.min(g.lam1, g.lam2)), Math.floor(ft + g.Ls / g.lam1)];
+  }
+  // 따라가는 파면: A 에 닿는 시각 tA, D 에 닿는 시각 tD. τ = (t − tA)/(tD − tA) 가 0 → 1 이면 AB → ED
+  const tA = (g, k) => (k - g.h * g.tan1 / g.lam1) / F;
+  const tD = (g, k) => (k + g.h * g.tan1 / g.lam1) / F;
+  const nextCrest = (g, t) => Math.ceil(F * t + g.h * g.tan1 / g.lam1 - 1e-9);
+  const HOLD = 1.6;         // D 에 닿은 뒤 머무는 시간 (s)
+  function updTrack(g) {
+    if (S.track === null) { S.track = nextCrest(g, S.t); return; }
+    if (S.t > tD(g, S.track) + HOLD || S.t < tA(g, S.track) - 1 / F - 1e-6) S.track = nextCrest(g, S.t);
+  }
+  function atTau(T) {            // 따라가는 파면을 τ = T 인 순간으로
+    if (!stage.W) return;
+    const g = geo(stage.W, stage.H); S.track = nextCrest(g, S.t);
+    S.t = tA(g, S.track) + T * (tD(g, S.track) - tA(g, S.track));
+  }
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  const tint = (n) => Math.min(1, 0.3 + 0.8 * (n - 1) / 1.42);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    const g = geo(W, H); updTrack(g);
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    ctx.save(); ctx.fillStyle = C['vel-soft'];
+    if (g.a > 1.001) { ctx.globalAlpha = tint(g.a); ctx.fillRect(0, 0, W, g.yB); }
+    if (g.b > 1.001) { ctx.globalAlpha = tint(g.b); ctx.fillRect(0, g.yB, W, H - g.yB); }
+    ctx.restore();
+    Lab.line(ctx, [[0, g.yB], [W, g.yB]], C.ink, 2);
+    const O = [g.Ox, g.yB], src = add(O, g.u1, -g.Ls);
+    const huy = S.fronts && S.huy && !S.disp && !g.tir && g.th1 >= 3;
+    if (S.fronts && !S.disp) drawFronts(ctx, g, src);
+    if (huy) drawHuygens(ctx, g);
+    const Rn = Math.min(g.yB - 40, H - g.yB - 30, g.narrow ? 120 : 170);
+    Lab.line(ctx, [[g.Ox, g.yB - Rn], [g.Ox, g.yB + Rn]], C.muted, 1.4, [6, 5]);
+    text(ctx, '법선', g.Ox + 6, g.yB - Rn + 4, {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
+    if (S.disp) drawDisp(ctx, g, src); else drawRays(ctx, g, src);
+    drawSource(ctx, g, src);
+    drawLabels(ctx, g);
+  }
+  function drawFronts(ctx, g, src) {
+    const L = 3000;
+    ctx.save(); ctx.globalAlpha = 0.08; ctx.fillStyle = C.violet;
+    poly(ctx, [g.A, g.D, add(src, g.p1, g.h), add(src, g.p1, -g.h)]); ctx.fill();
+    const u = g.tir ? g.ur : g.u2;
+    poly(ctx, [g.A, g.D, add(g.D, u, L), add(g.A, u, L)]); ctx.fill();
+    ctx.restore();
+    const [k0, k1] = kRange(g, S.t);
+    ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = C.violet; ctx.lineWidth = 2.2; ctx.beginPath();
+    for (let k = k0; k <= k1; k++) { if (k === S.track) continue; const c = crest(g, k, S.t); seg(ctx, c.a); seg(ctx, c.b); }
+    ctx.stroke();
+    if (S.track !== null) { const c = crest(g, S.track, S.t); ctx.strokeStyle = C.copper; ctx.lineWidth = 4.2; ctx.beginPath(); seg(ctx, c.a); seg(ctx, c.b); ctx.stroke(); }
+    ctx.restore();
+  }
+  // 하위헌스 작도: AB 가 경계에 닿기 시작해서 ED 가 될 때까지. BD = v₁t, AE = v₂t
+  function drawHuygens(ctx, g) {
+    const A = g.A, D = g.D, AD = D[0] - A[0];
+    const B = add(A, g.p1, 2 * g.h), E = add(A, g.u2, AD * g.s2);
+    const a = tA(g, S.track), d = tD(g, S.track), T = (S.t - a) / (d - a);
+    Lab.line(ctx, [A, B], C.copper, 2, [6, 5]);
+    Lab.line(ctx, [E, D], C.copper, 2, [6, 5]);
+    // 2차 파원: A 와 AD 의 ¼, ½, ¾ 점에서 나간 원형파 (느린 매질 쪽 반원)
+    if (T > 0 && S.t < d + HOLD) {
+      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.6;
+      for (const sg of [0, 0.25, 0.5, 0.75]) {
+        if (T <= sg) continue;
+        const Q = [A[0] + sg * AD, g.yB], r = (T - sg) * AD * g.s2;
+        ctx.globalAlpha = 0.75; ctx.beginPath(); ctx.arc(Q[0], Q[1], r, 0, Math.PI); ctx.stroke();
+        ctx.globalAlpha = 1; Lab.circle(ctx, Q[0], Q[1], 3.2, {fill: C.copper});
+      }
+      ctx.restore();
+    }
+    Lab.line(ctx, [B, D], C.acc, 3.4); Lab.line(ctx, [A, E], C.acc, 3.4);
+    // 직각 표시 (B: AB ⟂ BD, E: AE ⟂ ED)
+    const sq = (P, v, w) => Lab.line(ctx, [add(P, v, 10), add(add(P, v, 10), w, 10), add(P, w, 10)], C.muted, 1.3);
+    sq(B, [-g.p1[0], -g.p1[1]], g.u1); sq(E, [-g.u2[0], -g.u2[1]], g.p2);
+    // 파면과 경계 사이 각 = θ
+    angArc(ctx, A, 24, -g.th1 * RAD, 0, C.ink, 'θ₁', 40);
+    angArc(ctx, D, 24, Math.PI - g.th2 * RAD, Math.PI, C.acc, 'θ₂', 40);
+    const mid = (P, Q) => [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2];
+    const lb = (s, P, v, k, col) => text(ctx, s, P[0] + v[0] * k, P[1] + v[1] * k, {size: 15, w: 700, color: col, halo: true, mono: true});
+    lb('v₁t', mid(B, D), g.p1, 22, C.acc);
+    lb('v₂t', mid(A, E), [-g.p2[0], -g.p2[1]], 22, C.acc);
+    for (const [s, P, v] of [['A', A, [-0.7, -0.7]], ['B', B, g.p1], ['D', D, [0.7, -0.7]], ['E', E, g.u2]]) {
+      Lab.circle(ctx, P[0], P[1], 4.2, {fill: C.ink});
+      text(ctx, s, P[0] + v[0] * 17, P[1] + v[1] * 17, {size: 15, w: 700, halo: true});
+    }
+  }
+  function drawRays(ctx, g, src) {
+    const O = [g.Ox, g.yB], r = g.narrow ? 30 : 44;
+    ray(ctx, src, O, C.vel, 3.2);
+    const u = g.tir ? g.ur : g.u2;
+    ray(ctx, O, add(O, u, toEdge(O, u, g.W, g.H)), C.vel, 3.2, 0.5);
+    const v1 = g.narrow ? '' : ' ' + fmt(g.th1, 1) + '°', v2 = g.narrow ? '' : ' ' + fmt(g.th2, 1) + '°';
+    if (g.th1 >= 1) angArc(ctx, O, r, -Math.PI / 2 - g.th1 * RAD, -Math.PI / 2, C.ink, 'θ₁' + v1, r + (g.narrow ? 16 : 30));
+    if (!g.tir && g.th2 >= 1) angArc(ctx, O, r, Math.PI / 2 - g.th2 * RAD, Math.PI / 2, C.acc, 'θ₂' + v2, r + (g.narrow ? 16 : 30));
+    if (g.tir) text(ctx, '굴절 광선 없음 → 전반사 (III1-07)', g.Ox + 14, g.yB + 30, {size: 14, w: 700, color: C.neg, align: 'left', halo: true});
+  }
+  function drawDisp(ctx, g, src) {
+    const O = [g.Ox, g.yB], r = g.narrow ? 34 : 44;
+    ray(ctx, src, O, C.ink, 3.2);
+    text(ctx, '백색광', src[0] + g.u1[0] * 40 + g.p1[0] * 26, src[1] + g.u1[1] * 40 + g.p1[1] * 26, {size: 14, w: 700, halo: true});
+    if (g.th1 >= 1) angArc(ctx, O, r, -Math.PI / 2 - g.th1 * RAD, -Math.PI / 2, C.ink, 'θ₁ ' + fmt(g.th1, 1) + '°', r + 30);
+    const rays = [[650, -DISP, '빨강'], [410, DISP, '보라']];
+    rays.forEach(([nm, dn, lab], i) => {
+      const th = M.refract(g.a, g.b + dn, g.th1); if (Number.isNaN(th)) return;
+      const u = [M.sinD(th), M.cosD(th)], L = toEdge(O, u, g.W, g.H, 34), col = spec(nm), E = add(O, u, L);
+      ray(ctx, O, E, col, 3.2, 0.62);
+      text(ctx, lab + ' ' + fmt(th, 1) + '°', E[0] + (i ? -10 : 10), E[1] + 4, {size: 14, w: 700, color: col, align: i ? 'right' : 'left', halo: true});
+    });
+    text(ctx, '(굴절률 차이를 과장해 그림)', g.W - 14, g.yB + 22, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+  }
+  // 평행 광선을 내는 넓은 광원. 가운데 손잡이를 끌면 입사각이 바뀐다
+  function drawSource(ctx, g, src) {
+    const e0 = add(src, g.p1, -g.h - 6), e1 = add(src, g.p1, g.h + 6), bk = (P) => add(P, g.u1, -11);
+    ctx.save(); ctx.fillStyle = C.ink; poly(ctx, [e0, e1, bk(e1), bk(e0)]); ctx.fill(); ctx.restore();
+    const hp = add(src, g.u1, -5.5);
+    Lab.circle(ctx, hp[0], hp[1], 9, {fill: C.copper, stroke: C.paper, width: 2});
+    const tp = add(src, g.u1, -30);
+    if (tp[0] > 24 && tp[1] > 50) text(ctx, '끌기', tp[0], tp[1], {size: 13, w: 700, color: C.copper, halo: true});
+  }
+  function drawLabels(ctx, g) {
+    const m1 = MED[S.m1], m2 = MED[S.m2], same = Math.abs(g.a - g.b) < 1e-9, slow2 = g.b > g.a;
+    const y1 = g.narrow ? 64 : 26, xr = g.W - 14, y2 = g.narrow ? g.H - 42 : g.yB + 22;
+    text(ctx, '매질 1 · ' + m1.name, xr, y1, {size: 15, w: 700, align: 'right', halo: true});
+    text(ctx, 'n₁ = ' + m1.tag + (same ? '' : slow2 ? ' · 빠름' : ' · 느림'), xr, y1 + 20, {size: 14, w: 600, align: 'right', color: C.muted, halo: true});
+    text(ctx, '매질 2 · ' + m2.name, 14, y2, {size: 15, w: 700, align: 'left', halo: true});
+    text(ctx, 'n₂ = ' + m2.tag + (same ? '' : slow2 ? ' · 느림' : ' · 빠름'), 14, y2 + 20, {size: 14, w: 600, align: 'left', color: C.muted, halo: true});
+  }
+
+  // ── sinθ 작도 (반지름 1인 원) ───────────────────────────
+  const uc = Lab.canvas('uc', drawUC);
+  function drawUC() {
+    const {ctx, W, H} = uc; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const cx = W * 0.5, cy = H * 0.5, R = Math.min(W * 0.3, H * 0.39);
+    const a = n1(), b = n2(), th2 = M.refract(a, b, S.th), tir = Number.isNaN(th2);
+    ctx.save(); ctx.fillStyle = C['vel-soft'];
+    if (a > 1.001) { ctx.globalAlpha = tint(a); ctx.fillRect(0, 0, W, cy); }
+    if (b > 1.001) { ctx.globalAlpha = tint(b); ctx.fillRect(0, cy, W, H - cy); }
+    ctx.restore();
+    Lab.line(ctx, [[0, cy], [W, cy]], C.ink, 1.6);
+    Lab.line(ctx, [[cx, cy - R - 16], [cx, cy + R + 16]], C.muted, 1.2, [5, 4]);
+    Lab.circle(ctx, cx, cy, R, {stroke: C.muted, width: 1.4});
+    text(ctx, 'n₁ = ' + MED[S.m1].tag, 10, 16, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, 'n₂ = ' + MED[S.m2].tag, 10, H - 14, {size: 13, w: 600, color: C.muted, align: 'left'});
+    const s1 = M.sinD(S.th), c1 = M.cosD(S.th), P1 = [cx - R * s1, cy - R * c1];
+    Lab.line(ctx, [P1, [cx, cy]], C.vel, 3);
+    text(ctx, '1', (P1[0] + cx) / 2 + c1 * 12, (P1[1] + cy) / 2 - s1 * 12 + 2, {size: 13, w: 700, color: C.vel, halo: true});
+    Lab.line(ctx, [P1, [cx, P1[1]]], C.copper, 4.5);
+    Lab.circle(ctx, P1[0], P1[1], 4.5, {fill: C.vel});
+    text(ctx, 'sinθ₁ = ' + fmt(s1, 2), Math.min(cx - 50, (P1[0] + cx) / 2), P1[1] - 14, {size: 14, w: 700, color: C.copper, halo: true});
+    if (!tir) {
+      const s2 = M.sinD(th2), c2 = M.cosD(th2), P2 = [cx + R * s2, cy + R * c2];
+      Lab.line(ctx, [[cx, cy], P2], C.vel, 3);
+      Lab.line(ctx, [[cx, P2[1]], P2], C.copper, 4.5);
+      Lab.circle(ctx, P2[0], P2[1], 4.5, {fill: C.vel});
+      text(ctx, 'sinθ₂ = ' + fmt(s2, 2), Math.max(cx + 50, (P2[0] + cx) / 2), P2[1] + 15, {size: 14, w: 700, color: C.copper, halo: true});
+      if (S.th >= 1) text(ctx, 'sinθ₁/sinθ₂ = ' + fmt(s1 / s2, 2) + ' = n₂/n₁', W - 10, 16, {size: 13, w: 700, color: C.copper, align: 'right', halo: true});
+    } else text(ctx, '굴절 광선 없음', cx + 12, cy + R * 0.5, {size: 14, w: 700, color: C.neg, align: 'left'});
+  }
+
+  // ── sinθ₁–sinθ₂ 그래프 ──────────────────────────────────
+  const sg = Lab.canvas('sg', drawSG);
+  function drawSG() {
+    const {ctx, W, H} = sg; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const r = {x: 46, y: 26, w: W - 46 - 58, h: H - 26 - 40};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 1, ymin: 0, ymax: 1, xticks: [0.5, 1], yticks: [0.5, 1], xlabel: 'sinθ₁', ylabel: 'sinθ₂', grid: true});
+    const a = n1(), P = (x, y) => [ax.X(x), ax.Y(y)];
+    const end = (k) => (k > 1 ? [1 / k, 1] : [1, k]);
+    Lab.line(ctx, [P(0, 0), P(1, 1)], C.muted, 1.3, [3, 4]);
+    text(ctx, '기울기 1', ax.X(1) + 6, ax.Y(1) - 2, {size: 13, w: 500, color: C.muted, align: 'left'});
+    // 다른 매질로 들어갈 때의 직선 (옅게)
+    for (const key of ['air', 'water', 'glass', 'r3', 'dia']) {
+      const n = MED[key].n; if (key === S.m2 || Math.abs(n - a) < 1e-9) continue;
+      const e = end(a / n);
+      ctx.save(); ctx.globalAlpha = 0.4; Lab.line(ctx, [P(0, 0), P(...e)], C.vel, 1.6); ctx.restore();
+      if (e[0] === 1) text(ctx, MED[key].tag, ax.X(1) + 6, ax.Y(e[1]), {size: 13, w: 500, color: C.muted, align: 'left'});
+    }
+    const k = a / n2(), e = end(k);
+    Lab.line(ctx, [P(0, 0), P(...e)], C.vel, 3.2);
+    if (e[0] === 1) text(ctx, MED[S.m2].tag, ax.X(1) + 6, ax.Y(e[1]), {size: 14, w: 700, color: C.vel, align: 'left', halo: true});
+    else {
+      Lab.circle(ctx, ax.X(e[0]), ax.Y(1), 5.5, {fill: C.neg});
+      text(ctx, '끝 = 임계각', ax.X(e[0]) - 8, ax.Y(1) - 13, {size: 13, w: 700, color: C.neg, align: 'right', halo: true});
+    }
+    text(ctx, '기울기 n₁/n₂ = ' + fmt(k, 3), r.x + 14, r.y + 30, {size: 14, w: 700, color: C.vel, align: 'left', halo: true});
+    const x = M.sinD(S.th), y = x * k;
+    if (y <= 1 + 1e-9) {
+      Lab.line(ctx, [P(x, 0), P(x, y), P(0, y)], C.copper, 1.4, [4, 4]);
+      Lab.circle(ctx, ax.X(x), ax.Y(y), 6.5, {fill: C.copper, stroke: C.paper, width: 2});
+      text(ctx, '(' + fmt(x, 2) + ', ' + fmt(y, 2) + ')', ax.X(x) + (x > 0.6 ? -10 : 10), ax.Y(y) - 15, {size: 13, w: 700, color: C.copper, align: x > 0.6 ? 'right' : 'left', halo: true, mono: true});
+    } else {
+      Lab.circle(ctx, ax.X(x), ax.Y(0), 6, {fill: C.neg});
+      text(ctx, '굴절 없음', ax.X(x), ax.Y(0) - 16, {size: 13, w: 700, color: C.neg, halo: true});
+    }
+  }
+
+  // ── 매질 속 속력과 파장 ─────────────────────────────────
+  const vw = Lab.canvas('vw', drawVW);
+  function drawVW() {
+    const {ctx, W, H} = vw; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const narrow = W < 460, x0 = narrow ? 16 : 168, x1 = W - 14, lam0 = narrow ? 64 : 84, amp = narrow ? Math.min(16, H * 0.075) : H * 0.085;
+    [0, 1].forEach((i) => {
+      const n = i ? n2() : n1(), m = MED[i ? S.m2 : S.m1], lam = lam0 / n;
+      const rowH = H / 2, yc = narrow ? rowH * (i + 0.47) : H * (i ? 0.73 : 0.3);
+      const name = (i ? '매질 2 · ' : '매질 1 · ') + m.name + ' (n = ' + m.tag + ')', vs = 'v = ' + Lab.sci(M.speed(n), 2) + ' m/s';
+      if (narrow) { text(ctx, name, 14, rowH * i + 13, {size: 13, w: 700, align: 'left'}); text(ctx, vs, W - 14, rowH * i + 13, {size: 13, w: 600, color: C.vel, align: 'right', mono: true}); }
+      else { text(ctx, name, 14, yc - 10, {size: 14, w: 700, align: 'left'}); text(ctx, vs, 14, yc + 12, {size: 13, w: 600, color: C.vel, align: 'left', mono: true}); }
+      Lab.line(ctx, [[x0, yc], [x1, yc]], C.line, 1);
+      const ph = (x) => 2 * Math.PI * (F * S.t - (x - x0) / lam);
+      ctx.save(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2.8; ctx.beginPath();
+      for (let x = x0; x <= x1; x += 2) { const y = yc - amp * Math.sin(ph(x)); x === x0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+      ctx.stroke(); ctx.restore();
+      // 마루: 2π(ft − (x − x0)/λ) = π/2 + 2πk
+      const cs = [];
+      for (let k = Math.floor(F * S.t - 0.25 - (x1 - x0) / lam) - 1; k <= F * S.t; k++) { const x = x0 + lam * (F * S.t - 0.25 - k); if (x >= x0 + 2 && x <= x1) cs.push(x); }
+      cs.sort((p, q) => p - q);
+      if (cs.length >= 2) Lab.bracket(ctx, cs[0], cs[1], narrow ? yc + amp + 9 : yc - amp - 12, C.copper, i ? 'λ₂' : 'λ₁', !narrow);
+      if (cs.length) Lab.circle(ctx, cs[0], yc - amp, 5, {fill: C.copper});
+      Lab.circle(ctx, x0, yc - amp * Math.sin(ph(x0)), 4.5, {fill: C.ink});
+    });
+    if (!narrow) text(ctx, '같은 파원 → 같은 f', x0, H * 0.515, {size: 13, w: 600, color: C.muted, align: 'left'});
+  }
+
+  // ── 수치 ────────────────────────────────────────────────
+  function readouts() {
+    const a = n1(), b = n2(), th2 = M.refract(a, b, S.th), tir = Number.isNaN(th2);
+    $('thOut').textContent = fmt(S.th, 1) + '°';
+    $('rTh1').textContent = fmt(S.th, 1) + '°';
+    $('rTh2').textContent = tir ? '없음' : fmt(th2, 1) + '°';
+    $('rInv').textContent = fmt(M.invariant(a, S.th), 3);
+    $('rV2').textContent = Lab.sci(M.speed(b), 2) + ' m/s';
+    $('rRel').textContent = nStr(M.relIndex(a, b));
+    $('rLam').textContent = fmt(M.lambdaRatio(a, b), 3);
+    if (S.disp) {
+      const r = M.refract(a, b - DISP, S.th), v = M.refract(a, b + DISP, S.th);
+      $('hud2').textContent = '빨강 ' + fmt(r, 1) + '° · 보라 ' + fmt(v, 1) + '°';
+    } else $('hud2').textContent = tir ? 'θ₂ 없음' : 'θ₂ = ' + fmt(th2, 1) + '°';
+    $('hud1').textContent = 'θ₁ = ' + fmt(S.th, 1) + '°';
+    const h3 = $('hud3'); h3.textContent = tir ? '전반사' : S.disp ? '분산 (과장)' : '느린 화면'; h3.className = 'pill' + (tir ? ' down' : '');
+    const ok = Math.abs(S.th - EX.th) < 1e-9 && S.m1 === EX.m1 && S.m2 === EX.m2 && !S.disp;
+    Lab.check('exCheck', ok, '개념서 예제 (공기 → 굴절률 √3, 입사각 60°) → 굴절각 30°, 유리 속 v = c/√3 ≈ 1.7 × 10⁸ m/s',
+      '예제: 공기 → 굴절률 √3 유리, 입사각 60°일 때 굴절각과 속력은? — ‘스스로 확인 1’로 돌아갈 수 있어요');
+  }
+  function drawAll() { drawStage(); drawUC(); drawSG(); drawVW(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const thSl = $('th');
+  const setTh = (v) => { S.th = Math.max(0, Math.min(89, v)); thSl.value = Math.round(S.th); refresh(); };
+  thSl.addEventListener('input', () => setTh(+thSl.value));
+  const g1 = Lab.group('[data-m1]', 'm1', (v) => { S.m1 = v; refresh(); }, S.m1);
+  const g2 = Lab.group('[data-m2]', 'm2', (v) => { S.m2 = v; refresh(); }, S.m2);
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  const cFront = $('cFront'), cHuy = $('cHuy'), cDisp = $('cDisp');
+  cFront.addEventListener('change', () => { S.fronts = cFront.checked; refresh(); });
+  cHuy.addEventListener('change', () => { S.huy = cHuy.checked; refresh(); });
+  cDisp.addEventListener('change', () => {
+    S.disp = cDisp.checked;
+    if (S.disp && n2() <= n1()) { S.m1 = 'air'; S.m2 = 'glass'; g1.set(S.m1, true); g2.set(S.m2, true); }
+    refresh();
+  });
+  // 거꾸로 보내기: 매질을 맞바꾸고 굴절각으로 입사 → 같은 길을 되돌아온다(가역성)
+  $('rev').addEventListener('click', () => {
+    const th2 = M.refract(n1(), n2(), S.th); if (Number.isNaN(th2)) return;
+    [S.m1, S.m2] = [S.m2, S.m1]; g1.set(S.m1, true); g2.set(S.m2, true);
+    S.track = null; setTh(th2);
+  });
+  // 작도 ¼ 단계: 따라가는 파면을 τ = 0, ¼, ½, ¾, 1 순서로
+  $('step').addEventListener('click', () => {
+    playCtl.set(false);
+    if (!stage.W) return;
+    const g = geo(stage.W, stage.H); updTrack(g);
+    const a = tA(g, S.track), d = tD(g, S.track);
+    if (d - a < 1e-6) { S.t += 0.25 / F; refresh(); return; }
+    const T = (S.t - a) / (d - a);
+    const nx = T < -1e-6 ? 0 : Math.floor(T * 4 + 1e-6) / 4 + 0.25;
+    if (nx > 1 + 1e-6) { S.track = nextCrest(g, S.t + 1e-6); S.t = tA(g, S.track); }
+    else S.t = a + nx * (d - a);
+    refresh();
+  });
+  // 무대에서 광원 끌기
+  const angleAt = (x, y) => { const g = geo(stage.W, stage.H); return Math.round(Math.min(89, Math.atan2(Math.abs(g.Ox - x), Math.max(1, g.yB - y)) / RAD)); };
+  Lab.pointer(stage.el, {
+    down: (x, y) => { const g = geo(stage.W, stage.H); if (y < g.yB - 6) { S.drag = true; setTh(angleAt(x, y)); } },
+    move: (x, y) => { if (S.drag) setTh(angleAt(x, y)); },
+    up: () => { S.drag = false; },
+  });
+  function sync() {
+    thSl.value = Math.round(S.th); cFront.checked = S.fronts; cHuy.checked = S.huy; cDisp.checked = S.disp;
+    g1.set(S.m1, true); g2.set(S.m2, true);
+  }
+  const TRY = {
+    ex: () => { Object.assign(S, {disp: false, fronts: true, huy: true, m1: 'air', m2: 'r3', th: 60}); atTau(0.6); playCtl.set(false); },
+    r2: () => { Object.assign(S, {disp: false, fronts: true, huy: true, m1: 'air', m2: 'r2', th: 45}); atTau(0.75); playCtl.set(false); },
+    disp: () => { Object.assign(S, {disp: true, m1: 'air', m2: 'glass', th: 60}); },
+    normal: () => { Object.assign(S, {disp: false, fronts: true, m1: 'air', m2: 'glass', th: 0}); playCtl.set(true); },
+  };
+  Lab.tries(TRY, () => { sync(); refresh(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  S.t = 0.2;
+  Lab.loop((dt) => { if (S.playing) { S.t += dt * S.speed; drawStage(); drawVW(); } });
+  readouts();
+})();
+</script>
+</body>
+</html>

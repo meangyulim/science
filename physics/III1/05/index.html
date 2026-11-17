@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>생활 속 굴절 현상</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* Layout: 왼쪽 무대(소리·신기루·물 여섯 장면)와 조작판, 오른쪽 수치·높이별 속력·파면 조각 확대·한 원칙 표 */
+#stage{aspect-ratio:16/10.8}
+#prof{aspect-ratio:10/6.4}
+#zoom{aspect-ratio:10/6.4}
+.ro b.txt{font-family:var(--font-ui);font-weight:700}
+.status.good{color:var(--acc)} .status.bad{color:var(--neg)}
+.rules{width:100%;border-collapse:collapse;font-size:14px;line-height:1.45}
+.rules th{font-size:13px;color:var(--muted);font-weight:600;text-align:left;padding:5px 6px;border-bottom:1px solid var(--line)}
+.rules td{padding:7px 6px;border-bottom:1px solid var(--line-soft)}
+.rules tr.on td{background:var(--copper-soft);font-weight:700}
+.rules tr.on td:first-child{color:var(--copper)}
+@media (max-width:640px){ #stage{aspect-ratio:1/1.12} }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="back" href="../../">← 물리 실험실</a>
+    <div class="crumbs"><span class="id">III1-05</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+    <h1>생활 속 굴절 현상</h1>
+    <p class="lead">밤에 멀리서 들리는 소리, 뜨거운 도로의 신기루, 얕아 보이는 물은 모두 한 원칙이다. 구리색 <b>파면 조각</b>을 따라가 보면 느린 쪽 끝이 뒤처지면서 파면이 돌아가고, 파동이 <b>속력이 느린 쪽으로 휘는</b> 것이 보인다.</p>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <div class="stage">
+        <canvas id="stage" aria-label="층을 이룬 공기와 물을 지나는 파동. 파면과 경로가 속력이 느린 쪽으로 휜다."></canvas>
+        <div class="hud"><span class="pill" id="hudCase">밤의 소리</span><span class="pill" id="hudNote">휘는 정도 과장</span></div>
+        <div class="legend" id="legend">
+          <span><i style="background:var(--copper)"></i>따라가는 파면 조각</span>
+          <span id="legWave"><b style="background:var(--violet)"></b>파면</span>
+          <span><b style="background:var(--vel)"></b><em id="legRay" style="font-style:normal">소리의 경로</em></span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <button type="button" class="btn" id="step">한 걸음 앞으로</button>
+          <div class="group" role="group" aria-label="소리">
+            <span class="gl">소리</span>
+            <button type="button" class="btn" data-case="day" aria-pressed="false">낮</button>
+            <button type="button" class="btn" data-case="night" aria-pressed="true">밤</button>
+          </div>
+          <div class="group" role="group" aria-label="신기루">
+            <span class="gl">신기루</span>
+            <button type="button" class="btn" data-case="road" aria-pressed="false">뜨거운 도로</button>
+            <button type="button" class="btn" data-case="sea" aria-pressed="false">차가운 바다</button>
+          </div>
+          <div class="group" role="group" aria-label="물">
+            <span class="gl">물</span>
+            <button type="button" class="btn" data-case="coin" aria-pressed="false">물 밖에서 동전</button>
+            <button type="button" class="btn" data-case="bird" aria-pressed="false">물속에서 새</button>
+          </div>
+        </div>
+        <div class="row" id="rowTemp">
+          <div class="grow">
+            <label class="ctl-label" for="tg"><span id="tgName">지면 근처 기온</span> <output id="tgOut">6 °C</output></label>
+            <input id="tg" type="range" min="-10" max="60" step="1" value="6">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="tt"><span id="ttName">위쪽 기온</span> <output id="ttOut">18 °C</output></label>
+            <input id="tt" type="range" min="-10" max="60" step="1" value="18">
+          </div>
+        </div>
+        <div class="row" id="rowWater" hidden>
+          <div class="grow">
+            <label class="ctl-label" for="dep"><span id="depName">동전의 실제 깊이</span> <output id="depOut">1.2 m</output></label>
+            <input id="dep" type="range" min="0.4" max="1.6" step="0.05" value="1.2">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="view"><span id="viewName">보는 각 (연직에서 기운 정도)</span> <output id="viewOut">30°</output></label>
+            <input id="view" type="range" min="0" max="60" step="1" value="30">
+          </div>
+        </div>
+        <div class="row toggles">
+          <label class="chk" id="chkWave"><input type="checkbox" id="cWave" checked>파면</label>
+          <label class="chk"><input type="checkbox" id="cRay" checked>경로(광선)</label>
+          <label class="chk"><input type="checkbox" id="cSeg" checked>파면 조각 따라가기</label>
+          <span class="spacer"></span>
+          <span class="cap" id="dragHint" style="margin:0">무대를 끌면 듣는 사람이 움직인다</span>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>지금 수치</h2>
+        <div class="readouts">
+          <div class="ro"><span id="r1n">지면 근처 소리 속력</span><b id="r1">335 m/s</b></div>
+          <div class="ro"><span id="r2n">위쪽 소리 속력</span><b id="r2">342 m/s</b></div>
+          <div class="ro cu"><span id="r3n">느린 쪽</span><b id="r3" class="txt">지면 쪽</b></div>
+          <div class="ro vel"><span id="r4n">휘는 방향</span><b id="r4" class="txt">아래로</b></div>
+        </div>
+        <p class="status" id="result" style="margin-top:10px"></p>
+        <p class="check" id="exCheck"></p>
+      </section>
+      <section class="panel">
+        <h2>높이에 따른 속력 <small id="profSub">느린 쪽이 휘는 쪽</small></h2>
+        <canvas class="flat" id="prof" aria-label="높이에 따른 파동의 속력. 느린 쪽을 화살표로 표시."></canvas>
+        <p class="cap" id="profCap">구리색 가로선은 지금 따라가는 파면 조각의 높이. 속력이 높이에 따라 다르면 파면의 두 끝이 서로 다른 빠르기로 나아간다.</p>
+      </section>
+      <section class="panel">
+        <h2>파면 조각 확대 <small>느린 끝이 뒤처진다</small></h2>
+        <canvas class="flat" id="zoom" aria-label="따라가는 파면 조각을 크게 본 모습. 두 끝의 속력 화살표와 지나온 자리."></canvas>
+        <p class="cap">흐린 구리색은 조금 전 자리. 느린 쪽 끝이 덜 가서 파면이 돌아가고, 파면에 수직인 진행 방향(파란 선)이 <b>느린 쪽으로</b> 꺾인다.</p>
+      </section>
+      <section class="panel wide">
+        <h2>한 원칙, 여섯 장면 <small>파동은 느린 쪽으로 휜다</small></h2>
+        <table class="rules" aria-label="현상별 느린 쪽과 휘는 방향">
+          <thead><tr><th>현상</th><th>느린 쪽</th><th>휘는 방향</th><th>결과</th></tr></thead>
+          <tbody>
+            <tr data-row="day"><td>낮의 소리</td><td>위쪽 찬 공기</td><td>위로</td><td>멀리서 잘 안 들림</td></tr>
+            <tr data-row="night"><td>밤의 소리</td><td>지면 근처 찬 공기</td><td>아래로</td><td>멀리까지 잘 들림</td></tr>
+            <tr data-row="road"><td>뜨거운 도로</td><td>위쪽 공기</td><td>위로</td><td>땅 아래에 거꾸로 선 상</td></tr>
+            <tr data-row="sea"><td>차가운 바다</td><td>해수면 근처 공기</td><td>아래로</td><td>공중에 뜬 상</td></tr>
+            <tr data-row="coin"><td>물속 동전</td><td>물</td><td>공기로 나오며 법선에서 멀어짐</td><td>얕아 보임</td></tr>
+            <tr data-row="bird"><td>물속에서 본 새</td><td>물</td><td>물로 들어오며 법선 쪽으로</td><td>높아 보임</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </aside>
+  </main>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">개념 정리</h2>
+    <div class="concepts">
+      <article class="concept">
+        <h3>한 원칙: 느린 쪽으로 휜다</h3>
+        <p>파면의 한쪽 끝이 느린 곳에 있으면 그 끝이 뒤처져 파면이 돌아간다. 진행 방향은 파면에 수직이므로 파동은 늘 <b>속력이 느린 쪽</b>으로 휘어 들어간다.</p>
+        <p>소리는 찬 공기에서 느리고, 빛은 굴절률이 큰 쪽(찬 공기, 물)에서 느리다. 기온이 높이에 상관없이 같으면 휘지 않는다.</p>
+      </article>
+      <article class="concept">
+        <h3>소리와 신기루</h3>
+        <p><b>낮</b>: 지면이 따뜻하고 위가 차가워 소리가 위로 휜다 → 멀리서 잘 안 들림. <b>밤</b>: 지면 근처가 차가워 소리가 아래로 휘어 내려온다 → 멀리까지 들림.</p>
+        <p><b>뜨거운 도로</b>: 아래로 가던 빛이 위로 휘어 눈에 들어와 땅 아래에 거꾸로 선 상(물웅덩이처럼). <b>차가운 바다</b>: 빛이 아래로 휘어 배가 공중에 떠 보인다.</p>
+      </article>
+      <article class="concept">
+        <h3>눈은 빛이 곧게 왔다고 여긴다</h3>
+        <p>물속 동전의 빛은 공기로 나오며 법선에서 멀어지게 꺾인다. 눈은 꺾인 빛을 거꾸로 곧게 연장한 점에 동전이 있다고 느껴 <b>얕아 보인다</b>. 물속에서 물 밖의 새를 보면 반대로 <b>높아 보인다</b>.</p>
+        <p>렌즈도 같은 굴절을 모양으로 조절한 것이다. 이산화 탄소 풍선은 소리를 모으는 볼록 렌즈처럼 작용하고, 어느 경우든 진동수는 그대로다.</p>
+      </article>
+    </div>
+    <p class="compare">신기루와 얕아 보이는 물은 ‘빛이 휜다’와 ‘눈은 마지막에 들어온 방향의 연장선 위에 물체가 있다고 느낀다’, 이 두 가지로 모두 설명된다. 휘는 방향은 언제나 느린 쪽.</p>
+
+    <h2>스스로 확인</h2>
+    <ol class="quiz">
+      <li>
+        <p class="q"><span>1</span>밤에는 낮보다 멀리서 나는 소리가 잘 들린다. 그 이유로 옳은 것은?<span class="tag">개념 체크</span></p>
+        <div class="acts"><button type="button" class="btn" data-try="ex">밤 장면으로</button><button type="button" class="btn" data-try="day">낮과 비교</button><button type="button" class="btn" data-try="flat">기온이 고르면</button></div>
+        <details><summary>답 보기</summary><p><b>밤에는 지면 근처 공기가 차가워 소리가 아래쪽으로 휘어 내려오기 때문</b>이다. 소리는 따뜻한 공기에서 빠르고 파동은 느린 쪽(찬 쪽)으로 휜다. 낮에는 반대로 위로 휘어 멀리 있는 사람에게 소리가 닿지 않는 곳(소리 그늘)이 생긴다. 기온이 고르면 똑바로 퍼진다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>2</span>뜨거운 아스팔트 도로 멀리에 물웅덩이가 있는 것처럼 보이고, 그 속에 나무가 거꾸로 비친다. 무엇이 보이는 것이고 왜 거꾸로일까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="road">뜨거운 도로</button></div>
+        <details><summary>답 보기</summary><p>지면 근처 뜨거운 공기에서 빛이 빨라, 아래로 가던 빛이 위쪽(느린 쪽)으로 휘어 눈에 들어온다. 눈은 연장선 끝, 즉 <b>땅 아래</b>에 물체가 있다고 느낀다. 나무 꼭대기에서 온 빛일수록 더 아래쪽에서 올라오므로 상이 <b>거꾸로</b> 선다. 물웅덩이처럼 보이는 것은 하늘이 비친 상이다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>3</span>물속의 잠수부가 수면 위 공중에 떠 있는 새를 올려다본다. 새는 실제보다 어떻게 보일까?<span class="tag">개념 체크</span></p>
+        <div class="acts"><button type="button" class="btn" data-try="bird">물속에서 새 보기</button><button type="button" class="btn" data-try="coin">물 밖에서 동전 보기</button></div>
+        <details><summary>답 보기</summary><p><b>실제보다 높게 보인다.</b> 새의 빛은 공기에서 물로 들어가며 법선 쪽으로 꺾이고, 잠수부의 눈은 꺾인 빛을 거꾸로 곧게 연장한 더 높은 곳에 새가 있다고 느낀다. 물 밖에서 물속 동전이 얕아 보이는 것과 반대 방향의 착각이다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>4</span>차가운 바다 위에서는 먼 배가 공중에 떠 보이기도 한다. 뜨거운 도로의 신기루와 무엇이 반대일까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="sea">차가운 바다</button><button type="button" class="btn" data-try="road">도로와 비교</button></div>
+        <details><summary>답 보기</summary><p>느린 쪽이 반대다. 해수면 근처 찬 공기에서 빛이 느리므로 위로 가던 빛이 <b>아래로</b> 휘어 눈에 들어오고, 눈은 그 연장선 위쪽에 배가 있다고 느낀다(공중에 뜬 상). 뜨거운 도로는 지면 근처가 빨라 빛이 위로 휘고 상이 땅 아래에 생긴다.</p></details>
+      </li>
+    </ol>
+    <nav class="pager"><a href="../04/">← III1-04 굴절과 스넬 법칙</a><a href="../../">물리 실험실</a><a href="../06/">III1-06 여러 매질의 굴절 →</a></nav>
+  </section>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="III1-05-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.III1_05;
+  const {$, C, text, arrow, vbracket} = Lab;
+  const fmt = Lab.fmt, DEG = M.DEG, NW = M.N_WATER;
+
+  // ── 장면 ────────────────────────────────────────────────
+  const CASE = {
+    day:   {scene: 'sound', name: '낮의 소리', Tg: 28, Tt: 16},
+    night: {scene: 'sound', name: '밤의 소리', Tg: 6, Tt: 18},
+    road:  {scene: 'mirage', surf: 'road', name: '뜨거운 도로', Tg: 50, Tt: 25},
+    sea:   {scene: 'mirage', surf: 'sea', name: '차가운 바다', Tg: 5, Tt: 25},
+    coin:  {scene: 'water', name: '물 밖에서 본 동전'},
+    bird:  {scene: 'water', name: '물속에서 본 새'},
+  };
+  const S = {key: 'night', Tg: 6, Tt: 18, depth: 1.2, height: 1.0, view: 30, Lx: 0.86, eyeRoad: 0.12, eyeSea: 0.08,
+    t: 1.6, playing: !Lab.reduceMotion, wave: true, ray: true, seg: true};
+  const sceneOf = () => CASE[S.key].scene;
+
+  // 소리 장면 (가로 1 = 무대 너비, 그림 속 속력 단위/초)
+  const SRC = {x: 0.045, y: 0.03}, VS = 0.2, T0S = 0.55, RAYS = [5, 10, 16, 23, 32], HL = 14, KS = 0.03;
+  // 신기루 장면
+  const VL = 0.24, TREE = {x: 0.86, top: 0.30, base: 0.09, half: 0.055}, SHIP = {x: 0.84, top: 0.15, deck: 0.045};
+  // 물 장면 (단위 m, 그림 속 빛의 속력: 공기 0.9 m/s)
+  const VA = 0.9, VW = VA / NW, T0W = 0.34;
+
+  let G = null;
+  function soundProf() { return M.layered(S.Tg, S.Tt, {shape: 'lin', H: 0.5, K: KS, V0: VS, Tref: S.Tg}); }
+  function mirageProf(road) {
+    return road ? M.layered(S.Tg, S.Tt, {shape: 'exp', delta: 0.03, K: 0.012, V0: VL, Tref: S.Tt})
+      : M.layered(S.Tg, S.Tt, {shape: 'lin', H: 0.4, K: 0.0125, V0: VL, Tref: S.Tt});
+  }
+  function build() {
+    const sc = sceneOf();
+    G = {scene: sc};
+    if (sc === 'sound') {
+      const prof = soundProf(); G.prof = prof;
+      const o = {ds: 0.005, xmin: -0.02, xmax: 1.04, ymax: 1.25, ground: 'reflect'};
+      G.fan = []; for (let k = 0; k <= 60; k++) G.fan.push(M.trace(prof, SRC.x, SRC.y, (k / 60) * 86 * DEG, o));
+      G.rays = RAYS.map((a) => M.trace(prof, SRC.x, SRC.y, a * DEG, o));
+      G.hl = M.trace(prof, SRC.x, SRC.y, HL * DEG, o);
+      G.tMax = Math.max(...G.fan.map((r) => r.ts[r.ts.length - 1]));
+      G.bend = M.bendDir(prof.v(0), prof.v(0.5));
+      updateLevel();
+    } else if (sc === 'mirage') {
+      const road = CASE[S.key].surf === 'road';
+      const prof = mirageProf(road); G.prof = prof; G.road = road;
+      const eye = {x: 0.07, y: road ? S.eyeRoad : S.eyeSea}; G.eye = eye;
+      const o = {lo: road ? -45 : -12, hi: road ? 12 : 45, M: 114, ds: 0.003};
+      const obj = road ? {x: TREE.x, y: TREE.top} : {x: SHIP.x, y: SHIP.top};
+      const r = M.mirage(prof, obj, eye, o);
+      G.main = r.best;
+      G.direct = r.all.length > 1 ? r.all.reduce((a, b) => (Math.abs(a.image.y - obj.y) <= Math.abs(b.image.y - obj.y) ? a : b)) : null;
+      if (G.direct === G.main) G.direct = null;
+      const hs = road ? [0.30, 0.27, 0.24, 0.21, 0.18, 0.15, 0.12, 0.10] : [SHIP.top, 0.1, SHIP.deck, 0.02, 0];
+      G.img = [];
+      for (const h of hs) {
+        const m = (h === obj.y) ? r.best : M.mirage(prof, {x: obj.x, y: h}, eye, o).best;
+        if (m && isFinite(m.image.y)) G.img.push({h, y: m.image.y});
+      }
+      G.bend = M.bendDir(prof.v(0), prof.v(road ? 0.3 : 0.4));
+      const shift = G.main ? G.main.image.y - obj.y : 0;
+      G.mirage = !!G.main && (road ? G.main.image.y < -0.01 : shift > 0.03);
+      G.tEnd = G.main ? (M.crossX(G.main.ray, eye.x) || {t: G.main.ray.ts[G.main.ray.ts.length - 1]}).t : 0;
+    } else {
+      const coin = S.key === 'coin';
+      const nO = coin ? NW : 1, nE = coin ? 1 : NW, dir = coin ? 1 : -1;
+      const O = coin ? {x: 0, y: -S.depth} : {x: 0, y: S.height};
+      const E = M.placeEye(O, nO, nE, S.view, coin ? 1.3 : 1.05, dir);
+      const sx = E.x - E.xs, sy = E.y, L = Math.hypot(sx, sy), ux = -sy / L, uy = sx / L, pu = 0.13;
+      const E1 = {x: E.x + ux * pu, y: E.y + uy * pu}, E2 = {x: E.x - ux * pu, y: E.y - uy * pu};
+      Object.assign(G, {coin, nO, nE, dir, O, E, E1, E2, A: M.apparent(O, E1, E2, nO, nE)});
+      G.vO = coin ? VW : VA; G.vE = coin ? VA : VW;
+      G.phiC = Math.atan((E.xs - O.x) / Math.abs(O.y));
+      G.tEye = Math.hypot(E.xs - O.x, O.y) / G.vO + Math.hypot(E.x - E.xs, E.y) / G.vE;
+      G.bend = 'down';
+    }
+  }
+  function updateLevel() { if (G && G.scene === 'sound') G.level = M.listenerLevel(G.prof, SRC, {x: S.Lx, zone: 0.08}, {N: 240, ds: 0.005}); }
+
+  // 물 장면: 각 φ(물체 쪽 매질에서 연직과의 각) 광선 위에서 시각 τ 의 점
+  function wPoint(phi, tau) {
+    const up = G.coin ? 1 : -1, d = Math.abs(G.O.y);
+    const ts = d / Math.cos(phi) / G.vO;
+    if (tau <= ts) return {x: G.O.x + G.vO * tau * Math.sin(phi), y: G.O.y + up * G.vO * tau * Math.cos(phi), p: Math.atan2(up * Math.cos(phi), Math.sin(phi)), med: 0};
+    const sa = G.nO * Math.sin(phi) / G.nE;
+    if (Math.abs(sa) >= 1) return null;                         // 전반사: 공기로 못 나감
+    const a = Math.asin(sa), xs = G.O.x + d * Math.tan(phi), r = G.vE * (tau - ts);
+    return {x: xs + r * Math.sin(a), y: up * r * Math.cos(a), p: Math.atan2(up * Math.cos(a), Math.sin(a)), med: 1};
+  }
+
+  // ── 따라가는 파면 조각 ──────────────────────────────────
+  const CH = 0.07;                               // 땅 장면에서 조각 길이 (무대 너비 단위)
+  function hlRay() { return G.scene === 'sound' ? G.hl : (G.main ? G.main.ray : null); }
+  function chunkPeriod() {
+    if (G.scene === 'sound') { const T = G.hl.ts[G.hl.ts.length - 1]; return Math.ceil((T + 0.4) / T0S) * T0S; }
+    if (G.scene === 'mirage') return G.tEnd + 0.7;
+    return Math.ceil((G.tEye + 0.3) / T0W) * T0W;
+  }
+  function chunkAt(tau) {
+    if (!G) return null;
+    if (G.scene === 'water') {
+      const ts = Math.abs(G.O.y) / Math.cos(G.phiC) / G.vO;
+      if (tau < 0.3 * ts) return null;
+      const dist = tau <= ts ? G.vO * tau : G.vO * ts + G.vE * (tau - ts);
+      const pts = [], dl = Math.min(12, Math.max(2.5, 0.13 / dist / DEG)) * DEG;
+      for (let k = -4; k <= 4; k++) { const q = wPoint(G.phiC + dl * k / 4, tau); if (q) pts.push(q); }
+      if (pts.length < 2) return null;
+      const a = pts[0], b = pts[pts.length - 1];
+      const v = (q) => (q.med ? G.vE : G.vO);
+      return {pts: pts.map((q) => [q.x, q.y]), ends: [{x: a.x, y: a.y, p: a.p, v: v(a)}, {x: b.x, y: b.y, p: b.p, v: v(b)}],
+        c: pts[(pts.length - 1) >> 1], vc: v(pts[(pts.length - 1) >> 1])};
+    }
+    const ray = hlRay(); if (!ray) return null;
+    if (G.scene === 'mirage' && tau > G.tEnd) return null;
+    const q = M.at(ray, tau); if (!q) return null;
+    const nx = -Math.sin(q.p), ny = Math.cos(q.p), g = 0.003;
+    const L = Math.max(CH, F ? 40 / F.s : CH);
+    let ha = L / 2, hb = L / 2;                            // 땅 아래로 내려가지 않게 자른다
+    if (ny > 1e-6 && q.y - ny * ha < g) ha = Math.max(0, (q.y - g) / ny);
+    if (ny < -1e-6 && q.y + ny * hb < g) hb = Math.max(0, (q.y - g) / -ny);
+    const a = {x: q.x - nx * ha, y: q.y - ny * ha}, b = {x: q.x + nx * hb, y: q.y + ny * hb};
+    const v = (y) => G.prof.v(Math.max(0, y));
+    return {pts: [[a.x, a.y], [b.x, b.y]], ends: [{x: a.x, y: a.y, p: q.p, v: v(a.y)}, {x: b.x, y: b.y, p: q.p, v: v(b.y)}], c: q, vc: v(q.y)};
+  }
+  const chunkTime = () => S.t % chunkPeriod();
+
+  // ── 그리기 도우미 ───────────────────────────────────────
+  function poly(ctx, pts, col, w, o = {}) {
+    if (pts.length < 2) return;
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    if (o.alpha != null) ctx.globalAlpha = o.alpha;
+    if (o.dash) ctx.setLineDash(o.dash);
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.stroke(); ctx.restore();
+  }
+  function head(ctx, x, y, ang, col, size = 10) {
+    const c = Math.cos(ang), s = Math.sin(ang);
+    ctx.save(); ctx.fillStyle = col; ctx.beginPath();
+    ctx.moveTo(x + c * size * 0.6, y + s * size * 0.6);
+    ctx.lineTo(x - c * size * 0.6 - s * size * 0.45, y - s * size * 0.6 + c * size * 0.45);
+    ctx.lineTo(x - c * size * 0.6 + s * size * 0.45, y - s * size * 0.6 - c * size * 0.45);
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function headsOn(ctx, pts, fracs, col, size) {           // 꺾은선 길이의 몇 % 자리에 화살촉
+    const seg = []; let L = 0;
+    for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(d); L += d; }
+    for (const f of fracs) {
+      let s = L * f;
+      for (let i = 1; i < pts.length; i++) {
+        if (s <= seg[i - 1] && seg[i - 1] > 0) {
+          const u = s / seg[i - 1];
+          head(ctx, pts[i - 1][0] + u * (pts[i][0] - pts[i - 1][0]), pts[i - 1][1] + u * (pts[i][1] - pts[i - 1][1]),
+            Math.atan2(pts[i][1] - pts[i - 1][1], pts[i][0] - pts[i - 1][0]), col, size);
+          break;
+        }
+        s -= seg[i - 1];
+      }
+    }
+  }
+  function eye(ctx, x, y, look, r = 11) {
+    ctx.save();
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = C.paper; ctx.fill(); ctx.lineWidth = 2.4; ctx.strokeStyle = C.ink; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x + Math.cos(look) * r * 0.32, y + Math.sin(look) * r * 0.32, r * 0.46, 0, 7); ctx.fillStyle = C.ink; ctx.fill();
+    ctx.restore();
+  }
+  function twoTone(ctx, a, b, x, y, colB, o = {}) {        // 'a' 보통 글자 + 'b' 강조 글자, 오른쪽 맞춤이면 align:'right'
+    const size = o.size || 13.5;
+    const wa = Lab.measure(ctx, a, {size, w: 500}), wb = Lab.measure(ctx, b, {size, w: 700});
+    const x0 = o.align === 'right' ? x - wa - wb : (o.align === 'center' ? x - (wa + wb) / 2 : x);
+    text(ctx, a, x0, y, {size, w: 500, align: 'left', color: C.ink, halo: true});
+    text(ctx, b, x0 + wa, y, {size, w: 700, align: 'left', color: colB, halo: true});
+  }
+  function lines(ctx, arr, x, y, o = {}) {                // 여러 줄 글자 (가운데 높이 y)
+    const lh = (o.size || 13.5) + 4, y0 = y - (arr.length - 1) * lh / 2;
+    arr.forEach((s, i) => text(ctx, s, x, y0 + i * lh, {size: o.size || 13.5, w: 700, align: o.align || 'center', color: o.color || C.ink, halo: true}));
+  }
+  // 기온(빠르기)에 따른 바탕 색: 빠른(따뜻한) 쪽 주황, 느린(찬) 쪽 파랑
+  function tintStrips(ctx, X0, X1, Yof, y0, y1, prof, ref, span) {
+    const n = 48;
+    for (let i = 0; i < n; i++) {
+      const ya = y0 + (y1 - y0) * i / n, yb = y0 + (y1 - y0) * (i + 1) / n, d = prof.T((ya + yb) / 2) - ref;
+      const a = Math.min(1, Math.abs(d) / span) * 0.26;
+      if (a < 0.01) continue;
+      ctx.fillStyle = Lab.alpha(d > 0 ? C.energy : C.vel, a);
+      const pa = Yof(ya), pb = Yof(yb);
+      ctx.fillRect(X0, Math.min(pa, pb), X1 - X0, Math.abs(pb - pa) + 0.6);
+    }
+  }
+  function hatch(ctx, x0, x1, y) {
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (let x = x0 + 4; x < x1; x += 12) { ctx.moveTo(x, y + 2); ctx.lineTo(x - 7, y + 11); }
+    ctx.stroke(); ctx.restore();
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', draw), profV = Lab.canvas('prof', draw), zoom = Lab.canvas('zoom', draw);
+  let F = null;                                          // 지금 무대의 좌표 변환 (끌기에도 씀)
+
+  function frame() {
+    const {W, H} = stage, narrow = W < 520, sc = sceneOf();
+    const top = narrow ? 52 : 50, pad = narrow ? 12 : 20;
+    if (sc === 'sound') {
+      const bot = narrow ? 80 : 62, s = W - 2 * pad, gy = H - bot;
+      return {narrow, s, gy, top, X: (x) => pad + x * s, Y: (y) => gy - y * s, ix: (px) => (px - pad) / s, iy: (py) => (gy - py) / s, yTop: (gy - top) / s};
+    }
+    if (sc === 'mirage') {
+      const road = CASE[S.key].surf === 'road', bot = narrow ? 64 : 48;
+      const yLo = road ? -0.44 : -0.08, yHi = road ? 0.36 : 0.47;
+      const s = Math.min(W - 2 * pad, (H - top - bot) / (yHi - yLo)), x0 = (W - s) / 2;
+      const gy = top + ((H - top - bot) - (yHi - yLo) * s) * (road ? 0.5 : 0.35) + yHi * s;
+      return {narrow, s, gy, top, X: (x) => x0 + x * s, Y: (y) => gy - y * s, ix: (px) => (px - x0) / s, iy: (py) => (gy - py) / s, yLo, yHi, x0};
+    }
+    const coin = S.key === 'coin', bot = narrow ? 64 : 48, wtop = narrow && coin ? 90 : top;
+    const yLo = coin ? -1.85 : -1.3, yHi = coin ? 1.5 : 2.55, xL = coin ? -1.6 : -1.9, xR = coin ? 2.7 : 1.9;
+    const s = Math.min((W - 2 * pad) / (xR - xL), (H - wtop - bot) / (yHi - yLo));
+    const cx = W / 2 - (xL + xR) / 2 * s, gy = wtop + yHi * s;
+    return {narrow, s, gy, top: wtop, X: (x) => cx + x * s, Y: (y) => gy - y * s, ix: (px) => (px - cx) / s, iy: (py) => (gy - py) / s, yLo, yHi};
+  }
+
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    if (!G) build();
+    ctx.clearRect(0, 0, W, H);
+    F = frame();
+    if (G.scene === 'sound') drawSound(ctx, W, H);
+    else if (G.scene === 'mirage') drawMirage(ctx, W, H);
+    else drawWater(ctx, W, H);
+  }
+
+  function drawChunk(ctx, X, Y, tau, o = {}) {
+    if (!S.seg) return;
+    const per = o.trailStep || T0S;
+    for (let k = o.trail || 0; k >= 1; k--) {
+      const c = chunkAt(tau - k * per); if (!c) continue;
+      poly(ctx, c.pts.map(([x, y]) => [X(x), Y(y)]), C.copper, 3.6, {alpha: 0.28 + 0.4 * (1 - k / (o.trail + 1))});
+    }
+    const c = chunkAt(tau); if (!c) return null;
+    const P = c.pts.map(([x, y]) => [X(x), Y(y)]);
+    poly(ctx, P, C.copper, 5);
+    for (const e of c.ends) {
+      const L = Math.max(9, Math.min(46, (o.alen || 22) * Math.pow(e.v / c.vc, o.pow || 1)));
+      const x = X(e.x), y = Y(e.y);
+      arrow(ctx, x, y, x + Math.cos(e.p) * L, y - Math.sin(e.p) * L, C.vel, 2.4, 8);
+    }
+    for (const [x, y] of [P[0], P[P.length - 1]]) { ctx.beginPath(); ctx.arc(x, y, 4.5, 0, 7); ctx.fillStyle = C.copper; ctx.fill(); }
+    return c;
+  }
+
+  // ① 소리
+  function drawSound(ctx, W, H) {
+    const {X, Y, gy, narrow} = F, prof = G.prof, tau = S.t;
+    tintStrips(ctx, 0, W, Y, 0, F.yTop + 0.1, prof, (S.Tg + S.Tt) / 2, 8);
+    // 땅
+    ctx.fillStyle = Lab.alpha(C.muted, 0.12); ctx.fillRect(0, gy, W, H - gy);
+    hatch(ctx, 0, W, gy);
+    // 소리 그늘 (낮): 가장 낮게 낸 경로 아래쪽
+    if (G.bend === 'up') {
+      const r = G.fan[0], pts = [];
+      for (let i = 0; i < r.xs.length; i += 2) if (r.ys[i] > 0.025) pts.push([X(r.xs[i]), Y(r.ys[i])]);
+      if (pts.length > 2) {
+        ctx.save(); ctx.beginPath(); ctx.moveTo(pts[0][0], gy);
+        pts.forEach(([x, y]) => ctx.lineTo(x, Math.max(y, F.top)));
+        ctx.lineTo(pts[pts.length - 1][0], gy); ctx.closePath();
+        ctx.fillStyle = Lab.alpha(C.neg, 0.08); ctx.fill(); ctx.restore();
+        const xm = Math.min(X(0.6), pts[pts.length - 1][0] - 40);
+        if (xm > pts[0][0] + 30) text(ctx, '소리 그늘', xm, gy - 14, {size: 13, color: C.neg, w: 700, halo: true});
+      }
+    }
+    // 파면
+    if (S.wave) {
+      const ph = tau % T0S;
+      for (let k = 0; ph + k * T0S <= G.tMax; k++) {
+        const age = ph + k * T0S; if (age < 0.05) continue;
+        let seg = [];
+        const flush = () => { if (seg.length > 1) poly(ctx, seg, C.violet, 2, {alpha: Math.max(0.25, 0.85 - age * 0.12)}); seg = []; };
+        let prev = null;
+        for (const r of G.fan) {
+          const q = M.at(r, age);
+          if (!q) { flush(); prev = null; continue; }
+          if (prev && Math.hypot(q.x - prev.x, q.y - prev.y) > 0.08) flush();
+          seg.push([X(q.x), Y(q.y)]); prev = q;
+        }
+        flush();
+      }
+    }
+    // 소리의 경로
+    if (S.ray) {
+      for (const r of G.rays) {
+        const pts = []; for (let i = 0; i < r.xs.length; i += 2) pts.push([X(r.xs[i]), Y(r.ys[i])]);
+        poly(ctx, pts, C.vel, 2.6, {alpha: 0.9});
+        headsOn(ctx, pts, [0.3, 0.7], C.vel, 11);
+      }
+    }
+    // 따라가는 파면 조각
+    drawChunk(ctx, X, Y, chunkTime(), {trail: 3, alen: 24, pow: 5});
+    // 음원 (스피커)
+    const sx = X(SRC.x), sy = Y(SRC.y);
+    ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 2.2;
+    Lab.rrect(ctx, sx - 22, sy - 14, 16, 28, 3); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx - 6, sy - 7); ctx.lineTo(sx + 4, sy - 14); ctx.lineTo(sx + 4, sy + 14); ctx.lineTo(sx - 6, sy + 7); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+    text(ctx, '음원', sx - 8, sy - 28, {size: 13.5, w: 700, halo: true});
+    // 듣는 사람
+    const lx = X(S.Lx), hy = Y(0.062);
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(lx, hy + 10); ctx.lineTo(lx, gy); ctx.stroke();
+    ctx.beginPath(); ctx.arc(lx, hy, 10, 0, 7); ctx.fillStyle = C.paper; ctx.fill(); ctx.lineWidth = 2.4; ctx.stroke(); ctx.restore();
+    const lv = G.level, heard = lv >= 1.2, poor = lv < 0.5;
+    const nArc = lv < 0.15 ? 0 : lv < 0.6 ? 1 : lv < 1.5 ? 2 : 3;
+    ctx.save(); ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+    for (let k = 0; k < 3; k++) {
+      ctx.strokeStyle = k < nArc ? C.acc : C.line; ctx.beginPath(); ctx.arc(lx, hy, 15 + k * 6, Math.PI * 0.78, Math.PI * 1.22); ctx.stroke();
+    }
+    ctx.restore();
+    const msg = heard ? '잘 들림' : poor ? '잘 안 들림' : '들림';
+    text(ctx, msg, Math.min(lx, W - 40), hy - 30, {size: 14.5, w: 700, color: heard ? C.acc : poor ? C.neg : C.ink, halo: true});
+    // 기온 표시
+    const slowUp = G.bend === 'up', slowDn = G.bend === 'down';
+    const topY = narrow ? F.top + 26 : F.top + 8;
+    twoTone(ctx, `위 ${S.Tt} °C: ${S.Tt < S.Tg ? '차가움' : S.Tt > S.Tg ? '따뜻함' : '같음'} → `, slowUp ? '느림' : slowDn ? '빠름' : '같음', W - 14, topY, slowUp ? C.copper : C.ink, {align: 'right'});
+    twoTone(ctx, `지면 근처 ${S.Tg} °C: ${S.Tg < S.Tt ? '차가움' : S.Tg > S.Tt ? '따뜻함' : '같음'} → `, slowDn ? '느림' : slowUp ? '빠름' : '같음', W - 14, narrow ? topY + 22 : gy + 19, slowDn ? C.copper : C.ink, {align: 'right'});
+  }
+
+  // ② 신기루
+  function drawMirage(ctx, W, H) {
+    const {X, Y, gy, narrow} = F, road = G.road, prof = G.prof, eyeP = G.eye;
+    // 공기층 색
+    tintStrips(ctx, 0, W, Y, 0, F.yHi + 0.05, prof, S.Tt, road ? 14 : 10);
+    // 땅·바다
+    if (road) {
+      ctx.fillStyle = Lab.alpha(C.muted, 0.32); ctx.fillRect(0, gy, W, 9);
+      ctx.save(); ctx.strokeStyle = C.paper; ctx.lineWidth = 2; ctx.setLineDash([14, 12]); ctx.beginPath(); ctx.moveTo(0, gy + 4.5); ctx.lineTo(W, gy + 4.5); ctx.stroke(); ctx.restore();
+      hatch(ctx, 0, W, gy + 9);
+      text(ctx, '땅속 (실제로는 아무것도 없다)', W - 14, F.Y(F.yLo) + 6, {size: 13, color: C.muted, w: 500, align: 'right'});
+    } else {
+      ctx.fillStyle = Lab.alpha(C.vel, 0.14); ctx.fillRect(0, gy, W, H - gy);
+      ctx.save(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); ctx.restore();
+    }
+    // 물체
+    if (road) {
+      const tx = X(TREE.x), hw = TREE.half * F.s;
+      ctx.save(); ctx.fillStyle = Lab.alpha(C.muted, 0.7); ctx.fillRect(tx - 4, Y(TREE.base) - 2, 8, Y(0) - Y(TREE.base) + 2);
+      ctx.beginPath(); ctx.moveTo(tx, Y(TREE.top)); ctx.lineTo(tx - hw, Y(TREE.base)); ctx.lineTo(tx + hw, Y(TREE.base)); ctx.closePath();
+      ctx.fillStyle = Lab.alpha(C.acc, 0.25); ctx.fill(); ctx.strokeStyle = C.acc; ctx.lineWidth = 2.4; ctx.stroke(); ctx.restore();
+    } else drawShip(ctx, X, (y) => Y(y), false);
+    // 신기루 상
+    if (G.mirage && G.img.length >= 2) {
+      if (road) {
+        const tx = X(TREE.x), L = [], R = [];
+        for (const q of G.img) { if (q.y > -0.005) continue; const w = TREE.half * Math.max(0, (TREE.top - q.h) / (TREE.top - TREE.base)) * F.s; L.push([tx - w, Y(q.y)]); R.push([tx + w, Y(q.y)]); }
+        if (L.length >= 2) {
+          poly(ctx, L.concat(R.reverse(), [L[0]]), C.acc, 2.2, {dash: [6, 5]});
+          const lo = G.img.filter((q) => q.y < -0.005).slice(-1)[0];
+          if (lo) poly(ctx, [[tx, Y(lo.y)], [tx, Y(Math.min(-0.01, lo.y + 0.06))]], C.muted, 3, {dash: [4, 4], alpha: 0.8});
+        }
+      } else {
+        const ys = G.img.map((q) => q.y), hs = G.img.map((q) => q.h);
+        const map = (h) => { for (let i = 1; i < hs.length; i++) if (h >= hs[i] - 1e-9) { const f = (h - hs[i]) / (hs[i - 1] - hs[i] || 1); return ys[i] + f * (ys[i - 1] - ys[i]); } return ys[ys.length - 1]; };
+        drawShip(ctx, X, (y) => Y(map(y)), true);
+      }
+    }
+    // 경로
+    const ex = X(eyeP.x), ey = Y(eyeP.y);
+    if (S.ray) {
+      if (G.direct) {
+        const r = G.direct.ray, pts = []; for (let i = 0; i < r.xs.length; i += 3) if (r.xs[i] >= eyeP.x) pts.push([X(r.xs[i]), Y(r.ys[i])]);
+        pts.push([ex + 12, ey]);
+        poly(ctx, pts, C.muted, 2, {alpha: 0.85}); headsOn(ctx, pts, [0.5], C.muted, 9);
+      }
+      if (G.main) {
+        const r = G.main.ray, pts = []; for (let i = 0; i < r.xs.length; i += 2) if (r.xs[i] >= eyeP.x) pts.push([X(r.xs[i]), Y(r.ys[i])]);
+        pts.push([ex, ey]);
+        poly(ctx, pts, C.vel, 3); headsOn(ctx, pts, [0.25, 0.62], C.vel, 12);
+        // 눈이 보는 방향(거꾸로 곧게 연장)
+        if (G.mirage) {
+          const im = G.main.image;
+          poly(ctx, [[ex, ey], [X(im.x), Y(im.y)]], C.vel, 2, {dash: [7, 6], alpha: 0.85});
+          const lx = X(im.x), ly = Y(im.y);
+          text(ctx, road ? '거꾸로 선 상(신기루)' : '공중에 뜬 상', road ? lx - 16 : lx - 14, road ? ly + 4 : ly - 14, {size: 14, w: 700, color: C.vel, align: 'right', halo: true});
+        }
+      }
+    }
+    drawChunk(ctx, X, Y, chunkTime(), {trail: 4, trailStep: 0.42, alen: 24, pow: 5});
+    eye(ctx, ex, ey, G.main && G.mirage ? Math.atan2(Y(G.main.image.y) - ey, X(G.main.image.x) - ex) : 0);
+    text(ctx, '눈', ex, ey - 22, {size: 13.5, w: 700, halo: true});
+    // 층 설명
+    const lab = road ? (S.Tg > S.Tt ? ['지면 근처: 뜨거움 → ', '빛이 빠름', C.energy] : ['지면 근처: 차가움 → ', '빛이 느림', C.copper])
+      : (S.Tg < S.Tt ? ['해수면 근처: 차가움 → ', '빛이 느림', C.copper] : ['해수면 근처: 따뜻함 → ', '빛이 빠름', C.energy]);
+    if (S.Tg === S.Tt) text(ctx, '기온이 고름 → 휘지 않음', narrow ? W / 2 : X(0.42), road ? gy + 30 : gy - 16, {size: 13.5, w: 600, halo: true});
+    else if (road) {
+      if (narrow) { twoTone(ctx, '↑ ' + lab[0].replace(' → ', ''), '', 14, gy + 30, lab[2], {size: 13.5}); twoTone(ctx, '→ ', lab[1], 14, gy + 48, lab[2], {size: 13.5}); }
+      else twoTone(ctx, '↑ ' + lab[0], lab[1], 14, gy + 32, lab[2], {size: 13.5});
+    } else twoTone(ctx, lab[0], lab[1], narrow ? W / 2 : X(0.42), gy - 16, lab[2], {align: 'center', size: 13.5});
+  }
+  function drawShip(ctx, X, Yh, ghost) {
+    const sx = X(SHIP.x), w = 0.06 * F.s;
+    ctx.save(); ctx.lineWidth = ghost ? 2.2 : 2.4; ctx.strokeStyle = ghost ? C.muted : C.ink; if (ghost) ctx.setLineDash([6, 5]);
+    ctx.beginPath(); ctx.moveTo(sx - w, Yh(SHIP.deck)); ctx.lineTo(sx + w, Yh(SHIP.deck)); ctx.lineTo(sx + w * 0.72, Yh(0)); ctx.lineTo(sx - w * 0.72, Yh(0)); ctx.closePath();
+    if (!ghost) { ctx.fillStyle = Lab.alpha(C.muted, 0.3); ctx.fill(); }
+    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx, Yh(SHIP.deck)); ctx.lineTo(sx, Yh(SHIP.top)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx, Yh(SHIP.top)); ctx.lineTo(sx + w * 0.5, Yh(SHIP.top - 0.025)); ctx.lineTo(sx, Yh(SHIP.top - 0.05)); ctx.stroke();
+    ctx.restore();
+  }
+
+  // ③ 물
+  function drawWater(ctx, W, H) {
+    const {X, Y, gy} = F, O = G.O, E = G.E, A = G.A, coin = G.coin;
+    ctx.fillStyle = Lab.alpha(C.vel, 0.13); ctx.fillRect(0, gy, W, H - gy);
+    ctx.save(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); ctx.restore();
+    if (!F.narrow) {
+      text(ctx, '공기 (빠름)', 14, gy - 14, {size: 13.5, w: 600, align: 'left', color: C.muted});
+      twoTone(ctx, `물 n = ${NW} (`, '느림', 14, gy + 15, C.copper, {size: 13.5});
+      text(ctx, ')', 14 + Lab.measure(ctx, `물 n = ${NW} (`, {size: 13.5, w: 500}) + Lab.measure(ctx, '느림', {size: 13.5, w: 700}), gy + 15, {size: 13.5, w: 500, align: 'left'});
+    }
+    // 파면
+    if (S.wave) {
+      const ph = S.t % T0W;
+      for (let k = 0; ph + k * T0W <= 5.5; k++) {
+        const age = ph + k * T0W; if (age < 0.04) continue;
+        let seg = [];
+        const flush = () => { if (seg.length > 1) poly(ctx, seg, C.violet, 2, {alpha: Math.max(0.22, 0.8 - age * 0.11)}); seg = []; };
+        for (let i = -80; i <= 80; i += 2) {
+          const q = wPoint(i * DEG, age);
+          if (!q) { flush(); continue; }
+          seg.push([X(q.x), Y(q.y)]);
+        }
+        flush();
+      }
+    }
+    // 법선
+    for (const xs of [A.x1, A.x2]) poly(ctx, [[X(xs), gy - 0.55 * F.s], [X(xs), gy + 0.55 * F.s]], C.muted, 1.4, {dash: [5, 5], alpha: 0.9});
+    // 두 광선과 연장선
+    if (S.ray) {
+      for (const [Ei, xs] of [[G.E1, A.x1], [G.E2, A.x2]]) {
+        const ux = Ei.x - xs, uy = Ei.y, L = Math.hypot(ux, uy), ext = 0.18;
+        const pts = [[X(O.x), Y(O.y)], [X(xs), gy], [X(Ei.x + ux / L * ext), Y(Ei.y + uy / L * ext)]];
+        poly(ctx, pts, C.vel, 2.8); headsOn(ctx, pts, [0.3, 0.72], C.vel, 11);
+        poly(ctx, [[X(xs), gy], [X(A.x), Y(A.y)]], C.vel, 2, {dash: [7, 6], alpha: 0.85});
+      }
+    }
+    // 실제 물체와 보이는 상
+    if (coin) {
+      ctx.save(); ctx.beginPath(); ctx.ellipse(X(O.x), Y(O.y), 16, 5.5, 0, 0, 7); ctx.fillStyle = C.energy; ctx.fill(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2; ctx.stroke();
+      ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.ellipse(X(A.x), Y(A.y), 16, 5.5, 0, 0, 7); ctx.fillStyle = Lab.alpha(C.energy, 0.25); ctx.fill(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
+      text(ctx, '동전', X(O.x), Y(O.y) + 19, {size: 13.5, w: 700, halo: true});
+      text(ctx, '보이는 위치', X(A.x) + 22, Y(A.y) - 2, {size: 13.5, w: 700, align: 'left', color: C.copper, halo: true});
+    } else {
+      bird(ctx, X(O.x), Y(O.y), false); bird(ctx, X(A.x), Y(A.y), true);
+      text(ctx, '새', X(O.x) + 26, Y(O.y), {size: 13.5, w: 700, align: 'left', halo: true});
+      text(ctx, '보이는 위치', X(A.x), Y(A.y) - 24, {size: 13.5, w: 700, color: C.copper, halo: true});
+    }
+    // 실제·보이는 깊이(높이): 동전은 왼쪽, 새는 오른쪽에 치수선
+    const sd = coin ? -1 : 1, bx = X(O.x) + sd * 46, bx2 = bx + sd * 30, al = coin ? 'right' : 'left';
+    vbracket(ctx, bx, gy, Y(O.y), C.ink, '', !coin);
+    vbracket(ctx, bx2, gy, Y(A.y), C.copper, '', !coin);
+    poly(ctx, [[X(A.x) + sd * 18, Y(A.y)], [bx2, Y(A.y)]], C.copper, 1.4, {dash: [2, 4]});
+    const word = coin ? '깊이' : '높이', yr = (gy + Y(O.y)) / 2, ya = (gy + Y(A.y)) / 2;
+    const ly1 = coin ? yr + 0.22 * Math.abs(Y(O.y) - gy) : yr, ly2 = ya;
+    lines(ctx, F.narrow ? ['실제', word] : ['실제 ' + word], bx + sd * 8, ly1, {align: al, color: C.ink});
+    lines(ctx, F.narrow ? ['보이는', word] : ['보이는 ' + word], bx2 + sd * 8, ly2, {align: al, color: C.copper});
+    drawChunk(ctx, X, Y, chunkTime(), {trail: 2, trailStep: T0W});
+    // 눈
+    eye(ctx, X(E.x), Y(E.y), Math.atan2(Y(A.y) - Y(E.y), X(A.x) - X(E.x)), 12);
+    if (coin) text(ctx, '눈', X(E.x) + 20, Y(E.y) - 14, {size: 13.5, w: 700, align: 'left', halo: true});
+    else text(ctx, '잠수부의 눈', X(E.x) - 4, Y(E.y) + 26, {size: 13.5, w: 700, halo: true});
+  }
+  function bird(ctx, x, y, ghost) {
+    ctx.save(); ctx.strokeStyle = ghost ? C.copper : C.ink; ctx.lineWidth = ghost ? 2.4 : 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (ghost) ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.moveTo(x - 18, y - 6); ctx.quadraticCurveTo(x - 8, y - 12, x, y); ctx.quadraticCurveTo(x + 8, y - 12, x + 18, y - 6); ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── 높이에 따른 속력 ────────────────────────────────────
+  function drawProf() {
+    const {ctx, W, H} = profV; if (!W || !G) return;
+    ctx.clearRect(0, 0, W, H);
+    const sc = G.scene, c = chunkAt(chunkTime());
+    if (sc === 'water') {                                   // 공기·물 두 층의 속력 막대
+      const r = {x: 56, y: 14, w: W - 84, h: H - 60}, yMid = r.y + r.h / 2, Xv = (v) => r.x + v / 3.3 * r.w;
+      const yLo = G.coin ? -1.85 : -1.3, yHi = G.coin ? 1.5 : 2.55;
+      ctx.fillStyle = Lab.alpha(C.vel, 0.1); ctx.fillRect(r.x, yMid, r.w, r.y + r.h - yMid);
+      poly(ctx, [[r.x, yMid], [r.x + r.w, yMid]], C.vel, 1.6);
+      const bh = Math.min(30, r.h * 0.2);
+      for (const [v, yc, lab, slow] of [[3, (r.y + yMid) / 2, '공기', false], [2.26, (yMid + r.y + r.h) / 2, '물', true]]) {
+        ctx.save(); ctx.fillStyle = Lab.alpha(C.vel, slow ? 0.3 : 0.18); ctx.strokeStyle = C.vel; ctx.lineWidth = 2;
+        ctx.fillRect(r.x, yc - bh / 2, Xv(v) - r.x, bh); ctx.strokeRect(r.x, yc - bh / 2, Xv(v) - r.x, bh); ctx.restore();
+        text(ctx, lab, r.x - 8, yc, {size: 14, w: 700, align: 'right'});
+        text(ctx, (slow ? '' : '') + fmt(v, 2) + (slow ? '  ← 느림' : ''), Xv(v) + 8, yc, {size: 13.5, w: 700, align: 'left', color: slow ? C.copper : C.ink, mono: !slow});
+      }
+      // 아래 눈금
+      const yb = r.y + r.h;
+      arrow(ctx, r.x, yb, r.x + r.w + 8, yb, C.muted, 1.3, 7);
+      for (const v of [0, 1, 2, 3]) { poly(ctx, [[Xv(v), yb - 3], [Xv(v), yb + 3]], C.muted, 1); text(ctx, String(v), Xv(v), yb + 13, {size: 13, w: 500, color: C.muted, mono: true}); }
+      text(ctx, '빛의 속력 (×10⁸ m/s)', r.x + r.w, yb + 31, {size: 13, w: 600, color: C.muted, align: 'right'});
+      if (c) {
+        const yy = c.c.y >= 0 ? yMid - c.c.y / yHi * (yMid - r.y) : yMid + c.c.y / yLo * (r.y + r.h - yMid);
+        poly(ctx, [[r.x, yy], [r.x + r.w, yy]], C.copper, 2, {dash: [5, 4]});
+      }
+      return;
+    }
+    const prof = G.prof, road = G.road, r = {x: 58, y: 22, w: W - 100, h: H - 70};
+    const yHi = sc === 'sound' ? 0.55 : (road ? 0.32 : 0.45);
+    const n = 80, vs = [];
+    for (let i = 0; i <= n; i++) { const y = yHi * i / n; vs.push([sc === 'sound' ? M.soundSpeed(prof.T(y)) : prof.rel(y), y]); }
+    const vmin = Math.min(...vs.map((q) => q[0])), vmax = Math.max(...vs.map((q) => q[0]));
+    const mid = (vmin + vmax) / 2, half = Math.max((vmax - vmin) / 2 * 1.3, sc === 'sound' ? 6 : 0.06);
+    const xmin = mid - half, xmax = mid + half;
+    const ax = Lab.axes(ctx, r, {xmin, xmax, ymin: 0, ymax: yHi});
+    const yb = ax.y0;
+    if (sc === 'sound') {
+      const xt = [Math.round(vmin), Math.round(vmax)].filter((v, i, a) => a.indexOf(v) === i);
+      for (const v of xt) { poly(ctx, [[ax.X(v), yb - 3], [ax.X(v), yb + 3]], C.muted, 1); text(ctx, String(v), ax.X(v), yb + 13, {size: 13, w: 500, color: C.muted, mono: true}); }
+      text(ctx, '소리 속력 (m/s)', r.x + r.w, yb + 31, {size: 13, w: 600, color: C.muted, align: 'right'});
+    } else {
+      text(ctx, '← 느림', r.x + 4, yb + 14, {size: 13, w: 600, color: C.muted, align: 'left'});
+      text(ctx, '빠름 →', r.x + r.w, yb + 14, {size: 13, w: 600, color: C.muted, align: 'right'});
+      text(ctx, '빛의 속력', r.x + r.w / 2, yb + 14, {size: 13, w: 600, color: C.muted});
+    }
+    text(ctx, sc === 'mirage' && !road ? '해수면' : '지면', r.x - 8, ax.Y(0) - 9, {size: 13.5, w: 700, align: 'right'});
+    text(ctx, '위', r.x - 8, ax.Y(yHi * 0.9), {size: 13.5, w: 700, align: 'right'});
+    poly(ctx, vs.map(([v, y]) => [ax.X(v), ax.Y(y)]), C.vel, 3);
+    // 양 끝 기온
+    const g0 = vs[0][0] >= mid, t0 = vs[n][0] >= mid;
+    text(ctx, `${S.Tg} °C`, ax.X(vs[0][0]) + (g0 ? -8 : 8), ax.Y(yHi * (G.road ? 0.17 : 0.07)), {size: 13, w: 700, align: g0 ? 'right' : 'left', halo: true});
+    text(ctx, `${S.Tt} °C`, ax.X(vs[n][0]) + (t0 ? -8 : 8), ax.Y(yHi * 0.94), {size: 13, w: 700, align: t0 ? 'right' : 'left', halo: true});
+    // 느린 쪽 화살표
+    const bd = G.bend;
+    if (bd !== 'none') {
+      const xa = r.x + r.w + 22, ya = ax.Y(yHi * 0.5), d = bd === 'up' ? -1 : 1;
+      arrow(ctx, xa, ya - d * 30, xa, ya + d * 34, C.copper, 3, 11);
+      text(ctx, '느린 쪽', xa + 6, ya + d * 50, {size: 13, w: 700, color: C.copper, align: 'right', halo: true});
+    } else text(ctx, '속력이 고름 → 휘지 않음', r.x + r.w / 2, r.y + 4, {size: 13, w: 700, color: C.muted});
+    if (c) { const yy = ax.Y(Math.max(0, Math.min(yHi, c.c.y))); poly(ctx, [[r.x, yy], [r.x + r.w, yy]], C.copper, 2, {dash: [5, 4]}); }
+  }
+
+  // ── 파면 조각 확대 ──────────────────────────────────────
+  function drawZoom() {
+    const {ctx, W, H} = zoom; if (!W || !G) return;
+    ctx.clearRect(0, 0, W, H);
+    const tau = chunkTime(), c = chunkAt(tau);
+    if (!c) { text(ctx, '파면 조각이 곧 다시 출발한다', W / 2, H / 2, {size: 14, w: 600, color: C.muted}); return; }
+    const water = G.scene === 'water';
+    const span = water ? 1.1 : 0.3, m = W / span;
+    const cx = c.c.x, cy = c.c.y;
+    const ZX = (x) => W / 2 + (x - cx) * m, ZY = (y) => H / 2 - (y - cy) * m;
+    const yb = cy - (H / 2) / m, yt = cy + (H / 2) / m;
+    if (water) {
+      const sy = ZY(0);
+      if (sy < H) { ctx.fillStyle = Lab.alpha(C.vel, 0.13); ctx.fillRect(0, Math.max(0, sy), W, H - Math.max(0, sy)); }
+      if (sy > 0 && sy < H) poly(ctx, [[0, sy], [W, sy]], C.vel, 2.2);
+    } else {
+      tintStrips(ctx, 0, W, ZY, Math.max(0, yb), yt, G.prof, G.scene === 'sound' ? (S.Tg + S.Tt) / 2 : S.Tt, G.scene === 'sound' ? 8 : (G.road ? 14 : 10));
+      const gy0 = ZY(0); if (gy0 < H) hatch(ctx, 0, W, gy0);
+    }
+    // 경로
+    const ray = water ? null : hlRay();
+    if (ray) {
+      const pts = []; for (let i = 0; i < ray.xs.length; i++) { const x = ZX(ray.xs[i]), y = ZY(ray.ys[i]); if (x > -60 && x < W + 60 && y > -60 && y < H + 60) pts.push([x, y]); }
+      poly(ctx, pts, C.vel, 2.6, {alpha: 0.85});
+    } else {
+      const pts = []; for (let k = 0; k <= 60; k++) { const q = wPoint(G.phiC, G.tEye * k / 60); if (q) pts.push([ZX(q.x), ZY(q.y)]); }
+      poly(ctx, pts, C.vel, 2.6, {alpha: 0.85});
+    }
+    // 지나온 자리
+    const step = water ? 0.16 : 0.22;
+    for (let k = 5; k >= 1; k--) {
+      const ck = chunkAt(tau - k * step); if (!ck) continue;
+      poly(ctx, ck.pts.map(([x, y]) => [ZX(x), ZY(y)]), C.copper, 3.4, {alpha: 0.12 + 0.12 * (5 - k)});
+    }
+    const P = c.pts.map(([x, y]) => [ZX(x), ZY(y)]);
+    poly(ctx, P, C.copper, 6);
+    // 두 끝의 속력 화살표
+    const pw = water ? 1 : 5, base = 46;
+    const ends = c.ends.map((e) => ({...e, L: Math.max(14, Math.min(92, base * Math.pow(e.v / c.vc, pw)))}));
+    const fast = ends[0].v > ends[1].v ? 0 : 1, diff = Math.abs(ends[0].v - ends[1].v) / c.vc > 0.004;
+    ends.forEach((e, i) => {
+      const x = ZX(e.x), y = ZY(e.y), x2 = x + Math.cos(e.p) * e.L, y2 = y - Math.sin(e.p) * e.L;
+      arrow(ctx, x, y, x2, y2, C.vel, 3, 10);
+      ctx.beginPath(); ctx.arc(x, y, 5.5, 0, 7); ctx.fillStyle = C.copper; ctx.fill();
+      if (diff) {
+        const off = (y > H / 2 ? 1 : -1) * 16;
+        text(ctx, i === fast ? '빠른 끝: 많이 감' : '느린 끝: 뒤처짐', Math.max(70, Math.min(W - 70, x2)), Math.max(14, Math.min(H - 12, y2 + off)),
+          {size: 13.5, w: 700, color: i === fast ? C.ink : C.copper, halo: true});
+      }
+    });
+    if (!diff) text(ctx, '두 끝의 속력이 같음 → 곧게 나아감', W / 2, 16, {size: 13.5, w: 700, color: C.muted, halo: true});
+    text(ctx, water ? '확대' : '확대 · 속력 차이 과장', W - 8, H - 12, {size: 12, w: 500, color: C.muted, align: 'right'});
+  }
+
+  function draw() { drawStage(); drawProf(); drawZoom(); }
+
+  // ── 수치·문구 ───────────────────────────────────────────
+  const rows = [...document.querySelectorAll('.rules tr[data-row]')];
+  function setRO(i, name, val) { $('r' + i + 'n').textContent = name; $('r' + i).textContent = val; }
+  function readouts() {
+    const sc = sceneOf(), c = CASE[S.key];
+    $('hudCase').textContent = c.name;
+    $('legRay').textContent = sc === 'sound' ? '소리의 경로' : '빛의 경로';
+    $('legWave').hidden = sc === 'mirage'; $('chkWave').hidden = sc === 'mirage';
+    $('hudNote').textContent = sc === 'mirage' ? '휘는 정도 크게 과장' : sc === 'sound' ? '휘는 정도 과장'
+      : S.key === 'coin' ? '물(느림) → 공기: 법선에서 멀어지게 꺾임' : '공기 → 물(느림): 법선 쪽으로 꺾임';
+    $('profCap').textContent = sc === 'sound' ? '구리색 가로선은 지금 따라가는 파면 조각의 높이. 소리는 기온이 높을수록 빠르다(기온 1 °C에 약 0.6 m/s).'
+      : sc === 'mirage' ? '빛도 뜨거운(밀도가 작은) 공기에서 조금 빠르다. 실제 속력 차이는 0.01 %도 안 되어 그림은 크게 과장했다.'
+      : '빛은 물에서 공기보다 느리다(v = c/n). 경계가 하나이면 경계에서 한 번 꺾인다. 구리색 가로선은 파면 조각의 높이.';
+    $('rowTemp').hidden = sc === 'water'; $('rowWater').hidden = sc !== 'water';
+    $('dragHint').textContent = sc === 'sound' ? '무대를 끌면 듣는 사람이 움직인다' : '무대를 끌면 눈이 움직인다';
+    $('tgOut').textContent = S.Tg + ' °C'; $('ttOut').textContent = S.Tt + ' °C';
+    const res = $('result'); let row = null, good = null, msg = '';
+    if (sc === 'sound') {
+      $('tgName').textContent = '지면 근처 기온'; $('ttName').textContent = '위쪽 기온';
+      const vg = M.soundSpeed(S.Tg), vt = M.soundSpeed(S.Tt);
+      setRO(1, '지면 근처 소리 속력', fmt(vg, 1) + ' m/s'); setRO(2, '위쪽 소리 속력', fmt(vt, 1) + ' m/s');
+      setRO(3, '느린 쪽', G.bend === 'down' ? '지면 쪽' : G.bend === 'up' ? '위쪽' : '없음');
+      setRO(4, '휘는 방향', G.bend === 'down' ? '아래로' : G.bend === 'up' ? '위로' : '곧게');
+      row = G.bend === 'down' ? 'night' : G.bend === 'up' ? 'day' : null;
+      const lv = G.level;
+      good = lv >= 1.2 ? true : lv < 0.5 ? false : null;
+      msg = G.bend === 'down' ? '소리가 아래로 휘어 내려온다 → 멀리까지 잘 들림' : G.bend === 'up' ? '소리가 위로 휘어 올라간다 → 멀리서 잘 안 들림' : '기온이 고름 → 소리가 곧게 퍼진다';
+      if (G.bend === 'up' && lv >= 0.5) msg = '소리가 위로 휜다 → 가까운 곳은 아직 들림';
+    } else if (sc === 'mirage') {
+      const road = G.road;
+      $('tgName').textContent = road ? '도로 바로 위 기온' : '해수면 바로 위 기온'; $('ttName').textContent = '위쪽 기온';
+      setRO(1, road ? '도로 바로 위' : '해수면 바로 위', S.Tg + ' °C'); setRO(2, '위쪽 공기', S.Tt + ' °C');
+      setRO(3, '느린 쪽', G.bend === 'down' ? (road ? '지면 쪽' : '해수면 쪽') : G.bend === 'up' ? '위쪽' : '없음');
+      setRO(4, '휘는 방향', G.bend === 'down' ? '아래로' : G.bend === 'up' ? '위로' : '곧게');
+      row = G.bend === 'up' ? 'road' : G.bend === 'down' ? 'sea' : null;
+      if (G.mirage) { good = true; msg = road ? '땅 아래에 거꾸로 선 상 → 물웅덩이처럼 보임' : '배가 공중에 떠 보인다'; }
+      else msg = G.bend === 'none' ? '기온이 고름 → 빛이 곧게 와서 신기루 없음' : '이 기온에서는 신기루가 생기지 않는다';
+    } else {
+      const coin = G.coin, real = coin ? S.depth : S.height, app = coin ? -G.A.y : G.A.y;
+      $('depName').textContent = coin ? '동전의 실제 깊이' : '새의 실제 높이';
+      $('viewName').textContent = coin ? '보는 각 (연직에서 기운 정도)' : '올려다보는 각 (연직에서 기운 정도)';
+      $('depOut').textContent = fmt(real, 2) + ' m'; $('viewOut').textContent = Math.round(S.view) + '°';
+      setRO(1, coin ? '실제 깊이' : '실제 높이', fmt(real, 2) + ' m'); setRO(2, coin ? '보이는 깊이' : '보이는 높이', fmt(app, 2) + ' m');
+      setRO(3, '느린 쪽', '물'); setRO(4, '꺾이는 방향', coin ? '법선에서 멀어짐' : '법선 쪽으로');
+      row = coin ? 'coin' : 'bird'; good = true;
+      msg = coin ? `얕아 보인다 (실제의 ${fmt(app / real, 2)}배) — 비스듬히 볼수록 더 얕다` : `높아 보인다 (실제의 ${fmt(app / real, 2)}배)`;
+    }
+    res.textContent = '결과: ' + msg;
+    res.className = 'status' + (good === true ? ' good' : good === false ? ' bad' : '');
+    rows.forEach((tr) => tr.classList.toggle('on', tr.dataset.row === row));
+    const ok = sc === 'sound' && G.bend === 'down' && G.level >= 1.2;
+    Lab.check('exCheck', ok, '개념 체크 상황: 밤에는 지면 근처 공기가 차가워(소리가 느려) 소리가 아래로 휘어 내려온다 → 멀리까지 잘 들림',
+      '개념 체크: 밤에 멀리서 나는 소리가 잘 들리는 까닭은? — ‘스스로 확인 1’의 밤 장면으로');
+  }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const tg = $('tg'), tt = $('tt'), dep = $('dep'), view = $('view');
+  const caseG = Lab.group('[data-case]', 'case', (v) => setCase(v), S.key);
+  function setCase(k, keep) {
+    S.key = k; const c = CASE[k];
+    if (!keep && c.scene !== 'water') { S.Tg = c.Tg; S.Tt = c.Tt; tg.value = S.Tg; tt.value = S.Tt; }
+    if (c.scene === 'water') {
+      view.max = k === 'coin' ? 60 : 25; if (S.view > +view.max) S.view = +view.max;
+      dep.max = k === 'coin' ? 1.6 : 1.2; if (k === 'bird' && S.height > 1.2) S.height = 1.2;
+      dep.value = k === 'coin' ? S.depth : S.height; view.value = S.view;
+    }
+    build(); S.t = chunkPeriod() * 0.3; readouts(); draw();
+  }
+  tg.addEventListener('input', () => { S.Tg = +tg.value; build(); readouts(); draw(); });
+  tt.addEventListener('input', () => { S.Tt = +tt.value; build(); readouts(); draw(); });
+  dep.addEventListener('input', () => { if (S.key === 'coin') S.depth = +dep.value; else S.height = +dep.value; build(); readouts(); draw(); });
+  view.addEventListener('input', () => { S.view = +view.value; build(); readouts(); draw(); });
+  Lab.toggle('cWave', (b) => { S.wave = b; draw(); });
+  Lab.toggle('cRay', (b) => { S.ray = b; draw(); });
+  Lab.toggle('cSeg', (b) => { S.seg = b; draw(); });
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  $('step').addEventListener('click', () => { playCtl.set(false); S.t += sceneOf() === 'water' ? T0W / 2 : 0.25; draw(); });
+
+  // 무대 끌기: 소리 = 듣는 사람, 신기루 = 눈 높이, 물 = 눈
+  Lab.pointer(stage.el, {
+    down: (x, y) => drag(x, y), move: (x, y) => drag(x, y),
+  });
+  function drag(px, py) {
+    if (!F || !G) return;
+    const x = F.ix(px), y = F.iy(py), sc = G.scene;
+    if (sc === 'sound') { S.Lx = Math.max(0.3, Math.min(0.96, x)); updateLevel(); }
+    else if (sc === 'mirage') { const v = Math.max(0.04, Math.min(G.road ? 0.26 : 0.3, y)); if (G.road) S.eyeRoad = v; else S.eyeSea = v; build(); }
+    else {
+      const coin = G.coin, P = {x, y: coin ? Math.max(0.25, y) : Math.min(-0.25, y)};
+      const xs = M.crossPoint(G.O, P, G.nO, G.nE);
+      let a = Math.atan2(Math.abs(P.x - xs), Math.abs(P.y)) / DEG;
+      if ((P.x - xs) * G.dir < 0) a = 0;
+      S.view = Math.round(Math.max(0, Math.min(+view.max, a))); view.value = S.view; build();
+    }
+    readouts(); draw();
+  }
+
+  // 스스로 확인
+  const TRY = {
+    ex: () => { S.Lx = 0.86; setCase('night'); playCtl.set(true); },
+    day: () => { S.Lx = 0.86; setCase('day'); playCtl.set(true); },
+    flat: () => { S.key = 'night'; S.Tg = 15; S.Tt = 15; tg.value = 15; tt.value = 15; setCase('night', true); playCtl.set(true); },
+    road: () => { S.eyeRoad = 0.12; setCase('road'); playCtl.set(true); },
+    sea: () => { S.eyeSea = 0.08; setCase('sea'); playCtl.set(true); },
+    bird: () => { S.height = 1.0; S.view = 20; setCase('bird'); playCtl.set(true); },
+    coin: () => { S.depth = 1.2; S.view = 30; setCase('coin'); playCtl.set(true); },
+  };
+  Lab.tries(TRY, () => { caseG.set(S.key, true); S.t = chunkPeriod() * 0.3; readouts(); draw(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => { if (S.playing) { S.t += dt; draw(); } });
+  build(); readouts();
+})();
+</script>
+</body>
+</html>

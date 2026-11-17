@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>물질파(드브로이 파)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* Layout: 왼쪽 무대(입자 A·B 와 딸린 물질파, 아래에 같은 배율의 원자 자), 오른쪽 수치표·λ-E_k·λ-p 그래프·로그 눈금 파장 자 */
+#stage{aspect-ratio:16/10.5}
+#gE{aspect-ratio:10/7}
+#gP{aspect-ratio:10/7}
+#ruler{aspect-ratio:10/3.9}
+.gl.a{color:var(--vel)} .gl.b{color:var(--force)}
+.ro.b b{color:var(--force)}
+.ro small{display:block;font:500 12.5px var(--font-num);color:var(--muted);white-space:nowrap}
+.cmp{width:100%;border-collapse:collapse;margin-top:10px;font-size:13.5px}
+.cmp th,.cmp td{padding:5px 3px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+.cmp td small{display:block;font:500 12px var(--font-num);color:var(--muted);line-height:1.2}
+.cmp th{font-weight:600;color:var(--muted)}
+.cmp th:first-child,.cmp td:first-child{text-align:left;font-family:var(--font-ui);font-weight:600;color:var(--ink)}
+.cmp td{font:600 13px var(--font-num);line-height:1.35}
+.cmp .a{color:var(--vel)} .cmp .b{color:var(--force)} .cmp .r{color:var(--copper)}
+.glegend{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13.5px;font-weight:600;margin:-2px 0 8px}
+.glegend > span{display:inline-flex;align-items:center;gap:6px}
+.glegend b{display:inline-block;width:18px;height:3px;border-radius:2px}
+.quiz .tag{white-space:nowrap}
+@media (max-width:640px){ #stage{aspect-ratio:1/1.42} }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="back" href="../../">← 물리 실험실</a>
+    <div class="crumbs"><span class="id">III2-06</span><span class="kicker">물리학 Ⅰ · 빛과 물질의 이중성</span></div>
+    <h1>물질파(드브로이 파)</h1>
+    <p class="lead">움직이는 입자에는 파장이 <b>λ = h/p</b> 인 물질파가 딸려 있다. 운동 에너지를 4배로 키우면 물결이 1/4이 아니라 <b>1/2</b>로 촘촘해지는 것, 같은 운동 에너지라도 무거운 양성자의 물결은 돋보기로 봐야 할 만큼 짧은 것을 두 입자를 나란히 놓고 보자.</p>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <div class="stage">
+        <canvas id="stage" aria-label="입자 A와 B가 물질파(파속)를 달고 오른쪽으로 날아간다. 아래에는 같은 배율의 원자 크기 자가 있다."></canvas>
+        <div class="hud"><span class="pill num" id="hudZoom">화면 폭 2 nm</span><span class="pill" id="hudKeep" hidden></span></div>
+        <div class="legend">
+          <span><i style="background:var(--vel)"></i>입자 A</span>
+          <span id="legB"><i style="background:var(--force)"></i>입자 B</span>
+          <span><b style="background:var(--violet)"></b>물질파</span>
+          <span><b style="background:var(--copper)"></b>파장 λ</span>
+          <span style="color:var(--muted)">진폭·속력은 그림용</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <button type="button" class="btn" id="restart">나란히 출발</button>
+          <div class="group" role="group" aria-label="보기">
+            <span class="gl">보기</span>
+            <button type="button" class="btn" data-view="one" aria-pressed="false">한 입자</button>
+            <button type="button" class="btn" data-view="two" aria-pressed="true">두 입자 비교</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="group" role="group" aria-label="입자 A 고르기">
+            <span class="gl a">A</span>
+            <button type="button" class="btn" data-pa="e" aria-pressed="true">전자</button>
+            <button type="button" class="btn" data-pa="p" aria-pressed="false">양성자</button>
+            <button type="button" class="btn" data-pa="a" aria-pressed="false">알파 입자</button>
+            <button type="button" class="btn" data-pa="ball" aria-pressed="false">야구공</button>
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="eA"><span>A의 운동 에너지 E<sub>k</sub> (로그 눈금)</span> <output id="eAOut">25 eV</output></label>
+            <input id="eA" type="range" min="0" max="120" step="1" value="0">
+          </div>
+        </div>
+        <div class="row" id="rowB">
+          <div class="group" role="group" aria-label="입자 B 고르기">
+            <span class="gl b">B</span>
+            <button type="button" class="btn" data-pb="e" aria-pressed="true">전자</button>
+            <button type="button" class="btn" data-pb="p" aria-pressed="false">양성자</button>
+            <button type="button" class="btn" data-pb="a" aria-pressed="false">알파 입자</button>
+            <button type="button" class="btn" data-pb="ball" aria-pressed="false">야구공</button>
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="eB"><span>B의 운동 에너지 E<sub>k</sub> (로그 눈금)</span> <output id="eBOut">100 eV</output></label>
+            <input id="eB" type="range" min="0" max="120" step="1" value="0">
+          </div>
+        </div>
+        <div class="row toggles" id="rowKeep">
+          <div class="group" role="group" aria-label="B를 A와 같게 맞출 양">
+            <span class="gl">B를 A와</span>
+            <button type="button" class="btn" data-keep="free" aria-pressed="true">따로 조절</button>
+            <button type="button" class="btn" data-keep="Ek" aria-pressed="false">같은 운동 에너지</button>
+            <button type="button" class="btn" data-keep="p" aria-pressed="false">같은 운동량</button>
+            <button type="button" class="btn" data-keep="v" aria-pressed="false">같은 속력</button>
+          </div>
+        </div>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="cRuler" checked>파장 자</label>
+          <label class="chk"><input type="checkbox" id="cAtoms" checked>원자 크기 자</label>
+          <label class="chk"><input type="checkbox" id="cTrap" checked><span>틀린 생각(λ ∝ 1/E<sub>k</sub>)과 비교</span></label>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>지금 수치 <small id="roNote">A와 B 비교</small></h2>
+        <div class="readouts">
+          <div class="ro vel" id="t1"><span>A의 파장 λ<sub>A</sub></span><b>–</b><small></small></div>
+          <div class="ro b" id="t2"><span>B의 파장 λ<sub>B</sub></span><b>–</b><small></small></div>
+          <div class="ro cu" id="t3"><span>파장 비 λ<sub>B</sub> ÷ λ<sub>A</sub></span><b>–</b><small></small></div>
+          <div class="ro" id="t4"><span>운동량 비 p<sub>B</sub> ÷ p<sub>A</sub></span><b>–</b><small></small></div>
+        </div>
+        <table class="cmp" id="cmp">
+          <thead><tr><th></th><th class="a">A</th><th class="b">B</th><th class="r">B ÷ A</th></tr></thead>
+          <tbody>
+            <tr><td>질량 m<small>kg</small></td><td class="a" id="cmA"></td><td class="b" id="cmB"></td><td class="r" id="cmR"></td></tr>
+            <tr><td>운동 에너지 E<sub>k</sub></td><td class="a" id="ceA"></td><td class="b" id="ceB"></td><td class="r" id="ceR"></td></tr>
+            <tr><td>운동량 p<small>kg·m/s</small></td><td class="a" id="cpA"></td><td class="b" id="cpB"></td><td class="r" id="cpR"></td></tr>
+            <tr><td>속력 v<small>m/s</small></td><td class="a" id="cvA"></td><td class="b" id="cvB"></td><td class="r" id="cvR"></td></tr>
+            <tr><td>파장 λ<small>m</small></td><td class="a" id="clA"></td><td class="b" id="clB"></td><td class="r" id="clR"></td></tr>
+          </tbody>
+        </table>
+        <p class="check" id="exCheck"></p>
+      </section>
+      <section class="panel">
+        <h2><span>λ–E<sub>k</sub> 그래프</span> <small>λ = h/√(2mE<sub>k</sub>)</small></h2>
+        <div class="glegend" id="gELeg"></div>
+        <canvas class="flat" id="gE" aria-label="운동 에너지에 따른 물질파 파장. 같은 입자는 한 곡선 위에 있고, 무거운 입자일수록 아래 곡선."></canvas>
+        <p class="cap">같은 입자에서 E<sub>k</sub> 4배 → λ <b>½배</b>: λ는 E<sub>k</sub>가 아니라 <b>√E<sub>k</sub></b>에 반비례한다. 같은 E<sub>k</sub>에서는 무거울수록 아래 곡선(λ ∝ 1/√m).</p>
+      </section>
+      <section class="panel">
+        <h2>λ–p 그래프 <small>λ = h/p</small></h2>
+        <div class="glegend"><span><b style="background:var(--ink)"></b><span>λ = h/p — 질량과 관계없이 곡선 하나</span></span></div>
+        <canvas class="flat" id="gP" aria-label="운동량에 따른 물질파 파장. 모든 입자가 같은 곡선 λ = h/p 위에 있다."></canvas>
+        <p class="cap">곡선이 <b>하나</b>뿐이다 → 운동량이 같으면 전자든 양성자든 파장이 같다. ‘B를 A와 같은 운동량’으로 두면 두 점이 겹친다.</p>
+      </section>
+      <section class="panel wide">
+        <h2>파장의 크기 <small>로그 눈금 (단위 m, 한 칸 = 10배)</small></h2>
+        <canvas class="flat" id="ruler" aria-label="10의 -36제곱 m 부터 10의 -5제곱 m 까지의 로그 눈금 위에 A, B의 파장과 원자핵·원자·가시광선 크기를 표시."></canvas>
+        <p class="cap" id="rulerCap"></p>
+      </section>
+    </aside>
+  </main>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">개념 정리</h2>
+    <div class="concepts">
+      <article class="concept">
+        <h3>드브로이의 생각: λ = h/p</h3>
+        <p>파동인 빛이 입자성(광자의 운동량 p = h/λ)을 보인다면, 입자인 전자도 파동성을 보이지 않을까? 드브로이는 질량이 있는 입자에도 파장 <span class="eq">λ = h/p</span> 인 파동이 따른다고 보았다. 이것이 <b>물질파(드브로이 파)</b>다.</p>
+        <p>p = mv, E<sub>k</sub> = p²/2m 이므로 <span class="eq">λ = h/mv = h/√(2mE<sub>k</sub>)</span>.</p>
+      </article>
+      <article class="concept">
+        <h3>무엇이 같은지부터 본다</h3>
+        <p><b>같은 운동량</b> → 질량과 관계없이 파장이 같다. <b>같은 운동 에너지</b> → 무거울수록 짧다(λ ∝ 1/√m). <b>같은 속력</b> → λ ∝ 1/m.</p>
+        <p>같은 입자에서 λ는 √E<sub>k</sub>에 반비례한다. 운동 에너지 4배 → 파장 <b>1/2배</b>, 속력 2배 → 파장 1/2배.</p>
+      </article>
+      <article class="concept">
+        <h3>야구공의 파동성은 왜 안 보일까</h3>
+        <p>h가 매우 작아서 mv가 큰 물체는 파장이 터무니없이 짧다. 100 eV 전자는 약 10⁻¹⁰ m(원자 크기)라 결정에서 회절하지만, 날아가는 야구공은 약 10⁻³⁴ m라 관측할 수 없다.</p>
+        <p>전자뿐 아니라 양성자·중성자·분자에서도 파동성이 확인되었다 — <b>물질의 이중성</b>.</p>
+      </article>
+    </div>
+    <p class="compare">역학과 이어 보기: 충격량 = 운동량 변화 → λ = h/p, 알짜힘이 한 일 = 운동 에너지 변화 → λ = h/√(2mE<sub>k</sub>). 곱이 일정한 관계 <span class="eq">mvλ = h</span>, <span class="eq">2mE<sub>k</sub>λ² = h²</span> 에서 두 양의 비만 알면 나머지 비가 바로 나온다.</p>
+
+    <h2>스스로 확인</h2>
+    <ol class="quiz">
+      <li>
+        <p class="q"><span>1</span>운동 에너지 E로 움직이던 전자를 가속해 4E로 만들었다. 물질파 파장은 처음의 몇 배인가? 또 운동 에너지가 4E인 양성자(질량은 전자의 약 1840배)의 파장은 이 전자의 몇 배인가?<span class="tag">개념서 예제</span></p>
+        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="ex2">4E 양성자와 비교</button></div>
+        <details><summary>답 보기</summary><p>같은 입자에서 λ ∝ 1/√E<sub>k</sub> → 1/√4 = <b>1/2배</b>. 같은 운동 에너지에서 λ ∝ 1/√m → 1/√1840 ≈ <b>1/43배</b>. 무대에서 양성자의 물결은 돋보기로 확대해야 보인다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>2</span>전자와 양성자의 물질파 파장이 같다. 운동 에너지·속력·운동량 가운데 두 입자가 같은 것은?</p>
+        <div class="acts"><button type="button" class="btn" data-try="same">파장이 같은 전자와 양성자</button></div>
+        <details><summary>답 보기</summary><p><b>운동량의 크기</b>가 같다(λ = h/p). 그러면 E<sub>k</sub> = p²/2m 에서 무거운 양성자의 운동 에너지는 전자의 1/1840, 속력도 1/1840이다. ‘파장이 같으면 운동 에너지가 같다’는 흔한 착각이다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>3</span>어떤 입자의 속력을 3배로 하면 물질파 파장과 운동 에너지는 각각 몇 배가 될까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="three">속력 3배와 비교</button></div>
+        <details><summary>답 보기</summary><p>λ = h/mv → 파장 <b>1/3배</b>, E<sub>k</sub> ∝ v² → 운동 에너지 <b>9배</b>. 거꾸로 운동 에너지 9배 → 파장 1/√9 = 1/3배로 λ ∝ 1/√E<sub>k</sub> 와도 맞는다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>4</span>모든 물체가 물질파를 가진다면, 날아가는 야구공의 파동성은 왜 관측되지 않을까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="ball">전자와 야구공 비교</button></div>
+        <details><summary>답 보기</summary><p>h = 6.6 × 10⁻³⁴ J·s 가 매우 작아서, 시속 약 146 km(E<sub>k</sub> = 120 J)의 야구공은 λ ≈ 1.1 × 10⁻³⁴ m 이다. 원자(10⁻¹⁰ m)는커녕 원자핵(약 10⁻¹⁵ m)보다도 10¹⁹배쯤 짧아 회절·간섭을 일으킬 틈이 없다.</p></details>
+      </li>
+    </ol>
+    <nav class="pager"><a href="../05/">← III2-05 영상 정보의 기록: CCD</a><a href="../../">물리 실험실</a><a href="../07/">III2-07 물질파 그래프·표 해석 →</a></nav>
+  </section>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="III2-06-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.III2_06;
+  const {$, C, text, arrow, bracket} = Lab;
+  const P = M.PARTICLES, EV = M.EV;
+  const reduceMotion = Lab.reduceMotion;
+
+  // ── 숫자·단위 ───────────────────────────────────────────
+  const sig = (v, n = 3) => (isFinite(v) ? String(+(+v).toPrecision(n)) : '–');
+  const SUP = {'-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹'};
+  const sup = (e) => String(e).split('').map((c) => SUP[c]).join('');
+  function sciT(v, d = 1) {                                // 늘 a × 10ⁿ (좁은 표용: 띄어쓰기 없음)
+    const e = Math.floor(Math.log10(Math.abs(v))); let m = v / Math.pow(10, e), ee = e;
+    if (+Math.abs(m).toFixed(d) >= 10) { m /= 10; ee += 1; }
+    return Lab.fmt(m, d) + '×10' + sup(ee);
+  }
+  const num2 = (v) => (!isFinite(v) ? '–' : Math.abs(v) >= 0.01 && Math.abs(v) < 1000 ? String(+(+v).toPrecision(2)) : sciT(v, 1));
+  const small = (r) => (r >= 1e-3 && r < 1e3 ? sig(r, 3) : sciT(r, 2));
+  function fmtLen(l) {
+    if (l >= 1e-11) return sig(l / 1e-9) + ' nm';
+    if (l >= 1e-13) return sig(l / 1e-12) + ' pm';
+    if (l >= 1e-17) return sig(l / 1e-15) + ' fm';
+    return Lab.sci(l, 1) + ' m';
+  }
+  function fmtE(E, micro) {
+    if (!micro) return sig(E) + ' J';
+    const ev = E / EV;
+    if (ev >= 1e6) return sig(ev / 1e6) + ' MeV';
+    if (ev >= 1e3) return sig(ev / 1e3) + ' keV';
+    return sig(ev) + ' eV';
+  }
+  // B/A 비: 1/2, 1/√1840 처럼 정확히 쓸 수 있으면 그렇게, 아니면 ≈
+  function ratioText(r) {
+    if (!isFinite(r) || r <= 0) return '–';
+    if (Math.abs(r - 1) < 1e-6) return '1 (같다)';
+    const inv = r < 1, k = inv ? 1 / r : r, pre = inv ? '1/' : '';
+    if (k >= 1e4) return '≈ ' + sciT(r, 1);
+    if (Math.abs(k - Math.round(k)) < 1e-6 * k) return pre + Math.round(k);
+    if (Math.abs(k * k - Math.round(k * k)) < 1e-6 * k * k) return pre + '√' + Math.round(k * k);
+    return approxText(r);
+  }
+  function approxText(r) {                                 // ≈ 1/43 처럼 어림
+    const inv = r < 1, k = inv ? 1 / r : r;
+    if (k >= 1e4) return '≈ ' + sciT(r, 1);
+    return '≈ ' + (inv ? '1/' : '') + (k < 10 ? sig(k, 2) : Math.round(k));
+  }
+  const hasRoot = (t) => t.indexOf('√') >= 0;
+
+  // ── 운동 에너지 사다리 (로그 눈금의 ‘좋은 값’) ─────────────────
+  const NICE = [1, 1.1, 1.2, 1.25, 1.3, 1.4, 1.5, 1.6, 1.8, 2, 2.2, 2.5, 2.8, 3, 3.2, 3.5, 4, 4.5, 5, 5.5, 6, 7, 8, 9];
+  const LAD = {};
+  for (const k in P) {
+    const t = P[k], u = t.micro ? EV : 1;
+    const lo = Math.round(Math.log10(t.range[0] / u)), hi = Math.round(Math.log10(t.range[1] / u));
+    const arr = [];
+    for (let d = lo; d < hi; d++) for (const n of NICE) arr.push(+(n * Math.pow(10, d)).toPrecision(6) * u);
+    arr.push(Math.pow(10, hi) * u);
+    LAD[k] = arr;
+  }
+  const nearestIdx = (arr, E) => { let bi = 0, bd = Infinity; arr.forEach((v, i) => { const d = Math.abs(Math.log(v / E)); if (d < bd) { bd = d; bi = i; } }); return bi; };
+
+  // ── 상태 ────────────────────────────────────────────────
+  const U0 = 0.6;                                         // 처음·‘나란히 출발’ 때 입자 위치 (무대 폭에 대한 비)
+  const S = {view: 'two', keep: 'free', playing: !reduceMotion, ruler: true, atoms: true, trap: true,
+    A: {type: 'e', E: 25 * EV, u: U0}, B: {type: 'e', E: 100 * EV, u: U0}, Vw: 2e-9, VwShow: 2e-9};
+  const info = (L) => { const t = P[L.type]; return {t, m: t.m, E: L.E, p: M.momentum(t.m, L.E), v: M.speed(t.m, L.E), lam: M.wavelength(t.m, L.E)}; };
+  const shown = () => (S.view === 'two' ? ['A', 'B'] : ['A']);
+  const mixed = () => P[S.A.type].micro !== P[S.B.type].micro;
+  const LCOL = (k) => (k === 'A' ? C.vel : C.force);
+  const RAD = {e: 12, p: 15, a: 17, ball: 19};
+
+  function applyKeep() {
+    if (S.keep !== 'free' && mixed()) S.keep = 'free';
+    if (S.keep !== 'free') S.B.E = M.matchEk(P[S.A.type].m, S.A.E, P[S.B.type].m, S.keep);
+  }
+  // 화면 폭(배율): 가장 긴 파장이 화면 폭의 1/12 쯤 되게, 1-2-5 단계로. 손을 뗄 때만 바꾼다.
+  const niceNear = (x) => {
+    const e = Math.floor(Math.log10(x)); let best = 0, bd = Infinity;
+    for (const n of [1, 2, 5, 10]) { const c = n * Math.pow(10, e), d = Math.abs(Math.log(c / x)); if (d < bd) { bd = d; best = c; } }
+    return best;
+  };
+  function fitView(force) {
+    const lams = shown().map((k) => info(S[k]).lam).filter((l) => l >= 1e-16);
+    if (!lams.length) return;
+    const lf = Math.max(...lams), r = lf / S.Vw;
+    if (!force && r >= 1 / 26 && r <= 1 / 5) return;
+    S.Vw = niceNear(12 * lf);
+  }
+
+  // ── 캔버스 글자: 'E_k' 처럼 _ 뒤 한 글자는 아래 첨자 ──────────────
+  function rich(ctx, s, x, y, o = {}) {
+    const size = o.size || 14, w = o.w == null ? 600 : o.w, sub = Math.max(13, Math.round(size * 0.8));
+    const segs = [];
+    for (let i = 0; i < s.length; i++) {
+      if (s[i] === '_' && i + 1 < s.length) { segs.push({t: s[i + 1], sub: true}); i++; continue; }
+      const last = segs[segs.length - 1];
+      if (last && !last.sub) last.t += s[i]; else segs.push({t: s[i], sub: false});
+    }
+    const ws = segs.map((g) => Lab.measure(ctx, g.t, {size: g.sub ? sub : size, w, mono: o.mono}));
+    const total = ws.reduce((a, b) => a + b, 0);
+    let cx = o.align === 'right' ? x - total : o.align === 'left' ? x : x - total / 2;
+    segs.forEach((g, i) => {
+      text(ctx, g.t, cx, y + (g.sub ? size * 0.32 : 0), {size: g.sub ? sub : size, w, color: o.color, align: 'left', mono: o.mono, halo: o.halo});
+      cx += ws[i];
+    });
+    return total;
+  }
+
+  // ── 입자와 파속 (III2-07 과 같은 그림) ─────────────────────────
+  function drawParticle(ctx, x, y, r, type, col) {
+    if (type === 'ball') {
+      Lab.circle(ctx, x, y, r, {fill: C.paper, stroke: col, width: 3});
+      ctx.save(); ctx.beginPath(); ctx.arc(x, y, r - 1.5, 0, 7); ctx.clip();
+      ctx.strokeStyle = C.force; ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.arc(x - r * 1.3, y, r * 0.98, -0.8, 0.8); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x + r * 1.3, y, r * 0.98, Math.PI - 0.8, Math.PI + 0.8); ctx.stroke();
+      ctx.restore();
+      return;
+    }
+    Lab.circle(ctx, x, y, r, {fill: col, stroke: C.paper, width: 2});
+    text(ctx, P[type].sym, x, y + 0.5, {size: 13, w: 700, color: C.paper});
+  }
+  // 파속: 가우스 포락선 × 코사인. 입자 뒤에 끌려가듯 그린다 (교과서 그림과 같은 약속)
+  function drawPacket(ctx, xs, xe, xw, sigma, yc, amp, lamPx) {
+    const env = (x) => Math.exp(-((x - xw) * (x - xw)) / (2 * sigma * sigma));
+    ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    if (!(lamPx > 1e-3)) {                                // 그릴 수 없이 짧다 → 평평한 선
+      ctx.strokeStyle = C.violet; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(xs + sigma, yc); ctx.lineTo(xe, yc); ctx.stroke();
+    } else if (lamPx >= 5) {
+      const k = 2 * Math.PI / lamPx, step = Math.max(0.5, Math.min(2.5, lamPx / 12));
+      ctx.strokeStyle = C.violet; ctx.lineWidth = 2.8; ctx.beginPath();
+      for (let x = xs; x <= xe + 1e-6; x += step) { const y = yc - amp * env(x) * Math.cos(k * (x - xw)); x === xs ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+      ctx.stroke();
+    } else {                                              // 촘촘해서 물결이 뭉개짐 → 포락선을 칠한다
+      ctx.fillStyle = Lab.alpha(C.violet, 0.3); ctx.beginPath();
+      for (let x = xs; x <= xe; x += 2) ctx.lineTo(x, yc - amp * env(x));
+      for (let x = xe; x >= xs; x -= 2) ctx.lineTo(x, yc + amp * env(x));
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = C.violet; ctx.lineWidth = 1.4;
+      ctx.beginPath(); for (let x = xs; x <= xe; x += 2) ctx.lineTo(x, yc - amp * env(x)); ctx.stroke();
+      ctx.beginPath(); for (let x = xs; x <= xe; x += 2) ctx.lineTo(x, yc + amp * env(x)); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function lens(ctx, cx, cy, R, lamPx, mag, amp) {
+    const lm = lamPx * mag, k = 2 * Math.PI / lm;
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fillStyle = C.paper; ctx.fill(); ctx.clip();
+    ctx.strokeStyle = C.violet; ctx.lineWidth = 2.6; ctx.beginPath();
+    for (let x = cx - R; x <= cx + R; x += 1) { const y = cy - amp * Math.cos(k * (x - cx)); x === cx - R ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+    ctx.stroke();
+    if (lm < 2 * R - 12) bracket(ctx, cx - lm / 2, cx + lm / 2, cy + amp + 9, C.copper, '', false);
+    ctx.restore();
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(cx + R * 0.74, cy + R * 0.74); ctx.lineTo(cx + R * 0.74 + 9, cy + R * 0.74 + 9); ctx.stroke(); ctx.restore();
+    Lab.circle(ctx, cx, cy, R, {stroke: C.ink, width: 2.6});
+    text(ctx, '×' + mag, cx + R * 0.72, cy - R * 0.86, {size: 14, w: 700, color: C.copper, halo: true, align: 'left', mono: true});
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', () => drawStage());
+  const gE = Lab.canvas('gE', () => drawGE()), gP = Lab.canvas('gP', () => drawGP()), ruler = Lab.canvas('ruler', () => drawRuler());
+
+  function layout(W, H) {
+    const narrow = W < 520, n = S.view === 'two' ? 2 : 1;
+    const x0 = narrow ? 12 : 20, x1 = W - x0, top = narrow ? 46 : 50;
+    const legendH = narrow ? 66 : 44, rulerH = S.atoms ? (narrow ? 74 : 84) : 0;
+    const lanesBot = H - legendH - rulerH, laneH = (lanesBot - top) / n;
+    const lanes = shown().map((k, i) => ({key: k, y0: top + i * laneH, h: laneH}));
+    return {narrow, x0, x1, laneW: x1 - x0, lanes, rulerTop: lanesBot, rulerH};
+  }
+  const geo = (L, ln, st) => {
+    const r = RAD[st.type] * (L.narrow ? 0.9 : 1), sigma = L.laneW * 0.09;
+    return {r, sigma, yc: ln.y0 + ln.h * 0.6, amp: Math.min(ln.h * 0.25, 50), packFrac: (5 * sigma + r + 2) / L.laneW};
+  };
+
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const L = layout(W, H), pxm = L.laneW / S.VwShow;
+    // 모눈: 화면 폭의 1/20 쯤 (1-2-5)
+    const g = niceNear(S.VwShow / 20);
+    ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+    for (let k = 0; k * g * pxm <= L.laneW + 0.5; k++) { const x = L.x0 + k * g * pxm; ctx.beginPath(); ctx.moveTo(x, L.lanes[0].y0); ctx.lineTo(x, L.rulerTop); ctx.stroke(); }
+    ctx.restore();
+    const fs = {}; shown().forEach((k) => { fs[k] = info(S[k]); });
+    const vRef = Math.max(...shown().map((k) => fs[k].v));
+    L.lanes.forEach((ln) => drawLane(ctx, L, ln, S[ln.key], fs[ln.key], vRef, pxm, fs));
+    if (S.atoms) drawAtoms(ctx, L, pxm);
+  }
+
+  function drawLane(ctx, L, ln, st, f, vRef, pxm, fs) {
+    const col = LCOL(ln.key), G = geo(L, ln, st), {r, sigma, yc, amp} = G;
+    const bx = L.x0 + st.u * L.laneW, xe = bx - r - 2, xs = xe - 5 * sigma, xw = xe - 2.5 * sigma;
+    const lamPx = f.lam * pxm, drawable = f.lam >= 1e-16;
+    // 기준선
+    ctx.save(); ctx.strokeStyle = C.line; ctx.setLineDash([4, 6]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(L.x0, yc); ctx.lineTo(L.x1, yc); ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(L.x0 - 4, ln.y0, L.laneW + 8, ln.h); ctx.clip();
+    drawPacket(ctx, xs, xe, xw, sigma, yc, amp, drawable ? lamPx : 0);
+    // 돋보기: 화면에서 물결이 뭉개질 만큼 짧을 때
+    if (drawable && lamPx < 5) {
+      const mags = [2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
+      const mag = mags.find((m) => lamPx * m >= 22);
+      if (mag) lens(ctx, xw, yc, amp + 10, lamPx, mag, amp * 0.8);
+    }
+    // 파장 자
+    if (S.ruler && drawable && lamPx >= 12) {
+      let a = xw - lamPx, b = xw;
+      if (a < L.x0 + 4) { a = xw; b = xw + lamPx; }
+      if (b < xe && a > L.x0 - 2) {
+        const yb = yc - amp - 12;
+        ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.2; ctx.setLineDash([2, 3]);
+        for (const x of [a, b]) { const e = Math.exp(-((x - xw) * (x - xw)) / (2 * sigma * sigma)); ctx.beginPath(); ctx.moveTo(x, yc - amp * e - 3); ctx.lineTo(x, yb); ctx.stroke(); }
+        ctx.restore();
+        bracket(ctx, a, b, yb, C.copper, 'λ');
+      }
+    }
+    // 입자와 속도
+    drawParticle(ctx, bx, yc, r, st.type, col);
+    const Lv = (L.narrow ? 12 : 16) + (L.narrow ? 34 : 46) * f.v / vRef;
+    arrow(ctx, bx + r + 4, yc, bx + r + 4 + Lv, yc, col, 3, 10);
+    text(ctx, 'v', bx + r + 4 + Lv / 2, yc - 12, {size: 14, w: 700, color: col, halo: true});
+    ctx.restore();
+    // 이름표: 왼쪽 = 입자·운동 에너지, 오른쪽 = 파장
+    const ly = ln.y0 + 15, sz = L.narrow ? 14 : 15;
+    Lab.circle(ctx, L.x0 + 11, ly, 11, {fill: col});
+    text(ctx, ln.key, L.x0 + 11, ly + 0.5, {size: 13, w: 700, color: C.paper});
+    rich(ctx, f.t.name + (L.narrow ? ' · ' : ' · E_k = ') + fmtE(st.E, f.t.micro), L.x0 + 28, ly, {size: sz, w: 700, align: 'left', halo: true});
+    rich(ctx, 'λ = ' + fmtLen(f.lam), L.x1, ly, {size: sz, w: 700, align: 'right', color: C.violet, halo: true});
+    if (ln.key === 'B' && !L.narrow && fs.A && drawable && fs.A.lam >= 1e-16) {
+      const rr = f.lam / fs.A.lam, t = ratioText(rr);
+      text(ctx, Math.abs(rr - 1) < 1e-6 ? 'A와 같다' : 'A의 ' + (hasRoot(t) ? approxText(rr).replace('≈ ', '약 ') : t) + '배', L.x1, ly + 21, {size: 13, w: 700, align: 'right', color: C.copper, halo: true});
+    }
+    if (!drawable) {
+      text(ctx, (L.narrow ? '너무 짧아 그릴 수 없다 (원자핵의 약 10' : '너무 짧아 그릴 수 없다 — 원자핵 크기(10⁻¹⁵ m)의 약 10') + sup(Math.round(Math.log10(f.lam / 1e-15))) + (L.narrow ? '배)' : '배'),
+        L.x0 + 28, ly + 22, {size: 13, w: 600, align: 'left', color: C.muted, halo: true});
+    }
+  }
+
+  function drawAtoms(ctx, L, pxm) {
+    const y0 = L.rulerTop, h = L.rulerH, yl = y0 + 14, ya = y0 + h * 0.62;
+    ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(L.x0, y0 + 1); ctx.lineTo(L.x1, y0 + 1); ctx.stroke(); ctx.restore();
+    const dA = M.ATOM * pxm, dN = M.NUCLEUS * pxm;
+    // 축척 막대
+    const Ls = niceNear(S.VwShow / (L.narrow ? 4 : 5)), lp = Ls * pxm;
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(L.x1 - lp, yl - 5); ctx.lineTo(L.x1 - lp, yl + 5); ctx.moveTo(L.x1 - lp, yl); ctx.lineTo(L.x1, yl); ctx.moveTo(L.x1, yl - 5); ctx.lineTo(L.x1, yl + 5); ctx.stroke(); ctx.restore();
+    text(ctx, fmtLen(Ls), L.x1 - lp - 8, yl, {size: 13, w: 700, align: 'right', mono: true});
+    const mode = dA >= 4 && dA <= L.laneW * 0.6 ? 'row' : dA > L.laneW * 0.6 ? 'huge' : 'tiny';
+    const nw = L.narrow;
+    const title = mode === 'row' ? (nw ? '원자 (지름 10⁻¹⁰ m)' : '원자 (지름 ≈ 10⁻¹⁰ m) — 같은 배율')
+      : mode === 'huge' ? (nw ? '원자 = 화면 폭의 ' : '원자 지름(10⁻¹⁰ m)이 화면 폭의 ') + sig(M.ATOM / S.Vw, 2) + '배'
+      : (nw ? '원자 = 화면 폭의 1/' : '원자 지름(10⁻¹⁰ m)은 화면 폭의 1/') + sig(S.Vw / M.ATOM, 2);
+    text(ctx, title, L.x0, yl, {size: 13, w: 700, align: 'left', color: C.muted, halo: true});
+    ctx.save(); ctx.beginPath(); ctx.rect(L.x0, y0 + 26, L.laneW, h - 28); ctx.clip();
+    if (mode === 'row') {
+      for (let i = 0; L.x0 + dA * i < L.x1; i++) {
+        Lab.circle(ctx, L.x0 + dA * (i + 0.5), ya, Math.max(1.5, dA / 2 - 1), {fill: Lab.alpha(C.muted, 0.14), stroke: C.muted, width: dA > 10 ? 1.3 : 0.8});
+      }
+    } else if (mode === 'huge') {
+      const R = dA / 2, cx = L.x0 + 18 + R;
+      ctx.beginPath(); ctx.arc(cx, ya, R, 0, 7); ctx.fillStyle = Lab.alpha(C.muted, 0.1); ctx.fill();
+      ctx.strokeStyle = C.muted; ctx.lineWidth = 1.4; ctx.stroke();
+      text(ctx, '원자 하나의 가장자리', L.x0 + 26, ya, {size: 13, w: 600, align: 'left', color: C.muted, halo: true});
+      if (dN >= 3 && dN < L.laneW * 0.6) {
+        const nx = L.x0 + L.laneW * 0.62;
+        Lab.circle(ctx, nx, ya, Math.max(3, dN / 2), {fill: Lab.alpha(C.force, 0.25), stroke: C.force, width: 1.4});
+        text(ctx, '원자핵 (≈ 10⁻¹⁴ m)', nx + dN / 2 + 8, ya, {size: 13, w: 700, align: 'left', color: C.force, halo: true});
+      }
+    } else {
+      ctx.fillStyle = Lab.alpha(C.muted, 0.5);
+      for (let x = L.x0 + 2; x < L.x1; x += 4) ctx.fillRect(x, ya - 1, 2, 2);
+      text(ctx, '점 하나보다 작다', L.x0 + 4, ya - 12, {size: 13, w: 600, align: 'left', color: C.muted, halo: true});
+    }
+    ctx.restore();
+  }
+
+  // ── 그래프 공통 ─────────────────────────────────────────
+  const NICE_AX = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+  function niceCeil(x) { const b = Math.pow(10, Math.floor(Math.log10(x))); for (const n of NICE_AX) if (n * b >= x * (1 - 1e-9)) return +(n * b).toPrecision(6); return 10 * b; }
+  function ticks(max) {
+    const b = Math.pow(10, Math.floor(Math.log10(max)));
+    let st = b; for (const s of [0.1, 0.2, 0.25, 0.5, 1, 2, 2.5, 5, 10]) { st = s * b; if (max / st <= 5.0001) break; }
+    const out = []; for (let v = st; v <= max * (1 + 1e-9); v += st) out.push(+v.toPrecision(6));
+    return out;
+  }
+  function lenUnit(max) {
+    if (max >= 1e-11) return {f: 1e-9, s: 'nm'};
+    if (max >= 1e-13) return {f: 1e-12, s: 'pm'};
+    if (max >= 1e-17) return {f: 1e-15, s: 'fm'};
+    const e = Math.floor(Math.log10(max)); return {f: Math.pow(10, e), s: '×10' + sup(e) + ' m'};
+  }
+  function eUnit(max, micro) {
+    if (!micro) return {f: 1, s: 'J'};
+    const ev = max / EV; if (ev >= 1e6) return {f: 1e6 * EV, s: 'MeV'}; if (ev >= 1e3) return {f: 1e3 * EV, s: 'keV'}; return {f: EV, s: 'eV'};
+  }
+  const pUnit = (max) => { const e = Math.floor(Math.log10(max)); return {f: Math.pow(10, e), s: '×10' + sup(e) + ' kg·m/s'}; };
+  // 그래프에 올릴 입자: A 와 같은 세계(미시/거시)의 것만
+  function plotted() {
+    const out = [{key: 'A', st: S.A, f: info(S.A)}];
+    if (S.view === 'two' && !mixed()) out.push({key: 'B', st: S.B, f: info(S.B)});
+    return out;
+  }
+  const frame = (W, H) => ({x: 54, y: 30, w: W - 54 - 20, h: H - 30 - 50});
+  // 두 점의 이름표가 겹치지 않게: 가까우면 B 를 아래·왼쪽으로
+  function points(ctx, list) {
+    list.forEach((q, i) => {
+      const o = list[1 - i], near = o && Math.hypot(q.x - o.x, q.y - o.y) < 22;
+      Lab.circle(ctx, q.x + (near ? (i ? 3 : -3) : 0), q.y, 6.5, {fill: LCOL(q.key), stroke: C.paper, width: 2.2});
+      const dx = near && i ? 14 : (near ? -14 : 12), dy = near && i ? 14 : -13;
+      text(ctx, q.key, q.x + dx, q.y + dy, {size: 14, w: 700, color: LCOL(q.key), halo: true});
+    });
+  }
+  function guides(ctx, ax, list) {
+    list.forEach((q) => {
+      ctx.save(); ctx.strokeStyle = LCOL(q.key); ctx.globalAlpha = 0.6; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(ax.X(0), q.y); ctx.lineTo(q.x, q.y); ctx.lineTo(q.x, ax.y0); ctx.stroke(); ctx.restore();
+    });
+  }
+  function noteOut(ctx, r) {
+    if (S.view === 'two' && mixed()) text(ctx, 'B(' + P[S.B.type].name + ')는 단위가 달라 그래프 밖', r.x + r.w, r.y + 4, {size: 13, w: 600, align: 'right', color: C.muted, halo: true});
+  }
+  const legItem = (col, s, dash) => '<span><b style="background:' + (dash ? 'repeating-linear-gradient(90deg,var(--muted) 0 5px,transparent 5px 9px)' : 'var(--' + col + ')') + '"></b><span>' + s + '</span></span>';
+  function frameAxes(ctx, W, H, xm, ym, xl, yl) {
+    const r = frame(W, H);
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: xm, ymin: 0, ymax: ym, xticks: ticks(xm), yticks: ticks(ym), grid: true, fmtX: (v) => sig(v, 3), fmtY: (v) => sig(v, 3)});
+    rich(ctx, xl, r.x + r.w / 2, ax.y0 + 35, {size: 14, align: 'center', color: C.muted});
+    rich(ctx, yl, r.x + 8, r.y - 14, {size: 14, align: 'left', color: C.muted});
+    return {r, ax};
+  }
+
+  // ── λ–E_k 그래프 ─────────────────────────────────────────
+  function drawGE() {
+    const {ctx, W, H} = gE; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const pts = plotted(), micro = pts[0].f.t.micro;
+    const Eraw = 1.15 * Math.max(...pts.map((q) => q.f.E)), Lraw = 1.2 * Math.max(...pts.map((q) => q.f.lam));
+    const eu = eUnit(Eraw, micro), lu = lenUnit(Lraw), xm = niceCeil(Eraw / eu.f), ym = niceCeil(Lraw / lu.f);
+    const Emax = xm * eu.f, Lmax = ym * lu.f;
+    const {r, ax} = frameAxes(ctx, W, H, xm, ym, 'E_k (' + eu.s + ')', 'λ (' + lu.s + ')');
+    const X = (E) => ax.X(E / eu.f), Y = (l) => ax.Y(l / lu.f);
+    const A = pts[0].f, same = pts.length === 2 && pts[0].st.type === pts[1].st.type;
+    ctx.save(); ctx.beginPath(); ctx.rect(r.x, r.y - 2, r.w + 4, r.h + 2); ctx.clip();
+    if (S.trap) {                                          // 틀린 생각: λ ∝ 1/E_k (A 를 지나게)
+      const Et = A.lam * A.E / Lmax, q = [];
+      for (let i = 0; i <= 120; i++) { const E = Et * Math.pow(Emax / Et, i / 120); q.push([X(E), Y(A.lam * A.E / E)]); }
+      Lab.line(ctx, q, C.muted, 2, [6, 5]);
+    }
+    const leg = [], seen = {};
+    pts.forEach((q) => {                                   // 질량별 곡선 λ = h/√(2mE_k)
+      if (seen[q.st.type]) return; seen[q.st.type] = 1;
+      const m = q.f.m, Elo = M.H * M.H / (2 * m * Lmax * Lmax), c = [];
+      for (let i = 0; i <= 160; i++) { const E = Elo * Math.pow(Emax / Elo, i / 160); c.push([X(E), Y(M.wavelength(m, E))]); }
+      Lab.line(ctx, c, LCOL(q.key), 3);
+      leg.push(legItem(q.key === 'A' ? 'vel' : 'force', q.f.t.name + (same ? ' (A·B 같은 곡선)' : ' (' + q.key + ')')));
+    });
+    ctx.restore();
+    if (S.trap) leg.push(legItem('muted', 'λ ∝ 1/E<sub>k</sub> 라면 (틀린 생각)', true));
+    $('gELeg').innerHTML = leg.join('');
+    const list = pts.map((q) => ({key: q.key, x: X(q.f.E), y: Y(q.f.lam)}));
+    guides(ctx, ax, list);
+    if (S.trap && same && Math.abs(pts[1].f.E / A.E - 1) > 1e-6) {   // 1/E_k 였다면 B 는 여기
+      const B = pts[1].f, xw = X(B.E), yw = Y(A.lam * A.E / B.E), left = xw > r.x + r.w * 0.55;
+      Lab.circle(ctx, xw, yw, 6, {fill: C.paper, stroke: C.muted, width: 2});
+      rich(ctx, '1/E_k였다면', xw + (left ? -11 : 11), yw + (left ? 2 : 13), {size: 13, w: 600, color: C.muted, align: left ? 'right' : 'left', halo: true});
+    }
+    points(ctx, list);
+    noteOut(ctx, r);
+  }
+
+  // ── λ–p 그래프 ───────────────────────────────────────────
+  function drawGP() {
+    const {ctx, W, H} = gP; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const pts = plotted();
+    const praw = 1.15 * Math.max(...pts.map((q) => q.f.p)), Lraw = 1.2 * Math.max(...pts.map((q) => q.f.lam));
+    const pu = pUnit(praw), lu = lenUnit(Lraw), xm = niceCeil(praw / pu.f), ym = niceCeil(Lraw / lu.f);
+    const pmax = xm * pu.f, Lmax = ym * lu.f;
+    const {r, ax} = frameAxes(ctx, W, H, xm, ym, 'p (' + pu.s + ')', 'λ (' + lu.s + ')');
+    const X = (p) => ax.X(p / pu.f), Y = (l) => ax.Y(l / lu.f);
+    const plo = M.H / Lmax, c = [];
+    for (let i = 0; i <= 160; i++) { const p = plo * Math.pow(pmax / plo, i / 160); c.push([X(p), Y(M.lambdaFromP(p))]); }
+    ctx.save(); ctx.beginPath(); ctx.rect(r.x, r.y - 2, r.w + 4, r.h + 2); ctx.clip();
+    Lab.line(ctx, c, C.ink, 3);
+    ctx.restore();
+    const list = pts.map((q) => ({key: q.key, x: X(q.f.p), y: Y(q.f.lam)}));
+    guides(ctx, ax, list);
+    points(ctx, list);
+    if (pts.length === 2 && Math.abs(pts[1].f.p / pts[0].f.p - 1) < 1e-6) {
+      const q = list[0], left = q.x > r.x + r.w * 0.6;
+      text(ctx, '운동량이 같다 → 같은 점', q.x + (left ? -16 : 16), q.y - 30, {size: 13, w: 700, color: C.acc, align: left ? 'right' : 'left', halo: true});
+    }
+    noteOut(ctx, r);
+  }
+
+  // ── 로그 눈금 파장 자 ─────────────────────────────────────
+  // 가시광선 띠는 파장 → 색 (물리적으로 정해진 색)
+  function specRGB(nm) {
+    let r = 0, g = 0, b = 0;
+    if (nm < 440) { r = (440 - nm) / 60; b = 1; } else if (nm < 490) { g = (nm - 440) / 50; b = 1; } else if (nm < 510) { g = 1; b = (510 - nm) / 20; }
+    else if (nm < 580) { r = (nm - 510) / 70; g = 1; } else if (nm < 645) { r = 1; g = (645 - nm) / 65; } else r = 1;
+    return 'rgb(' + [r, g, b].map((c) => Math.round(255 * Math.max(0, Math.min(1, c)))).join(',') + ')';
+  }
+  function drawRuler() {
+    const {ctx, W, H} = ruler; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const lo = -36, hi = -4, x0 = 22, x1 = W - 22, yL = Math.round(H * 0.47);
+    const X = (l) => Math.max(x0, Math.min(x1, x0 + (Math.log10(l) - lo) / (hi - lo) * (x1 - x0)));
+    const every = W < 430 ? 8 : 4;
+    // 기준: 원자핵, 원자, 가시광선 (이름표가 겹치면 한 줄 위로)
+    const refs = [[1e-15, 1e-14, '원자핵'], [5e-11, 3e-10, '원자'], [3.8e-7, 7.5e-7, '가시광선']];
+    const rows = [[], []];
+    refs.forEach(([a, b, s]) => {
+      if (s === '가시광선') {
+        const g = ctx.createLinearGradient(X(a), 0, X(b), 0);
+        for (let i = 0; i <= 8; i++) g.addColorStop(i / 8, specRGB(380 + 370 * i / 8));
+        ctx.fillStyle = g; ctx.fillRect(X(a), yL - 9, Math.max(6, X(b) - X(a)), 18);
+      } else { ctx.fillStyle = Lab.alpha(C.muted, 0.22); ctx.fillRect(X(a), yL - 9, Math.max(5, X(b) - X(a)), 18); }
+      const cx = (X(a) + X(b)) / 2, w = Lab.measure(ctx, s, {size: 13, w: 600}) + 8;
+      let L = Math.max(x0, cx - w / 2); if (L + w > x1) L = x1 - w;
+      const row = rows[0].some(([p, q]) => L < q && L + w > p) ? 1 : 0;
+      rows[row].push([L, L + w]);
+      const yy = yL - 22 - row * 18;
+      if (row) { ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx, yL - 10); ctx.lineTo(cx, yy + 7); ctx.stroke(); ctx.restore(); }
+      text(ctx, s, L + w / 2, yy, {size: 13, w: 600, color: C.muted});
+    });
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x0, yL); ctx.lineTo(x1, yL); ctx.stroke();
+    ctx.lineWidth = 1.2; ctx.strokeStyle = C.muted;
+    for (let e = lo; e <= hi; e++) {
+      const x = X(Math.pow(10, e)), big = (e - lo) % every === 0;
+      ctx.beginPath(); ctx.moveTo(x, yL - (big ? 6 : 3)); ctx.lineTo(x, yL + (big ? 6 : 3)); ctx.stroke();
+      if (big) text(ctx, '10' + sup(e), x, yL + 17, {size: 13, w: 500, color: C.muted, mono: true});
+    }
+    ctx.restore();
+    // 입자 표시
+    const lab = shown().map((k) => { const f = info(S[k]); return {key: k, x: X(f.lam), s: k + ' ' + f.t.name}; });
+    const close2 = lab.length === 2 && Math.abs(lab[0].x - lab[1].x) < 110;
+    lab.forEach((q, i) => {
+      const y = yL + 40 + (close2 ? i * 19 : 0);
+      ctx.save(); ctx.strokeStyle = LCOL(q.key); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(q.x, yL); ctx.lineTo(q.x, y - 8); ctx.stroke(); ctx.restore();
+      Lab.circle(ctx, q.x, yL, 6.5, {fill: LCOL(q.key), stroke: C.paper, width: 2});
+      const al = q.x < x0 + 50 ? 'left' : q.x > x1 - 50 ? 'right' : 'center';
+      text(ctx, q.s, q.x + (al === 'left' ? -6 : al === 'right' ? 6 : 0), y, {size: 13, w: 700, color: LCOL(q.key), align: al, halo: true});
+    });
+  }
+
+  function drawGraphs() { drawGE(); drawGP(); drawRuler(); }
+
+  // ── 수치·예제 확인 ───────────────────────────────────────
+  const VERDICT = {
+    wide: '원자 여러 개만큼 길다 — 파동성이 뚜렷하다',
+    atom: '원자 크기 정도 — 결정에 쏘면 회절 무늬(파동성)가 나타난다',
+    sub: '원자보다 훨씬 짧다',
+    nucleus: '원자핵 크기 정도',
+    none: '너무 짧아 어떤 장치로도 파동성을 관측할 수 없다',
+  };
+  function setTile(id, label, val, sub) { const el = $(id); el.querySelector('span').innerHTML = label; el.querySelector('b').textContent = val; el.querySelector('small').textContent = sub || ''; }
+  function readouts() {
+    const a = info(S.A), b = info(S.B), two = S.view === 'two';
+    $('eAOut').textContent = fmtE(S.A.E, a.t.micro);
+    $('eBOut').textContent = fmtE(S.B.E, b.t.micro) + (S.keep !== 'free' ? ' (자동)' : '');
+    if (two) {
+      setTile('t1', 'A의 파장 λ<sub>A</sub>', fmtLen(a.lam), Lab.sci(a.lam, 2) + ' m');
+      setTile('t2', 'B의 파장 λ<sub>B</sub>', fmtLen(b.lam), Lab.sci(b.lam, 2) + ' m');
+      const rl = b.lam / a.lam, rp = b.p / a.p, tl = ratioText(rl), tp = ratioText(rp);
+      setTile('t3', '파장 비 λ<sub>B</sub> ÷ λ<sub>A</sub>', tl, (hasRoot(tl) ? approxText(rl) + ' · ' : '') + small(rl));
+      setTile('t4', '운동량 비 p<sub>B</sub> ÷ p<sub>A</sub>', tp, (hasRoot(tp) ? approxText(rp) + ' · ' : '') + small(rp));
+    } else {
+      setTile('t1', '파장 λ = h/p', fmtLen(a.lam), Lab.sci(a.lam, 2) + ' m');
+      setTile('t2', '운동량 p = √(2mE<sub>k</sub>)', num2(a.p).replace('×', ' × '), 'kg·m/s');
+      setTile('t3', '속력 v', num2(a.v).replace('×', ' × '), 'm/s');
+      setTile('t4', '질량 m', num2(a.m).replace('×', ' × '), 'kg');
+    }
+    $('t2').className = 'ro' + (two ? ' b' : '');
+    $('t3').className = 'ro' + (two ? ' cu' : '');
+    $('roNote').textContent = two ? 'A와 B 비교' : P[S.A.type].name;
+    $('cmp').hidden = !two;
+    const cells = [['cm', 'm', num2], ['ce', 'E', null], ['cp', 'p', num2], ['cv', 'v', num2], ['cl', 'lam', num2]];
+    cells.forEach(([id, k, f]) => {
+      $(id + 'A').textContent = f ? f(a[k]) : fmtE(a.E, a.t.micro);
+      $(id + 'B').textContent = f ? f(b[k]) : fmtE(b.E, b.t.micro);
+      const rr = b[k] / a[k];
+      $(id + 'R').textContent = mixed() && k === 'E' ? '–' : Math.abs(rr - 1) < 1e-6 ? '같다' : ratioText(rr);
+    });
+    $('hudZoom').textContent = '화면 폭 ' + fmtLen(S.Vw);
+    const kn = {Ek: '같은 운동 에너지', p: '같은 운동량', v: '같은 속력'}[S.keep];
+    $('hudKeep').hidden = !(two && kn); if (kn) $('hudKeep').textContent = 'B: A와 ' + kn;
+    $('legB').hidden = !two;
+    // 크기 판정
+    const line = (k, f) => '<b style="color:var(--' + (k === 'A' ? 'vel' : 'force') + ')">' + k + '</b>(' + f.t.name + ', ' + Lab.sci(f.lam, 1) + ' m): ' + VERDICT[M.scaleOf(f.lam)];
+    $('rulerCap').innerHTML = line('A', a) + (two ? '<br>' + line('B', b) : '');
+    // 예제 확인
+    const ex1 = two && S.A.type === 'e' && S.B.type === 'e' && Math.abs(S.B.E / S.A.E - 4) < 1e-6;
+    const ex2 = two && S.A.type === 'e' && S.B.type === 'p' && Math.abs(S.B.E / S.A.E - 1) < 1e-6;
+    if (ex1) Lab.check('exCheck', true, '예제 ①: 전자의 운동 에너지 4배(' + fmtE(S.A.E, true) + ' → ' + fmtE(S.B.E, true) + ') → 파장 ' + sig(b.lam / a.lam, 3) + '배 = 1/2배');
+    else if (ex2) Lab.check('exCheck', true, '예제 ②: 운동 에너지가 같은(' + fmtE(S.A.E, true) + ') 양성자의 파장 = 전자의 ' + sig(b.lam / a.lam, 3) + '배 ≈ 1/43배');
+    else Lab.check('exCheck', false, '', '예제: 전자의 운동 에너지 E → 4E 이면 파장은? 4E 양성자는? — ‘스스로 확인 1’의 두 버튼으로 확인');
+  }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const eA = $('eA'), eB = $('eB');
+  function syncUI() {
+    const two = S.view === 'two';
+    $('rowB').hidden = !two; $('rowKeep').hidden = !two;
+    paG.set(S.A.type, true); pbG.set(S.B.type, true); keepG.set(S.keep, true); viewG.set(S.view, true);
+    eA.max = LAD[S.A.type].length - 1; eA.value = nearestIdx(LAD[S.A.type], S.A.E);
+    eB.max = LAD[S.B.type].length - 1; eB.value = nearestIdx(LAD[S.B.type], S.B.E);
+    eB.disabled = S.keep !== 'free';
+    document.querySelectorAll('[data-keep]').forEach((b) => { b.disabled = b.dataset.keep !== 'free' && mixed(); });
+    $('cTrap').checked = S.trap; $('cAtoms').checked = S.atoms; $('cRuler').checked = S.ruler;
+  }
+  function update(refit) {
+    applyKeep();
+    if (refit) fitView(false);
+    syncUI(); readouts(); drawStage(); drawGraphs();
+  }
+  function setType(lane, type) {
+    const st = S[lane], old = P[st.type], nu = P[type];
+    st.type = type;
+    if (old.micro !== nu.micro || st.E < nu.range[0] * 0.999 || st.E > nu.range[1] * 1.001) st.E = nu.def;
+  }
+  const paG = Lab.group('[data-pa]', 'pa', (v) => { setType('A', v); update(true); }, S.A.type);
+  const pbG = Lab.group('[data-pb]', 'pb', (v) => { setType('B', v); update(true); }, S.B.type);
+  const keepG = Lab.group('[data-keep]', 'keep', (v) => { S.keep = v; update(true); }, S.keep);
+  const viewG = Lab.group('[data-view]', 'view', (v) => { S.view = v; S.A.u = S.B.u = U0; update(true); }, S.view);
+  eA.addEventListener('input', () => { S.A.E = LAD[S.A.type][+eA.value]; applyKeep(); readouts(); drawStage(); drawGraphs(); });
+  eB.addEventListener('input', () => { S.B.E = LAD[S.B.type][+eB.value]; readouts(); drawStage(); drawGraphs(); });
+  eA.addEventListener('change', () => update(true));
+  eB.addEventListener('change', () => update(true));
+  $('cRuler').addEventListener('change', (e) => { S.ruler = e.target.checked; drawStage(); });
+  $('cAtoms').addEventListener('change', (e) => { S.atoms = e.target.checked; drawStage(); });
+  $('cTrap').addEventListener('change', (e) => { S.trap = e.target.checked; drawGE(); });
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  $('restart').addEventListener('click', () => { S.A.u = S.B.u = U0; drawStage(); });
+
+  // 스스로 확인: 그 상황으로 바꾸기
+  function scene(o) {
+    S.view = 'two'; S.keep = o.keep || 'free'; S.trap = !!o.trap;
+    S.A.type = o.A[0]; S.A.E = o.A[1]; S.B.type = o.B[0]; if (o.B[1] != null) S.B.E = o.B[1];
+    S.A.u = S.B.u = U0; applyKeep(); fitView(true); S.VwShow = S.Vw;
+    playCtl.set(!reduceMotion);
+  }
+  const TRY = {
+    ex: () => scene({A: ['e', 25 * EV], B: ['e', 100 * EV], trap: true}),
+    ex2: () => scene({A: ['e', 100 * EV], B: ['p', 100 * EV], keep: 'Ek'}),
+    same: () => scene({A: ['e', 100 * EV], B: ['p', null], keep: 'p'}),
+    three: () => scene({A: ['e', 10 * EV], B: ['e', 90 * EV]}),
+    ball: () => scene({A: ['e', 100 * EV], B: ['ball', 120]}),
+  };
+  Lab.tries(TRY, () => { syncUI(); readouts(); drawStage(); drawGraphs(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    let need = false;
+    const d = Math.log(S.Vw / S.VwShow);
+    if (Math.abs(d) > 1e-4) { S.VwShow = Math.abs(d) < 0.004 ? S.Vw : S.VwShow * Math.exp(d * Math.min(1, dt * 7)); need = true; }
+    if (S.playing && stage.W) {
+      const L = layout(stage.W, stage.H), fs = {};
+      shown().forEach((k) => { fs[k] = info(S[k]); });
+      const vRef = Math.max(...shown().map((k) => fs[k].v));
+      L.lanes.forEach((ln) => {
+        const st = S[ln.key], G = geo(L, ln, st);
+        const Lv = (L.narrow ? 12 : 16) + (L.narrow ? 34 : 46) * fs[ln.key].v / vRef;
+        st.u += dt * 0.16 * fs[ln.key].v / vRef;
+        if (st.u > 1 + G.packFrac) st.u = -(G.r + Lv + 20) / L.laneW;
+      });
+      need = true;
+    }
+    if (need) drawStage();
+  });
+  applyKeep(); fitView(true); S.VwShow = S.Vw;
+  syncUI(); readouts();
+})();
+</script>
+</body>
+</html>

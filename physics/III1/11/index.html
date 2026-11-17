@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>물결파·소리의 간섭</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* Layout: 왼쪽 무대(위에서 본 두 파원의 간섭 무늬 + 탐침 P)와 조작판, 오른쪽 수치·경로차 자와 P의 수면 높이·선분 위의 점 */
+#stage{aspect-ratio:16/10}
+#pd{aspect-ratio:10/7.6}
+#seg{height:190px}
+.ro.full{grid-column:1/-1}
+.ro.neg b{color:var(--neg)}
+.legend b.dash{height:0;border-top:3px dashed currentColor;background:none!important;width:18px}
+.legend i.ring{background:none!important;border:2.5px solid var(--neg);width:11px;height:11px}
+.quiz .tag{white-space:nowrap}
+@media (max-width:640px){ #stage{aspect-ratio:1/1.28} #seg{height:210px} }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="back" href="../../">← 물리 실험실</a>
+    <div class="crumbs"><span class="id">III1-11</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+    <h1>물결파·소리의 간섭: 경로차 조건</h1>
+    <p class="lead">두 파원에서 나온 물결이 겹치면 <b>크게 출렁이는 줄(보강선)</b>과 <b>거의 잠잠한 줄(마디선)</b>이 제자리에 고정된다. 구리색 점 P를 끌어 두 파원까지의 거리 차(경로차)를 파장 단위로 재어 보자 — 정수배면 보강, 반정수배면 상쇄.</p>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <div class="stage">
+        <canvas id="stage" aria-label="위에서 본 두 파원의 간섭 무늬. 밝은 곳은 마루, 어두운 곳은 골. 점 P를 끌어 경로차를 잴 수 있다."></canvas>
+        <div class="hud"><span class="pill" id="hudPhase">같은 위상</span><span class="pill num" id="hudInfo">S₁S₂ = 2λ</span></div>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <button type="button" class="btn" id="stepQ">¼ 주기 앞으로</button>
+          <div class="group" role="group" aria-label="장면">
+            <span class="gl">장면</span>
+            <button type="button" class="btn" data-scene="water" aria-pressed="true">물결파</button>
+            <button type="button" class="btn" data-scene="sound" aria-pressed="false">소리 (두 스피커)</button>
+          </div>
+          <div class="group" role="group" aria-label="두 파원의 위상">
+            <span class="gl">위상</span>
+            <button type="button" class="btn" data-phase="same" aria-pressed="true">같은 위상</button>
+            <button type="button" class="btn" data-phase="opp" aria-pressed="false">반대 위상</button>
+          </div>
+        </div>
+        <div class="row" id="rowWater">
+          <div class="grow">
+            <label class="ctl-label" for="lam">파장 λ (진동수↑ → λ↓) <output id="lamOut">2 cm</output></label>
+            <input id="lam" type="range" min="1" max="3" step="0.25" value="2">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="dist">파원 사이 거리 d <output id="distOut">4 cm = 2λ</output></label>
+            <input id="dist" type="range" min="1" max="8" step="0.5" value="4">
+          </div>
+        </div>
+        <div class="row" id="rowSound" hidden>
+          <div class="grow">
+            <label class="ctl-label" for="freq">진동수 f (소리 속력 340 m/s) <output id="freqOut">170 Hz</output></label>
+            <input id="freq" type="range" min="170" max="680" step="10" value="170">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="dS">스피커 사이 거리 d <output id="dSOut">3 m</output></label>
+            <input id="dS" type="range" min="1" max="4" step="0.5" value="3">
+          </div>
+        </div>
+        <div class="row toggles">
+          <label class="chk"><input type="checkbox" id="cLines" checked>보강선·마디선</label>
+          <label class="chk"><input type="checkbox" id="cRings">마루·골 원</label>
+          <label class="chk"><input type="checkbox" id="cTicks" checked>경로 눈금 (λ마다)</label>
+          <span class="spacer"></span>
+          <div class="group" role="group" aria-label="시간 빠르기">
+            <span class="gl">빠르기</span>
+            <button type="button" class="btn mono" data-speed="0.25" aria-pressed="false">×0.25</button>
+            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="true">×0.5</button>
+            <button type="button" class="btn mono" data-speed="1" aria-pressed="false">×1</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>지금 수치 <small id="roNote">점 P</small></h2>
+        <div class="readouts">
+          <div class="ro"><span id="rR1l">r₁ = S₁P</span><b id="rR1">4λ</b></div>
+          <div class="ro"><span id="rR2l">r₂ = S₂P</span><b id="rR2">3λ</b></div>
+          <div class="ro cu"><span id="rDl">경로차 Δ = |r₁ − r₂|</span><b id="rD">λ</b></div>
+          <div class="ro" id="roJ"><span id="rJl">판정</span><b id="rJ">보강</b></div>
+          <div class="ro full"><span id="rFl">선분 S₁S₂ 위 (양 끝 제외)</span><b id="rF">상쇄 4개 · 보강 3개</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </section>
+      <section class="panel">
+        <h2>점 P에 도착한 두 파동 <small>경로차 자 · 수면 높이</small></h2>
+        <canvas class="flat" id="pd" aria-label="경로차를 파장 단위로 나타낸 수직선과, 점 P에서 두 파동의 변위와 그 합의 시간 변화."></canvas>
+        <p class="cap" id="pdCap"></p>
+      </section>
+      <section class="panel wide">
+        <h2 id="segTitle">선분 S₁S₂ 위의 점 <small>개념서 그림 ②</small></h2>
+        <canvas class="flat" id="seg" aria-label="두 파원을 잇는 선분 위의 보강점과 상쇄점."></canvas>
+        <p class="cap" id="segCap"></p>
+      </section>
+    </aside>
+  </main>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">개념 정리</h2>
+    <div class="concepts">
+      <article class="concept">
+        <h3>간섭 무늬: 보강선과 마디선</h3>
+        <p>같은 진동수의 두 파원에서 나온 파동이 겹치면 <b>마루+마루, 골+골</b>인 곳은 크게 출렁이고(보강), <b>마루+골</b>인 곳은 거의 잠잠하다(상쇄).</p>
+        <p>같은 성질의 점을 이으면 보강선과 마디선이 번갈아 생기고, 시간이 지나도 그 자리에 고정된다.</p>
+      </article>
+      <article class="concept">
+        <h3>경로차 조건</h3>
+        <p>같은 위상인 두 파원: 경로차 <span class="eq">Δ = mλ</span>(0, λ, 2λ…)이면 같은 위상으로 도착해 보강, <span class="eq">Δ = (m + ½)λ</span>이면 반대 위상으로 도착해 상쇄.</p>
+        <p>두 파원이 <b>반대 위상</b>이면 조건이 통째로 뒤바뀌어, 경로차 0인 수직 이등분선(중점)이 상쇄선이 된다.</p>
+      </article>
+      <article class="concept">
+        <h3>선분 위 세기 · 소리의 간섭</h3>
+        <p>선분 위에서 Δx 움직이면 경로차는 2Δx 변하므로 같은 종류의 점은 <span class="eq">λ/2</span> 간격이다. 중점의 보강·상쇄부터 정하고 양쪽으로 센다.</p>
+        <p>두 스피커 앞을 걸으면 크게·작게 들리는 곳이 번갈아 나온다. 진동수를 높이면 파장이 짧아져 무늬가 촘촘해진다. 소음 제거 헤드폰도 상쇄를 이용한다.</p>
+      </article>
+    </div>
+    <p class="compare">보강 지점은 진폭 2A로 크게 진동할 뿐 늘 최고점에 있는 것이 아니고(변위 0인 순간도 있다), 상쇄 지점에는 두 파동이 모두 도착하지만 반대 위상이라 수면이 거의 움직이지 않는다.</p>
+
+    <h2>스스로 확인</h2>
+    <ol class="quiz">
+      <li>
+        <p class="q"><span>1</span>같은 위상으로 진동하는 두 파원 사이 거리가 2λ이다. 두 파원을 잇는 선분 위(양 끝 제외)에서 상쇄 간섭 지점은 몇 개인가?<span class="tag">개념서 예제</span></p>
+        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button></div>
+        <details><summary>답 보기</summary><p>중점은 경로차 0이고 같은 위상이므로 보강이다. 상쇄점은 중점에서 λ/4 떨어진 곳부터 λ/2 간격: ±λ/4, ±3λ/4. 다음 후보 ±5λ/4는 파원(중점에서 λ)보다 멀어 선분 밖이다. 따라서 <b>4개</b>. 오른쪽 아래 ‘선분 S₁S₂ 위의 점’에서 빨간 고리 4개를 확인할 수 있다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>2</span>서로 <b>반대 위상</b>으로 진동하는 두 파원 사이 거리가 3λ이다. 선분 위(양 끝 제외)에서 상쇄 간섭 지점은 몇 개인가?</p>
+        <div class="acts"><button type="button" class="btn" data-try="q2">반대 위상 · 3λ로</button></div>
+        <details><summary>답 보기</summary><p>반대 위상이면 경로차 0인 중점이 상쇄점이다. 상쇄점은 중점에서 0, ±λ/2, ±λ 떨어진 <b>5곳</b>이고, 다음 ±3λ/2는 파원 자리라 뺀다. 같은 위상의 조건을 그대로 쓰면 보강과 상쇄가 뒤바뀐다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>3</span>같은 위상 두 파원에서 나온 진폭 A인 물결파가 간섭한다. 보강 지점 P와 상쇄 지점 Q의 수면은 어떻게 움직일까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="q3a">보강선 위의 P</button><button type="button" class="btn" data-try="q3b">마디선 위의 Q</button></div>
+        <details><summary>답 보기</summary><p>P는 두 파동이 같은 위상으로 만나 <b>진폭 2A</b>로 크게 진동할 뿐, 늘 최고점에 있지 않고 변위 0인 순간도 지난다. Q에는 두 파동이 모두 도착하지만 반대 위상이라 <b>거의 정지</b>한다. 진동수를 높이면 파장이 짧아져 무늬가 촘촘해지므로 보강·상쇄 위치도 바뀐다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>4</span>같은 위상으로 소리를 내는 두 스피커 S₁, S₂가 3 m 떨어져 있고, 점 P는 S₁ 바로 앞 4 m에 있다. 소리 속력이 340 m/s일 때 P에서 170 Hz와 340 Hz의 소리는 각각 크게 들릴까, 작게 들릴까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="q4a">170 Hz</button><button type="button" class="btn" data-try="q4b">340 Hz</button><button type="button" class="btn" data-try="q4c">510 Hz</button></div>
+        <details><summary>답 보기</summary><p>S₂P = √(3² + 4²) = 5 m이므로 경로차는 1 m. 170 Hz는 λ = 2 m → Δ = λ/2 → <b>작게</b>(상쇄). 340 Hz는 λ = 1 m → Δ = λ → <b>크게</b>(보강). 510 Hz는 λ = 2/3 m → Δ = 3λ/2 → 다시 작게.</p></details>
+      </li>
+    </ol>
+    <nav class="pager"><a href="../10/">← III1-10 중첩 원리</a><a href="../../">← 물리 실험실</a><a href="../12/">III1-12 빛의 간섭과 간섭의 이용 →</a></nav>
+  </section>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="III1-11-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.III1_11;
+  const {$, C, text, arrow, bracket, fmt} = Lab;
+  const reduceMotion = Lab.reduceMotion;
+  const PI = Math.PI;
+
+  // ── 상태 ────────────────────────────────────────────────
+  const VS = 340, LW = 4;                  // 소리 속력(m/s), 스피커 줄에서 걷는 선까지(m)
+  const TVIS = 1.0;                        // ×1 에서 한 주기에 걸리는 화면 시간(s)
+  const EX = {lam: 2, d: 4};
+  const P0 = {x: 3.5, y: Math.sqrt(36 - 2.25)};          // r₁ = 8 cm(4λ), r₂ = 6 cm(3λ): 경로차 λ 인 보강 지점
+  const S = {scene: 'water', lam: 2, d: 4, opp: false, f: 170, dS: 3, tau: 0, playing: !reduceMotion, speed: 0.5,
+    lines: true, rings: false, ticks: true, Pw: {...P0}, Px: -1.5, pn: 'P'};
+  const isW = () => S.scene === 'water';
+  const lam = () => (isW() ? S.lam : M.lambdaOf(VS, S.f));
+  const dd = () => (isW() ? S.d : S.dS);
+  const unit = () => (isW() ? 'cm' : 'm');
+  const P = () => (isW() ? S.Pw : {x: S.Px, y: LW});
+  const rr = () => { const p = P(), d = dd(); return [M.r1(p.x, p.y, d), M.r2(p.x, p.y, d)]; };
+  // 파장 단위 글자: 0.5 → λ/2, 1 → λ, 1.5 → 3λ/2
+  function fl(v) {
+    const k = Math.round(v * 2);
+    if (Math.abs(v * 2 - k) > 1e-6) return fmt(v, 2) + 'λ';
+    if (k === 0) return '0';
+    if (k % 2 === 0) return (k === 2 ? '' : k / 2) + 'λ';
+    return (k === 1 ? '' : k) + 'λ/2';
+  }
+  const jName = {con: '보강', des: '상쇄', mid: '그 사이'};
+
+  // ── 색: 토큰 색에서 RGB 를 뽑아 수면(마루 밝게, 골 어둡게)을 칠한다 ──────
+  function rgbOf(col) {
+    col = (col || '').trim();
+    if (col[0] === '#') {
+      const h = col.length === 4 ? col.slice(1).split('').map((c) => c + c).join('') : col.slice(1, 7);
+      return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+    }
+    return (col.match(/[\d.]+/g) || [0, 0, 0]).slice(0, 3).map(Number);
+  }
+  const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+  function fieldColors() {
+    const paper = rgbOf(C.paper), vel = rgbOf(C.vel), bg = rgbOf(C.bg), ink = rgbOf(C.ink);
+    const dark = paper[0] + paper[1] + paper[2] < 384;
+    return dark ? {hi: mix(mix(bg, vel, 0.6), ink, 0.12), lo: bg} : {hi: paper, lo: mix(mix(paper, vel, 0.62), ink, 0.08)};
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', draw), pd = Lab.canvas('pd', draw), seg = Lab.canvas('seg', draw);
+
+  function geo() {
+    const {W, H} = stage, narrow = W < 520;
+    let ppu, ox = W / 2, oy;
+    if (isW()) { ppu = W / (narrow ? 11 : 18); oy = H * (narrow ? 0.74 : 0.78); }
+    else { oy = H - (narrow ? 134 : 88); ppu = Math.min(W / (narrow ? 7.2 : 9.4), (oy - (narrow ? 96 : 78)) / LW); }
+    const X = (x) => ox + x * ppu, Y = (y) => oy - y * ppu;
+    const xOf = (px) => (px - ox) / ppu, yOf = (py) => (oy - py) / ppu;
+    return {W, H, narrow, ppu, ox, oy, X, Y, xOf, yOf, xMin: xOf(0), xMax: xOf(W), yMin: yOf(H), yMax: yOf(0)};
+  }
+
+  // 수면 무늬: 칸마다 두 파동의 cos·sin 성분을 미리 구해 두고, 매 순간 u = sin(2πτ)·Pc − cos(2πτ)·Ps
+  const off = document.createElement('canvas'), offCtx = off.getContext('2d');
+  let F = null;
+  function paintField(ctx, g) {
+    const key = [g.W, g.H, S.scene, lam(), dd(), S.opp].join('|');
+    if (!F || F.key !== key) {
+      const cell = g.narrow ? 4 : 3, gw = Math.ceil(g.W / cell), gh = Math.ceil(g.H / cell), n = gw * gh;
+      const Pc = new Float32Array(n), Ps = new Float32Array(n), k = 2 * PI / lam(), d = dd(), ph = S.opp ? PI : 0;
+      for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) {
+        const x = g.xOf((i + 0.5) * cell), y = g.yOf((j + 0.5) * cell), a = k * M.r1(x, y, d), b = k * M.r2(x, y, d) - ph, id = j * gw + i;
+        Pc[id] = Math.cos(a) + Math.cos(b); Ps[id] = Math.sin(a) + Math.sin(b);
+      }
+      off.width = gw; off.height = gh;
+      F = {key, cell, gw, gh, Pc, Ps, img: offCtx.createImageData(gw, gh)};
+    }
+    const {hi, lo} = fieldColors(), s = Math.sin(2 * PI * S.tau), c = Math.cos(2 * PI * S.tau), data = F.img.data, n = F.gw * F.gh;
+    for (let i = 0; i < n; i++) {
+      const t = (s * F.Pc[i] - c * F.Ps[i] + 2) / 4, q = i * 4;
+      data[q] = lo[0] + (hi[0] - lo[0]) * t; data[q + 1] = lo[1] + (hi[1] - lo[1]) * t; data[q + 2] = lo[2] + (hi[2] - lo[2]) * t; data[q + 3] = 255;
+    }
+    offCtx.putImageData(F.img, 0, 0);
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(off, 0, 0, F.gw * F.cell, F.gh * F.cell); ctx.restore();
+  }
+
+  // 바탕 테두리를 두른 선 (무늬 위에서도 잘 보이게)
+  function haloLine(ctx, pts, col, w, dash) {
+    ctx.save(); ctx.globalAlpha = 0.75; Lab.line(ctx, pts, C.paper, w + 3); ctx.restore();
+    Lab.line(ctx, pts, col, w, dash);
+  }
+  // 바탕 상자를 깐 글자
+  function tag(ctx, s, x, y, o) {
+    const w = Lab.measure(ctx, s, o) + 12, x0 = o.align === 'right' ? x - w : (o.align === 'center' ? x - w / 2 : x);
+    ctx.save(); ctx.fillStyle = C.glass; ctx.strokeStyle = o.border || C.line; ctx.lineWidth = 1.2;
+    Lab.rrect(ctx, x0, y - 12, w, 24, 7); ctx.fill(); ctx.stroke(); ctx.restore();
+    text(ctx, s, x0 + 6, y, {...o, align: 'left'});
+  }
+  const jCol = (j) => (j === 'con' ? C.acc : j === 'des' ? C.neg : C.muted);
+  function mark(ctx, x, y, kind, r) {
+    if (kind === 'con') Lab.circle(ctx, x, y, r, {fill: C.acc, stroke: C.paper, width: 1.6});
+    else Lab.circle(ctx, x, y, r, {fill: C.paper, stroke: C.neg, width: 2.6});
+  }
+
+  function drawLines(ctx, g) {
+    const d = dd(), l = lam(), L = M.lineDiffs(d, l, S.opp);
+    const one = (D, col, dash) => {
+      const pts = [];
+      for (let i = 0; i <= 160; i++) { const y = g.yMin + (g.yMax - g.yMin) * i / 160; pts.push([g.X(M.xOnLine(D, d, y)), g.Y(y)]); }
+      haloLine(ctx, pts, col, 2.4, dash);
+    };
+    L.con.forEach((D) => { one(D, C.acc); if (D > 0) one(-D, C.acc); });
+    L.des.forEach((D) => { one(D, C.neg, [8, 6]); if (D > 0) one(-D, C.neg, [8, 6]); });
+    // 오른쪽 위에 경로차 이름 (물결파만)
+    if (isW()) {
+      const py = g.narrow ? 70 : 64, y = g.yOf(py);
+      [...L.con.map((D) => [D, 'con']), ...L.des.map((D) => [D, 'des'])].forEach(([D, k]) => {
+        const px = g.X(M.xOnLine(D, d, y));
+        if (px > g.W / 2 - 14 && px < g.W - 24) text(ctx, fl(D / l), px, py, {size: 13.5, w: 700, color: k === 'con' ? C.acc : C.neg, halo: true});
+      });
+    }
+  }
+
+  function drawRings(ctx, g) {
+    const l = lam(), d = dd(), far = Math.hypot(g.W, g.H) / g.ppu + d;
+    [[-d / 2, 0, C.violet], [d / 2, S.opp ? 0.5 : 0, C.vel]].forEach(([sx, ph, col]) => {
+      const base = (((S.tau + ph - 0.25) % 1) + 1) % 1;
+      ctx.save(); ctx.strokeStyle = col; ctx.globalAlpha = 0.85;
+      for (let r = base * l; r < far; r += l) {
+        ctx.lineWidth = 1.8; ctx.setLineDash([]); ctx.beginPath(); ctx.arc(g.X(sx), g.Y(0), r * g.ppu, 0, 2 * PI); ctx.stroke();
+        const rt = r + l / 2; ctx.lineWidth = 1.5; ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.arc(g.X(sx), g.Y(0), rt * g.ppu, 0, 2 * PI); ctx.stroke();
+      }
+      if (base > 0.5) { ctx.lineWidth = 1.5; ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.arc(g.X(sx), g.Y(0), (base - 0.5) * l * g.ppu, 0, 2 * PI); ctx.stroke(); }
+      ctx.restore();
+    });
+  }
+
+  function drawSources(ctx, g) {
+    const d = dd(), l = lam();
+    [[-d / 2, 0, C.violet, 'S₁'], [d / 2, S.opp ? PI : 0, C.vel, 'S₂']].forEach(([sx, ph, col, nm]) => {
+      const px = g.X(sx), py = g.Y(0), wv = Math.sin(2 * PI * S.tau + ph);
+      if (isW()) {
+        Lab.circle(ctx, px, py, 7 + 2.5 * wv, {fill: col, stroke: C.paper, width: 2});
+        text(ctx, nm, px, py + 22, {size: 15, w: 700, color: C.ink, halo: true});
+      } else {
+        // 스피커: 위(앞)를 보는 통과 진동판
+        ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 2;
+        Lab.rrect(ctx, px - 13, py + 2, 26, 18, 4); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px - 8, py + 2); ctx.lineTo(px - 12, py - 6 - 2 * wv); ctx.lineTo(px + 12, py - 6 - 2 * wv); ctx.lineTo(px + 8, py + 2); ctx.closePath();
+        ctx.fillStyle = col; ctx.fill(); ctx.stroke(); ctx.restore();
+        text(ctx, nm, px, py + 33, {size: 15, w: 700, color: C.ink, halo: true});
+      }
+    });
+    if (isW()) {
+      // 두 파원을 잇는 선분과 그 위의 보강점·상쇄점
+      const pts = M.segmentPoints(d, l, S.opp), r = g.narrow ? 4 : 5;
+      haloLine(ctx, [[g.X(-d / 2), g.Y(0)], [g.X(d / 2), g.Y(0)]], C.ink, 2);
+      pts.con.forEach((s) => mark(ctx, g.X(s), g.Y(0), 'con', r));
+      pts.des.forEach((s) => mark(ctx, g.X(s), g.Y(0), 'des', r + 0.5));
+    }
+  }
+
+  function drawWalk(ctx, g) {
+    const d = dd(), l = lam(), y = g.Y(LW), L = M.lineDiffs(d, l, S.opp);
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.setLineDash([6, 5]); ctx.globalAlpha = 0.85;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(g.W, y); ctx.stroke(); ctx.restore();
+    text(ctx, g.narrow ? '걷는 선 (앞 ' + LW + ' m)' : '걷는 선 (스피커 앞 ' + LW + ' m)', g.W - 12, y + 18, {size: 13.5, w: 700, color: C.ink, align: 'right', halo: true});
+    const put = (D, k) => [D, -D].forEach((Ds, i) => { if (i && D === 0) return; const px = g.X(M.xOnLine(Ds, d, LW)); if (px > 8 && px < g.W - 8) mark(ctx, px, y, k, 6); });
+    L.con.forEach((D) => put(D, 'con')); L.des.forEach((D) => put(D, 'des'));
+  }
+
+  function drawProbe(ctx, g) {
+    const p = P(), d = dd(), l = lam(), [a, b] = rr(), dl = M.pathDiff(a, b, l), j = M.judge(dl, S.opp);
+    const px = g.X(p.x), py = g.Y(p.y);
+    [[-d / 2, a, C.violet, 'r₁'], [d / 2, b, C.vel, 'r₂']].forEach(([sx, r, col, nm], i) => {
+      const x0 = g.X(sx), y0 = g.Y(0);
+      haloLine(ctx, [[x0, y0], [px, py]], col, 2.6);
+      const L = Math.hypot(px - x0, py - y0); if (L < 1) return;
+      const ux = (px - x0) / L, uy = (py - y0) / L;
+      if (S.ticks) for (let k = 1; k * l <= r + 1e-9; k++) {
+        const t = k * l * g.ppu, cx = x0 + ux * t, cy = y0 + uy * t;
+        Lab.line(ctx, [[cx - uy * 6, cy + ux * 6], [cx + uy * 6, cy - ux * 6]], col, 2.2);
+      }
+      // 이름: 선의 가운데에서, 다른 파원과 반대쪽으로 비켜 쓴다
+      const cx = (x0 + px) / 2, cy = (y0 + py) / 2, nx = -uy, ny = ux;
+      const sgn = nx * (g.X(i ? -d / 2 : d / 2) - cx) + ny * (g.Y(0) - cy) > 0 ? -1 : 1;
+      text(ctx, nm + ' = ' + fl(r / l), cx + nx * 20 * sgn, cy + ny * 20 * sgn, {size: 14, w: 700, color: col, halo: true});
+    });
+    Lab.circle(ctx, px, py, 10, {stroke: C.copper, width: 3.2});
+    Lab.circle(ctx, px, py, 3.5, {fill: C.copper});
+    const s = 'Δ = ' + fl(dl) + ' → ' + jName[j];
+    const right = px < g.W - 190;
+    tag(ctx, s, right ? px + 16 : px - 16, py - (p.y > 0.5 && py > 60 ? 26 : -26), {size: 14, w: 700, color: jCol(j), align: right ? 'left' : 'right', border: jCol(j)});
+    text(ctx, isW() ? S.pn : S.pn + ' (듣는 곳)', px - 15, py + (isW() ? 0 : 18), {size: 14, w: 700, color: C.copper, halo: true, align: 'right'});
+  }
+
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    const g = geo();
+    ctx.clearRect(0, 0, W, H);
+    paintField(ctx, g);
+    if (S.rings) drawRings(ctx, g);
+    if (S.lines) drawLines(ctx, g);
+    if (!isW()) drawWalk(ctx, g);
+    drawSources(ctx, g);
+    drawProbe(ctx, g);
+  }
+
+  // ── 경로차 자 + 점 P 의 수면 높이 ────────────────────────
+  function drawPD() {
+    const {ctx, W, H} = pd; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const l = lam(), [a, b] = rr(), dl = M.pathDiff(a, b, l), j = M.judge(dl, S.opp);
+    // ① 경로차 자 (파장 단위)
+    const maxL = Math.min(4, Math.max(2, Math.ceil(dl * 2 + 1) / 2)), rx = 22, rw = W - 44, ry = 44;
+    const Xr = (v) => rx + v / maxL * rw;
+    text(ctx, '경로차 Δ', rx - 4, 12, {size: 13.5, w: 700, align: 'left', color: C.muted});
+    text(ctx, 'Δ = ' + fl(dl) + ' → ' + jName[j], W - 4, 12, {size: 14, w: 700, align: 'right', color: jCol(j)});
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(Xr(0), ry); ctx.lineTo(Xr(maxL), ry); ctx.stroke(); ctx.restore();
+    for (let k = 0; k <= maxL * 2 + 1e-9; k++) {
+      const v = k / 2, integer = k % 2 === 0, kind = integer !== S.opp ? 'con' : 'des';
+      mark(ctx, Xr(v), ry, kind, 5.5);
+      text(ctx, fl(v), Xr(v), ry + 19, {size: 13, w: 600, color: kind === 'con' ? C.acc : C.neg});
+    }
+    const mx = Xr(Math.min(dl, maxL));
+    ctx.beginPath(); ctx.moveTo(mx, ry - 7); ctx.lineTo(mx - 7, ry - 19); ctx.lineTo(mx + 7, ry - 19); ctx.closePath(); ctx.fillStyle = C.copper; ctx.fill();
+    // ② P 의 수면 높이: 두 파동과 합
+    const r = {x: 40, y: ry + 58, w: W - 56, h: 0}; r.h = H - r.y - 24;
+    const T = (t) => r.x + t / 2 * r.w, Y = (v) => r.y + r.h / 2 - v / 2.3 * (r.h / 2);
+    text(ctx, isW() ? 'P의 수면 높이' : 'P의 공기 진동', r.x - 30, r.y - 16, {size: 13.5, w: 700, align: 'left', color: C.muted});
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(r.x, Y(0)); ctx.lineTo(r.x + r.w, Y(0)); ctx.stroke(); ctx.restore();
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 6, C.muted, 1.3, 7);
+    [2, -2].forEach((v) => {
+      ctx.save(); ctx.strokeStyle = C.acc; ctx.globalAlpha = 0.55; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(r.x, Y(v)); ctx.lineTo(r.x + r.w, Y(v)); ctx.stroke(); ctx.restore();
+      text(ctx, (v > 0 ? '+' : '−') + '2A', r.x - 6, Y(v), {size: 13, w: 600, color: C.acc, align: 'right'});
+    });
+    text(ctx, '0', r.x - 6, Y(0), {size: 13, w: 500, color: C.muted, align: 'right', mono: true});
+    ['0', 'T', '2T'].forEach((s, k) => text(ctx, s, T(k), r.y + r.h + 13, {size: 13, w: 500, color: C.muted, mono: true}));
+    const ph = S.opp ? PI : 0, f1 = (t) => M.wave(a, l, t), f2 = (t) => M.wave(b, l, t, ph), fs = (t) => f1(t) + f2(t);
+    const plot = (f, col, w, dash) => { const pts = []; for (let i = 0; i <= 240; i++) { const t = 2 * i / 240; pts.push([T(t), Y(f(t))]); } Lab.line(ctx, pts, col, w, dash); };
+    // 두 점선이 꼭 겹쳐도(같은 위상) 두 색이 번갈아 보이게 점선 시작을 엇갈린다
+    plot(f1, C.violet, 2.4, [6, 6]); ctx.save(); ctx.lineDashOffset = 6; plot(f2, C.vel, 2.4, [6, 6]); ctx.restore(); plot(fs, C.ink, 3);
+    [S.tau, S.tau + 1].forEach((t, i) => {
+      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.6; ctx.globalAlpha = i ? 0.4 : 1;
+      ctx.beginPath(); ctx.moveTo(T(t), r.y - 4); ctx.lineTo(T(t), r.y + r.h); ctx.stroke(); ctx.restore();
+    });
+    Lab.circle(ctx, T(S.tau), Y(fs(S.tau)), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
+  }
+
+  // ── 선분 위의 점 (물결파) / 걷는 선의 소리 크기 (소리) ──────────
+  function drawSeg() {
+    const {ctx, W, H} = seg; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const l = lam(), d = dd();
+    if (isW()) {
+      const pts = M.segmentPoints(d, l, S.opp), pad = 30, yl = H * 0.52;
+      const X = (s) => W / 2 + s / (d / 2) * (W / 2 - pad);
+      // 개수
+      const t1 = '상쇄 ' + pts.des.length + '개', t2 = ' · 보강 ' + pts.con.length + '개', t3 = '  (양 끝 제외)';
+      const o = {size: 15, w: 700}, w1 = Lab.measure(ctx, t1, o), w2 = Lab.measure(ctx, t2, o);
+      text(ctx, t1, 4, 14, {...o, align: 'left', color: C.neg});
+      text(ctx, t2, 4 + w1, 14, {...o, align: 'left', color: C.acc});
+      text(ctx, t3, 4 + w1 + w2, 14, {size: 13, w: 500, align: 'left', color: C.muted});
+      Lab.line(ctx, [[X(-d / 2), yl], [X(d / 2), yl]], C.ink, 2.4);
+      const sp = (l / 4) / (d / 2) * (W / 2 - pad);           // 이웃한 두 점(보강·상쇄) 사이 px
+      const all = [...pts.con.map((s) => [s, 'con']), ...pts.des.map((s) => [s, 'des'])];
+      const midKind = S.opp ? 'des' : 'con';
+      all.forEach(([s, k]) => {
+        mark(ctx, X(s), yl, k, 7);
+        const show = sp >= 38 || (sp * 2 >= 38 && k === midKind) || Math.abs(s) < 1e-9;
+        if (show) text(ctx, fl(2 * Math.abs(s) / l), X(s), yl - 20, {size: 13, w: 700, color: k === 'con' ? C.acc : C.neg});
+      });
+      [[-d / 2, 'S₁'], [d / 2, 'S₂']].forEach(([s, nm]) => { Lab.circle(ctx, X(s), yl, 7, {fill: C.ink}); text(ctx, nm, X(s), yl + 20, {size: 14, w: 700}); });
+      text(ctx, '중점', X(0), yl + 22, {size: 13, w: 600, color: C.muted});
+      if (l / 2 < d / 2 - 1e-9) bracket(ctx, X(0), X(l / 2), yl + 46, C.copper, 'λ/2', false);
+      text(ctx, '점 위의 수 = 경로차', W - 4, H - 10, {size: 13, w: 500, color: C.muted, align: 'right'});
+    } else {
+      const xr = 4, r = {x: 40, y: 34, w: W - 56, h: H - 34 - 30};
+      const X = (x) => r.x + (x + xr) / (2 * xr) * r.w, Y = (v) => r.y + r.h - v / 4 * r.h;
+      const I = (x) => M.loudness(M.pathDiff(M.r1(x, LW, d), M.r2(x, LW, d), l), S.opp);
+      text(ctx, '소리 크기', r.x - 30, 12, {size: 13.5, w: 700, align: 'left', color: C.muted});
+      ctx.save(); ctx.fillStyle = C['acc-soft']; ctx.beginPath(); ctx.moveTo(X(-xr), Y(0));
+      for (let i = 0; i <= 300; i++) { const x = -xr + 2 * xr * i / 300; ctx.lineTo(X(x), Y(I(x))); }
+      ctx.lineTo(X(xr), Y(0)); ctx.closePath(); ctx.fill(); ctx.restore();
+      const pts = []; for (let i = 0; i <= 300; i++) { const x = -xr + 2 * xr * i / 300; pts.push([X(x), Y(I(x))]); }
+      Lab.line(ctx, pts, C.ink, 2.6);
+      ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(r.x, Y(0)); ctx.lineTo(r.x + r.w, Y(0)); ctx.stroke(); ctx.restore();
+      for (let x = -xr; x <= xr; x++) {
+        text(ctx, String(x), X(x), r.y + r.h + 13, {size: 13, w: 500, color: C.muted, mono: true});
+      }
+      text(ctx, 'm', r.x + r.w + 10, r.y + r.h + 13, {size: 13, w: 500, color: C.muted});
+      text(ctx, '크게', r.x - 6, Y(4), {size: 13, w: 600, color: C.acc, align: 'right'});
+      text(ctx, '작게', r.x - 6, Y(0) - 8, {size: 13, w: 600, color: C.neg, align: 'right'});
+      const L = M.lineDiffs(d, l, S.opp);
+      const put = (D, k) => [D, -D].forEach((Ds, i) => { if (i && D === 0) return; const x = M.xOnLine(Ds, d, LW); if (Math.abs(x) <= xr) mark(ctx, X(x), Y(k === 'con' ? 4 : 0), k, 5.5); });
+      L.con.forEach((D) => put(D, 'con')); L.des.forEach((D) => put(D, 'des'));
+      const xp = S.Px;
+      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(X(xp), r.y - 4); ctx.lineTo(X(xp), r.y + r.h); ctx.stroke(); ctx.restore();
+      Lab.circle(ctx, X(xp), Y(I(xp)), 6, {fill: C.copper, stroke: C.paper, width: 1.5});
+      text(ctx, 'P', X(xp) + 10, r.y + 4, {size: 14, w: 700, color: C.copper, align: 'left'});
+      text(ctx, '중앙', X(0), r.y - 8, {size: 13, w: 600, color: C.muted});
+    }
+  }
+
+  function draw() { drawStage(); drawPD(); drawSeg(); }
+
+  // ── 수치 ────────────────────────────────────────────────
+  const legendHTML = {
+    water: '<span><b style="background:var(--acc)"></b>보강선</span><span><b class="dash" style="color:var(--neg)"></b>마디선</span>' +
+      '<span><b style="background:var(--violet)"></b>r₁</span><span><b style="background:var(--vel)"></b>r₂</span><span><i style="background:var(--copper)"></i>P (끌어 옮기기)</span>',
+    sound: '<span><i style="background:var(--acc)"></i>크게 들림</span><span><i class="ring"></i>작게 들림</span>' +
+      '<span><b style="background:var(--violet)"></b>r₁</span><span><b style="background:var(--vel)"></b>r₂</span><span><i style="background:var(--copper)"></i>P (선을 따라 끌기)</span>'};
+  const caps = {
+    water: {pd: '점선 = S₁·S₂에서 각각 P에 온 파동, 실선 = 합. 경로차가 <b>정수배</b>면 같은 위상으로 도착해 2A로 진동하고, <b>반정수배</b>면 반대 위상이라 합이 0이다.',
+      segT: '선분 S₁S₂ 위의 점 <small>개념서 그림 ②</small>', seg: '선분 위에서 Δx 움직이면 경로차는 2Δx 변한다 → 같은 종류의 점은 <b>λ/2 간격</b>. 중점부터 정하고 양쪽으로 센다.'},
+    sound: {pd: '두 스피커의 소리가 P에 경로차만큼 어긋나 도착한다. 같은 위상이면 크게, 반대 위상이면 작게 들린다.',
+      segT: '걷는 선을 따라 소리 크기 <small>개념서 탐구</small>', seg: '중앙(경로차 0)이 가장 크고 양옆으로 크고 작은 곳이 번갈아 나온다. 진동수를 높이면 첫 번째로 작은 곳이 중앙에 가까워진다.'}};
+
+  function readouts() {
+    const l = lam(), d = dd(), u = unit(), [a, b] = rr(), dl = M.pathDiff(a, b, l), j = M.judge(dl, S.opp);
+    const pn = S.pn;
+    $('rR1l').textContent = 'r₁ = S₁' + pn + ' = ' + fmt(a, 2) + ' ' + u; $('rR1').textContent = fl(a / l);
+    $('rR2l').textContent = 'r₂ = S₂' + pn + ' = ' + fmt(b, 2) + ' ' + u; $('rR2').textContent = fl(b / l);
+    $('rDl').textContent = '경로차 Δ = |r₁ − r₂| = ' + fmt(Math.abs(a - b), 2) + ' ' + u; $('rD').textContent = fl(dl);
+    $('roNote').textContent = '점 ' + pn;
+    $('rJl').textContent = '판정 (' + (S.opp ? '반대 위상' : '같은 위상') + ')' + (isW() ? {con: ' → 2A 진동', des: ' → 정지', mid: ''}[j] : '');
+    $('rJ').textContent = isW() ? {con: '보강', des: '상쇄', mid: '그 사이'}[j] : {con: '크게 들림', des: '작게 들림', mid: '그 사이'}[j];
+    $('roJ').className = 'ro' + (j === 'con' ? ' acc' : j === 'des' ? ' neg' : '');
+    if (isW()) {
+      const pts = M.segmentPoints(d, l, S.opp);
+      $('rFl').textContent = '선분 S₁S₂ 위 (양 끝 제외)';
+      $('rF').textContent = '상쇄 ' + pts.des.length + '개 · 보강 ' + pts.con.length + '개';
+      $('hudInfo').textContent = 'S₁S₂ = ' + fl(d / l) + ' (λ = ' + fmt(l, 2) + ' cm)';
+    } else {
+      $('rFl').textContent = '파장 λ = v / f';
+      $('rF').textContent = '340 ÷ ' + S.f + ' = ' + Lab.frac(l, 3) + ' m';
+      $('hudInfo').textContent = 'λ = ' + Lab.frac(l, 3) + ' m (' + S.f + ' Hz)';
+    }
+    const ph = $('hudPhase'); ph.textContent = S.opp ? '반대 위상 (반 주기 어긋남)' : '같은 위상'; ph.className = 'pill' + (S.opp ? ' down' : '');
+    $('lamOut').textContent = fmt(S.lam, 2) + ' cm';
+    $('distOut').textContent = fmt(S.d, 1) + ' cm = ' + fl(S.d / S.lam);
+    $('freqOut').textContent = S.f + ' Hz (λ = ' + Lab.frac(M.lambdaOf(VS, S.f), 3) + ' m)';
+    $('dSOut').textContent = fmt(S.dS, 1) + ' m';
+    const ok = isW() && !S.opp && Math.abs(S.d / S.lam - 2) < 1e-9;
+    Lab.check('exCheck', ok, '개념서 예제 (같은 위상, S₁S₂ = 2λ) → 선분 위(양 끝 제외) 상쇄 지점 4개',
+      '예제: 같은 위상, S₁S₂ = 2λ일 때 선분 위 상쇄 지점 수 — ‘스스로 확인 1’로 돌아갈 수 있어요');
+  }
+
+  // ── 조작 ────────────────────────────────────────────────
+  function syncUI() {
+    $('rowWater').hidden = !isW(); $('rowSound').hidden = isW();
+    $('legend').innerHTML = legendHTML[S.scene];
+    const c = caps[S.scene]; $('pdCap').innerHTML = c.pd; $('segTitle').innerHTML = c.segT; $('segCap').innerHTML = c.seg;
+    $('lam').value = S.lam; $('dist').value = S.d; $('freq').value = S.f; $('dS').value = S.dS;
+    $('cLines').checked = S.lines; $('cRings').checked = S.rings; $('cTicks').checked = S.ticks;
+    sceneG.set(S.scene, true); phaseG.set(S.opp ? 'opp' : 'same', true); speedG.set(S.speed, true);
+    readouts();
+  }
+  const refresh = () => { syncUI(); draw(); };
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => { S.scene = v; refresh(); }, S.scene);
+  const phaseG = Lab.group('[data-phase]', 'phase', (v) => { S.opp = v === 'opp'; refresh(); }, 'same');
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  const setPlay = (on) => { playCtl.set(on, true); S.playing = on; };
+  $('stepQ').addEventListener('click', () => { setPlay(false); S.tau = ((Math.floor(S.tau * 4 + 1e-6) + 1) / 4) % 1; readouts(); draw(); });
+  const num = (id, key) => $(id).addEventListener('input', (e) => { S[key] = +e.target.value; readouts(); draw(); });
+  num('lam', 'lam'); num('dist', 'd'); num('freq', 'f'); num('dS', 'dS');
+  $('cLines').addEventListener('change', (e) => { S.lines = e.target.checked; draw(); });
+  $('cRings').addEventListener('change', (e) => { S.rings = e.target.checked; draw(); });
+  $('cTicks').addEventListener('change', (e) => { S.ticks = e.target.checked; draw(); });
+
+  // 무대 위 P 끌기 — 보강선·마디선 가까이 오면 그 선 위로 붙인다
+  function snap(x, y) {
+    const d = dd(), l = lam(), D = (M.r1(x, y, d) - M.r2(x, y, d)) / l, h = Math.round(D * 2) / 2;
+    if (Math.abs(D - h) < 0.04 && Math.abs(h) * l < d - 1e-9) { const xs = M.xOnLine(h * l, d, y); if (isFinite(xs)) return xs; }
+    return x;
+  }
+  const setP = (px, py) => {
+    const g = geo(), x = Math.min(g.xMax - 0.2, Math.max(g.xMin + 0.2, g.xOf(px)));
+    if (isW()) { const y = Math.min(g.yMax - 0.3, Math.max(g.yMin + 0.3, g.yOf(py))); S.Pw = {x: snap(x, y), y}; }
+    else S.Px = snap(x, LW);
+    readouts(); draw();
+  };
+  Lab.pointer(stage.el, {down: setP, move: setP});
+
+  // 스스로 확인
+  const water = (o) => { Object.assign(S, {scene: 'water', lam: 2, d: 4, opp: false, lines: true, pn: 'P'}, o); };
+  const sound = (f) => { Object.assign(S, {scene: 'sound', dS: 3, opp: false, f, Px: -1.5, lines: true, pn: 'P'}); };
+  const TRY = {
+    ex: () => { water({Pw: {...P0}}); },
+    q2: () => { water({opp: true, d: 6, Pw: {x: 0, y: 6}}); },
+    q3a: () => { water({Pw: {...P0}, speed: 0.25}); setPlay(true); },
+    q3b: () => { water({Pw: {x: M.xOnLine(1, 4, 6), y: 6}, speed: 0.25, pn: 'Q'}); setPlay(true); },
+    q4a: () => sound(170), q4b: () => sound(340), q4c: () => sound(510),
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => { if (S.playing) { S.tau = (S.tau + dt * S.speed / TVIS) % 1; draw(); } });
+  syncUI();
+})();
+</script>
+</body>
+</html>

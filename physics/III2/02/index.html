@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>광전 효과의 실험 사실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* Layout: 왼쪽 무대(두 빛 A·B / 빛 하나 / 아연판 검전기)와 조작판, 오른쪽 지금 수치 · 파동설 예측 vs 실제 · 세 가지 실험 사실 그래프 */
+#stage{aspect-ratio:16/10.6}
+#cmp{aspect-ratio:10/7.2}
+#facts{aspect-ratio:10/11.6}
+.quiz .tag{white-space:nowrap}
+@media (max-width:980px) and (min-width:641px){ #facts{aspect-ratio:10/3.9} }
+@media (max-width:640px){ #stage{aspect-ratio:1/1.36} #facts{aspect-ratio:10/12.6} }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="back" href="../../">← 물리 실험실</a>
+    <div class="crumbs"><span class="id">III2-02</span><span class="kicker">물리학 Ⅰ · 빛과 물질의 이중성</span></div>
+    <h1>광전 효과의 실험 사실과 파동설의 한계</h1>
+    <p class="lead">아주 세게 비춘 빨간빛 A는 전자를 하나도 떼어 내지 못하는데, 약하게 비춘 파란빛 B는 켜자마자 떼어 낸다. 광자 <b>하나</b>가 전자 <b>하나</b>에게 주는 에너지를 따라가 보면, 방출 여부와 최대 운동 에너지는 <b>진동수</b>가, 광전자 수는 <b>세기</b>가 정한다는 것이 보인다.</p>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <div class="stage">
+        <canvas id="stage" aria-label="진공 광전관의 금속판 K에 두 빛을 비춘다. 진동수가 문턱보다 작은 빛의 광자는 흡수만 되고, 문턱보다 큰 빛의 광자는 전자를 하나씩 떼어 내 P로 보낸다."></canvas>
+        <div class="hud"><span class="pill" id="hudScene">두 빛 A·B · 나트륨</span><span class="pill num" id="hudT">빛 켠 뒤 0.0 s</span></div>
+        <div class="legend">
+          <span><b style="background:var(--violet)"></b>광자 (물결이 촘촘할수록 진동수 큼)</span>
+          <span><i style="background:var(--vel)"></i>광전자 (꼬리가 길수록 빠름)</span>
+          <span><b style="background:var(--acc)"></b>광전류</span>
+          <span><i style="background:var(--copper)"></i>지금 따라가는 광자</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="group" role="group" aria-label="장면">
+            <span class="gl">장면</span>
+            <button type="button" class="btn" data-scene="two" aria-pressed="true">두 빛 A·B</button>
+            <button type="button" class="btn" data-scene="tube" aria-pressed="false">빛 하나</button>
+            <button type="button" class="btn" data-scene="scope" aria-pressed="false">아연판 검전기</button>
+          </div>
+          <button type="button" class="btn" id="lightBtn" aria-pressed="true">빛 켜짐</button>
+        </div>
+        <div class="row" id="rowTwo">
+          <div class="group" role="group" aria-label="슬라이더로 조절할 빛">
+            <span class="gl">조절할 빛</span>
+            <button type="button" class="btn" data-sel="A" aria-pressed="true">빛 A</button>
+            <button type="button" class="btn" data-sel="B" aria-pressed="false">빛 B</button>
+          </div>
+          <label class="chk"><input type="checkbox" id="onA" checked>A 비추기</label>
+          <label class="chk"><input type="checkbox" id="onB" checked>B 비추기</label>
+        </div>
+        <div class="row" id="rowScope" hidden>
+          <div class="group" role="group" aria-label="비추는 빛">
+            <span class="gl">빛</span>
+            <button type="button" class="btn" data-kind="vis" aria-pressed="false">가시광선</button>
+            <button type="button" class="btn" data-kind="uv" aria-pressed="true">자외선</button>
+          </div>
+          <div class="group" role="group" aria-label="처음 전하">
+            <span class="gl">처음</span>
+            <button type="button" class="btn" data-q0="-1" aria-pressed="true">(−) 대전</button>
+            <button type="button" class="btn" data-q0="0" aria-pressed="false">중성</button>
+          </div>
+          <button type="button" class="btn" id="reset">처음 전하로</button>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <label class="ctl-label" for="fr"><span id="frLab">빛 A의 진동수 f</span> <output id="frOut">0.80 f₀</output></label>
+            <input id="fr" type="range" min="0.4" max="2" step="0.05" value="0.8">
+          </div>
+          <div class="grow">
+            <label class="ctl-label" for="inten"><span id="inLab">빛 A의 세기</span> <output id="inOut">100 %</output></label>
+            <input id="inten" type="range" min="0" max="100" step="5" value="100">
+          </div>
+        </div>
+        <div class="row toggles">
+          <span class="ctl-label" id="metalNote">금속판 K: 나트륨 (문턱 진동수 f₀ = 5.6 × 10¹⁴ Hz)</span>
+          <span class="spacer"></span>
+          <div class="group" role="group" aria-label="시간 빠르기">
+            <span class="gl">빠르기</span>
+            <button type="button" class="btn mono" data-speed="0.25" aria-pressed="false">×0.25</button>
+            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="false">×0.5</button>
+            <button type="button" class="btn mono" data-speed="1" aria-pressed="true">×1</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>지금 수치</h2>
+        <div class="readouts">
+          <div class="ro"><span id="l1">빛 A</span><b id="r1">–</b></div>
+          <div class="ro"><span id="l2">빛 B</span><b id="r2">–</b></div>
+          <div class="ro vel"><span id="l3">광전자</span><b id="r3">–</b></div>
+          <div class="ro acc"><span id="l4">최대 운동 에너지</span><b id="r4">–</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </section>
+      <section class="panel">
+        <h2>파동설 예측 vs 실제 <small>전자 하나가 받는 에너지</small></h2>
+        <canvas class="flat" id="cmp" aria-label="파동설은 전자 하나에 에너지가 계속 쌓인다고 예측하지만, 실제로는 광자 하나의 에너지 hf를 한 번에 받는다."></canvas>
+        <p class="cap">파동설: 세기만 크면 에너지가 <b>쌓여</b> 언젠가 W를 넘는다. 실제: 전자는 광자 <b>1개</b>의 에너지 hf만 받고, W보다 모자라면 쌓이지 않고 흩어진다.</p>
+      </section>
+      <section class="panel wide">
+        <h2>세 가지 실험 사실 <small>점 = 지금 비추는 빛</small></h2>
+        <canvas class="flat" id="facts" aria-label="진동수-최대 운동 에너지, 세기-최대 운동 에너지, 세기-광전류 그래프와 지금 빛의 위치"></canvas>
+        <p class="cap"><b>진동수</b> → 방출 여부와 최대 운동 에너지, <b>세기</b> → 광전자 수(광전류). 빨간 점선은 파동설이 예상한 모양이다.</p>
+      </section>
+    </aside>
+  </main>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">개념 정리</h2>
+    <div class="concepts">
+      <article class="concept">
+        <h3>광전관과 광전류</h3>
+        <p>진공관 속 금속판 K에 알맞은 빛을 비추면 전자(<b>광전자</b>)가 튀어나와 전극 P로 모이고, 회로에 <b>광전류</b>가 흐른다.</p>
+        <p>전류계로 광전자가 나오는지, 얼마나 많이 나오는지를 읽는다.</p>
+      </article>
+      <article class="concept">
+        <h3>진동수와 세기가 맡는 일</h3>
+        <p><b>진동수</b>: 금속마다 <b>문턱 진동수 f₀</b>가 있어 f &lt; f₀이면 아무리 세게·오래 비춰도 방출이 없고, f ≥ f₀이면 아무리 약해도 <b>즉시</b> 나온다. 최대 운동 에너지는 f가 클수록 크다.</p>
+        <p><b>세기</b>: 최대 운동 에너지와 무관하고, 단위 시간당 광전자 수(광전류)만 늘린다.</p>
+      </article>
+      <article class="concept">
+        <h3>파동설로는 설명할 수 없다</h3>
+        <p>빛을 연속적인 파동으로 보면 약한 빛도 오래 비추면 에너지가 쌓여 결국 전자가 나와야 하고, 세게 비추면 더 빠른 전자가 나와야 한다. 금속마다 문턱 진동수가 다른 것도 설명하지 못한다.</p>
+        <p>(−)대전 아연판 검전기: 가시광선은 세게 비춰도 그대로, 자외선은 약해도 금속박이 오므라든다.</p>
+      </article>
+    </div>
+    <p class="compare">여러 빛을 함께 비추면 <b>빛마다 따로</b> 판정한다. 문턱 미만인 두 빛을 합쳐도 방출은 없고(광자 두 개의 에너지가 합쳐지지 않는다), 광전자 수는 문턱을 넘는 빛들의 합, 최대 운동 에너지는 그중 진동수가 가장 큰 빛이 정한다.</p>
+
+    <h2>스스로 확인</h2>
+    <ol class="quiz">
+      <li>
+        <p class="q"><span>1</span>문턱 진동수가 f₀인 금속에 진동수 0.8f₀인 빛 A를 매우 세게, 1.2f₀인 빛 B를 약하게 비춘다. 각각 광전자가 나오는가? A와 B를 함께 비추면?<span class="tag">개념서 예제</span></p>
+        <div class="acts">
+          <button type="button" class="btn" data-try="ex">예제 상황으로 (A와 B 함께)</button>
+          <button type="button" class="btn" data-try="exA">A만</button>
+          <button type="button" class="btn" data-try="exB">B만</button>
+        </div>
+        <details><summary>답 보기</summary><p>A는 f &lt; f₀이라 세기와 관계없이 <b>방출 없음</b>. B는 f &gt; f₀이라 약해도 <b>즉시 방출</b>(광전자 수는 적다). 함께 비추면 빛마다 따로 판정하므로 <b>B에 의한 광전자만</b> 나오고, 최대 운동 에너지도 B가 정한다(A는 기여하지 않는다).</p></details>
+      </li>
+      <li>
+        <p class="q"><span>2</span>옳은 것만 고르면? ㄱ. 문턱 진동수 이상의 빛은 아무리 약해도 광전자가 즉시 나온다. ㄴ. 빛의 세기를 키우면 광전자의 최대 운동 에너지가 커진다. ㄷ. 문턱 이상에서 세기를 키우면 광전류가 커진다.</p>
+        <div class="acts"><button type="button" class="btn" data-try="double">세기만 2배로</button></div>
+        <details><summary>답 보기</summary><p><b>ㄱ, ㄷ</b>. 세기를 2배로 하면 광전자가 2배로 늘지만(꼬리 길이 = 빠르기는 그대로) 광자 1개의 에너지 hf는 그대로라 최대 운동 에너지는 변하지 않는다. ㄴ은 빛을 연속적인 파동으로 본 예상이다(그래프 ②의 빨간 점선).</p></details>
+      </li>
+      <li>
+        <p class="q"><span>3</span>처음에 중성인 아연판 검전기에 자외선(아연의 문턱 진동수보다 큼)을 비추면 금속박은 어떻게 될까?</p>
+        <div class="acts">
+          <button type="button" class="btn" data-try="neutral">중성 검전기 + 자외선</button>
+          <button type="button" class="btn" data-try="visible">(−) 검전기 + 가시광선 세게</button>
+        </div>
+        <details><summary>답 보기</summary><p>광전자가 빠져나가 검전기가 <b>(+)로 대전</b>되므로 금속박이 <b>벌어진다</b>. 처음부터 (−)로 대전된 검전기였다면 음전하가 줄어 오므라든다. 가시광선은 아무리 세게 비춰도 문턱 진동수보다 작아 변화가 없다.</p></details>
+      </li>
+      <li>
+        <p class="q"><span>4</span>진동수가 0.7f₀, 0.9f₀인 두 빛을 함께 아주 세게 비추면 광전자가 나올까?</p>
+        <div class="acts"><button type="button" class="btn" data-try="sub2">0.7f₀ + 0.9f₀ 함께</button></div>
+        <details><summary>답 보기</summary><p><b>나오지 않는다.</b> 전자 하나는 광자 하나를 통째로 흡수하고, 두 광자의 에너지를 합쳐 받지 않는다. 빛마다 따로 판정하면 둘 다 문턱 미만이다.</p></details>
+      </li>
+    </ol>
+    <nav class="pager"><a href="../01/">← III2-01 빛의 이중성</a><a href="../../">물리 실험실</a><a href="../03/">III2-03 광양자설과 광전 방정식 →</a></nav>
+  </section>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="III2-02-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.III2_02;
+  const {$, C, text, arrow} = Lab;
+  const fmt = Lab.fmt;
+  const TAU = Math.PI * 2;
+
+  // ── 상태 ────────────────────────────────────────────────
+  // 빛 하나 = {id, r: f/f₀, I: 세기 0~1, on}. 예제: A 0.8f₀ 매우 세게, B 1.2f₀ 약하게
+  const EX = {A: {r: 0.8, I: 1}, B: {r: 1.2, I: 0.15}};
+  const S = {
+    scene: 'two', sel: 'A', light: true, playing: !Lab.reduceMotion, speed: 1, onT: 0,
+    L: {A: {id: 'A', r: EX.A.r, I: EX.A.I, on: true}, B: {id: 'B', r: EX.B.r, I: EX.B.I, on: true}},
+    one: {id: '빛', r: 1.4, I: 0.3, on: true},
+    sc: {id: '빛', r: 1.2, I: 0.4, on: true, kind: 'uv', q0: -1, q: -1},
+  };
+  const metalW = () => (S.scene === 'scope' ? M.METALS.Zn.W : M.METALS.Na.W);
+  const lights = () => (S.scene === 'two' ? [S.L.A, S.L.B] : S.scene === 'tube' ? [S.one] : [S.sc]);
+  const active = () => lights().filter((L) => L.on && S.light);
+  const cur = () => (S.scene === 'two' ? S.L[S.sel] : S.scene === 'tube' ? S.one : S.sc);
+
+  // ── 공통 그림 (III2-01·02·03 같은 모양): 빛의 색, 광자, 전자, 광전관 ──────────
+  const isDark = () => { const p = C.paper || '#ffffff'; return p[0] === '#' && parseInt(p.slice(1, 3), 16) < 128; };
+  function wlColor(nm) {                                   // 파장(nm) → 빛의 색. 자외선 = violet, 적외선 = muted 토큰
+    if (nm < 380) return C.violet;
+    if (nm > 760) return C.muted;
+    let r = 0, g = 0, b = 0;
+    if (nm < 440) { r = (440 - nm) / 60; b = 1; } else if (nm < 490) { g = (nm - 440) / 50; b = 1; }
+    else if (nm < 510) { g = 1; b = (510 - nm) / 20; } else if (nm < 580) { r = (nm - 510) / 70; g = 1; }
+    else if (nm < 645) { r = 1; g = (645 - nm) / 65; } else r = 1;
+    const edge = nm < 420 ? 0.6 + 0.4 * (nm - 380) / 40 : nm > 700 ? 0.6 + 0.4 * (760 - nm) / 60 : 1;
+    const k = isDark() ? 1 : 0.84;                         // 흰 바탕에서는 조금 진하게
+    return 'rgb(' + [r, g, b].map((v) => Math.round(255 * k * Math.pow(v * edge, 0.8))).join(',') + ')';
+  }
+  const bandName = (nm) => (nm < 380 ? '자외선' : nm > 760 ? '적외선' : nm < 425 ? '보라' : nm < 450 ? '남색' : nm < 495 ? '파랑'
+    : nm < 570 ? '초록' : nm < 590 ? '노랑' : nm < 620 ? '주황' : '빨강');
+  const wlPx = (nm) => Math.max(6, Math.min(22, 4 + 9.5 * nm / 700));   // 그림 속 물결 간격: 파장이 짧을수록 촘촘
+  // 광자: (x, y) = 머리, (ux, uy) = 진행 방향
+  function photon(ctx, x, y, ux, uy, col, wl, len = 34, ring = false) {
+    const pts = [];
+    for (let s = -len; s <= 0.01; s += 1.4) {
+      const env = Math.pow(Math.sin(Math.PI * (s + len) / len), 0.7);
+      const a = 4.6 * env * Math.sin(TAU * s / wl);
+      pts.push([x + ux * s - uy * a, y + uy * s + ux * a]);
+    }
+    if (ring) Lab.circle(ctx, x - ux * len * 0.45, y - uy * len * 0.45, len * 0.62, {stroke: C.copper, width: 2.6});
+    if (!isDark()) { ctx.save(); ctx.globalAlpha = 0.3; Lab.line(ctx, pts, C.ink, 4.8); ctx.restore(); }
+    Lab.line(ctx, pts, col, 2.6);
+    const hx = x + ux * 2, hy = y + uy * 2;
+    ctx.beginPath(); ctx.moveTo(hx + ux * 5, hy + uy * 5);
+    ctx.lineTo(hx - ux * 5 - uy * 5, hy - uy * 5 + ux * 5); ctx.lineTo(hx - ux * 5 + uy * 5, hy - uy * 5 - ux * 5);
+    ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+  }
+  // 전자: 파란 공에 (−) 표시. 꼬리(tail)는 속력에 비례
+  function electron(ctx, x, y, col, r = 6.5, tx = 0, ty = 0) {
+    if (tx || ty) { ctx.save(); ctx.globalAlpha = 0.4; Lab.line(ctx, [[x - tx, y - ty], [x, y]], col, 3.4); ctx.restore(); }
+    ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fillStyle = col; ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = C.paper; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x - r * 0.48, y); ctx.lineTo(x + r * 0.48, y); ctx.lineWidth = 2; ctx.stroke();
+  }
+  // 광원: (x, y) 에서 (tx, ty) 쪽을 보는 등
+  function lamp(ctx, x, y, tx, ty, col, on) {
+    const a = Math.atan2(ty - y, tx - x);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+    Lab.rrect(ctx, -26, -13, 30, 26, 6); ctx.fillStyle = C.paper; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.ink; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(5, 0, 5, 12, 0, 0, TAU); ctx.fillStyle = on ? col : C.line; ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.restore();
+  }
+  // 광전관 배치: 유리관(g*), K 원호(가장 깊은 점 kx, 반지름 kR, 반각 kSpan), P 막대(px), 회로(wireY, 전류계 ax, 전지 bx)
+  function tubeGeo(W, H, narrow, top) {
+    const gx = narrow ? 18 : W * 0.2, gw = narrow ? W - 36 : W * 0.64;
+    const gy = top + (narrow ? 104 : 92), gh = narrow ? Math.min(170, H * 0.3) : Math.min(196, H * 0.36);
+    const cy = gy + gh / 2, kR = gh * 0.62, kSpan = 0.62;
+    const kx = gx + (narrow ? 26 : 40), px = gx + gw - (narrow ? 30 : 46);
+    const wireY = gy + gh + (narrow ? 48 : 58);
+    return {gx, gy, gw, gh, cy, kR, kSpan, kx, px, pTop: cy - gh * 0.3, pBot: cy + gh * 0.3, wireY, ax: gx + gw * 0.34, bx: gx + gw + (narrow ? 0 : 18)};
+  }
+  const kPoint = (g, a) => [g.kx + g.kR - g.kR * Math.cos(a), g.cy + g.kR * Math.sin(a)];   // K 표면 위의 점 (a: −kSpan~kSpan)
+  // 광전관 그리기. o = {current 0~1 (전류계 바늘), battery: 'P+' | {V} (전원 장치), label}
+  function drawTube(ctx, g, o) {
+    // 회로 도선
+    const lx = g.gx - 14, rx = g.bx;
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(g.kx - 4, g.cy); ctx.lineTo(lx, g.cy); ctx.lineTo(lx, g.wireY); ctx.lineTo(rx, g.wireY); ctx.lineTo(rx, g.cy); ctx.lineTo(g.px + 3, g.cy); ctx.stroke();
+    ctx.restore();
+    // 유리관
+    ctx.save(); Lab.rrect(ctx, g.gx, g.gy, g.gw, g.gh, g.gh / 2);
+    ctx.fillStyle = C['line-soft']; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.lineWidth = 2; ctx.strokeStyle = C.muted; ctx.stroke(); ctx.restore();
+    text(ctx, '진공 유리관', g.gx + g.gh * 0.42, g.gy - 11, {size: 13, w: 500, color: C.muted, align: 'left'});
+    // K: 오목한 금속판
+    ctx.save(); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(g.kx + g.kR, g.cy, g.kR, Math.PI - g.kSpan, Math.PI + g.kSpan);
+    ctx.lineWidth = 10; ctx.strokeStyle = C.muted; ctx.stroke();
+    ctx.beginPath(); ctx.arc(g.kx + g.kR, g.cy, g.kR - 3.5, Math.PI - g.kSpan * 0.92, Math.PI + g.kSpan * 0.92);
+    ctx.lineWidth = 2; ctx.strokeStyle = C.paper; ctx.globalAlpha = 0.55; ctx.stroke();
+    ctx.restore();
+    const [kbx, kby] = kPoint(g, g.kSpan);
+    text(ctx, 'K', kbx + 2, kby + 16, {size: 15, w: 700, align: 'left'});
+    text(ctx, o.label || '금속판', kbx + 16, kby + 16, {size: 13, w: 500, color: C.muted, align: 'left'});
+    // P: 전극
+    ctx.fillStyle = C.ink; ctx.fillRect(g.px - 3.5, g.pTop, 7, g.pBot - g.pTop);
+    text(ctx, 'P', g.px, g.pTop - 14, {size: 15, w: 700});
+    // 전류계
+    const ar = 21, ax = g.ax, ay = g.wireY;
+    Lab.circle(ctx, ax, ay, ar, {fill: C.paper, stroke: C.ink, width: 2});
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(ax, ay + 3, ar - 6, -Math.PI * 0.82, -Math.PI * 0.18); ctx.stroke(); ctx.restore();
+    const na = -Math.PI / 2 + (-0.62 + 1.24 * Math.max(0, Math.min(1, o.current))) * 1.0;
+    Lab.line(ctx, [[ax, ay + 3], [ax + Math.cos(na) * (ar - 5), ay + 3 + Math.sin(na) * (ar - 5)]], C.acc, 2.6);
+    Lab.circle(ctx, ax, ay + 3, 2.6, {fill: C.ink});
+    text(ctx, 'A', ax, ay + 13, {size: 13, w: 700});
+    // 광전류 화살표 (바깥 도선: 전자와 반대 방향)
+    if (o.current > 0.01) {
+      const x0 = ax + ar + 14, x1 = Math.min(x0 + 74, rx - 26);
+      arrow(ctx, x0, ay, x1, ay, C.acc, 3, 10);
+      text(ctx, '광전류', (x0 + x1) / 2, ay + 17, {size: 13, color: C.acc, w: 700});
+    }
+    // 전지(P 쪽이 +) 또는 전원 장치
+    const by = (g.cy + g.wireY) / 2 + 4;
+    if (o.battery === 'P+') {
+      ctx.save(); ctx.fillStyle = C.paper; ctx.fillRect(rx - 16, by - 9, 32, 18); ctx.restore();
+      Lab.line(ctx, [[rx - 15, by - 6], [rx + 15, by - 6]], C.ink, 2.4);
+      Lab.line(ctx, [[rx - 8, by + 5], [rx + 8, by + 5]], C.ink, 5);
+      text(ctx, '+', rx + 22, by - 8, {size: 14, w: 700, color: C.force, align: 'left'});
+      text(ctx, '−', rx + 22, by + 7, {size: 14, w: 700, color: C.vel, align: 'left'});
+    }
+  }
+
+  /*__PART_B__*/
+})();
+</script>
+</body>
+</html>
