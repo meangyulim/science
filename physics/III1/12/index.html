@@ -560,8 +560,8 @@
     for (let i = 100; i >= 0; i--) { const x = x0 + Ls * i / 100; ctx.lineTo(x, ys + 2 * A * Math.sin(k * (x - x0))); }
     ctx.closePath(); ctx.fill(); ctx.restore();
     const f1 = (u) => Math.sin(PI * u - w), f2 = (u) => Math.sin(PI * u + w);
-    wavePlot(ctx, x0, x1, ys, A, f1, C.violet, 2.2, [6, 6]);
-    ctx.save(); ctx.lineDashOffset = 6; wavePlot(ctx, x0, x1, ys, A, f2, C.vel, 2.2, [6, 6]); ctx.restore();
+    wavePlot(ctx, x0, x1, ys, A, f1, C.violet, 2.6, [6, 6]);
+    ctx.save(); ctx.lineDashOffset = 6; wavePlot(ctx, x0, x1, ys, A, f2, C.vel, 2.6, [6, 6]); ctx.restore();
     wavePlot(ctx, x0, x1, ys, A, (u) => f1(u) + f2(u), C.ink, 3.4);
     [x0, x1].forEach((x) => { ctx.save(); ctx.fillStyle = C.ink; ctx.fillRect(x - 4, ys - 26, 8, 52); ctx.restore(); });
     text(ctx, '줄', x0 + 14, ys + 2 * A + 16, {size: 13.5, w: 700, color: C.ink, align: 'left'});
@@ -676,7 +676,7 @@
     ['0', 'T', '2T'].forEach((s, k) => text(ctx, s, T(k), r.y + r.h + 13, {size: 13, w: 500, color: C.muted, mono: true}));
     const f1 = (t) => M.wave(a, g.lam, t), f2 = (t) => M.wave(b, g.lam, t), fs = (t) => f1(t) + f2(t);
     const plot = (f, col, w, dash) => { const pts = []; for (let i = 0; i <= 240; i++) { const t = 2 * i / 240; pts.push([T(t), Y(f(t))]); } Lab.line(ctx, pts, col, w, dash); };
-    plot(f1, C.violet, 2.4, [6, 6]); ctx.save(); ctx.lineDashOffset = 6; plot(f2, C.vel, 2.4, [6, 6]); ctx.restore(); plot(fs, C.ink, 3);
+    plot(f1, C.violet, 2.6, [6, 6]); ctx.save(); ctx.lineDashOffset = 6; plot(f2, C.vel, 2.6, [6, 6]); ctx.restore(); plot(fs, C.ink, 3);
     [S.tau, S.tau + 1].forEach((t, i) => { ctx.save(); ctx.globalAlpha = i ? 0.4 : 1; Lab.line(ctx, [[T(t), r.y - 4], [T(t), r.y + r.h]], C.copper, 1.6); ctx.restore(); });
     Lab.circle(ctx, T(S.tau), Y(fs(S.tau)), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
   }
@@ -692,7 +692,7 @@
       Lab.line(ctx, [[x0, yb], [x1, yb]], C.line, 1);
       const f1 = (x) => Math.sin(TAU * ((x - x0) / per - S.tau)), f2 = (x) => Math.sin(TAU * ((x - x0) / per - S.tau) - dlt);
       const pl = (f, col, w, dash) => { const pts = []; for (let i = 0; i <= 200; i++) { const x = x0 + (x1 - x0) * i / 200; pts.push([x, yb - amp * f(x)]); } Lab.line(ctx, pts, col, w, dash); };
-      pl(f1, C.violet, 2.2, [6, 6]); ctx.save(); ctx.lineDashOffset = 6; pl(f2, C.vel, 2.2, [6, 6]); ctx.restore();
+      pl(f1, C.violet, 2.6, [6, 6]); ctx.save(); ctx.lineDashOffset = 6; pl(f2, C.vel, 2.6, [6, 6]); ctx.restore();
       pl((x) => f1(x) + f2(x), C.ink, 2.8);
       const say = S.scene === 'coat' ? {con: '같은 위상 → 반사 강해짐', des: '반대 위상 → 상쇄, 반사 줄어듦', mid: '어긋남 → 반사 조금 줄어듦'} : {con: '같은 위상 → 보강 (밝게)', des: '반대 위상 → 상쇄 (안 보임)', mid: '어긋남 → 조금 약해짐'};
       text(ctx, say[pj], x1, y0 + 12, {size: 13.5, w: 700, color: jCol(pj), align: 'right'});

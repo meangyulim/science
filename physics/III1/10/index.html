@@ -442,7 +442,7 @@
       }
       text(ctx, 't (s)', r.x + r.w, r.y + r.h - 12, {size: 13, w: 600, color: C.muted, align: 'right'});
       const fa = (tt) => M.pulseY(S.xP, tt, ps[0]), fb = (tt) => M.pulseY(S.xP, tt, ps[1]), fs = (tt) => fa(tt) + fb(tt);
-      plot(fa, 0, te, T, Y, C.violet, 2.2, [6, 4]); plot(fb, 0, te, T, Y, C.vel, 2.2, [6, 4]);
+      plot(fa, 0, te, T, Y, C.violet, 2.6, [6, 5]); ctx.save(); ctx.lineDashOffset = 5; plot(fb, 0, te, T, Y, C.vel, 2.6, [6, 5]); ctx.restore();
       plot(fs, 0, S.t, T, Y, C.ink, 3); plot(fs, S.t, te, T, Y, C.ink, 3, null, 0.3);
       ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(T(S.t), r.y - 4); ctx.lineTo(T(S.t), r.y + r.h); ctx.stroke(); ctx.restore();
       Lab.circle(ctx, T(S.t), Y(fs(S.t)), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
@@ -460,7 +460,7 @@
       }
       text(ctx, 't', r.x + r.w + 4, Y(0) + 14, {size: 13, w: 600, color: C.muted, align: 'right'});
       const fa = (tt) => M.waveR(S.xP, tt, s), fb = (tt) => M.waveL(S.xP, tt, s), fs = (tt) => fa(tt) + fb(tt);
-      if (S.comps) { plot(fa, 0, 2, T, Y, C.violet, 2.4, [6, 6]); ctx.save(); ctx.lineDashOffset = 6; plot(fb, 0, 2, T, Y, C.vel, 2.4, [6, 6]); ctx.restore(); }
+      if (S.comps) { plot(fa, 0, 2, T, Y, C.violet, 2.6, [6, 6]); ctx.save(); ctx.lineDashOffset = 6; plot(fb, 0, 2, T, Y, C.vel, 2.6, [6, 6]); ctx.restore(); }
       plot(fs, 0, 2, T, Y, C.ink, 3);
       // 배라면 변위 0 인 순간에 표시
       if (kd !== 'node') for (const z of [0.25, 0.75, 1.25, 1.75]) Lab.circle(ctx, T(z), Y(0), 4.5, {fill: C.paper, stroke: C.ink, width: 2});
@@ -494,7 +494,7 @@
         ps.forEach((p, i) => {
           const c = M.center(p, tt), pts = [];
           for (let j = 0; j <= 40; j++) { const x = c - p.w / 2 + p.w * j / 40; pts.push([X(x), Y(M.pulseY(x, tt, p))]); }
-          Lab.line(ctx, pts, i ? C.vel : C.violet, 2, [5, 4]);
+          Lab.line(ctx, pts, i ? C.vel : C.violet, 2.4, [5, 4]);
         });
         const pts = []; for (let j = 0; j <= 240; j++) { const x = L * j / 240; pts.push([X(x), Y(M.sumY(x, tt, ps))]); }
         Lab.line(ctx, pts, C.ink, 2.8);
@@ -517,7 +517,7 @@
         if (note) text(ctx, note, 8, y0 + rh / 2 + 10, {size: 13, w: 500, align: 'left', color: C.muted});
         ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(0), yb); ctx.lineTo(X(L), yb); ctx.stroke(); ctx.restore();
         const ln = (f, col, w, dash) => { const pts = []; for (let j = 0; j <= 200; j++) { const x = L * j / 200; pts.push([X(x), Y(f(x))]); } Lab.line(ctx, pts, col, w, dash); };
-        ln((x) => M.waveR(x, tt, s), C.violet, 2, [5, 5]); ctx.save(); ctx.lineDashOffset = 5; ln((x) => M.waveL(x, tt, s), C.vel, 2, [5, 5]); ctx.restore();
+        ln((x) => M.waveR(x, tt, s), C.violet, 2.4, [5, 5]); ctx.save(); ctx.lineDashOffset = 5; ln((x) => M.waveL(x, tt, s), C.vel, 2.4, [5, 5]); ctx.restore();
         ln((x) => M.standing(x, tt, s), C.ink, 2.8);
         M.nodes(s, 0, L).forEach((x) => Lab.circle(ctx, X(x), yb, 4, {fill: C.paper, stroke: C.neg, width: 2}));
       });

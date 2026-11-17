@@ -271,7 +271,7 @@
     const one = (D, col, dash) => {
       const pts = [];
       for (let i = 0; i <= 160; i++) { const y = g.yMin + (g.yMax - g.yMin) * i / 160; pts.push([g.X(M.xOnLine(D, d, y)), g.Y(y)]); }
-      haloLine(ctx, pts, col, 2.4, dash);
+      haloLine(ctx, pts, col, 2.6, dash);
     };
     L.con.forEach((D) => { one(D, C.acc); if (D > 0) one(-D, C.acc); });
     L.des.forEach((D) => { one(D, C.neg, [8, 6]); if (D > 0) one(-D, C.neg, [8, 6]); });
@@ -404,7 +404,7 @@
     const ph = S.opp ? PI : 0, f1 = (t) => M.wave(a, l, t), f2 = (t) => M.wave(b, l, t, ph), fs = (t) => f1(t) + f2(t);
     const plot = (f, col, w, dash) => { const pts = []; for (let i = 0; i <= 240; i++) { const t = 2 * i / 240; pts.push([T(t), Y(f(t))]); } Lab.line(ctx, pts, col, w, dash); };
     // 두 점선이 꼭 겹쳐도(같은 위상) 두 색이 번갈아 보이게 점선 시작을 엇갈린다
-    plot(f1, C.violet, 2.4, [6, 6]); ctx.save(); ctx.lineDashOffset = 6; plot(f2, C.vel, 2.4, [6, 6]); ctx.restore(); plot(fs, C.ink, 3);
+    plot(f1, C.violet, 2.6, [6, 6]); ctx.save(); ctx.lineDashOffset = 6; plot(f2, C.vel, 2.6, [6, 6]); ctx.restore(); plot(fs, C.ink, 3);
     [S.tau, S.tau + 1].forEach((t, i) => {
       ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.6; ctx.globalAlpha = i ? 0.4 : 1;
       ctx.beginPath(); ctx.moveTo(T(t), r.y - 4); ctx.lineTo(T(t), r.y + r.h); ctx.stroke(); ctx.restore();
@@ -429,10 +429,9 @@
       Lab.line(ctx, [[X(-d / 2), yl], [X(d / 2), yl]], C.ink, 2.4);
       const sp = (l / 4) / (d / 2) * (W / 2 - pad);           // 이웃한 두 점(보강·상쇄) 사이 px
       const all = [...pts.con.map((s) => [s, 'con']), ...pts.des.map((s) => [s, 'des'])];
-      const midKind = S.opp ? 'des' : 'con';
       all.forEach(([s, k]) => {
         mark(ctx, X(s), yl, k, 7);
-        const show = sp >= 38 || (sp * 2 >= 38 && k === midKind) || Math.abs(s) < 1e-9;
+        const show = sp >= 38 || (sp * 2 >= 38 && k === 'des') || Math.abs(s) < 1e-9;   // 좁으면 상쇄점(세는 대상)에만
         if (show) text(ctx, fl(2 * Math.abs(s) / l), X(s), yl - 20, {size: 13, w: 700, color: k === 'con' ? C.acc : C.neg});
       });
       [[-d / 2, 'S₁'], [d / 2, 'S₂']].forEach(([s, nm]) => { Lab.circle(ctx, X(s), yl, 7, {fill: C.ink}); text(ctx, nm, X(s), yl + 20, {size: 14, w: 700}); });
