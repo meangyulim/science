@@ -14,6 +14,7 @@
 #map{aspect-ratio:10/7.4}
 .pill i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
 #mUse{margin:0 0 10px;font-size:21px;font-weight:800;line-height:1.35}
+@media (max-width:980px){ #map{aspect-ratio:10/10.4} }
 @media (max-width:640px){ #stage{aspect-ratio:1/1.48} .ro b{font-size:17px} }
 </style>
 </head>
@@ -219,7 +220,7 @@
   }
   const lbl = (ctx, s, x, y, o = {}) => text(ctx, s, x, y, Object.assign({size: 13, w: 700, halo: true}, o));
   // 파동 묶음(광자처럼 그림): 중심 (x,y), 진행 방향 (ux,uy)
-  function packet(ctx, x, y, ux, uy, len, lp, a, col, w = 2.4) {
+  function packet(ctx, x, y, ux, uy, len, lp, a, col, w = 2.6) {
     const nx = -uy, ny = ux, n = Math.max(12, Math.round(len / 2));
     ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.beginPath();
     for (let i = 0; i <= n; i++) {
@@ -238,7 +239,7 @@
       const a = Math.max(0, Math.min(1, s / 24, (L - s) / 24));
       if (a <= 0.02) continue;
       ctx.save(); ctx.globalAlpha = a * (o.alpha || 1);
-      packet(ctx, ax + ux * s, ay + uy * s, ux, uy, len, o.lp || 8, o.amp || 4, o.col, o.w || 2.4);
+      packet(ctx, ax + ux * s, ay + uy * s, ux, uy, len, o.lp || 8, o.amp || 4, o.col, o.w || 2.6);
       ctx.restore();
     }
   }
@@ -339,7 +340,7 @@
     // X선 발생 장치와 부채꼴 빔
     rr(ctx, bxL - 20, ty + 4, 40, 16, 4, C.ink);
     ctx.save(); ctx.fillStyle = AL(C.violet, 0.14); ctx.beginPath(); ctx.moveTo(bxL, ty + 20); ctx.lineTo(bxL - 16, by); ctx.lineTo(bxL + 16, by); ctx.closePath(); ctx.fill(); ctx.restore();
-    [-12, 0, 12].forEach((dx, i) => flow(ctx, bxL + dx * 0.15, ty + 22, bxL + dx, by - 2, t + i * 0.2, {col: C.violet, lp: 6, amp: 3, len: 20, gap: 44, speed: 120, w: 2.2}));
+    [-12, 0, 12].forEach((dx, i) => flow(ctx, bxL + dx * 0.15, ty + 22, bxL + dx, by - 2, t + i * 0.2, {col: C.violet, lp: 6, amp: 3, len: 20, gap: 44, speed: 120, w: 2.6}));
     ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(bxL - 18, by + 3); ctx.lineTo(bxL + 18, by + 3); ctx.stroke(); ctx.restore();
     lbl(ctx, 'X선 발생 장치', bxL, ty - 10, {color: C.violet, size: 14});
     if (!nar) lbl(ctx, '검출기', bxL, by + 26, {color: C.copper});
@@ -401,7 +402,7 @@
     handShape(ctx, hx, hy, s, 'soft', AL(C.neg, 0.28));
     rr(ctx, R.x + lw / 2 - 22, tubeY, 44, 16, 4, C.ink);
     ctx.save(); ctx.fillStyle = AL(C.violet, 0.1); ctx.beginPath(); ctx.moveTo(R.x + lw / 2, tubeY + 16); ctx.lineTo(hx - s * 0.15, plateY); ctx.lineTo(hx + s * 1.15, plateY); ctx.closePath(); ctx.fill(); ctx.restore();
-    for (let i = 0; i < 5; i++) { const xx = lerp(hx - s * 0.05, hx + s * 1.05, i / 4); flow(ctx, R.x + lw / 2 + (xx - R.x - lw / 2) * 0.08, tubeY + 18, xx, plateY - 4, t + i * 0.17, {col: C.violet, lp: 6, amp: 3, len: 18, gap: 48, speed: 110, w: 2}); }
+    for (let i = 0; i < 5; i++) { const xx = lerp(hx - s * 0.05, hx + s * 1.05, i / 4); flow(ctx, R.x + lw / 2 + (xx - R.x - lw / 2) * 0.08, tubeY + 18, xx, plateY - 4, t + i * 0.17, {col: C.violet, lp: 6, amp: 3, len: 18, gap: 48, speed: 110, w: 2.6}); }
     lbl(ctx, 'X선', R.x + lw / 2 + 30, tubeY + 8, {align: 'left', color: C.violet, size: 14});
     if (!nar) lbl(ctx, '검출판 (필름)', hx + s * 0.5, plateY + 16, {w: 600, color: C.muted});
     // 필름
@@ -472,7 +473,7 @@
     let alive = 0;
     BUGS.forEach((b, i) => {
       const x = cx0 + cw * b.x, y = cy0 + 34 + (ch - 70) * b.y, on = cyc < b.die;
-      if (on) { alive++; flow(ctx, x, ly + 10, x, y - 8, t + i * 0.3, {col: C.violet, lp: 6, amp: 3, len: 16, gap: 46, speed: 120, w: 2}); }
+      if (on) { alive++; flow(ctx, x, ly + 10, x, y - 8, t + i * 0.3, {col: C.violet, lp: 6, amp: 3, len: 16, gap: 46, speed: 120, w: 2.6}); }
       bug(ctx, x, y, b.a, L, on, t, b.ph, i === HL ? C.copper : null);
     });
     lbl(ctx, '살아 있는 세균 ' + alive + ' / ' + BUGS.length, cx0 + cw / 2, cy0 + ch - 10, {size: 14, color: alive ? C.acc : C.muted});
@@ -519,12 +520,12 @@
     const nw = nar ? bw * 0.42 : bw * 0.3, nh = nw * 0.5, ny = by0 + bh * (nar ? 0.42 : 0.46);
     const n1 = bx + bw * (nar ? 0.05 : 0.12), n2 = bx + bw * (nar ? 0.53 : 0.58);
     const glow = 0.75 + 0.25 * Math.sin(t * 2.4);
-    [n1, n2].forEach((nx, j) => [0.2, 0.5, 0.8].forEach((k, i) => flow(ctx, nx + nw * k, lyy + 10, nx + nw * k, ny - 4, t + i * 0.3 + j * 0.15, {col: C.violet, lp: 6, amp: 3, len: 18, gap: 50, speed: 110, w: 2})));
+    [n1, n2].forEach((nx, j) => [0.2, 0.5, 0.8].forEach((k, i) => flow(ctx, nx + nw * k, lyy + 10, nx + nw * k, ny - 4, t + i * 0.3 + j * 0.15, {col: C.violet, lp: 6, amp: 3, len: 18, gap: 50, speed: 110, w: 2.6})));
     note(ctx, n1, ny, nw, nh, true, glow, t);
     note(ctx, n2, ny, nw, nh, false, 0, t);
     // 형광으로 나오는 가시광선 (초록)
     const sx = n1 + nw * 0.73, sy = ny + nh * 0.5;
-    [-2.3, -1.6, -0.9].forEach((a, i) => { const L2 = nh * 1.1; flow(ctx, sx + Math.cos(a) * nh * 0.3, sy + Math.sin(a) * nh * 0.3, sx + Math.cos(a) * L2, sy + Math.sin(a) * L2, t + i * 0.2, {col: visRGB(520), lp: 11, amp: 3.5, len: 20, gap: 42, speed: 60, w: 2.4}); });
+    [-2.3, -1.6, -0.9].forEach((a, i) => { const L2 = nh * 1.1; flow(ctx, sx + Math.cos(a) * nh * 0.3, sy + Math.sin(a) * nh * 0.3, sx + Math.cos(a) * L2, sy + Math.sin(a) * L2, t + i * 0.2, {col: visRGB(520), lp: 11, amp: 3.5, len: 20, gap: 42, speed: 60, w: 2.6}); });
     circ(ctx, sx, sy, nh * 0.3, null, C.copper, 2.2);
     const ly = ny + nh + 24;
     lbl(ctx, nar ? '진짜: 빛난다' : '진짜: 형광 무늬가 빛난다', n1 + nw / 2, ly, {color: visRGB(530), halo: filmBg(), size: 14});
@@ -546,7 +547,7 @@
     // 입사 백색광
     const ein = {x: lerp(B.x, A.x, 0.52), y: lerp(B.y, A.y, 0.52)};
     ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = AL(C.muted, 0.4); ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(lx + 16, ly); ctx.lineTo(ein.x, ein.y); ctx.stroke(); ctx.restore();
-    flow(ctx, lx + 18, ly, ein.x, ein.y, t, {col: C.ink, lp: 9, amp: 3.5, len: 24, gap: 52, speed: 90, w: 2.2});
+    flow(ctx, lx + 18, ly, ein.x, ein.y, t, {col: C.ink, lp: 9, amp: 3.5, len: 24, gap: 52, speed: 90, w: 2.6});
     // 프리즘
     ctx.save(); ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(Cc.x, Cc.y); ctx.closePath(); ctx.fillStyle = AL(C.vel, 0.12); ctx.fill(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
     lbl(ctx, nar ? '프리즘' : '프리즘 (광학 기기)', pc.x, B.y + 20, {size: 14, color: C.vel});
@@ -557,7 +558,7 @@
       const ex = {x: lerp(A.x, Cc.x, 0.42 + 0.14 * k), y: lerp(A.y, Cc.y, 0.42 + 0.14 * k)};
       const sy = lerp(sy0 + 8, sy1 - 8, k), col = visRGB(nm);
       ctx.save(); ctx.strokeStyle = visRGB(nm, 0.5); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ein.x, ein.y); ctx.lineTo(ex.x, ex.y); ctx.lineTo(sx, sy); ctx.stroke(); ctx.restore();
-      flow(ctx, ex.x, ex.y, sx, sy, t + i * 0.07, {col, lp: 7 + nm / 100, amp: 3, len: 20, gap: 64, speed: 90, w: 2.2});
+      flow(ctx, ex.x, ex.y, sx, sy, t + i * 0.07, {col, lp: 7 + nm / 100, amp: 3, len: 20, gap: 64, speed: 90, w: 2.6});
     });
     // 스크린의 무지개
     const gr = ctx.createLinearGradient(0, sy0, 0, sy1);
@@ -602,7 +603,7 @@
     // 각 물체가 내는 적외선 (온도가 높을수록 많이)
     objs.forEach((o, i) => {
       const oy = gy - o.h * 0.55, gap = 120 / M.irPower(o.T);
-      flow(ctx, o.x + (o.kind === 'person' ? o.h * 0.1 : o.h * 0.4), oy, camX - 26, camY, t + i * 0.37, {col: C.neg, lp: 13, amp: 4, len: 26, gap, speed: 80, w: 2.4});
+      flow(ctx, o.x + (o.kind === 'person' ? o.h * 0.1 : o.h * 0.4), oy, camX - 26, camY, t + i * 0.37, {col: C.neg, lp: 13, amp: 4, len: 26, gap, speed: 80, w: 2.6});
     });
     person(ctx, objs[0].x, gy, objs[0].h, AL(C.ink, 0.75));
     mug(ctx, objs[1].x, gy, objs[1].h, AL(C.ink, 0.75), C.copper);
@@ -920,19 +921,20 @@
   function drawMap() {
     const {ctx, W, H} = map; if (!W) return;
     ctx.clearRect(0, 0, W, H);
-    const nar = W < 400, top = 34, rh = (H - top - 4) / 7, nameW = nar ? 72 : 84, bx0 = 8 + nameW, bx1 = W * (nar ? 0.55 : 0.6), kx = bx1 + 12;
+    const nar = W < 400, top = 34, rh = (H - top - 4) / 7, nameW = nar ? 72 : 84, bx0 = 8 + nameW, bx1 = nar ? W - 10 : W * 0.6, kx = nar ? bx0 : bx1 + 12;
     const LX = (l) => bx0 + (l + 14) / 18 * (bx1 - bx0);
     text(ctx, '진동수 큰 순서 ↓', 6, 11, {size: 13, w: 700, color: C.muted, align: 'left'});
-    text(ctx, '성질', kx, 11, {size: 13, w: 700, color: C.muted, align: 'left'});
+    if (!nar) text(ctx, '성질', kx, 11, {size: 13, w: 700, color: C.muted, align: 'left'});
+    else text(ctx, '파장 (로그)', W - 8, 11, {size: 13, w: 700, color: C.muted, align: 'right'});
     [-12, -9, -6, -3, 0, 3].forEach((l) => {
       const x = LX(l);
       ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, top - 4); ctx.lineTo(x, H - 4); ctx.stroke(); ctx.restore();
-      const s = {'-12': '1 pm', '-6': '1 μm', 0: '1 m'}[l];
+      const s = (nar ? {'-12': '1 pm', '-9': '1 nm', '-6': '1 μm', '-3': '1 mm', 0: '1 m', 3: '1 km'} : {'-12': '1 pm', '-6': '1 μm', 0: '1 m'})[l];
       if (s) text(ctx, s, x, 27, {size: 13, w: 500, color: C.muted, mono: true});
     });
     MG = {top, rh};
     M.REGIONS.forEach((r, i) => {
-      const y = top + i * rh, cy = y + rh / 2, on = r.id === S.reg;
+      const y = top + i * rh, on = r.id === S.reg, cy = nar ? y + rh * 0.34 : y + rh / 2;
       if (on) rr(ctx, 1, y + 1, W - 2, rh - 2, 8, C['copper-soft']);
       text(ctx, r.name, 8, cy, {size: 14, w: 700, align: 'left', color: on ? C.copper : C.ink});
       const a = LX(Math.max(-14, r.lam[0] > 0 ? Math.log10(r.lam[0]) : -14)), z = LX(Math.min(4, isFinite(r.lam[1]) ? Math.log10(r.lam[1]) : 4));
@@ -940,7 +942,7 @@
       else ctx.fillStyle = tint(r.id, 1.6);
       ctx.fillRect(a, cy - 7, Math.max(3, z - a), 14);
       circ(ctx, LX(Math.log10(r.rep)), cy, 4, on ? C.copper : C.ink);
-      text(ctx, KEY[r.id], kx, cy, {size: 13, w: on ? 700 : 500, align: 'left', color: on ? C.ink : C.muted});
+      text(ctx, KEY[r.id], kx, nar ? y + rh * 0.74 : cy, {size: 13, w: on ? 700 : 500, align: 'left', color: on ? C.ink : C.muted});
     });
   }
 
@@ -1019,7 +1021,9 @@
     opts.forEach((o) => o.setAttribute('aria-pressed', String(o.dataset.pick === u.region)));
     const fb = $('mFb');
     fb.className = 'check' + (ok ? ' ok' : '');
-    fb.textContent = (ok ? '✓ 정답! ' : '✗ ' + regName(pick) + '이(가) 아니라 ' + regName(u.region) + '. ') + u.why;
+    const jo = (w) => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c < 11172 && c % 28 ? '이' : '가'; };
+    const pn = pick === 'none' ? '‘전자기파 아님’' : regName(pick);
+    fb.textContent = (ok ? '✓ 정답! ' : '✗ ' + pn + (pick === 'none' ? '이' : jo(pn)) + ' 아니라 ' + regName(u.region) + '. ') + u.why;
     $('mScore').textContent = '맞힌 수 ' + Q.right + ' / ' + Q.tried;
     const sc = USE_SCENE[u.use]; if (sc) setScene(sc[0], sc[1]);
   }));

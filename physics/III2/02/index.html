@@ -200,7 +200,7 @@
   const cur = () => (S.scene === 'two' ? S.L[S.sel] : S.scene === 'tube' ? S.one : S.sc);
 
   // ── 공통 그림 (III2-01·02·03 같은 모양): 빛의 색, 광자, 전자, 광전관 ──────────
-  const isDark = () => { const p = C.paper || '#ffffff'; return p[0] === '#' && parseInt(p.slice(1, 3), 16) < 128; };
+  const isDark = () => { const p = C.paper || ''; return p[0] === '#' && parseInt(p.slice(1, 3), 16) < 128; };
   function wlColor(nm) {                                   // 파장(nm) → 빛의 색. 자외선 = violet, 적외선 = muted 토큰
     if (nm < 380) return C.violet;
     if (nm > 760) return C.muted;
@@ -500,10 +500,10 @@
     }
     text(ctx, '쌓임', x0 - 8, gy + gh / 2, {size: 13, w: 600, color: C.muted, align: 'right'});
     ctx.lineWidth = 1.2; ctx.strokeStyle = C.line; ctx.strokeRect(x0, gy, x1 - x0, gh);
-    text(ctx, P > 0 ? `${fmt(wt.delay, 1)} s 뒤 W에 닿아 방출 예상 · 진동수 무관` : '빛이 없으면 쌓이지 않는다', x0, gy + gh + 14, {size: 13, w: 500, color: C.muted, align: 'left'});
+    text(ctx, P > 0 ? `${fmt(wt.delay, 1)} s 뒤 W에 닿아 방출 예상 · 진동수 무관` : '빛이 없으면 쌓이지 않는다', x0, gy + gh + 14, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
     // 실제: 광자 1개의 에너지 hf 를 한 번에
     const y2 = oy + 86;
-    text(ctx, '실제 (광자 1개씩, 한 번에 hf)', 12, y2, {size: 14, w: 700, color: C.acc, align: 'left'});
+    text(ctx, '실제 (광자 1개씩, 한 번에 hf)', 12, y2, {size: 14, w: 700, color: C.acc, align: 'left', halo: true});
     let by = y2 + 14;
     const bh = 18;
     if (!Ls.length) { text(ctx, '빛을 켜 보세요', x0, by + 10, {size: 13, w: 500, color: C.muted, align: 'left'}); by += bh + 8; }
@@ -573,15 +573,15 @@
         }
         Ls.forEach((L) => {
           const o = M.one({...L, on: true}, Wm), yv = k === 1 ? (o.emits ? o.kmax : 0) : o.rate;
-          dot(ctx, A.X(L.I * 100), A.Y(yv), L, L === sel);
+          dot(ctx, A.X(L.I * 100), A.Y(yv), L, L === sel, L.I > 0.85);
         });
       }
     }
   }
-  function dot(ctx, x, y, L, isSel) {
+  function dot(ctx, x, y, L, isSel, flip) {
     if (isSel) Lab.circle(ctx, x, y, 10, {stroke: C.copper, width: 2.6});
     Lab.circle(ctx, x, y, 6, {fill: lightCol(L), stroke: C.paper, width: 1.6});
-    if (S.scene === 'two') text(ctx, L.id, x + 13, y - 11, {size: 13, w: 700, align: 'left', halo: true, color: L.on ? C.ink : C.muted});
+    if (S.scene === 'two') text(ctx, L.id, x + (flip ? -13 : 13), y - 12, {size: 13, w: 700, align: flip ? 'right' : 'left', halo: true, color: L.on ? C.ink : C.muted});
   }
 
   function draw() { drawStage(); drawCmp(); drawFacts(); }

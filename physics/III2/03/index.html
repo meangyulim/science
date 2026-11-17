@@ -36,7 +36,7 @@
         <div class="legend">
           <span><b style="background:var(--violet)"></b>광자 hf</span>
           <span><i style="background:var(--vel)"></i>광전자</span>
-          <span><i style="background:var(--copper)"></i>가장 빠른 광전자 (E<sub>k,max</sub>)</span>
+          <span><i style="background:var(--copper)"></i>가장 빠른 광전자</span>
           <span><b style="background:var(--force)"></b>전기력</span>
         </div>
       </div>
@@ -185,7 +185,7 @@
   const nm = () => M.lambdaNm(S.E);
 
   // ── 공통 그림 (III2-01·02·03 같은 모양): 빛의 색, 광자, 전자, 광전관 ──────────
-  const isDark = () => { const p = C.paper || '#ffffff'; return p[0] === '#' && parseInt(p.slice(1, 3), 16) < 128; };
+  const isDark = () => { const p = C.paper || ''; return p[0] === '#' && parseInt(p.slice(1, 3), 16) < 128; };
   function wlColor(nm) {                                   // 파장(nm) → 빛의 색. 자외선 = violet, 적외선 = muted 토큰
     if (nm < 380) return C.violet;
     if (nm > 760) return C.muted;
@@ -292,7 +292,7 @@
 
   // ── 무대: 광자 → 전자, 전압이 만드는 에너지 언덕 ──────────
   const stage = Lab.canvas('stage', draw), led = Lab.canvas('led', draw), kf = Lab.canvas('kf', draw), iv = Lab.canvas('iv', draw);
-  const PR = 16;                                   // 세기 100 % 일 때 1초에 K 에 닿는 광자 수 (그림)
+  const PR = 12;                                   // 세기 100 % 일 때 1초에 K 에 닿는 광자 수 (그림)
   let photons = [], electrons = [], flashes = [], acc = 0, gold = null, goldT = 1.6, meter = 0, warmed = false, lastWH = '', clock = 0;
   const vStr = (v) => (Math.abs(v) < 0.05 ? '0.0' : (v < 0 ? '−' : '+') + Math.abs(v).toFixed(1)) + ' V';
   function geom() {
@@ -381,7 +381,7 @@
     if (ok && S.V < 0 && K <= -S.V + 1e-9) {
       const x0 = kPoint(g, 0)[0] + 3, xt = x0 + (g.px - 7 - x0) * Math.max(0, K) / -S.V;
       Lab.line(ctx, [[xt, g.cy - 15], [xt, g.cy + 15]], C.copper, 2.4);
-      text(ctx, Math.abs(K + S.V) < 0.05 ? 'P 바로 앞에서 멈춤' : '여기서 되돌아감', xt, g.cy + 27, {size: 13, w: 700, color: C.copper, halo: true, align: xt > g.px - 80 ? 'right' : 'center'});
+      text(ctx, Math.abs(K + S.V) < 0.05 ? 'P 바로 앞에서 멈춤' : '여기서 되돌아감', xt - (xt > g.px - 80 ? 10 : 0), g.cy - 30, {size: 13.5, w: 700, color: C.copper, halo: true, align: xt > g.px - 80 ? 'right' : 'center'});
     }
     for (const f of flashes) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - f.t / 0.4); Lab.circle(ctx, f.x, f.y, 4 + 11 * f.t / 0.4, {stroke: col, width: 2.2}); ctx.restore(); }
     for (const e of electrons) {
@@ -390,7 +390,9 @@
       electron(ctx, x, y, e.gold ? C.copper : C.vel, e.gold ? 8 : 6.5, ux * tl, uy * tl);
       if (e.gold) {
         if (Math.abs(S.V) >= 0.1) arrow(ctx, x + (S.V < 0 ? -11 : 11), y, x + (S.V < 0 ? -40 : 40), y, C.force, 3, 9);
-        text(ctx, '가장 빠른 전자', x, y - 20, {size: 13, w: 700, color: C.copper, halo: true});
+        const ly2 = g.gy + g.gh - 16;
+        Lab.line(ctx, [[x, y + 10], [x, ly2 - 9]], C.copper, 1.4);
+        text(ctx, '가장 빠른 전자 (E_k,max)', x, ly2, {size: 13, w: 700, color: C.copper, halo: true, align: x > g.px - 90 ? 'right' : x < g.kx + 90 ? 'left' : 'center'});
       }
     }
     for (const p of photons) {
@@ -415,7 +417,7 @@
     // 금속: 위 표면(가장 얕은 전자) = −W
     ctx.fillStyle = C.line; ctx.fillRect(xm0, Y(-Wm), xm1 - xm0, bot - Y(-Wm));
     for (let x = xm0 + 9; x < xm1 - 6; x += 15) Lab.circle(ctx, x, Y(-Wm) + 8, 4.5, {fill: C.vel});
-    text(ctx, '금속 K', xm0 + 6, bot - 12, {size: 13, w: 700, align: 'left', color: C.muted});
+    text(ctx, '금속 K', xm1 - 6, bot - 12, {size: 13, w: 700, align: 'right', color: C.muted});
     Lab.line(ctx, [[xm0, Y(0)], [W - 8, Y(0)]], C.muted, 1.4, [5, 4]);
     text(ctx, 'E = 0 (금속 밖에서 정지)', xm1 + 8, Y(0) + 13, {size: 13, w: 500, color: C.muted, align: 'left'});
     // 더 깊은 전자: 같은 hf 를 받아도 더 작은 운동 에너지
@@ -457,7 +459,7 @@
     const fmax = 2.5, ymax = 8.6, ymin = -5;
     const r = {x: 46, y: 22, w: W - 46 - 34, h: H - 22 - 28};
     const A = Lab.axes(ctx, r, {xmin: 0, xmax: fmax, ymin, ymax, xlabel: 'f (×10¹⁵ Hz)', ylabel: 'E_k,max (eV)', xticks: [0.5, 1, 1.5, 2], yticks: [-4, -2, 2, 4, 6, 8], grid: true});
-    const F = (E) => M.freq(E) / 1e15, Kat = (f, w) => M.kmaxF(f * 1e15, w);
+    const F = (E) => M.freq(E) / 1e15, Kat = (f, w) => M.kmaxF(f * 1e15, w), labs = [];
     for (const m of M.METALS) {
       const curM = m.id === S.metal, hl = curM || (S.focus === 'ab' && (m.id === 'A' || m.id === 'B'));
       const col = curM ? C.vel : hl ? C.violet : C.muted, f0 = F(m.W);
@@ -466,9 +468,11 @@
       Lab.line(ctx, [[A.X(0), A.Y(-m.W)], [A.X(f0), A.Y(0)]], col, hl ? 2 : 1.3, [5, 4]);
       Lab.line(ctx, [[A.X(f0), A.Y(0)], [A.X(fEnd), A.Y(Kat(fEnd, m.W))]], col, hl ? 3 : 1.6);
       ctx.restore();
-      const lk = 6.6, lf = F(lk + m.W), left = m.id === 'A' || m.id === 'B';
-      if (lf < fmax) text(ctx, m.id === 'Na' ? '나트륨' : m.id === 'Zn' ? '아연' : '금속 ' + m.id, A.X(lf) + (left ? -8 : 8), A.Y(lk) + (left ? -2 : 6), {size: 13, w: 700, color: col, align: left ? 'right' : 'left', halo: true});
+      labs.push({t: m.id, y: A.Y(Kat(fEnd, m.W)), x: A.X(fEnd) + 5, col});
     }
+    labs.sort((p, q) => p.y - q.y);                                  // 끝 이름표가 겹치지 않게 아래로 밀기
+    for (let i = 1; i < labs.length; i++) labs[i].y = Math.max(labs[i].y, labs[i - 1].y + 15);
+    labs.forEach((l) => text(ctx, l.t, l.x, l.y, {size: 13, w: 700, color: l.col, align: 'left', halo: true}));
     const Wm = Wf(), f0 = F(Wm);
     // 절편: f₀, −W
     Lab.circle(ctx, A.X(f0), A.Y(0), 4.5, {fill: C.copper});
