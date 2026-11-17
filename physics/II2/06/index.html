@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>직류 전동기 3D</title>
+<title>II2-06 직류 전동기 3D</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,12 +11,12 @@
 <style>
 /* Layout: 실험대 — 왼쪽 큰 3D 무대와 조작판, 오른쪽에 교과서식 정면도·전류 경로·돌림힘 그래프, 아래 개념 정리 */
 :root{
-  --bg:#eef1ef; --paper:#ffffff; --ink:#18232b; --muted:#56656d; --line:#d3dbdb; --line-soft:#e5eaea;
-  --stage-top:#f8faf9; --stage-bot:#dbe2df; --glass:rgba(255,255,255,.82);
+  --bg:#f3f4f6; --paper:#ffffff; --ink:#18232b; --muted:#56656d; --line:#d9dde3; --line-soft:#e8ebef;
+  --stage-top:#ffffff; --stage-bot:#e6e9ee; --glass:rgba(255,255,255,.82);
   --copper:#a95a22; --on-copper:#ffffff; --brass:#c79a2e; --copper-soft:#f5e7dc;
   --north:#c8412f; --south:#2a5b8c; --force:#d63a2a; --turn:#24865a;
   --current:#e3a000; --current-ink:#8a5f00; --electron:#2b86cf; --field:#8a8fc4;
-  --gap:rgba(200,65,47,.10); --base3d:#e1e5e2;
+  --gap:rgba(200,65,47,.10); --base3d:#e4e7eb;
   --font-display:"Black Han Sans","Noto Sans KR",system-ui,sans-serif;
   --font-ui:"Noto Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --font-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -54,6 +54,12 @@ header.top{padding-block:20px 16px;display:grid;gap:4px}
 .back{font-size:13px;color:var(--muted);text-decoration:none;width:max-content}
 .back:hover{color:var(--ink)}
 .kicker{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--copper)}
+.crumbs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.crumbs .id{font:600 12px var(--font-num);color:var(--copper);background:var(--copper-soft);padding:2px 8px;border-radius:999px}
+.pager{margin-top:28px;display:grid;grid-template-columns:1fr auto 1fr;gap:10px 16px;align-items:center;font-size:14px}
+.pager a{color:var(--copper);text-decoration:none;font-weight:600}
+.pager .home{text-align:center;color:var(--muted)}
+.pager > :last-child{text-align:right}
 h1{margin:0;font-size:clamp(26px,3.6vw,36px);font-family:var(--font-display);font-weight:400;letter-spacing:-.02em;line-height:1.25;text-wrap:balance}
 .lead{margin:2px 0 0;color:var(--muted);max-width:68ch;font-size:15px}
 
@@ -182,8 +188,8 @@ canvas.flat{display:block;width:100%;border-radius:12px}
 <body>
 <div class="page">
   <header class="top">
-    <a class="back" href="../" data-repo-only>← 물리 실험실</a>
-    <div class="kicker">물리학 Ⅰ · 전류의 자기 작용</div>
+    <a class="back" href="../../" data-repo-only>← 물리 실험실</a>
+    <div class="crumbs"><span class="id">II2-06</span><span class="kicker">물리학 Ⅰ · 물질의 자기적 성질과 전자기장</span></div>
     <h1>직류 전동기</h1>
     <p class="lead">자기장 속 코일의 두 변이 반대 방향으로 힘을 받아 돌고, 정류자가 반 바퀴마다 전류를 뒤집어 한 방향으로 계속 돈다. 노란 점이 전지 (+)극에서 나와 코일을 지나 (−)극으로 돌아가는 길을 따라가 보세요.</p>
   </header>
@@ -321,14 +327,15 @@ canvas.flat{display:block;width:100%;border-radius:12px}
       </li>
     </ol>
   </section>
+  <nav class="pager" data-repo-only><span></span><a class="home" href="../../">물리 실험실</a><span></span></nav>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="dc-motor-model.js"></script>
+<script src="II2-06-model.js"></script>
 <script>
 (function () {
   'use strict';
-  const M = window.DCMotorModel;
+  const M = window.II2_06;
   const DEG = Math.PI / 180;
   const $ = id => document.getElementById(id);
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));

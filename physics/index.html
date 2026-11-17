@@ -8,162 +8,304 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="kit/lab.css">
 <style>
-/* Layout: 과목(물리학 Ⅰ, Ⅱ)별로 단원 순서대로 카드를 늘어놓은 목록 한 장 */
+/* Layout: 모눈종이 머리판(제목 + 개념 158칸 지도) → 붙어 다니는 과목 탭·찾기 띠 → 대단원 띠(로마 숫자·진행 막대)
+   → 단원마다 실험 카드(무대 그림). 대단원 색: Ⅰ 역학 = 파랑, Ⅱ 전자기 = 보라, Ⅲ 파동 = 초록 (실험 페이지의 물리량 색과 같은 계열) */
 :root{
-  --bg:#eef1ef; --paper:#ffffff; --ink:#18232b; --muted:#56656d; --line:#d3dbdb; --line-soft:#e5eaea;
-  --copper:#a95a22; --copper-soft:#f5e7dc; --north:#c8412f; --south:#2a5b8c; --thumb:#f4f6f5;
-  --font-display:"Black Han Sans","Noto Sans KR",system-ui,sans-serif;
-  --font-ui:"Noto Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
-  --font-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --u1:#2463c7; --u1-soft:rgba(36,99,199,.10);
+  --u2:#7a52c7; --u2-soft:rgba(122,82,199,.11);
+  --u3:#1f8a55; --u3-soft:rgba(31,138,85,.10);
+  --cell-off:#dde1e7; --hero-grid:rgba(17,24,39,.055); --lift:rgba(17,24,39,.10);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0e1315; --paper:#151c1f; --ink:#e4eaec; --muted:#97a6ad; --line:#2b373c; --line-soft:#212b2f;
-    --copper:#e39a62; --copper-soft:#33241a; --north:#ec6a55; --south:#6a9fd6; --thumb:#1b2427;
-    color-scheme:dark;
+    --u1:#62a8ff; --u1-soft:rgba(98,168,255,.14);
+    --u2:#ab8cf5; --u2-soft:rgba(171,140,245,.15);
+    --u3:#4fc58b; --u3-soft:rgba(79,197,139,.14);
+    --cell-off:#283040; --hero-grid:rgba(255,255,255,.05); --lift:rgba(0,0,0,.45);
   }
+  :root:not([data-theme="light"]) .h-thumb .lt{display:none}
+  :root:not([data-theme="light"]) .h-thumb .dk{display:block}
 }
 :root[data-theme="dark"]{
-  --bg:#0e1315; --paper:#151c1f; --ink:#e4eaec; --muted:#97a6ad; --line:#2b373c; --line-soft:#212b2f;
-  --copper:#e39a62; --copper-soft:#33241a; --north:#ec6a55; --south:#6a9fd6; --thumb:#1b2427;
-  color-scheme:dark;
+  --u1:#62a8ff; --u1-soft:rgba(98,168,255,.14);
+  --u2:#ab8cf5; --u2-soft:rgba(171,140,245,.15);
+  --u3:#4fc58b; --u3-soft:rgba(79,197,139,.14);
+  --cell-off:#283040; --hero-grid:rgba(255,255,255,.05); --lift:rgba(0,0,0,.45);
 }
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.65;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 56px}
-.page{max-width:1040px;margin:0 auto}
-:focus-visible{outline:2px solid var(--copper);outline-offset:3px}
-header{padding-block:18px 8px;display:grid;gap:6px}
-.home{font-size:13px;color:var(--muted);text-decoration:none;width:max-content;margin-bottom:14px}
-.home:hover{color:var(--ink)}
-.beta{display:inline-block;vertical-align:.35em;margin-left:8px;font:700 12px/1 var(--font-num);padding:4px 8px;border-radius:999px;
-  background:var(--copper);color:var(--paper);letter-spacing:.04em}
-.kicker{font:600 12.5px/1 var(--font-num);letter-spacing:.08em;color:var(--copper)}
-h1{margin:0;font-size:clamp(28px,4.4vw,40px);font-family:var(--font-display);font-weight:400;letter-spacing:-.025em;line-height:1.2}
-.lead{margin:0;color:var(--muted);max-width:60ch}
-.course{margin-top:34px}
-.course h2{margin:0 0 14px;font-size:18px;font-weight:700;display:flex;align-items:baseline;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
-.course h2 small{font:500 12.5px var(--font-num);color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-.card{display:grid;grid-template-rows:auto 1fr;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;
-  color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
-.card:hover{border-color:var(--copper);transform:translateY(-2px)}
-.thumb{background:var(--thumb);border-bottom:1px solid var(--line-soft);aspect-ratio:16/8.5;display:grid;place-items:center}
-.thumb svg{width:100%;height:100%;display:block}
-.body{padding:14px 16px 16px;display:grid;gap:4px;align-content:start}
-.unit{font-size:12.5px;font-weight:600;color:var(--copper)}
-.card h3{margin:0;font-size:17px;letter-spacing:-.01em}
-.card p{margin:0;font-size:14px;color:var(--muted)}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.chips span{font:600 11.5px var(--font-num);padding:2px 8px;border-radius:999px;background:var(--copper-soft);color:var(--copper)}
-.empty{margin:0;padding:18px;border:1px dashed var(--line);border-radius:16px;color:var(--muted);font-size:14px}
-/* 개념 실험 지도: 과목 → 대단원(접기) → 단원 → 개념 칩 */
-.sub{margin:22px 0 10px;font-size:15px;font-weight:700;display:flex;align-items:baseline;gap:8px}
-.sub small{font:500 12.5px var(--font-num);color:var(--muted)}
-.bu{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin-top:10px}
-.bu summary{cursor:pointer;font-weight:700;font-size:15.5px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;list-style-position:inside}
-.bu summary small{font:600 12.5px var(--font-num);color:var(--muted);white-space:nowrap}
-.bu[open] summary{margin-bottom:6px}
-.un{padding-top:10px;margin-top:10px;border-top:1px solid var(--line-soft)}
-.un h4{margin:0 0 8px;font-size:14.5px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.un h4 a{color:inherit;text-decoration:none;border-bottom:1.5px solid var(--copper)}
-.un h4 small{font:600 12px var(--font-num);color:var(--muted)}
-.cl{display:flex;flex-wrap:wrap;gap:6px}
-.cl a,.cl span{display:inline-flex;align-items:baseline;gap:6px;font-size:13.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);max-width:100%}
-.cl a{border-color:var(--copper);background:var(--copper-soft);color:var(--ink);text-decoration:none;font-weight:600}
-.cl a:hover{background:var(--paper)}
-.cl span{color:var(--muted)}
-.cl b{font:600 12px var(--font-num);color:var(--copper)}
-.cl span b{color:var(--muted)}
-@media (prefers-reduced-motion: reduce){.card{transition:none}.card:hover{transform:none}}
+:root[data-theme="dark"] .h-thumb .lt{display:none}
+:root[data-theme="dark"] .h-thumb .dk{display:block}
+
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.page{max-width:1240px}
+.c1{--u:var(--u1);--u-soft:var(--u1-soft)}
+.c2{--u:var(--u2);--u-soft:var(--u2-soft)}
+.c3{--u:var(--u3);--u-soft:var(--u3-soft)}
+
+/* 머리판 */
+.h-top{padding-block:18px 0;display:grid;gap:12px}
+.h-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px 48px;align-items:center;padding:34px 36px;border:1px solid var(--line);border-radius:26px;
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--hero-grid) 1px,transparent 1px),linear-gradient(90deg,var(--hero-grid) 1px,transparent 1px);
+  background-size:24px 24px;background-position:-1px -1px}
+.h-kicker{display:flex;gap:8px;align-items:center;font:600 12.5px/1 var(--font-num);letter-spacing:.14em;color:var(--copper)}
+.h-beta{font:700 11px/1 var(--font-num);letter-spacing:.06em;padding:4px 7px;border-radius:999px;background:var(--copper);color:var(--on-copper)}
+.h-hero h1{margin:12px 0 0;font-size:clamp(44px,6.4vw,72px);line-height:1.02}
+.h-lead{margin:14px 0 0;font-size:17px;line-height:1.65;color:var(--muted);max-width:30ch}
+.h-count{margin-top:22px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.h-count b{font:600 40px/1 var(--font-num);color:var(--ink);letter-spacing:-.02em}
+.h-count b span{color:var(--muted);font-size:22px}
+.h-count em{font-style:normal;font-size:14.5px;color:var(--muted)}
+
+/* 개념 지도: 한 칸 = 개념 하나 */
+.h-map{--cell:13px;display:grid;gap:18px;justify-items:start}
+.h-row{display:grid;gap:8px}
+.h-row > span{font-size:13.5px;font-weight:800}
+.h-groups{display:flex;gap:16px;align-items:flex-start}
+.h-grp{display:grid;gap:7px}
+.h-cells{display:grid;grid-template-columns:repeat(var(--cols),var(--cell));gap:3px}
+.h-cells > *{display:block;width:var(--cell);height:var(--cell);border-radius:3px;background:var(--cell-off)}
+.h-cells a{background:var(--u);transition:transform .12s}
+.h-cells a:hover,.h-cells a:focus-visible{transform:scale(1.45);outline:2px solid var(--paper);outline-offset:0;position:relative;z-index:1}
+.h-grp small{font-size:12px;line-height:1.3;color:var(--muted);max-width:calc(var(--cols) * (var(--cell) + 3px))}
+.h-grp small b{font:600 11.5px var(--font-num);color:var(--u)}
+.h-key{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.h-key i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--cell-off)}
+.h-key i.on{background:linear-gradient(90deg,var(--u1) 33%,var(--u2) 33% 66%,var(--u3) 66%)}
+
+/* 과목 탭·찾기 */
+.h-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin-top:18px;padding-block:10px;display:flex;gap:10px 12px;flex-wrap:wrap;align-items:center;background:var(--bg)}
+.h-tabs{display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--paper);border:1px solid var(--line)}
+.h-tabs button{border:0;background:none;cursor:pointer;padding:9px 16px;border-radius:10px;font-size:15.5px;font-weight:800;color:var(--muted);display:flex;gap:8px;align-items:baseline;white-space:nowrap}
+.h-tabs button small{font:600 12px var(--font-num)}
+.h-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.h-search{position:relative;flex:1 1 240px;min-width:0}
+.h-search svg{position:absolute;left:13px;top:50%;width:18px;height:18px;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.h-search input{width:100%;height:46px;padding:0 14px 0 40px;border:1px solid var(--line);border-radius:14px;background:var(--paper);color:var(--ink);font:inherit;font-size:16px}
+.h-search input::placeholder{color:var(--muted)}
+.h-search input:focus{outline:2px solid var(--copper);outline-offset:1px}
+
+/* 대단원 */
+.h-bu{margin-top:30px}
+.h-bu-head{display:flex;gap:16px;align-items:center;padding-bottom:14px;border-bottom:2px solid var(--u)}
+.h-num{font:600 40px/1 var(--font-num);letter-spacing:-.06em;color:var(--u);min-width:1.6em;text-align:center}
+.h-bu-head h2{margin:0;font-size:clamp(20px,2.4vw,24px);font-weight:800;letter-spacing:-.01em;line-height:1.3}
+.h-prog{display:flex;align-items:center;gap:10px;margin-top:6px}
+.h-prog i{display:block;width:150px;height:7px;border-radius:99px;background:var(--cell-off);overflow:hidden}
+.h-prog i span{display:block;height:100%;background:var(--u);border-radius:inherit}
+.h-prog b{font:600 13px var(--font-num);color:var(--muted)}
+.h-unit{margin-top:20px}
+.h-unit h3{margin:0 0 12px;font-size:17px;font-weight:800;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.h-unit h3 a{color:inherit;text-decoration:none;border-bottom:2px solid var(--u-soft)}
+.h-unit h3 a:hover{border-bottom-color:var(--u)}
+.h-unit h3 small{font:600 12.5px var(--font-num);color:var(--muted)}
+
+/* 실험 카드 */
+.h-cards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:16px}
+.h-card{display:grid;grid-template-rows:auto auto auto 1fr;height:100%;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;
+  color:inherit;text-decoration:none;transition:transform .16s,border-color .16s,box-shadow .16s}
+.h-card:hover{transform:translateY(-3px);border-color:var(--u);box-shadow:0 12px 26px var(--lift)}
+.h-card:focus-visible{outline:3px solid var(--u);outline-offset:2px}
+.h-thumb{position:relative;aspect-ratio:16/10;overflow:hidden;background:var(--u-soft);border-bottom:1px solid var(--line-soft)}
+.h-thumb img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}
+.h-thumb .dk{display:none}
+.h-thumb.none img{display:none!important}
+.h-thumb.none::after{content:attr(data-id);position:absolute;inset:0;display:grid;place-items:center;font:600 20px var(--font-num);color:var(--u)}
+.h-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:13px 15px 0}
+.h-id{font:600 12px var(--font-num);color:var(--u);background:var(--u-soft);padding:2px 8px;border-radius:999px}
+.h-tag{font:700 11px var(--font-num);padding:2px 7px;border-radius:999px;background:var(--copper);color:var(--on-copper)}
+.h-name{padding:7px 15px 0;font-size:17px;line-height:1.4;font-weight:800;letter-spacing:-.01em}
+.h-q{padding:5px 15px 0;margin-bottom:15px;font-size:14px;line-height:1.6;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* 준비 중 */
+.h-soon{margin-top:12px}
+.h-soon summary{cursor:pointer;width:max-content;font-size:14px;font-weight:700;color:var(--muted)}
+.h-soon summary:hover{color:var(--ink)}
+.h-soon ol,.h-plain{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:6px 20px}
+.h-soon li,.h-plain li{font-size:14.5px;color:var(--muted);display:flex;gap:8px;align-items:baseline;min-width:0}
+.h-soon li b,.h-plain li b{font:600 12px var(--font-num);color:var(--u);flex:none}
+.h-bu.quiet .h-bu-head{border-bottom-width:1px;border-bottom-color:var(--line)}
+.h-bu.quiet .h-unit{margin-top:14px}
+.h-bu.quiet .h-unit h3{margin:0;font-size:15.5px;color:var(--muted)}
+.h-note{margin:18px 0 0;padding:14px 16px;border-radius:14px;background:var(--paper);border:1px dashed var(--line);color:var(--muted);font-size:15px}
+.h-found{margin-top:24px}
+.h-found h2{margin:0 0 14px;font-size:18px;font-weight:800}
+.h-found .h-plain{margin-top:16px}
+.h-found .h-plain li{color:var(--muted)}
+.h-found .h-plain li em{font-style:normal;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:0 7px;flex:none}
+
+@media (max-width:900px){
+  .h-hero{grid-template-columns:minmax(0,1fr);padding:28px 26px}
+  .h-lead{max-width:44ch}
+}
+@media (max-width:600px){
+  .h-hero{padding:22px 18px;border-radius:20px}
+  .h-map{--cell:10px}
+  .h-groups{gap:12px}
+  .h-bar{gap:8px}
+  .h-tabs{width:100%}
+  .h-tabs button{flex:1;justify-content:center;padding:9px 8px}
+  .h-num{font-size:32px}
+  .h-cards{grid-template-columns:minmax(0,1fr);gap:10px}
+  .h-card{grid-template-columns:118px minmax(0,1fr);grid-template-rows:auto auto 1fr;border-radius:14px}
+  .h-thumb{grid-row:1/4;aspect-ratio:auto;height:100%;min-height:96px;border-bottom:0;border-right:1px solid var(--line-soft)}
+  .h-meta{padding:10px 12px 0}
+  .h-name{padding:4px 12px 0;font-size:15.5px}
+  .h-q{padding:2px 12px 0;margin-bottom:10px;font-size:13px}
+}
+@media (prefers-reduced-motion: reduce){.h-card,.h-cells a{transition:none}.h-card:hover{transform:none}}
 </style>
 </head>
 <body>
 <div class="page">
-  <header>
-    <a class="home" href="../">← 민규쌤의 과학 실험실 (지구과학)</a>
-    <div class="kicker">PHYSICS LAB</div>
-    <h1>물리 실험실<span class="beta">BETA</span></h1>
-    <p class="lead">물리학 Ⅰ·Ⅱ 개념을 직접 움직여 보면서 공부하는 실험 모음. 개념서의 개념 158개를 하나씩 실험 페이지로 만들어 가는 중이에요.</p>
+  <header class="h-top">
+    <a class="back" href="../">← 민규쌤의 과학 실험실 (지구과학)</a>
+    <div class="h-hero">
+      <div>
+        <div class="h-kicker">PHYSICS LAB <span class="h-beta">BETA</span></div>
+        <h1>물리 실험실</h1>
+        <p class="h-lead">물리학 Ⅰ·Ⅱ 개념을 하나씩, 눈으로 보고 손으로 움직이는 실험으로 만들어 가요.</p>
+        <div class="h-count" id="count"><b>–<span> / 158</span></b><em>개념 실험</em></div>
+      </div>
+      <div class="h-map" id="map" aria-label="개념 지도: 한 칸이 개념 하나, 색칠된 칸은 실험이 있는 개념">
+        <p class="h-key">개념 지도를 불러오는 중…</p>
+      </div>
+    </div>
   </header>
+
+  <div class="h-bar">
+    <div class="h-tabs" role="group" aria-label="과목">
+      <button type="button" data-course="1" aria-pressed="true">물리학 Ⅰ <small id="n1"></small></button>
+      <button type="button" data-course="2" aria-pressed="false">물리학 Ⅱ <small id="n2"></small></button>
+    </div>
+    <label class="h-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
+      <input id="q" type="search" placeholder="개념 찾기 (예: 굴절, 광전 효과, 전동기)" autocomplete="off" aria-label="개념 찾기">
+    </label>
+  </div>
+
   <main id="list"></main>
 </div>
 <script>
-// 새 시뮬레이션은 여기 한 줄 추가. course: 1 = 물리학 Ⅰ, 2 = 물리학 Ⅱ. 같은 과목 안에서는 적은 순서대로 보인다.
-const SIMS = [
-  {course: 1, href: 'dc-motor/', unit: '전류의 자기 작용', title: '직류 전동기',
-   desc: '자기장 속 코일이 받는 힘, 정류자가 반 바퀴마다 전류를 뒤집는 모습을 3D로 돌려 본다.', tags: ['3D', '전류 흐름', '돌림힘'], thumb: 'motor'}
-];
-const COURSES = [{id: 1, name: '물리학 Ⅰ'}, {id: 2, name: '물리학 Ⅱ'}];
+(function () {
+  'use strict';
+  // 개념 158개: data/physics_concepts.json, 실험이 있는 개념: data/built.json (physics/tools/build_index.py 가 갱신)
+  // 카드 그림: data/thumbs/<ID>.webp · <ID>-dark.webp (physics/tools/thumbs.cjs 가 무대를 찍어 만든다)
+  const EXTRA = {'II2-06': ['3D']};          // 카드에 붙이는 작은 표시
+  const SUBJ = [{key: '물리학Ⅰ', id: 1, name: '물리학 Ⅰ'}, {key: '물리학Ⅱ', id: 2, name: '물리학 Ⅱ'}];
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+  const pad = n => String(n).padStart(2, '0');
+  const short = t => t.split(':')[0].replace(/\s*\(.*?\)\s*$/, '');
+  const roman = b => b.split('.')[0].trim();
+  const ascii = r => ({'Ⅰ': 'I', 'Ⅱ': 'II', 'Ⅲ': 'III', 'Ⅳ': 'IV'}[r] || r);   // 큰 번호는 세리프 있는 고정폭 글꼴로
+  const buTitle = b => b.replace(/^[^.]*\.\s*/, '');
+  const norm = s => s.toLowerCase().replace(/[\s·,:()]/g, '');
+  const href = c => `${c.unit_code}/${pad(c.no)}/`;
 
-// 카드 그림 (색은 테마 토큰을 따른다)
-const THUMBS = {
-  motor: `<svg viewBox="0 0 320 170" aria-hidden="true">
-    <rect x="22" y="30" width="34" height="110" rx="3" fill="var(--north)"/>
-    <rect x="264" y="30" width="34" height="110" rx="3" fill="var(--south)"/>
-    <text x="39" y="92" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="20" fill="#fff">N</text>
-    <text x="281" y="92" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="20" fill="#fff">S</text>
-    <g stroke="var(--muted)" stroke-opacity=".35" stroke-width="1.5"><line x1="64" y1="50" x2="256" y2="50"/><line x1="64" y1="85" x2="256" y2="85"/><line x1="64" y1="120" x2="256" y2="120"/></g>
-    <circle cx="160" cy="85" r="52" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>
-    <line x1="115" y1="59" x2="205" y2="111" stroke="var(--copper)" stroke-width="3"/>
-    <circle cx="115" cy="59" r="9" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/><circle cx="115" cy="59" r="3" fill="var(--ink)"/>
-    <circle cx="205" cy="111" r="9" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/>
-    <path d="M200 106l10 10M210 106l-10 10" stroke="var(--ink)" stroke-width="1.8"/>
-    <path d="M100 44a62 62 0 0 1 44-22" fill="none" stroke="var(--copper)" stroke-width="2.4"/><path d="M146 17l8 5-9 4z" fill="var(--copper)"/>
-    <path d="M220 126a62 62 0 0 1-44 22" fill="none" stroke="var(--copper)" stroke-width="2.4"/><path d="M174 153l-8-5 9-4z" fill="var(--copper)"/>
-  </svg>`
-};
+  let D = null, built = new Set(), course = 1;
+  try { if (location.hash === '#p2' || (!location.hash && localStorage.getItem('physics.course') === '2')) course = 2; } catch (e) {}
 
-const list = document.getElementById('list');
-const mapBoxes = {};
-for (const c of COURSES) {
-  const items = SIMS.filter(s => s.course === c.id);
-  const sec = document.createElement('section');
-  sec.className = 'course';
-  sec.innerHTML = `<h2>${c.name}</h2>` + (items.length
-    ? `<h3 class="sub">3D 실험 <small>${items.length}개</small></h3><div class="grid">` + items.map(s => `<a class="card" href="${s.href}">
-        <div class="thumb">${THUMBS[s.thumb] || ''}</div>
-        <div class="body"><span class="unit">${s.unit}</span><h3>${s.title}</h3><p>${s.desc}</p>
-          <div class="chips">${(s.tags || []).map(t => `<span>${t}</span>`).join('')}</div></div></a>`).join('') + '</div>'
-    : '') + '<div class="map"><p class="empty">개념 실험 목록을 불러오는 중…</p></div>';
-  mapBoxes[c.id] = sec.querySelector('.map');
-  list.appendChild(sec);
-}
+  // 대단원 → 색 번호(1·2·3), 과목별 대단원 순서
+  const groupsOf = subjKey => {
+    const cs = D.concepts.filter(c => c.subject === subjKey);
+    const bigs = [...new Set(cs.map(c => c.big_unit))];
+    return bigs.map((b, i) => {
+      const inB = cs.filter(c => c.big_unit === b);
+      const units = [...new Set(inB.map(c => c.unit_code))].map(u => ({code: u, name: inB.find(c => c.unit_code === u).unit, cs: inB.filter(c => c.unit_code === u)}));
+      return {big: b, color: i + 1, cs: inB, units, n: inB.filter(c => built.has(c.id)).length};
+    });
+  };
 
-// 개념 실험: data/physics_concepts.json(개념 158개) + data/built.json(만든 개념, physics/tools/build_index.py 가 갱신)
-const SUBJ = {'물리학Ⅰ': 1, '물리학Ⅱ': 2};
-const short = (t) => t.split(':')[0].replace(/\s*\(.*?\)\s*$/, '');
-Promise.all([fetch('data/physics_concepts.json').then(r => r.json()), fetch('data/built.json').then(r => r.json())])
-  .then(([d, b]) => {
-    const built = new Set(b.built);
-    for (const c of COURSES) {
-      const cs = d.concepts.filter(x => SUBJ[x.subject] === c.id);
-      const nb = cs.filter(x => built.has(x.id)).length;
-      const bigs = [...new Set(cs.map(x => x.big_unit))];
-      let h = `<h3 class="sub">개념 실험 <small>${nb} / ${cs.length}개</small></h3>`;
-      for (const bu of bigs) {
-        const inBu = cs.filter(x => x.big_unit === bu);
-        const nbu = inBu.filter(x => built.has(x.id)).length;
-        const unitsIn = [...new Set(inBu.map(x => x.unit_code))];
-        h += `<details class="bu"${nbu ? ' open' : ''}><summary>${bu}<small>${nbu} / ${inBu.length}</small></summary>`;
-        for (const u of unitsIn) {
-          const us = inBu.filter(x => x.unit_code === u), nu = us.filter(x => built.has(x.id)).length;
-          const name = us[0].unit;
-          h += `<div class="un"><h4>${nu ? `<a href="${u}/">${name}</a>` : name}<small>${u} · ${nu} / ${us.length}</small></h4><div class="cl">`;
-          h += us.map(x => built.has(x.id)
-            ? `<a href="${u}/${String(x.no).padStart(2, '0')}/"><b>${String(x.no).padStart(2, '0')}</b>${short(x.concept)}</a>`
-            : `<span><b>${String(x.no).padStart(2, '0')}</b>${short(x.concept)}</span>`).join('');
-          h += '</div></div>';
-        }
-        h += '</details>';
-      }
-      mapBoxes[c.id].innerHTML = h;
+  function card(c, color) {
+    const tags = (EXTRA[c.id] || []).map(t => `<span class="h-tag">${esc(t)}</span>`).join('');
+    return `<li><a class="h-card c${color}" href="${href(c)}" title="${esc(c.concept)}">
+      <span class="h-thumb" data-id="${c.id}"><img class="lt" src="data/thumbs/${c.id}.webp" alt="" loading="lazy"><img class="dk" src="data/thumbs/${c.id}-dark.webp" alt="" loading="lazy"></span>
+      <span class="h-meta"><span class="h-id">${c.id}</span>${tags}</span>
+      <b class="h-name">${esc(short(c.concept))}</b>
+      <span class="h-q">${esc(c.question)}</span>
+    </a></li>`;
+  }
+  const soonItem = c => `<li><b>${pad(c.no)}</b><span>${esc(short(c.concept))}</span></li>`;
+
+  function renderMap() {
+    let total = 0;
+    const rows = SUBJ.map(s => {
+      const gs = groupsOf(s.key);
+      return `<div class="h-row"><span>${s.name}</span><div class="h-groups">` + gs.map(g => {
+        total += g.n;
+        const cols = Math.ceil(g.cs.length / 4);
+        const cells = g.cs.map(c => built.has(c.id)
+          ? `<a href="${href(c)}" title="${esc(c.id + ' ' + short(c.concept))}" aria-label="${esc(c.id + ' ' + short(c.concept))}"></a>`
+          : `<i title="${esc(c.id + ' ' + short(c.concept) + ' (준비 중)')}"></i>`).join('');
+        return `<div class="h-grp c${g.color}"><div class="h-cells" style="--cols:${cols}" role="img" aria-label="${esc(g.big)}: ${g.cs.length}개 중 ${g.n}개">${cells}</div>
+          <small><b>${roman(g.big)}</b> ${esc(buTitle(g.big))} · ${g.n}/${g.cs.length}</small></div>`;
+      }).join('') + '</div></div>';
+    }).join('');
+    $('map').innerHTML = rows + '<p class="h-key"><span><i class="on"></i>실험 있음 (누르면 열림)</span><span><i></i>준비 중</span></p>';
+    $('count').innerHTML = `<b>${total}<span> / ${D.concepts.length}</span></b><em>개념이 실험으로 만들어졌어요</em>`;
+    for (const s of SUBJ) {
+      const cs = D.concepts.filter(c => c.subject === s.key);
+      $('n' + s.id).textContent = `${cs.filter(c => built.has(c.id)).length}/${cs.length}`;
     }
-  })
-  .catch(() => { Object.values(mapBoxes).forEach(m => { m.innerHTML = '<p class="empty">개념 실험 목록을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.</p>'; }); });
+  }
+
+  function renderCourse() {
+    const s = SUBJ.find(x => x.id === course);
+    const gs = groupsOf(s.key);
+    let h = '';
+    if (!gs.some(g => g.n)) h += `<p class="h-note">${s.name} 실험은 아직 없어요. 개념 ${gs.reduce((a, g) => a + g.cs.length, 0)}개가 차례를 기다리고 있어요.</p>`;
+    for (const g of gs) {
+      const quiet = !g.n;
+      h += `<section class="h-bu c${g.color}${quiet ? ' quiet' : ''}"><header class="h-bu-head"><span class="h-num" aria-hidden="true">${ascii(roman(g.big))}</span><div>
+        <h2>${esc(buTitle(g.big))}</h2>
+        <div class="h-prog"><i><span style="width:${(100 * g.n / g.cs.length).toFixed(1)}%"></span></i><b>${g.n} / ${g.cs.length}</b></div></div></header>`;
+      for (const u of g.units) {
+        const have = u.cs.filter(c => built.has(c.id)), rest = u.cs.filter(c => !built.has(c.id));
+        h += `<div class="h-unit"><h3>${have.length ? `<a href="${u.code}/">${esc(u.name)}</a>` : esc(u.name)}<small>${u.code} · ${have.length} / ${u.cs.length}</small></h3>`;
+        if (have.length) h += '<ul class="h-cards">' + have.map(c => card(c, g.color)).join('') + '</ul>';
+        if (rest.length) h += `<details class="h-soon"><summary>${have.length ? '준비 중인 개념 ' + rest.length + '개' : '개념 ' + rest.length + '개 보기'}</summary><ol>${rest.map(soonItem).join('')}</ol></details>`;
+        h += '</div>';
+      }
+      h += '</section>';
+    }
+    return h;
+  }
+
+  function renderSearch(q) {
+    const hits = D.concepts.filter(c => norm(`${c.id} ${c.concept} ${c.question} ${c.unit} ${c.big_unit}`).includes(q));
+    const colorOf = c => groupsOf(c.subject).findIndex(g => g.big === c.big_unit) + 1;
+    const have = hits.filter(c => built.has(c.id)), rest = hits.filter(c => !built.has(c.id));
+    if (!hits.length) return '<p class="h-note">찾는 개념이 없어요. 다른 낱말로 찾아보세요.</p>';
+    let h = `<section class="h-found"><h2>찾은 개념 ${hits.length}개</h2>`;
+    if (have.length) h += '<ul class="h-cards">' + have.map(c => card(c, colorOf(c))).join('') + '</ul>';
+    if (rest.length) h += '<ul class="h-plain">' + rest.map(c => `<li class="c${colorOf(c)}"><b>${c.id}</b><span>${esc(short(c.concept))}</span><em>준비 중</em></li>`).join('') + '</ul>';
+    return h + '</section>';
+  }
+
+  function render() {
+    const q = norm($('q').value);
+    $('list').innerHTML = q ? renderSearch(q) : renderCourse();
+    document.querySelectorAll('[data-course]').forEach(b => b.setAttribute('aria-pressed', String(!q && +b.dataset.course === course)));
+    // 그림이 아직 없는 실험은 번호를 크게 보여 준다
+    $('list').querySelectorAll('.h-thumb img').forEach(img => img.addEventListener('error', () => img.parentElement.classList.add('none'), {once: true}));
+  }
+
+  document.querySelectorAll('[data-course]').forEach(b => b.addEventListener('click', () => {
+    course = +b.dataset.course;
+    $('q').value = '';
+    try { localStorage.setItem('physics.course', String(course)); } catch (e) {}
+    try { history.replaceState(null, '', course === 2 ? '#p2' : location.pathname + location.search); } catch (e) {}
+    render();
+  }));
+  $('q').addEventListener('input', render);
+  window.addEventListener('hashchange', () => { course = location.hash === '#p2' ? 2 : 1; render(); });
+
+  Promise.all([fetch('data/physics_concepts.json').then(r => r.json()), fetch('data/built.json').then(r => r.json())])
+    .then(([d, b]) => { D = d; built = new Set(b.built); renderMap(); render(); })
+    .catch(() => { $('list').innerHTML = '<p class="h-note">개념 목록을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.</p>'; });
+})();
 </script>
 </body>
 </html>

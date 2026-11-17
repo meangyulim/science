@@ -11,7 +11,12 @@
 <style>
 /* 단원 목록: 개념 카드를 원고 순서대로 */
 .u-list{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.u-card{display:grid;gap:4px;align-content:start;height:100%;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:inherit;text-decoration:none}
+.u-card{display:grid;gap:4px;align-content:start;height:100%;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:inherit;text-decoration:none;overflow:hidden}
+.u-thumb{display:block;margin:-14px -16px 8px;aspect-ratio:16/10;overflow:hidden;border-bottom:1px solid var(--line-soft);background:var(--copper-soft)}
+.u-thumb img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}
+.u-thumb .dk{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .u-thumb .lt{display:none} :root:not([data-theme="light"]) .u-thumb .dk{display:block}}
+:root[data-theme="dark"] .u-thumb .lt{display:none} :root[data-theme="dark"] .u-thumb .dk{display:block}
 a.u-card:hover{border-color:var(--copper)}
 .u-card b{font-size:16.5px;line-height:1.45}
 .u-card .u-q{font-size:14px;color:var(--muted);line-height:1.6}
@@ -31,46 +36,55 @@ a.u-card:hover{border-color:var(--copper)}
   </header>
   <ol class="u-list">
     <li><a class="u-card" href="01/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III2-01.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III2-01-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III2-01</span><span class="u-qual">원리 애니메이션</span></span>
       <b>빛의 이중성: 파동성과 입자성</b>
       <span class="u-q">빛은 파동인가 입자인가? 실험마다 다른 얼굴을 보이는 이유는?</span>
     </a></li>
     <li><a class="u-card" href="02/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III2-02.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III2-02-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III2-02</span><span class="u-qual">원리 애니메이션</span></span>
       <b>광전 효과의 실험 사실과 파동설의 한계</b>
       <span class="u-q">빛을 세게 비추면 전자가 더 세게 튀어나와야 할 것 같은데, 실제는 왜 다를까?</span>
     </a></li>
     <li><a class="u-card" href="03/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III2-03.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III2-03-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III2-03</span></span>
       <b>광양자설과 광전 방정식</b>
       <span class="u-q">광자 하나의 에너지가 전자 하나에게 넘어갈 때, 그 에너지는 어디에 쓰일까?</span>
     </a></li>
     <li><a class="u-card" href="04/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III2-04.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III2-04-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III2-04</span><span class="u-qual">원리 애니메이션</span></span>
       <b>광전 효과의 이용: 경보기와 센서</b>
       <span class="u-q">빛이 닿거나 끊기는 것을 어떻게 경보로 바꿀까?</span>
     </a></li>
     <li><a class="u-card" href="05/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III2-05.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III2-05-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III2-05</span><span class="u-qual">원리 애니메이션</span></span>
       <b>영상 정보의 기록: 전하 결합 소자(CCD)</b>
       <span class="u-q">디지털카메라는 빛을 어떻게 영상 정보로 바꿀까?</span>
     </a></li>
     <li><a class="u-card" href="06/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III2-06.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III2-06-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III2-06</span></span>
       <b>물질파(드브로이 파)</b>
       <span class="u-q">빛이 입자처럼 행동한다면, 전자 같은 입자도 파동처럼 행동할 수 있을까?</span>
     </a></li>
     <li><a class="u-card" href="07/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III2-07.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III2-07-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III2-07</span></span>
       <b>물질파 그래프·표 해석과 변환 공식</b>
       <span class="u-q">축이 매번 바뀌는 물질파 그래프를 어떻게 한 가지 방법으로 읽을까?</span>
     </a></li>
     <li><a class="u-card" href="08/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III2-08.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III2-08-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III2-08</span><span class="u-qual">원리 애니메이션</span></span>
       <b>입자의 파동성 증거</b>
       <span class="u-q">전자가 정말 파동이라면 어떤 실험에서 그 증거가 보일까?</span>
     </a></li>
     <li><a class="u-card" href="09/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/III2-09.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III2-09-dark.webp" alt="" loading="lazy"></span>
       <span class="u-head"><span class="u-id">III2-09</span></span>
       <b>전자 현미경</b>
       <span class="u-q">전자 현미경은 왜 광학 현미경보다 훨씬 작은 구조를 볼 수 있을까?</span>
