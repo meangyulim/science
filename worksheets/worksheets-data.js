@@ -194,5 +194,17 @@ var worksheets = [
     saveAs: '행성우주과학_성단과 C-M도.pdf',
     pages:  4,
     bytes:  576556
+  },
+  {
+    unit:   'Ⅲ. 은하와 우주',
+    title:  '성간 소광과 성간 티끌',
+    note:   '소단원 내용 정리',
+    no:     7,
+    exam:   '기말고사',
+    file:   'final-07-interstellar-extinction.pdf',
+    added:  '2026-11-17',
+    saveAs: '행성우주과학_성간 소광과 성간 티끌.pdf',
+    pages:  4,
+    bytes:  459055
   }
 ];
