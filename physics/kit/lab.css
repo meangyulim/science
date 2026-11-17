@@ -9,6 +9,7 @@
   --force:#d63a2a; --neg:#d0453a; --neg-soft:rgba(208,69,58,.16); --energy:#d9822b; --violet:#7a52c7;
   --road:#cfd6d3; --road-line:#ffffff; --ghost:rgba(36,99,199,.22);
   --font-ui:"Noto Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-display:"Black Han Sans","Noto Sans KR",system-ui,sans-serif;
   --font-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
@@ -47,7 +48,7 @@ header.top{padding-block:20px 16px;display:grid;gap:4px}
 .crumbs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .crumbs .id{font:600 12px var(--font-num);color:var(--copper);background:var(--copper-soft);padding:2px 8px;border-radius:999px}
 .kicker{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--copper)}
-h1{margin:0;font-size:clamp(26px,3.6vw,36px);font-weight:700;letter-spacing:-.02em;line-height:1.25;text-wrap:balance}
+h1{margin:2px 0 0;font-family:var(--font-display);font-size:clamp(30px,4.2vw,42px);font-weight:400;letter-spacing:-.01em;line-height:1.25;text-wrap:balance}
 .lead{margin:4px 0 0;color:var(--muted);max-width:68ch;font-size:16.5px}
 
 .lab{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:18px;align-items:start}
