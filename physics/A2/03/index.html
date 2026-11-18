@@ -290,10 +290,10 @@
   function drawSlope(ctx, W, H) {
     const n = W < 520, s = slideT(), x = slideX(Math.min(S.t, s.tEnd)), e = M.slideAt(S.m, S.th, S.h, V0, S.f, x);
     const sn = Math.sin(S.th * RAD), cs = Math.cos(S.th * RAD), L = s.L;
-    const left = n ? 30 : 56, right = W * (n ? 0.6 : 0.6), base = H - (n ? 52 : 50), topY = n ? 70 : 74;
+    const left = n ? 30 : 56, right = W * (n ? 0.5 : 0.6), base = H - (n ? 52 : 50), topY = n ? 70 : 74;
     const sc = Math.max(8, Math.min((right - left) / (L * cs), (base - topY) / S.h));
     const T = [left, base - S.h * sc], Bt = [left + L * cs * sc, base], u = [cs, sn], nrm = [-sn, -cs];   // u: 빗면 아래 방향 (화면), nrm: 빗면 바깥
-    floor(ctx, 8, right + (n ? 6 : 20), base);
+    floor(ctx, 8, right + (n ? 18 : 20), base);
     ctx.save(); ctx.beginPath(); ctx.moveTo(T[0], T[1]); ctx.lineTo(Bt[0], Bt[1]); ctx.lineTo(T[0], base); ctx.closePath(); ctx.fillStyle = C['line-soft']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.ink; ctx.stroke(); ctx.restore();
     Lab.angle(ctx, Bt[0], Bt[1], n ? 24 : 32, Math.PI, Math.PI + S.th * RAD, C.ink, S.th + '°');
     const at = (q) => [T[0] + u[0] * q * sc, T[1] + u[1] * q * sc];
@@ -317,8 +317,8 @@
     if (S.f > 0 && (moving || x < 1e-6)) {
       const F0 = [C0[0] - u[0] * bs * 0.2, C0[1] - u[1] * bs * 0.2];
       arrow(ctx, F0[0], F0[1], F0[0] - u[0] * S.f * kF, F0[1] - u[1] * S.f * kF, C.force, 3, 10);
-      const ft = [F0[0] - u[0] * S.f * kF, F0[1] - u[1] * S.f * kF];
-      lab(n ? 'f' : 'f = ' + fmt(S.f, 1) + ' N', [ft[0] - nrm[0] * 16 + 2, ft[1] - nrm[1] * 16], 'left');
+      const fm = [F0[0] - u[0] * S.f * kF * 0.5, F0[1] - u[1] * S.f * kF * 0.5];          // 이름표: 화살표 가운데, 빗면 아래쪽
+      lab(n ? 'f' : 'f = ' + fmt(S.f, 1) + ' N', [fm[0] - nrm[0] * 17, fm[1] - nrm[1] * 17], 'center');
     }
     if (moving) {
       const kv = n ? 4 : 6, P = [Q[0] + u[0] * bs * 0.62, Q[1] + u[1] * bs * 0.62];
@@ -327,14 +327,14 @@
     } else if (x > 1e-6 && x < s.L - 1e-6) Lab.tag(ctx, '멈춤', Q[0] + 22, Q[1] - 22, {size: 13, color: C.neg, align: 'left'});
     if (isEven() && !n) text(ctx, '등속: 마찰력 = mg sin θ', T[0] + 10, topY - 14, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
     // 에너지 막대
-    const bx = n ? W * 0.64 : W * 0.66, bw = n ? 26 : 44, gap = n ? 16 : 34, top = n ? 72 : 76, bot = base, E0 = e.E0;
+    const bx = n ? W * 0.62 : W * 0.66, bw = n ? 26 : 44, gap = n ? 14 : 34, top = n ? 72 : 76, bot = base, E0 = e.E0;
     const Y = (v2) => bot - v2 / (E0 * 1.08) * (bot - top);
     text(ctx, '에너지 (J)', bx, top - (n ? 16 : 20), {size: 13, w: 600, color: C.muted, align: 'left'});
     stack(ctx, bx, bw, Y, [[e.U0, C.violet, false, 'U'], [e.K0, C.energy, false, 'K']], !n);
     stack(ctx, bx + bw + gap, bw, Y, [[e.U, C.violet, false, 'U'], [Math.max(0, e.K), C.energy, false, 'K'], [e.Q, C.neg, true, '열']], !n);
     Lab.line(ctx, [[bx - 6, Y(E0)], [bx + 2 * bw + gap + 6, Y(E0)]], C.muted, 1.2, [4, 3]);
     Lab.line(ctx, [[bx - 6, bot], [bx + 2 * bw + gap + 6, bot]], C.ink, 1.6);
-    text(ctx, '처음', bx + bw / 2, bot + 14, {size: 13, w: 600}); text(ctx, '지금', bx + bw * 1.5 + gap, bot + 14, {size: 13, w: 600});
+    text(ctx, '처음', bx + bw / 2, bot + (n ? 17 : 14), {size: 13, w: 600}); text(ctx, '지금', bx + bw * 1.5 + gap, bot + (n ? 17 : 14), {size: 13, w: 600});
     const rx = bx + 2 * bw + gap + (n ? 6 : 10);
     if (e.E > 0.5) Lab.vbracket(ctx, rx, Y(e.E), bot, C.acc, n ? 'E' : 'E = ' + fmt(e.E, 1), true);
     if (e.Q > 0.5 && !n) text(ctx, '열 ' + fmt(e.Q, 1) + ' J', rx + 4, (Y(e.E) + Y(E0)) / 2, {size: 13, w: 700, color: C.neg, align: 'left', halo: true});
@@ -352,7 +352,7 @@
     const g = geoG(W, H), P = getPaths(), cols = PCOL(), t = Math.min(S.t, tEnd());
     Lab.line(ctx, [[g.X(-0.4), g.Y(HA)], [g.X(XB + 0.4), g.Y(HA)]], C.muted, 1.1, [4, 4]);
     Lab.line(ctx, [[g.X(-0.4), g.Y(0)], [g.X(XB + 0.4), g.Y(0)]], C.muted, 1.1, [4, 4]);
-    Lab.vbracket(ctx, g.X(XB + 0.35), g.Y(HA), g.Y(0), C.copper, g.n ? 'h' : 'h = 5 m', true);
+    Lab.vbracket(ctx, g.X(XB + 0.35), g.Y(HA), g.Y(0), C.copper, g.n ? '' : 'h = 5 m', true);
     P.forEach((p, i) => Lab.line(ctx, p.pts.map((q) => [g.X(q[0]), g.Y(q[1])]), cols[i], i === 2 ? 3 : 2.4, i === 0 ? [7, 5] : undefined));
     for (const [nm, x, y] of [['A', 0, HA], ['B', XB, 0]]) { Lab.circle(ctx, g.X(x), g.Y(y), 10, {fill: C.paper, stroke: C.ink, width: 2}); text(ctx, nm, g.X(x), g.Y(y), {size: 13, w: 600}); }
     P.forEach((p, i) => {
@@ -380,7 +380,8 @@
   function drawPathF(ctx, W, H) {
     const n = W < 520, R = routeLen(), t = Math.min(S.t, tEnd()), left = n ? 30 : 60, right = W * (n ? 0.62 : 0.6), wmax = 3;
     const top = n ? 70 : 80, bot = H - (n ? 54 : 50), sc = Math.max(8, Math.min((right - left) / (DD + 0.8), (bot - top) / (wmax + 1.4)));
-    const X = (x) => left + (x + 0.4) * sc, Y = (y) => bot - (y + 0.7) * sc;
+    const wt0 = Math.max(S.w, 0.6) + 0.7, ym = (top + bot) / 2 + 10, yc = (wt0 - 0.7) / 2;
+    const X = (x) => left + (x + 0.4) * sc, Y = (y) => ym - (y - yc) * sc;
     const wt = Math.max(S.w, 0.6) + 0.7;
     ctx.save(); ctx.fillStyle = Lab.alpha(C.energy, 0.12); ctx.fillRect(X(-0.4), Y(wt), (DD + 0.8) * sc, (wt + 0.7) * sc);
     ctx.strokeStyle = Lab.alpha(C.energy, 0.6); ctx.lineWidth = 1.4; ctx.strokeRect(X(-0.4), Y(wt), (DD + 0.8) * sc, (wt + 0.7) * sc); ctx.restore();
@@ -420,7 +421,7 @@
   // 들어 올리기: 손의 일 = ΔEk + ΔEp
   function drawLift(ctx, W, H) {
     const n = W < 520, T = liftT(), t = Math.min(S.t, T), st = liftAt(t), Lf = M.lift(LM, LH, S.v0, S.v1);
-    const base = H - (n ? 52 : 48), top = n ? 74 : 84, sc = (base - top - (n ? 40 : 56)) / LH, cx = n ? W * 0.27 : W * 0.28, bs = n ? 30 : 42;
+    const base = H - (n ? 52 : 48), top = n ? 104 : 120, sc = (base - top - (n ? 40 : 56)) / LH, cx = n ? W * 0.27 : W * 0.28, bs = n ? 30 : 42;
     floor(ctx, 8, n ? W * 0.44 : W * 0.46, base);
     const yb = base - st.y * sc;
     // 자
@@ -434,11 +435,11 @@
     ctx.save(); Lab.rrect(ctx, cx - 9, yR - 12, 18, 14, 5); ctx.fillStyle = C.copper; ctx.fill(); ctx.restore();
     text(ctx, n ? '손' : '손이 끌어 올림', cx + 14, yR - 5, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
     ctx.save(); Lab.rrect(ctx, cx - bs / 2, yb - bs, bs, bs, 4); ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.vel; ctx.stroke(); ctx.restore();
-    const kF = n ? 2.4 : 3.2, Fh = Lf.F;
-    arrow(ctx, cx + bs * 0.18, yb - bs, cx + bs * 0.18, yb - bs - Fh * kF, C.force, 3, 10);
-    text(ctx, n ? 'F' : 'F = ' + fmt(Fh, 1) + ' N', cx + bs * 0.18 + 7, yb - bs - Fh * kF + 6, {size: 13.5, w: 600, color: C.force, align: 'left', halo: true});
-    arrow(ctx, cx - bs * 0.18, yb, cx - bs * 0.18, yb + LM * G * kF, C.force, 3, 10);
-    text(ctx, 'mg', cx - bs * 0.18 - 6, yb + LM * G * kF - 2, {size: 13.5, w: 600, color: C.force, align: 'right', halo: true});
+    const kF = n ? 2 : 3, Fh = Lf.F;
+    arrow(ctx, cx + 4, yb - bs, cx + 4, yb - bs - Fh * kF, C.force, 3, 10);
+    text(ctx, n ? 'F' : 'F = ' + fmt(Fh, 1) + ' N', cx + 11, yb - bs - Fh * kF * 0.55, {size: 13.5, w: 600, color: C.force, align: 'left', halo: true});
+    arrow(ctx, cx, yb, cx, yb + LM * G * kF, C.force, 3, 10);
+    text(ctx, 'mg', cx + 7, yb + LM * G * kF - 4, {size: 13.5, w: 600, color: C.force, align: 'left', halo: true});
     if (st.v > 0.05) { arrow(ctx, cx + bs / 2 + 10, yb - bs / 2, cx + bs / 2 + 10, yb - bs / 2 - st.v * (n ? 5 : 8), C.vel, 3, 10); text(ctx, fmt(st.v, 1) + ' m/s', cx + bs / 2 + 16, yb - bs / 2 - st.v * (n ? 5 : 8) / 2, {size: 13, w: 600, color: C.vel, align: 'left', halo: true}); }
     // 에너지 장부: 손의 일 = ΔEk + ΔEp
     const bx = W * (n ? 0.52 : 0.55), bw = n ? 30 : 46, gap = n ? 20 : 40, btop = top + 18, bbot = base, Wm = Math.max(Lf.W, Lf.dK + Lf.dU, 1) * 1.1;
@@ -471,17 +472,17 @@
     arrow(ctx, r.x, r.y + r.h, r.x, r.y - 10, C.muted, 1.3, 7); arrow(ctx, r.x, r.y + r.h, r.x + r.w + 10, r.y + r.h, C.muted, 1.3, 7);
     text(ctx, '중력의 일 (J)', r.x + 8, r.y - 6, {size: 13, w: 600, color: C.muted, align: 'left'});
     text(ctx, '50', r.x - 6, Y(50), {size: 13, color: C.muted, align: 'right'});
-    for (const d of [0, 2, 4, 6]) text(ctx, d + (d === 6 ? ' m' : ''), X(d), r.y + r.h + 13, {size: 13, color: C.muted});
-    text(ctx, W < 420 ? 'B (5 m)' : 'B 높이 (내려간 높이 5 m)', X(HA) - 4, r.y + 8, {size: 13, w: 600, color: C.copper, align: 'right'});
+    for (const d of [0, 2, 4]) text(ctx, d + (d === 4 ? ' m' : ''), X(d), r.y + r.h + 13, {size: 13, color: C.muted});
+    text(ctx, W < 420 ? 'B' : 'B (5 m 내려감)', X(HA) - 4, r.y + r.h - 12, {size: 13, w: 600, color: C.copper, align: 'right'});
     Lab.line(ctx, [[X(0), Y(0)], [X(dmax), Y(wmax)]], C.ink, 2.2);
-    text(ctx, W < 420 ? 'W = mg × 내려간 높이' : '세 경로 모두 이 직선: W = mg × (내려간 높이)', X(0.4), Y(PM * G * 4.4) - 2, {size: 13, w: 600, color: C.ink, align: 'left', halo: true});
-    text(ctx, W < 420 ? '내려간 높이' : '가로: 내려간 높이', r.x + r.w, r.y + r.h - 12, {size: 13, w: 500, color: C.muted, align: 'right'});
+    text(ctx, W < 420 ? 'W = mg × 내려간 높이' : '세 경로 모두 이 직선: W = mg × (내려간 높이)', r.x + 10, r.y + 10, {size: 13, w: 600, color: C.ink, align: 'left'});
+    text(ctx, '내려간 높이', r.x + r.w, r.y + r.h + 13, {size: 13, w: 500, color: C.muted, align: 'right'});
     P.forEach((p, i) => {
       const q = M.along(p.pts, pathS(p, t), PM), d = HA - q.y;
       Lab.circle(ctx, X(d), Y(q.Wg) - (i - 1) * 0, 6.5 - i * 0.8, {fill: cols[i], stroke: C.paper, width: 1.6});
     });
     const deep = HA - M.minY(P[2].pts);
-    if (deep > HA + 0.05) { Lab.circle(ctx, X(deep), Y(PM * G * deep), 3.5, {stroke: cols[2], width: 1.6}); text(ctx, '곡선의 가장 낮은 곳 ' + fmt(PM * G * deep, 0) + ' J', X(deep) - 6, Y(PM * G * deep) + 15, {size: 13, w: 600, color: cols[2], align: 'right', halo: true}); }
+    if (deep > HA + 0.05) { Lab.circle(ctx, X(deep), Y(PM * G * deep), 3.5, {stroke: cols[2], width: 1.6}); text(ctx, W < 420 ? fmt(PM * G * deep, 0) + ' J' : '곡선의 가장 낮은 곳 ' + fmt(PM * G * deep, 0) + ' J', X(deep) + 10, Y(PM * G * deep) + 18, {size: 13, w: 600, color: cols[2], align: W < 420 ? 'right' : 'left', halo: true}); }
   }
 
   // ── 관찰 2: 마찰력의 일–지나온 거리 ─────────────────────
@@ -496,11 +497,11 @@
     text(ctx, W < 420 ? '지나온 거리' : '지나온 거리 (m)', r.x + r.w, r.y + 13, {size: 13, w: 500, color: C.muted, align: 'right'});
     text(ctx, '마찰력의 일 (J)', r.x + 8, r.y + r.h + 14, {size: 13, w: 600, color: C.muted, align: 'left'});
     Lab.line(ctx, [[X(0), Y(0)], [X(Lm), Y(Wm)]], C.neg, 2, [6, 4]);
-    text(ctx, '기울기 −f = −5 J/m', X(Lm * 0.62) + 8, Y(Wm * 0.62) - 10, {size: 13, w: 600, color: C.neg, align: 'left', halo: true});
+    text(ctx, W < 420 ? '기울기 −5 J/m' : '기울기 −f = −5 J/m', X(Lm), Y(Wm) - 16, {size: 13, w: 600, color: C.neg, align: 'right', halo: true});
     [[R.short, C.vel, '곧은 길 B'], [R.long, C.copper, '돌아가는 길 B']].forEach(([L, col, nm], i) => {
       Lab.line(ctx, [[X(L), r.y], [X(L), Y(FF * L)]], col, 1.2, [3, 4]);
       Lab.circle(ctx, X(L), Y(FF * L), 5, {stroke: col, width: 2, fill: C.paper});
-      text(ctx, nm + ' ' + fmt(-FF * L, 0) + ' J', X(L) + (i ? -8 : 8), Y(FF * L) + 16, {size: 13, w: 600, color: col, align: i ? 'right' : 'left', halo: true});
+      text(ctx, (W < 420 ? (i ? '돌아감' : '곧은 길') : nm) + ' ' + fmt(-FF * L, 0) + ' J', X(L) - 8, Y(FF * L) + 16, {size: 13, w: 600, color: col, align: 'right', halo: true});
       const s = Math.min(UF * t, L);
       Lab.circle(ctx, X(s), Y(FF * s), 6.5, {fill: col, stroke: C.paper, width: 2});
     });
@@ -540,7 +541,7 @@
     const {ctx, W, H} = gL; if (!W) return;
     ctx.clearRect(0, 0, W, H);
     const n = W < 440, Lf = M.lift(LM, LH, S.v0, S.v1), Wm = Math.max(Lf.double, Lf.W, 1) * 1.08, gw = W / 3;
-    const top = n ? 58 : 50, bot = H - (n ? 40 : 34), y0 = bot - Math.abs(Lf.Wg) / (Wm + Math.abs(Lf.Wg)) * (bot - top), k = (bot - top) / (Wm + Math.abs(Lf.Wg)), Y = (v) => y0 - v * k;
+    const top = n ? 58 : 50, bot = H - (n ? 34 : 30), y0 = bot - Math.abs(Lf.Wg) / (Wm + Math.abs(Lf.Wg)) * (bot - top), k = (bot - top) / (Wm + Math.abs(Lf.Wg)), Y = (v) => y0 - v * k;
     const bw = n ? 16 : 24, groups = [
       {title: '일 장부', eq: n ? '손 + 중력 = ΔEk' : 'W손 + W중력 = ΔEk', bars: [[Lf.W, C.acc, '손'], [Lf.Wg, C.neg, '중력']], res: [[Math.max(0, Lf.dK), C.energy]], ok: true, val: Lf.W},
       {title: '에너지 장부', eq: n ? '손 = ΔEk + ΔEp' : 'W손 = ΔEk + ΔEp', bars: [[Lf.W, C.acc, '손']], res: [[Lf.dU, C.violet], [Math.max(0, Lf.dK), C.energy]], ok: true, val: Lf.W},
@@ -554,14 +555,14 @@
       gp.bars.forEach(([v, col, nm], j) => {
         const x = x0 + j * (bw + 6);
         ctx.save(); ctx.globalAlpha = 0.85; ctx.fillStyle = col; ctx.fillRect(x, Math.min(y0, Y(v)), bw, Math.abs(Y(v) - y0)); ctx.restore();
-        text(ctx, fmt(v, 0), x + bw / 2, v >= 0 ? Y(v) - 10 : Y(v) + 11, {size: 13, w: 600, color: col, halo: true});
+        text(ctx, fmt(v, 0), v >= 0 ? x + bw / 2 : x - 4, v >= 0 ? Y(v) - 10 : (y0 + Y(v)) / 2, {size: 13, w: 600, color: col, halo: true, align: v >= 0 ? 'center' : 'right'});
       });
       const rx = x0 + gp.bars.length * (bw + 6) + 14;
       text(ctx, '=', rx - 7, y0 - 12, {size: 14, w: 700, color: C.muted});
       let acc = 0;
       gp.res.forEach(([v, col]) => { if (v <= 0) return; ctx.save(); ctx.globalAlpha = 0.85; ctx.fillStyle = col; ctx.fillRect(rx, Y(acc + v), bw, Y(acc) - Y(acc + v)); ctx.restore(); acc += v; });
       text(ctx, fmt(acc, 0), rx + bw / 2, Y(acc) - 10, {size: 13, w: 600, color: C.ink, halo: true});
-      text(ctx, (gp.ok ? '손의 일 ' : '손의 일 ') + fmt(gp.val, 0) + ' J' + (gp.ok ? '' : ' ✗'), cx, bot + 16, {size: 13, w: 700, color: gp.ok ? C.acc : C.neg});
+      text(ctx, (n ? '' : '손의 일 ') + fmt(gp.val, 0) + ' J' + (gp.ok ? '' : ' ✗'), cx, bot + 14, {size: 13, w: 600, color: gp.ok ? C.acc : C.neg});
     });
   }
 
@@ -570,7 +571,7 @@
   function ans(big, lines, o) { const key = [big, o.tone, o.lab, o.ctx, o.f].concat(lines).join('|'); if (key !== ansKey) { ansKey = key; Lab.ans(big, lines, {...o, html: true}); } }
   const setMini = (i, name, val) => { const a = $('mn' + i), b = $('mv' + i); if (a.textContent !== name) a.textContent = name; if (b.textContent !== val) b.textContent = val; };
   const setText = (id, s) => { const el = $(id); if (el && el.textContent !== s) el.textContent = s; };
-  const par = (v) => (v < 0 ? '(' + fmt(v, 1) + ')' : fmt(v, 1));
+  const par = (v) => (v < -0.005 ? '(' + fmt(v, 1) + ')' : fmt(v, 1));
   function hud(a, b, c) { setText('hud1', a); setText('hud2', b); const el = $('hud2'), cl = 'pill' + (c ? ' ' + c : ''); if (el.className !== cl) el.className = cl; }
   function readouts() {
     if (S.scene === 'slope') {
@@ -578,7 +579,7 @@
       const v1 = Math.sqrt(Math.max(0, 2 * e.K / S.m)), drop = S.h - e.y, ev = isEven();
       const big = S.f < 1e-9 ? 'W<sub>마찰</sub> = 0 → 보존' : 'W<sub>마찰</sub> = ' + fmt(e.Wf, 1) + ' J';
       const lines = [
-        'ΔE<sub>k</sub> = ½ × ' + fmt(S.m, 1) + ' × (' + fmt(v1, 2) + '² − 2²) = <em>' + fmt(e.dK, 1) + ' J</em>' + (ev ? ' (등속)' : ''),
+        'ΔE<sub>k</sub> = ' + fmt(e.K, 1) + ' − ' + fmt(e.K0, 1) + ' = <em>' + fmt(e.dK, 1) + ' J</em>' + (ev ? ' (등속: 속력 2 m/s 그대로)' : ' (속력 2 → ' + fmt(v1, 2) + ' m/s)'),
         'ΔE<sub>p</sub> = −mgh = −' + fmt(S.m, 1) + ' × 10 × ' + fmt(drop, 2) + ' = <em>' + fmt(e.dU, 1) + ' J</em>',
         'W<sub>마찰</sub> = ' + par(e.dK) + ' + ' + par(e.dU) + ' = <em>' + fmt(e.Wf, 1) + ' J</em>' + (S.f < 1e-9 ? ' → 역학적 에너지 보존' : ' → 역학적 에너지 ' + fmt(-e.dE, 1) + ' J 감소 = 열')];
       if (s.stops) lines.push('마찰력이 mg sin θ보다 커서 ' + fmt(xe, 2) + ' m 내려와 멈춘다');
