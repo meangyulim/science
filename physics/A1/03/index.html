@@ -8,6 +8,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(장면: 받침 위 막대 · 매단 판 · 바닥의 상자) | 오른쪽 지금 값 + 관찰 ①~④ → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5;cursor:grab}
+#gK{aspect-ratio:10/5.4}
+#gU{aspect-ratio:10/5.6}
+#gC{aspect-ratio:10/5.4}
+.r1 .group .sm{display:none}
+@media (max-width:640px){.r1 .group .sm{display:inline}}
+.st{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;margin-top:10px}
+.st th{text-align:left;font-size:13px;font-weight:600;color:var(--muted);padding:2px 6px 6px;border-bottom:1px solid var(--line)}
+.st td{padding:6px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink-2)}
+.st td:first-child{white-space:nowrap;color:var(--muted)}
+</style>
 </head>
 <body class="cx">
 <!-- topbar -->
@@ -23,15 +36,652 @@
     <h1>무게중심과 구조물의 안정성</h1>
     <p class="question"><i>Q</i>왜 낮고 넓은 물체는 잘 쓰러지지 않을까?</p>
   </div>
+
   <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="장면에 따라 받침 위에 놓인 막대와 물체, 한 점에 매달려 흔들리다 멈추는 판, 모서리를 축으로 기울인 상자가 보인다. 받침점과 물체, 매다는 점, 상자의 기울기를 바꿀 수 있다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">무게중심 3L/4</span><span class="pill" id="hud2">균형</span></div>
+        <div class="legend" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="group" role="group" aria-label="장면">
+            <span class="gl lg">장면</span>
+            <button type="button" class="btn" data-scene="rod" aria-pressed="true" aria-label="막대 받치기"><span class="lg">막대 받치기</span><span class="sm">막대</span></button>
+            <button type="button" class="btn" data-scene="hang" aria-pressed="false" aria-label="판 매달기"><span class="lg">판 매달기</span><span class="sm">매달기</span></button>
+            <button type="button" class="btn" data-scene="box" aria-pressed="false" aria-label="상자 기울이기"><span class="lg">상자 기울이기</span><span class="sm">상자</span></button>
+          </div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">값·보기</span><span class="sm">조작</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="값과 보기">
+          <div class="sheet-head"><b>값 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <!-- 막대 받치기 -->
+          <div class="row" data-for="rod">
+            <div class="grow">
+              <label class="ctl-label" for="xf">받침점 (왼쪽 끝에서) <output id="xfOut">3L/4</output></label>
+              <input id="xf" type="range" min="0.05" max="0.95" step="0.01" value="0.75">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="k">물체 질량 M (막대의 몇 배) <output id="kOut">1배</output></label>
+              <input id="k" type="range" min="0" max="3" step="0.5" value="1">
+            </div>
+          </div>
+          <div class="row" data-for="rod">
+            <div class="grow">
+              <label class="ctl-label" for="p">물체 위치 (왼쪽 끝에서) <output id="pOut">L</output></label>
+              <input id="p" type="range" min="0" max="1" step="0.05" value="1">
+            </div>
+            <label class="chk"><input type="checkbox" id="cOne">중력을 한 점에 모으기</label>
+          </div>
+          <!-- 판 매달기 -->
+          <div class="row" data-for="hang" hidden>
+            <div class="group" role="group" aria-label="매다는 점">
+              <span class="gl">매다는 점</span>
+              <button type="button" class="btn" data-hole="A" aria-pressed="true">A</button>
+              <button type="button" class="btn" data-hole="B" aria-pressed="false">B</button>
+              <button type="button" class="btn" data-hole="C" aria-pressed="false">C</button>
+            </div>
+            <button type="button" class="btn" id="clearLines">그은 선 지우기</button>
+          </div>
+          <!-- 상자 기울이기 -->
+          <div class="row" data-for="box" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="tilt">기울인 각 θ <output id="tiltOut">15°</output></label>
+              <input id="tilt" type="range" min="0" max="85" step="1" value="15">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="mb">상자 질량 m <output id="mbOut">2 kg</output></label>
+              <input id="mb" type="range" min="1" max="4" step="0.5" value="2">
+            </div>
+          </div>
+          <div class="row" data-for="box" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="bw">밑면 폭 b <output id="bwOut">0.6 m</output></label>
+              <input id="bw" type="range" min="0.2" max="1.2" step="0.05" value="0.6">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="bh">높이 h <output id="bhOut">1 m</output></label>
+              <input id="bh" type="range" min="0.4" max="1.6" step="0.05" value="1">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="notes" aria-label="관찰 노트">
-      <p>(만드는 중)</p>
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 무게중심</span><span id="ansCtx">막대 m · 물체 m (오른쪽 끝)</span></div>
+        <div class="big" id="ansBig">x<sub>cm</sub> = 3L/4</div>
+        <div class="sub">
+          <span class="f" id="ansF">질량으로 가중 평균한 위치 x<sub>cm</sub> = Σmx ÷ Σm 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">x<sub>cm</sub> = (m × L/2 + <em>m</em> × <em>L</em>) ÷ (m + <em>m</em>)</span><span class="v">= (3L/2) ÷ 2 = <em>3L/4</em> (왼쪽 끝에서)</span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">막대의 무게중심</span><b id="mv1">L/2</b></div>
+          <div class="mini"><span id="mn2">물체 위치</span><b id="mv2">L</b></div>
+          <div class="mini"><span id="mn3">받침점</span><b id="mv3">3L/4</b></div>
+          <div class="mini"><span id="mn4">막대는</span><b id="mv4">수평 (균형)</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 무게중심을 받치면">
+          <div class="kind">관찰 1 · 막대 받치기</div>
+          <h3>무게중심을 받치면 막대가 수평으로 균형을 이룬다</h3>
+          <p>무게중심은 물체의 모든 부분이 받는 중력을 <b>한 점에 모아도</b> 같은 효과(같은 알짜힘, 같은 돌림힘)가 나는 점이다. 질량으로 가중 평균한 위치 <span class="eq">x<sub>cm</sub> = Σmx ÷ Σm</span> 이고, 균일한 막대는 가운데다. 막대(질량 m) 오른쪽 끝에 같은 질량 m 의 물체를 붙이면 무게중심은 왼쪽 끝에서 3L/4 로, 무거운 쪽으로 옮겨 간다.</p>
+          <canvas class="flat" id="gK" aria-label="물체 질량이 막대 질량의 몇 배인지에 따른 무게중심의 위치. 물체가 무거울수록 물체 쪽으로 다가간다."></canvas>
+          <p class="cap">무대에서 받침점을 끌어 보자. 무게중심의 연직선(구리색 점선)이 받침점 오른쪽에 있으면 시계 방향, 왼쪽에 있으면 시계 반대 방향으로 기운다. 딱 받침점 위에 오면 수평으로 선다. 물체도 끌어 옮길 수 있다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">3L/4 를 받치기</button>
+            <button type="button" class="btn" data-try="mid">가운데 L/2 를 받치기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=rod]; check:#cOne">중력을 한 점에 모으기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 매단 점 바로 아래">
+          <div class="kind">관찰 2 · 판 매달기</div>
+          <h3>매달면 무게중심이 매단 점 바로 아래로 온다</h3>
+          <p>판의 한 점을 매달아 멈추면 실의 장력과 중력이 한 직선 위에 있어야 돌림힘이 0 이 된다. 그래서 무게중심은 늘 <b>실의 연장선 위</b>에 있다. 다른 점에 다시 매달아 연장선을 하나 더 그으면 두 선의 교점이 무게중심이다.</p>
+          <p class="cap">흔들리던 판이 멈추면 실의 연장선(빨간 점선)이 판 위에 그어진다. A, B 두 점에 매달아 선 두 개를 그어 보자. 세 번째 점 C 에 매달아도 그 선은 같은 점을 지난다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="hangA">A 에 매달기</button>
+            <button type="button" class="btn" data-try="hangB">B 에 매달기</button>
+            <button type="button" class="btn" data-try="hangC">C 에 매달기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=hang]; click:#clearLines">선 지우기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 연직선이 받침면 안이면">
+          <div class="kind">관찰 3 · 상자 기울이기</div>
+          <h3>기울여도 무게중심의 연직선이 받침면 안이면 되돌아온다</h3>
+          <p>바닥의 상자를 기울이면 모서리를 축으로 돈다. 무게중심에서 내린 연직선이 받침면 안쪽에 떨어지면 중력의 돌림힘이 상자를 원래대로 되돌리고(안정한 평형), 바깥으로 나가면 더 넘어뜨리는 쪽으로 돌린다. 경계는 무게중심이 모서리 바로 위에 올 때다.</p>
+          <canvas class="flat" id="gU" aria-label="기울인 각에 따른 무게중심의 높이. 경계각에서 가장 높고, 그 앞은 되돌아오는 쪽, 뒤는 넘어지는 쪽."></canvas>
+          <p class="cap">기울이면 무게중심이 올라가다가 경계각 θ<sub>c</sub> 에서 가장 높다. 그 꼭대기를 넘으면 무게중심이 내려가는 쪽, 곧 넘어지는 쪽이다. 무대에서 상자를 끌어 기울였다가 놓아 보자.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="tilt10">10° 기울였다 놓기</button>
+            <button type="button" class="btn" data-try="tilt40">40° 기울였다 놓기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 낮고 넓을수록">
+          <div class="kind">관찰 4 · 상자 기울이기</div>
+          <h3>낮고 넓을수록 더 많이 기울여도 버틴다</h3>
+          <p>균일한 상자는 <span class="eq">tan θ<sub>c</sub> = (b/2) ÷ h<sub>G</sub></span> 인 각까지 버틴다(h<sub>G</sub> = 무게중심 높이 = h/2). 밑면이 넓고 무게중심이 낮을수록 θ<sub>c</sub> 가 커서 안정하다. 질량은 중력의 돌림힘과 돌기 어려운 정도에 똑같이 들어가 약분되므로 θ<sub>c</sub> 와 상관없다.</p>
+          <canvas class="flat" id="gC" aria-label="높이와 밑면 폭의 비에 따른 넘어지는 각. 비가 클수록(좁고 높을수록) 작다."></canvas>
+          <p class="cap">기중기는 반대편 균형추로 전체 무게중심을 받침면 안에 두고, 오뚝이는 기울면 무게중심이 올라가 되돌아온다. 아치형 다리는 위에서 누르는 하중을 돌 사이의 압축력으로 나눠 받아, 하중이 클수록 돌이 더 단단히 끼인다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="narrow">좁고 높은 상자 20°</button>
+            <button type="button" class="btn" data-try="wide">넓고 낮은 상자 20°</button>
+            <button type="button" class="btn" data-try="heavy">질량만 2배로</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>무게중심 하나로 떠받치고, 연직선이 받침면 안이면 선다</h3>
+          <ul>
+            <li><span class="eq">x<sub>cm</sub> = Σmᵢxᵢ ÷ Σmᵢ</span>. 여러 물체로 된 계는 각 물체를 자기 무게중심에 놓인 점 질량으로 바꿔 가중 평균한다. 무게중심 하나만 받치면 전체를 떠받칠 수 있다.</li>
+            <li>한 점에 매달아 멈추면 무게중심은 실의 연장선 위 → 두 연장선의 교점이 무게중심.</li>
+            <li>넘어지지 않는 조건: 무게중심의 연직선이 받침면 안. 경계 <span class="eq">tan θ<sub>c</sub> = (밑면 반폭) ÷ (무게중심 높이)</span> 는 모양만으로 정해지고 질량과 무관하다.</li>
+            <li>벽에 기댄 막대(벽 마찰 없음): 수평 평형 f = N₁, 연직 평형 N₂ = mg, N₁ 은 미지 힘 둘(N₂, f)이 모인 바닥 접촉점을 축으로 한 돌림힘 한 줄로 구한다.</li>
+          </ul>
+          <table class="st">
+            <thead><tr><th></th><th>안정한 평형</th><th>불안정한 평형</th></tr></thead>
+            <tbody>
+              <tr><td>살짝 기울이면</td><td>원래 자리로 되돌아온다</td><td>더 멀어진다</td></tr>
+              <tr><td>무게중심 연직선</td><td>받침면 안</td><td>받침면 밖 (또는 경계)</td></tr>
+              <tr><td>예</td><td>오뚝이, 넓고 낮은 상자, 모빌</td><td>끝으로 세운 연필, 좁고 높은 탑</td></tr>
+            </tbody>
+          </table>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>길이 L, 질량 m 인 균일한 막대의 오른쪽 끝에 질량 m 인 작은 물체를 붙였다. 왼쪽 끝에서 전체 무게중심까지 거리는?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>막대는 중앙(L/2)에 m, 물체는 L 에 m 인 점 질량으로 바꾼다. x<sub>cm</sub> = (m × L/2 + m × L) ÷ (m + m) = (3L/2) ÷ 2 = <b>3L/4</b>. 이 점(왼쪽 끝에서 3L/4)을 받치면 막대가 수평으로 균형을 이룬다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>밑면이 한 변 0.4 m 인 정사각형이고 높이가 1.2 m 인 균일한 직육면체를 밑면의 한 모서리를 축으로 천천히 기울인다. 넘어지기 시작하는 기울기 각 θ 에 대해 tan θ 는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1">18° 기울였다 놓기</button><button type="button" class="btn" data-try="q1b">19° 기울였다 놓기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>1/3</b>. 경계는 무게중심이 모서리 바로 위에 올 때다. 무게중심은 높이 0.6 m 에 있고 모서리에서 수평으로 밑면 반폭 0.2 m 떨어져 있으므로 tan θ = 0.2/0.6 = 1/3 (θ ≈ 18.4°). 1/6 은 무게중심 높이 대신 전체 높이를, 2/3 은 반폭 대신 밑면 전체 폭을 쓴 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>옳은 것만 고르면? ㄱ. 상자를 기울였을 때 무게중심의 연직선이 밑면 밖으로 나가면 상자는 원래 자리로 돌아온다. ㄴ. 한 점에 매달아 정지시킨 물체의 무게중심은 실의 연장선 위에 있다. ㄷ. 넘어지기 시작하는 기울기 각은 상자의 질량이 클수록 크다.</h3>
+            <div class="acts"><button type="button" class="btn" data-try="tilt40">ㄱ: 연직선이 밖으로</button><button type="button" class="btn" data-try="hangB">ㄴ: 매달아 보기</button><button type="button" class="btn" data-try="heavy">ㄷ: 질량만 2배</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄴ</b>. 매단 물체는 장력과 중력이 한 직선 위에 있어야 돌림힘이 0 이므로 무게중심은 실의 연장선 위에 있다. 연직선이 밑면 밖으로 나가면 중력의 돌림힘이 오히려 더 넘어뜨린다(ㄱ 틀림). 경계각은 tan θ = (밑면 반폭)/(무게중심 높이) 로 모양만으로 정해지고 질량과는 무관하다(ㄷ 틀림).</p></details>
+          </div>
+          <div class="q">
+            <h3>길이 L, 질량 m 인 균일한 막대의 오른쪽 끝에 질량 2m 인 물체를 붙이면, 왼쪽 끝에서 무게중심까지 거리는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="k2">오른쪽 끝에 2m</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>5L/6</b>. x<sub>cm</sub> = (m × L/2 + 2m × L) ÷ (m + 2m) = (5L/2) ÷ 3 = 5L/6. 물체가 무거울수록 무게중심이 물체 쪽으로 다가간다. 무게중심에서 막대 중심까지(L/3)와 물체까지(L/6)의 거리 비는 질량의 역비 2 : 1 이다.</p></details>
+          </div>
+        </li>
+      </ol>
 <!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../02/" rel="prev"><small>← 이전 개념 · A1-02</small><b>돌림힘과 평형</b></a><a href="../04/" rel="next"><small>다음 개념 · A1-04 →</small><b>한계 조건과 강체</b></a></nav>
 <!-- /nextprev -->
     </section>
   </main>
 </div>
+
 <script src="../../kit/lab.js"></script>
+<script src="A1-03-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_03;
+  const {$, C, text, fmt} = Lab;
+  const RAD = Math.PI / 180;
+  // 매다는 판 (판 좌표, 위쪽 +): 고르지 않은 오각형과 구멍 셋
+  const PLATE = [[-0.55, 0.15], [0.05, 0.55], [0.6, 0.3], [0.45, -0.45], [-0.35, -0.5]];
+  const HOLES = {A: [-0.43, 0.13], B: [0.48, 0.26], C: [0.36, -0.37]};
+  const GP = M.polyCentroid(PLATE);
+  const SLOW = 0.45;                                   // 상자가 넘어지는 움직임을 느리게 보는 비율
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = {scene: 'rod', playing: !Lab.reduceMotion, k: 1, p: 1, xf: 0.75, one: false, psi: 0,
+    hole: 'A', phi: 0.5, om: 0, push: 0.5, lines: {A: false, B: false, C: false},
+    b: 0.6, h: 1, th: 15, thom: 0, free: true, mb: 2, drag: null, hint: true};
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  const lbl = (ctx, s, x, y, col, o = {}) => text(ctx, s, x, y, Object.assign({size: 14, w: 600, color: col || C.ink, halo: true}, o));
+  const deg = (v) => Math.round(v) + '°';
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  // L 의 몇 배인지 분수로: 0.75 → 3L/4, 0.5 → L/2, 1 → L, 0.8333 → 5L/6 (분모 12 까지, 아니면 소수)
+  function fracL(v) {
+    if (Math.abs(v) < 1e-9) return '0';
+    for (let q = 1; q <= 12; q++) {
+      const n = Math.round(v * q); if (Math.abs(v * q - n) > 1e-6) continue;
+      const g = gcd(Math.abs(n), q), a = n / g, d = q / g;
+      return (a === 1 ? '' : a === -1 ? '−' : String(a).replace('-', '−')) + 'L' + (d === 1 ? '' : '/' + d);
+    }
+    return fmt(v, 2) + 'L';
+  }
+  const fracH = (v) => fracL(v);
+  function hatch(ctx, a, b, nrm, len = 9) {
+    Lab.line(ctx, [a, b], C.ink, 2.2);
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]), u = [(b[0] - a[0]) / L, (b[1] - a[1]) / L];
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (let d = 5; d <= L - 3; d += 10) { const p = [a[0] + u[0] * d, a[1] + u[1] * d]; ctx.moveTo(p[0], p[1]); ctx.lineTo(p[0] + nrm[0] * len + u[0] * 5, p[1] + nrm[1] * len + u[1] * 5); }
+    ctx.stroke(); ctx.restore();
+  }
+  function hbar(ctx, x0, x1, y, col, label) {
+    if (Math.abs(x1 - x0) < 3) return;
+    Lab.line(ctx, [[x0, y], [x1, y]], col, 2.2);
+    Lab.line(ctx, [[x0, y - 5], [x0, y + 5]], col, 1.6); Lab.line(ctx, [[x1, y - 5], [x1, y + 5]], col, 1.6);
+    if (label) lbl(ctx, label, (x0 + x1) / 2, y - 11, col, {size: 13});
+  }
+  function cgMark(ctx, x, y, r = 8) {                                 // 무게중심 표시 ⊕ (구리색)
+    Lab.circle(ctx, x, y, r, {fill: C.paper, stroke: C.copper, width: 2.4});
+    Lab.line(ctx, [[x - r, y], [x + r, y]], C.copper, 2); Lab.line(ctx, [[x, y - r], [x, y + r]], C.copper, 2);
+  }
+  function curl(ctx, c, r, a0, a1, col, w = 2.6) {                   // 도는 방향 화살표 (a0 → a1, 라디안, 화면 각)
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(c[0], c[1], r, a0, a1, a1 < a0); ctx.stroke(); ctx.restore();
+    const e = [c[0] + Math.cos(a1) * r, c[1] + Math.sin(a1) * r], sgn = a1 > a0 ? 1 : -1, t = [-Math.sin(a1) * sgn, Math.cos(a1) * sgn];
+    Lab.arrow(ctx, e[0] - t[0] * 9, e[1] - t[1] * 9, e[0] + t[0] * 2, e[1] + t[1] * 2, col, w, 10);
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (S.scene === 'rod') drawRod(ctx, W, H);
+    else if (S.scene === 'hang') drawHang(ctx, W, H);
+    else drawBox(ctx, W, H);
+  }
+
+  // ① 막대 받치기: 받침대 위 막대 (왼쪽 끝 0, 오른쪽 끝 L) + 물체
+  const xcmNow = () => M.rodCm(1, 1, S.k, S.p);
+  function geoRod(W, H) {
+    const nar = W < 520, Lp = W * (nar ? 0.84 : 0.74), x0 = (W - Lp) / 2, yF = H - (nar ? 46 : 50);
+    const tr = nar ? 10 : 12, hs = Math.max(60, H * 0.3), yR = yF - hs - tr / 2;
+    const unit = Math.min(nar ? 34 : 46, (hs - 24) / Math.max(2, 1 + S.k));   // 막대 무게 mg 의 화살표 길이
+    return {nar, Lp, x0, yF, tr, hs, yR, unit, X: (u) => x0 + u * Lp, bw: nar ? 32 : 44, bh: nar ? 24 : 32};
+  }
+  function rodTiltTarget() {
+    if (!stage.W) return 0;
+    const g = geoRod(stage.W, stage.H), d = xcmNow() - S.xf;
+    if (Math.abs(d) < 0.004) return 0;
+    const end = (d > 0 ? 1 - S.xf : S.xf) * g.Lp;                       // 기우는 쪽 끝까지 거리
+    return Math.sign(d) * Math.asin(Math.min(0.5, (g.hs - 2) / Math.max(g.hs, end)));
+  }
+  function drawRod(ctx, W, H) {
+    const g = geoRod(W, H), X = g.X, nar = g.nar, xcm = xcmNow(), tilt = S.psi;
+    hatch(ctx, [0, g.yF], [W, g.yF], [0, 1], 7);
+    // 받침대 (받침점 = 꼭짓점)
+    const fx = X(S.xf), apex = [fx, g.yR + g.tr / 2];
+    ctx.save(); ctx.fillStyle = C['line-soft']; ctx.strokeStyle = C.ink; ctx.lineWidth = 2;
+    ctx.fillRect(fx - 9, apex[1] + 22, 18, g.yF - apex[1] - 22); ctx.strokeRect(fx - 9, apex[1] + 22, 18, g.yF - apex[1] - 22);
+    ctx.beginPath(); ctx.moveTo(apex[0], apex[1]); ctx.lineTo(fx - 15, apex[1] + 22); ctx.lineTo(fx + 15, apex[1] + 22); ctx.closePath(); ctx.fillStyle = C.paper; ctx.fill(); ctx.stroke(); ctx.restore();
+    lbl(ctx, '받침점', fx + 18, apex[1] + 34, C.ink, {size: 13, w: 500, align: 'left'});
+    if (S.hint) lbl(ctx, '끌기', fx - 18, apex[1] + 34, C.copper, {size: 13, align: 'right'});
+    // 막대는 받침점(꼭짓점)을 축으로 tilt 만큼 돈다 (+ = 시계 방향)
+    const c = Math.cos(tilt), sn = Math.sin(tilt);
+    const R = (p) => [apex[0] + (p[0] - apex[0]) * c - (p[1] - apex[1]) * sn, apex[1] + (p[0] - apex[0]) * sn + (p[1] - apex[1]) * c];
+    const yT = g.yR - g.tr / 2, yB = g.yR + g.tr / 2;
+    const corners = [[X(0), yT], [X(1), yT], [X(1), yB], [X(0), yB]].map(R);
+    ctx.save(); ctx.beginPath(); corners.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath();
+    ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    const rc = R([X(0.5), g.yR]); Lab.circle(ctx, rc[0], rc[1], 3.2, {fill: C.vel});
+    // 물체 (막대 위)
+    if (S.k > 0) {
+      const ob = R([X(S.p), yT - g.bh / 2]);
+      ctx.save(); ctx.translate(ob[0], ob[1]); ctx.rotate(tilt); Lab.rrect(ctx, -g.bw / 2, -g.bh / 2, g.bw, g.bh, 5);
+      ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.vel; ctx.stroke(); ctx.restore();
+      text(ctx, S.k === 1 ? 'm' : fmt(S.k, 1) + 'm', ob[0], ob[1] + 1, {size: 13, w: 600, color: C.vel});
+    }
+    // 중력: 막대 mg (막대 중심), 물체 Mg (물체 자리) → 한 점에 모으면 (m + M)g 가 무게중심에
+    const u = g.unit, a1 = S.one ? 0.3 : 1;
+    const dn = (p, len, col, w, label, side) => {
+      len = Math.min(len, g.yF - p[1] - 6); if (len < 10) return;
+      ctx.save(); ctx.globalAlpha = col === 'fade' ? 0.3 : 1; Lab.arrow(ctx, p[0], p[1], p[0], p[1] + len, C.force, w, 12); ctx.restore();
+      if (label) lbl(ctx, label, p[0] + side * 9, p[1] + len - 4, C.force, {size: nar ? 13 : 14, align: side > 0 ? 'left' : 'right'});
+    };
+    const pR = R([X(0.5), yB]), pO = R([X(S.p), yB]), pG = R([X(xcm), yB]);
+    const sideR = S.p >= 0.5 ? -1 : 1;
+    dn(pR, u, S.one ? 'fade' : 1, 3.2, S.one ? '' : 'mg', sideR);
+    if (S.k > 0) dn(pO, u * S.k, S.one ? 'fade' : 1, 3.2, S.one ? '' : (S.k === 1 ? 'mg' : fmt(S.k, 1) + 'mg'), -sideR);
+    if (S.one) dn(pG, u * (1 + S.k), 1, 4, '(m + M)g', 1);
+    // 무게중심과 연직선
+    const gpt = R([X(xcm), g.yR]), balanced = Math.abs(xcm - S.xf) < 0.004;
+    Lab.line(ctx, [gpt, [gpt[0], g.yF]], C.copper, 1.6, [5, 4]);
+    cgMark(ctx, gpt[0], gpt[1], nar ? 7 : 8);
+    // 치수 (막대가 수평일 때): 왼쪽 끝에서 막대 중심, 물체, 무게중심까지
+    if (Math.abs(tilt) < 0.01) {
+      const top = yT - (S.k > 0 ? g.bh : 0) - 18, gap = nar ? 22 : 24;
+      const rows = [[0.5, 'L/2'], [xcm, (nar ? '' : 'x_{cm} = ') + fracL(xcm)]];
+      if (S.k > 0 && Math.abs(S.p - 0.5) > 0.01 && Math.abs(S.p - xcm) > 0.01) rows.push([S.p, fracL(S.p)]);
+      rows.sort((a, b) => a[0] - b[0]).forEach(([v, s], i) => {
+        const y = top - i * gap;
+        Lab.line(ctx, [[X(v), y], [X(v), yT - 2]], Lab.alpha(C.copper, 0.5), 1, [2, 3]);
+        hbar(ctx, X(0), X(v), y, C.copper, '');
+        Lab.rich(ctx, s, (X(0) + X(v)) / 2, y - 11, {size: 13, w: 600, color: C.copper, halo: true});
+      });
+    }
+    // 판정
+    const msg = balanced ? '무게중심 = 받침점 → 수평으로 균형' : (xcm > S.xf ? '무게중심이 받침점 오른쪽 → 시계 방향으로 기운다' : '무게중심이 받침점 왼쪽 → 시계 반대 방향으로 기운다');
+    Lab.tag(ctx, msg, W - 12, nar ? 64 : 24, {size: 13, color: balanced ? C.acc : C.neg, bg: balanced ? C['acc-soft'] : C['neg-soft'], border: balanced ? C.acc : C.neg, align: 'right'});
+  }
+
+  // ② 판 매달기: 천장 — 짧은 실 — 구멍에 꽂힌 핀. 판은 흔들리다 무게중심이 핀 바로 아래에서 멈춘다
+  function geoHang(W, H) {
+    const nar = W < 520, yC = nar ? 56 : 58;
+    const sc = Math.max(50, 0.9 * Math.min((H - 50 - yC - 10) / 1.26, (W / 2 - 10) / 0.92));
+    return {nar, yC, pin: [W / 2, yC + 10 + 0.13 * sc], sc};
+  }
+  const phiEq = (hole) => M.hangAngle(HOLES[hole], GP);
+  function toWorld(g, P, phi) {                                        // 판 좌표 → 화면 (구멍이 핀에, phi 만큼 시계 반대로 돈 자세)
+    const hp = HOLES[S.hole], d = M.rotate([P[0] - hp[0], P[1] - hp[1]], phi);
+    return [g.pin[0] + d[0] * g.sc, g.pin[1] - d[1] * g.sc];
+  }
+  function drawHang(ctx, W, H) {
+    const g = geoHang(W, H), nar = g.nar, phi = S.phi;
+    hatch(ctx, [g.pin[0] - 70, g.yC], [g.pin[0] + 70, g.yC], [0, -1]);
+    Lab.line(ctx, [[g.pin[0], g.yC], g.pin], C.ink, 2);
+    // 실의 연장선 (지금)
+    Lab.line(ctx, [g.pin, [g.pin[0], H - 44]], Lab.alpha(C.force, 0.75), 1.6, [6, 5]);
+    if (!nar) lbl(ctx, '실의 연장선', g.pin[0] + 8, H - 56, C.force, {size: 13, w: 500, align: 'left'});
+    // 판
+    const pts = PLATE.map((p) => toWorld(g, p, phi));
+    ctx.save(); ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath();
+    ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
+    // 그어 둔 연장선 (판과 함께 돈다): 구멍 → 무게중심 방향으로 판을 가로질러
+    let n = 0;
+    for (const k of ['A', 'B', 'C']) {
+      if (!S.lines[k]) continue; n++;
+      const P = HOLES[k], d = [GP[0] - P[0], GP[1] - P[1]], L = Math.hypot(d[0], d[1]);
+      const e = [P[0] + d[0] / L * 1.05, P[1] + d[1] / L * 1.05];
+      Lab.line(ctx, [toWorld(g, P, phi), toWorld(g, e, phi)], C.force, 2.2, [7, 5]);
+    }
+    // 구멍
+    for (const k of ['A', 'B', 'C']) {
+      const q = toWorld(g, HOLES[k], phi), cur = k === S.hole;
+      Lab.circle(ctx, q[0], q[1], cur ? 6.5 : 5, {fill: C.paper, stroke: C.ink, width: 2});
+      if (cur) Lab.circle(ctx, q[0], q[1], 2.4, {fill: C.ink});
+      const out = [q[0] - toWorld(g, GP, phi)[0], q[1] - toWorld(g, GP, phi)[1]], ol = Math.hypot(out[0], out[1]) || 1;
+      lbl(ctx, k, q[0] + out[0] / ol * 17, q[1] + out[1] / ol * 17, C.ink, {size: 14});
+    }
+    // 무게중심: 연장선이 둘 이상이면 교점으로 드러난다
+    const gw = toWorld(g, GP, phi);
+    if (n >= 2) { cgMark(ctx, gw[0], gw[1], nar ? 7 : 8); lbl(ctx, 'G', gw[0] + 13, gw[1] - 12, C.copper, {size: 15, align: 'left'}); }
+    // 중력 (무게중심에서 아래로) — 무게중심을 아직 모르면 흐리게
+    ctx.save(); ctx.globalAlpha = n >= 2 ? 1 : 0.35; Lab.arrow(ctx, gw[0], gw[1], gw[0], gw[1] + (nar ? 40 : 56), C.force, 3, 11); ctx.restore();
+    if (n >= 2) lbl(ctx, 'mg', gw[0] + 9, gw[1] + (nar ? 34 : 48), C.force, {size: 14, align: 'left'});
+    const dev = Math.abs((((phi - phiEq(S.hole)) / RAD + 540) % 360) - 180);
+    Lab.tag(ctx, dev > 0.6 ? '흔들리는 중' : n >= 2 ? '두 연장선의 교점 = 무게중심' : '멈춤 → 연장선을 그었다', W - 12, nar ? 64 : 24,
+      {size: 13, color: dev > 0.6 ? C.muted : C.acc, bg: dev > 0.6 ? C.paper : C['acc-soft'], border: dev > 0.6 ? C.line : C.acc, align: 'right'});
+    if (S.hint && !nar) lbl(ctx, '구멍을 누르면 그 점에 매단다', 14, H - 56, C.copper, {size: 13, align: 'left'});
+  }
+
+  // ③ 상자 기울이기: 오른쪽 아래 모서리가 축, 기울면 왼쪽이 들린다
+  function geoBox(W, H) {
+    const nar = W < 520, yF = H - (nar ? 46 : 52);
+    const sc = Math.min((yF - (nar ? 60 : 62)) / 2.0, (W - 36) / 2.85);   // m → px (가장 큰 상자가 넘어가며 그리는 호까지)
+    const xP = Math.round(Math.max((nar ? 12 : 24) + 1.2 * sc, Math.min(W * 0.5, W - 1.6 * sc - 8)));
+    return {nar, yF, sc, xP};
+  }
+  const hcNow = () => S.h / 2, thcNow = () => M.tipAngle(S.b, hcNow());
+  function boxPt(g, p, th) {                                         // 상자 좌표 (축 = 원점, 위쪽 +) → θ 기운 화면 좌표
+    const c = Math.cos(th * RAD), s = Math.sin(th * RAD);
+    return [g.xP + (p[0] * c + p[1] * s) * g.sc, g.yF - (-p[0] * s + p[1] * c) * g.sc];
+  }
+  function drawBox(ctx, W, H) {
+    const g = geoBox(W, H), b = S.b, h = S.h, th = S.th, nar = g.nar, thc = thcNow(), lev = M.lever(b, h / 2, th), inside = lev > 1e-6, edge = Math.abs(lev) <= 1e-6;
+    hatch(ctx, [0, g.yF], [W, g.yF], [0, 1], 7);
+    // 밑면 자리 (서 있을 때 닿는 바닥)
+    ctx.save(); ctx.fillStyle = C['acc-soft']; ctx.fillRect(g.xP - b * g.sc, g.yF - 4, b * g.sc, 8); ctx.restore();
+    // 경계각 θc 의 상자 (점선)
+    const rect = [[0, 0], [-b, 0], [-b, h], [0, h]];
+    if (thc < 89) { const gp = rect.map((p) => boxPt(g, p, thc)); Lab.line(ctx, gp.concat([gp[0]]), Lab.alpha(C.muted, 0.75), 1.3, [5, 5]); const tl = gp[2]; lbl(ctx, '경계 θc = ' + fmt(thc, 1) + '°', tl[0] + 6, tl[1] - 12, C.muted, {size: 13, w: 500, align: 'left'}); }
+    // 상자
+    const pts = rect.map((p) => boxPt(g, p, th));
+    ctx.save(); ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath();
+    ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
+    if (S.hint) { const tc = [(pts[2][0] + pts[3][0]) / 2, (pts[2][1] + pts[3][1]) / 2]; lbl(ctx, '끌어 기울이기', tc[0], tc[1] - 14, C.copper, {size: 13}); }
+    // θ (바닥과 밑변 사이)
+    if (th > 1) {
+      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(g.xP, g.yF, 34, Math.PI, Math.PI + th * RAD); ctx.stroke(); ctx.restore();
+      lbl(ctx, 'θ ' + fmt(th, 0) + '°', g.xP - 46 * Math.cos(th * RAD / 2) - 6, g.yF - 46 * Math.sin(th * RAD / 2) - 4, C.copper, {size: 13, align: 'right'});
+    }
+    // 무게중심, 연직선, 중력, 도는 방향
+    const Gp = boxPt(g, [-b / 2, h / 2], th), col = edge ? C.copper : inside ? C.acc : C.neg;
+    Lab.line(ctx, [Gp, [Gp[0], g.yF]], col, 2, [6, 4]);
+    Lab.circle(ctx, Gp[0], g.yF, 4, {fill: col});
+    const mgL = Math.min(nar ? 46 : 70, (g.yF - Gp[1]) * 0.8) * (0.55 + 0.15 * S.mb);
+    Lab.arrow(ctx, Gp[0] + 12, Gp[1], Gp[0] + 12, Gp[1] + Math.min(mgL, g.yF - Gp[1] - 6), C.force, 3, 11);
+    lbl(ctx, 'mg', Gp[0] + 20, Gp[1] + Math.min(mgL, g.yF - Gp[1] - 6) - 8, C.force, {size: 13, align: 'left'});
+    cgMark(ctx, Gp[0], Gp[1], nar ? 7 : 8);
+    if (th > 0.8 && th < 89 && !edge) {
+      if (inside) curl(ctx, Gp, nar ? 22 : 28, -0.4, -2.2, C.acc); else curl(ctx, Gp, nar ? 22 : 28, -2.2, -0.4, C.neg);
+      lbl(ctx, inside ? '되돌린다' : '넘어뜨린다', Gp[0] + (inside ? -34 : 34), Gp[1] - (nar ? 30 : 38), inside ? C.acc : C.neg, {size: 13, align: inside ? 'right' : 'left'});
+    }
+    // 축(모서리)
+    Lab.circle(ctx, g.xP, g.yF, 6, {fill: C.paper, stroke: C.ink, width: 2.2}); Lab.circle(ctx, g.xP, g.yF, 2.2, {fill: C.ink});
+    lbl(ctx, '회전축', g.xP + 10, g.yF + 18, C.ink, {size: 13, w: 500, align: 'left'});
+    // 판정
+    const msg = th >= 89.5 ? '넘어졌다' : edge ? '경계: 무게중심이 축 바로 위' : inside ? '연직선이 받침면 안 → 되돌아온다' : '연직선이 받침면 밖 → 넘어진다';
+    Lab.tag(ctx, msg, W - 12, nar ? 64 : 24, {size: 13, color: inside ? C.acc : edge ? C.copper : C.neg, bg: inside ? C['acc-soft'] : edge ? C['copper-soft'] : C['neg-soft'], border: inside ? C.acc : edge ? C.copper : C.neg, align: 'right'});
+  }
+
+  // ── 관찰 그래프 ─────────────────────────────────────────
+  // ① 물체 질량에 따른 무게중심 위치
+  const gK = Lab.canvas('gK', drawGK);
+  function drawGK() {
+    const {ctx, W, H} = gK; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const r = {x: 50, y: 16, w: W - 50 - 18, h: H - 16 - 48};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 3, ymin: 0, ymax: 1, xticks: [0, 1, 2, 3], yticks: [0.5, 0.75, 1], fmtX: (v) => v + '배', fmtY: fracL,
+      xlabel: '물체 질량 M ÷ 막대 질량 m', xlabelBelow: true, ylabel: '무게중심 (왼쪽 끝에서)', grid: true});
+    Lab.line(ctx, [[ax.X(0), ax.Y(S.p)], [ax.X(3), ax.Y(S.p)]], C.muted, 1.2, [3, 4]);
+    text(ctx, '물체 자리 ' + fracL(S.p), ax.X(3), ax.Y(S.p) + (S.p > 0.9 ? 12 : -10), {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+    const pts = []; for (let k = 0; k <= 3.001; k += 0.05) pts.push([ax.X(k), ax.Y(M.rodCm(1, 1, k, S.p))]);
+    Lab.line(ctx, pts, C.copper, 3);
+    const x = ax.X(S.k), y = ax.Y(xcmNow());
+    Lab.circle(ctx, x, y, 6, {fill: C.copper, stroke: C.paper, width: 2});
+    lbl(ctx, fracL(xcmNow()), x + (S.k > 2 ? -10 : 10), y + 15, C.copper, {size: 13, align: S.k > 2 ? 'right' : 'left'});
+  }
+  // ③ 기울인 각에 따른 무게중심 높이 (경계각에서 가장 높다)
+  const gU = Lab.canvas('gU', drawGU);
+  function drawGU() {
+    const {ctx, W, H} = gU; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const b = S.b, hc = S.h / 2, thc = thcNow(), peak = Math.hypot(b / 2, hc), low = Math.min(hc, b / 2);
+    const lo = Math.max(0, low - (peak - low) * 0.25), top = peak + (peak - low) * 0.32;   // 언덕 모양이 잘 보이게 세로축을 좁힌다
+    const r = {x: 50, y: 22, w: W - 50 - 18, h: H - 22 - 48};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 90, ymin: lo, ymax: top, xticks: [0, 30, 60, 90], yticks: [hc, b / 2].filter((v, i, a) => i === 0 || Math.abs(v - a[0]) > (top - lo) * 0.12),
+      fmtX: (v) => v + '°', fmtY: (v) => fmt(v, 2), xlabel: '기울인 각 θ', xlabelBelow: true, ylabel: '무게중심 높이 (m)', grid: true, yAt: 'left'});
+    ctx.save(); ctx.fillStyle = C['acc-soft']; ctx.fillRect(ax.X(0), r.y, ax.X(thc) - ax.X(0), r.h); ctx.fillStyle = C['neg-soft']; ctx.fillRect(ax.X(thc), r.y, ax.X(90) - ax.X(thc), r.h); ctx.restore();
+    text(ctx, '되돌아온다', ax.X(thc / 2), r.y + r.h - 14, {size: 13, w: 600, color: C.acc, halo: true});
+    text(ctx, '넘어진다', ax.X((thc + 90) / 2), r.y + r.h - 14, {size: 13, w: 600, color: C.neg, halo: true});
+    const pts = []; for (let t = 0; t <= 90; t += 1) pts.push([ax.X(t), ax.Y(M.cmHeight(b, hc, t))]);
+    Lab.line(ctx, pts, C.copper, 3);
+    Lab.line(ctx, [[ax.X(thc), r.y], [ax.X(thc), r.y + r.h]], C.ink, 1.3, [4, 4]);
+    text(ctx, 'θc ' + fmt(thc, 1) + '° (가장 높다)', ax.X(thc) + (thc > 55 ? -6 : 6), ax.Y(peak) - 12, {size: 13, w: 600, color: C.ink, align: thc > 55 ? 'right' : 'left', halo: true});
+    const t = Math.min(90, S.th), x = ax.X(t), y = ax.Y(M.cmHeight(b, hc, t));
+    Lab.circle(ctx, x, y, 6.5, {fill: M.lever(b, hc, t) > 0 ? C.acc : C.neg, stroke: C.paper, width: 2});
+  }
+  // ④ 높이 ÷ 폭 에 따른 경계각
+  const gC = Lab.canvas('gC', drawGC);
+  function drawGC() {
+    const {ctx, W, H} = gC; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const r = {x: 46, y: 16, w: W - 46 - 18, h: H - 16 - 48};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 6, ymin: 0, ymax: 90, xticks: [0.5, 1, 2, 3, 4, 6], yticks: [30, 60, 90], fmtX: (v) => fmt(v, 1), fmtY: (v) => v + '°',
+      xlabel: '높이 ÷ 밑면 폭 (h/b)', xlabelBelow: true, ylabel: '넘어지는 각 θc', grid: true});
+    const pts = []; for (let q = 0.12; q <= 6.001; q += 0.04) pts.push([ax.X(q), ax.Y(Math.atan(1 / q) / RAD)]);
+    Lab.line(ctx, pts, C.acc, 3);
+    text(ctx, '넓고 낮다 · 안정', ax.X(0.3), ax.Y(84), {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    text(ctx, '좁고 높다 · 불안정', ax.X(6), ax.Y(22), {size: 13, w: 600, color: C.neg, align: 'right', halo: true});
+    const q = S.h / S.b, x = ax.X(Math.min(6, q)), y = ax.Y(thcNow());
+    Lab.circle(ctx, x, y, 6, {fill: C.copper, stroke: C.paper, width: 2});
+    lbl(ctx, fmt(thcNow(), 1) + '°', x + 10, y - 12, C.copper, {size: 13, align: 'left'});
+  }
+
+  // ── 지금 값 ─────────────────────────────────────────────
+  const LEG = {
+    rod: '<span><b style="background:var(--force)"></b>중력</span><span><i style="background:var(--copper)"></i>무게중심 · 연직선</span><span><b style="background:var(--vel)"></b>막대 · 물체</span>',
+    hang: '<span><b class="d" style="background:var(--force)"></b>실의 연장선</span><span><i style="background:var(--copper)"></i>무게중심 G</span><span><b style="background:var(--vel)"></b>판</span>',
+    box: '<span><b style="background:var(--force)"></b>중력</span><span><i style="background:var(--copper)"></i>무게중심</span><span><b style="background:var(--acc)"></b>받침면 · 되돌림</span><span><b style="background:var(--neg)"></b>넘어뜨림</span>',
+  };
+  function minis(list) { list.forEach(([n, v], i) => { $('mn' + (i + 1)).innerHTML = n; $('mv' + (i + 1)).textContent = v; }); }
+  const kName = (k) => (k === 1 ? 'm' : fmt(k, 1) + 'm');
+  function readouts() {
+    $('xfOut').textContent = fracL(S.xf); $('kOut').textContent = fmt(S.k, 1) + '배'; $('pOut').textContent = fracL(S.p);
+    $('tiltOut').textContent = deg(S.th); $('mbOut').textContent = fmt(S.mb, 1) + ' kg'; $('bwOut').textContent = fmt(S.b, 2) + ' m'; $('bhOut').textContent = fmt(S.h, 2) + ' m';
+    if (S.scene === 'rod') {
+      const x = xcmNow(), num = 0.5 + S.k * S.p, den = 1 + S.k, bal = Math.abs(x - S.xf) < 0.004;
+      const kn = kName(S.k);
+      Lab.ans('x<sub>cm</sub> = ' + fracL(x), [
+        'x<sub>cm</sub> = (m × L/2 + <em>' + kn + '</em> × <em>' + fracL(S.p) + '</em>) ÷ (m + <em>' + kn + '</em>)',
+        '= (' + fracL(num) + ') ÷ ' + fmt(den, 1) + ' = <em>' + fracL(x) + '</em> (왼쪽 끝에서)',
+        bal ? '받침점 ' + fracL(S.xf) + ' = 무게중심 → <em>수평으로 균형</em>' : '받침점 ' + fracL(S.xf) + (x > S.xf ? ' 보다 무게중심이 오른쪽 → 시계 방향으로 기운다' : ' 보다 무게중심이 왼쪽 → 시계 반대 방향으로 기운다'),
+      ], {tone: '', html: true, lab: '지금 무게중심', ctx: '막대 m · 물체 ' + (S.k > 0 ? kn + ' (' + fracL(S.p) + ')' : '없음'), f: '질량으로 가중 평균한 위치 x<sub>cm</sub> = Σmx ÷ Σm 에 지금 값을 넣으면'});
+      minis([['막대의 무게중심', 'L/2'], ['물체 위치', S.k > 0 ? fracL(S.p) : '없음'], ['받침점', fracL(S.xf)], ['막대는', bal ? '수평 (균형)' : x > S.xf ? '시계 방향으로 기운다' : '시계 반대 방향으로 기운다']]);
+      $('hud1').textContent = '무게중심 ' + fracL(x);
+      $('hud2').textContent = bal ? '균형' : '기운다'; $('hud2').className = 'pill' + (bal ? ' up' : ' down');
+    } else if (S.scene === 'hang') {
+      const n = ['A', 'B', 'C'].filter((k) => S.lines[k]).length, dev = Math.abs((((S.phi - phiEq(S.hole)) / RAD + 540) % 360) - 180);
+      Lab.ans(n >= 2 ? '두 연장선의 교점 = G' : n === 1 ? '연장선 1개 — 다른 점에도' : '흔들리다 멈춘다', [
+        '매단 점 ' + S.hole + ': 실의 장력과 중력이 한 직선 위에 와야 돌림힘 = 0 → 멈춘다',
+        '그래서 무게중심 G 는 실의 연장선 위 (그은 선 <em>' + n + '개</em>)',
+        n >= 2 ? '두 선이 만나는 점 = <em>G</em> — 세 번째 점에 매달아도 G 를 지난다' : '다른 점에 매달아 연장선을 하나 더 그으면 교점이 G',
+      ], {tone: n >= 2 ? '' : 'ink', html: false, lab: '매달아 찾는 무게중심', ctx: '매단 점 ' + S.hole, f: '매달아 멈춘 물체에서는'});
+      minis([['매단 점', S.hole], ['그은 연장선', n + '개'], ['평형 자세에서 벗어난 각', fmt(dev, 1) + '°'], ['멈춘 뒤 G 의 자리', '매단 점 바로 아래']]);
+      $('hud1').textContent = '매단 점 ' + S.hole;
+      $('hud2').textContent = '연장선 ' + n + '개'; $('hud2').className = 'pill' + (n >= 2 ? ' up' : '');
+    } else {
+      const hc = S.h / 2, thc = thcNow(), lev = M.lever(S.b, hc, Math.min(S.th, 90)), edge = Math.abs(lev) < 1e-6, inside = lev > 1e-6;
+      const ratio = (S.b / 2) / hc, rs = Lab.frac(ratio);
+      Lab.ans(S.th >= 89.5 ? '넘어졌다' : edge ? '경계' : inside ? '되돌아온다' : '넘어진다', [
+        '넘어지는 각: tan θ<sub>c</sub> = (b/2) ÷ h<sub>G</sub> = ' + fmt(S.b / 2, 2) + ' ÷ ' + fmt(hc, 2) + ' = <em>' + (rs.includes('/') ? rs : fmt(ratio, 3)) + '</em> → θ<sub>c</sub> = <em>' + fmt(thc, 1) + '°</em>',
+        '지금 θ = <em>' + fmt(Math.min(S.th, 90), 0) + '°</em> ' + (edge ? '= θc' : S.th < thc ? '< θc' : '> θc') + ' → 무게중심의 연직선이 축에서 ' + fmt(Math.abs(lev), 2) + ' m ' + (edge ? '(바로 위)' : inside ? '안쪽' : '바깥'),
+        inside ? '→ 중력의 돌림힘이 원래대로 되돌린다 (질량과 무관)' : edge ? '→ 아주 조금만 더 기울면 넘어간다' : '→ 중력의 돌림힘이 더 넘어뜨린다 (질량과 무관)',
+      ], {tone: inside ? '' : edge ? 'cu' : 'neg', html: true, lab: '지금 판정', ctx: '폭 ' + fmt(S.b, 2) + ' m · 높이 ' + fmt(S.h, 2) + ' m · ' + fmt(S.mb, 1) + ' kg', f: '무게중심의 연직선과 회전축(모서리)을 견주면'});
+      minis([['밑면 폭 b', fmt(S.b, 2) + ' m'], ['무게중심 높이 h<sub>G</sub> = h/2', fmt(hc, 2) + ' m'], ['넘어지는 각 θ<sub>c</sub>', fmt(thc, 1) + '°'], ['상자 질량 m (θc 와 무관)', fmt(S.mb, 1) + ' kg']]);
+      $('hud1').textContent = 'θ = ' + deg(S.th) + ' · θc = ' + fmt(thc, 1) + '°';
+      $('hud2').textContent = S.th >= 89.5 ? '넘어졌다' : inside ? '되돌아온다' : edge ? '경계' : '넘어진다'; $('hud2').className = 'pill' + (inside ? ' up' : edge ? '' : ' down');
+    }
+    const ok = S.scene === 'rod' && S.k === 1 && Math.abs(S.p - 1) < 1e-9;
+    Lab.check('exCheck', ok, '개념서 예제 (막대 m 의 오른쪽 끝에 물체 m) → 무게중심은 왼쪽 끝에서 3L/4, 그 점을 받치면 수평',
+      '예제: 막대 오른쪽 끝에 같은 질량의 물체를 붙이면 무게중심은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function drawAll() { drawStage(); drawGK(); drawGU(); drawGC(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => setScene(v), S.scene);
+  const holeG = Lab.group('[data-hole]', 'hole', (v) => hangFrom(v), S.hole);
+  function setScene(sc) {
+    S.scene = sc;
+    document.querySelectorAll('[data-for]').forEach((el) => { el.hidden = !el.dataset.for.split(' ').includes(sc); });
+    $('legend').innerHTML = LEG[sc];
+    sceneG.set(sc, true);
+    if (!S.playing) settleAll();
+    refresh();
+  }
+  // 움직임을 끈 상태(또는 움직임 줄이기)에서는 끝 상태로 바로
+  function settleAll() {
+    S.psi = rodTiltTarget();
+    if (S.scene === 'hang') { S.phi = phiEq(S.hole); S.om = 0; S.lines[S.hole] = true; }
+    if (S.scene === 'box' && S.free) { const l = M.lever(S.b, S.h / 2, S.th); if (l > 1e-6) S.th = 0; else if (l < -1e-6) S.th = 90; S.thom = 0; }
+  }
+  // 다른 구멍에 다시 매단다: 판의 자세는 그대로 두고 그 구멍을 핀에 건다 → 흔들리다 멈춘다
+  function hangFrom(k) {
+    if (S.scene !== 'hang') { S.scene = 'hang'; }
+    S.hole = k; holeG.set(k, true); S.om = 0;
+    S.phi = phiEq(k) + (S.push = -(S.push || -0.5));                 // 판을 그 점에 다시 걸고 살짝 밀어 놓는다 (번갈아 왼쪽·오른쪽)
+    setScene('hang');
+  }
+  $('clearLines').addEventListener('click', () => { S.lines = {A: false, B: false, C: false}; if (S.scene === 'hang') { S.phi = phiEq(S.hole) + 0.55; S.om = 0; } refresh(); });
+  $('xf').addEventListener('input', (e) => { if (S.scene !== 'rod') setScene('rod'); S.xf = +e.target.value; snapXf(); refresh(); });
+  $('k').addEventListener('input', (e) => { S.k = +e.target.value; refresh(); });
+  $('p').addEventListener('input', (e) => { S.p = +e.target.value; refresh(); });
+  $('cOne').addEventListener('change', (e) => { S.one = e.target.checked; refresh(); });
+  $('tilt').addEventListener('input', (e) => { if (S.scene !== 'box') setScene('box'); S.th = +e.target.value; S.thom = 0; S.free = false; refresh(); });
+  $('tilt').addEventListener('change', () => { S.free = true; });
+  $('mb').addEventListener('input', (e) => { S.mb = +e.target.value; refresh(); });
+  $('bw').addEventListener('input', (e) => { S.b = +e.target.value; refresh(); });
+  $('bh').addEventListener('input', (e) => { S.h = +e.target.value; refresh(); });
+  function snapXf() { const x = xcmNow(); if (Math.abs(S.xf - x) < 0.012) S.xf = x; }   // 무게중심 가까이 오면 딱 맞춘다
+  // 무대 끌기
+  Lab.pointer(stage.el, {
+    down(x, y) {
+      S.drag = null;
+      const W = stage.W, H = stage.H;
+      if (S.scene === 'rod') {
+        const g = geoRod(W, H);
+        if (S.k > 0 && Math.abs(x - g.X(S.p)) < g.bw / 2 + 10 && y < g.yR - g.tr / 2 + 4 && y > g.yR - g.tr / 2 - g.bh - 16 && Math.abs(S.psi) < 0.02) S.drag = 'obj';
+        else if (y > g.yR) S.drag = 'xf';
+      } else if (S.scene === 'hang') {
+        const g = geoHang(W, H);
+        for (const k of ['A', 'B', 'C']) { const q = toWorld(g, HOLES[k], S.phi); if (Math.hypot(x - q[0], y - q[1]) < 22) { S.hint = false; hangFrom(k); return; } }
+      } else {
+        const g = geoBox(W, H), pts = [[0, 0], [-S.b, 0], [-S.b, S.h], [0, S.h]].map((p) => boxPt(g, p, S.th));
+        const minX = Math.min(...pts.map((p) => p[0])) - 20, maxX = Math.max(...pts.map((p) => p[0])) + 20, minY = Math.min(...pts.map((p) => p[1])) - 20;
+        if (x > minX && x < maxX && y > minY && y < g.yF) S.drag = 'tilt';
+      }
+      if (S.drag) { S.hint = false; this.move(x, y); }
+    },
+    move(x, y) {
+      if (!S.drag) return;
+      const W = stage.W, H = stage.H;
+      if (S.drag === 'xf') { const g = geoRod(W, H); S.xf = Math.max(0.05, Math.min(0.95, Math.round((x - g.x0) / g.Lp * 100) / 100)); snapXf(); $('xf').value = S.xf; refresh(); }
+      else if (S.drag === 'obj') { const g = geoRod(W, H); S.p = Math.max(0, Math.min(1, Math.round((x - g.x0) / g.Lp * 20) / 20)); $('p').value = S.p; refresh(); }
+      else if (S.drag === 'tilt') {
+        const g = geoBox(W, H), ang = Math.atan2(g.yF - y, x - g.xP) / RAD, base = Math.atan2(S.h, -S.b) / RAD;   // 왼쪽 위 꼭짓점이 가리키는 방향
+        S.th = Math.max(0, Math.min(85, Math.round(base - ang))); S.thom = 0; S.free = false; $('tilt').value = S.th; refresh();
+      }
+    },
+    up() { if (S.drag === 'tilt') S.free = true; S.drag = null; },
+  });
+  function sync() {
+    $('xf').value = S.xf; $('k').value = S.k; $('p').value = S.p; $('cOne').checked = S.one;
+    $('tilt').value = S.th; $('mb').value = S.mb; $('bw').value = S.b; $('bh').value = S.h; holeG.set(S.hole, true);
+  }
+  const rodTry = (o) => () => { Object.assign(S, {k: 1, p: 1, xf: 0.75, one: false}, o); S.psi = 0; setScene('rod'); };
+  const boxTry = (o) => () => { Object.assign(S, {b: 0.6, h: 1, mb: 2, th: 15}, o); S.thom = 0; S.free = true; setScene('box'); };
+  const TRY = {
+    ex: rodTry({}), mid: rodTry({xf: 0.5}), k2: rodTry({k: 2, xf: 5 / 6}),
+    hangA: () => hangFrom('A'), hangB: () => hangFrom('B'), hangC: () => hangFrom('C'),
+    tilt10: boxTry({th: 10}), tilt40: boxTry({th: 40}),
+    narrow: boxTry({b: 0.3, h: 1.4, th: 20}), wide: boxTry({b: 1.2, h: 0.5, th: 20}), heavy: boxTry({mb: 4, th: 15}),
+    q1: boxTry({b: 0.4, h: 1.2, th: 18}), q1b: boxTry({b: 0.4, h: 1.2, th: 19}),
+  };
+  Lab.tries(TRY, () => { sync(); if (!S.playing) settleAll(); refresh(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let roT = 0;
+  Lab.loop((dt) => {
+    let dirty = false;
+    if (S.scene === 'rod') {
+      const tg = rodTiltTarget();
+      if (Math.abs(S.psi - tg) > 1e-4) { S.psi = S.playing ? S.psi + (tg - S.psi) * Math.min(1, dt * 4) : tg; dirty = true; }
+    } else if (S.scene === 'hang' && S.playing) {
+      const eq = phiEq(S.hole), w2 = 9, z = 2.2;                       // 감쇠 진동: φ'' = −ω² sin(φ − φeq) − c φ'
+      S.om += (-w2 * Math.sin(S.phi - eq) - z * S.om) * dt; S.phi += S.om * dt;
+      if (Math.abs(S.om) < 0.05 && Math.abs(Math.sin(S.phi - eq)) < 0.012 && !S.lines[S.hole]) { S.lines[S.hole] = true; roT = 1; }
+      dirty = true;
+    } else if (S.scene === 'box' && S.playing && S.free && S.th > 0 && S.th < 90) {
+      const a = M.tipAccel(S.b, S.h / 2, S.th) * SLOW * SLOW;               // rad/s² (느린 화면)
+      S.thom += a * dt; S.th += S.thom * dt / RAD;
+      if (S.th <= 0) { S.th = 0; S.thom = 0; } else if (S.th >= 90) { S.th = 90; S.thom = 0; }
+      $('tilt').value = Math.round(Math.min(85, S.th));
+      dirty = true;
+    }
+    if (dirty) {
+      drawStage();
+      roT += dt; if (roT > 0.15) { roT = 0; readouts(); if (S.scene === 'box') drawGU(); }
+    }
+  });
+  S.phi = phiEq('A') + 0.5;
+  if (!S.playing) settleAll();
+  setScene('rod');
+})();
+</script>
 </body>
 </html>

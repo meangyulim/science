@@ -675,7 +675,9 @@
         Lab.ans('|F₁ + F₂| = ' + N2(M.mag(R)) + ' N', [
           'x칸: ' + cell(S.F1[0]) + ' + ' + par(S.F2[0]) + ' = <em>' + cell(R[0]) + '</em>',
           'y칸: ' + cell(S.F1[1]) + ' + ' + par(S.F2[1]) + ' = <em>' + cell(R[1]) + '</em>',
-          '√(' + par(R[0]) + '² + ' + par(R[1]) + '²) = <em>' + N2(M.mag(R)) + ' N</em> — 숫자 합 ' + N2(M.mag(S.F1)) + ' + ' + N2(M.mag(S.F2)) + ' = ' + N2(M.numSum(S.F1, S.F2)) + ' N 이 아니다',
+          '√(' + par(R[0]) + '² + ' + par(R[1]) + '²) = <em>' + N2(M.mag(R)) + ' N</em> — ' + (Math.abs(M.mag(R) - M.numSum(S.F1, S.F2)) < 1e-6
+            ? '같은 방향일 때만 숫자 합 ' + N2(M.mag(S.F1)) + ' + ' + N2(M.mag(S.F2)) + ' 과 같다'
+            : '숫자 합 ' + N2(M.mag(S.F1)) + ' + ' + N2(M.mag(S.F2)) + ' = ' + N2(M.numSum(S.F1, S.F2)) + ' N 이 아니다'),
         ], {tone: '', lab: '지금 합력', ctx: '1칸 = 1 N', f: '성분(칸 수)끼리 더하면'});
       } else {
         Lab.ans('합력 = 0 (닫힘)', [
