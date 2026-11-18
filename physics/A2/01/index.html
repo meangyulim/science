@@ -8,6 +8,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(바닥 위 상자 + 같은 s 축을 쓰는 F–s 그래프와 「한 일」 막대 / 빗면 왕복과 힘마다 한 일) | 오른쪽 지금 값 + 관찰 ①~④(W–θ, 원운동의 구심력, 왕복의 W–거리, 띠로 쪼갠 넓이) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5;cursor:grab}
+#gTh{aspect-ratio:10/5.6}
+#gCirc{aspect-ratio:10/5}
+#gTrip{aspect-ratio:10/6}
+#gStrip{aspect-ratio:10/6}
+@media (max-width:640px){ #gTh{aspect-ratio:10/6.6} #gCirc{aspect-ratio:10/6.4} #gTrip{aspect-ratio:10/7.2} #gStrip{aspect-ratio:10/7.2} }
+</style>
 </head>
 <body class="cx">
 <!-- topbar -->
@@ -23,15 +32,869 @@
     <h1>일의 정의와 F-s 그래프</h1>
     <p class="question"><i>Q</i>힘이 작용하는데 왜 어떤 힘은 일을 하고 어떤 힘은 일을 하지 않을까?</p>
   </div>
+
   <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="바닥 위 상자가 오른쪽으로 움직이고, 바로 아래 같은 위치 축의 F–s 그래프에서 지나온 만큼 넓이가 칠해진다. 가로축 위 넓이(양의 일)와 아래 넓이(음의 일)를 다른 색으로 칠하고, 오른쪽 막대가 지금까지 한 일을 보인다. 상자나 그래프를 끌면 위치가, 힘 화살표 끝을 끌면 각이 바뀐다. 빗면 왕복 장면에서는 중력·수직항력·마찰력이 올라갈 때와 내려올 때 한 일을 막대로 보인다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">s = 0 m</span><span class="pill" id="hud2">W = 0 J</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider" id="slTh" hidden><label for="th"><span class="lg">힘의 방향 </span>θ</label><input id="th" type="range" min="0" max="180" step="1" value="60"><output id="thOut">60°</output></div>
+          <div class="slider" id="slPos"><label for="pos" id="posLab"><span class="lg">상자 위치 </span>s</label><input id="pos" type="range" min="0" max="6" step="0.1" value="0"><output id="posOut">0 m</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·조건</span><span class="sm">장면</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 조건">
+          <div class="sheet-head"><b>장면 · 조건 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="graph" aria-pressed="true">변하는 힘</button>
+              <button type="button" class="btn" data-scene="tilt" aria-pressed="false">비스듬한 힘</button>
+              <button type="button" class="btn" data-scene="slope" aria-pressed="false">빗면 왕복</button>
+              <button type="button" class="btn" data-scene="spring" aria-pressed="false">용수철</button>
+            </div>
+          </div>
+          <div class="row" id="rowGraph">
+            <div class="grow"><label class="ctl-label" for="F1"><span>0~2 m의 힘 F₁</span> <output id="F1Out">10 N</output></label><input id="F1" type="range" min="0" max="15" step="1" value="10"></div>
+            <div class="grow"><label class="ctl-label" for="F3"><span>4~6 m의 힘 F₃</span> <output id="F3Out">−5 N</output></label><input id="F3" type="range" min="-10" max="5" step="1" value="-5"></div>
+          </div>
+          <div class="row" id="rowTilt" hidden>
+            <div class="grow"><label class="ctl-label" for="Fm"><span>힘의 크기 F</span> <output id="FmOut">20 N</output></label><input id="Fm" type="range" min="5" max="30" step="1" value="20"></div>
+            <div class="grow"><label class="ctl-label" for="sE"><span>움직인 거리 s</span> <output id="sEOut">5 m</output></label><input id="sE" type="range" min="1" max="8" step="1" value="5"></div>
+          </div>
+          <div class="row" id="rowSpring" hidden>
+            <div class="grow"><label class="ctl-label" for="kk"><span>용수철 상수 k</span> <output id="kkOut">200 N/m</output></label><input id="kk" type="range" min="100" max="300" step="50" value="200"></div>
+            <div class="grow"><label class="ctl-label" for="x1"><span>처음 늘어난 길이 x₁</span> <output id="x1Out">0.1 m</output></label><input id="x1" type="range" min="0" max="0.2" step="0.05" value="0.1"></div>
+            <div class="grow"><label class="ctl-label" for="x2"><span>나중 늘어난 길이 x₂</span> <output id="x2Out">0.3 m</output></label><input id="x2" type="range" min="0.25" max="0.4" step="0.05" value="0.3"></div>
+          </div>
+          <div class="row" id="rowSlope" hidden>
+            <div class="grow"><label class="ctl-label" for="fr"><span>마찰력의 크기 f</span> <output id="frOut">2 N</output></label><input id="fr" type="range" min="0" max="5" step="0.5" value="2"></div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="step">한 칸 ▸</button>
+            <button type="button" class="btn" id="restart">처음부터</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
+          </div>
+          <div class="toggles" id="togTilt" hidden>
+            <label class="chk"><input type="checkbox" id="cComp" checked>F cos θ · F sin θ 성분</label>
+            <label class="chk"><input type="checkbox" id="cNmg" checked>수직항력 · 중력</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="notes" aria-label="관찰 노트">
-      <p>(만드는 중)</p>
+      <div class="answer">
+        <div class="lab"><span id="ansLab">0 ~ 6 m 동안 이 힘이 한 일</span><span id="ansCtx">F₁ = 10 N · F₃ = −5 N</span></div>
+        <div class="big" id="ansBig">W = 20 J</div>
+        <div class="sub">
+          <span class="f" id="ansF">W = F–s 그래프 아래 넓이 (가로축 아래는 빼기) 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">넓이 = <em>10</em> × 2 + ½ × 2 × <em>10</em> + (<em>−5</em>) × 2</span><span class="v">= 20 + 10 − 10 = <em>20 J</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">지금 위치 s</span><b id="mv1">0 m</b></div>
+          <div class="mini"><span id="mn2">지금 힘 F(s)</span><b id="mv2">10 N</b></div>
+          <div class="mini"><span id="mn3">양의 넓이 (에너지가 들어옴)</span><b id="mv3">+30 J</b></div>
+          <div class="mini"><span id="mn4">음의 넓이 (에너지가 나감)</span><b id="mv4">−10 J</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 이동 방향 성분">
+          <div class="kind">관찰 1</div>
+          <h3>이동 방향으로 민 성분만 일이 된다</h3>
+          <p>상자가 똑같이 s만큼 움직여도 힘의 방향에 따라 일은 다르다. 일은 힘의 크기가 아니라 <b>이동 방향으로 밀어 준 정도</b>를 재기 때문이다. 비스듬한 힘 F를 이동 방향 성분 F cos θ와 수직 성분 F sin θ로 나누면, 상자를 앞으로 미는 것은 F cos θ뿐이다: <span class="eq">W = Fs cos θ</span> (단위 J = N·m).</p>
+          <canvas class="flat" id="gTh" aria-label="힘과 이동 방향 사이 각 θ에 따른 일 W = Fs cosθ. 90°보다 작으면 양, 90°에서 0, 90°보다 크면 음이다. 지금 각을 점으로 표시."></canvas>
+          <p class="cap">θ에 따른 일. 90°보다 작으면 양(+), 90°에서 0, 90°를 넘으면 음(−)이다. 무대의 힘 화살표 끝을 끌거나 θ 막대로 각을 바꿔 보자. F–s 그래프에는 이동 방향 성분 F cos θ만 올라가고, 그 넓이가 일이다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="tilt">비스듬한 힘 보기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=tilt]; set:#th=0">θ = 0°</button>
+            <button type="button" class="btn" data-do="click:[data-scene=tilt]; set:#th=120">θ = 120°</button>
+            <button type="button" class="btn" data-do="click:[data-scene=tilt]; set:#th=180">θ = 180°</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 수직인 힘은 일 0">
+          <div class="kind">관찰 2</div>
+          <h3>힘이 있어도 이동과 수직이면 일은 0이다</h3>
+          <p>수직항력 N과 중력 mg는 분명 상자에 작용하지만 이동 방향과 정확히 90°라 이동 방향 성분이 0이다. 상자를 앞으로 밀지도 뒤로 잡아당기지도 않으니 일은 0이다. 등속 원운동의 구심력도 늘 속도와 수직이라 일을 하지 않고, 그래서 속력이 그대로다.</p>
+          <canvas class="flat" id="gCirc" aria-label="마찰 없는 수평면에서 실에 매여 원운동하는 물체를 위에서 본 모습. 장력은 늘 중심 쪽, 속도는 늘 접선 방향이라 둘 사이 각이 90°이고 장력이 한 일은 0이다."></canvas>
+          <p class="cap">마찰 없는 수평면에서 실에 매여 도는 물체를 위에서 본 모습이다. 장력(구심력)은 늘 중심 쪽, 속도는 늘 접선 방향이라 둘 사이 각이 90°다. 같은 시간 간격으로 찍은 점의 간격이 같다(속력 일정). 고정된 빗면의 수직항력, 움직이지 않는 물체에 작용하는 힘도 같은 까닭으로 일을 하지 않는다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:[data-scene=tilt]; set:#th=90">θ = 90°로 끌기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=tilt]; check:#cNmg">수직항력 · 중력 보기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 마찰력은 늘 음">
+          <div class="kind">관찰 3</div>
+          <h3>마찰력은 올라갈 때도 내려올 때도 음의 일을 한다</h3>
+          <p>거친 빗면을 미끄러져 올라갔다 되돌아오는 상자다. 마찰력은 늘 운동 반대 방향(θ = 180°)이라 어느 쪽으로 움직이든 <span class="eq">−fs</span>의 일을 한다. 반면 중력은 방향이 늘 아래로 정해져 있어서 올라갈 때는 음(−), 내려올 때는 양(+)의 일을 한다. 부호는 힘과 이동 방향을 견주어서만 정한다.</p>
+          <canvas class="flat" id="gTrip" aria-label="빗면 왕복에서 움직인 거리에 따라 힘마다 한 일. 중력의 일은 꼭대기까지 음으로 내려갔다가 내려오며 0으로 돌아오고, 마찰력의 일은 계속 줄어든다. 수직항력의 일은 0."></canvas>
+          <p class="cap">움직인 거리에 따라 힘마다 한 일. 중력의 일은 꼭대기에서 −24 J까지 내려갔다가 돌아오면 0이 되지만, 마찰력의 일은 내려올 때도 계속 줄어든다. 양(+)의 일은 그 힘을 통해 에너지가 들어온 것, 음(−)의 일은 빠져나간 것이다. 그래서 상자는 처음보다 느리게 돌아온다. (무대의 힘 화살표는 방향만 나타낸다.)</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="slope">빗면 오르내리기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=slope]; set:#fr=0">마찰 없애기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=slope]; set:#fr=4">마찰력 4 N</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 넓이 = 일">
+          <div class="kind">관찰 4</div>
+          <h3>힘이 변하면 F–s 그래프 아래 넓이가 일이다</h3>
+          <p>힘이 위치에 따라 변하면 Fs를 한 번에 곱할 수 없다. 이동을 잘게 쪼개 띠 F × Δs를 모두 더하면, Δs가 작을수록 그 합이 <b>F–s 그래프 아래 넓이</b>에 다가간다. 힘이 음(이동 반대)인 부분의 넓이는 음의 일로 빼 준다. 무대에서는 상자가 지나간 만큼 넓이가 칠해지고, 오른쪽 막대가 그만큼 오르내린다.</p>
+          <canvas class="flat" id="gStrip" aria-label="예제의 F–s 그래프를 폭 Δs인 띠로 나눈 모습. 띠 넓이의 합이 Δs가 작아질수록 그래프 아래 넓이 20 J에 다가간다."></canvas>
+          <p class="cap">띠의 높이는 띠 왼쪽 끝의 힘이다. Δs = 1 m이면 25 J, 0.5 m이면 22.5 J, 0.1 m이면 20.5 J로 넓이 20 J에 다가간다. 용수철은 F = kx가 직선이라 넓이가 삼각형 <span class="eq">½kx²</span>이고, 이것이 탄성 퍼텐셜 에너지다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">예제 그래프로</button>
+            <button type="button" class="btn" data-try="ds1">Δs = 1 m</button>
+            <button type="button" class="btn" data-try="ds05">Δs = 0.5 m</button>
+            <button type="button" class="btn" data-try="ds01">Δs = 0.1 m</button>
+            <button type="button" class="btn" data-try="spring">용수철 늘이기</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>일 = 이동 방향 성분 × 거리 = F–s 그래프 넓이</h3>
+          <ul>
+            <li><span class="eq">W = Fs cos θ</span> (J = N·m). θ가 90°보다 작으면 +, 90°이면 0, 90°보다 크면 −. 양(+)의 일은 에너지가 들어온 것, 음(−)의 일은 빠져나간 것이다.</li>
+            <li>이동과 수직인 힘(고정된 면의 수직항력, 구심력)과 움직이지 않는 물체에 작용하는 힘은 일 0. 마찰력은 늘 운동 반대라 <span class="eq">−fs</span>(항상 음).</li>
+            <li>힘이 변하면 <span class="eq">W = F–s 그래프 아래 넓이</span>(가로축 아래 넓이는 빼기). 용수철은 삼각형 넓이 ½kx² = 탄성 퍼텐셜 에너지.</li>
+            <li>중력이 한 일은 경로와 관계없이 mg × (높이 감소) = −ΔE<sub>p</sub>. (교과 심화) 일률 P = W/t, 일정한 속력 v로 끌면 P = Fv.</li>
+            <li>자주 하는 실수: 고정된 빗면의 수직항력이 일을 한다고 계산한다(0이다). 방향이 고정된 힘을 되돌아올 때도 같은 부호로 센다(이동 방향이 바뀌면 부호도 바뀐다).</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>물체에 작용하는 힘이 0~2 m에서 10 N, 2~4 m에서 10 N에서 0까지 일정하게 감소, 4~6 m에서 −5 N이다. 0~6 m 동안 이 힘이 한 일은?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="exPlay">상자 움직이며 보기</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>0~2 m: 직사각형 10 × 2 = 20 J. 2~4 m: 삼각형 ½ × 2 × 10 = 10 J. 4~6 m: 힘이 음이므로 −5 × 2 = −10 J. 합은 20 + 10 − 10 = <b>20 J</b>. 무대의 「한 일」 막대가 4 m에서 30 J까지 올라갔다가 마지막 2 m 동안 20 J로 내려온다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>수평면 위의 상자를 수평면과 60°를 이루는 방향으로 20 N의 힘으로 끌어 5 m 이동시켰다. 이 힘이 상자에 한 일은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q60">60°로 5 m 끌기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>50 J</b>. 일은 이동 방향 성분만 센다: W = Fs cos θ = 20 × 5 × cos 60° = 50 J. 50√3 J는 cos 대신 sin을 써서 이동에 수직인 성분으로 계산한 값이다. 수직 성분은 상자를 들어 올리려 할 뿐 이동 방향으로는 일을 하지 않는다.</p></details>
+          </div>
+          <div class="q">
+            <h3>용수철 상수가 200 N/m인 용수철을, 자연 길이에서 0.1 m 늘어난 상태부터 0.3 m 늘어난 상태까지 천천히 더 늘였다. 이 동안 외력이 한 일은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q8">0.1 m → 0.3 m 늘이기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>8 J</b>. F = kx가 직선이므로 F–x 그래프에서 0.1 m~0.3 m 사이 사다리꼴 넓이다. 힘이 20 N에서 60 N으로 커지므로 (20 + 60) ÷ 2 × 0.2 = 8 J이다. 4 J은 늘인 길이 0.2 m만 넣어 ½k(0.2)²으로 계산한 값으로, 처음에 이미 늘어나 있던 부분을 무시했다.</p></details>
+          </div>
+          <div class="q">
+            <h3>거친 빗면을 미끄러져 올라갔다가 다시 내려온 상자에 대해 옳은 것만 고르면? ㄱ. 왕복하는 동안 중력이 한 일의 합은 0이다. ㄴ. 마찰력은 내려올 때 양(+)의 일을 한다. ㄷ. 수직항력은 일을 하지 않는다.</h3>
+            <div class="acts"><button type="button" class="btn" data-try="qtrip">왕복 끝까지 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄷ</b>. 중력은 올라갈 때 −mgh, 내려올 때 +mgh라 합이 0이다. 마찰력은 늘 운동 반대 방향이라 내려올 때도 음(−)의 일을 한다. 수직항력은 빗면에 수직이라 이동 방향과 늘 90°다.</p></details>
+          </div>
+        </li>
+      </ol>
 <!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../../A1/16/" rel="prev"><small>← 이전 개념 · A1-16</small><b>등가 원리</b></a><a href="../02/" rel="next"><small>다음 개념 · A2-02 →</small><b>일·운동 에너지 정리</b></a></nav>
 <!-- /nextprev -->
     </section>
   </main>
 </div>
+
 <script src="../../kit/lab.js"></script>
+<script src="A2-01-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A2_01;
+  const {$, C, text, arrow, fmt} = Lab;
+  const RAD = Math.PI / 180;
+  const SN = 0.6, CS = 0.8, ANG = 37, TM = 1, TD = 4, P0 = 0.6;   // 빗면 왕복: 1 kg, 37°(sin 0.6), 빗면 아래 끝에서 0.6 m 인 곳에서 4 m 올라갔다 내려옴
+  const EX = {F1: 10, F3: -5};
+  const SCENES = ['graph', 'tilt', 'slope', 'spring'];
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = {scene: 'graph', playing: !Lab.reduceMotion, speed: 1,
+    F1: 10, F3: -5,                 // 변하는 힘 (예제)
+    F: 20, th: 60, sE: 5,           // 비스듬한 힘
+    k: 200, x1: 0.1, x2: 0.3,       // 용수철
+    fr: 2,                          // 빗면 왕복의 마찰력
+    pos: 0, t: 0, hold: 0, drag: null, comp: true, nmg: true, ds: 0.5, ct: 0};
+  const sgn = (v, d = 1) => (Math.abs(v) < 0.005 ? '0' : Lab.sg(v, d));
+  const J = (v, d = 1) => sgn(v, d) + ' J';
+  const trip = () => M.slopeTrip(TM, SN, CS, S.fr, TD);
+  function range() {                                     // 장면마다 움직이는 범위 (빗면은 움직인 거리)
+    if (S.scene === 'tilt') return [0, S.sE];
+    if (S.scene === 'spring') return [S.x1, S.x2];
+    if (S.scene === 'slope') return [0, 2 * TD];
+    return [0, 6];
+  }
+  function segsNow() {
+    if (S.scene === 'tilt') { const a = M.along(S.F, S.th); return [M.seg(0, S.sE, a, a)]; }
+    if (S.scene === 'spring') return M.springSegs(S.k, S.x1, S.x2);
+    return M.exampleSegs(S.F1, S.F3);
+  }
+  const lerpF = (q, s) => q.F0 + (q.F1 - q.F0) * (s - q.s0) / (q.s1 - q.s0);
+  const Wto = (s) => M.areaTo(segsNow(), s);
+  const rate = () => (S.scene === 'spring' ? 0.07 : 1.25);       // 상자를 옮기는 빠르기 (그림 단위/s)
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  function floor(ctx, x0, x1, y) {
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.globalAlpha = 0.5; ctx.lineWidth = 1.1; ctx.beginPath();
+    for (let x = x0 + 8; x < x1 + 4; x += 10) { ctx.moveTo(x, y + 1); ctx.lineTo(x - 7, y + 8); }
+    ctx.stroke(); ctx.restore();
+    Lab.line(ctx, [[x0, y], [x1, y]], C.ink, 2);
+  }
+  function dashArrow(ctx, x0, y0, x1, y1, col, w, head) {      // 점선 화살표 (성분)
+    const L = Math.hypot(x1 - x0, y1 - y0); if (L < 4) return;
+    const ux = (x1 - x0) / L, uy = (y1 - y0) / L, hh = Math.min(head, L * 0.6);
+    Lab.line(ctx, [[x0, y0], [x1 - ux * hh * 0.8, y1 - uy * hh * 0.8]], col, w, [5, 4]);
+    arrow(ctx, x1 - ux * hh, y1 - uy * hh, x1, y1, col, w, hh);
+  }
+  function boxEdge(cx, cy, w, h, d) {                           // 상자 가운데에서 d 방향으로 나간 반직선이 테두리와 만나는 점
+    const t = Math.min(Math.abs(d[0]) > 1e-6 ? w / 2 / Math.abs(d[0]) : 1e9, Math.abs(d[1]) > 1e-6 ? h / 2 / Math.abs(d[1]) : 1e9);
+    return [cx + d[0] * t, cy + d[1] * t];
+  }
+  function hatch(ctx, x0, y0, x1, y1, col, gap = 8) {           // 지금 clip 안에 빗금
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.beginPath();
+    const h = y1 - y0;
+    for (let x = x0 - h; x < x1 + gap; x += gap) { ctx.moveTo(x, y1); ctx.lineTo(x + h, y0); }
+    ctx.stroke(); ctx.restore();
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (S.scene === 'slope') drawSlope(ctx, W, H); else drawTrack(ctx, W, H);
+  }
+
+  // 바닥 + F–s 그래프 (같은 가로 축). 넓은 화면에서는 오른쪽에 「한 일」 막대
+  function geoT(W, H) {
+    const n = W < 520, sp = S.scene === 'spring', tilt = S.scene === 'tilt';
+    const bw = n ? 40 : 54, bh = n ? 28 : 38, meter = !n;
+    const x0 = n ? 46 : 64, right = W - (meter ? 112 : 16);
+    let x1 = right - bw / 2;
+    if (tilt) x1 -= n ? 62 : 104;                     // 오른쪽으로 뻗는 힘 화살표와 이름표 자리
+    if (sp) x1 = right - bw - (n ? 26 : 40);          // 용수철: 상자 왼쪽 면 = 늘어난 길이, 오른쪽에 외력 화살표
+    const sMax = tilt ? S.sE : sp ? 0.4 : 6;
+    const yF = Math.round(H * (n ? 0.355 : tilt ? 0.4 : 0.37));
+    const gTop = yF + (n ? 54 : 64), gBot = H - (n ? 62 : 46);
+    return {n, sp, tilt, bw, bh, meter, x0, x1, sMax, yF, gTop: Math.min(gTop, gBot - 60), gBot,
+      X: (s) => x0 + s / sMax * (x1 - x0), sOf: (x) => (x - x0) / (x1 - x0) * sMax, kF: kForce(n)};
+  }
+  function kForce(n) {                                 // 힘 화살표: px / N
+    const L = n ? 40 : 66;
+    if (S.scene === 'tilt') return (n ? 46 : 84) / 30;
+    if (S.scene === 'spring') return L / (S.k * 0.4);
+    return L / 15;
+  }
+  function yRange() {
+    if (S.scene === 'tilt') { const m = S.F * 1.2; return [-m, m]; }
+    if (S.scene === 'spring') return [0, S.k * 0.4 * 1.12];
+    return [-11, 16];
+  }
+  function sTicks(g) {
+    if (g.sp) return [0, 0.1, 0.2, 0.3, 0.4];
+    const out = [], st = g.sMax > 6 ? 2 : 1;
+    for (let v = 0; v <= g.sMax + 1e-9; v += st) out.push(v);
+    return out;
+  }
+  function fTicks() {
+    if (S.scene === 'tilt') return [-S.F, S.F];
+    if (S.scene === 'spring') return [S.k * S.x1, S.k * S.x2].filter((v) => v > 0);
+    return stage.W && stage.W < 520 ? [-5, 5, 10, 15] : [-10, -5, 5, 10, 15];
+  }
+  function drawTrack(ctx, W, H) {
+    const g = geoT(W, H), s = S.pos;
+    drawGraph(ctx, g, s);
+    floor(ctx, g.sp ? g.X(0) - (g.n ? 40 : 56) : 8, W - (g.meter ? 96 : 8), g.yF);
+    if (g.sp) drawSpring(ctx, g, s); else drawBox(ctx, g, s);
+    if (g.meter) drawMeter(ctx, g, W);
+  }
+  function areaPath(ctx, segs, a, s, X, Y, y0) {
+    ctx.beginPath(); ctx.moveTo(X(a), y0);
+    for (const q of segs) {
+      if (q.s1 <= a || q.s0 >= s) continue;
+      const p0 = Math.max(q.s0, a), p1 = Math.min(q.s1, s);
+      ctx.lineTo(X(p0), Y(lerpF(q, p0))); ctx.lineTo(X(p1), Y(lerpF(q, p1)));
+    }
+    ctx.lineTo(X(s), y0); ctx.closePath();
+  }
+  function fillArea(ctx, segs, a, s, X, Y, y0, top, bot) {
+    const xL = X(a) - 2, xR = X(s) + 2;
+    ctx.save(); ctx.beginPath(); ctx.rect(xL, top - 30, xR - xL, y0 - top + 30); ctx.clip();
+    areaPath(ctx, segs, a, s, X, Y, y0); ctx.fillStyle = Lab.alpha(C.energy, 0.34); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(xL, y0, xR - xL, bot - y0 + 30); ctx.clip();
+    areaPath(ctx, segs, a, s, X, Y, y0); ctx.fillStyle = C['neg-soft']; ctx.fill(); ctx.clip();
+    hatch(ctx, xL, y0, xR, bot + 2, Lab.alpha(C.neg, 0.5)); ctx.restore();
+  }
+  function drawGraph(ctx, g, s) {
+    const segs = segsNow(), [a, b] = range(), [lo, hi] = yRange(), X = g.X;
+    const Y = (F) => g.gBot - (F - lo) / (hi - lo) * (g.gBot - g.gTop), y0 = Y(0), xEnd = X(g.sMax);
+    for (const v of sTicks(g)) Lab.line(ctx, [[X(v), g.yF + 12], [X(v), g.gBot]], C.grid, 1);
+    for (const v of fTicks()) Lab.line(ctx, [[g.x0, Y(v)], [xEnd, Y(v)]], C.grid, 1);
+    if (g.sp && S.x1 > 0) {                                        // 처음 늘어난 만큼 (이미 저장된 탄성 에너지)
+      ctx.save(); ctx.beginPath(); ctx.moveTo(X(0), y0); ctx.lineTo(X(S.x1), Y(S.k * S.x1)); ctx.lineTo(X(S.x1), y0); ctx.closePath();
+      ctx.fillStyle = Lab.alpha(C.muted, 0.12); ctx.fill(); ctx.restore();
+      if (!g.n) text(ctx, '½kx₁²', X(S.x1 * 0.68), y0 - 10, {size: 13, w: 500, color: C.muted});
+    }
+    if (s > a + 1e-9) fillArea(ctx, segs, a, Math.min(s, b), X, Y, y0, g.gTop, g.gBot);
+    // 축
+    arrow(ctx, g.x0, g.gBot + 2, g.x0, g.gTop - 12, C.muted, 1.3, 7);
+    arrow(ctx, g.x0, y0, xEnd + 14, y0, C.muted, 1.3, 7);
+    text(ctx, g.sp ? '외력 F (N)' : g.tilt ? 'F cos θ (N)' : 'F (N)', g.x0 + 8, g.gTop - 8, {size: 13, w: 600, color: C.muted, align: 'left'});
+    for (const v of fTicks()) text(ctx, fmt(v, 1), g.x0 - 7, Y(v), {size: 13, color: C.muted, align: 'right'});
+    text(ctx, '0', g.x0 - 7, y0, {size: 13, color: C.muted, align: 'right'});
+    const ticks = sTicks(g), lab = g.n && !g.sp ? ticks.filter((v, i) => i % 2 === 0 || v === g.sMax) : ticks;
+    lab.forEach((v) => text(ctx, fmt(v, 2) + (v === g.sMax ? (g.sp ? ' m' : ' m') : ''), X(v), g.gBot + 14, {size: 13, color: C.muted}));
+    text(ctx, g.sp ? 'x' : 's', xEnd + 12, y0 - 13, {size: 13, w: 600, color: C.muted});
+    // 힘 그래프
+    if (g.sp) Lab.line(ctx, [[X(0), y0], [X(0.4), Y(S.k * 0.4)]], C.force, 1.6, [5, 4]);
+    if (g.tilt) {                                                    // 힘 전체 F (점선) 와 이동 방향 성분 F cos θ
+      Lab.line(ctx, [[X(0), Y(S.F)], [X(S.sE), Y(S.F)]], Lab.alpha(C.force, 0.55), 1.6, [6, 5]);
+      text(ctx, '힘 전체 F', X(S.sE) - 4, Y(S.F) - 11, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+    }
+    ctx.save(); ctx.strokeStyle = C.force; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.beginPath();
+    segs.forEach((q, i) => { const P = [X(q.s0), Y(q.F0)]; if (i) ctx.lineTo(P[0], P[1]); else ctx.moveTo(P[0], P[1]); ctx.lineTo(X(q.s1), Y(q.F1)); });
+    ctx.stroke(); ctx.restore();
+    if (g.tilt && !g.n) text(ctx, 'F cos θ = ' + fmt(M.along(S.F, S.th), 1) + ' N', X(S.sE * 0.5), Y(M.along(S.F, S.th)) + (M.along(S.F, S.th) >= 0 ? -12 : 13), {size: 13, w: 600, color: C.force, halo: true});
+    // 조각마다 지나온 넓이
+    pieceLabels(ctx, g, segs, s, X, Y, y0);
+    // 손잡이 (F₁, F₃ 끌기)
+    if (S.scene === 'graph') {
+      for (const [sx, F] of [[1, S.F1], [5, S.F3]]) Lab.circle(ctx, X(sx), Y(F), 7.5, {fill: C.paper, stroke: C.copper, width: 2.4});
+      if (!g.n && !S.grabbed) text(ctx, '↕ 끌기', X(1) + 14, Y(S.F1) - 13, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    }
+    // 지금 위치
+    const sc = Math.min(Math.max(s, a), b), Fn = M.forceAt(segs, sc);
+    ctx.save(); ctx.globalAlpha = 0.7; Lab.line(ctx, [[X(sc), g.yF + 12], [X(sc), g.gBot]], C.copper, 1.4, [4, 4]); ctx.restore();
+    Lab.circle(ctx, X(sc), Y(Fn), 6, {fill: C.copper, stroke: C.paper, width: 2});
+  }
+  function pieceLabels(ctx, g, segs, s, X, Y, y0) {
+    const put = (from, to, val) => {
+      const e = Math.min(s, to); if (e <= from + (g.sp ? 0.02 : 0.3)) return;
+      const v = val(e), mid = (from + e) / 2, Fm = M.forceAt(segs, mid), yc = Y(Fm), big = Math.abs(yc - y0) > 30;
+      const y = big ? (y0 + yc) / 2 : yc + (Fm >= 0 ? -14 : 14);
+      text(ctx, J(v, 1), X(mid), y, {size: 13.5, w: 600, color: v >= 0 ? C.copper : C.neg, halo: true});
+    };
+    if (S.scene === 'graph') M.examplePieces(S.F1, S.F3).forEach((p) => put(p.from, p.to, (e) => M.areaTo(segs, e) - M.areaTo(segs, p.from)));
+    else if (S.scene === 'tilt') put(0, S.sE, (e) => M.areaTo(segs, e));
+    else put(S.x1, S.x2, (e) => M.areaTo(segs, e));
+  }
+  function dispArrow(ctx, g, a, s, lab) {                     // 처음 자리에서 지금까지 (구리색 치수선)
+    const y = g.yF + (g.n ? 30 : 34), xa = g.X(a), xs = g.X(s);
+    Lab.line(ctx, [[xa, y - 6], [xa, y + 6]], C.copper, 1.6);
+    if (xs - xa > 8) arrow(ctx, xa, y, xs, y, C.copper, 2.2, 9);
+    const tw = Lab.measure(ctx, lab, {size: 13, w: 600}), right = xs + 8 + tw < (g.meter ? stage.W - 100 : stage.W - 6);
+    if (right) text(ctx, lab, xs + 8, y, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    else text(ctx, lab, Math.min((xa + xs) / 2, stage.W - 8 - tw / 2), y - 12, {size: 13, w: 600, color: C.copper, halo: true});
+  }
+  function drawBox(ctx, g, s) {
+    const [a] = range(), cx = g.X(s), cy = g.yF - g.bh / 2, top = g.yF - g.bh;
+    if (g.X(s) - g.X(a) > g.bw + 4) {                         // 처음 자리 (점선)
+      ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.3;
+      Lab.rrect(ctx, g.X(a) - g.bw / 2, top, g.bw, g.bh, 4); ctx.stroke(); ctx.restore();
+    }
+    dispArrow(ctx, g, a, s, 's = ' + fmt(s, 2) + ' m');
+    ctx.save(); Lab.rrect(ctx, cx - g.bw / 2, top, g.bw, g.bh, 4); ctx.fillStyle = C['vel-soft']; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = C.vel; ctx.stroke(); ctx.restore();
+    if (g.tilt) drawTiltForces(ctx, g, cx, cy); else drawVarForce(ctx, g, cx, cy, s);
+  }
+  function drawVarForce(ctx, g, cx, cy, s) {
+    const F = M.forceAt(segsNow(), s), L = F * g.kF;
+    if (Math.abs(L) < 3) { text(ctx, 'F = 0', cx, g.yF - g.bh - 14, {size: 13, w: 600, color: C.force, halo: true}); return; }
+    const x0 = cx + (F > 0 ? g.bw / 2 : -g.bw / 2);
+    arrow(ctx, x0, cy, x0 + L, cy, C.force, 3.2, 11);
+    const lab = 'F = ' + fmt(F, 1) + ' N' + (F < 0 && !g.n ? ' (이동 반대)' : '');
+    text(ctx, lab, x0 + L / 2, cy - g.bh / 2 - 14, {size: 13.5, w: 600, color: C.force, halo: true, align: F < 0 ? 'right' : 'center'});
+  }
+  let tipAt = null;                                            // 비스듬한 힘 화살표 끝 (끌기용)
+  function drawTiltForces(ctx, g, cx, cy) {
+    const th = S.th * RAD, c = Math.cos(th), sn = Math.sin(th), d = [c, -sn];
+    const side = S.th < 89.5 ? 1 : S.th > 90.5 ? -1 : 0;           // 힘을 거는 자리: 오른쪽 면 · 윗면 가운데 · 왼쪽 면
+    const P = side ? [cx + side * g.bw / 2, cy] : [cx, cy - g.bh / 2];
+    const L = S.F * g.kF, T = [P[0] + d[0] * L, P[1] + d[1] * L], Lc = L * c, Ls = L * sn;
+    const away = side >= 0 ? -1 : 1, al = away < 0 ? 'right' : 'left';   // 수직항력·중력 이름표는 힘의 반대쪽
+    if (S.nmg) {
+      const nx = cx + away * g.bw * 0.22, nL = g.n ? 26 : 34, top = cy - g.bh / 2;
+      arrow(ctx, nx, top, nx, top - nL, Lab.alpha(C.force, 0.7), 2.4, 9);
+      arrow(ctx, cx, cy, cx, g.yF + (g.n ? 8 : 10), Lab.alpha(C.force, 0.7), 2.4, 9);
+      text(ctx, g.n ? 'N' : 'N (일 0)', nx + away * 7, top - nL + 6, {size: 13, w: 600, color: C.force, align: al, halo: true});
+      text(ctx, g.n ? 'mg' : 'mg (일 0)', cx + away * (g.bw / 2 + 6), g.yF - 10, {size: 13, w: 600, color: C.force, align: al, halo: true});
+    }
+    if (S.comp) {
+      if (Math.abs(Lc) > 3) {
+        dashArrow(ctx, P[0], P[1], P[0] + Lc, P[1], Lab.alpha(C.force, 0.9), 2.4, 9);
+        text(ctx, 'F cos θ', P[0] + Lc + (c > 0 ? 6 : -6), P[1] + 1, {size: 13, w: 600, color: C.force, align: c > 0 ? 'left' : 'right', halo: true});
+      }
+      if (Ls > 3 && Math.abs(Lc) > 3) Lab.line(ctx, [[P[0] + Lc, P[1]], T], Lab.alpha(C.muted, 0.9), 1.4, [3, 4]);
+      if (sn > 0.3 && !g.n) text(ctx, 'F sin θ (일 0)', P[0] + Lc + (c >= 0 ? 8 : -8), P[1] - Ls * 0.6, {size: 13, w: 500, color: C.muted, align: c >= 0 ? 'left' : 'right', halo: true});
+    }
+    arrow(ctx, P[0], P[1], T[0], T[1], C.force, 3.4, 12);
+    if (side > 0 && S.th >= 8) Lab.angle(ctx, P[0], P[1], g.n ? 13 : 17, 0, -th, C.ink, g.n ? '' : 'θ');
+    text(ctx, 'F = ' + fmt(S.F, 0) + ' N', T[0] + (c >= 0.2 ? 8 : c <= -0.2 ? -8 : 0), T[1] - (sn > 0.2 ? 12 : 14), {size: 13.5, w: 600, color: C.force, align: c >= 0.2 ? 'left' : c <= -0.2 ? 'right' : 'center', halo: true});
+    Lab.circle(ctx, T[0], T[1], 5, {fill: C.copper, stroke: C.paper, width: 1.6});
+    tipAt = T;
+  }
+  function drawSpring(ctx, g, x) {
+    const nat = g.n ? 34 : 48, xw = g.X(0) - nat, top = g.yF - g.bh, cy = g.yF - g.bh / 2, xb = g.X(x);
+    // 벽
+    ctx.save(); ctx.fillStyle = C['line-soft']; ctx.fillRect(xw - 12, top - 22, 12, g.bh + 22); ctx.restore();
+    Lab.line(ctx, [[xw, top - 22], [xw, g.yF]], C.ink, 2);
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.1; ctx.beginPath();
+    for (let y = top - 18; y < g.yF; y += 9) { ctx.moveTo(xw, y); ctx.lineTo(xw - 8, y + 7); }
+    ctx.stroke(); ctx.restore();
+    // 용수철 (지그재그 10 번)
+    const pts = [[xw, cy]], n = 10, x0 = xw + 6, x1 = xb - 6, amp = g.n ? 7 : 9;
+    for (let i = 0; i <= 2 * n; i++) pts.push([x0 + (x1 - x0) * i / (2 * n), cy + (i === 0 || i === 2 * n ? 0 : (i % 2 ? -amp : amp))]);
+    pts.push([xb, cy]);
+    Lab.line(ctx, pts, C.ink, 1.8);
+    // 자연 길이 자리
+    Lab.line(ctx, [[g.X(0), top - 8], [g.X(0), g.yF + 8]], C.muted, 1.2, [3, 3]);
+    if (!g.n) text(ctx, '자연 길이', g.X(0), top - 16, {size: 13, w: 500, color: C.muted});
+    // 늘어난 길이 x (치수선)
+    const y = g.yF + (g.n ? 30 : 34);
+    Lab.line(ctx, [[g.X(S.x1), y - 6], [g.X(S.x1), y + 6]], C.muted, 1.4);
+    if (xb - g.X(0) > 6) arrow(ctx, g.X(0), y, xb, y, C.copper, 2.2, 9);
+    text(ctx, 'x = ' + fmt(x, 3) + ' m', xb + 8, y, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    // 상자 (왼쪽 면 = 늘어난 길이)
+    ctx.save(); Lab.rrect(ctx, xb, top, g.bw, g.bh, 4); ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.vel; ctx.stroke(); ctx.restore();
+    // 외력 F = kx (오른쪽), 탄성력 (왼쪽, 옅게)
+    const F = S.k * x, L = F * g.kF;
+    arrow(ctx, xb + g.bw, cy, xb + g.bw + L, cy, C.force, 3.2, 11);
+    text(ctx, (g.n ? 'F = ' : '외력 F = kx = ') + fmt(F, 1) + ' N', xb + g.bw + Math.max(L, 30) / 2, top - 14, {size: 13.5, w: 600, color: C.force, halo: true, align: g.n ? 'right' : 'center'});
+  }
+  // 「한 일」 막대: 0 위로 칠하면 에너지가 들어온 것, 아래로 칠하면 빠져나간 것
+  function meterRange() {
+    if (S.scene === 'tilt') { const m = Math.max(1, S.F * S.sE); return [-m, m]; }
+    if (S.scene === 'spring') return [0, Math.max(1, M.springWork(S.k, S.x1, S.x2))];
+    let lo = 0, hi = 0; const segs = segsNow();
+    for (let v = 0; v <= 6.0001; v += 0.1) { const w = M.areaTo(segs, v); lo = Math.min(lo, w); hi = Math.max(hi, w); }
+    return [lo, Math.max(hi, 1)];
+  }
+  function drawMeter(ctx, g, W) {
+    const x = W - 66, w = 24, top = 92, bot = g.gBot - 4, [lo0, hi0] = meterRange(), pad = (hi0 - lo0) * 0.06;
+    const lo = lo0 < 0 ? lo0 - pad : 0, hi = hi0 + pad, Ym = (v) => bot - (v - lo) / (hi - lo) * (bot - top), y0 = Ym(0);
+    const Wn = Wto(S.pos), Wend = Wto(range()[1]);
+    text(ctx, '한 일 W', x + w / 2, top - 34, {size: 13, w: 600, color: C.muted});
+    text(ctx, J(Wn, 1), x + w / 2, top - 15, {size: 14, w: 700, color: Wn < -0.005 ? C.neg : C.copper});
+    ctx.save(); ctx.fillStyle = C.paper; ctx.fillRect(x, top, w, bot - top); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, top + 0.5, w - 1, bot - top - 1); ctx.restore();
+    const yW = Ym(Wn);
+    ctx.save(); ctx.fillStyle = Wn >= 0 ? C.energy : C.neg; ctx.globalAlpha = 0.85; ctx.fillRect(x + 2, Math.min(y0, yW), w - 4, Math.abs(yW - y0)); ctx.restore();
+    Lab.line(ctx, [[x - 5, y0], [x + w + 5, y0]], C.ink, 1.8);
+    text(ctx, '0', x - 9, y0, {size: 13, color: C.muted, align: 'right'});
+    Lab.line(ctx, [[x - 4, Ym(Wend)], [x + w + 4, Ym(Wend)]], C.copper, 2, [4, 3]);
+    text(ctx, '끝', x + w + 7, Ym(Wend), {size: 13, w: 500, color: C.copper, align: 'left'});
+    if (lo < 0) { text(ctx, '+', x + w + 8, top + 10, {size: 14, w: 600, color: C.muted, align: 'left'}); text(ctx, '−', x + w + 8, bot - 10, {size: 14, w: 600, color: C.muted, align: 'left'}); }
+  }
+
+  // ── 빗면 왕복 ───────────────────────────────────────────
+  function geoS(W, H) {
+    const n = W < 520, left = n ? 30 : 52, right = W * 0.56, base = n ? Math.round(H * 0.5) : H - 58, topY = n ? 82 : 92, Lm = 5.4;
+    const sc = Math.max(10, Math.min((right - left - 6) / (Lm * CS), (base - topY) / (Lm * SN)));
+    const P0 = [left, base], u = [CS, -SN], nrm = [-SN, -CS];
+    const at = (p) => [P0[0] + u[0] * p * sc, P0[1] + u[1] * p * sc];
+    const led = n ? {x: 12, y: base + 54, w: W - 24, h: H - base - 54 - 44} : {x: W * 0.6, y: 214, w: W * 0.4 - 22, h: Math.min(200, H - 214 - 60)};
+    return {n, sc, P0, u, nrm, at, base, Lm, led, bs: n ? 24 : 34, W, H};
+  }
+  function drawSlope(ctx, W, H) {
+    const g = geoS(W, H), T = trip(), st = M.tripAt(T, S.t), L = st.L, up = L < TD - 1e-6 || S.t < T.tUp - 1e-6, v = Math.abs(st.v);
+    const p = (L <= TD ? L : 2 * TD - L) + P0, dir = up ? 1 : -1;
+    // 빗면
+    const A = g.at(0), Bt = g.at(g.Lm), Bb = [Bt[0], g.base];
+    floor(ctx, 8, g.n ? W - 8 : W * 0.58, g.base);
+    ctx.save(); ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(Bb[0], Bb[1]); ctx.lineTo(Bt[0], Bt[1]); ctx.closePath();
+    ctx.fillStyle = C['line-soft']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.ink; ctx.stroke(); ctx.restore();
+    if (S.fr > 0) { const a2 = g.at(0.05), b2 = g.at(g.Lm - 0.05); Lab.line(ctx, [a2, b2], Lab.alpha(C.energy, 0.55), 4.5); }
+    Lab.angle(ctx, A[0], A[1], g.n ? 26 : 34, 0, -ANG * RAD, C.ink, '37°');
+    // 출발·꼭대기 표시
+    const tick = (q, lab, al) => { const P = g.at(q); Lab.line(ctx, [[P[0] - g.nrm[0] * 6, P[1] - g.nrm[1] * 6], [P[0] + g.nrm[0] * 6, P[1] + g.nrm[1] * 6]], C.muted, 1.4); if (lab) text(ctx, lab, P[0] + 10, P[1] + 15, {size: 13, w: 500, color: C.muted, align: al || 'left', halo: true}); };
+    tick(P0, ''); tick(P0 + TD, '');
+    if (!g.n) {
+      const Tp = g.at(P0 + TD), Sp = g.at(P0);
+      if (Math.abs(p - P0 - TD) > 1.2) text(ctx, '꼭대기 (4 m 위)', Tp[0] - 6, Tp[1] + 18, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+      text(ctx, '출발·도착', Sp[0] + 4, g.base + 19, {size: 13, w: 500, color: C.muted, align: 'left'});
+    }
+    // 상자 (빗면을 따라 p)
+    const C0 = g.at(p), cxy = [C0[0] + g.nrm[0] * g.bs / 2, C0[1] + g.nrm[1] * g.bs / 2];
+    ctx.save(); ctx.translate(cxy[0], cxy[1]); ctx.rotate(-ANG * RAD);
+    Lab.rrect(ctx, -g.bs / 2, -g.bs / 2, g.bs, g.bs, 4); ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.vel; ctx.stroke(); ctx.restore();
+    // 힘 (방향만 같은 길이로): 중력, 수직항력, 마찰력. 속도 (길이 ∝ 속력)
+    const Lf = g.n ? 30 : 46, fcol = C.force, lab = (s, x, y, al) => text(ctx, s, x, y, {size: 13.5, w: 600, color: fcol, align: al, halo: true});
+    arrow(ctx, cxy[0], cxy[1], cxy[0], cxy[1] + Lf, fcol, 3, 10);
+    lab('mg', cxy[0] + 6, cxy[1] + Lf + 4, 'left');
+    arrow(ctx, cxy[0], cxy[1], cxy[0] + g.nrm[0] * Lf, cxy[1] + g.nrm[1] * Lf, fcol, 3, 10);
+    lab('N', cxy[0] + g.nrm[0] * Lf - 6, cxy[1] + g.nrm[1] * Lf - 4, 'right');
+    const moving = v > 0.05 && L < 2 * TD - 1e-6;
+    if (S.fr > 0 && moving) {
+      const fx = C0[0] + g.u[0] * g.bs * 0.3 * -dir, fy = C0[1] + g.u[1] * g.bs * 0.3 * -dir;
+      const Lb = dir > 0 ? Math.max(14, Math.min(Lf, (p - 0.08) * g.sc - g.bs * 0.3)) : Lf;   // 빗면 아래 끝을 넘지 않게
+      arrow(ctx, fx, fy, fx - g.u[0] * Lb * dir, fy - g.u[1] * Lb * dir, fcol, 3, 10);
+      lab('f', fx - g.u[0] * Lb * dir + (dir > 0 ? -2 : 8), fy - g.u[1] * Lb * dir + 13, dir > 0 ? 'right' : 'left');
+    }
+    if (moving) {
+      const kv = (g.n ? 34 : 54) / 8, fr0 = [cxy[0] + g.u[0] * g.bs * 0.62 * dir, cxy[1] + g.u[1] * g.bs * 0.62 * dir];
+      arrow(ctx, fr0[0], fr0[1], fr0[0] + g.u[0] * v * kv * dir, fr0[1] + g.u[1] * v * kv * dir, C.vel, 3, 10);
+      if (!g.n) text(ctx, 'v ' + fmt(v, 1) + ' m/s', fr0[0] + g.u[0] * v * kv * dir + (dir > 0 ? 8 : -8), fr0[1] + g.u[1] * v * kv * dir - 10, {size: 13, w: 600, color: C.vel, align: dir > 0 ? 'left' : 'right', halo: true});
+      // 중력과 이동 방향 사이 각 (넓은 화면)
+      if (!g.n) {
+        const a0 = Math.atan2(g.u[1] * dir, g.u[0] * dir), a1 = Math.PI / 2;
+        Lab.angle(ctx, cxy[0], cxy[1], 22, a0, a1, C.violet, (up ? 90 + ANG : 90 - ANG) + '°');
+      }
+    }
+    if (!g.n) text(ctx, '(힘 화살표는 방향만 나타냄)', 16, 64, {size: 13, w: 500, color: C.muted, align: 'left'});
+    drawTripNotes(ctx, g, up, L);
+    drawTripLedger(ctx, g, L);
+  }
+  // 올라갈 때·내려올 때 힘과 이동 방향 사이 각
+  function drawTripNotes(ctx, g, up, L) {
+    const x = g.n ? g.W * 0.58 : g.led.x, y = g.n ? 64 : 72, done = L >= 2 * TD - 1e-6;
+    const rows = [['올라갈 때', 'mg 127° · N 90° · f 180°', up && !done], ['내려올 때', 'mg 53° · N 90° · f 180°', !up && !done]];
+    rows.forEach(([h, s, on], i) => {
+      const yy = y + i * (g.n ? 38 : 44), col = on ? C.copper : C.muted;
+      text(ctx, h, x, yy, {size: 13.5, w: on ? 700 : 600, color: col, align: 'left'});
+      text(ctx, g.n ? s.replace(/ · /g, ' ') : s, x, yy + (g.n ? 18 : 20), {size: 13, w: 500, color: on ? C.ink : C.muted, align: 'left'});
+    });
+  }
+  function drawTripLedger(ctx, g, L) {
+    const R = g.led, up = Math.min(L, TD), dn = Math.max(0, Math.min(L - TD, TD)), mg = TM * 10 * SN;
+    const rows = [['중력', -mg * up, mg * dn], ['수직항력', 0, 0], ['마찰력', -S.fr * up, -S.fr * dn]];
+    const lw = g.n ? 58 : 62, tw = g.n ? 52 : 50, zx = R.x + lw + (R.w - lw - tw) / 2, half = (R.w - lw - tw) / 2 - 6;
+    const mx = Math.max(mg * TD, S.fr * TD, 1), k = half / mx, rh = R.h / 3, bh = Math.max(8, Math.min(13, rh * 0.28));
+    text(ctx, '힘마다 한 일 (J)', R.x, R.y - (g.n ? 16 : 40), {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, '위 막대: 올라갈 때 · 아래: 내려올 때', g.n ? R.x + R.w : R.x, R.y - (g.n ? 16 : 21), {size: 13, w: 500, color: C.muted, align: g.n ? 'right' : 'left'});
+    Lab.line(ctx, [[zx, R.y - 4], [zx, R.y + R.h - 2]], C.ink, 1.4);
+    rows.forEach(([name, w1, w2], i) => {
+      const yc = R.y + rh * (i + 0.5), ya = yc - bh - 1.5, yb = yc + 1.5;
+      text(ctx, name, R.x, yc, {size: 13.5, w: 600, align: 'left'});
+      for (const [w, y] of [[w1, ya], [w2, yb]]) {
+        if (Math.abs(w) < 1e-6) { Lab.line(ctx, [[zx - 3, y + bh / 2], [zx + 3, y + bh / 2]], C.muted, 1.4); continue; }
+        ctx.save(); ctx.fillStyle = w > 0 ? C.energy : C.neg; ctx.globalAlpha = 0.85;
+        ctx.fillRect(Math.min(zx, zx + w * k), y, Math.abs(w * k), bh); ctx.restore();
+        if (Math.abs(w * k) > 20 || !g.n) text(ctx, sgn(w, 0), zx + w * k + (w > 0 ? 5 : -5), y + bh / 2, {size: 13, w: 600, color: w > 0 ? C.copper : C.neg, align: w > 0 ? 'left' : 'right', halo: true});
+      }
+      const tot = w1 + w2;
+      text(ctx, '합 ' + sgn(tot, 0), R.x + R.w, yc, {size: 13.5, w: 700, color: Math.abs(tot) < 0.005 ? C.ink : tot > 0 ? C.copper : C.neg, align: 'right'});
+    });
+  }
+
+  // ── 관찰 1: W–θ ────────────────────────────────────────
+  const gTh = Lab.canvas('gTh', drawTh);
+  function drawTh() {
+    const {ctx, W, H} = gTh; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const Fs = S.F * S.sE, r = {x: 54, y: 26, w: W - 54 - 18, h: H - 26 - 34};
+    const X = (d) => r.x + d / 180 * r.w, Y = (w) => r.y + r.h / 2 - w / (Fs * 1.15) * r.h / 2, y0 = Y(0);
+    for (const d of [45, 90, 135, 180]) Lab.line(ctx, [[X(d), r.y], [X(d), r.y + r.h]], C.grid, 1);
+    const curve = (a, b) => { const pts = []; for (let d = a; d <= b + 1e-9; d += 2) pts.push([X(d), Y(Fs * M.cosD(d))]); return pts; };
+    for (const [a, b, col] of [[0, 90, Lab.alpha(C.energy, 0.3)], [90, 180, C['neg-soft']]]) {
+      const pts = curve(a, b); ctx.save(); ctx.beginPath(); ctx.moveTo(X(a), y0); pts.forEach((p) => ctx.lineTo(p[0], p[1])); ctx.lineTo(X(b), y0); ctx.closePath(); ctx.fillStyle = col; ctx.fill(); ctx.restore();
+    }
+    Lab.line(ctx, curve(0, 90), C.energy, 3); Lab.line(ctx, curve(90, 180), C.neg, 3);
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 10, C.muted, 1.3, 7);
+    arrow(ctx, r.x, y0, r.x + r.w + 10, y0, C.muted, 1.3, 7);
+    text(ctx, 'W (J)', r.x + 8, r.y - 6, {size: 13, w: 600, color: C.muted, align: 'left'});
+    for (const w of [Fs, -Fs]) text(ctx, sgn(w, 0), r.x - 7, Y(w), {size: 13, color: C.muted, align: 'right'});
+    for (const d of [0, 90, 180]) text(ctx, d + '°', X(d), r.y + r.h + 14, {size: 13, color: C.muted});
+    if (W >= 420) for (const d of [45, 135]) text(ctx, d + '°', X(d), r.y + r.h + 14, {size: 13, color: C.muted});
+    text(ctx, 'θ', r.x + r.w + 4, y0 - 13, {size: 13, w: 600, color: C.muted});
+    text(ctx, W < 420 ? 'W = Fs cos θ' : 'W = Fs cos θ (F = ' + S.F + ' N, s = ' + S.sE + ' m)', r.x + r.w, r.y + 4, {size: 13, w: 600, color: C.ink, align: 'right'});
+    text(ctx, '수직 → 0', X(90) + 6, y0 - 13, {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
+    const w = Fs * M.cosD(S.th);
+    Lab.line(ctx, [[X(S.th), y0], [X(S.th), Y(w)]], C.copper, 1.4, [4, 4]);
+    Lab.circle(ctx, X(S.th), Y(w), 6.5, {fill: C.copper, stroke: C.paper, width: 2});
+    const right = S.th < 120;
+    text(ctx, 'θ = ' + S.th + '° → ' + J(w, 1), X(S.th) + (right ? 10 : -10), Y(w) + (w >= 0 ? -14 : 15), {size: 13, w: 600, color: C.copper, align: right ? 'left' : 'right', halo: true});
+  }
+
+  // ── 관찰 2: 등속 원운동의 구심력 (위에서 본 모습) ────────
+  const gCirc = Lab.canvas('gCirc', drawCirc);
+  function drawCirc() {
+    const {ctx, W, H} = gCirc; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const n = W < 420, R = Math.min(H * 0.36, W * (n ? 0.24 : 0.2)), cx = n ? R + 22 : W * 0.25, cy = H * 0.52, ph = S.ct * 1.1;
+    ctx.save(); ctx.fillStyle = Lab.alpha(C.muted, 0.06); Lab.rrect(ctx, cx - R - 16, cy - R - 16, 2 * R + 32, 2 * R + 32, 12); ctx.fill(); ctx.restore();
+    Lab.circle(ctx, cx, cy, R, {stroke: C.line, width: 1.4});
+    for (let k = 0; k < 12; k++) { const a = ph - k * Math.PI / 6; if (k === 0) continue; Lab.circle(ctx, cx + R * Math.cos(a), cy + R * Math.sin(a), 2.8, {fill: Lab.alpha(C.vel, 0.4)}); }
+    const P = [cx + R * Math.cos(ph), cy + R * Math.sin(ph)], ur = [-Math.cos(ph), -Math.sin(ph)], ut = [-Math.sin(ph), Math.cos(ph)];
+    Lab.line(ctx, [[cx, cy], P], C.ink, 1.6);
+    Lab.circle(ctx, cx, cy, 4, {fill: C.ink});
+    const Lt = R * 0.55, Lv = R * 0.62;
+    arrow(ctx, P[0], P[1], P[0] + ur[0] * Lt, P[1] + ur[1] * Lt, C.force, 3, 10);
+    arrow(ctx, P[0], P[1], P[0] + ut[0] * Lv, P[1] + ut[1] * Lv, C.vel, 3, 10);
+    const q = 9; Lab.line(ctx, [[P[0] + ur[0] * q, P[1] + ur[1] * q], [P[0] + ur[0] * q + ut[0] * q, P[1] + ur[1] * q + ut[1] * q], [P[0] + ut[0] * q, P[1] + ut[1] * q]], C.muted, 1.3);
+    Lab.circle(ctx, P[0], P[1], 7, {fill: C.copper, stroke: C.paper, width: 2});
+    text(ctx, 'T', P[0] + ur[0] * Lt * 0.55 - ut[0] * 12, P[1] + ur[1] * Lt * 0.55 - ut[1] * 12, {size: 13.5, w: 600, color: C.force, halo: true});
+    text(ctx, 'v', P[0] + ut[0] * (Lv + 11), P[1] + ut[1] * (Lv + 11), {size: 13.5, w: 600, color: C.vel, halo: true});
+    const tx = n ? cx + R + 30 : W * 0.5, rows = n
+      ? [['T ⟂ v (늘 90°)', C.ink, 600], ['W = Ts cos 90°', C.ink, 500], ['= 0 J', C.copper, 700], ['속력 그대로', C.vel, 600]]
+      : [['장력(구심력) T 는 늘 중심 쪽', C.force, 500], ['속도 v 는 늘 접선 방향 → T ⟂ v', C.vel, 500], ['T 가 한 일 = Ts cos 90° = 0 J', C.copper, 700], ['같은 간격의 점 → 속력 그대로', C.muted, 500]];
+    const gap = n ? 20 : 24, y0 = cy - gap * 1.5;
+    rows.forEach(([s, col, w], i) => text(ctx, s, tx, y0 + i * gap, {size: 13.5, w, color: col, align: 'left'}));
+  }
+
+  // ── 관찰 3: 빗면 왕복의 W–움직인 거리 ──────────────────
+  const gTrip = Lab.canvas('gTrip', drawTrip);
+  function drawTrip() {
+    const {ctx, W, H} = gTrip; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const n = W < 420, mg = TM * 10 * SN, lo = -Math.max(mg * TD, 2 * S.fr * TD, 4) * 1.18, hi = Math.max(mg * TD, 2 * S.fr * TD, 4) * 0.22;
+    const r = {x: 48, y: 30, w: W - 48 - (n ? 70 : 104), h: H - 30 - 34};
+    const X = (L) => r.x + L / (2 * TD) * r.w, Y = (w) => r.y + (hi - w) / (hi - lo) * r.h, y0 = Y(0);
+    Lab.line(ctx, [[X(TD), r.y - 4], [X(TD), r.y + r.h]], C.muted, 1.2, [4, 4]);
+    text(ctx, n ? '꼭대기' : '꼭대기: 방향이 바뀜', X(TD) + 6, r.y + 2, {size: 13, w: 500, color: C.muted, align: 'left'});
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 10, C.muted, 1.3, 7);
+    arrow(ctx, r.x, y0, r.x + r.w + 10, y0, C.muted, 1.3, 7);
+    text(ctx, 'W (J)', r.x + 8, r.y - 12, {size: 13, w: 600, color: C.muted, align: 'left'});
+    for (const w of [-mg * TD, -2 * S.fr * TD].filter((v, i, a) => Math.abs(v) > 0.5 && a.indexOf(v) === i)) { Lab.line(ctx, [[r.x, Y(w)], [r.x + r.w, Y(w)]], C.grid, 1); text(ctx, fmt(w, 0), r.x - 7, Y(w), {size: 13, color: C.muted, align: 'right'}); }
+    text(ctx, '0', r.x - 7, y0, {size: 13, color: C.muted, align: 'right'});
+    for (const L of [0, TD, 2 * TD]) text(ctx, L + (L === 2 * TD ? ' m' : ''), X(L), r.y + r.h + 14, {size: 13, color: C.muted});
+    text(ctx, n ? '거리' : '움직인 거리', r.x + r.w + 18, r.y + r.h + 14, {size: 13, w: 600, color: C.muted, align: 'left'});
+    const lines = [['수직항력', (L) => 0, C.muted], ['중력', (L) => -mg * Math.min(L, TD) + mg * Math.max(0, L - TD), C.violet], ['마찰력', (L) => -S.fr * L, C.neg]];
+    const now = S.scene === 'slope' ? S.pos : 2 * TD;
+    lines.forEach(([name, f, col]) => {
+      const pts = []; for (let L = 0; L <= 2 * TD + 1e-9; L += 0.1) pts.push([X(L), Y(f(L))]);
+      ctx.save(); ctx.globalAlpha = 0.35; Lab.line(ctx, pts, col, 2); ctx.restore();
+      const pn = pts.filter((p) => p[0] <= X(now) + 0.5); if (pn.length > 1) Lab.line(ctx, pn, col, 3);
+      Lab.circle(ctx, X(now), Y(f(now)), 5, {fill: col, stroke: C.paper, width: 1.6});
+      const end = f(2 * TD);
+      text(ctx, name + ' ' + sgn(end, 0), r.x + r.w + 8, Y(end) + (name === '수직항력' ? -9 : name === '중력' && Math.abs(end) < 0.5 ? 9 : 0), {size: 13, w: 600, color: col, align: 'left'});
+    });
+    Lab.line(ctx, [[X(now), r.y], [X(now), r.y + r.h]], Lab.alpha(C.copper, 0.7), 1.4);
+  }
+
+  // ── 관찰 4: 띠로 쪼갠 넓이 ─────────────────────────────
+  const gStrip = Lab.canvas('gStrip', drawStrip);
+  function drawStrip() {
+    const {ctx, W, H} = gStrip; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const segs = M.exampleSegs(S.F1, S.F3), R = M.riemann(segs, 0, 6, S.ds), area = M.areaTo(segs, 6);
+    const r = {x: 44, y: 40, w: W - 44 - 22, h: H - 40 - 30}, lo = -11, hi = 16;
+    const X = (s) => r.x + s / 6 * r.w, Y = (F) => r.y + (hi - F) / (hi - lo) * r.h, y0 = Y(0);
+    for (const q of R.strips) {
+      const x0 = X(q.s), x1 = X(q.s + q.w), y = Y(q.F);
+      ctx.save(); ctx.fillStyle = q.F >= 0 ? Lab.alpha(C.energy, 0.38) : C['neg-soft']; ctx.fillRect(x0, Math.min(y, y0), x1 - x0, Math.abs(y - y0));
+      if (R.n <= 30) { ctx.strokeStyle = q.F >= 0 ? Lab.alpha(C.energy, 0.9) : Lab.alpha(C.neg, 0.8); ctx.lineWidth = 1; ctx.strokeRect(x0 + 0.5, Math.min(y, y0) + 0.5, Math.max(0, x1 - x0 - 1), Math.max(0, Math.abs(y - y0) - 1)); }
+      ctx.restore();
+    }
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 8, C.muted, 1.3, 7);
+    arrow(ctx, r.x, y0, r.x + r.w + 10, y0, C.muted, 1.3, 7);
+    for (const F of [-5, 5, 10]) text(ctx, fmt(F, 0), r.x - 7, Y(F), {size: 13, color: C.muted, align: 'right'});
+    for (let s = 0; s <= 6; s += 2) text(ctx, s + (s === 6 ? ' m' : ''), X(s), r.y + r.h + 13, {size: 13, color: C.muted});
+    ctx.save(); ctx.strokeStyle = C.force; ctx.lineWidth = 2.8; ctx.lineJoin = 'round'; ctx.beginPath();
+    segs.forEach((q, i) => { if (i) ctx.lineTo(X(q.s0), Y(q.F0)); else ctx.moveTo(X(q.s0), Y(q.F0)); ctx.lineTo(X(q.s1), Y(q.F1)); });
+    ctx.stroke(); ctx.restore();
+    const nw = W < 440;
+    text(ctx, nw ? 'Δs = ' + fmt(S.ds, 2) + ' m: 띠의 합 ' + fmt(R.sum, 2) + ' J' : 'Δs = ' + fmt(S.ds, 2) + ' m 띠 ' + R.n + '개의 합 = ' + fmt(R.sum, 2) + ' J', 10, 14, {size: 14, w: 700, color: C.copper, align: 'left'});
+    text(ctx, (nw ? '넓이 ' : '넓이(일) = ') + fmt(area, 2) + ' J', W - 10, 14, {size: 13.5, w: 600, color: C.ink, align: 'right'});
+  }
+
+  // ── 수치 ────────────────────────────────────────────────
+  let ansKey = '';
+  function ans(big, lines, o) { const key = [big, o.tone, o.lab, o.ctx, o.f].concat(lines).join('|'); if (key !== ansKey) { ansKey = key; Lab.ans(big, lines, o); } }
+  const setMini = (i, name, val) => { const a = $('mn' + i), b = $('mv' + i); if (a.textContent !== name) a.textContent = name; if (b.textContent !== val) b.textContent = val; };
+  const setText = (id, s) => { const el = $(id); if (el && el.textContent !== s) el.textContent = s; };
+  const tone = (w) => (w > 0.005 ? '' : w < -0.005 ? 'neg' : 'ink');
+  const par = (v) => (v < 0 ? '(<em>' + fmt(v, 1) + '</em>)' : '<em>' + fmt(v, 1) + '</em>');
+  function hudSet(t1, t2, w) {
+    setText('hud1', t1); setText('hud2', t2);
+    const c = 'pill' + (w == null ? '' : w > 0.005 ? ' up' : w < -0.005 ? ' down' : '');
+    if ($('hud2').className !== c) $('hud2').className = c;
+  }
+  function readouts() {
+    const s = S.pos, sc = S.scene;
+    if (sc === 'graph') {
+      const segs = segsNow(), pcs = M.examplePieces(S.F1, S.F3), tot = M.areaTo(segs, 6), p = M.parts(segs), w = M.areaTo(segs, s);
+      ans('W = ' + fmt(tot, 1) + ' J', [
+        '넓이 = <em>' + fmt(S.F1, 1) + '</em> × 2 + ½ × 2 × <em>' + fmt(S.F1, 1) + '</em> + ' + par(S.F3) + ' × 2',
+        '= ' + fmt(pcs[0].W, 1) + ' + ' + fmt(pcs[1].W, 1) + (pcs[2].W < 0 ? ' − ' + fmt(-pcs[2].W, 1) : ' + ' + fmt(pcs[2].W, 1)) + ' = <em>' + fmt(tot, 1) + ' J</em>',
+        '지금 s = <em>' + fmt(s, 2) + ' m</em> 까지 넓이 = <em>' + J(w) + '</em>'],
+      {tone: tone(tot), lab: '0 ~ 6 m 동안 이 힘이 한 일', ctx: 'F₁ = ' + fmt(S.F1, 1) + ' N · F₃ = ' + fmt(S.F3, 1) + ' N', f: 'W = F–s 그래프 아래 넓이 (가로축 아래는 빼기) 에 지금 값을 넣으면'});
+      setMini(1, '지금 위치 s', fmt(s, 2) + ' m'); setMini(2, '지금 힘 F(s)', fmt(M.forceAt(segs, s), 1) + ' N');
+      setMini(3, '양의 넓이 (에너지가 들어옴)', J(p.pos)); setMini(4, '음의 넓이 (에너지가 나감)', p.neg > 0.005 ? '−' + fmt(p.neg, 1) + ' J' : '0 J');
+      hudSet('s = ' + fmt(s, 2) + ' m', 'W = ' + J(w), w);
+    } else if (sc === 'tilt') {
+      const c = M.cosD(S.th), W = M.work(S.F, S.sE, S.th), al = M.along(S.F, S.th), pe = M.perp(S.F, S.th), w = M.areaTo(segsNow(), s);
+      ans('W = ' + fmt(W, 1) + ' J', [
+        'W = <em>' + S.F + '</em> × <em>' + S.sE + '</em> × cos <em>' + S.th + '°</em> = ' + S.F + ' × ' + S.sE + ' × ' + (c < 0 ? '(' + fmt(c, 3) + ')' : fmt(c, 3)) + ' = <em>' + fmt(W, 1) + ' J</em>',
+        Math.abs(al) < 0.005 ? '이동 방향 성분 F cos θ = 0 → <em>일 0</em> (힘은 있지만 이동과 수직)' : '이동 방향 성분 F cos θ = <em>' + fmt(al, 1) + ' N</em> 만 일을 한다' + (al < 0 ? ' (이동 반대 → 음의 일)' : ''),
+        '수직 성분 F sin θ = ' + fmt(pe, 1) + ' N, 수직항력·중력 → 이동과 90° → 일 0'],
+      {tone: tone(W), lab: '비스듬한 힘 F 가 한 일', ctx: 'F = ' + S.F + ' N · θ = ' + S.th + '° · s = ' + S.sE + ' m', f: 'W = Fs cos θ 에 지금 값을 넣으면'});
+      setMini(1, 'F cos θ (이동 방향 성분)', fmt(al, 1) + ' N'); setMini(2, 'F sin θ (수직 성분, 일 0)', fmt(pe, 1) + ' N');
+      setMini(3, '지금까지 간 거리', fmt(s, 2) + ' m'); setMini(4, '지금까지 한 일', J(w));
+      hudSet('θ = ' + S.th + '°', 'W = ' + J(w), w);
+    } else if (sc === 'spring') {
+      const a = S.k * S.x1, b = S.k * S.x2, W = M.springWork(S.k, S.x1, S.x2), w = M.areaTo(segsNow(), s);
+      ans('W = ' + fmt(W, 2) + ' J', [
+        'F = kx: ' + S.k + ' × ' + fmt(S.x1, 2) + ' = <em>' + fmt(a, 1) + ' N</em> → ' + S.k + ' × ' + fmt(S.x2, 2) + ' = <em>' + fmt(b, 1) + ' N</em>',
+        '사다리꼴 = (' + fmt(a, 1) + ' + ' + fmt(b, 1) + ') ÷ 2 × ' + fmt(S.x2 - S.x1, 2) + ' = <em>' + fmt(W, 2) + ' J</em> = ½k(x₂² − x₁²)',
+        '탄성력이 한 일은 ' + fmt(-W, 2) + ' J → 탄성 퍼텐셜 에너지 <em>' + fmt(W, 2) + ' J</em> 증가'],
+      {tone: tone(W), lab: '용수철을 늘이는 외력이 한 일', ctx: 'k = ' + S.k + ' N/m · ' + fmt(S.x1, 2) + ' m → ' + fmt(S.x2, 2) + ' m', f: 'W = F–x 그래프 아래 넓이 (F = kx) 에 지금 값을 넣으면'});
+      setMini(1, '지금 늘어난 길이 x', fmt(s, 3) + ' m'); setMini(2, '지금 외력 F = kx', fmt(S.k * s, 1) + ' N');
+      setMini(3, '처음 탄성 에너지 ½kx₁²', fmt(M.elasticPE(S.k, S.x1), 2) + ' J'); setMini(4, '지금까지 한 일', J(w, 2));
+      hudSet('x = ' + fmt(s, 3) + ' m', 'W = ' + J(w, 2), w);
+    } else {
+      const T = trip(), L = S.pos, Wn = M.tripWorks(TM, SN, S.fr, TD, L), loss = 2 * S.fr * TD, mgh = TM * 10 * SN * TD;
+      ans('중력 0 · 마찰력 ' + (loss > 0 ? '−' + fmt(loss, 1) : '0') + ' J', [
+        '중력: 올라갈 때 <em>−' + fmt(mgh, 0) + ' J</em> (127°), 내려올 때 <em>+' + fmt(mgh, 0) + ' J</em> (53°) → 합 <em>0</em>',
+        loss > 0 ? '마찰력: −' + fmt(S.fr, 1) + ' × 4 − ' + fmt(S.fr, 1) + ' × 4 = <em>−' + fmt(loss, 1) + ' J</em> (갈 때도 올 때도 180°)' : '마찰력이 없으면 → 마찰력의 일 <em>0</em>, 같은 속력으로 돌아온다',
+        '수직항력: 늘 90° → <em>0</em>. 처음 ' + fmt(T.v0, 2) + ' m/s → 돌아올 때 <em>' + fmt(T.v1, 2) + ' m/s</em>'],
+      {tone: 'small', lab: '빗면 왕복: 힘마다 한 일', ctx: '1 kg · 37° · 마찰력 ' + fmt(S.fr, 1) + ' N · 빗면 4 m 왕복', f: 'W = Fs cos θ 를 올라갈 때와 내려올 때 따로 넣으면'});
+      setMini(1, '처음 속력 (올라가기 시작)', fmt(T.v0, 2) + ' m/s'); setMini(2, '돌아온 속력', fmt(T.v1, 2) + ' m/s');
+      setMini(3, '지금까지 중력의 일', J(Wn.g)); setMini(4, '지금까지 마찰력의 일', J(Wn.f));
+      const st = M.tripAt(T, S.t), up = S.t < T.tUp - 1e-6, done = L >= 2 * TD - 1e-6;
+      hudSet(done ? '돌아옴' : Math.abs(st.v) < 0.08 ? '꼭대기 (멈춤)' : up ? '올라가는 중' : '내려오는 중', '마찰력의 일 ' + J(Wn.f), Wn.f);
+    }
+    $('thOut').textContent = S.th + '°';
+    const ex = sc === 'graph' && S.F1 === EX.F1 && S.F3 === EX.F3;
+    Lab.check('exCheck', ex, '개념서 예제 (10 N · 10→0 N · −5 N) → 한 일 20 + 10 − 10 = 20 J',
+      '예제: 0~2 m 10 N, 2~4 m 10 → 0 N, 4~6 m −5 N 인 힘이 한 일은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function posLabel() {
+    const s = S.pos;
+    if (S.scene === 'spring') return fmt(s, 3) + ' m';
+    return fmt(s, 1) + ' m';
+  }
+  const seen = (v) => { if (!v.W) return false; const r = v.el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  function drawAll() { drawStage(); drawTh(); drawCirc(); drawTrip(); drawStrip(); }
+  function refresh() { syncUI(); readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => {
+    S.playing = on;
+    const [, b] = range();
+    if (on && S.pos >= b - 1e-9) restart();
+  });
+  const setPlay = (on) => { playCtl.set(on, true); S.playing = on; };
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => setScene(v), S.scene);
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  function setScene(v, o = {}) {
+    S.scene = v; Object.assign(S, o.params || {});
+    S.hold = 0;
+    const [a, b] = range(), play = o.play != null ? o.play : S.playing;
+    setPos(o.pos != null ? o.pos : play ? a : b);
+    setPlay(play);
+    refresh();
+  }
+  function setPos(p) {
+    const [a, b] = range();
+    S.pos = Math.max(a, Math.min(b, p));
+    if (S.scene === 'slope') { const T = trip(); S.t = M.tripTime(T, S.pos); if (S.pos >= b - 1e-9) S.t = T.tUp + T.tDn; }
+  }
+  function restart() { const [a] = range(); S.hold = 0; S.t = 0; setPos(a); }
+  function syncUI() {
+    const tilt = S.scene === 'tilt';
+    $('slTh').hidden = !tilt; $('slPos').hidden = tilt;
+    const [a, b] = range(), p = $('pos');
+    p.min = a; p.max = b; p.step = S.scene === 'spring' ? 0.005 : 0.1; p.value = S.pos;
+    const lab = {graph: '<span class="lg">상자 위치 </span>s', spring: '<span class="lg">늘어난 길이 </span>x', slope: '<span class="lg">움직인 </span>거리'}[S.scene];
+    if (lab && $('posLab').innerHTML !== lab) $('posLab').innerHTML = lab;
+    setText('posOut', posLabel());
+    $('rowGraph').hidden = S.scene !== 'graph'; $('rowTilt').hidden = !tilt; $('rowSpring').hidden = S.scene !== 'spring'; $('rowSlope').hidden = S.scene !== 'slope'; $('togTilt').hidden = !tilt;
+    $('th').value = S.th; $('F1').value = S.F1; $('F3').value = S.F3; $('Fm').value = S.F; $('sE').value = S.sE;
+    $('kk').value = S.k; $('x1').value = S.x1; $('x2').value = S.x2; $('fr').value = S.fr;
+    setText('F1Out', fmt(S.F1, 0) + ' N'); setText('F3Out', fmt(S.F3, 0) + ' N'); setText('FmOut', S.F + ' N'); setText('sEOut', S.sE + ' m');
+    setText('kkOut', S.k + ' N/m'); setText('x1Out', fmt(S.x1, 2) + ' m'); setText('x2Out', fmt(S.x2, 2) + ' m'); setText('frOut', fmt(S.fr, 1) + ' N');
+    $('cComp').checked = S.comp; $('cNmg').checked = S.nmg;
+    sceneG.set(S.scene, true);
+    $('step').textContent = S.scene === 'spring' ? '0.05 m ▸' : S.scene === 'slope' ? '1 m ▸' : '1 m ▸';
+  }
+  const num = (id, key, after) => $(id).addEventListener('input', (e) => { S[key] = +e.target.value; if (after) after(); refresh(); });
+  num('th', 'th'); num('F1', 'F1'); num('F3', 'F3'); num('Fm', 'F');
+  num('sE', 'sE', () => setPos(Math.min(S.pos, S.sE)));
+  num('kk', 'k');
+  num('x1', 'x1', () => setPos(S.pos)); num('x2', 'x2', () => setPos(S.pos));
+  num('fr', 'fr', () => { const T = trip(); S.t = Math.min(S.t, T.tUp + T.tDn); setPos(S.pos); });
+  $('pos').addEventListener('input', (e) => { setPlay(false); S.hold = 0; setPos(+e.target.value); refresh(); });
+  $('cComp').addEventListener('change', (e) => { S.comp = e.target.checked; drawStage(); });
+  $('cNmg').addEventListener('change', (e) => { S.nmg = e.target.checked; drawStage(); });
+  $('restart').addEventListener('click', () => { restart(); setPlay(true); refresh(); });
+  $('step').addEventListener('click', () => {
+    setPlay(false); S.hold = 0;
+    const [a, b] = range(), d = S.scene === 'spring' ? 0.05 : 1;
+    let p = S.pos >= b - 1e-9 ? a : Math.min(b, (Math.floor((S.pos - a) / d + 1e-6) + 1) * d + a);
+    if (S.scene === 'slope') p = S.pos >= b - 1e-9 ? 0 : Math.min(b, Math.floor(S.pos + 1e-6) + 1);
+    setPos(p); refresh();
+  });
+  // 무대 끌기: 비스듬한 힘의 화살표 끝 → 각, 변하는 힘 그래프의 손잡이 → F₁·F₃, 나머지 → 위치
+  Lab.pointer(stage.el, {
+    down: (x, y) => {
+      if (!stage.W || S.scene === 'slope') return;
+      const g = geoT(stage.W, stage.H);
+      if (S.scene === 'tilt' && tipAt && Math.hypot(x - tipAt[0], y - tipAt[1]) < 30) { S.drag = 'th'; setPlay(false); return; }
+      if (S.scene === 'graph') {
+        const [lo, hi] = yRange(), Y = (F) => g.gBot - (F - lo) / (hi - lo) * (g.gBot - g.gTop);
+        for (const [key, sx] of [['F1', 1], ['F3', 5]]) if (Math.hypot(x - g.X(sx), y - Y(S[key])) < 18) { S.drag = key; S.grabbed = true; setPlay(false); return; }
+      }
+      if (y > 50) { S.drag = 'pos'; setPlay(false); dragPos(x); }
+    },
+    move: (x, y) => {
+      if (!S.drag) return;
+      const g = geoT(stage.W, stage.H);
+      if (S.drag === 'pos') dragPos(x);
+      else if (S.drag === 'th') {
+        const cx = g.X(S.pos), cy = g.yF - g.bh / 2, a = Math.atan2(cy - y, x - cx) / RAD;
+        S.th = Math.round(Math.max(0, Math.min(180, a < -90 ? 180 : a < 0 ? 0 : a)));
+        refresh();
+      } else {
+        const [lo, hi] = yRange(), F = lo + (g.gBot - y) / (g.gBot - g.gTop) * (hi - lo);
+        S[S.drag] = S.drag === 'F1' ? Math.round(Math.max(0, Math.min(15, F))) : Math.round(Math.max(-10, Math.min(5, F)));
+        refresh();
+      }
+    },
+    up: () => { S.drag = null; },
+  });
+  function dragPos(x) {
+    const g = geoT(stage.W, stage.H), s = g.sOf(g.sp ? x - g.bw / 2 : x), d = S.scene === 'spring' ? 0.005 : 0.1;
+    setPos(Math.round(s / d) * d); S.hold = 0; refresh();
+  }
+
+  const go = (scene, params, pos, play) => () => setScene(scene, {params, pos, play});
+  const TRY = {
+    ex: go('graph', {F1: 10, F3: -5}, 6, false),
+    exPlay: go('graph', {F1: 10, F3: -5}, 0, true),
+    tilt: go('tilt', {F: 20, th: 60, sE: 5, comp: true}, 0, true),
+    slope: go('slope', {fr: 2}, 0, true),
+    spring: go('spring', {k: 200, x1: 0.1, x2: 0.3}, 0.1, true),
+    ds1: () => { S.ds = 1; setScene('graph', {params: {}, pos: 6, play: false}); },
+    ds05: () => { S.ds = 0.5; setScene('graph', {params: {}, pos: 6, play: false}); },
+    ds01: () => { S.ds = 0.1; setScene('graph', {params: {}, pos: 6, play: false}); },
+    q60: go('tilt', {F: 20, th: 60, sE: 5, comp: true, nmg: true}, 5, false),
+    q8: go('spring', {k: 200, x1: 0.1, x2: 0.3}, 0.3, false),
+    qtrip: go('slope', {fr: 2}, 2 * TD, false),
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  function advance(dt) {
+    const [a, b] = range();
+    if (S.scene === 'slope') {
+      const T = trip(), end = T.tUp + T.tDn;
+      if (S.t >= end - 1e-9) { S.hold += dt; if (S.hold > 1.6) { S.hold = 0; S.t = 0; } }
+      else S.t = Math.min(end, S.t + dt * 0.5);
+      S.pos = Math.min(b, M.tripAt(T, S.t).L);
+      return;
+    }
+    if (S.pos >= b - 1e-9) { S.hold += dt; if (S.hold > 1.6) { S.hold = 0; S.pos = a; } return; }
+    S.pos = Math.min(b, S.pos + dt * rate());
+  }
+  Lab.loop((dt) => {
+    if (!S.playing || S.drag) return;
+    S.ct += dt;
+    advance(dt * S.speed);
+    $('pos').value = S.pos; setText('posOut', posLabel());
+    readouts(); drawStage();
+    if (seen(gCirc)) drawCirc();
+    if (S.scene === 'slope' && seen(gTrip)) drawTrip();
+  });
+  setPos(S.playing ? 0 : 6);
+  syncUI(); readouts();
+})();
+</script>
 </body>
 </html>

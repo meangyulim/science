@@ -8,6 +8,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(빗면 구간 → 이탈점 q → 포물선 구간 → 경사면 착지, 또는 진자 → 최저점에서 실이 끊김 → 수평 투사, 위에는 에너지 장부 막대) | 오른쪽 지금 값 + 관찰 ①~④(속력–시간과 자르는 곳, 속도 화살표 모음, 쌓은 에너지 장부–시간, 진자 속도 성분–시간) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5;cursor:ew-resize}
+#gV{aspect-ratio:10/6}
+#gH{aspect-ratio:10/6.4}
+#gK{aspect-ratio:10/6}
+#gS{aspect-ratio:10/5.6}
+@media (max-width:640px){ #gV{aspect-ratio:10/7.4} #gH{aspect-ratio:10/8} #gK{aspect-ratio:10/7.6} #gS{aspect-ratio:10/7} }
+</style>
 </head>
 <body class="cx">
 <!-- topbar -->
@@ -23,15 +32,801 @@
     <h1>일-에너지와 운동학·포물선의 결합</h1>
     <p class="question"><i>Q</i>빗면 구간과 포물선 구간이 이어진 킬러 문항은 어디서 끊어 생각해야 할까?</p>
   </div>
+
   <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="물체가 마찰 구간이 있는 빗면을 올라 꼭대기의 평평한 면 끝 q에서 수평으로 이탈한 뒤, 포물선을 그리며 날아가 경사면에 떨어진다. 이탈점에 자르는 선이 있고, 위의 에너지 장부 막대에서 운동 에너지·퍼텐셜 에너지·열의 합이 늘 같다. 진자 장면에서는 최저점에서 실이 끊겨 수평 투사로 이어진다. 무대를 좌우로 끌면 그 자리의 순간으로 간다."></canvas>
+        <div class="hud"><span class="pill" id="hudT">t = 0 s</span><span class="pill" id="hudS">빗면을 오른다</span><span class="pill" id="hudV">느린 화면 ×0.5</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider" id="slV1"><label for="v1"><span class="lg">처음 속력 </span>v₁</label><input id="v1" type="range" min="12" max="18" step="0.5" value="16"><output id="v1Out">16 m/s</output></div>
+          <div class="slider" id="slTh" hidden><label for="th"><span class="lg">놓는 각 </span>θ₀</label><input id="th" type="range" min="30" max="90" step="5" value="90"><output id="thOut">90°</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·조건</span><span class="sm">장면</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 조건">
+          <div class="sheet-head"><b>장면 · 조건 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="ramp" aria-pressed="true">빗면 → 포물선</button>
+              <button type="button" class="btn" data-scene="swing" aria-pressed="false">진자 → 실이 끊김</button>
+            </div>
+          </div>
+          <div class="row" id="rowRamp">
+            <div class="grow">
+              <label class="ctl-label" for="ff">마찰력 f (마찰 구간 5 m) <output id="ffOut">6 N</output></label>
+              <input id="ff" type="range" min="0" max="10" step="0.5" value="6">
+            </div>
+            <div class="group" role="group" aria-label="착지면">
+              <span class="gl">착지면</span>
+              <button type="button" class="btn" data-surf="p1" aria-pressed="true">tanφ = 1/2</button>
+              <button type="button" class="btn" data-surf="p2" aria-pressed="false">tanφ = 3/4</button>
+              <button type="button" class="btn" data-surf="p3" aria-pressed="false">tanφ = 1</button>
+              <button type="button" class="btn" data-surf="flat" aria-pressed="false">바닥</button>
+            </div>
+          </div>
+          <div class="row" id="rowSwing" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="len">실의 길이 l <output id="lenOut">0.8 m</output></label>
+              <input id="len" type="range" min="0.4" max="1.2" step="0.1" value="0.8">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="hb">최저점의 높이 H <output id="hbOut">1.25 m</output></label>
+              <input id="hb" type="range" min="0.45" max="2" step="0.05" value="1.25">
+            </div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="back">◀ 한 간격</button>
+            <button type="button" class="btn" id="step">한 간격 ▶</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×0.25</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="true">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="false">×1</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cStrobe" checked>같은 시간 간격 자리</label>
+            <label class="chk"><input type="checkbox" id="cComp" checked>속도 성분</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="notes" aria-label="관찰 노트">
-      <p>(만드는 중)</p>
+      <div class="answer">
+        <div class="lab"><span id="ansLab">포물선 동안 중력이 한 일</span><span id="ansCtx">v₁ = 16 m/s · f = 6 N · tanφ = 1/2</span></div>
+        <div class="big" id="ansBig">W<sub>g</sub> = 72 J</div>
+        <div class="sub">
+          <span class="f" id="ansF">빗면은 일-에너지 정리로 이탈 속력을, 공중은 성분으로 착지 조건을 — 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">½ × 1 × <em>16</em>² − 1 × 10 × 8 − <em>6</em> × 5 = ½ × 1 × v<sub>q</sub>²</span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">이탈 속력 (수평)</span><b id="mv1">6 m/s</b></div>
+          <div class="mini"><span id="mn2">공중에 있는 시간</span><b id="mv2">1.2 s</b></div>
+          <div class="mini"><span id="mn3">착지 속력</span><b id="mv3">6√5 ≈ 13.4 m/s</b></div>
+          <div class="mini"><span id="mn4">마찰로 생긴 열</span><b id="mv4">30 J</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 이탈점에서 자른다">
+          <div class="kind">관찰 1</div>
+          <h3>이탈점에서 자르면 두 구간이 보이고, 둘을 잇는 것은 이탈 속도 하나다</h3>
+          <p>빗면에서는 길이 정해져 있고 중력·수직항력·마찰력이 작용한다. 높이 증가와 마찰 손실을 <b>일-에너지 정리</b>로 장부에 올리면 된다(거리 → 일). 공중에서는 중력만 작용하므로 수평은 등속, 연직은 등가속도 운동이다(시간 → Δv). 두 구간을 잇는 고리는 이탈점의 속력과 방향뿐이고, 이탈 속도는 궤도의 접선 방향(여기서는 수평)이다.</p>
+          <canvas class="flat" id="gV" aria-label="속력–시간 그래프. 빗면 구간에서는 속력이 줄고(마찰 구간에서 더 빨리), 꼭대기 평면에서는 그대로이며, 이탈한 뒤에는 수평 성분이 그대로이고 연직 성분만 일정하게 커진다. 이탈 순간에 세로선이 있다."></canvas>
+          <p class="cap">빗면에서는 마찰 구간에 들어가면 감속이 커진다(가속도 −8 → −14 m/s²). 꼭대기의 평평한 면은 마찰이 없어 속력이 그대로다(꼭대기 모서리는 매끄럽게 이어졌다고 본다). 이탈한 뒤에는 v<sub>x</sub>가 그대로이고 |v<sub>y</sub>|만 기울기 g로 커진다. 처음 속력 v₁을 바꾸면 이탈 속력이 바뀌고, 그것만으로 포물선이 달라진다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="run">처음부터 보기</button>
+            <button type="button" class="btn" data-try="dep">이탈 순간에 멈춤</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 착지 조건은 성분으로">
+          <div class="kind">관찰 2</div>
+          <h3>착지 각 조건은 속도 성분으로 바꾼다: 면에 수직이면 v<sub>x</sub>/|v<sub>y</sub>| = tanφ</h3>
+          <p>경사각 φ인 면에 수직으로 닿는 속도는 면의 법선 방향이라 연직선과 φ를 이룬다. 수평 성분은 이탈할 때의 6 m/s 그대로이므로 <span class="eq">|v<sub>y</sub>| = v<sub>x</sub>/tanφ = 12 m/s</span>가 정해지고, 공중에 있던 시간 t = |v<sub>y</sub>|/g = 1.2 s도 따라 나온다.</p>
+          <canvas class="flat" id="gH" aria-label="0.2 s마다의 속도 화살표를 한 점에서 그린 그림. 수평 성분이 그대로라 화살표 끝이 한 연직선 위에서 같은 간격으로 내려간다. 경사면의 법선 방향 선과 만나는 곳이 수직 도달 조건이다."></canvas>
+          <p class="cap">0.2 s마다의 속도 화살표를 한 점에서 모아 그리면 끝이 한 연직선(v<sub>x</sub> = 6 m/s) 위에서 2 m/s씩 내려간다. 연직선과 φ를 이루는 법선 방향 선과 만나는 곳이 ‘면에 수직’인 속도다. 착지면을 tanφ = 1로 바꾸면 같은 이탈 속력으로는 수직으로 닿지 않는다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="land">착지 순간에 멈춤</button>
+            <button type="button" class="btn" data-do="click:#step">한 간격씩 ▸</button>
+            <button type="button" class="btn" data-do="click:[data-surf=p3]">tanφ = 1 경사면</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 중력의 일 = 연직 운동 에너지">
+          <div class="kind">관찰 3</div>
+          <h3>포물선 동안 중력이 한 일은 연직 성분 운동 에너지의 변화다</h3>
+          <p>공중에서 일을 하는 힘은 연직 방향의 중력뿐이다. 그래서 수평 몫 ½mv<sub>x</sub>² = 18 J는 그대로이고, 연직 몫 ½mv<sub>y</sub>²만 0에서 72 J로 늘며 그만큼 퍼텐셜 에너지가 줄어든다. <span class="eq">W = ½m(v<sub>y</sub>² − v<sub>y0</sub>²)</span> = mg × (떨어진 높이).</p>
+          <canvas class="flat" id="gK" aria-label="에너지 장부–시간 그래프(쌓은 띠). 아래부터 열, 퍼텐셜 에너지, 운동 에너지이고 공중에서는 운동 에너지가 연직 몫과 수평 몫으로 나뉜다. 띠의 합은 처음 운동 에너지 128 J로 일정하다."></canvas>
+          <p class="cap">띠의 합(처음 운동 에너지 128 J)은 처음부터 끝까지 그대로다. 빗면에서는 운동 에너지가 퍼텐셜 에너지와 열로 옮겨 가고, 공중에서는 퍼텐셜 에너지가 연직 몫 운동 에너지로만 옮겨 간다. 중력은 ‘중력이 한 일’과 ‘퍼텐셜 에너지 변화’ 가운데 하나로만 장부에 올린다(둘 다 넣으면 이중 계산).</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="land">착지 순간의 장부</button>
+            <button type="button" class="btn" data-do="set:#ff=0">마찰 없애기</button>
+            <button type="button" class="btn" data-do="set:#ff=6">f = 6 N으로</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 진자도 끊는 점에서">
+          <div class="kind">관찰 4</div>
+          <h3>진자도 같은 2단 구조: 최저점 속력은 에너지로, 끊긴 뒤는 수평 투사로</h3>
+          <p>(가) 놓은 곳과 최저점의 높이차로 최저점 속력을 구하고, 그 속력을 T − mg = mv²/l에 넣어 장력을 구한다. 최저점 장력은 늘 무게보다 크다. (나) 최저점에서 실이 끊기면 그 순간 속도가 수평이므로 수평 투사로 이어진다. 낙하 시간은 높이로, 수평 거리는 속력 × 시간으로 구한다.</p>
+          <canvas class="flat" id="gS" aria-label="진자 장면의 속도 성분–시간 그래프. 끊기기 전에는 원운동이라 속도 방향이 바뀌다가 최저점에서 수평 4 m/s가 된다. 끊긴 뒤에는 수평 성분이 그대로이고 연직 성분만 커진다."></canvas>
+          <p class="cap">끊기는 순간의 속도(수평 4 m/s)가 수평 투사의 처음 속도다. 끊기기 전에는 장력이 일을 하지 않으므로 에너지 보존으로 속력을 구하고, 끊긴 뒤에는 장력이 없으니 운동학으로 푼다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="swing">진자 장면으로</button>
+            <button type="button" class="btn" data-try="brk">끊기기 직전에 멈춤</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>끊는 곳 = 속도를 넘겨주는 곳, 풀이는 뒤에서부터</h3>
+          <ul>
+            <li>경로가 정해진 구간(빗면·진자)은 일-에너지 정리, 공중은 성분별 운동학. <span class="eq">거리 조건 → 일</span>(마찰 손실 = f × 길이), <span class="eq">시간 조건 → Δv</span>(Δv<sub>y</sub> = gt).</li>
+            <li>이탈·끊김 순간의 속도(크기와 방향)가 다음 운동의 초기 조건이다. 이탈 속도는 궤도의 접선 방향이다.</li>
+            <li>풀이는 대개 뒤에서부터: 착지 각이 주어지면 v<sub>x</sub> 고정 + tan 조건, 착지 속력이 주어지면 에너지 보존 → 이탈 속력 → 빗면 장부(처음 K − mgΔh − 마찰 손실 = 이탈 K).</li>
+            <li>포물선 동안 중력의 일 = ½m(v<sub>y</sub>² − v<sub>y0</sub>²) = mg × 떨어진 높이. 최저점 장력 = mg + mv²/l &gt; mg.</li>
+            <li>자주 하는 실수: 중력의 일과 퍼텐셜 에너지 변화를 함께 넣어 이중 계산한다. 마찰 구간을 내려올 때는 손실이 없다고 생각한다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>질량 1 kg인 물체가 6 m/s의 수평 속도로 이탈해 tanφ = 1/2인 경사면에 수직으로 도달했다. 포물선 동안 중력이 한 일은? (g = 10 m/s²)</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="land">착지 순간에 멈춤</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>수평 속도는 그대로 v<sub>x</sub> = 6 m/s다. 면에 수직으로 닿으므로 v<sub>x</sub>/|v<sub>y</sub>| = tanφ = 1/2 → |v<sub>y</sub>| = 12 m/s. 처음 연직 속도는 0이므로 중력이 한 일 = ½ × 1 × (12² − 0) = <b>72 J</b>. 공중에 있던 시간은 12 ÷ 10 = 1.2 s, 떨어진 높이는 72 ÷ (1 × 10) = 7.2 m로 맞는다. 무대는 이 이탈 속력이 나오도록 앞에 빗면 구간(처음 16 m/s, 높이 8 m, 마찰 6 N × 5 m)을 붙인 것이다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>길이 0.8 m인 실에 매단 추를 실이 수평이 되게 들어 올렸다가 놓았다. 추가 최저점에 오는 순간 실이 끊어졌고, 최저점은 바닥에서 1.25 m 높이였다. 추가 바닥에 닿을 때까지 이동한 수평 거리는? (g = 10 m/s², 공기 저항 무시)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="swing">진자 장면으로</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>2 m</b>. 놓은 점과 최저점의 높이차 0.8 m에서 최저점 속력은 √(2 × 10 × 0.8) = 4 m/s다. 끊기는 순간 속도는 수평이므로 이후는 수평 투사 운동이다. 낙하 시간 √(2 × 1.25 ÷ 10) = 0.5 s 동안 4 × 0.5 = 2 m를 간다.</p></details>
+          </div>
+          <div class="q">
+            <h3>무대의 장치에서 1 kg 물체는 빗면 아래에서 16 m/s로 출발해 높이 8 m인 꼭대기를 지나 6 m/s로 수평 이탈했다(경사면에 수직 도달). 길이 5 m인 마찰 구간에서 물체가 받은 마찰력의 크기는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="dep">이탈 순간의 장부 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>6 N</b>. 뒤에서부터 푼다. 이탈 운동 에너지는 ½ × 1 × 6² = 18 J이다. 빗면 장부: 처음 128 J = 높이 80 J + 마찰 손실 + 18 J이므로 손실은 30 J이고, 30 J ÷ 5 m = 6 N이다. 이탈 속력 6 m/s는 착지 조건(예제)에서 나온 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>경사면을 치우고 물체가 꼭대기보다 8 m 아래 바닥에 떨어지게 했더니 착지 속력이 14 m/s였다. 이탈 속력은? 착지 각을 몰라도 되는 까닭은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q3">바닥에 떨어뜨리기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>6 m/s</b>. 착지 속력이 주어지면 공중 구간에 에너지 보존을 쓴다: ½mv<sub>q</sub>² + mg × 8 = ½m × 14² → v<sub>q</sub>² = 196 − 160 = 36. 운동 에너지는 방향이 없는 양이라 속력만으로 식이 선다. 착지 각이 주어졌다면 수평 속도 고정 + tan 조건을 썼을 것이다.</p></details>
+          </div>
+        </li>
+      </ol>
 <!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../06/" rel="prev"><small>← 이전 개념 · A2-06</small><b>단진자의 에너지</b></a><a href="../08/" rel="next"><small>다음 개념 · A2-08 →</small><b>열평형</b></a></nav>
 <!-- /nextprev -->
     </section>
   </main>
 </div>
+
 <script src="../../kit/lab.js"></script>
+<script src="A2-07-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A2_07;
+  const {$, C, text, rich, arrow, fmt} = Lab;
+  const R = M.RAMP, G = M.G, RAD = Math.PI / 180, EPS = 1e-6;
+  const BX = R.L * R.cos;                                   // 빗면 꼭대기의 x (6 m)
+  const SURF = {p1: {tan: 0.5, frac: '1/2'}, p2: {tan: 0.75, frac: '3/4'}, p3: {tan: 1, frac: '1'}, flat: {tan: 0, frac: ''}};
+  const MS = 0.5;                                           // 진자 장면 추의 질량 (장력·에너지 장부용)
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = {scene: 'ramp', m: 1, v1: 16, f: 6, surf: 'p1', l: 0.8, th: 90, hb: 1.25,
+    t: 0, playing: !Lab.reduceMotion, speed: 0.5, hold: 0, linger: 0, strobe: true, comp: true, drag: false};
+  const isRamp = () => S.scene === 'ramp';
+  let PR = null, PS = null;                                 // 두 장면의 운동 계획 (조건이 바뀔 때만 다시 계산)
+  function plan() {
+    const L = M.ledger(S.m, S.v1, S.f), run = M.rampRun(S.m, S.v1, S.f), tan = SURF[S.surf].tan;
+    const reach = run.end === 'top', vq = reach ? Math.max(0, L.vq) : 0, fly = reach && vq > 1e-6;
+    const tTop = run.tEnd, tq = fly ? tTop + R.plat / vq : tTop, F = fly ? M.flight(vq, tan) : null;
+    PR = {L, run, reach, vq, fly, tan, tTop, tq, F, tEnd: fly ? tq + F.t : tTop, outcome: fly ? 'fly' : reach ? 'stopTop' : run.end};
+    const th0 = S.th * RAD, v = M.swingSpeed(S.l, th0), tb = M.quarter(S.l, th0), B = M.breakFlight(v, S.hb);
+    PS = {th0, v, tb, F: B, tEnd: tb + B.t, h: S.l * (1 - Math.cos(th0))};
+  }
+  const P = () => (isRamp() ? PR : PS);
+
+  // 빗면 장면: t 초의 자리(x, y: m)·속도·마찰 열
+  function rampState(t) {
+    const p = PR;
+    if (t <= p.tTop + 1e-9 || !p.reach) {
+      const st = M.rampAt(p.run, Math.min(t, p.run.tEnd));
+      return {phase: 'ramp', x: st.s * R.cos, y: st.s * R.sin, vx: st.v * R.cos, vy: st.v * R.sin, sp: Math.abs(st.v), up: st.v > 0, band: st.band,
+        heat: S.f * M.bandPath(p.run, Math.min(t, p.run.tEnd))};
+    }
+    const heat = p.L.loss;
+    if (!p.fly) return {phase: 'plat', x: BX, y: R.H, vx: 0, vy: 0, sp: 0, heat};
+    if (t <= p.tq) return {phase: 'plat', x: BX + Math.min(R.plat, (t - p.tTop) * p.vq), y: R.H, vx: p.vq, vy: 0, sp: p.vq, heat};
+    const tf = Math.min(t - p.tq, p.F.t);
+    return {phase: tf >= p.F.t - 1e-9 ? 'land' : 'fly', tf, x: R.qx + p.vq * tf, y: R.H - G / 2 * tf * tf, vx: p.vq, vy: -G * tf, sp: Math.hypot(p.vq, G * tf), heat};
+  }
+  // 진자 장면: 받침점 (0, H + l), 왼쪽에서 놓아 최저점 (0, H) 에서 끊긴다
+  function swingState(t) {
+    const p = PS, l = S.l, Hb = S.hb;
+    if (t <= p.tb) {
+      const s = M.swingAt(t, l, p.th0);
+      return {phase: 'swing', th: s.th, x: -l * Math.sin(s.th), y: Hb + l - l * Math.cos(s.th), vx: s.v * Math.cos(s.th), vy: -s.v * Math.sin(s.th), sp: s.v};
+    }
+    const tf = Math.min(t - p.tb, p.F.t);
+    return {phase: tf >= p.F.t - 1e-9 ? 'land' : 'fly', tf, x: p.v * tf, y: Hb - G / 2 * tf * tf, vx: p.v, vy: -G * tf, sp: Math.hypot(p.v, G * tf)};
+  }
+  const state = (t) => (isRamp() ? rampState(t) : swingState(t));
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  function surd(v2) {                                        // √(v2) 를 a√b 꼴로 (v2 가 정수일 때)
+    const n = Math.round(v2); if (Math.abs(v2 - n) > 1e-6 || n <= 0) return null;
+    let a = 1, b = n;
+    for (let k = Math.floor(Math.sqrt(n)); k > 1; k--) if (n % (k * k) === 0) { a = k; b = n / (k * k); break; }
+    return b === 1 ? String(a) : (a === 1 ? '' : a) + '√' + b;
+  }
+  const spStr = (v) => { const s = surd(v * v); return s && s.includes('√') ? s + ' ≈ ' + fmt(v, 1) : fmt(v, 2); };
+  function ground(ctx, x0, x1, y) {
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.globalAlpha = 0.55; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (let x = x0 + 8; x < x1 + 4; x += 11) { ctx.moveTo(x, y + 1); ctx.lineTo(x - 8, y + 9); }
+    ctx.stroke(); ctx.restore();
+    Lab.line(ctx, [[x0, y], [x1, y]], C.ink, 2.2);
+  }
+  function darrow(ctx, x0, y0, x1, y1, col, w = 2, head = 8) {   // 점선 화살표 (성분)
+    const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy); if (L < 3) return;
+    const ux = dx / L, uy = dy / L, hh = Math.min(head, L * 0.6);
+    Lab.line(ctx, [[x0, y0], [x1 - ux * hh * 0.8, y1 - uy * hh * 0.8]], col, w, [5, 4]);
+    ctx.save(); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 - ux * hh - uy * hh * 0.5, y1 - uy * hh + ux * hh * 0.5); ctx.lineTo(x1 - ux * hh + uy * hh * 0.5, y1 - uy * hh - ux * hh * 0.5);
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function ceiling(ctx, x, y, half) {
+    Lab.line(ctx, [[x - half, y], [x + half, y]], C.ink, 2.4);
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.3;
+    for (let u = -half + 8; u <= half; u += 12) { ctx.beginPath(); ctx.moveTo(x + u, y); ctx.lineTo(x + u - 8, y - 9); ctx.stroke(); }
+    ctx.restore();
+    Lab.circle(ctx, x, y, 3.2, {fill: C.ink});
+  }
+  // 왼쪽 위에서 오른쪽 끝까지 이어진 가로 막대 하나: 에너지 장부 (같은 축척, 합은 늘 처음 값)
+  function ledgerBar(ctx, W, narrow, parts, total, title) {
+    const x0 = narrow ? 10 : 16, x1 = W - (narrow ? 10 : 16), y = narrow ? 62 : 68, h = narrow ? 16 : 20, k = (x1 - x0) / Math.max(total, 1e-9);
+    text(ctx, title, x0, y - 10, {size: 13, w: 600, color: C.muted, align: 'left'});
+    let x = x0;
+    for (const [v, col, name, sub] of parts) {
+      const w = Math.max(0, v) * k;
+      if (w > 0.3) { ctx.save(); ctx.fillStyle = col; ctx.fillRect(x, y, w, h); ctx.restore(); }
+      const full = name + ' ' + fmt(v, 1) + (sub && !narrow ? ' ' + sub : ''), short = fmt(v, 1);
+      const fw = Lab.measure(ctx, full.replace(/_/g, ''), {size: 13, w: 600}), sw = Lab.measure(ctx, short, {size: 13, w: 600});
+      const lab = fw + 6 < w ? full : sw + 4 < w ? short : '';
+      if (lab) rich(ctx, lab, x + w / 2, y + h + 11, {size: 13, w: 600, color: col === parts.pale ? C.energy : col});
+      x += w;
+    }
+    ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(x0 + 0.5, y + 0.5, x1 - x0 - 1, h - 1); ctx.restore();
+    return y + h;
+  }
+
+  // ── 무대: 빗면 → 포물선 ─────────────────────────────────
+  function geoR(W, H) {
+    const narrow = W < 520, p = PR, x0 = -0.9, x1 = Math.max(16.4, (p.fly ? p.F.x : 0) + 2.2);
+    const top = Math.min(narrow ? 132 : 150, H * 0.4), gy = H - (narrow ? 48 : 40), padL = narrow ? 8 : 16, padR = narrow ? 8 : 16;
+    const s = Math.max(4, Math.min((W - padL - padR) / (x1 - x0), (gy - top) / R.H));
+    const ox = padL + ((W - padL - padR) - (x1 - x0) * s) / 2 - x0 * s;
+    return {narrow, W, H, s, gy, top, ox, x0, x1, X: (x) => ox + x * s, Y: (y) => gy - y * s, kv: Math.max(s * 0.2, narrow ? 4.2 : 6), r: narrow ? 6 : 8};
+  }
+  function drawRamp(ctx, W, H) {
+    const g = geoR(W, H), p = PR, {X, Y, narrow, gy} = g, st = rampState(S.t), flying = st.phase === 'fly' || st.phase === 'land';
+    // 에너지 장부 (위)
+    const K = 0.5 * S.m * st.sp * st.sp, U = S.m * G * st.y, Kx = flying ? 0.5 * S.m * p.vq * p.vq : 0, pale = Lab.alpha(C.energy, 0.45);
+    const parts = flying ? [[Kx, pale, 'K_x', '(그대로)'], [K - Kx, C.energy, 'K_y', st.phase === 'land' ? '= 중력의 일' : ''], [U, C.violet, 'U', ''], [st.heat, C.neg, '열', '']]
+      : [[K, C.energy, 'K', ''], [U, C.violet, 'U', ''], [st.heat, C.neg, '열', '']];
+    parts.pale = pale;
+    const yb = ledgerBar(ctx, W, narrow, parts, p.L.K1, narrow ? '에너지 장부 · 합 ' + fmt(p.L.K1, 1) + ' J' : '에너지 장부 (J) · 합 = 처음 운동 에너지 ' + fmt(p.L.K1, 1) + ' J (일정)');
+    // 땅 · 건물(빗면 + 꼭대기 평면 + 절벽) · 착지 경사면
+    ground(ctx, 0, W, gy);
+    const c = 0.3;
+    ctx.save(); ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(BX - c * R.cos), Y(R.H - c * R.sin)); ctx.quadraticCurveTo(X(BX), Y(R.H), X(BX + c), Y(R.H));
+    ctx.lineTo(X(R.qx), Y(R.H)); ctx.lineTo(X(R.qx), Y(0)); ctx.closePath(); ctx.fillStyle = C['line-soft']; ctx.fill(); ctx.strokeStyle = C.line; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(BX - c * R.cos), Y(R.H - c * R.sin)); ctx.quadraticCurveTo(X(BX), Y(R.H), X(BX + c), Y(R.H)); ctx.lineTo(X(R.qx), Y(R.H));
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2.4; ctx.lineJoin = 'round'; ctx.stroke(); ctx.restore();
+    Lab.vbracket(ctx, X(R.qx) - 14, Y(R.H), Y(0), C.muted, fmt(R.H) + ' m', false);
+    const tan = p.tan;
+    if (tan > 0) {
+      const xe = g.x1 + 2;
+      ctx.save(); ctx.beginPath(); ctx.moveTo(X(R.foot), Y(0)); ctx.lineTo(X(xe), Y((xe - R.foot) * tan)); ctx.lineTo(X(xe), Y(0)); ctx.closePath();
+      ctx.fillStyle = C['line-soft']; ctx.fill(); ctx.restore();
+      Lab.line(ctx, [[X(R.foot), Y(0)], [X(xe), Y((xe - R.foot) * tan)]], C.ink, 2.4);
+      Lab.angle(ctx, X(R.foot), Y(0), narrow ? 22 : 32, 0, -Math.atan(tan), C.ink, 'φ');
+      text(ctx, 'tanφ = ' + SURF[S.surf].frac, X(R.foot) - 6, gy - 11, {size: 13, w: 600, align: 'right', halo: true});
+    }
+    // 마찰 구간
+    const n = [-R.sin, R.cos], off = 3.4 / g.s, A0 = [R.b0 * R.cos, R.b0 * R.sin], A1 = [R.b1 * R.cos, R.b1 * R.sin];
+    ctx.save(); ctx.globalAlpha = S.f > 0 ? 0.8 : 0.22;
+    Lab.line(ctx, [[X(A0[0] + n[0] * off), Y(A0[1] + n[1] * off)], [X(A1[0] + n[0] * off), Y(A1[1] + n[1] * off)]], C.neg, 6.5); ctx.restore();
+    const fl = narrow ? '마찰 f = ' + fmt(S.f, 2) + ' N' : '마찰 구간 5 m · f = ' + fmt(S.f, 2) + ' N', fw = Lab.measure(ctx, fl, {size: 13, w: 600});
+    let lx = X((A0[0] + A1[0]) / 2 + n[0] * 22 / g.s), ly = Y((A0[1] + A1[1]) / 2 + n[1] * 22 / g.s);
+    if (lx - fw < 6) { lx = 6 + fw; ly -= 10; }
+    text(ctx, fl, lx, ly, {size: 13, w: 600, color: C.neg, align: 'right', halo: true});
+    // 자르는 곳: 이탈점 q 의 세로선과 두 구간 이름 (지금 구간을 진하게)
+    const segY = Math.max(yb + 28, Y(R.H) - 44), cutX = X(R.qx), inAir = flying;
+    Lab.line(ctx, [[cutX, segY - 9], [cutX, Y(R.H) - 4]], C.copper, 1.6, [5, 4]);
+    const L1 = narrow ? '1 빗면: 일-에너지' : '1 빗면 구간 · 일-에너지 정리 (거리 → 일)', L2 = narrow ? '2 공중: 운동학' : '2 포물선 구간 · 운동학 (시간 → Δv)';
+    text(ctx, L1, cutX - 10, segY, {size: 13, w: !inAir ? 700 : 500, color: !inAir ? C.energy : C.muted, align: 'right', halo: true});
+    text(ctx, L2, cutX + 10, segY, {size: 13, w: inAir ? 700 : 500, color: inAir ? C.vel : C.muted, align: 'left', halo: true});
+    // 지나갈 길(점선)과 지나온 길
+    if (p.fly) {
+      const path = (a, b, col, w, dash) => { const pts = []; for (let i = 0; i <= 60; i++) { const tf = a + (b - a) * i / 60; pts.push([X(R.qx + p.vq * tf), Y(R.H - G / 2 * tf * tf)]); } Lab.line(ctx, pts, col, w, dash); };
+      path(0, p.F.t, C.muted, 1.5, [4, 5]);
+      if (flying) path(0, st.tf, C.vel, 2.6);
+    }
+    // 같은 시간 간격: 빗면·평면 0.1 s, 공중 0.2 s (이탈한 때부터)
+    if (S.strobe) {
+      for (let t = 0; t <= Math.min(S.t, p.fly ? p.tq : p.tEnd) + 1e-9; t += 0.1) {
+        const q = rampState(t); Lab.circle(ctx, X(q.x), Y(q.y), 3.6, {stroke: Lab.alpha(C.copper, 0.8), width: 1.5});
+      }
+      if (flying) for (let tf = 0; tf <= st.tf + 1e-9; tf += 0.2) {
+        const x = X(R.qx + p.vq * tf), y = Y(R.H - G / 2 * tf * tf);
+        if (S.comp && tf > 1e-9 && tf < p.F.t - 1e-9) { darrow(ctx, x, y, x + p.vq * g.kv, y, Lab.alpha(C.vel, 0.6), 1.6, 7); darrow(ctx, x, y, x, y + G * tf * g.kv, Lab.alpha(C.vel, 0.6), 1.6, 7); }
+        Lab.circle(ctx, x, y, narrow ? 4.5 : 5.5, {fill: C.paper, stroke: C.vel, width: 2});
+      }
+    }
+    // 이탈점 q 와 넘겨주는 속도 v_q
+    Lab.circle(ctx, cutX, Y(R.H), g.r + 4, {stroke: C.copper, width: 1.8});
+    text(ctx, 'q', cutX - g.r - 9, Y(R.H) - g.r - 8, {size: 14, w: 700, color: C.copper, halo: true});
+    if (p.fly && (st.phase !== 'ramp')) {
+      arrow(ctx, cutX, Y(R.H) - 1, cutX + p.vq * g.kv, Y(R.H) - 1, C.copper, 2.6, 9);
+      if (!narrow || !flying) rich(ctx, 'v_q = ' + fmt(p.vq, 2) + ' m/s', cutX + 8, Y(R.H) - 17, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    }
+    // 착지 표시
+    if (st.phase === 'land') drawLanding(ctx, g, st);
+    else if (p.fly && st.phase === 'fly') { const lx2 = X(p.F.x), ly2 = Y(p.F.y); Lab.circle(ctx, lx2, ly2, 3.5, {fill: C.muted}); }
+    // 물체와 속도
+    const O = [X(st.x), Y(st.y)];
+    if (st.sp > 0.05) {
+      const vx = st.vx * g.kv, vy = -st.vy * g.kv, B = st.phase === 'land' ? [O[0] - vx, O[1] - vy] : O;   // 착지: 닿는 점으로 들어오는 속도
+      if (S.comp && flying) { darrow(ctx, B[0], B[1], B[0] + vx, B[1], C.vel, 2, 8); darrow(ctx, B[0], B[1], B[0], B[1] + vy, C.vel, 2, 8); }
+      arrow(ctx, B[0], B[1], B[0] + vx, B[1] + vy, C.vel, 3, 10);
+      if (!narrow && st.phase === 'ramp') text(ctx, 'v ' + fmt(st.sp, 2) + ' m/s', O[0] + vx + (vx >= 0 ? 8 : -8), O[1] + vy - 10, {size: 13, w: 600, color: C.vel, align: vx >= 0 ? 'left' : 'right', halo: true});
+    }
+    Lab.circle(ctx, O[0], O[1], g.r, {fill: C.copper, stroke: C.paper, width: 2});
+    if (!p.reach && S.t >= p.tEnd - 1e-9) Lab.tag(ctx, p.run.end === 'stuck' ? '마찰 구간에서 멈춤 → 이탈 없음' : '꼭대기에 못 감 → 되돌아 내려옴', W / 2, g.top - 6, {size: 13, w: 700, color: C.neg, border: C.neg});
+    if (p.reach && !p.fly) Lab.tag(ctx, '꼭대기에서 멈춤 (이탈 속력 0)', W / 2, g.top - 6, {size: 13, w: 700, color: C.neg, border: C.neg});
+  }
+  function drawLanding(ctx, g, st) {
+    const p = PR, F = p.F, {X, Y, narrow} = g, L = [X(F.x), Y(F.y)];
+    if (F.on === 'slope') {
+      const ph = Math.atan(p.tan), nv = [-Math.sin(ph), -Math.cos(ph)], tv = [Math.cos(ph), -Math.sin(ph)], len = narrow ? 38 : 56;   // 화면: 법선(바깥), 면 방향
+      Lab.line(ctx, [L, [L[0] + nv[0] * len, L[1] + nv[1] * len]], C.acc, 1.8, [5, 4]);
+      if (F.perp) { const s = 11; Lab.line(ctx, [[L[0] + tv[0] * s, L[1] + tv[1] * s], [L[0] + tv[0] * s + nv[0] * s, L[1] + tv[1] * s + nv[1] * s], [L[0] + nv[0] * s, L[1] + nv[1] * s]], C.acc, 1.6); }
+      const deg = Math.round(F.angle / RAD), lab = F.perp ? (narrow ? '면에 수직' : '면에 수직 도달 (v_x/|v_y| = tanφ)') : '면과 ' + deg + '°';
+      const tx = Math.min(g.W - 10 - Lab.measure(ctx, lab, {size: 13, w: 700}) / 2 - 8, L[0] + nv[0] * len), ty = L[1] + nv[1] * len - 14;
+      Lab.tag(ctx, lab.replace(/_([xy])/g, '$1'), tx, ty, {size: 13, w: 700, color: F.perp ? C.acc : C.ink, border: F.perp ? C.acc : C.line});
+    } else Lab.tag(ctx, '바닥 착지 · ' + spStr(F.speed) + ' m/s', Math.min(g.W - 90, L[0]), L[1] - 30, {size: 13, w: 700, color: C.ink});
+  }
+
+  // ── 무대: 진자 → 끊김 → 수평 투사 ───────────────────────
+  function geoW(W, H) {
+    const narrow = W < 520, p = PS, l = S.l, Hb = S.hb, x0 = -l * Math.sin(p.th0) - 0.5, x1 = Math.max(p.F.x + 0.75, 1.6);
+    const yTop = Hb + l + 0.1, top = Math.min(narrow ? 122 : 138, H * 0.38), gy = H - (narrow ? 50 : 44), padL = narrow ? 8 : 16, padR = narrow ? 8 : 16;
+    const s = Math.max(12, Math.min((W - padL - padR) / (x1 - x0), (gy - top) / yTop));
+    const ox = padL + ((W - padL - padR) - (x1 - x0) * s) / 2 - x0 * s;
+    return {narrow, W, H, s, gy, top, ox, X: (x) => ox + x * s, Y: (y) => gy - y * s, kv: s * 0.14, r: narrow ? 7 : 9, F: s * l * 0.2};
+  }
+  function drawSwing(ctx, W, H) {
+    const g = geoW(W, H), p = PS, {X, Y, narrow, gy} = g, st = swingState(S.t), l = S.l, Hb = S.hb, flying = st.phase !== 'swing';
+    const K = 0.5 * MS * st.sp * st.sp, U = MS * G * st.y, Kx = flying ? 0.5 * MS * p.v * p.v : 0, pale = Lab.alpha(C.energy, 0.45), E0 = MS * G * (Hb + p.h);
+    const parts = flying ? [[Kx, pale, 'K_x', '(그대로)'], [K - Kx, C.energy, 'K_y', ''], [U, C.violet, 'U', '']] : [[K, C.energy, 'K', ''], [U, C.violet, 'U', '']];
+    parts.pale = pale;
+    const yb = ledgerBar(ctx, W, narrow, parts, E0, narrow ? '에너지 장부 · 합 ' + fmt(E0, 2) + ' J' : '에너지 장부 (J, 추 0.5 kg, 바닥 기준) · 합 ' + fmt(E0, 2) + ' J (일정)');
+    ground(ctx, 0, W, gy);
+    const pv = [X(0), Y(Hb + l)], bot = [X(0), Y(Hb)];
+    ceiling(ctx, pv[0], pv[1], narrow ? 34 : 50);
+    Lab.line(ctx, [pv, [bot[0], bot[1] + 10]], C.muted, 1.2, [5, 5]);
+    ctx.save(); ctx.setLineDash([4, 5]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(pv[0], pv[1], l * g.s, Math.PI / 2, Math.PI / 2 + p.th0); ctx.stroke(); ctx.restore();
+    const A = [X(-l * Math.sin(p.th0)), Y(Hb + l - l * Math.cos(p.th0))];
+    ctx.save(); ctx.setLineDash([3, 3]); Lab.circle(ctx, A[0], A[1], g.r, {stroke: C.muted, width: 1.5}); ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.7; Lab.line(ctx, [pv, A], C.muted, 1.3, [6, 5]); ctx.restore();
+    text(ctx, 'l = ' + fmt(l, 2) + ' m', (pv[0] + A[0]) / 2, (pv[1] + A[1]) / 2 + (p.th0 > 1.2 ? 15 : -13), {size: 13, w: 600, color: C.copper, halo: true});
+    // 높이차 h (오른쪽 위 빈자리), 최저점 높이 H (왼쪽)
+    const xh = X(0.24);
+    Lab.line(ctx, [A, [xh, A[1]]], C.muted, 1.1, [2, 4]);
+    if (bot[1] - A[1] > 16) Lab.vbracket(ctx, xh, A[1], bot[1], C.copper, narrow ? 'h' : 'h = ' + fmt(p.h, 2) + ' m', true);
+    Lab.vbracket(ctx, X(-0.4), bot[1], gy, C.muted, 'H = ' + fmt(Hb, 2) + ' m', false);
+    // 실: 끊기기 전에는 추까지, 끊긴 뒤에는 남은 실과 끊긴 자리
+    const O = [X(st.x), Y(st.y)];
+    if (!flying) Lab.line(ctx, [pv, O], C.ink, 1.8);
+    else {
+      Lab.line(ctx, [pv, [bot[0], bot[1] - 8]], C.ink, 1.8);
+      Lab.line(ctx, [[bot[0] - 7, bot[1] - 4], [bot[0] + 7, bot[1] - 12]], C.neg, 2.4);
+      text(ctx, '끊김', bot[0] - 10, bot[1] - 16, {size: 13, w: 600, color: C.neg, align: 'right', halo: true});
+    }
+    // 포물선 (점선 미리 보기 + 지나온 길), 같은 시간 간격
+    const path = (a, b, col, w, dash) => { const pts = []; for (let i = 0; i <= 50; i++) { const tf = a + (b - a) * i / 50; pts.push([X(p.v * tf), Y(Hb - G / 2 * tf * tf)]); } Lab.line(ctx, pts, col, w, dash); };
+    path(0, p.F.t, C.muted, 1.5, [4, 5]);
+    if (flying) path(0, st.tf, C.vel, 2.6);
+    if (S.strobe) {
+      for (let k = 0; k <= 4; k++) { const t = p.tb * k / 4; if (t > S.t + 1e-9) break; const q = swingState(t); Lab.circle(ctx, X(q.x), Y(q.y), 3.6, {stroke: Lab.alpha(C.copper, 0.8), width: 1.5}); }
+      if (flying) for (let tf = 0.1; tf <= st.tf + 1e-9; tf += 0.1) {
+        const x = X(p.v * tf), y = Y(Hb - G / 2 * tf * tf);
+        if (S.comp && tf < p.F.t - 1e-9) { darrow(ctx, x, y, x + p.v * g.kv, y, Lab.alpha(C.vel, 0.6), 1.6, 7); darrow(ctx, x, y, x, y + G * tf * g.kv, Lab.alpha(C.vel, 0.6), 1.6, 7); }
+        Lab.circle(ctx, x, y, narrow ? 4.5 : 5.5, {fill: C.paper, stroke: C.vel, width: 2});
+      }
+    }
+    // 최저점(끊기기 직전): 장력과 무게 — T − mg = mv²/l
+    if (!flying && st.th < 3 * RAD) {
+      const mg = MS * G, Tn = M.swingTension(MS, l, p.th0);
+      arrow(ctx, O[0], O[1], O[0], O[1] - g.F * Tn / mg, C.force, 3, 10);
+      arrow(ctx, O[0], O[1], O[0], O[1] + g.F, C.force, 3, 10);
+      text(ctx, narrow ? '장력' : '장력 ' + fmt(Tn, 2) + ' N', O[0] - 10, O[1] - g.F * Tn / mg + 6, {size: 13, w: 600, color: C.force, align: 'right', halo: true});
+      text(ctx, narrow ? 'mg' : 'mg ' + fmt(mg, 2) + ' N', O[0] + 10, O[1] + g.F, {size: 13, w: 600, color: C.force, align: 'left', halo: true});
+      if (!narrow) Lab.tag(ctx, '장력 − mg = mv²/l = ' + fmt(Tn - mg, 2) + ' N', X(Math.max(1.1, p.F.x * 0.62)), Y(Hb + l * 0.7), {size: 13, w: 600, color: C.force, border: C.force});
+    }
+    if (st.sp > 0.05) {
+      const vx = st.vx * g.kv, vy = -st.vy * g.kv, B = st.phase === 'land' ? [O[0] - vx, O[1] - vy] : O;
+      if (S.comp && flying) { darrow(ctx, B[0], B[1], B[0] + vx, B[1], C.vel, 2, 8); darrow(ctx, B[0], B[1], B[0], B[1] + vy, C.vel, 2, 8); }
+      arrow(ctx, B[0], B[1], B[0] + vx, B[1] + vy, C.vel, 3, 10);
+      if (!narrow && st.phase !== 'land') text(ctx, 'v ' + fmt(st.sp, 2) + ' m/s', O[0] + vx + 8, O[1] + vy - 10, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
+    }
+    Lab.circle(ctx, O[0], O[1], g.r, {fill: C.copper, stroke: C.paper, width: 2});
+    if (st.phase === 'land') {
+      Lab.bracket(ctx, X(0), X(p.F.x), gy + 20, C.copper, 'x = ' + fmt(p.F.x, 2) + ' m', false);
+      Lab.tag(ctx, '착지 · t = ' + fmt(p.F.t, 2) + ' s 뒤', Math.min(g.W - 70, X(p.F.x)), Math.max(yb + 26, O[1] - 34), {size: 13, w: 700, color: C.acc, border: C.acc});
+    }
+  }
+
+  const stage = Lab.canvas('stage', drawStage);
+  let lastNar = null;
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    if ((W < 520) !== lastNar) { lastNar = W < 520; hud(); }
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (isRamp()) drawRamp(ctx, W, H); else drawSwing(ctx, W, H);
+  }
+  const seen = (v) => { if (!v.W) return false; const r = v.el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+
+  // ── 그래프 공통: 시간 구간 띠 ─────────────────────────────
+  function bandRect(ctx, x0, x1, y0, y1, col, a) { if (x1 - x0 < 0.5) return; ctx.save(); ctx.fillStyle = Lab.alpha(col, a); ctx.fillRect(x0, y0, x1 - x0, y1 - y0); ctx.restore(); }
+
+  // ── 관찰 1: 속력–시간 (빗면 장면) ─────────────────────────
+  const gV = Lab.canvas('gV', drawV);
+  function drawV() {
+    const {ctx, W, H} = gV; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const p = PR, nar = W < 420, tE = Math.max(p.tEnd, 0.2), live = isRamp();
+    const vmax = Math.max(S.v1, p.fly ? p.F.speed : 0, 4) * 1.12;
+    const r = {x: 42, y: 44, w: W - 42 - 16, h: H - 44 - 30};
+    const X = (t) => r.x + t / tE * r.w, Y = (v) => r.y + r.h - v / vmax * r.h;
+    bandRect(ctx, X(0), X(p.tTop), r.y, r.y + r.h, C.energy, 0.08);
+    for (const q of p.run.pieces) if (q.band) bandRect(ctx, X(q.t0), X(q.t1), r.y, r.y + r.h, C.neg, 0.12);
+    if (p.fly) bandRect(ctx, X(p.tq), X(tE), r.y, r.y + r.h, C.vel, 0.08);
+    text(ctx, nar ? '빗면: 에너지' : '빗면: 일-에너지 정리', (X(0) + X(p.tTop)) / 2, r.y - 12, {size: 13, w: 600, color: C.energy});
+    if (p.fly) text(ctx, nar ? '공중: 운동학' : '공중: 성분별 운동학', (X(p.tq) + X(tE)) / 2, r.y - 12, {size: 13, w: 600, color: C.vel});
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 6, C.muted, 1.3, 7);
+    arrow(ctx, r.x, r.y + r.h, r.x + r.w + 8, r.y + r.h, C.muted, 1.3, 7);
+    text(ctx, 'm/s', r.x - 6, r.y - 12, {size: 13, w: 600, color: C.muted, align: 'right'});
+    for (const v of [S.v1, p.vq].concat(p.fly ? [-p.F.vy] : [])) if (v > 0.2) text(ctx, fmt(v, 1), r.x - 6, Y(v), {size: 13, w: 500, color: C.muted, align: 'right'});
+    for (const t of [0].concat(p.fly ? [p.tq, tE] : [tE])) text(ctx, fmt(t, 2) + (t > 0 && t === tE ? ' s' : ''), X(t), r.y + r.h + 13, {size: 13, w: 500, color: C.muted, align: t === tE ? 'right' : 'center'});
+    // 빗면(속력) → 평면 → 공중(v_x, |v_y|, 속력)
+    const pts = []; for (let i = 0; i <= 90; i++) { const t = p.tTop * i / 90; pts.push([X(t), Y(Math.abs(M.rampAt(p.run, t).v))]); }
+    Lab.line(ctx, pts, C.vel, 3);
+    if (p.fly) {
+      Lab.line(ctx, [[X(p.tTop), Y(p.vq)], [X(tE), Y(p.vq)]], C.vel, 3);
+      Lab.line(ctx, [[X(p.tq), Y(0)], [X(tE), Y(-p.F.vy)]], C.vel, 2.6, [7, 5]);
+      const sp = []; for (let i = 0; i <= 40; i++) { const tf = p.F.t * i / 40; sp.push([X(p.tq + tf), Y(Math.hypot(p.vq, G * tf))]); }
+      ctx.save(); ctx.globalAlpha = 0.55; Lab.line(ctx, sp, C.muted, 1.6); ctx.restore();
+      // 오른쪽 위 범례 (공중 구간)
+      const lx = X(tE) - (nar ? 92 : 118), ly = r.y + 13;
+      Lab.line(ctx, [[lx, ly], [lx + 18, ly]], C.vel, 3); rich(ctx, 'v_x (그대로)', lx + 24, ly, {size: 13, w: 600, color: C.vel, align: 'left'});
+      Lab.line(ctx, [[lx, ly + 19], [lx + 18, ly + 19]], C.vel, 2.6, [5, 4]); rich(ctx, '|v_y| = gt', lx + 24, ly + 19, {size: 13, w: 600, color: C.vel, align: 'left'});
+      ctx.save(); ctx.globalAlpha = 0.55; Lab.line(ctx, [[lx, ly + 38], [lx + 18, ly + 38]], C.muted, 1.6); ctx.restore(); text(ctx, '속력', lx + 24, ly + 38, {size: 13, w: 500, color: C.muted, align: 'left'});
+      // 자르는 곳
+      Lab.line(ctx, [[X(p.tq), r.y - 2], [X(p.tq), r.y + r.h]], C.copper, 1.8, [5, 4]);
+      rich(ctx, (nar ? 'v_q = ' : '이탈: v_q = ') + fmt(p.vq, 2) + ' m/s', X(p.tq) - 6, Y(p.vq) + 14, {size: 13, w: 600, color: C.copper, align: 'right'});
+    } else text(ctx, p.reach ? '꼭대기에서 멈춤 → 이탈 없음' : '꼭대기에 못 감 → 이탈 없음', r.x + r.w, r.y + 14, {size: 13, w: 600, color: C.neg, align: 'right'});
+    if (!nar) for (const q of p.run.pieces) {
+      if (q.t1 - q.t0 < 0.12 || q.v0 <= 0) continue;
+      const tm = (q.t0 + q.t1) / 2, vm = Math.abs(M.rampAt(p.run, tm).v);
+      text(ctx, 'a = ' + fmt(q.a, 1) + (q.band ? ' (마찰)' : ''), X(tm) + 4, Y(vm) - 12, {size: 13, w: 500, color: q.band ? C.neg : C.muted, align: 'left', halo: true});
+    }
+    if (live) { const t = Math.min(S.t, tE), st = rampState(t), y = st.phase === 'fly' || st.phase === 'land' ? p.vq : st.sp;
+      Lab.line(ctx, [[X(t), r.y], [X(t), r.y + r.h]], Lab.alpha(C.copper, 0.7), 1.4);
+      Lab.circle(ctx, X(t), Y(y), 5.5, {fill: C.copper, stroke: C.paper, width: 2});
+      if (st.phase === 'fly' || st.phase === 'land') Lab.circle(ctx, X(t), Y(-st.vy), 5, {fill: C.paper, stroke: C.copper, width: 2});
+    }
+  }
+
+  // ── 관찰 2: 속도 화살표를 한 점에서 (수평 성분 고정, 법선 방향과 만나는 곳) ──
+  const gH = Lab.canvas('gH', drawH);
+  function drawH() {
+    const {ctx, W, H} = gH; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const p = PR, nar = W < 420;
+    if (!p.fly) { text(ctx, '이탈하지 않아 포물선 구간이 없다', W / 2, H / 2, {size: 14, w: 600, color: C.neg}); return; }
+    const F = p.F, vx = p.vq, tan = p.tan, slope = F.on === 'slope', vyL = -F.vy, vyN = tan > 0 ? vx / tan : 0;
+    const vyMax = Math.max(vyL, slope ? vyN : 0, vx * 0.5) * 1.14, vxMax = vx * (nar ? 2.4 : 2.9);
+    const r = {x: 26, y: 30, w: W - 26 - 16, h: H - 30 - 20};
+    const k = Math.min(r.w / vxMax, r.h / vyMax), O = [r.x + 10, r.y + 8], Pt = (a, b) => [O[0] + a * k, O[1] + b * k];
+    arrow(ctx, O[0], O[1], O[0] + vxMax * k * 0.96, O[1], C.muted, 1.3, 7);
+    arrow(ctx, O[0], O[1], O[0], O[1] + vyMax * k, C.muted, 1.3, 7);
+    if (!nar) rich(ctx, 'v_x', O[0] + vxMax * k * 0.96, O[1] - 12, {size: 13, w: 600, color: C.muted, align: 'right'});
+    rich(ctx, nar ? 'v_y' : 'v_y (아래)', O[0] + 8, O[1] + vyMax * k - 4, {size: 13, w: 600, color: C.muted, align: 'left'});
+    // 끝이 놓이는 연직선 (v_x 그대로)
+    Lab.line(ctx, [Pt(vx, 0), Pt(vx, vyMax * 0.98)], Lab.alpha(C.vel, 0.6), 1.4, [5, 4]);
+    rich(ctx, 'v_x = ' + fmt(vx, 2) + ' m/s 그대로', Pt(vx, 0)[0] + 6, O[1] - 12, {size: 13, w: 600, color: C.vel, align: 'left'});
+    // 법선 방향 (연직선과 φ) 과 그 만나는 곳
+    const ph = Math.atan(tan || 1e-9);
+    if (slope) {
+      const Ln = Math.hypot(vx, vyN) * 1.25;
+      Lab.line(ctx, [O, Pt(Math.sin(ph) * Ln, Math.cos(ph) * Ln)], C.acc, 2, [7, 5]);
+      Lab.angle(ctx, O[0], O[1], nar ? 26 : 34, Math.PI / 2, Math.PI / 2 - ph, C.acc, 'φ');
+      const I = Pt(vx, vyN), tv = [Math.cos(ph), -Math.sin(ph)], gl = nar ? 26 : 36;
+      Lab.line(ctx, [[I[0] - tv[0] * gl, I[1] - tv[1] * gl], [I[0] + tv[0] * gl, I[1] + tv[1] * gl]], C.muted, 4);
+      Lab.circle(ctx, I[0], I[1], 6, {fill: C.acc, stroke: C.paper, width: 2});
+      const lbl = F.perp ? (nar ? '착지 = 수직 (' + fmt(vyN, 2) + ')' : '착지 ' + fmt(F.t, 2) + ' s: |v_y| = v_x/tanφ = ' + fmt(vyN, 2) + ' m/s → 면에 수직')
+        : (nar ? '수직이려면 ' + fmt(vyN, 2) : '면에 수직이려면 |v_y| = v_x/tanφ = ' + fmt(vyN, 2) + ' m/s');
+      rich(ctx, lbl, I[0] + 14, I[1] + 13, {size: 13, w: 600, color: C.acc, align: 'left'});
+      if (!nar) text(ctx, '경사면 방향', I[0] + tv[0] * gl + 4, I[1] + tv[1] * gl - 8, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
+    }
+    // 0.2 s 마다의 속도 화살표 끝 (같은 간격 gΔt)
+    const live = isRamp(), st = rampState(S.t), tf = live && (st.phase === 'fly' || st.phase === 'land') ? st.tf : F.t;
+    for (let t = 0; t <= F.t + 1e-9; t += 0.2) { const q = Pt(vx, G * t); Lab.circle(ctx, q[0], q[1], 4.2, t <= tf + 1e-9 ? {fill: C.vel} : {stroke: C.vel, width: 1.5}); }
+    if (!nar && F.t > 0.65) rich(ctx, 'Δv_y = gΔt = 2 m/s씩', Pt(vx, 0)[0] + 10, Pt(vx, G * 0.5)[1], {size: 13, w: 500, color: C.vel, align: 'left'});
+    const Lp = Pt(vx, vyL);
+    Lab.circle(ctx, Lp[0], Lp[1], 8, {stroke: C.copper, width: 2.2});
+    if (!F.perp) rich(ctx, '착지 ' + fmt(F.t, 2) + ' s' + (nar ? '' : ': |v_y| = ' + fmt(vyL, 2) + ' m/s'), Lp[0] + 14, Lp[1] + 13, {size: 13, w: 600, color: C.copper, align: 'left'});
+    const cur = Pt(vx, G * tf);
+    arrow(ctx, O[0], O[1], cur[0], cur[1], C.vel, 3, 10);
+    if (!slope) text(ctx, '바닥: 착지 속력 ' + spStr(F.speed) + ' m/s', r.x + r.w, r.y + r.h - 4, {size: 13, w: 600, color: C.ink, align: 'right', halo: true});
+  }
+
+  // ── 관찰 3: 쌓은 에너지 장부–시간 (빗면 장면) ────────────────
+  const gK = Lab.canvas('gK', drawK);
+  function drawK() {
+    const {ctx, W, H} = gK; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const p = PR, nar = W < 420, tE = Math.max(p.tEnd, 0.2), E0 = p.L.K1, live = isRamp();
+    const r = {x: 40, y: 30, w: W - 40 - (nar ? 14 : 132), h: H - 30 - 30};
+    const X = (t) => r.x + t / tE * r.w, Y = (e) => r.y + r.h - e / (E0 * 1.06) * r.h;
+    const N = 180, rows = [];
+    for (let i = 0; i <= N; i++) {
+      const t = tE * i / N, st = rampState(t), fl = st.phase === 'fly' || st.phase === 'land', K = 0.5 * S.m * st.sp * st.sp;
+      const Kx = fl ? 0.5 * S.m * p.vq * p.vq : 0;
+      rows.push([st.heat, S.m * G * st.y, K - Kx, Kx, fl]);
+    }
+    const cols = [C.neg, C.violet, C.energy, Lab.alpha(C.energy, 0.45)];
+    for (let b = 0; b < 4; b++) {
+      ctx.save(); ctx.beginPath();
+      rows.forEach((q, i) => { const lo = q.slice(0, b).reduce((a, c) => a + c, 0), x = X(tE * i / N); i ? ctx.lineTo(x, Y(lo + q[b])) : ctx.moveTo(x, Y(lo + q[b])); });
+      for (let i = N; i >= 0; i--) { const q = rows[i], lo = q.slice(0, b).reduce((a, c) => a + c, 0); ctx.lineTo(X(tE * i / N), Y(lo)); }
+      ctx.closePath(); ctx.fillStyle = cols[b]; ctx.globalAlpha = b === 3 ? 1 : 0.82; ctx.fill(); ctx.restore();
+    }
+    Lab.line(ctx, [[X(0), Y(E0)], [X(tE), Y(E0)]], C.acc, 2, [6, 4]);
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 6, C.muted, 1.3, 7);
+    arrow(ctx, r.x, r.y + r.h, r.x + r.w + 8, r.y + r.h, C.muted, 1.3, 7);
+    text(ctx, 'J', r.x - 6, r.y - 10, {size: 13, w: 600, color: C.muted, align: 'right'});
+    text(ctx, fmt(E0, 1), r.x - 6, Y(E0), {size: 13, w: 500, color: C.muted, align: 'right'});
+    text(ctx, nar ? '합 일정' : '합 = 처음 운동 에너지 (일정)', X(tE * 0.02), Y(E0) - 11, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    if (p.fly) {
+      Lab.line(ctx, [[X(p.tq), r.y], [X(p.tq), r.y + r.h]], C.copper, 1.8, [5, 4]);
+      text(ctx, '이탈', X(p.tq) + 4, r.y + r.h + 13, {size: 13, w: 600, color: C.copper, align: 'left'});
+    }
+    text(ctx, fmt(tE, 2) + ' s', X(tE), r.y + r.h + 13, {size: 13, w: 500, color: C.muted, align: 'right'});
+    // 오른쪽: 끝 순간의 몫 (넓은 그래프)
+    const last = rows[N], names = ['열', 'U', last[4] ? 'K_y' : 'K', 'K_x'], tc = [C.neg, C.violet, C.energy, C.energy];
+    if (!nar) {
+      let lo = 0;
+      last.slice(0, 4).forEach((v, b) => { if (v > E0 * 0.035) rich(ctx, names[b] + ' ' + fmt(v, 1) + (b === 2 && last[4] ? ' = 중력의 일' : ''), X(tE) + 8, Y(lo + v / 2), {size: 13, w: 600, color: tc[b], align: 'left'}); lo += v; });
+    } else {
+      const lab = (b, t) => { const i = Math.round(t / tE * N), q = rows[i], lo = q.slice(0, b).reduce((a, c) => a + c, 0); if (q[b] > E0 * 0.1) rich(ctx, names[b] === 'K_y' && !q[4] ? 'K' : names[b], X(t), Y(lo + q[b] / 2), {size: 13, w: 700, color: b === 3 ? C.ink : C.paper}); };
+      lab(1, tE * 0.25); lab(2, tE * 0.12); if (p.fly) { lab(3, (p.tq + tE) / 2); lab(2, tE * 0.93); lab(0, tE * 0.75); }
+    }
+    if (live) { const t = Math.min(S.t, tE); Lab.line(ctx, [[X(t), r.y - 2], [X(t), r.y + r.h]], C.ink, 1.6); }
+  }
+
+  // ── 관찰 4: 진자 장면의 속도 성분–시간 ────────────────────
+  const gS = Lab.canvas('gS', drawS);
+  function drawS() {
+    const {ctx, W, H} = gS; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const p = PS, nar = W < 420, tE = p.tEnd, live = !isRamp(), vmax = Math.max(p.v, p.F.vy) * 1.16;
+    const r = {x: 42, y: 44, w: W - 42 - 16, h: H - 44 - 30};
+    const X = (t) => r.x + t / tE * r.w, Y = (v) => r.y + r.h - v / vmax * r.h;
+    bandRect(ctx, X(0), X(p.tb), r.y, r.y + r.h, C.energy, 0.08);
+    bandRect(ctx, X(p.tb), X(tE), r.y, r.y + r.h, C.vel, 0.08);
+    text(ctx, nar ? '진자: 에너지' : '진자: 에너지로 속력', (X(0) + X(p.tb)) / 2, r.y - 12, {size: 13, w: 600, color: C.energy});
+    text(ctx, nar ? '공중: 수평 투사' : '끊긴 뒤: 수평 투사', (X(p.tb) + X(tE)) / 2, r.y - 12, {size: 13, w: 600, color: C.vel});
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 6, C.muted, 1.3, 7);
+    arrow(ctx, r.x, r.y + r.h, r.x + r.w + 8, r.y + r.h, C.muted, 1.3, 7);
+    text(ctx, 'm/s', r.x - 6, r.y - 12, {size: 13, w: 600, color: C.muted, align: 'right'});
+    for (const v of [p.v, p.F.vy]) text(ctx, fmt(v, 2), r.x - 6, Y(v), {size: 13, w: 500, color: C.muted, align: 'right'});
+    for (const t of [0, p.tb, tE]) text(ctx, (t === p.tb ? '끊김 ' : '') + fmt(t, 2) + (t === tE ? ' s' : ''), X(t), r.y + r.h + 13, {size: 13, w: t === p.tb ? 600 : 500, color: t === p.tb ? C.copper : C.muted, align: t === tE ? 'right' : 'center'});
+    const vxs = [], vys = [];
+    for (let i = 0; i <= 80; i++) { const t = p.tb * i / 80, s = M.swingAt(t, S.l, p.th0); vxs.push([X(t), Y(s.v * Math.cos(s.th))]); vys.push([X(t), Y(s.v * Math.sin(s.th))]); }
+    vxs.push([X(tE), Y(p.v)]); vys.push([X(p.tb), Y(0)], [X(tE), Y(p.F.vy)]);
+    Lab.line(ctx, vxs, C.vel, 3); Lab.line(ctx, vys, C.vel, 2.6, [7, 5]);
+    rich(ctx, nar ? 'v_x' : 'v_x = ' + fmt(p.v, 2) + ' (그대로)', X(p.tb) + 8, Y(p.v) + 14, {size: 13, w: 600, color: C.vel, align: 'left'});
+    rich(ctx, '|v_y|', X(tE) - 12, Y(p.F.vy), {size: 13, w: 600, color: C.vel, align: 'right'});
+    Lab.line(ctx, [[X(p.tb), r.y - 2], [X(p.tb), r.y + r.h]], C.copper, 1.8, [5, 4]);
+    if (!nar) { let top = vys[0]; for (let i = 1; i <= 80; i++) if (vys[i][1] < top[1]) top = vys[i]; rich(ctx, '진자의 |v_y|', top[0], top[1] - 13, {size: 13, w: 500, color: C.vel}); }
+    if (live) { const t = Math.min(S.t, tE), st = swingState(t);
+      Lab.line(ctx, [[X(t), r.y], [X(t), r.y + r.h]], Lab.alpha(C.copper, 0.7), 1.4);
+      Lab.circle(ctx, X(t), Y(st.vx), 5.5, {fill: C.copper, stroke: C.paper, width: 2});
+      Lab.circle(ctx, X(t), Y(Math.abs(st.vy)), 5, {fill: C.paper, stroke: C.copper, width: 2});
+    }
+  }
+
+  // ── 수치 (지금 값) ──────────────────────────────────────
+  const setText = (id, s) => { const el = $(id); if (el && el.textContent !== s) el.textContent = s; };
+  const setMini = (i, name, val) => { setText('mn' + i, name); setText('mv' + i, val); };
+  let ansKey = '';
+  function ans(big, lines, o) { const key = [big, o.lab, o.ctx, o.f, o.tone].concat(lines).join('|'); if (key !== ansKey) { ansKey = key; Lab.ans(big, lines, Object.assign({html: true}, o)); } }
+  function hud() {
+    const nar = stage.W ? stage.W < 520 : innerWidth < 560, st = state(S.t);
+    setText('hudT', 't = ' + fmt(S.t, 2) + ' s');
+    let s, cls = '';
+    if (isRamp()) {
+      const p = PR;
+      if (st.phase === 'ramp') {
+        if (!p.reach && S.t >= p.tEnd - 1e-9) { s = p.run.end === 'stuck' ? '마찰 구간에서 멈춤' : '바닥으로 되돌아옴'; cls = ' down'; }
+        else s = st.band && st.sp > 1e-6 ? (nar ? '마찰 구간 · 열' : '마찰 구간 · 열이 생긴다') : st.up ? '빗면을 오른다' : '빗면을 내려온다';
+      } else if (st.phase === 'plat') { s = p.fly ? (nar ? '꼭대기 평면' : '꼭대기 평면 · 마찰 없음') : '꼭대기에서 멈춤'; if (!p.fly) cls = ' down'; }
+      else if (st.phase === 'fly') s = nar ? '공중 · 수평 등속' : '포물선 · 수평 속도 그대로';
+      else { s = p.F.perp ? '착지 · 면에 수직' : p.F.on === 'ground' ? '바닥 착지' : '착지'; cls = ' up'; }
+    } else {
+      if (st.phase === 'swing') s = st.th < 1.5 * RAD ? '최저점 · 실이 끊김' : (nar ? '진자 · 에너지 보존' : '진자 · 장력은 일하지 않음');
+      else if (st.phase === 'fly') s = '끊긴 뒤 · 수평 투사';
+      else { s = '착지 · x = ' + fmt(PS.F.x, 2) + ' m'; cls = ' up'; }
+    }
+    setText('hudS', s); $('hudS').className = 'pill' + cls;
+    $('hudV').hidden = nar; setText('hudV', S.speed < 1 ? '느린 화면 ×' + S.speed : '실제 빠르기');
+  }
+  function readouts() {
+    let big, lines, o;
+    if (isRamp()) {
+      const p = PR, L = p.L, v1 = fmt(S.v1, 2), f = fmt(S.f, 2), ctx = 'v₁ = ' + v1 + ' m/s · f = ' + f + ' N · ' + (p.tan > 0 ? 'tanφ = ' + SURF[S.surf].frac : '바닥 착지');
+      const l1 = '½ × 1 × <em>' + v1 + '</em>² − 1 × 10 × 8 − <em>' + f + '</em> × 5 = ½ × 1 × v<sub>q</sub>²';
+      if (p.fly) {
+        const F = p.F, vy = -F.vy, W = M.gravityWork(S.m, 0, vy), ts = fmt(F.t, 2);
+        big = 'W<sub>g</sub> = ' + fmt(W, 2) + ' J';
+        let l3;
+        if (F.on === 'slope') {
+          const ratio = p.vq / vy;
+          l3 = '착지: v<sub>x</sub> = ' + fmt(p.vq, 2) + ' m/s 그대로, |v<sub>y</sub>| = gt = 10 × ' + ts + ' = <em>' + fmt(vy, 2) + ' m/s</em> → v<sub>x</sub>/|v<sub>y</sub>| = ' + fmt(ratio, 2)
+            + (F.perp ? ' = tanφ <em>(면에 수직)</em>' : ' ≠ tanφ (면과 ' + Math.round(F.angle / RAD) + '°)');
+        } else l3 = '바닥 착지: |v<sub>y</sub>| = gt = 10 × ' + ts + ' = ' + fmt(vy, 2) + ' m/s, 속력 √(v<sub>x</sub>² + v<sub>y</sub>²) = <em>' + spStr(F.speed) + ' m/s</em>';
+        lines = [l1, fmt(L.K1, 2) + ' − ' + fmt(L.dU, 2) + ' − ' + fmt(L.loss, 2) + ' = ' + fmt(L.Kq, 2) + ' J → <em>v<sub>q</sub> = ' + fmt(p.vq, 2) + ' m/s</em> (수평 이탈)', l3,
+          'W<sub>g</sub> = ½ × 1 × (' + fmt(vy, 2) + '² − 0²) = <em>' + fmt(W, 2) + ' J</em> (= 1 × 10 × ' + fmt(R.H - F.y, 2) + ' m)'];
+        o = {tone: '', lab: '포물선 동안 중력이 한 일', ctx, f: '빗면은 일-에너지 정리로 이탈 속력을, 공중은 성분으로 착지 조건을 — 지금 값을 넣으면'};
+        setMini(1, '이탈 속력 (수평)', fmt(p.vq, 2) + ' m/s');
+        setMini(2, '공중에 있는 시간', ts + ' s');
+        setMini(3, '착지 속력', spStr(F.speed) + ' m/s');
+        setMini(4, '마찰로 생긴 열', fmt(L.loss, 2) + ' J');
+      } else {
+        const need = L.dU + L.loss;
+        big = p.reach ? 'v<sub>q</sub> = 0 (이탈 없음)' : '이탈 없음';
+        lines = [l1, fmt(L.K1, 2) + ' J ' + (p.reach ? '= ' : '&lt; ') + fmt(need, 2) + ' J (꼭대기까지: 높이 ' + fmt(L.dU, 2) + ' + 마찰 ' + fmt(L.loss, 2) + ')',
+          p.reach ? '꼭대기에 딱 멈춘다 → 포물선 구간이 없다' : p.run.end === 'stuck' ? '마찰 구간에서 멈춘다 (마찰력 ≥ mg sinα = 8 N)' : '되돌아 내려온다: 내려올 때도 마찰 구간에서 열이 생긴다'];
+        o = {tone: 'neg', lab: '이탈 속력', ctx, f: '빗면 장부: 처음 운동 에너지 − 높이 증가 − 마찰 손실 = 이탈 운동 에너지'};
+        const heat = S.f * M.bandPath(p.run, p.run.tEnd);
+        setMini(1, '이탈 속력 (수평)', '없음');
+        setMini(2, '빗면에 있던 시간', fmt(p.run.tEnd, 2) + ' s');
+        setMini(3, p.run.end === 'back' ? '바닥으로 돌아온 속력' : '멈춘 자리 (빗면을 따라)', p.run.end === 'back' ? fmt(Math.abs(p.run.vEnd), 2) + ' m/s' : fmt(p.run.sEnd, 2) + ' m');
+        setMini(4, '마찰로 생긴 열', fmt(heat, 2) + ' J');
+      }
+    } else {
+      const p = PS, l = fmt(S.l, 2), th = S.th + '°', hb = fmt(S.hb, 2);
+      big = 'x = ' + fmt(p.F.x, 2) + ' m';
+      lines = ['v = √(2 × 10 × <em>' + l + '</em> × (1 − cos <em>' + th + '</em>)) = <em>' + fmt(p.v, 2) + ' m/s</em> (수평)',
+        '낙하 시간 t = √(2 × <em>' + hb + '</em> ÷ 10) = <em>' + fmt(p.F.t, 2) + ' s</em>',
+        'x = vt = ' + fmt(p.v, 2) + ' × ' + fmt(p.F.t, 2) + ' = <em>' + fmt(p.F.x, 2) + ' m</em>'];
+      o = {tone: 'vel', lab: '끊긴 뒤 수평 거리', ctx: 'l = ' + l + ' m · θ₀ = ' + th + ' · H = ' + hb + ' m', f: '최저점 속력은 에너지(½mv² = mgl(1 − cos θ₀))로, 끊긴 뒤는 수평 투사로 — 지금 값을 넣으면'};
+      const Tn = M.swingTension(MS, S.l, p.th0);
+      setMini(1, '끊기기 직전 장력 (추 0.5 kg)', fmt(Tn, 2) + ' N (' + fmt(Tn / (MS * G), 2) + 'mg)');
+      setMini(2, '바닥에 닿을 때 연직 속력', fmt(p.F.vy, 2) + ' m/s');
+      setMini(3, '바닥에 닿는 속력', spStr(p.F.speed) + ' m/s');
+      setMini(4, '놓은 높이차 l(1 − cos θ₀)', fmt(p.h, 2) + ' m');
+    }
+    ans(big, lines, o);
+    hud();
+    const p = PR, ok = isRamp() && p.fly && Math.abs(p.vq - 6) < 1e-9 && p.F.perp && S.surf === 'p1';
+    Lab.check('exCheck', ok, '개념서 예제 (6 m/s 수평 이탈, tanφ = 1/2 경사면에 수직 도달) → |vy| = 12 m/s, 포물선 동안 중력이 한 일 72 J',
+      '예제: 6 m/s로 수평 이탈해 tanφ = 1/2 경사면에 수직 도달 — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function drawAll() { drawStage(); drawV(); drawH(); drawK(); drawS(); }
+  function refresh() { plan(); syncUI(); readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; if (on && S.t >= P().tEnd - EPS) { S.t = 0; S.hold = 0; drawAll(); } });
+  const setPlay = (on) => { playCtl.set(on, true); S.playing = on; };
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => { S.scene = v; S.t = 0; S.hold = 0; S.linger = 0; refresh(); }, S.scene);
+  const surfG = Lab.group('[data-surf]', 'surf', (v) => { S.surf = v; toRamp(); S.hold = 0; plan(); S.t = Math.min(S.t, PR.tEnd); refresh(); }, S.surf);
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; hud(); }, String(S.speed));
+  function toRamp() { if (!isRamp()) { S.scene = 'ramp'; S.t = 0; } }
+  function toSwing() { if (isRamp()) { S.scene = 'swing'; S.t = 0; } }
+  const num = (id, key, to) => $(id).addEventListener('input', (e) => { to(); S[key] = +e.target.value; S.hold = 0; S.linger = 0; plan(); S.t = Math.min(S.t, P().tEnd); refresh(); });
+  num('v1', 'v1', toRamp); num('ff', 'f', toRamp); num('th', 'th', toSwing); num('len', 'l', toSwing); num('hb', 'hb', toSwing);
+  const tog = (id, key) => $(id).addEventListener('change', (e) => { S[key] = e.target.checked; drawAll(); });
+  tog('cStrobe', 'strobe'); tog('cComp', 'comp');
+  function syncUI() {
+    const r = isRamp();
+    $('slV1').hidden = !r; $('slTh').hidden = r; $('rowRamp').hidden = !r; $('rowSwing').hidden = r;
+    $('v1').value = S.v1; setText('v1Out', fmt(S.v1, 2) + ' m/s');
+    $('th').value = S.th; setText('thOut', S.th + '°');
+    $('ff').value = S.f; setText('ffOut', fmt(S.f, 2) + ' N');
+    $('len').value = S.l; setText('lenOut', fmt(S.l, 2) + ' m');
+    $('hb').value = S.hb; setText('hbOut', fmt(S.hb, 2) + ' m');
+    $('cStrobe').checked = S.strobe; $('cComp').checked = S.comp;
+    sceneG.set(S.scene, true); surfG.set(S.surf, true); speedG.set(String(S.speed), true);
+  }
+  // 한 간격: 빗면 0.1 s, 이탈 순간, 공중 0.2 s (진자: ¼ 구간씩, 끊긴 뒤 0.1 s)
+  function stamps() {
+    const out = [0];
+    if (isRamp()) {
+      const p = PR;
+      for (let t = 0.1; t < p.tTop - 1e-6; t += 0.1) out.push(t);
+      out.push(p.tTop);
+      if (p.fly) { out.push(p.tq); for (let k = 1; p.tq + 0.2 * k < p.tEnd - 1e-6; k++) out.push(p.tq + 0.2 * k); out.push(p.tEnd); }
+    } else {
+      const p = PS;
+      for (let k = 1; k <= 4; k++) out.push(p.tb * k / 4);
+      for (let k = 1; p.tb + 0.1 * k < p.tEnd - 1e-6; k++) out.push(p.tb + 0.1 * k);
+      out.push(p.tEnd);
+    }
+    return [...new Set(out.map((x) => Math.round(x * 1e6) / 1e6))].sort((a, b) => a - b);
+  }
+  function stepBy(dir) {
+    setPlay(false); S.hold = 0; S.linger = 0;
+    const st = stamps(), te = P().tEnd;
+    if (dir > 0) S.t = S.t >= te - EPS ? 0 : st.find((x) => x > S.t + 1e-6) ?? te;
+    else { const prev = st.filter((x) => x < S.t - 1e-6); S.t = prev.length ? prev[prev.length - 1] : 0; }
+    readouts(); drawAll();
+  }
+  $('step').addEventListener('click', () => stepBy(1));
+  $('back').addEventListener('click', () => stepBy(-1));
+  // 무대를 좌우로 끌면 물체가 그 자리에 있던 순간으로
+  function scrub(xs) {
+    const g = isRamp() ? geoR(stage.W, stage.H) : geoW(stage.W, stage.H), wx = (xs - g.ox) / g.s, tE = P().tEnd;
+    let best = 0, bd = Infinity;
+    for (let i = 0; i <= 400; i++) { const t = tE * i / 400, d = Math.abs(state(t).x - wx); if (d < bd - 1e-9) { bd = d; best = t; } }
+    const near = stamps().find((x) => Math.abs(x - best) < tE * 0.012);
+    S.t = near != null ? near : best; S.hold = 0; S.linger = 0;
+    setPlay(false); readouts(); drawAll();
+  }
+  Lab.pointer(stage.el, {
+    down: (x, y) => { const g = isRamp() ? geoR(stage.W, stage.H) : geoW(stage.W, stage.H); if (y > g.top - 40) { S.drag = true; scrub(x); } },
+    move: (x) => { if (S.drag) scrub(x); },
+    up: () => { S.drag = false; },
+  });
+
+  // 단계 카드의 버튼: 그 상황으로
+  function setRamp(o) { Object.assign(S, {scene: 'ramp', v1: 16, f: 6, surf: 'p1', hold: 0, linger: 0}, o); }
+  function setSwing(o) { Object.assign(S, {scene: 'swing', l: 0.8, th: 90, hb: 1.25, hold: 0, linger: 0}, o); }
+  const at = (which) => { plan(); const p = P(); return which === 'q' ? p.tq : which === 'end' ? p.tEnd : which === 'b' ? p.tb : 0; };
+  const TRY = {
+    run: () => { setRamp({t: 0}); setPlay(true); },
+    ex: () => { setRamp({t: 0}); setPlay(true); },
+    dep: () => { setRamp({}); S.t = at('q'); setPlay(false); },
+    land: () => { setRamp({}); S.t = at('end'); setPlay(false); },
+    swing: () => { setSwing({t: 0}); setPlay(true); },
+    brk: () => { setSwing({}); S.t = at('b'); setPlay(false); },
+    q3: () => { setRamp({surf: 'flat'}); S.t = at('end'); setPlay(false); },
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing || S.drag) return;
+    if (S.linger > 0) { S.linger -= dt; return; }                 // 자르는 곳(이탈·끊김)에서 잠깐 멈춘다
+    const p = P(), te = p.tEnd, t0 = S.t, cut = isRamp() ? (p.fly ? p.tq : null) : p.tb;
+    S.t += dt * S.speed;
+    if (cut != null && t0 < cut - EPS && S.t >= cut) { S.t = cut; S.linger = 0.9; }
+    if (S.t >= te) { S.t = te; S.hold += dt; if (S.hold > 1.8) { S.t = 0; S.hold = 0; } }
+    drawStage();
+    if (seen(gV)) drawV(); if (seen(gH)) drawH(); if (seen(gK)) drawK(); if (seen(gS)) drawS();
+    roT += dt; if (roT > 0.1 || S.linger > 0) { roT = 0; hud(); }
+  });
+  plan(); syncUI(); readouts();
+})();
+</script>
 </body>
 </html>
