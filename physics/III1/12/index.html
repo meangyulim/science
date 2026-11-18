@@ -121,7 +121,7 @@
 
     <section class="notes" aria-label="관찰 노트">
       <div class="answer">
-        <div class="lab"><span id="ansName">점 P의 무늬</span><span id="ansCtx">이중 슬릿 · 초록빛 532 nm</span></div>
+        <div class="lab"><span id="ansLab">점 P의 무늬</span><span id="ansCtx">이중 슬릿 · 초록빛 532 nm</span></div>
         <div class="big" id="ansBig">밝은 무늬 (보강)</div>
         <div class="sub">
           <span class="f" id="ansF">점 P까지 두 빛의 경로차를 파장으로 재면</span>
@@ -155,9 +155,9 @@
         <li class="card step" data-step="② 얇은 막의 색">
           <div class="kind">관찰 2</div>
           <h3>막 두께에 따라 보강되는 색이 달라 무지갯빛이 된다</h3>
-          <p>얇은 막에 빛이 비치면 윗면에서 반사된 빛 ①과, 막 속을 왕복한 뒤 아랫면에서 반사된 빛 ②가 겹친다. ②는 막 두께에 따라 더 먼 길을 오므로 두 빛이 같은 위상으로 만나기도 하고 반대 위상으로 만나기도 한다. 비누막에서 P를 위아래로 끌어 두께를 바꿔 보자(단면의 두께는 과장해 그렸다).</p>
+          <p>얇은 막에 빛이 비치면 윗면에서 반사된 반사광 1과, 막 속을 왕복한 뒤 아랫면에서 반사된 반사광 2가 겹친다. 반사광 2는 막 두께에 따라 더 먼 길을 오므로 두 빛이 같은 위상으로 만나기도 하고 반대 위상으로 만나기도 한다. 비누막에서 P를 위아래로 끌어 두께를 바꿔 보자(단면의 두께는 과장해 그렸다).</p>
           <canvas class="flat" id="fb" aria-label="빨강·초록·파랑 빛마다 윗면 반사광과 아랫면 반사광의 위상 비교."></canvas>
-          <p class="cap">색마다 ①(점선 보라)과 ②(점선 파랑), 그 합(검은 실선)이다. 같은 위상이면 그 색이 밝게 보이고, 반대 위상이면 그 색이 보이지 않는다. 두께를 바꾸면 색마다 관계가 바뀐다.</p>
+          <p class="cap">색마다 반사광 1(보라 점선)과 반사광 2(파랑 점선), 그 합(검은 실선)이다. 같은 위상이면 그 색이 밝게 보이고, 반대 위상이면 그 색이 보이지 않는다. 두께를 바꾸면 색마다 관계가 바뀐다.</p>
           <canvas class="flat" id="fc" aria-label="막 두께 0~1000 nm 에 따른 반사색 띠와 지금 P의 두께."></canvas>
           <p class="cap">막 두께에 따른 반사색이다(▼ 지금 P). 비눗방울이나 물 위 기름 막은 두께가 곳곳 달라 위치마다 보강되는 색이 다르므로 무지갯빛 띠가 생긴다. 나비 날개의 미세 구조가 만드는 색도 같은 원리다.</p>
           <div class="acts">
@@ -168,9 +168,9 @@
         <li class="card step" data-step="③ 무반사 코팅">
           <div class="kind">관찰 3</div>
           <h3>두 반사광이 반대 위상으로 만나면 반사가 줄고 투과가 는다</h3>
-          <p>렌즈 표면에 얇은 막을 입혀 윗면 반사광 ①과 아랫면 반사광 ②가 반대 위상으로 만나게 하면 반사광이 상쇄된다. 반사가 줄어든 만큼 투과가 늘어난다. 이것이 무반사 코팅이다.</p>
+          <p>렌즈 표면에 얇은 막을 입혀 윗면 반사광과 아랫면 반사광이 반대 위상으로 만나게 하면 반사광이 상쇄된다. 반사가 줄어든 만큼 투과가 늘어난다. 이것이 무반사 코팅이다.</p>
           <canvas class="flat" id="cb" aria-label="코팅 막에서 빨강·초록·파랑 빛의 두 반사광 위상 비교."></canvas>
-          <p class="cap">두께 100 nm 코팅에서는 초록빛 근처의 ①과 ②가 반대 위상이 되어 상쇄되고, 반사가 4%에서 약 1.4%로 줄어든다.</p>
+          <p class="cap">두께 100 nm 코팅에서는 초록빛 근처의 두 반사광이 반대 위상이 되어 상쇄되고, 반사가 4%에서 약 1.4%로 줄어든다.</p>
           <canvas class="flat" id="cc" aria-label="코팅 전후의 파장별 반사율."></canvas>
           <p class="cap">파장별 반사율이다(점선 = 코팅 없음). 초록이 가장 많이 줄고 빨강·파랑은 덜 줄어, 코팅 렌즈의 반사광은 보랏빛을 띤다. 코팅을 두 배로 두껍게 하면 두 반사광이 다시 같은 위상이 되어 반사가 줄지 않는다.</p>
           <div class="acts">
@@ -206,7 +206,7 @@
           <h3>보강 = 그 색이 밝게, 상쇄 = 그 색이 보이지 않게</h3>
           <ul>
             <li>이중 슬릿: 경로차 <span class="eq">0, λ, 2λ …</span> → 밝음(보강), <span class="eq">λ/2, 3λ/2 …</span> → 어두움(상쇄). 중앙은 밝다. 간섭무늬는 빛의 파동성 증거다.</li>
-            <li>얇은 막: 윗면 반사 ①과 아랫면 반사 ②가 겹친다. 두께에 따라 보강되는 색이 달라 비눗방울·기름 막이 무지갯빛으로 보인다.</li>
+            <li>얇은 막: 윗면 반사광과 아랫면 반사광이 겹친다. 두께에 따라 보강되는 색이 달라 비눗방울·기름 막이 무지갯빛으로 보인다.</li>
             <li>상쇄 이용: 소음 제거 헤드폰, 무반사 코팅. 보강 이용: 악기, 초음파 결석 파쇄, 색 변환 잉크.</li>
             <li>물결파의 간섭(III1-11)과 같은 규칙이다. 어두운 곳에도 두 빛이 모두 오지만 서로 지운다.</li>
           </ul>
@@ -483,7 +483,7 @@
     Lab.circle(ctx, g.cx, py, 10, {stroke: C.copper, width: 3.2}); Lab.circle(ctx, g.cx, py, 3.2, {fill: C.copper});
     text(ctx, 'P', g.cx - 16, py, {size: 14, w: 600, color: C.copper, align: 'right', halo: roomCol()});
   }
-  // 막의 단면: ① 윗면 반사, ② 아랫면 반사 (막 두께는 과장해 그림). o.yFrac 막 높이, o.ax 입사점, o.up 빛줄기 높이(폰에서 짧게)
+  // 막의 단면: 반사광 1 = 윗면 반사, 반사광 2 = 막 속을 왕복한 뒤 아랫면 반사 (막 두께는 과장해 그림). o.yFrac 막 높이, o.ax 입사점, o.up 빛줄기 높이(폰에서 짧게)
   function drawSection(ctx, box, o) {
     const tpx = o.t > 0 ? (o.small ? 14 : 18) + o.t * (o.small ? 0.05 : 0.075) : 0;
     const yTop = box.y + Math.round(box.h * (o.yFrac || (o.small ? 0.5 : 0.48))), yBot = yTop + tpx;
@@ -513,13 +513,13 @@
       E2 = out(Cc, C.vel, o.w2 || 3);
       const T1 = [B[0] + Math.tan(th3) * (box.y + box.h - yBot - 6), box.y + box.h - 6];
       ctx.save(); ctx.globalAlpha = 0.45; Lab.line(ctx, [B, T1], ray, o.wT || 2.4); ctx.restore();
-      if (!o.small) text(ctx, '②가 더 가는 길 (막 속 왕복)', B[0] + 12, yBot + 16, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+      if (!o.small) text(ctx, '반사광 2가 더 가는 길 (막 속 왕복)', B[0] + 12, yBot + 16, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
     } else {
       const T1 = [ax + Math.tan(th3) * (box.y + box.h - yTop - 6), box.y + box.h - 6];
       ctx.save(); ctx.globalAlpha = 0.45; Lab.line(ctx, [A, T1], ray, o.wT || 2.4); ctx.restore();
     }
-    text(ctx, o.lab1 || (o.small ? '①' : '① 윗면 반사'), E1[0] - 10, E1[1] + 6, {size: 13.5, w: 600, color: C.violet, align: 'right', halo: true});
-    if (E2) text(ctx, o.lab2 || (o.small ? '②' : '② 아랫면 반사'), E2[0] + 10, E2[1] + 6, {size: 13.5, w: 600, color: C.vel, align: 'left', halo: true});
+    text(ctx, o.lab1 || (o.small ? '1' : '반사광 1 (윗면)'), E1[0] - 10, E1[1] + 6, {size: 13.5, w: 600, color: C.violet, align: 'right', halo: true});
+    if (E2) text(ctx, o.lab2 || (o.small ? '2' : '반사광 2 (아랫면)'), E2[0] + 10, E2[1] + 6, {size: 13.5, w: 600, color: C.vel, align: 'left', halo: true});
     return {E1, E2, yTop, yBot};
   }
   function drawFilm(ctx, g) {
@@ -548,7 +548,7 @@
       const R = i ? R1 : R0, wR = 1.5 + R / 0.04 * 5;
       drawSection(ctx, b, {n2: N_COAT, n3: N_GLASS, t, names: [narrow ? '' : '공기', i ? (narrow ? '' : '코팅 막 ') + t + ' nm' : '', '렌즈 유리'], small: true, nameRight: narrow,
         ax: narrow ? 0.42 : 0.36, yFrac: narrow ? 0.6 : 0, up: narrow ? 64 : 0,
-        w1: i ? 3 : wR, w2: 3, wT: 2.4 + (1 - R) * 2, lab1: i ? '①' : '반사광', lab2: '②'});
+        w1: i ? 3 : wR, w2: 3, wT: 2.4 + (1 - R) * 2, lab1: i ? (narrow ? '1' : '반사광 1') : '반사광', lab2: narrow ? '2' : '반사광 2'});
       ctx.restore();
       // 제목과 반사율
       const ty = narrow ? b.y + 16 : b.y + b.h - 34;
@@ -754,7 +754,7 @@
     text(ctx, '← 스크린 위치 →', W / 2, H - 6, {size: 13, w: 500, color: C.muted});
   }
 
-  // ── 관찰 2·3: 색마다 ① 과 ② 의 위상 비교 ──────────────────
+  // ── 관찰 2·3: 색마다 두 반사광(1 = 윗면, 2 = 아랫면)의 위상 비교 ──
   function drawCompare(ctx, W, H, rows, delta, coat) {
     const n = rows.length, rh = H / n, lw = 88;
     rows.forEach((key, k) => {
@@ -821,8 +821,8 @@
   // ── 지금 값 ─────────────────────────────────────────────
   const legends = {
     slit: '<span><b style="background:var(--violet)"></b>S₁에서 온 빛 r₁</span><span><b style="background:var(--vel)"></b>S₂에서 온 빛 r₂</span><span><i style="background:var(--copper)"></i>P (스크린에서 끌기)</span>',
-    film: '<span><b style="background:var(--violet)"></b>① 윗면 반사</span><span><b style="background:var(--vel)"></b>② 아랫면 반사</span><span><b class="dash" style="color:var(--copper)"></b>②가 더 가는 길</span><span><i style="background:var(--copper)"></i>P (막에서 끌기)</span>',
-    coat: '<span><b style="background:var(--violet)"></b>① 윗면 반사</span><span><b style="background:var(--vel)"></b>② 아랫면 반사</span><span><b class="dash" style="color:var(--copper)"></b>막 속 왕복</span>',
+    film: '<span><b style="background:var(--violet)"></b>반사광 1 (윗면)</span><span><b style="background:var(--vel)"></b>반사광 2 (아랫면)</span><span><b class="dash" style="color:var(--copper)"></b>반사광 2가 더 가는 길</span><span><i style="background:var(--copper)"></i>P (막에서 끌기)</span>',
+    coat: '<span><b style="background:var(--violet)"></b>반사광 1 (윗면)</span><span><b style="background:var(--vel)"></b>반사광 2 (아랫면)</span><span><b class="dash" style="color:var(--copper)"></b>막 속 왕복</span>',
     use: ''};
   const mini = (i, label, value) => { $('m' + i + 'n').textContent = label; $('m' + i).textContent = value; };
   const nth = (k) => (['', '첫', '두', '세', '네', '다섯'][k] || k) + ' 번째';
@@ -830,16 +830,15 @@
     const h1 = $('hud1'), h2 = $('hud2'), sc = S.scene;
     if (sc === 'slit') {
       const g = slitGeo(), y = pY(g), dl = M.slitDiff(y, g.d, g.L) / g.lam, adl = Math.abs(dl), j = M.judge(dl), m = Math.round(adl * 2) / 2;
-      $('ansName').textContent = '점 P의 무늬';
       if (S.particle) {
         Lab.ans('틈 모양의 두 줄', ['빛이 입자로만 행동하면 알갱이가 두 틈을 지나 <em>곧게</em> 간다', '→ 무늬가 없다. 실제로 생기는 간섭무늬는 <em>파동성</em>의 증거'],
-          {tone: 'ink', ctx: '이중 슬릿 · 빛이 입자라면?', f: '두 슬릿을 지난 빛을 알갱이로만 생각하면'});
+          {tone: 'ink', lab: '점 P의 무늬', ctx: '이중 슬릿 · 빛이 입자라면?', f: '두 슬릿을 지난 빛을 알갱이로만 생각하면'});
       } else {
         const kind = {con: '정수배', des: '반정수배', mid: '정수배도 반정수배도 아님'}[j];
         Lab.ans({con: '밝은 무늬 (보강)', des: '어두운 무늬 (상쇄)', mid: '중간 밝기'}[j], [
           '경로차 Δ = |r₂ − r₁| = <em>' + fl(adl) + '</em> (' + kind + ')',
           {con: '두 빛이 <em>같은 위상</em>으로 만나 서로 키운다', des: '두 빛이 모두 오지만 <em>반대 위상</em>이라 합이 0', mid: '두 빛이 조금 어긋나 만난다'}[j]],
-        {tone: j === 'des' ? 'neg' : j === 'mid' ? 'ink' : '', ctx: '이중 슬릿 · ' + LN[S.col] + ' ' + NM[S.col] + ' nm', f: '점 P까지 두 빛의 경로차를 파장으로 재면'});
+        {tone: j === 'des' ? 'neg' : j === 'mid' ? 'ink' : '', lab: '점 P의 무늬', ctx: '이중 슬릿 · ' + LN[S.col] + ' ' + NM[S.col] + ' nm', f: '점 P까지 두 빛의 경로차를 파장으로 재면'});
       }
       mini(1, '빛의 색 · 파장', CN[S.col] + ' ' + NM[S.col] + ' nm');
       mini(2, '무늬', S.particle ? '두 줄 (무늬 없음)' : j === 'con' ? (m === 0 ? '가운데 밝은 무늬' : nth(m) + ' 밝은 무늬') : j === 'des' ? nth(Math.ceil(m)) + ' 어두운 무늬' : '밝고 어두운 무늬 사이');
@@ -855,11 +854,10 @@
       else {
         const pj = M.phaseJudge(M.filmDelta(S.thick, NM[S.light], 1, N_SOAP, 1)), bright = M.twoBeam(M.filmDelta(S.thick, NM[S.light], 1, N_SOAP, 1)) > 0.5;
         big = (bright ? '밝은 ' : '어두운 ') + CN[S.light];
-        l2 = LN[S.light] + '의 ①과 ②: <em>' + {con: '같은 위상 → 보강', des: '반대 위상 → 상쇄', mid: '조금 어긋남'}[pj] + '</em>';
+        l2 = LN[S.light] + '의 두 반사광: <em>' + {con: '같은 위상 → 보강', des: '반대 위상 → 상쇄', mid: '조금 어긋남'}[pj] + '</em>';
       }
-      $('ansName').textContent = 'P에서 보이는 색';
-      Lab.ans('<i class="sw" style="background:' + css(c) + '"></i>' + big, ['막 두께 <em>' + S.thick + ' nm</em>: ②가 막 속을 왕복한 만큼 ①보다 더 간다', l2],
-        {tone: 'ink', html: true, ctx: '비누막 n = 1.33 · ' + lt, f: '두 반사광 ①·②의 위상을 색마다 견주면'});
+      Lab.ans('<i class="sw" style="background:' + css(c) + '"></i>' + big, ['막 두께 <em>' + S.thick + ' nm</em>: 반사광 2가 막 속을 왕복한 만큼 더 간다', l2],
+        {tone: 'ink', html: true, lab: 'P에서 보이는 색', ctx: '비누막 n = 1.33 · ' + lt, f: '두 반사광의 위상을 색마다 견주면'});
       mini(1, 'P의 막 두께', S.thick + ' nm');
       mini(2, '보강되는 색 (빨·초·파 중)', con.length ? con.join(', ') : '없음');
       mini(3, '상쇄되는 색', des.length ? des.join(', ') : '없음');
@@ -867,13 +865,12 @@
       h1.textContent = S.light === 'w' ? '백색광' : LN[S.light] + ' ' + NM[S.light] + ' nm'; h2.textContent = '단면의 막 두께는 과장해 그림';
     } else if (sc === 'coat') {
       const R0 = coatR(0, 550), R1 = coatR(S.tc, 550), pj = M.phaseJudge(M.filmDelta(S.tc, 550, 1, N_COAT, N_GLASS));
-      $('ansName').textContent = '초록빛(550 nm)의 반사';
       const l1 = S.tc ? '코팅 막 n = 1.38, 두께 <em>' + S.tc + ' nm</em> → 두 반사광이 <em>' + {con: '같은 위상', des: '반대 위상', mid: '조금 어긋난 위상'}[pj] + '</em>'
         : '코팅이 없으면 반사광이 하나뿐이라 간섭이 없다';
       const l2 = R1 < R0 - 1e-4 ? '반사가 줄어든 만큼 투과가 늘어난다: ' + fmt((1 - R0) * 100, 1) + '% → <em>' + fmt((1 - R1) * 100, 1) + '%</em>'
         : R1 > R0 + 1e-4 ? '반사가 오히려 늘어난다: ' + fmt(R0 * 100, 1) + '% → <em>' + fmt(R1 * 100, 1) + '%</em>' : '반사가 줄지 않는다: 투과 ' + fmt((1 - R1) * 100, 1) + '%';
       Lab.ans('반사 ' + fmt(R0 * 100, 1) + '% → ' + fmt(R1 * 100, 1) + '%', [l1, l2],
-        {tone: R1 < R0 - 1e-4 ? '' : 'ink', ctx: '무반사 코팅 · 렌즈 유리 n = 1.5', f: '코팅 막의 두 반사광 ①·②를 견주면'});
+        {tone: R1 < R0 - 1e-4 ? '' : 'ink', lab: '초록빛(550 nm)의 반사', ctx: '무반사 코팅 · 렌즈 유리 n = 1.5', f: '코팅 막의 두 반사광을 견주면'});
       mini(1, '코팅 막 두께', S.tc + ' nm');
       mini(2, '반사 (코팅 없음)', fmt(R0 * 100, 1) + '%');
       mini(3, '반사 (코팅 있음)', fmt(R1 * 100, 1) + '%');
@@ -888,8 +885,7 @@
         inst: ['줄의 양 끝에서 반사된 두 파동이 <em>같은 위상</em>으로 겹친다', '특정 진동수만 크게 진동하고 울림통에서 더 커진다 → 크고 선명한 소리'],
         stone: ['여러 방향의 초음파 펄스가 결석에 <em>동시에</em> 도착한다', '결석에서만 보강 → 결석만 깨고 다른 조직은 덜 다친다'],
         ink: ['보는 각도마다 얇은 막의 두 반사광이 보강되는 색이 다르다', '정면 0°에서 ' + ink0 + ', <em>' + S.angle + '°</em>에서 ' + ink1 + ' → 복사로 흉내 낼 수 없다']}[S.use];
-      $('ansName').textContent = '간섭의 이용';
-      Lab.ans(con ? '보강 간섭 이용' : '상쇄 간섭 이용', L, {tone: con ? '' : 'neg', ctx: u.name, f: '두 파동이 만나는 위상으로 나누면'});
+      Lab.ans(con ? '보강 간섭 이용' : '상쇄 간섭 이용', L, {tone: con ? '' : 'neg', lab: '간섭의 이용', ctx: u.name, f: '두 파동이 만나는 위상으로 나누면'});
       mini(1, '이용', u.name);
       mini(2, '만나는 위상', con ? '같은 위상' : '반대 위상');
       mini(3, '결과', {noise: S.anc ? '소음이 줄어듦' : '소음 그대로', inst: '크고 선명한 소리', stone: '결석만 깨짐', ink: '각도마다 다른 색'}[S.use]);
@@ -897,7 +893,7 @@
       h1.textContent = u.name; h2.textContent = con ? '보강 간섭' : '상쇄 간섭';
     }
     const ok = sc === 'slit' && !S.particle && (() => { const g = slitGeo(), dl = Math.abs(M.slitDiff(pY(g), g.d, g.L) / g.lam); return Math.abs(dl - 1) < 0.04; })();
-    Lab.check('exCheck', ok, '예제(개념 체크): 두 슬릿까지의 경로차가 λ인 곳 → 밝은 무늬(보강) — 보기 ①',
+    Lab.check('exCheck', ok, '예제(개념 체크): 두 슬릿까지의 경로차가 λ인 곳 → 밝은 무늬(보강), 1번 보기',
       '예제: 이중 슬릿에서 경로차가 λ인 곳은 밝을까? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
     $('thickOut').textContent = S.thick + ' nm'; $('tcOut').textContent = S.tc + ' nm'; $('angOut').textContent = S.angle + '°';
   }

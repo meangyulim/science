@@ -97,7 +97,7 @@
 
     <section class="notes" aria-label="관찰 노트">
       <div class="answer">
-        <div class="lab"><span id="ansName">점 P의 간섭</span><span id="ansCtx">물결파 · 같은 위상</span></div>
+        <div class="lab"><span id="ansLab">점 P의 간섭</span><span id="ansCtx">물결파 · 같은 위상</span></div>
         <div class="big" id="ansBig">보강 간섭</div>
         <div class="sub">
           <span class="f" id="ansF">경로차 Δ를 파장 λ로 재면</span>
@@ -533,9 +533,8 @@
     const lines = w
       ? ['Δ = |r₁ − r₂| = |' + fmt(a, 2) + ' − ' + fmt(b, 2) + '| = <em>' + fmt(D, 2) + ' cm</em>', 'λ = ' + fmt(l, 2) + ' cm 이므로 Δ = ' + why]
       : ['λ = v/f = 340 ÷ <em>' + S.f + '</em> = ' + Lab.frac(l, 3) + ' m', 'Δ = |' + fmt(a, 2) + ' − ' + fmt(b, 2) + '| = ' + fmt(D, 2) + ' m = ' + why];
-    Lab.ans(res, lines, {tone: j === 'des' ? 'neg' : j === 'mid' ? 'ink' : '', ctx: (w ? '물결파 · ' : '두 스피커 · ') + phase,
+    Lab.ans(res, lines, {tone: j === 'des' ? 'neg' : j === 'mid' ? 'ink' : '', lab: '점 ' + pn + (w ? '의 간섭' : '에서 들리는 소리'), ctx: (w ? '물결파 · ' : '두 스피커 · ') + phase,
       f: w ? '경로차 Δ를 파장 λ로 재면' : '파장 λ = v/f 를 구해 경로차 Δ와 견주면'});
-    $('ansName').textContent = '점 ' + pn + (w ? '의 간섭' : '에서 들리는 소리');
     $('mR1n').textContent = 'r₁ = S₁' + pn; $('mR1').textContent = fmt(a, 2) + ' ' + u + ' = ' + fl(a / l);
     $('mR2n').textContent = 'r₂ = S₂' + pn; $('mR2').textContent = fmt(b, 2) + ' ' + u + ' = ' + fl(b / l);
     const amp = M.ampFactor(dl, S.opp);

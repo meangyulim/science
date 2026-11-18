@@ -98,7 +98,7 @@
 
     <section class="notes" aria-label="관찰 노트">
       <div class="answer">
-        <div class="lab"><span id="ansName">이 실험에서 보이는 성질</span><span id="ansCtx">이중 슬릿 · 초록빛 532 nm</span></div>
+        <div class="lab"><span id="ansLab">이 실험에서 보이는 성질</span><span id="ansCtx">이중 슬릿 · 초록빛 532 nm</span></div>
         <div class="big vel" id="ansBig">파동성 (간섭무늬)</div>
         <div class="sub">
           <span class="f" id="ansF">화면에 쌓인 점을 보면</span>
@@ -666,7 +666,7 @@
       mini(4, '광자 에너지 hf′ / hf', fmt(c.E2 / c.E1, 2));
     }
     const ok = sc !== 'slit';
-    Lab.check('exCheck', ok, '예제 답 ②: 빛의 입자성 = 광전 효과, 콤프턴 산란 — 광자 1개가 전자 1개와 에너지 hf를 주고받는다',
+    Lab.check('exCheck', ok, '예제 답은 2번: 빛의 입자성 = 광전 효과, 콤프턴 산란 — 광자 1개가 전자 1개와 에너지 hf를 주고받는다',
       '지금 장면(간섭무늬)은 파동성. 예제: 입자성만 짝지은 것은? — ‘개념서 예제’ 단계의 버튼으로 광전 효과·콤프턴 산란을 보자');
   }
   function setLegend() {
