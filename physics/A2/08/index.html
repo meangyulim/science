@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>온도·열·비열·열용량·열평형</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(단열 용기 속 맞닿은 두 물체의 입자 모형 + 온도계·열 막대 / 같은 열량을 받는 세 물체) | 오른쪽 지금 값 + 관찰 ①~④(입자와 열, 온도–시간, 넓이 = 열량, ΔT–Q) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5}
+#gT{aspect-ratio:10/6.2}
+#gQ{aspect-ratio:10/6.4}
+#gD{aspect-ratio:10/6}
+@media (max-width:640px){ #gT{aspect-ratio:10/7.4} #gQ{aspect-ratio:10/7.8} #gD{aspect-ratio:10/7.4} }
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A2 일과 에너지·열: 개념 10개 가운데 8번째"><a class="uname" href="../">A2 일과 에너지·열</a><span class="dots"><a href="../01/" title="A2-01 일과 F-s 그래프" aria-label="A2-01 일과 F-s 그래프"></a><a href="../02/" title="A2-02 일·운동 에너지 정리" aria-label="A2-02 일·운동 에너지 정리"></a><a href="../03/" title="A2-03 보존력과 비보존력" aria-label="A2-03 보존력과 비보존력"></a><a href="../04/" title="A2-04 마찰 구간 에너지 장부" aria-label="A2-04 마찰 구간 에너지 장부"></a><a href="../05/" title="A2-05 포물선 운동의 에너지" aria-label="A2-05 포물선 운동의 에너지"></a><a href="../06/" title="A2-06 단진자의 에너지" aria-label="A2-06 단진자의 에너지"></a><a href="../07/" title="A2-07 일-에너지와 운동학" aria-label="A2-07 일-에너지와 운동학"></a><a class="cur" href="./" aria-current="page" title="A2-08 열평형" aria-label="A2-08 열평형 (지금)"></a><a href="../09/" title="A2-09 열역학 제1법칙" aria-label="A2-09 열역학 제1법칙"></a><a href="../10/" title="A2-10 열의 일당량" aria-label="A2-10 열의 일당량"></a></span></nav>
+  <div class="pn"><a href="../07/" rel="prev" title="이전 개념: A2-07 일-에너지와 운동학">‹ <span>07 일-에너지와 운동학</span></a><a href="../09/" rel="next" title="다음 개념: A2-09 열역학 제1법칙"><span>09 열역학 제1법칙</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A2-08</span><span>물리학 Ⅱ · 일과 에너지·열</span></div>
+    <h1>온도·열·비열·열용량·열평형</h1>
+    <p class="question"><i>Q</i>온도와 열은 어떻게 다르고, 접촉한 두 물체의 나중 온도는 어떻게 정해질까?</p>
+  </div>
+
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="단열 용기 속에 맞닿은 두 물체 A와 B의 입자 모형. 입자의 화살표 길이가 빠르기다. 맞닿은 면에서 주황색 에너지(열)가 뜨거운 쪽에서 차가운 쪽으로 넘어가고, 두 온도계가 같은 온도에서 만난다. 막대는 A가 잃은 열과 B가 얻은 열. 다른 장면에서는 물 1 kg, 철 1 kg, 물 2 kg이 같은 열량을 받고 온도가 서로 다르게 오른다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">A 80 °C · B 20 °C</span><span class="pill" id="hud2">열이 넘어가는 중</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider" id="slB"><label for="mB"><span class="lg">B의 질량 </span>m<sub>B</sub></label><input id="mB" type="range" min="0.1" max="4" step="0.1" value="0.2"><output id="mBOut">0.2 kg</output></div>
+          <div class="slider" id="slQ" hidden><label for="qH"><span class="lg">주는 열량 </span>Q</label><input id="qH" type="range" min="840" max="16800" step="840" value="8400"><output id="qHOut">8400 J</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">물체·보기</span><span class="sm">물체</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="물체와 보기">
+          <div class="sheet-head"><b>물체 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="contact" aria-pressed="true">두 물체 맞대기</button>
+              <button type="button" class="btn" data-scene="heat" aria-pressed="false">같은 열량 주기</button>
+            </div>
+            <button type="button" class="btn" id="step">시간 ▸</button>
+            <button type="button" class="btn" id="reset">처음부터</button>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="물체 A의 물질 (비열 J/(kg·K))">
+              <span class="gl">A 비열</span>
+              <button type="button" class="btn" data-ma="metal" aria-pressed="true">금속 420</button>
+              <button type="button" class="btn" data-ma="iron" aria-pressed="false">철 450</button>
+              <button type="button" class="btn" data-ma="water" aria-pressed="false">물 4200</button>
+            </div>
+            <div class="grow"><label class="ctl-label" for="mA"><span>A의 질량 m<sub>A</sub></span><output id="mAOut">2 kg</output></label><input id="mA" type="range" min="0.1" max="4" step="0.1" value="2"></div>
+            <div class="grow"><label class="ctl-label" for="tA"><span>A의 처음 온도 T<sub>A</sub></span><output id="tAOut">80 °C</output></label><input id="tA" type="range" min="0" max="100" step="5" value="80"></div>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="물체 B의 물질 (비열 J/(kg·K))">
+              <span class="gl">B 비열</span>
+              <button type="button" class="btn" data-mb="water" aria-pressed="true">물 4200</button>
+              <button type="button" class="btn" data-mb="metal" aria-pressed="false">금속 420</button>
+              <button type="button" class="btn" data-mb="iron" aria-pressed="false">철 450</button>
+            </div>
+            <div class="grow"><label class="ctl-label" for="tB"><span>B의 처음 온도 T<sub>B</sub></span><output id="tBOut">20 °C</output></label><input id="tB" type="range" min="0" max="100" step="5" value="20"></div>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
+            <div class="toggles">
+              <label class="chk"><input type="checkbox" id="cEq" checked>열평형 온도 선</label>
+              <label class="chk"><input type="checkbox" id="cArr" checked>입자 빠르기 화살표</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">열평형 온도</span><span id="ansCtx">금속 2 kg · 80 °C ↔ 물 0.2 kg · 20 °C</span></div>
+        <div class="big" id="ansBig">T = 50 °C</div>
+        <div class="sub">
+          <span class="f" id="ansF">잃은 열 = 얻은 열: c<sub>A</sub>m<sub>A</sub>(T<sub>A</sub> − T) = c<sub>B</sub>m<sub>B</sub>(T − T<sub>B</sub>) 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">420 × 2 × (<em>80</em> − T) = 4200 × <em>0.2</em> × (T − <em>20</em>)</span><span class="v"><em>840</em>(80 − T) = <em>840</em>(T − 20) → <em>T = 50 °C</em></span><span class="v">A가 잃은 열 = B가 얻은 열 = 840 × 30 = <em>25,200 J</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">A의 열용량 C<sub>A</sub> = c<sub>A</sub>m<sub>A</sub></span><b id="mv1">420 × 2 = 840 J/K</b></div>
+          <div class="mini"><span id="mn2">B의 열용량 C<sub>B</sub> = c<sub>B</sub>m<sub>B</sub></span><b id="mv2">4200 × 0.2 = 840 J/K</b></div>
+          <div class="mini"><span id="mn3">온도 변화 ΔT<sub>A</sub> : ΔT<sub>B</sub> (= C<sub>B</sub> : C<sub>A</sub>)</span><b id="mv3">30 K : 30 K</b></div>
+          <div class="mini"><span id="mn4">지금 온도 A · B</span><b id="mv4">80 °C · 20 °C</b></div>
+          <div class="mini"><span id="mn5">지금까지 넘어간 열</span><b id="mv5">0 J</b></div>
+          <div class="mini"><span id="mn6">처음 평균 운동 에너지 비 A : B</span><b id="mv6">353 : 293 ≈ 1.2 : 1</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 온도와 열">
+          <div class="kind">관찰 1</div>
+          <h3>뜨거운 쪽 입자가 더 빠르고, 맞닿은 면에서 에너지가 넘어간다</h3>
+          <p>단열 용기 속 A(금속, 80 °C)와 B(물, 20 °C)의 입자를 보자. 화살표 길이가 빠르기다. 온도는 물체를 이루는 입자들의 <b>평균 운동 에너지</b>를 나타내는 수치, 곧 물체의 상태다. 두 물체가 맞닿은 면에서 빠른 입자가 느린 입자와 부딪치며 에너지를 넘겨준다. 이렇게 온도 차 때문에 이동하는 에너지가 열이고, 그 양이 열량(J 또는 cal)이다.</p>
+          <p class="cap">주황 점이 맞닿은 면을 넘어가는 에너지다. 금속 원자는 제자리에서 떨고, 물 분자는 돌아다닌다. 무대는 입자 빠르기 차이를 크게 과장했다. 실제로 80 °C와 20 °C의 평균 운동 에너지 비는 절대 온도의 비 353 : 293 ≈ 1.2 : 1 이다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="start">처음 상태 보기</button><button type="button" class="btn" data-try="touch">맞대고 지켜보기</button></div>
+        </li>
+        <li class="card step" data-step="② 열평형">
+          <div class="kind">관찰 2</div>
+          <h3>두 온도는 한 온도에서 만나고, 그때 열의 흐름이 멈춘다</h3>
+          <p>열은 저절로 높은 온도에서 낮은 온도로 흐르고, 온도 차가 작아질수록 천천히 흐른다. 두 온도가 같아지면 더 흐르지 않는다. 이 상태가 <b>열평형</b>이다(초록 점선). 무대의 주황 화살표가 가늘어지다 사라지는 것과 그래프의 두 곡선이 만나는 것이 같은 일이다.</p>
+          <canvas class="flat" id="gT" aria-label="온도–시간 그래프. A의 온도는 내려가고 B의 온도는 올라가 열평형 온도 T(초록 점선)에서 만난다. 처음부터 열평형까지 A는 ΔT_A, B는 ΔT_B만큼 변한다. 지금 시각을 점으로 표시."></canvas>
+          <p class="cap">열평형에서 같아지는 것은 온도다. 열용량이나 가진 에너지가 같아지는 것이 아니다. 열평형이 된 뒤에도 입자는 계속 움직인다. 두 물체의 평균 운동 에너지가 같아졌을 뿐이다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="end">열평형까지 건너뛰기</button><button type="button" class="btn" data-do="click:#step">시간 ▸</button></div>
+        </li>
+        <li class="card step" data-step="③ 잃은 열 = 얻은 열">
+          <div class="kind">관찰 3</div>
+          <h3>A가 잃은 열과 B가 얻은 열은 매 순간 같다</h3>
+          <p>밖과 열 출입이 없으면 열량이 보존된다. 아래 그래프는 가로가 열용량 C, 세로가 온도라서 직사각형의 넓이가 열량 <span class="eq">Q = CΔT</span> 다. 무대가 움직이는 동안 빨간 넓이(A가 잃은 열)와 파란 넓이(B가 얻은 열)가 늘 같다.</p>
+          <canvas class="flat" id="gQ" aria-label="가로축 열용량, 세로축 온도. A가 잃은 열과 B가 얻은 열을 직사각형 넓이로 그렸다. 두 넓이는 매 순간 같고, 가로가 긴(열용량이 큰) 쪽은 세로(온도 변화)가 짧다."></canvas>
+          <p class="cap">넓이가 같으니 가로가 긴(열용량이 큰) 쪽은 세로가 짧다: <span class="eq">ΔT<sub>A</sub> : ΔT<sub>B</sub> = C<sub>B</sub> : C<sub>A</sub></span>. 예제는 두 열용량이 840 J/K로 같아 둘 다 30 K씩 변한다. 물 1 kg과 물 3 kg이면 넓이를 맞추려고 3 kg 쪽이 1/3만 변한다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="q1">물 1 kg ↔ 물 3 kg</button><button type="button" class="btn" data-try="q3">예제에서 물만 0.4 kg</button></div>
+        </li>
+        <li class="card step" data-step="④ 비열과 열용량">
+          <div class="kind">관찰 4</div>
+          <h3>같은 열량을 받아도 열용량이 작은 물체가 더 많이 데워진다</h3>
+          <p>같은 전열기로 8400 J씩 주면 물 1 kg은 2 K, 철 1 kg은 약 18.7 K, 물 2 kg은 1 K 오른다. 비열 c는 물질 1 kg을 1 K 올리는 열량으로 물질의 성질이고, <b>열용량</b> C = cm은 그 물체 전체를 1 K 올리는 열량으로 질량까지 들어간 물체의 성질이다.</p>
+          <canvas class="flat" id="gD" aria-label="온도 변화–받은 열량 그래프. 세 물체 모두 원점을 지나는 직선이고 기울기는 1/C. 철 1 kg이 가장 가파르고, 물 2 kg은 물 1 kg의 절반 기울기."></canvas>
+          <p class="cap">ΔT–Q 그래프는 원점을 지나는 직선이고 <span class="eq">기울기 = 1/C</span> 다. 같은 물이라도 질량이 2배면 열용량이 2배라 기울기가 반이다. 대체로 액체의 비열이 크고 고체의 비열이 작다. 물의 비열이 커서 해안 지방은 기온 변화가 작다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="heat">같은 열량 주기</button><button type="button" class="btn" data-try="heat2">열량 2배 (16,800 J)</button></div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>온도는 상태, 열은 이동하는 에너지</h3>
+          <ul>
+            <li>온도 = 입자 평균 운동 에너지의 척도. 열 = 온도 차 때문에 이동하는 에너지(J, cal). 열은 높은 온도 → 낮은 온도로 흐르다 온도가 같아지면(열평형) 멈춘다.</li>
+            <li><span class="eq">Q = cmΔT = CΔT</span>. 비열 c(J/(kg·K))는 물질의 성질(질량과 무관), 열용량 C = cm(J/K)은 물체의 성질(질량에 비례). 같은 열량이면 ΔT ∝ 1/(cm).</li>
+            <li>열량 보존: <span class="eq">c<sub>A</sub>m<sub>A</sub>(T<sub>A</sub> − T) = c<sub>B</sub>m<sub>B</sub>(T − T<sub>B</sub>)</span>. 온도 변화의 크기 비는 열용량의 역비이고, 열평형 온도는 열용량이 큰 쪽의 처음 온도에 더 가깝다.</li>
+            <li>자주 하는 실수: 두 처음 온도를 그냥 평균 낸다(열용량이 같을 때만 맞다). 열과 온도를 같은 것으로 본다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>80 °C인 금속(질량 2 kg, 비열 420 J/(kg·K))을 20 °C인 물 0.2 kg(비열 4200 J/(kg·K))에 넣었다. 외부와 열 출입이 없을 때 열평형 온도는?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>열용량은 금속 420 × 2 = 840 J/K, 물 4200 × 0.2 = 840 J/K로 같다. 열량 보존 840(80 − T) = 840(T − 20)에서 80 − T = T − 20, <b>T = 50 °C</b>. 열용량이 같으면 온도 변화도 30 K씩 같다. 이때 넘어간 열은 840 × 30 = 25,200 J이다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>80 °C인 물 1 kg과 20 °C인 물 3 kg을 단열 용기에서 섞었다. 열평형 온도는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1">물 1 kg ↔ 물 3 kg</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>35 °C</b>. 잃은 열 = 얻은 열이므로 4200 × 1 × (80 − T) = 4200 × 3 × (T − 20), T = 35 °C. 온도 변화는 열용량의 역비라 뜨거운 물이 45 K, 찬물이 15 K 변한다. 50 °C는 질량을 무시하고 두 온도를 산술 평균한 값이다. (무대는 섞는 대신 얇은 칸막이로 열만 주고받게 그렸다. 나중 온도는 같다.)</p></details>
+          </div>
+          <div class="q">
+            <h3>옳은 것만 고르면? ㄱ. 온도는 물체를 이루는 입자들의 평균 운동 에너지를 나타내는 수치이다. ㄴ. 열평형에 도달한 두 물체는 열용량이 같다. ㄷ. 비열은 물질의 종류로 정해지며 질량과 무관하다.</h3>
+            <div class="acts"><button type="button" class="btn" data-try="start">ㄱ 입자의 빠르기</button><button type="button" class="btn" data-try="q2n">ㄴ 열평형의 두 물체</button><button type="button" class="btn" data-try="heat">ㄷ 물 1 kg과 2 kg</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄷ</b>. 온도는 입자 평균 운동 에너지의 척도이고, 열은 온도 차 때문에 이동하는 에너지다. 열평형에서 같아지는 것은 온도다. 물 1 kg과 물 3 kg은 35 °C에서 만나도 열용량이 4200 J/K와 12,600 J/K로 다르다. 비열은 물질의 성질이라 물 1 kg이든 2 kg이든 4200 J/(kg·K)이고, 열용량 C = cm만 질량에 비례한다.</p></details>
+          </div>
+          <div class="q">
+            <h3>예제에서 물만 0.4 kg으로 늘리면 열평형 온도는 50 °C보다 높을까, 낮을까? 몇 °C일까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q3">물 0.4 kg으로</button><button type="button" class="btn" data-try="ex">예제(물 0.2 kg)로</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>40 °C</b>로 더 낮다. 물의 열용량이 4200 × 0.4 = 1680 J/K로 금속(840 J/K)의 2배라 840(80 − T) = 1680(T − 20), T = 40 °C. 금속은 40 K 내려가고 물은 20 K 오른다. 열평형 온도는 열용량이 큰 물체의 처음 온도 쪽에 더 가깝다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../07/" rel="prev"><small>← 이전 개념 · A2-07</small><b>일-에너지와 운동학</b></a><a href="../09/" rel="next"><small>다음 개념 · A2-09 →</small><b>열역학 제1법칙</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="A2-08-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A2_08, MAT = M.MAT;
+  const {$, C, text, rich, arrow, fmt} = Lab;
+  const TAU = 2.4, T_END = 16, HEAT_DUR = 6;            // 화면용 시간 상수(s), 그래프 끝, 가열 시간 — 실제 시간이 아니다
+  const HB = [{mat: 'water', m: 1, name: '물 1 kg'}, {mat: 'iron', m: 1, name: '철 1 kg'}, {mat: 'water', m: 2, name: '물 2 kg'}];
+  const EX = {ma: 'metal', mA: 2, tA: 80, mb: 'water', mB: 0.2, tB: 20};
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = Object.assign({scene: 'contact', t: 0, q: 8400, th: 0, clock: 0, playing: !Lab.reduceMotion, speed: 1, eq: true, arr: true}, EX);
+  const cA = () => MAT[S.ma].c, cB = () => MAT[S.mb].c;
+  const CA = () => M.heatCap(cA(), S.mA), CB = () => M.heatCap(cB(), S.mB);
+  const Teq = () => M.equilibrium(cA(), S.mA, S.tA, cB(), S.mB, S.tB);
+  const now = (t = S.t) => {                             // 그래프 끝(T_END)부터는 열평형 (남은 차이는 0.1 K 미만)
+    if (t < T_END - 1e-9) return M.temps(cA(), S.mA, S.tA, cB(), S.mB, S.tB, t, TAU);
+    const T = Teq(); return {TA: T, TB: T, T, f: 0};
+  };
+  const settled = (s) => M.isEq(s.TA, s.TB, 0.05);
+  const qMoved = (s) => Math.abs(M.lost(cA(), S.mA, S.tA, s.TA));
+  const qFinal = () => Math.abs(CA() * (S.tA - Teq()));
+  const qHeat = () => S.q * Math.min(1, S.th / HEAT_DUR);
+  const fT = (T) => 0.25 + 0.75 * Math.max(0, Math.min(100, T)) / 100;     // 화면 속 입자 빠르기 (과장)
+  const isEx = () => S.scene === 'contact' && S.ma === EX.ma && Math.abs(S.mA - EX.mA) < 1e-9 && S.tA === EX.tA && S.mb === EX.mb && Math.abs(S.mB - EX.mB) < 1e-9 && S.tB === EX.tB;
+
+  // ── 숫자 ────────────────────────────────────────────────
+  function num(v, d = 0) {          // 다섯 자리부터 쉼표 (25,200)
+    const s = fmt(v, d), neg = s[0] === Lab.MI, b = neg ? s.slice(1) : s, [i, f] = b.split('.');
+    return (neg ? Lab.MI : '') + (i.length > 4 ? i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : i) + (f ? '.' + f : '');
+  }
+  const kg = (m) => fmt(m, 1) + ' kg';
+
+  // ── 입자 ────────────────────────────────────────────────
+  function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function parts(seed, n = 160) {
+    const r = rng(seed), out = [];
+    for (let i = 0; i < n; i++) out.push({x: 0.08 + 0.84 * r(), y: 0.08 + 0.84 * r(), a: r() * 6.283, k: 0.65 + 0.7 * r(), p1: r() * 6.283, p2: r() * 6.283, w1: 8 + 5 * r(), w2: 8 + 5 * r()});
+    return out;
+  }
+  const PA = parts(11), PB = parts(29), PH = [parts(41), parts(53), parts(67)];
+  const packets = [];                                     // 맞닿은 면을 넘어가는 에너지 {y, s, d}
+  const nLiq = (R) => Math.max(6, Math.min(R.cap || 40, Math.round(R.w * R.h / (R.d || 1500))));   // R.d: 입자 하나가 차지하는 넓이(px²)   // R.d: 입자 하나가 차지하는 넓이(px²)
+  function moveLiq(P, R, T, dt, vmax) {                   // 물 분자: 일정한 빠르기로 돌아다니며 벽에서 튄다
+    if (R.w < 10 || R.h < 10) return;
+    const n = nLiq(R), v = vmax * fT(T), mx = 6 / R.w, my = 6 / R.h;
+    for (let i = 0; i < n; i++) {
+      const p = P[i], s = v * p.k * dt;
+      p.a += (Math.random() - 0.5) * 3 * dt;
+      p.x += Math.cos(p.a) * s / R.w; p.y += Math.sin(p.a) * s / R.h;
+      if (p.x < mx) { p.x = 2 * mx - p.x; p.a = Math.PI - p.a; } else if (p.x > 1 - mx) { p.x = 2 * (1 - mx) - p.x; p.a = Math.PI - p.a; }
+      if (p.y < my) { p.y = 2 * my - p.y; p.a = -p.a; } else if (p.y > 1 - my) { p.y = 2 * (1 - my) - p.y; p.a = -p.a; }
+      p.x = Math.min(1 - mx, Math.max(mx, p.x)); p.y = Math.min(1 - my, Math.max(my, p.y));
+    }
+  }
+  function liquid(ctx, R, P, T, col) {
+    const n = nLiq(R), f = fT(T);
+    for (let i = 0; i < n; i++) {
+      const p = P[i], x = R.x + p.x * R.w, y = R.y + p.y * R.h;
+      if (S.arr) { const L = 4 + 17 * f * p.k; arrow(ctx, x, y, x + Math.cos(p.a) * L, y + Math.sin(p.a) * L, Lab.alpha(col, 0.8), 1.5, 5.5); }
+      Lab.circle(ctx, x, y, 3.8, {fill: col});
+    }
+  }
+  function solid(ctx, R, P, T, col, sp) {                // 금속 원자: 제자리(격자)에서 떤다. 떨림 폭 ∝ 빠르기
+    const cols = Math.max(2, Math.floor((R.w - 10) / sp) + 1), rows = Math.max(2, Math.floor((R.h - 10) / sp) + 1);
+    const ox = R.x + (R.w - (cols - 1) * sp) / 2, oy = R.y + (R.h - (rows - 1) * sp) / 2;
+    const amp = 1 + 6 * (fT(T) - 0.25) / 0.75, tt = S.clock;
+    ctx.save(); ctx.strokeStyle = Lab.alpha(col, 0.2); ctx.lineWidth = 1; ctx.beginPath();
+    for (let i = 0; i < cols; i++) { ctx.moveTo(ox + i * sp, oy); ctx.lineTo(ox + i * sp, oy + (rows - 1) * sp); }
+    for (let j = 0; j < rows; j++) { ctx.moveTo(ox, oy + j * sp); ctx.lineTo(ox + (cols - 1) * sp, oy + j * sp); }
+    ctx.stroke(); ctx.restore();
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      const p = P[(j * cols + i) % P.length], a1 = p.w1 * tt + p.p1, a2 = p.w2 * tt + p.p2;
+      const x = ox + i * sp + amp * Math.sin(a1), y = oy + j * sp + amp * Math.sin(a2);
+      if (S.arr) { const vx = amp * p.w1 * Math.cos(a1) * 0.2, vy = amp * p.w2 * Math.cos(a2) * 0.2; if (Math.hypot(vx, vy) > 3) arrow(ctx, x, y, x + vx, y + vy, Lab.alpha(col, 0.8), 1.5, 5); }
+      Lab.circle(ctx, x, y, 3.6, {fill: col});
+    }
+  }
+  function tint(ctx, R, T) {                              // 온도 빛깔: 차가우면 파랑, 뜨거우면 빨강 기운 (같은 온도면 같은 빛깔)
+    const h = Math.max(0, Math.min(1, T / 100));
+    ctx.save();
+    ctx.fillStyle = Lab.alpha(C.vel, 0.13 * (1 - h)); ctx.fillRect(R.x, R.y, R.w, R.h);
+    ctx.fillStyle = Lab.alpha(C.force, 0.16 * h); ctx.fillRect(R.x, R.y, R.w, R.h);
+    ctx.restore();
+  }
+  function bodyIn(ctx, R, key, T, P, col, nar) {
+    tint(ctx, R, T);
+    if (MAT[key].solid) solid(ctx, R, P, T, col, nar ? 23 : 28); else liquid(ctx, R, P, T, col);
+  }
+
+  // ── 무대: 두 물체 맞대기 ────────────────────────────────
+  function geoC(W, H) {
+    const nar = W < 520, wall = nar ? 7 : 10;
+    const box = nar ? {x: 8, y: 50, w: W - 16, h: Math.max(110, Math.round(H * 0.44))} : {x: 16, y: 56, w: Math.round(W * 0.6) - 16, h: H - 56 - 38};
+    const ix = box.x + wall, iy = box.y + wall, iw = box.w - 2 * wall, ih = box.h - 2 * wall;
+    const vA = S.mA / MAT[S.ma].rho, vB = S.mB / MAT[S.mb].rho;           // 칸 너비 ∝ 부피 (너무 좁지 않게)
+    const fr = Math.max(0.3, Math.min(0.7, vA / (vA + vB))), xp = Math.round(ix + iw * fr);
+    return {nar, W, H, wall, box, xp, A: {x: ix, y: iy, w: xp - ix, h: ih, cap: 80}, B: {x: xp, y: iy, w: ix + iw - xp, h: ih, cap: 80}};
+  }
+  function container(ctx, g) {
+    const B = g.box, t = g.wall;
+    ctx.save();
+    Lab.rrect(ctx, B.x, B.y, B.w, B.h, 10); ctx.fillStyle = Lab.alpha(C.muted, 0.12); ctx.fill(); ctx.clip();
+    ctx.strokeStyle = Lab.alpha(C.muted, 0.32); ctx.lineWidth = 1; ctx.beginPath();
+    for (let k = -B.h; k < B.w; k += 8) { ctx.moveTo(B.x + k, B.y + B.h); ctx.lineTo(B.x + k + B.h, B.y); }
+    ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.fillStyle = C.paper; ctx.fillRect(B.x + t, B.y + t, B.w - 2 * t, B.h - 2 * t); ctx.restore();
+    ctx.save(); Lab.rrect(ctx, B.x, B.y, B.w, B.h, 10); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.strokeRect(B.x + t, B.y + t, B.w - 2 * t, B.h - 2 * t); ctx.restore();
+  }
+  function stepContact(d) {
+    if (!stage.W) return;
+    const g = geoC(stage.W, stage.H), s = now(), vmax = g.nar ? 85 : 120;
+    if (!MAT[S.ma].solid) moveLiq(PA, g.A, s.TA, d, vmax);
+    if (!MAT[S.mb].solid) moveLiq(PB, g.B, s.TB, d, vmax);
+    const dir = M.flow(s.TA, s.TB), r = Math.min(1, Math.abs(s.TA - s.TB) / Math.max(5, Math.abs(S.tA - S.tB)));
+    if (dir && Math.random() < 14 * r * d) packets.push({y: 0.06 + 0.88 * Math.random(), s: 0, d: dir});
+    for (const p of packets) p.s += d / 0.7;
+    while (packets.length && packets[0].s >= 1) packets.shift();
+  }
+  function drawContact(ctx, W, H) {
+    const g = geoC(W, H), s = now(), Te = Teq(), done = settled(s);
+    container(ctx, g);
+    bodyIn(ctx, g.A, S.ma, s.TA, PA, C.force, g.nar);
+    bodyIn(ctx, g.B, S.mb, s.TB, PB, C.vel, g.nar);
+    Lab.line(ctx, [[g.xp, g.A.y], [g.xp, g.A.y + g.A.h]], C.ink, 2.4);   // 맞닿은 면
+    // 넘어가는 에너지(열)
+    for (const p of packets) {
+      const x = g.xp + p.d * (-16 + 32 * p.s), y = g.A.y + p.y * g.A.h;
+      Lab.circle(ctx, x, y, 3.4, {fill: Lab.alpha(C.energy, Math.sin(Math.PI * Math.min(1, p.s)))});
+    }
+    const dir = M.flow(s.TA, s.TB), r = Math.min(1, Math.abs(s.TA - s.TB) / Math.max(5, Math.abs(S.tA - S.tB)));
+    const ym = g.A.y + g.A.h * (g.nar ? 0.52 : 0.5);
+    if (!done && dir) {
+      const L = g.nar ? 24 : 32, w = 2.6 + 6.5 * r;
+      arrow(ctx, g.xp - dir * L, ym, g.xp + dir * L, ym, C.energy, w, 11 + 6 * r);
+      Lab.tag(ctx, '열', g.xp, ym - 20 - w / 2, {size: 14, color: C.energy, border: C.energy});
+    } else Lab.tag(ctx, '열평형', g.xp, ym, {size: 14, color: C.acc, border: C.acc});
+    // 물체 이름
+    const nm = (k, m) => MAT[k].name + ' ' + kg(m);
+    if (g.nar) {
+      Lab.tag(ctx, 'A ' + nm(S.ma, S.mA), g.A.x + 4, g.A.y + 13, {size: 13, color: C.force, align: 'left'});
+      Lab.tag(ctx, 'B ' + nm(S.mb, S.mB), g.B.x + g.B.w - 4, g.B.y + 13, {size: 13, color: C.vel, align: 'right'});
+      drawPanelNar(ctx, g, s, Te, done);
+    } else {
+      Lab.tag(ctx, 'A · ' + nm(S.ma, S.mA), g.A.x + 6, g.A.y + 15, {size: 14, color: C.force, align: 'left'});
+      Lab.tag(ctx, 'B · ' + nm(S.mb, S.mB), g.B.x + g.B.w - 6, g.B.y + 15, {size: 14, color: C.vel, align: 'right'});
+      text(ctx, '단열 용기 · 밖과 열 출입 없음', g.box.x + 2, g.H - 18, {size: 13, w: 500, color: C.muted, align: 'left'});
+      drawPanelWide(ctx, g, s, Te, done);
+    }
+  }
+  function thermo(ctx, x, yT, yB, T, T0, col) {           // 온도계: 0~100 °C, 처음 온도에 작은 삼각형
+    const Y = (v) => yB - (yB - yT) * v / 100, w = 12;
+    ctx.save(); Lab.rrect(ctx, x - w / 2, yT - 8, w, yB - yT + 14, w / 2); ctx.fillStyle = C.paper; ctx.fill();
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.fillStyle = col; ctx.fillRect(x - 3, Y(T), 6, yB + 4 - Y(T)); ctx.restore();
+    Lab.circle(ctx, x, yB + 11, 10, {fill: col, stroke: C.muted, width: 1.4});
+    const y0 = Y(T0);
+    ctx.save(); ctx.fillStyle = Lab.alpha(col, 0.55); ctx.beginPath(); ctx.moveTo(x + w / 2 + 2, y0); ctx.lineTo(x + w / 2 + 9, y0 - 5); ctx.lineTo(x + w / 2 + 9, y0 + 5); ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function drawPanelWide(ctx, g, s, Te, done) {
+    const x0 = g.box.x + g.box.w + 22, x1 = g.W - 16, av = x1 - x0;
+    const yT = g.box.y + 46, yB = g.H - 84, Y = (v) => yB - (yB - yT) * v / 100;
+    if (yB - yT < 60 || av < 150) return;
+    const xa = x0 + av * 0.21, xb = x0 + av * 0.42, bw = Math.min(30, av * 0.12), xq1 = x0 + av * 0.6, xq2 = xq1 + bw + Math.min(20, av * 0.08);
+    text(ctx, '온도 (°C)', (xa + xb) / 2, g.box.y + 4, {size: 13, w: 600, color: C.muted});
+    text(ctx, '열 (J)', (xq1 + xq2 + bw) / 2, g.box.y + 4, {size: 13, w: 600, color: C.muted});
+    for (let T = 0; T <= 100; T += 20) {
+      Lab.line(ctx, [[xa - 13, Y(T)], [xa - 8, Y(T)]], C.muted, 1.2);
+      text(ctx, String(T), xa - 16, Y(T), {size: 13, w: 500, color: C.muted, align: 'right'});
+    }
+    if (S.eq) {
+      Lab.line(ctx, [[xa - 10, Y(Te)], [xb + 12, Y(Te)]], C.acc, 2, [5, 4]);
+      text(ctx, fmt(Te, 1), xb + 16, Y(Te), {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    }
+    thermo(ctx, xa, yT, yB, s.TA, S.tA, C.force);
+    thermo(ctx, xb, yT, yB, s.TB, S.tB, C.vel);
+    text(ctx, fmt(s.TA, 1), xa, yT - 22, {size: 14, w: 600, color: C.force});
+    text(ctx, fmt(s.TB, 1), xb, yT - 22, {size: 14, w: 600, color: C.vel});
+    text(ctx, 'A', xa, yB + 36, {size: 14, w: 600, color: C.force});
+    text(ctx, 'B', xb, yB + 36, {size: 14, w: 600, color: C.vel});
+    // 열 막대: A가 잃은 열 = B가 얻은 열 (같은 축척)
+    const qf = qFinal(), q = qMoved(s), hq = qf > 0 ? (yB + 20 - yT) * 0.92 * q / qf : 0, base = yB + 20;
+    const bar = (x, col) => {
+      ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(x, yT, bw, base - yT);
+      ctx.fillStyle = C.energy; ctx.fillRect(x, base - hq, bw, hq); ctx.restore();
+      Lab.line(ctx, [[x, base], [x + bw, base]], col, 3);
+    };
+    bar(xq1, C.force); bar(xq2, C.vel);
+    if (q > 0) {
+      Lab.line(ctx, [[xq1 - 4, base - hq], [xq2 + bw + 4, base - hq]], C.ink, 1.2, [4, 3]);
+      text(ctx, num(q) + ' J', (xq1 + xq2 + bw) / 2, base - hq - 12, {size: 13, w: 600, color: C.energy, halo: true});
+    }
+    const hot = S.tA >= S.tB;
+    if (xq2 - xq1 < 52) text(ctx, hot ? '잃은 열 = 얻은 열' : '얻은 열 = 잃은 열', (xq1 + xq2 + bw) / 2, yB + 36, {size: 13, w: 600, color: C.ink});   // 막대가 가까우면 한 줄로
+    else {
+      text(ctx, hot ? '잃은 열' : '얻은 열', xq1 + bw / 2, yB + 36, {size: 13, w: 600, color: C.force});
+      text(ctx, hot ? '얻은 열' : '잃은 열', xq2 + bw / 2, yB + 36, {size: 13, w: 600, color: C.vel});
+    }
+  }
+  function drawPanelNar(ctx, g, s, Te, done) {
+    const yS = g.box.y + g.box.h + 28, x0 = 40, x1 = g.W - 20, X = (v) => x0 + (x1 - x0) * v / 100;
+    text(ctx, '온도', 6, yS, {size: 13, w: 600, color: C.muted, align: 'left'});
+    Lab.line(ctx, [[x0, yS], [x1, yS]], C.muted, 1.4);
+    for (let T = 0; T <= 100; T += 20) Lab.line(ctx, [[X(T), yS - 3], [X(T), yS + 3]], C.muted, 1.2);
+    text(ctx, '0', X(0), yS + 13, {size: 13, w: 500, color: C.muted});
+    text(ctx, '100 °C', X(100), yS + 13, {size: 13, w: 500, color: C.muted, align: 'right'});
+    Lab.line(ctx, [[X(S.tA), yS], [X(s.TA), yS]], Lab.alpha(C.force, 0.55), 6);
+    Lab.line(ctx, [[X(S.tB), yS], [X(s.TB), yS]], Lab.alpha(C.vel, 0.55), 6);
+    if (S.eq) Lab.line(ctx, [[X(Te), yS - 16], [X(Te), yS + 16]], C.acc, 2, [4, 3]);
+    const tri = (x, up, col, lab) => {               // A 는 위, B 는 아래에서 가리킨다
+      const k = up ? -1 : 1;
+      ctx.save(); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x, yS + k * 3); ctx.lineTo(x - 6, yS + k * 13); ctx.lineTo(x + 6, yS + k * 13); ctx.closePath(); ctx.fill(); ctx.restore();
+      text(ctx, lab, x, yS + k * 22, {size: 13, w: 600, color: col, halo: true});
+    };
+    tri(X(s.TA), true, C.force, 'A ' + fmt(s.TA, 1));
+    tri(X(s.TB), false, C.vel, 'B ' + fmt(s.TB, 1));
+    // 열 막대 (가로)
+    const qf = qFinal(), q = qMoved(s), xb0 = 86, Lm = g.W - xb0 - 76, L = qf > 0 ? Lm * q / qf : 0, hot = S.tA >= S.tB;
+    const row = (y, lab, col) => {
+      text(ctx, lab, 6, y, {size: 13, w: 600, color: col, align: 'left'});
+      ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(xb0, y - 6, Lm, 12); ctx.fillStyle = C.energy; ctx.fillRect(xb0, y - 6, L, 12); ctx.restore();
+      text(ctx, num(q) + ' J', xb0 + Lm + 6, y, {size: 13, w: 600, color: C.energy, align: 'left'});
+    };
+    const yq = yS + 46;
+    row(yq, hot ? 'A가 잃은 열' : 'A가 얻은 열', C.force);
+    row(yq + 24, hot ? 'B가 얻은 열' : 'B가 잃은 열', C.vel);
+  }
+
+  // ── 무대: 같은 열량 주기 (물 1 kg · 철 1 kg · 물 2 kg) ─────
+  function geoH(W, H) {
+    const nar = W < 520, top = 56, cw = (W - 16) / 3;
+    const cupW = Math.min(cw * 0.56, 130), colW = nar ? 10 : 12, heatY = H - (nar ? 84 : 92), cupT = top + 58, cupB = heatY - 22;
+    const cols = HB.map((b, i) => {
+      const cx = 8 + cw * (i + 0.5), gw = cupW + 9 + colW, x = cx - gw / 2, ch = cupB - cupT;
+      let R;
+      if (b.mat === 'iron') R = {x: x + cupW * 0.15, y: cupB - ch * 0.42, w: cupW * 0.7, h: ch * 0.42};
+      else { const f = b.m === 2 ? 0.88 : 0.44; R = {x: x + 3, y: cupB - ch * f, w: cupW - 6, h: ch * f - 3, d: 650}; }
+      return {cx, x, colX: x + cupW + 9, R};
+    });
+    return {nar, W, H, top, cw, cupW, colW, heatY, cupT, cupB, cols};
+  }
+  function stepHeat(d) {
+    if (!stage.W) return;
+    const g = geoH(stage.W, stage.H), q = qHeat(), vmax = g.nar ? 85 : 120;
+    HB.forEach((b, i) => { if (!MAT[b.mat].solid) moveLiq(PH[i], g.cols[i].R, 20 + M.dTof(q, MAT[b.mat].c, b.m), d, vmax); });
+  }
+  function drawHeat(ctx, W, H) {
+    const g = geoH(W, H), q = qHeat(), on = S.th < HEAT_DUR && S.playing, ch = g.heatY + 12 - g.cupT;
+    const Yd = (dT) => g.heatY + 12 - ch * Math.min(1, dT / 40);
+    if (!g.nar) text(ctx, '세 물체에 같은 열량을 준다 · 처음 온도 모두 20 °C', W - 16, 30, {size: 13, w: 500, color: C.muted, align: 'right'});
+    HB.forEach((b, i) => {
+      const c = g.cols[i], mat = MAT[b.mat], Cc = M.heatCap(mat.c, b.m), dT = M.dTof(q, mat.c, b.m), T = 20 + dT;
+      text(ctx, b.name, c.cx, g.top + 6, {size: g.nar ? 14 : 15, w: 700});
+      text(ctx, 'C = ' + num(Cc) + ' J/K', c.cx, g.top + 25, {size: 13, w: 500, color: C.muted});
+      // 그릇(물) 또는 덩어리(철)
+      if (b.mat === 'water') {
+        bodyIn(ctx, c.R, b.mat, T, PH[i], C.vel, g.nar);
+        Lab.line(ctx, [[c.x, g.cupT], [c.x, g.cupB], [c.x + g.cupW, g.cupB], [c.x + g.cupW, g.cupT]], C.ink, 2);
+      } else {
+        bodyIn(ctx, c.R, b.mat, T, PH[i], C.muted, g.nar);
+        ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.strokeRect(c.R.x, c.R.y, c.R.w, c.R.h); ctx.restore();
+      }
+      // 전열기와 들어가는 열
+      ctx.save(); Lab.rrect(ctx, c.x - 4, g.heatY, g.cupW + 8, 12, 3); ctx.fillStyle = C.muted; ctx.fill(); ctx.restore();
+      if (on) {
+        ctx.save(); ctx.strokeStyle = C.energy; ctx.lineWidth = 2.4; ctx.beginPath();
+        for (let x = c.x + 2; x < c.x + g.cupW - 2; x += 8) { ctx.moveTo(x, g.heatY + 6); ctx.lineTo(x + 4, g.heatY + 3); ctx.lineTo(x + 8, g.heatY + 6); }
+        ctx.stroke(); ctx.restore();
+        for (const k of [0.25, 0.5, 0.75]) { const x = c.x + g.cupW * k, ph = (S.clock * 1.6 + k) % 1; arrow(ctx, x, g.heatY - 2 - ph * 4, x, g.heatY - 16 - ph * 4, Lab.alpha(C.energy, 0.9), 2.4, 7); }
+      }
+      text(ctx, 'Q = ' + num(q) + ' J', c.cx, g.heatY + 30, {size: 13, w: 600, color: C.energy});
+      // 온도 변화 기둥 (0 ~ 40 K)
+      ctx.save(); Lab.rrect(ctx, c.colX, g.cupT, g.colW, ch, g.colW / 2); ctx.fillStyle = C.paper; ctx.fill(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.stroke(); ctx.restore();
+      const yd = Yd(dT);
+      ctx.save(); ctx.fillStyle = C.force; ctx.fillRect(c.colX + 2, yd, g.colW - 4, g.heatY + 12 - yd); ctx.restore();
+      text(ctx, 'ΔT ' + fmt(dT, 1) + ' K', c.colX + g.colW, g.top + 43, {size: 13, w: 600, color: C.force, align: 'right'});
+    });
+    if (!g.nar) text(ctx, '기둥 = 온도 변화 ΔT (꼭대기 40 K)', 16, H - 22, {size: 13, w: 500, color: C.muted, align: 'left'});
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (S.scene === 'contact') drawContact(ctx, W, H); else drawHeat(ctx, W, H);
+  }
+  const seen = (v) => { if (!v.W) return false; const r = v.el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+
+  // ── 관찰 2: 온도–시간 ───────────────────────────────────
+  const gT = Lab.canvas('gT', drawGT);
+  function drawGT() {
+    const {ctx, W, H} = gT; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, r = {x: 40, y: 28, w: W - 40 - 18, h: H - 28 - 30};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: T_END, ymin: 0, ymax: 100, yticks: [20, 40, 60, 80, 100], grid: true, xlabel: '시간', ylabel: '온도 (°C)'});
+    const Te = Teq(), s = now(), tc = Math.min(S.t, T_END);
+    const path = (key, t0, t1) => { ctx.beginPath(); for (let i = 0; i <= 120; i++) { const t = t0 + (t1 - t0) * i / 120, v = now(t)[key], X = ax.X(t), Y = ax.Y(v); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); } };
+    if (S.eq) {
+      Lab.line(ctx, [[ax.X(0), ax.Y(Te)], [ax.X(T_END), ax.Y(Te)]], C.acc, 2, [6, 4]);
+      text(ctx, '열평형 T = ' + fmt(Te, 1) + ' °C', ax.X(T_END), ax.Y(Te) + (Te > 50 ? 15 : -13), {size: 13, w: 600, color: C.acc, align: 'right', halo: true});
+    }
+    for (const [key, col] of [['TA', C.force], ['TB', C.vel]]) {
+      ctx.save(); ctx.strokeStyle = Lab.alpha(col, 0.3); ctx.lineWidth = 2; ctx.setLineDash([5, 4]); path(key, 0, T_END); ctx.stroke(); ctx.restore();
+      if (tc > 0) { ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 3; path(key, 0, tc); ctx.stroke(); ctx.restore(); }
+    }
+    // 처음부터 열평형까지 온도 변화 (그림 ①처럼 세로 화살표)
+    const xd = ax.X(T_END * 0.035), yIn = (y) => Math.max(r.y + 8, Math.min(ax.y0 - 8, y));
+    const dTlab = (T0, nm, col) => {                   // 처음 온도 → 열평형 온도 화살표, 이름표는 처음 온도 바깥쪽
+      if (Math.abs(T0 - Te) <= 2) return;
+      arrow(ctx, xd, ax.Y(T0), xd, ax.Y(Te), col, 2, 8);
+      rich(ctx, 'ΔT_' + nm + ' = ' + fmt(Math.abs(T0 - Te), 1) + ' K', xd + 10, yIn(ax.Y(T0) + (T0 > Te ? -12 : 12)), {size: 13, w: 600, color: col, align: 'left', halo: true});
+    };
+    dTlab(S.tA, 'A', C.force); dTlab(S.tB, 'B', C.vel);
+    Lab.line(ctx, [[ax.X(tc), r.y], [ax.X(tc), ax.y0]], Lab.alpha(C.copper, 0.7), 1.4);
+    Lab.circle(ctx, ax.X(tc), ax.Y(s.TA), 5.5, {fill: C.force, stroke: C.paper, width: 2});
+    Lab.circle(ctx, ax.X(tc), ax.Y(s.TB), 5.5, {fill: C.vel, stroke: C.paper, width: 2});
+    if (!nar) { text(ctx, 'A', ax.X(T_END) + 8, ax.Y(now(T_END).TA) - 9, {size: 13, w: 600, color: C.force, align: 'left'}); }
+  }
+
+  // ── 관찰 3: 넓이 = 열량 ─────────────────────────────────
+  const gQ = Lab.canvas('gQ', drawGQ);
+  function drawGQ() {
+    const {ctx, W, H} = gQ; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, Ca = CA(), Cb = CB(), Cm = Math.max(Ca, Cb) * 1.18, r = {x: 40, y: 28, w: W - 40 - 18, h: H - 28 - 34};
+    const xt = Math.abs(Ca - Cb) / Cm < 0.16 ? [Math.max(Ca, Cb)] : [Ca, Cb];
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: Cm, ymin: 0, ymax: 100, xticks: xt, yticks: [20, 40, 60, 80, 100], fmtX: (v) => num(v), grid: true, xlabel: nar ? 'C (J/K)' : '열용량 C (J/K)', ylabel: '온도 (°C)'});
+    const s = now(), Te = Teq();
+    const box = (Cx, Ty0, Ty1, col, dash) => {
+      const x0 = ax.X(0), x1 = ax.X(Cx), y0 = ax.Y(Math.max(Ty0, Ty1)), y1 = ax.Y(Math.min(Ty0, Ty1));
+      ctx.save();
+      if (dash) { ctx.setLineDash([5, 4]); ctx.strokeStyle = Lab.alpha(col, 0.55); ctx.lineWidth = 1.4; ctx.strokeRect(x0, y0, x1 - x0, y1 - y0); }
+      else { ctx.fillStyle = Lab.alpha(col, 0.22); ctx.fillRect(x0, y0, x1 - x0, y1 - y0); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.strokeRect(x0, y0, x1 - x0, y1 - y0); }
+      ctx.restore();
+      return {x0, x1, y0, y1};
+    };
+    box(Ca, S.tA, Te, C.force, true); box(Cb, S.tB, Te, C.vel, true);   // 열평형까지의 넓이(점선)
+    const a = box(Ca, S.tA, s.TA, C.force), b = box(Cb, S.tB, s.TB, C.vel);
+    Lab.line(ctx, [[ax.X(0), ax.Y(S.tA)], [ax.X(Cm), ax.Y(S.tA)]], Lab.alpha(C.force, 0.5), 1, [3, 4]);
+    Lab.line(ctx, [[ax.X(0), ax.Y(S.tB)], [ax.X(Cm), ax.Y(S.tB)]], Lab.alpha(C.vel, 0.5), 1, [3, 4]);
+    if (S.eq) Lab.line(ctx, [[ax.X(0), ax.Y(Te)], [ax.X(Cm), ax.Y(Te)]], C.acc, 1.6, [6, 4]);
+    const q = qMoved(s), hot = S.tA >= S.tB;
+    const lab = (bx, Cx, dT, col, who, verb, yRef) => {
+      const s1 = who + verb, s2 = num(Cx) + ' × ' + fmt(dT, 1) + ' = ' + num(Math.abs(Cx * dT)) + ' J';
+      const inside = bx.x1 - bx.x0 > (nar ? 150 : 210), xl = inside ? bx.x0 + 10 : bx.x1 + 8;
+      const al = 'left', yy = yRef;
+      text(ctx, s1, xl, yy - 9, {size: 13, w: 600, color: col, align: al, halo: true});
+      text(ctx, s2, xl, yy + 9, {size: 13, w: 500, color: col, align: al, halo: true});
+    };
+    const yA = hot ? ax.Y(Math.min(100, Math.max(S.tA, Te) + 0)) + 26 : ax.Y(Math.min(S.tA, Te)) - 26;
+    const yB = hot ? ax.Y(Math.min(S.tB, Te)) - 26 : ax.Y(Math.max(S.tB, Te)) + 26;
+    lab(a, Ca, Math.abs(S.tA - s.TA), C.force, 'A가 ', hot ? '잃은 열' : '얻은 열', Math.max(r.y + 18, Math.min(ax.y0 - 18, yA)));
+    lab(b, Cb, Math.abs(s.TB - S.tB), C.vel, 'B가 ', hot ? '얻은 열' : '잃은 열', Math.max(r.y + 18, Math.min(ax.y0 - 18, yB)));
+    text(ctx, (nar ? '빨간 넓이 = 파란 넓이 = ' : '넓이 = 열량: 빨간 넓이 = 파란 넓이 = ') + num(q) + ' J', r.x + r.w, r.y - 14, {size: 13, w: 600, color: C.energy, align: 'right'});
+  }
+
+  // ── 관찰 4: ΔT–Q (기울기 1/C) ───────────────────────────
+  const gD = Lab.canvas('gD', drawGD);
+  function drawGD() {
+    const {ctx, W, H} = gD; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, YM = 20, r = {x: 40, y: 28, w: W - 40 - (nar ? 62 : 80), h: H - 28 - 48};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 16800, ymin: 0, ymax: YM, xticks: nar ? [8400, 16800] : [4200, 8400, 12600, 16800], yticks: [5, 10, 15, 20], fmtX: (v) => num(v), grid: true, xlabel: '받은 열량 Q (J)', xlabelBelow: true, ylabel: '온도 변화 ΔT (K)'});
+    const q = S.scene === 'heat' ? qHeat() : S.q;
+    Lab.line(ctx, [[ax.X(q), ax.y0], [ax.X(q), r.y]], Lab.alpha(C.copper, 0.75), 1.4, [4, 4]);
+    HB.forEach((b) => {
+      const c = MAT[b.mat].c * b.m, qe = Math.min(16800, YM * c), iron = b.mat === 'iron', col = iron ? C.force : C.vel;
+      Lab.line(ctx, [[ax.X(0), ax.Y(0)], [ax.X(qe), ax.Y(qe / c)]], col, b.m === 2 ? 2.6 : 3, b.m === 2 ? [7, 4] : null);
+      if (iron) text(ctx, b.name, ax.X(qe) + 8, r.y + 8, {size: 13, w: 600, color: col, align: 'left', halo: true});
+      else text(ctx, b.name, ax.X(qe) + 7, ax.Y(qe / c) + (b.m === 1 ? -8 : 8), {size: 13, w: 600, color: col, align: 'left'});
+      const dT = q / c;
+      if (dT <= YM) Lab.circle(ctx, ax.X(q), ax.Y(dT), iron ? 5.5 : 4.5, {fill: col, stroke: C.paper, width: 2});
+      else { arrow(ctx, ax.X(q) - 10, r.y + 22, ax.X(q) - 10, r.y + 2, col, 2.4, 8); text(ctx, fmt(dT, 1) + ' K', ax.X(q) - 16, r.y + 12, {size: 13, w: 600, color: col, align: 'right', halo: true}); }
+    });
+    const right = q > 11500;
+    text(ctx, 'Q = ' + num(q) + ' J', ax.X(q) + (right ? -6 : 6), ax.Y(YM * 0.32), {size: 13, w: 600, color: C.copper, align: right ? 'right' : 'left', halo: true});
+    text(ctx, '기울기 = 1/C', ax.X(900), ax.Y(YM * 0.78), {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
+  }
+
+  // ── 수치 (지금 값) ──────────────────────────────────────
+  let ansKey = '';
+  function ans(big, lines, o) { const k = [big, o.tone, o.lab, o.ctx, o.f].concat(lines).join('|'); if (k === ansKey) return; ansKey = k; Lab.ans(big, lines, Object.assign({html: true}, o)); }
+  const nw = (...a) => a.map((x) => '<span class="nw">' + x + '</span>').join(' ');
+  const setMini = (i, name, val) => { const a = $('mn' + i), b = $('mv' + i); if (a.innerHTML !== name) a.innerHTML = name; if (b.textContent !== val) b.textContent = val; };
+  function live() {
+    const h1 = $('hud1'), h2 = $('hud2');
+    if (S.scene === 'contact') {
+      const s = now(), done = settled(s);
+      h1.textContent = 'A ' + fmt(s.TA, 1) + ' °C · B ' + fmt(s.TB, 1) + ' °C';
+      h2.textContent = S.tA === S.tB ? '처음부터 같은 온도' : done ? '열평형' : S.t < 0.05 ? '맞닿은 순간' : '열이 넘어가는 중';
+      h2.className = 'pill' + (done ? ' up' : '');
+      setMini(4, '지금 온도 A · B', fmt(s.TA, 1) + ' °C · ' + fmt(s.TB, 1) + ' °C');
+      setMini(5, '지금까지 넘어간 열', num(qMoved(s)) + ' J');
+    } else {
+      const q = qHeat();
+      h1.textContent = '받은 열 Q = ' + num(q) + ' J';
+      h2.textContent = S.th < HEAT_DUR ? '가열 중' : '가열 끝';
+      h2.className = 'pill' + (S.th < HEAT_DUR ? '' : ' up');
+      setMini(5, '지금까지 받은 열 (셋 다 같다)', num(q) + ' J');
+    }
+  }
+  function readouts() {
+    $('mBOut').textContent = kg(S.mB); $('mAOut').textContent = kg(S.mA);
+    $('tAOut').textContent = S.tA + ' °C'; $('tBOut').textContent = S.tB + ' °C'; $('qHOut').textContent = num(S.q) + ' J';
+    const nm = (k, m, T) => MAT[k].name + ' ' + kg(m) + ' · ' + T + ' °C';
+    if (S.scene === 'contact') {
+      const a = cA(), b = cB(), Ca = CA(), Cb = CB(), Te = Teq(), hot = S.tA >= S.tB;
+      // 뜨거운 쪽(H)이 잃은 열 = 차가운 쪽(L)이 얻은 열
+      const Hs = hot ? {n: 'A', c: a, m: S.mA, T: S.tA, C: Ca} : {n: 'B', c: b, m: S.mB, T: S.tB, C: Cb};
+      const Ls = hot ? {n: 'B', c: b, m: S.mB, T: S.tB, C: Cb} : {n: 'A', c: a, m: S.mA, T: S.tA, C: Ca};
+      const sb = (x) => '<sub>' + x + '</sub>';
+      const f = '잃은 열 = 얻은 열: c' + sb(Hs.n) + 'm' + sb(Hs.n) + '(T' + sb(Hs.n) + ' − T) = c' + sb(Ls.n) + 'm' + sb(Ls.n) + '(T − T' + sb(Ls.n) + ') 에 지금 값을 넣으면';
+      const ctx = nm(S.ma, S.mA, S.tA) + ' ↔ ' + nm(S.mb, S.mB, S.tB);
+      if (S.tA === S.tB) {
+        ans('T = ' + S.tA + ' °C', ['처음부터 두 온도가 <em>' + S.tA + ' °C</em>로 같다 → 열이 흐르지 않는다', '이미 열평형이다. 잃은 열 = 얻은 열 = <em>0 J</em>'], {tone: 'ink', lab: '열평형 온도', ctx, f});
+      } else {
+        const dH = Hs.T - Te, dL = Te - Ls.T, Q = Hs.C * dH;
+        ans('T = ' + fmt(Te, 1) + ' °C', [
+          Hs.c + ' × ' + fmt(Hs.m, 1) + ' × (<em>' + Hs.T + '</em> − T) = ' + Ls.c + ' × ' + fmt(Ls.m, 1) + ' × (T − <em>' + Ls.T + '</em>)',
+          '<em>' + num(Hs.C, 1) + '</em>(' + Hs.T + ' − T) = <em>' + num(Ls.C, 1) + '</em>(T − ' + Ls.T + ') → <em>T = ' + fmt(Te, 1) + ' °C</em>',
+          Hs.n + '가 잃은 열 = ' + Ls.n + '가 얻은 열 = ' + num(Hs.C, 1) + ' × ' + fmt(dH, 1) + ' = <em>' + num(Q) + ' J</em>',
+        ], {tone: '', lab: '열평형 온도', ctx, f});
+        void dL;
+      }
+      setMini(1, 'A의 열용량 C<sub>A</sub> = c<sub>A</sub>m<sub>A</sub>', a + ' × ' + fmt(S.mA, 1) + ' = ' + num(Ca, 1) + ' J/K');
+      setMini(2, 'B의 열용량 C<sub>B</sub> = c<sub>B</sub>m<sub>B</sub>', b + ' × ' + fmt(S.mB, 1) + ' = ' + num(Cb, 1) + ' J/K');
+      setMini(3, '온도 변화 ΔT<sub>A</sub> : ΔT<sub>B</sub> (= C<sub>B</sub> : C<sub>A</sub>)', fmt(Math.abs(S.tA - Te), 1) + ' K : ' + fmt(Math.abs(Te - S.tB), 1) + ' K');
+      setMini(6, '처음 평균 운동 에너지 비 A : B', (S.tA + 273) + ' : ' + (S.tB + 273) + ' ≈ ' + fmt(M.keRatio(S.tA, S.tB), 2) + ' : 1');
+    } else {
+      const q = S.q, d = HB.map((b) => M.dTof(q, MAT[b.mat].c, b.m));
+      ans(nw(...d.map((x, i) => (i ? '' : 'ΔT = ') + fmt(x, 1) + ' K' + (i < 2 ? ',' : ''))), HB.map((b, i) => b.name + ': ' + num(q) + ' ÷ (' + MAT[b.mat].c + ' × ' + b.m + ') = <em>' + fmt(d[i], 1) + ' K</em>'),
+        {tone: 'small', lab: '같은 열량을 받을 때 온도 변화', ctx: 'Q = ' + num(q) + ' J · 처음 20 °C', f: 'ΔT = Q/C = Q/(cm) 에 지금 값을 넣으면'});
+      setMini(1, '물 1 kg의 열용량 C = cm', '4200 × 1 = 4200 J/K');
+      setMini(2, '철 1 kg의 열용량', '450 × 1 = 450 J/K');
+      setMini(3, '물 2 kg의 열용량', '4200 × 2 = 8400 J/K');
+      setMini(4, '비열 c (물질의 성질, J/(kg·K))', '물 4200 · 철 450');
+      setMini(6, 'ΔT 비 철 1 kg : 물 1 kg (= 4200 : 450)', fmt(4200 / 450, 1) + ' : 1');
+    }
+    live();
+    Lab.check('exCheck', isEx(), '개념서 예제 (금속 2 kg·420, 80 °C ↔ 물 0.2 kg·4200, 20 °C) → 두 열용량 840 J/K, 열평형 온도 50 °C',
+      '예제: 80 °C 금속 2 kg(420)을 20 °C 물 0.2 kg(4200)에 넣으면 열평형 온도는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function drawAll() { drawStage(); drawGT(); drawGQ(); drawGD(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; drawStage(); });
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, String(S.speed));
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => { setScene(v); refresh(); }, S.scene);
+  const maG = Lab.group('[data-ma]', 'ma', (v) => { S.ma = v; setScene('contact'); refresh(); }, S.ma);
+  const mbG = Lab.group('[data-mb]', 'mb', (v) => { S.mb = v; setScene('contact'); refresh(); }, S.mb);
+  function setScene(v) { S.scene = v; sceneG.set(v, true); $('slB').hidden = v !== 'contact'; $('slQ').hidden = v !== 'heat'; }
+  const EL = {mB: $('mB'), mA: $('mA'), tA: $('tA'), tB: $('tB'), q: $('qH')};
+  for (const k of ['mB', 'mA', 'tA', 'tB']) EL[k].addEventListener('input', () => { S[k] = +EL[k].value; setScene('contact'); refresh(); });
+  EL.q.addEventListener('input', () => { S.q = +EL.q.value; setScene('heat'); refresh(); });
+  $('cEq').addEventListener('change', (e) => { S.eq = e.target.checked; refresh(); });
+  $('cArr').addEventListener('change', (e) => { S.arr = e.target.checked; refresh(); });
+  $('step').addEventListener('click', () => {
+    playCtl.set(false);
+    if (S.scene === 'contact') S.t = Math.min(T_END, Math.floor(S.t + 1e-6) + 1); else S.th = Math.min(HEAT_DUR, Math.floor(S.th + 1e-6) + 1);
+    S.clock += 0.37; refresh();
+  });
+  $('reset').addEventListener('click', () => { if (S.scene === 'contact') S.t = 0; else S.th = 0; packets.length = 0; playCtl.set(true); refresh(); });
+  function sync() {
+    EL.mB.value = S.mB; EL.mA.value = S.mA; EL.tA.value = S.tA; EL.tB.value = S.tB; EL.q.value = S.q;
+    maG.set(S.ma, true); mbG.set(S.mb, true); setScene(S.scene);
+    $('cEq').checked = S.eq; $('cArr').checked = S.arr;
+  }
+  function setup(o) {                                    // 말하지 않은 값은 예제 값으로
+    Object.assign(S, EX, o.v || {});
+    S.scene = o.scene || 'contact'; S.t = o.t || 0; S.th = 0; S.q = o.q || 8400;
+    packets.length = 0;
+    sync(); playCtl.set(o.play !== false);
+  }
+  const TRY = {
+    start: () => setup({play: false}),
+    touch: () => setup({}),
+    end: () => setup({t: T_END}),
+    ex: () => setup({}),
+    q1: () => setup({v: {ma: 'water', mA: 1, tA: 80, mb: 'water', mB: 3, tB: 20}}),
+    q2n: () => setup({v: {ma: 'water', mA: 1, tA: 80, mb: 'water', mB: 3, tB: 20}, t: T_END}),
+    q3: () => setup({v: {mB: 0.4}}),
+    heat: () => setup({scene: 'heat'}),
+    heat2: () => setup({scene: 'heat', q: 16800}),
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing) return;
+    const d = dt * S.speed;
+    S.clock += d;
+    if (S.scene === 'contact') { S.t += d; stepContact(d); } else { S.th += d; stepHeat(d); }
+    drawStage();
+    if (seen(gT)) drawGT(); if (seen(gQ)) drawGQ(); if (seen(gD)) drawGD();
+    roT += dt; if (roT > 0.1) { roT = 0; live(); }
+  });
+  void speedG;
+  readouts();
+})();
+</script>
+</body>
+</html>

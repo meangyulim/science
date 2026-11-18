@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>열의 일당량 (줄의 실험)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(줄의 장치: 단열 용기 속 회전 날개 + 온도계, 축–줄–도르래–추, 에너지 장부) | 오른쪽 지금 값 + 관찰 ①~④(에너지 전환 순서, ΔT–W, J ↔ kcal, 가속 낙하) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5}
+#gChain{aspect-ratio:10/4.6}
+#gW{aspect-ratio:10/6.4}
+#gU{aspect-ratio:10/3.6}
+#gK{aspect-ratio:10/3.8}
+@media (max-width:640px){ #gChain{aspect-ratio:10/9.2} #gW{aspect-ratio:10/7.6} #gU{aspect-ratio:10/5.2} #gK{aspect-ratio:10/5.6} }
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A2 일과 에너지·열: 개념 10개 가운데 10번째"><a class="uname" href="../">A2 일과 에너지·열</a><span class="dots"><a href="../01/" title="A2-01 일과 F-s 그래프" aria-label="A2-01 일과 F-s 그래프"></a><a href="../02/" title="A2-02 일·운동 에너지 정리" aria-label="A2-02 일·운동 에너지 정리"></a><a href="../03/" title="A2-03 보존력과 비보존력" aria-label="A2-03 보존력과 비보존력"></a><a href="../04/" title="A2-04 마찰 구간 에너지 장부" aria-label="A2-04 마찰 구간 에너지 장부"></a><a href="../05/" title="A2-05 포물선 운동의 에너지" aria-label="A2-05 포물선 운동의 에너지"></a><a href="../06/" title="A2-06 단진자의 에너지" aria-label="A2-06 단진자의 에너지"></a><a href="../07/" title="A2-07 일-에너지와 운동학" aria-label="A2-07 일-에너지와 운동학"></a><a href="../08/" title="A2-08 열평형" aria-label="A2-08 열평형"></a><a href="../09/" title="A2-09 열역학 제1법칙" aria-label="A2-09 열역학 제1법칙"></a><a class="cur" href="./" aria-current="page" title="A2-10 열의 일당량" aria-label="A2-10 열의 일당량 (지금)"></a></span></nav>
+  <div class="pn"><a href="../09/" rel="prev" title="이전 개념: A2-09 열역학 제1법칙">‹ <span>09 열역학 제1법칙</span></a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A2-10</span><span>물리학 Ⅱ · 일과 에너지·열</span></div>
+    <h1>열의 일당량 (줄의 실험)</h1>
+    <p class="question"><i>Q</i>역학적 일과 열이 같은 에너지라는 것을 어떻게 증명했고, 시험에서는 어떤 등식 하나로 풀까?</p>
+  </div>
+
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="줄의 실험 장치. 추가 일정한 속력으로 내려가면 줄이 축을 돌리고, 단열 용기 속 날개가 물을 휘저어 물의 온도가 오른다. 추는 한 번 떨어질 때마다 다시 감아 올린다. 장부 막대는 추가 잃은 퍼텐셜 에너지와 물이 얻은 열을 같은 축척으로 보인다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">낙하 0/10번</span><span class="pill" id="hud2">ΔT = 0 K</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider"><label for="nN"><span class="lg">낙하 횟수 </span>N</label><input id="nN" type="range" min="1" max="30" step="1" value="10"><output id="nNOut">10번</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">추·액체·보기</span><span class="sm">조건</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="추와 액체, 보기">
+          <div class="sheet-head"><b>추 · 액체 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="grow"><label class="ctl-label" for="mW"><span>추의 질량 M</span><output id="mWOut">2 kg</output></label><input id="mW" type="range" min="0.5" max="5" step="0.5" value="2"></div>
+            <div class="grow"><label class="ctl-label" for="hH"><span>낙하 높이 h</span><output id="hHOut">2.1 m</output></label><input id="hH" type="range" min="0.5" max="3" step="0.1" value="2.1"></div>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="액체 (비열 J/(kg·K))">
+              <span class="gl">액체</span>
+              <button type="button" class="btn" data-liq="water" aria-pressed="true">물 4200</button>
+              <button type="button" class="btn" data-liq="x" aria-pressed="false">액체 X 2100</button>
+            </div>
+            <div class="grow"><label class="ctl-label" for="mL"><span>액체의 질량 m</span><output id="mLOut">0.5 kg</output></label><input id="mL" type="range" min="0.1" max="2" step="0.1" value="0.5"></div>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="추가 내려오는 방식">
+              <span class="gl">낙하</span>
+              <button type="button" class="btn" data-mode="steady" aria-pressed="true">등속 낙하</button>
+              <button type="button" class="btn" data-mode="accel" aria-pressed="false">가속 낙하</button>
+            </div>
+            <div class="grow" id="vRow"><label class="ctl-label" for="vE"><span>가속 낙하: 바닥 직전 속력 v</span><output id="vEOut">2 m/s</output></label><input id="vE" type="range" min="0.5" max="3" step="0.5" value="2"></div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="step">낙하 1번 ▸</button>
+            <button type="button" class="btn" id="reset">처음부터</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+              <button type="button" class="btn" data-speed="4" aria-pressed="false">×4</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">물의 온도 변화</span><span id="ansCtx">M 2 kg · h 2.1 m · 10번 · 물 0.5 kg</span></div>
+        <div class="big" id="ansBig">ΔT = 0.2 K</div>
+        <div class="sub">
+          <span class="f" id="ansF">등속 낙하: 한 일 전부 = 물이 얻은 열, NMgh = cmΔT 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">W = NMgh = <em>10</em> × <em>2</em> × 10 × <em>2.1</em> = <em>420 J</em></span><span class="v">ΔT = W/(cm) = 420 ÷ (<em>4200</em> × <em>0.5</em>) = <em>0.2 K</em></span><span class="v">kcal 로: Q = 420 ÷ 4200 = 0.1 kcal → ΔT = 0.1 ÷ (1 × 0.5) = <em>0.2 K</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">한 번 낙하의 퍼텐셜 에너지 감소 Mgh</span><b id="mv1">42 J</b></div>
+          <div class="mini"><span id="mn2">액체의 열용량 cm</span><b id="mv2">4200 × 0.5 = 2100 J/K</b></div>
+          <div class="mini"><span id="mn3">기울기 ΔT/W = 1/(cm)</span><b id="mv3">1/2100 K/J</b></div>
+          <div class="mini"><span id="mn4">지금까지</span><b id="mv4">0번 · W = 0 J · ΔT = 0 K</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 에너지 전환 순서">
+          <div class="kind">관찰 1</div>
+          <h3>추의 퍼텐셜 에너지가 날개의 운동 에너지를 거쳐 물의 내부 에너지(열)가 된다</h3>
+          <p>추가 내려가면 줄이 축을 돌리고, 축에 달린 날개가 물을 휘젓는다. 날개와 물의 마찰로 물의 온도가 오른다. 용기가 단열이라 열은 밖으로 새지 않는다. 줄(1843년)은 이렇게 해 준 역학적 일과 물이 얻은 열량이 늘 일정한 비율임을 보여, <b>열이 에너지의 한 형태</b>임을 증명했다.</p>
+          <canvas class="flat" id="gChain" aria-label="에너지 전환 순서: 추의 퍼텐셜 에너지 → 날개의 운동 에너지 → 물의 내부 에너지(열). 추가 내려가는 동안 에너지 점이 화살표를 따라 흐른다. 가속 낙하에서는 일부가 추의 운동 에너지로 남아 바닥에서 사라진다."></canvas>
+          <p class="cap">점이 흐르는 동안만 물이 데워진다. 추를 다시 감아 올리는 동안에는 날개가 멈춘다(무대의 축이 서 있다). 용기 벽의 고정 날개는 물이 통째로 돌지 않고 휘저어지게 한다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">추 떨어뜨리기</button><button type="button" class="btn" data-do="click:#step">낙하 1번 ▸</button></div>
+        </li>
+        <li class="card step" data-step="② ΔT ∝ W">
+          <div class="kind">관찰 2</div>
+          <h3>물의 온도는 한 일에 비례해 오르고, 기울기는 1/(cm) 이다</h3>
+          <p>등속 낙하 한 번의 일은 Mgh 로 늘 같아서, 낙하할 때마다 온도가 같은 만큼씩 오른다. N번이면 <span class="eq">W = NMgh = cmΔT</span>. 그래서 ΔT–W 그래프는 원점을 지나는 직선이고 기울기는 1/(cm)이다.</p>
+          <canvas class="flat" id="gW" aria-label="온도 변화–한 일 그래프. 낙하할 때마다 점이 하나씩 찍히며 원점을 지나는 직선 위에 놓인다. 비열이 작은 액체의 직선이 더 가파르다."></canvas>
+          <p class="cap">질량이 같다면 기울기가 큰(가파른) 액체가 비열이 작다. 횟수·추의 질량·높이를 바꾼 실험끼리는 비례식으로 ΔT 비를 구한다: 낙하 횟수를 2배로 하면 ΔT 2배, 물을 2배로 하면 ΔT 반.</p>
+          <div class="acts"><button type="button" class="btn go" data-do="set:#nN=20">낙하 20번으로</button><button type="button" class="btn" data-do="set:#mL=1">물 1 kg으로</button><button type="button" class="btn" data-try="q2">액체 X (비열 ½)</button></div>
+        </li>
+        <li class="card step" data-step="③ J 와 cal">
+          <div class="kind">관찰 3</div>
+          <h3>같은 열을 J로 재면 kcal로 잰 수의 4200배다</h3>
+          <p>줄은 해 준 일 W 와 발생한 열량 Q 사이에 <span class="eq">W = JQ</span> 가 성립함을 보였다. 열의 일당량 J = 4.2 × 10³ J/kcal, 곧 1 cal ≈ 4.2 J 이다. 비열을 J/(kg·K)로 쓰면 J 없이 W = cmΔT 로 바로 쓴다.</p>
+          <canvas class="flat" id="gU" aria-label="물이 지금까지 얻은 열을 위쪽은 J, 아래쪽은 kcal 눈금으로 함께 잰 막대. 4200 J 가 1 kcal 에 맞는다."></canvas>
+          <p class="cap">물의 비열 4200 J/(kg·K) = 1 kcal/(kg·K). 이미 J 로 맞춘 일과 비열에 4.2 를 한 번 더 곱하거나 나누는 것이 흔한 실수다. 단위부터 확인하자.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="end">10번 다 떨어뜨린 뒤</button></div>
+        </li>
+        <li class="card step" data-step="④ 등속이어야 하는 까닭">
+          <div class="kind">관찰 4</div>
+          <h3>추가 가속하면, 남은 운동 에너지만큼은 열이 되지 않는다</h3>
+          <p>‘한 일 전부 = 열’이 되려면 추가 일정한 속력으로 내려와야 한다. 추가 가속하면 퍼텐셜 에너지 감소의 일부가 추의 운동 에너지로 남고, 그 에너지는 바닥에 부딪힐 때 사라져 물의 열이 되지 않는다(가속하는 만큼 줄의 장력이 Mg 보다 작아 날개에 하는 일이 적다).</p>
+          <canvas class="flat" id="gK" aria-label="낙하 한 번의 장부. 퍼텐셜 에너지 감소 Mgh 가 등속 낙하에서는 모두 물로 가고, 가속 낙하에서는 물로 가는 일과 추의 운동 에너지로 나뉜다."></canvas>
+          <p class="cap">등속 낙하에서는 운동 에너지가 변하지 않으므로(ΔE<sub>k</sub> = 0) Mgh 가 모두 날개에 한 일이 된다. 등속이어도 추의 역학적 에너지는 보존되지 않는다. 줄어든 만큼이 열이다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="q3">가속 낙하로</button><button type="button" class="btn" data-do="click:[data-mode=steady]">등속 낙하로</button></div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>한 일 전부 = 액체가 얻은 열</h3>
+          <ul>
+            <li>에너지 전환: 추의 퍼텐셜 에너지 → 날개의 운동 에너지 → 물의 내부 에너지(열). 일과 열은 같은 에너지다: <span class="eq">W = JQ</span>, J = 4.2 × 10³ J/kcal (1 cal ≈ 4.2 J).</li>
+            <li>시험의 등식 하나: <span class="eq">NMgh = cmΔT</span> (비열이 J/(kg·K)일 때). 당기는 힘이면 <span class="eq">Fs = cmΔT</span>, 일정한 속력 v 로 시간 t 동안이면 W = Fvt, 힘이 변하면 F–x 그래프 넓이.</li>
+            <li>ΔT–W 그래프는 원점을 지나는 직선, 기울기 1/(Jcm). 질량이 같으면 가파른 쪽이 비열이 작다.</li>
+            <li>자주 하는 실수: 추가 가속했는데 mgh 전부를 열로 본다(운동 에너지 증가분은 빼야 한다). cal 와 J 를 섞어 4.2 를 한 번 더 곱하거나 나눈다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>질량 2 kg인 추를 높이 2.1 m에서 일정한 속력으로 10번 낙하시켜 물 0.5 kg(비열 4200 J/(kg·K))이 든 단열 용기 속 날개를 돌렸다. 물의 온도 상승은? (g = 10 m/s²)</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="end">10번 끝난 뒤</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>추가 한 일 W = NMgh = 10 × 2 × 10 × 2.1 = 420 J. 등속 낙하이므로 420 J 전부가 물의 열이 된다. ΔT = W/(cm) = 420 ÷ (4200 × 0.5) = <b>0.2 K</b> (0.2 °C). kcal 로 확인하면 Q = 420 ÷ 4200 = 0.1 kcal, ΔT = 0.1 ÷ (1 × 0.5) = 0.2 K 로 같다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>단열 용기 속 물 0.5 kg을 휘젓는 날개의 줄을 일정한 힘 50 N으로 당겨, 줄이 모두 42 m 풀려 나가게 했다. 해 준 일이 모두 물의 열이 될 때 물의 온도 상승은? (물의 비열 4200 J/(kg·K))</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1">무게 50 N 추로 42 m (2.1 m × 20번)</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>1 K</b>. 손이 한 일 W = Fs = 50 × 42 = 2100 J 이 모두 물의 내부 에너지가 된다. ΔT = 2100 ÷ (4200 × 0.5) = 1 K. 무게 50 N(5 kg)인 추가 등속으로 2.1 m씩 20번, 모두 42 m 내려가며 줄을 50 N 으로 당긴 것과 같다. 약 0.24 K 나 4.2 K 는 이미 J 로 맞춘 값에 4.2 를 한 번 더 나누거나 곱한 실수다.</p></details>
+          </div>
+          <div class="q">
+            <h3>질량이 같은 두 액체 A, B에 각각 일 W를 해 주며 온도 변화 ΔT를 쟀더니, ΔT–W 그래프가 모두 원점을 지나는 직선이고 A의 기울기가 B의 2배였다. A와 B의 비열의 비는? (열 손실 없음)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q2">액체 X 와 물 견주기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>1 : 2</b>. W = cmΔT 이므로 기울기 ΔT/W = 1/(cm). 질량이 같으면 기울기는 비열에 반비례하므로, 기울기가 2배인 A의 비열은 B의 ½이다. 관찰 2의 그래프에서 액체 X(2100)의 직선이 물(4200)보다 2배 가파르다. 2 : 1 은 기울기가 비열에 비례한다고 본 실수다.</p></details>
+          </div>
+          <div class="q">
+            <h3>5 kg인 추를 2.2 m에서 21번 떨어뜨려 물 0.5 kg을 휘저었는데, 추가 등속이 아니어서 매번 바닥 직전 2 m/s의 속력을 가졌다(이 운동 에너지는 바닥 충돌로 사라진다). 물의 온도 상승은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q3">가속 낙하 21번</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>1 K</b>. 한 번에 잃은 퍼텐셜 에너지는 5 × 10 × 2.2 = 110 J, 그중 ½ × 5 × 2² = 10 J 은 추의 운동 에너지로 남았다가 사라지므로 날개를 거쳐 물로 가는 일은 100 J. 21번이면 2100 J, ΔT = 2100 ÷ (4200 × 0.5) = 1 K. 등속이었다면 2310 J 로 1.1 K 가 올랐을 것이다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../09/" rel="prev"><small>← 이전 개념 · A2-09</small><b>열역학 제1법칙</b></a><span></span></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="A2-10-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A2_10, LIQ = M.LIQ;
+  const {$, C, text, rich, arrow, fmt} = Lab;
+  const CYC = 2.2, DOWN = 0.75, T0 = 20;                 // 한 번 낙하(내려옴 0.75 + 감아올림 0.25)에 걸리는 화면 시간(s), 처음 물 온도(°C, 가정)
+  const EX = {N: 10, Mw: 2, h: 2.1, liq: 'water', m: 0.5, mode: 'steady', v: 2};
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = Object.assign({tau: 0, clock: 0, playing: !Lab.reduceMotion, speed: 1}, EX);
+  const cL = () => LIQ[S.liq].c, Cm = () => cL() * S.m;
+  const acc = () => S.mode === 'accel';
+  const peDrop = () => S.Mw * M.G * S.h;
+  const kDrop = () => (acc() ? 0.5 * S.Mw * S.v * S.v : 0);
+  const qDrop = () => M.heatPerDrop(S.Mw, S.h, acc() ? S.v : 0);
+  const tEnd = () => S.N - 1 + DOWN;
+  const dTfin = () => M.dTof(S.N * qDrop(), cL(), S.m);
+  const isEx = () => !acc() && S.N === EX.N && S.Mw === EX.Mw && Math.abs(S.h - EX.h) < 1e-9 && S.liq === EX.liq && Math.abs(S.m - EX.m) < 1e-9;
+  function state(tau = S.tau) {
+    const te = tEnd(); tau = Math.max(0, Math.min(te, tau));
+    let n = Math.floor(tau + 1e-9), f = tau - n;
+    if (tau >= te - 1e-9) { n = S.N - 1; f = DOWN; }
+    const desc = f <= DOWN + 1e-9, p = desc ? Math.min(1, f / DOWN) : 1, d = M.dropAt(S.Mw, S.h, p, S.mode, S.v);
+    const landed = !desc || p >= 1 - 1e-9;
+    return {n, p, desc, lift: desc ? 0 : (f - DOWN) / (1 - DOWN), d: d.d, v: d.v || 0, done: n + (landed ? 1 : 0),
+      pe: n * peDrop() + d.pe, q: n * qDrop() + d.q, kLost: n * kDrop() + (landed ? d.k : 0), kNow: landed ? 0 : d.k,
+      dist: n * S.h + d.d, end: tau >= te - 1e-9};
+  }
+  const dTnow = (s) => M.dTof(s.q, cL(), S.m);
+
+  // ── 숫자 ────────────────────────────────────────────────
+  const nice = (x) => { const e = Math.pow(10, Math.floor(Math.log10(x))), f = x / e; return (f <= 1 + 1e-9 ? 1 : f <= 2 + 1e-9 ? 2 : f <= 2.5 + 1e-9 ? 2.5 : f <= 5 + 1e-9 ? 5 : 10) * e; };   // 1·2·2.5·5 × 10ⁿ 으로 올림
+  const dTs = (v) => fmt(v, v < 1 ? 3 : 2);
+  function num(v, d = 0) { const s = fmt(v, d), [i, f] = s.split('.'); return (i.length > 4 ? i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : i) + (f ? '.' + f : ''); }
+
+  // ── 무대 기하 ───────────────────────────────────────────
+  function geo(W, H) {
+    const nar = W < 520;
+    if (nar) {
+      const yS = 118, r = 10, box = {x: 8, y: 166, w: 168, h: H - 10 - 166}, pX = 238, floor = H - 46, wh = 28, ww = 32;
+      return {nar, W, H, yS, r, box, wall: 8, axX: 78, pX, wX: pX + r, floor, wh, ww, hMax: floor - (yS + r + 18) - wh, thX: box.x + box.w - 30, lx0: 0, lx1: 0};
+    }
+    const yS = Math.max(84, Math.min(108, H * 0.2)), r = 14, lx1 = W - 16, lx0 = W - Math.min(180, W * 0.235);
+    const box = {x: 22, y: Math.max(yS + 70, H * 0.4), w: Math.min(270, W * 0.35), h: 0}; box.h = H - 34 - box.y;
+    const pX = Math.min(lx0 - 90, box.x + box.w + 150), floor = H - 30, wh = 40, ww = 44;
+    return {nar, W, H, yS, r, box, wall: 11, axX: box.x + box.w * 0.42, pX, wX: pX + r, floor, wh, ww, hMax: floor - (yS + r + 26) - wh, thX: box.x + box.w - 44, lx0, lx1};
+  }
+  const hPx = (g) => g.hMax * S.h / 3;
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function hatch(ctx, x, y, w, h) {
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    ctx.fillStyle = Lab.alpha(C.muted, 0.14); ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = Lab.alpha(C.muted, 0.42); ctx.lineWidth = 1; ctx.beginPath();
+    for (let k = -h; k < w + h; k += 7) { ctx.moveTo(x + k, y + h); ctx.lineTo(x + k + h, y); }
+    ctx.stroke(); ctx.restore();
+  }
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    const g = geo(W, H), s = state();
+    drawVessel(ctx, g, s);
+    drawRope(ctx, g, s);
+    if (g.nar) drawLedgerNar(ctx, g, s); else drawLedger(ctx, g, s);
+  }
+  function drawVessel(ctx, g, s) {
+    const B = g.box, t = g.wall, ix = B.x + t, iw = B.w - 2 * t, iy = B.y + t, ih = B.h - 2 * t;
+    // 단열 용기 (빗금 벽) + 물
+    hatch(ctx, B.x, B.y, B.w, B.h);
+    const wy = iy + (g.nar ? 8 : 12);
+    ctx.save(); ctx.fillStyle = C.paper; ctx.fillRect(ix, iy, iw, ih); ctx.fillStyle = Lab.alpha(C.vel, 0.13 + 0.12 * Math.min(1, dTnow(s) / Math.max(1e-9, dTfin()))); ctx.fillRect(ix, wy, iw, iy + ih - wy); ctx.restore();
+    Lab.line(ctx, [[ix, wy], [ix + iw, wy]], Lab.alpha(C.vel, 0.6), 1.4);
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.strokeRect(B.x, B.y, B.w, B.h); ctx.lineWidth = 1.2; ctx.strokeRect(ix, iy, iw, ih); ctx.restore();
+    // 날개: 축에 달린 네 날을 옆에서 본 모습 (회전각 φ = 풀린 줄 길이 / 축 반지름)
+    const ax = g.axX, phi = s.dist / S.h * hPx(g) / (g.r * 0.9), L = Math.min(ax - ix - 8, ix + iw - ax - 8) * 0.86, bh = g.nar ? 7 : 9;
+    const levels = g.nar ? [0.42, 0.74] : [0.38, 0.72], stir = s.desc && !s.end && S.playing && s.p < 1;
+    Lab.line(ctx, [[ax, g.yS], [ax, iy + ih - 10]], C.ink, g.nar ? 3 : 4);
+    for (const lv of levels) {
+      const y = wy + (iy + ih - wy) * lv;
+      // 벽의 고정 날개
+      for (const [x0, w] of [[ix, iw * 0.12], [ix + iw - iw * 0.12, iw * 0.12]]) { ctx.save(); ctx.fillStyle = C.muted; ctx.fillRect(x0, y + (g.nar ? 13 : 18), w, bh - 2); ctx.restore(); }
+      const blades = [0, 1, 2, 3].map((k) => { const a = phi + k * Math.PI / 2; return {x: L * Math.cos(a), z: Math.sin(a)}; }).sort((a, b) => a.z - b.z);
+      for (const b of blades) {
+        const x0 = Math.min(ax, ax + b.x), w = Math.abs(b.x);
+        ctx.save(); ctx.fillStyle = b.z > 0 ? C.muted : Lab.alpha(C.muted, 0.45); ctx.fillRect(x0, y - bh / 2, w, bh); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.strokeRect(x0, y - bh / 2, w, bh); ctx.restore();
+      }
+      if (stir) for (const sd of [-1, 1]) {                 // 휘저어지는 물
+        const ph = (S.clock * 2.2 + (sd > 0 ? 0.5 : 0)) % 1, cx = ax + sd * L * 0.62, rr = g.nar ? 9 : 13;
+        ctx.save(); ctx.strokeStyle = Lab.alpha(C.vel, 0.55); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(cx, y, rr, ph * 6.28, ph * 6.28 + 3.6); ctx.stroke(); ctx.restore();
+      }
+    }
+    if (!g.nar) text(ctx, '날개', ax - L - 4, wy + (iy + ih - wy) * levels[0] - 16, {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
+    text(ctx, LIQ[S.liq].name + ' ' + fmt(S.m, 1) + ' kg', ix + 8, iy + ih - 12, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
+    if (!g.nar) text(ctx, '단열 용기: 열이 밖으로 새지 않는다', B.x, B.y + B.h + 16, {size: 13, w: 500, color: C.muted, align: 'left'});
+    drawThermo(ctx, g, s, iy, ih);
+  }
+  function drawThermo(ctx, g, s, iy, ih) {                // 확대 눈금 온도계 (20 °C 부터)
+    const x = g.thX, yT = g.yS + (g.nar ? 26 : 34), yB = iy + ih - (g.nar ? 26 : 34), w = g.nar ? 9 : 11;
+    const span = nice(Math.max(1e-6, dTfin()) * 1.12), Y = (dT) => yB - (yB - yT) * Math.min(1, dT / span), dT = dTnow(s);
+    ctx.save(); Lab.rrect(ctx, x - w / 2, yT - 6, w, yB - yT + 10, w / 2); ctx.fillStyle = C.paper; ctx.fill(); ctx.strokeStyle = C.force; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.fillStyle = C.force; ctx.fillRect(x - 2.5, Y(dT), 5, yB + 2 - Y(dT)); ctx.restore();
+    Lab.circle(ctx, x, yB + 8, g.nar ? 7 : 9, {fill: C.force});
+    for (const [v, lab] of [[0, fmt(T0, 0)], [span, fmt(T0 + span, span < 1 ? 2 : 1)]]) {
+      Lab.line(ctx, [[x - w / 2 - 5, Y(v)], [x - w / 2, Y(v)]], C.muted, 1.2);
+      if (!g.nar) text(ctx, lab, x - w / 2 - 8, Y(v), {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+    }
+    const tv = fmt(T0 + dT, span < 0.5 ? 3 : 2) + ' °C';
+    text(ctx, tv, x + w / 2 + 6, yT - 12, {size: g.nar ? 13 : 14, w: 600, color: C.force, align: 'left', halo: true});
+    if (!g.nar) text(ctx, '온도계 (확대 눈금)', x + w / 2 + 6, yT + 8, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
+  }
+  function drawRope(ctx, g, s) {
+    const hp = hPx(g), r = g.r, yTop = g.floor - g.wh - hp;      // 추의 윗면: 처음 자리
+    const frac = s.desc ? s.d / S.h : s.lift;                     // 떨어진 비율 / 감아 올린 비율
+    const y = s.desc ? yTop + hp * frac : g.floor - g.wh - hp * frac;
+    // 축 꼭대기 원통(줄이 감김)과 도르래, 줄
+    Lab.circle(ctx, g.axX, g.yS, r, {fill: C.paper, stroke: C.ink, width: 2});
+    Lab.circle(ctx, g.pX, g.yS, r, {fill: C.paper, stroke: C.ink, width: 2});
+    Lab.circle(ctx, g.pX, g.yS, 3, {fill: C.ink});
+    Lab.line(ctx, [[g.pX, g.yS], [g.pX + r * 0.4, g.yS - r - 10], [g.pX + r * 0.9, g.yS - r - 10]], C.muted, 2);
+    Lab.line(ctx, [[g.axX, g.yS - r], [g.pX, g.yS - r]], C.ink, 1.6);
+    Lab.line(ctx, [[g.wX, g.yS], [g.wX, y]], C.ink, 1.6);
+    // 바닥과 높이 h
+    const fx0 = g.wX - g.ww, fx1 = g.wX + g.ww;
+    Lab.line(ctx, [[fx0, g.floor], [fx1, g.floor]], C.ink, 2);
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.1; ctx.beginPath(); for (let x = fx0 + 4; x < fx1; x += 8) { ctx.moveTo(x, g.floor + 1); ctx.lineTo(x - 6, g.floor + 8); } ctx.stroke(); ctx.restore();
+    const bx = g.wX - g.ww / 2 - (g.nar ? 12 : 18);
+    Lab.vbracket(ctx, bx, yTop + g.wh, g.floor, C.copper, g.nar ? 'h' : 'h = ' + fmt(S.h, 1) + ' m', false);
+    // 추
+    ctx.save(); Lab.rrect(ctx, g.wX - g.ww / 2, y, g.ww, g.wh, 5); ctx.fillStyle = C.copper; ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
+    text(ctx, 'M', g.wX, y + g.wh / 2, {size: g.nar ? 14 : 16, w: 700, color: C['on-copper']});
+    if (!g.nar) text(ctx, fmt(S.Mw, 1) + ' kg', g.wX + g.ww / 2 + 8, y + 10, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    // 속도 화살표
+    if (s.desc && !s.end && s.p < 1 && S.playing) {
+      const L = acc() ? 8 + 26 * s.p : 22, x = g.wX + g.ww / 2 + (g.nar ? 8 : 12), y0 = y + g.wh + 4;
+      arrow(ctx, x, y0 - 2, x, y0 + L, C.vel, 3, 9);
+      if (!g.nar) text(ctx, acc() ? '빨라진다' : '일정한 속력', x + 8, y0 + L / 2 + 8, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
+    } else if (!s.desc) text(ctx, g.nar ? '감아 올림' : '다시 감아 올림 · 날개 멈춤', g.wX, y - 14, {size: 13, w: 600, color: C.muted, halo: true});
+    // 가속 낙하: 바닥에 닿는 순간
+    if (acc() && s.desc && s.p >= 1 - 1e-9 && !s.end) text(ctx, '쿵', g.wX, g.floor + 16, {size: 13, w: 600, color: C.vel});
+  }
+  // 장부 (넓은 화면, 세로 막대): 추가 잃은 퍼텐셜 에너지 = 물이 얻은 열 (+ 추의 운동 에너지)
+  function drawLedger(ctx, g, s) {
+    const x0 = g.lx0, x1 = g.lx1, av = x1 - x0;
+    if (av < 140) return;
+    const bw = Math.min(44, av * 0.26), xa = x0 + av * 0.1, xb = x0 + av * 0.6, yT = g.yS + 40, yB = g.H - 86;
+    const top = Math.max(1e-9, S.N * peDrop()), Y = (v) => yB - (yB - yT) * v / top;
+    text(ctx, '에너지 장부 (J)', (x0 + x1) / 2, g.yS - 22, {size: 13, w: 600, color: C.muted});
+    const box = (x, a, b, col, dash) => { ctx.save(); if (dash) { ctx.setLineDash([4, 3]); ctx.strokeStyle = Lab.alpha(col, 0.6); ctx.lineWidth = 1.2; ctx.strokeRect(x, Y(b), bw, Y(a) - Y(b)); } else { ctx.fillStyle = col; ctx.fillRect(x, Y(b), bw, Y(a) - Y(b)); } ctx.restore(); };
+    box(xa, 0, S.N * peDrop(), C.violet, true); box(xb, 0, S.N * qDrop(), C.energy, true);
+    box(xa, 0, s.pe, C.violet);
+    box(xb, 0, s.q, C.energy);
+    if (acc()) { box(xb, s.q, s.q + s.kLost, Lab.alpha(C.vel, 0.45)); box(xb, s.q + s.kLost, s.q + s.kLost + s.kNow, C.vel); }
+    Lab.line(ctx, [[xa - 6, yB], [xb + bw + 6, yB]], C.ink, 1.4);
+    Lab.line(ctx, [[xa, Y(s.pe)], [xb + bw + 4, Y(s.pe)]], Lab.alpha(C.violet, 0.9), 1.3, [5, 3]);
+    text(ctx, num(s.pe), xa + bw / 2, Y(s.pe) - 11, {size: 13, w: 600, color: C.violet, halo: true});
+    const kAll = s.kLost + s.kNow;
+    if (acc() && kAll > 0) rich(ctx, 'E_k ' + num(kAll), xb + bw / 2, Y(s.q + kAll) - 11, {size: 13, w: 600, color: C.vel, halo: true});   // 추의 운동 에너지 (열이 되지 않음)
+    if (Y(0) - Y(s.q) > 24) text(ctx, num(s.q), xb + bw / 2, yB - 12, {size: 13, w: 600, color: C['on-copper']});
+    else if (!(acc() && kAll > 0)) text(ctx, num(s.q), xb + bw / 2, Y(s.q) - 11, {size: 13, w: 600, color: C.energy, halo: true});
+    const lab = (x, l1, l2, col) => { text(ctx, l1, x + bw / 2, yB + 16, {size: 13, w: 600, color: col}); text(ctx, l2, x + bw / 2, yB + 33, {size: 13, w: 500, color: C.muted}); };
+    lab(xa, '추가 잃은', '퍼텐셜', C.violet);
+    lab(xb, '물이 얻은', '열', C.energy);
+  }
+  function drawLedgerNar(ctx, g, s) {                      // 폰: 위쪽 가로 막대 두 줄
+    const x0 = 86, Lm = g.W - x0 - 62, top = Math.max(1e-9, S.N * peDrop()), X = (v) => x0 + Lm * v / top;
+    const row = (y, l1, a, b, col, val) => {
+      text(ctx, l1, 6, y, {size: 13, w: 600, color: col, align: 'left'});
+      ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(x0, y - 6, Lm, 12); ctx.fillStyle = col; ctx.fillRect(x0, y - 6, X(b) - x0, 12); ctx.restore();
+      void a;
+      text(ctx, val, x0 + Lm + 6, y, {size: 13, w: 600, color: col, align: 'left'});
+    };
+    row(64, '추의 퍼텐셜↓', 0, s.pe, C.violet, num(s.pe) + ' J');
+    row(88, '물이 얻은 열', 0, s.q, C.energy, num(s.q) + ' J');
+    if (acc() && s.kLost + s.kNow > 0) { ctx.save(); ctx.fillStyle = Lab.alpha(C.vel, 0.55); ctx.fillRect(X(s.q), 82, X(s.q + s.kLost + s.kNow) - X(s.q), 12); ctx.restore(); }
+  }
+
+  // ── 관찰 1: 에너지 전환 순서 ────────────────────────────
+  const gChain = Lab.canvas('gChain', drawChain);
+  function drawChain() {
+    const {ctx, W, H} = gChain; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const s = state(), col = W < 420, flowing = s.desc && !s.end && s.p < 1 && S.playing;
+    const B = [];
+    if (!col) { const bw = W * 0.27, bh = Math.min(76, H * 0.44), y = 12; [0.03, 0.365, 0.7].forEach((fx) => B.push({x: W * fx, y, w: bw, h: bh})); }
+    else { const bw = W * 0.62, bh = H * 0.19, bx = acc() ? 8 : (W - bw) / 2; [0.02, 0.36, 0.7].forEach((fy) => B.push({x: bx, y: H * fy, w: bw, h: bh})); }
+    const info = [[C.violet, '추의 퍼텐셜 에너지', 'Mgh = ' + num(peDrop()) + ' J (한 번)'], [C.vel, '날개의 운동 에너지', '물을 휘젓는다'], [C.energy, '물의 내부 에너지', '열 Q = cmΔT']];
+    B.forEach((b, i) => {
+      ctx.save(); Lab.rrect(ctx, b.x, b.y, b.w, b.h, 10); ctx.fillStyle = Lab.alpha(info[i][0], 0.13); ctx.fill(); ctx.strokeStyle = info[i][0]; ctx.lineWidth = 1.6; ctx.stroke(); ctx.restore();
+      text(ctx, info[i][1], b.x + b.w / 2, b.y + b.h * 0.36, {size: 13, w: 600, color: info[i][0]});
+      text(ctx, info[i][2], b.x + b.w / 2, b.y + b.h * 0.7, {size: 13, w: 500, color: C.ink});
+    });
+    const link = (a, b) => (col ? [[a.x + a.w / 2, a.y + a.h + 2], [b.x + b.w / 2, b.y - 2]] : [[a.x + a.w + 2, a.y + a.h / 2], [b.x - 2, b.y + b.h / 2]]);
+    const L1 = link(B[0], B[1]), L2 = link(B[1], B[2]);
+    for (const L of [L1, L2]) arrow(ctx, L[0][0], L[0][1], L[1][0], L[1][1], C.muted, 2, 9);
+    // 가속 낙하: 추의 운동 에너지 → 바닥
+    let L3 = null;
+    if (acc()) {
+      const k = col ? {x: W * 0.68, y: H * 0.02, w: W * 0.3 - 6, h: H * 0.32} : {x: W * 0.03, y: H - Math.min(56, H * 0.36) - 6, w: W * 0.5, h: Math.min(56, H * 0.36)};
+      ctx.save(); Lab.rrect(ctx, k.x, k.y, k.w, k.h, 10); ctx.fillStyle = Lab.alpha(C.muted, 0.1); ctx.fill(); ctx.setLineDash([5, 3]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
+      text(ctx, '추의 운동 에너지 ½Mv²', k.x + k.w / 2, k.y + k.h * (col ? 0.3 : 0.34), {size: 13, w: 600, color: C.vel});
+      text(ctx, col ? '바닥에서 사라짐' : num(kDrop()) + ' J: 바닥에서 사라짐 (열 X)', k.x + k.w / 2, k.y + k.h * (col ? 0.68 : 0.72), {size: 13, w: 500, color: C.muted});
+      L3 = col ? [[B[0].x + B[0].w + 2, B[0].y + B[0].h / 2], [k.x - 2, k.y + k.h / 2]] : [[B[0].x + B[0].w / 2, B[0].y + B[0].h + 2], [k.x + k.w / 2, k.y - 2]];
+      arrow(ctx, L3[0][0], L3[0][1], L3[1][0], L3[1][1], C.muted, 2, 9);
+    }
+    // 흐르는 에너지 점
+    if (flowing || !S.playing) {
+      const kShare = acc() ? kDrop() / peDrop() : 0, n = 5;
+      for (let i = 0; i < n; i++) {
+        const ph = ((S.clock * 0.9 + i / n) % 1);
+        if (!flowing) continue;
+        const toK = L3 && (i % Math.max(2, Math.round(1 / Math.max(kShare, 0.01))) === 0) && kShare > 0.02;
+        let P;
+        if (toK) P = [L3[0][0] + (L3[1][0] - L3[0][0]) * ph, L3[0][1] + (L3[1][1] - L3[0][1]) * ph];
+        else { const L = ph < 0.5 ? L1 : L2, q = (ph % 0.5) * 2; P = [L[0][0] + (L[1][0] - L[0][0]) * q, L[0][1] + (L[1][1] - L[0][1]) * q]; }
+        Lab.circle(ctx, P[0], P[1], 4.5, {fill: toK ? C.vel : ph < 0.5 ? C.violet : C.energy});
+      }
+    }
+    const tail = '지금까지 ' + num(s.pe) + ' J → 물 ' + num(s.q) + ' J' + (acc() ? ' (사라짐 ' + num(s.kLost + s.kNow) + ' J)' : '');
+    text(ctx, tail, col ? (acc() ? 8 : W / 2) : W - 6, col ? H * 0.95 : H - 12, {size: 13, w: 600, color: C.energy, align: col ? (acc() ? 'left' : 'center') : 'right'});
+  }
+
+  // ── 관찰 2: ΔT–W ────────────────────────────────────────
+  const gW = Lab.canvas('gW', drawW);
+  function drawW() {
+    const {ctx, W, H} = gW; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, s = state(), Wf = S.N * qDrop(), other = S.liq === 'water' ? 'x' : 'water';
+    const xm = nice(Math.max(1, Wf) * 1.08), ym = nice(Math.max(M.dTof(xm, LIQ.x.c, S.m), 1e-6) * 1.0);
+    const r = {x: 46, y: 28, w: W - 46 - (nar ? 18 : 24), h: H - 28 - 50};
+    const xt = [xm / 2, xm], yt = [ym / 2, ym];
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: xm, ymin: 0, ymax: ym, xticks: xt, yticks: yt, fmtX: (v) => num(v), fmtY: (v) => fmt(v, 3), grid: true, xlabel: '한 일 W (J)', xlabelBelow: true, ylabel: '온도 변화 ΔT (K)'});
+    const line = (key, w, dash, a) => { const c = LIQ[key].c, xe = Math.min(xm, ym * c * S.m); Lab.line(ctx, [[ax.X(0), ax.Y(0)], [ax.X(xe), ax.Y(M.dTof(xe, c, S.m))]], Lab.alpha(key === 'water' ? C.vel : C.force, a), w, dash); return xe; };
+    const xo = line(other, 2, [6, 4], 0.55), xc = line(S.liq, 3, null, 1);
+    const lab = (key, xe, cur) => { const c = LIQ[key].c, y = ax.Y(M.dTof(xe, c, S.m)); text(ctx, LIQ[key].name + ' (c ' + c + ')', ax.X(xe) - 6, y + (key === 'x' ? 14 : -12), {size: 13, w: cur ? 600 : 500, color: key === 'water' ? C.vel : C.force, align: 'right', halo: true}); };
+    lab(other, xo, false); lab(S.liq, xc, true);
+    // 낙하마다 찍힌 점
+    for (let k = 1; k <= s.done; k++) { const w = k * qDrop(); Lab.circle(ctx, ax.X(w), ax.Y(M.dTof(w, cL(), S.m)), 4.2, {fill: C.copper}); }
+    const wq = s.q, dT = dTnow(s);
+    Lab.line(ctx, [[ax.X(wq), ax.y0], [ax.X(wq), ax.Y(dT)], [ax.X(0), ax.Y(dT)]], Lab.alpha(C.copper, 0.7), 1.2, [4, 4]);
+    Lab.circle(ctx, ax.X(wq), ax.Y(dT), 6.5, {fill: C.copper, stroke: C.paper, width: 2});
+    text(ctx, (nar ? '기울기 ' : '기울기 1/(cm) = ') + '1/' + num(Cm()) + ' K/J', r.x + r.w - 4, ax.y0 - 14, {size: 13, w: 600, color: S.liq === 'water' ? C.vel : C.force, align: 'right', halo: true});
+  }
+
+  // ── 관찰 3: J ↔ kcal ────────────────────────────────────
+  const gU = Lab.canvas('gU', drawU);
+  function drawU() {
+    const {ctx, W, H} = gU; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, s = state(), Wf = S.N * qDrop(), span = nice(Math.max(1, Wf) * 1.05), x0 = 50, x1 = W - 24, X = (v) => x0 + (x1 - x0) * v / span, yb = H * 0.5;
+    text(ctx, 'J', 22, yb - 20, {size: 14, w: 600, color: C.energy});
+    text(ctx, 'kcal', 22, yb + 22, {size: 13, w: 600, color: C.muted});
+    ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(x0, yb - 9, x1 - x0, 18); ctx.fillStyle = C.energy; ctx.fillRect(x0, yb - 9, X(s.q) - x0, 18); ctx.restore();
+    const ticks = (step, max, f, y, up) => {
+      for (let v = 0; v <= max + 1e-9; v += step) {
+        const x = X(f(v)); Lab.line(ctx, [[x, up ? yb - 13 : yb + 9], [x, up ? yb - 9 : yb + 13]], C.muted, 1.2);
+        text(ctx, up ? num(v) : fmt(v, 3), x, y, {size: 13, w: 500, color: C.muted, align: v === 0 ? 'left' : x > x1 - 12 ? 'right' : 'center'});
+      }
+    };
+    ticks(nice(span / (nar ? 3 : 5)), span, (v) => v, yb - 24, true);                       // J
+    const ks = span / M.JQ; ticks(nice(ks / (nar ? 2.5 : 4)), ks, (v) => v * M.JQ, yb + 25, false);   // kcal (같은 길이에 4200 J = 1 kcal)
+    const cal = M.toKcal(s.q) * 1000;
+    text(ctx, '지금 물이 얻은 열 Q = ' + num(s.q) + ' J = ' + fmt(cal, cal < 10 ? 1 : 0) + ' cal = ' + fmt(M.toKcal(s.q), 4) + ' kcal', x0 - 28, H - 10, {size: 13, w: 600, color: C.energy, align: 'left'});
+    text(ctx, '4200 J = 1 kcal · 1 cal ≈ 4.2 J', x1, 12, {size: 13, w: 600, color: C.ink, align: 'right'});
+  }
+
+  // ── 관찰 4: 낙하 한 번의 장부 (등속 / 가속) ─────────────
+  const gK = Lab.canvas('gK', drawK);
+  function drawK() {
+    const {ctx, W, H} = gK; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, pe = peDrop(), kk = 0.5 * S.Mw * S.v * S.v, x0 = nar ? 74 : 92, x1 = W - (nar ? 12 : 18), X = (v) => x0 + (x1 - x0) * v / pe;
+    const rows = [['steady', '등속 낙하', 0], ['accel', '가속 낙하', kk]];
+    text(ctx, 'Mgh = ' + num(pe) + ' J (한 번)', x1, 12, {size: 13, w: 600, color: C.violet, align: 'right'});
+    rows.forEach(([mode, name, k], i) => {
+      const y = H * (i ? 0.72 : 0.4), on = S.mode === mode, bh = nar ? 16 : 20;
+      if (on) { ctx.save(); Lab.rrect(ctx, 2, y - bh / 2 - 7, W - 4, bh + 14, 8); ctx.fillStyle = C['copper-soft']; ctx.fill(); ctx.restore(); }
+      text(ctx, name, 8, y, {size: 13, w: on ? 600 : 500, align: 'left'});
+      ctx.save(); ctx.fillStyle = C.energy; ctx.fillRect(x0, y - bh / 2, X(pe - k) - x0, bh); ctx.fillStyle = C.vel; ctx.fillRect(X(pe - k), y - bh / 2, X(pe) - X(pe - k), bh);
+      ctx.strokeStyle = C.violet; ctx.lineWidth = 1.6; ctx.strokeRect(x0, y - bh / 2, x1 - x0, bh); ctx.restore();
+      const t1 = '물로 ' + num(pe - k) + ' J', t2 = k > 0 ? '운동 에너지 ' + num(k) + ' J' : '';
+      text(ctx, t1, x0 + 6, y, {size: 13, w: 600, color: C['on-copper'], align: 'left'});
+      if (t2) text(ctx, t2, x1 - 4, y + bh / 2 + 10, {size: 13, w: 600, color: C.vel, align: 'right', halo: true});
+    });
+  }
+
+  // ── 수치 (지금 값) ──────────────────────────────────────
+  let ansKey = '';
+  function ans(big, lines, o) { const k = [big, o.tone, o.lab, o.ctx, o.f].concat(lines).join('|'); if (k === ansKey) return; ansKey = k; Lab.ans(big, lines, o); }
+  const setMini = (i, name, val) => { const a = $('mn' + i), b = $('mv' + i); if (a.innerHTML !== name) a.innerHTML = name; if (b.textContent !== val) b.textContent = val; };
+  const pill = (el, s, cls) => { if (el.textContent !== s) el.textContent = s; const c = 'pill' + (cls ? ' ' + cls : ''); if (el.className !== c) el.className = c; };
+  function live() {
+    const s = state(), dT = dTnow(s);
+    pill($('hud1'), s.end ? '낙하 ' + S.N + '번 끝' : '낙하 ' + s.done + '/' + S.N + '번' + (s.desc ? '' : ' · 감아 올림'), s.end ? 'up' : '');
+    pill($('hud2'), 'ΔT = ' + dTs(dT) + ' K');
+    setMini(4, '지금까지', s.done + '번 · W = ' + num(s.q) + ' J · ΔT = ' + dTs(dT) + ' K');
+  }
+  function readouts() {
+    $('nNOut').textContent = S.N + '번'; $('mWOut').textContent = fmt(S.Mw, 1) + ' kg'; $('hHOut').textContent = fmt(S.h, 1) + ' m';
+    $('mLOut').textContent = fmt(S.m, 1) + ' kg'; $('vEOut').textContent = fmt(S.v, 1) + ' m/s';
+    $('vRow').hidden = !acc();
+    const c = cL(), ck = M.cKcal(c), W = S.N * qDrop(), dT = M.dTof(W, c, S.m), liq = LIQ[S.liq].name;
+    const ctx = 'M ' + fmt(S.Mw, 1) + ' kg · h ' + fmt(S.h, 1) + ' m · ' + S.N + '번 · ' + liq + ' ' + fmt(S.m, 1) + ' kg';
+    if (!acc()) {
+      ans('ΔT = ' + dTs(dT) + ' K', [
+        'W = NMgh = <em>' + S.N + '</em> × <em>' + fmt(S.Mw, 1) + '</em> × 10 × <em>' + fmt(S.h, 1) + '</em> = <em>' + num(W, 1) + ' J</em>',
+        'ΔT = W/(cm) = ' + num(W, 1) + ' ÷ (<em>' + c + '</em> × <em>' + fmt(S.m, 1) + '</em>) = <em>' + dTs(dT) + ' K</em>',
+        'kcal 로: Q = ' + num(W, 1) + ' ÷ 4200 = ' + fmt(M.toKcal(W), 4) + ' kcal → ΔT = ' + fmt(M.toKcal(W), 4) + ' ÷ (' + fmt(ck, 2) + ' × ' + fmt(S.m, 1) + ') = <em>' + dTs(dT) + ' K</em>',
+      ], {tone: '', lab: liq + '의 온도 변화', ctx, f: '등속 낙하: 한 일 전부 = 액체가 얻은 열, NMgh = cmΔT 에 지금 값을 넣으면'});
+    } else {
+      const pe = peDrop(), k = kDrop(), q = qDrop(), dT0 = M.dTof(S.N * pe, c, S.m);
+      ans('ΔT = ' + dTs(dT) + ' K', [
+        '한 번에 Mgh − ½Mv² = ' + num(pe, 1) + ' − ½ × ' + fmt(S.Mw, 1) + ' × ' + fmt(S.v, 1) + '² = ' + num(pe, 1) + ' − ' + num(k, 1) + ' = <em>' + num(q, 1) + ' J</em>',
+        'W = ' + S.N + ' × ' + num(q, 1) + ' = <em>' + num(W, 1) + ' J</em> → ΔT = ' + num(W, 1) + ' ÷ (' + c + ' × ' + fmt(S.m, 1) + ') = <em>' + dTs(dT) + ' K</em>',
+        '등속이었다면 NMgh = ' + num(S.N * pe, 1) + ' J → ' + dTs(dT0) + ' K (운동 에너지 ' + num(S.N * k, 1) + ' J 는 열이 되지 않았다)',
+      ], {tone: 'neg', lab: liq + '의 온도 변화 (가속 낙하)', ctx: ctx + ' · v ' + fmt(S.v, 1) + ' m/s', f: '가속 낙하: 액체로 가는 일 = N(Mgh − ½Mv²) = cmΔT 에 지금 값을 넣으면'});
+    }
+    setMini(1, '한 번 낙하의 퍼텐셜 에너지 감소 Mgh', fmt(S.Mw, 1) + ' × 10 × ' + fmt(S.h, 1) + ' = ' + num(peDrop(), 1) + ' J');
+    setMini(2, '액체의 열용량 cm', c + ' × ' + fmt(S.m, 1) + ' = ' + num(Cm(), 1) + ' J/K');
+    setMini(3, '기울기 ΔT/W = 1/(cm)', '1/' + num(Cm(), 1) + ' ≈ ' + Lab.sci(1 / Cm(), 2, {force: true}) + ' K/J');
+    live();
+    Lab.check('exCheck', isEx(), '개념서 예제 (2 kg, 2.1 m, 등속 10번, 물 0.5 kg) → W = 420 J, ΔT = 0.2 K',
+      '예제: 2 kg 추를 2.1 m 에서 등속으로 10번, 물 0.5 kg 의 온도 상승은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  const seen = (v) => { if (!v.W) return false; const r = v.el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  function drawAll() { drawStage(); drawChain(); drawW(); drawU(); drawK(); }
+  function refresh() { S.tau = Math.min(S.tau, tEnd()); readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; if (on && S.tau >= tEnd() - 1e-9) S.tau = 0; refresh(); });
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, String(S.speed));
+  const liqG = Lab.group('[data-liq]', 'liq', (v) => { S.liq = v; refresh(); }, S.liq);
+  const modeG = Lab.group('[data-mode]', 'mode', (v) => { S.mode = v; refresh(); }, S.mode);
+  const EL = {N: $('nN'), Mw: $('mW'), h: $('hH'), m: $('mL'), v: $('vE')};
+  for (const k of Object.keys(EL)) EL[k].addEventListener('input', () => { S[k] = +EL[k].value; refresh(); });
+  $('step').addEventListener('click', () => {               // 다음 낙하가 끝난 순간으로
+    playCtl.set(false);
+    const s = state(), te = tEnd();
+    S.tau = s.end ? DOWN : Math.min(te, (s.desc && s.p < 1 ? s.n : s.n + 1) + DOWN);
+    S.clock += 0.4; refresh();
+  });
+  $('reset').addEventListener('click', () => { S.tau = 0; playCtl.set(true); refresh(); });
+  function sync() {
+    for (const k of Object.keys(EL)) EL[k].value = S[k];
+    liqG.set(S.liq, true); modeG.set(S.mode, true);
+  }
+  function setup(o, tau, play) {
+    Object.assign(S, EX, o || {});
+    sync(); S.tau = tau === 'last' ? Math.max(0, tEnd() - DOWN) : tau === 'end' ? tEnd() : 0;
+    playCtl.set(play !== false);
+  }
+  const TRY = {
+    ex: () => setup(null, 0),
+    end: () => setup(null, 'end', false),
+    q1: () => setup({N: 20, Mw: 5, h: 2.1}, 'last'),
+    q2: () => setup({liq: 'x'}, 'last'),
+    q3: () => setup({N: 21, Mw: 5, h: 2.2, mode: 'accel', v: 2}, 'last'),
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing) return;
+    const d = dt * S.speed;
+    S.clock += d;
+    const te = tEnd();
+    if (S.tau < te) { S.tau = Math.min(te, S.tau + d / CYC); if (S.tau >= te) { live(); } }
+    drawStage();
+    if (seen(gChain)) drawChain(); if (seen(gW)) drawW(); if (seen(gU)) drawU();
+    roT += dt; if (roT > 0.1) { roT = 0; live(); }
+  });
+  void speedG;
+  readouts();
+})();
+</script>
+</body>
+</html>

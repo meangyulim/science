@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>마찰 구간 문제의 에너지 장부</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(양쪽 곡면 사이 바닥의 마찰 구간을 왕복하는 물체 + 에너지 장부 막대 / 등속 빗면 구간 / 외력 F 와 견주기) | 오른쪽 지금 값 + 관찰 ①~④(궤도와 E–위치, 힘마다 한 일–지나온 길, 펼친 길, 손실 단위) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.4;cursor:grab}
+#gEx{aspect-ratio:10/7.4}
+#gW{aspect-ratio:10/6.2}
+#gS{aspect-ratio:10/5.6}
+#gU{aspect-ratio:10/5}
+@media (max-width:640px){ #gEx{aspect-ratio:10/9} #gW{aspect-ratio:10/8.4} #gS{aspect-ratio:10/7.4} #gU{aspect-ratio:10/10.8} }
+.tbl{width:100%;border-collapse:collapse;margin-top:8px;font-size:14.5px;color:var(--ink-2)}
+.tbl th,.tbl td{padding:4px 6px;border-bottom:1px solid var(--line-soft);text-align:center;white-space:nowrap}
+.tbl th{font-size:13px;font-weight:600;color:var(--muted)}
+.tbl th:first-child,.tbl td:first-child{text-align:left;white-space:normal}
+.tbl .mi{color:var(--neg);font-weight:600}
+.tbl .pl{color:var(--acc);font-weight:600}
+.tbl small{display:block;font-size:12px;font-weight:400;color:var(--muted);line-height:1.3}
+@media (max-width:640px){ .tbl{font-size:14px} .tbl th,.tbl td{padding:4px 3px} }
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A2 일과 에너지·열: 개념 10개 가운데 4번째"><a class="uname" href="../">A2 일과 에너지·열</a><span class="dots"><a href="../01/" title="A2-01 일과 F-s 그래프" aria-label="A2-01 일과 F-s 그래프"></a><a href="../02/" title="A2-02 일·운동 에너지 정리" aria-label="A2-02 일·운동 에너지 정리"></a><a href="../03/" title="A2-03 보존력과 비보존력" aria-label="A2-03 보존력과 비보존력"></a><a class="cur" href="./" aria-current="page" title="A2-04 마찰 구간 에너지 장부" aria-label="A2-04 마찰 구간 에너지 장부 (지금)"></a><a href="../05/" title="A2-05 포물선 운동의 에너지" aria-label="A2-05 포물선 운동의 에너지"></a><a href="../06/" title="A2-06 단진자의 에너지" aria-label="A2-06 단진자의 에너지"></a><a href="../07/" title="A2-07 일-에너지와 운동학" aria-label="A2-07 일-에너지와 운동학"></a><a href="../08/" title="A2-08 열평형" aria-label="A2-08 열평형"></a><a href="../09/" title="A2-09 열역학 제1법칙" aria-label="A2-09 열역학 제1법칙"></a><a href="../10/" title="A2-10 열의 일당량" aria-label="A2-10 열의 일당량"></a></span></nav>
+  <div class="pn"><a href="../03/" rel="prev" title="이전 개념: A2-03 보존력과 비보존력">‹ <span>03 보존력과 비보존력</span></a><a href="../05/" rel="next" title="다음 개념: A2-05 포물선 운동의 에너지"><span>05 포물선 운동의 에너지</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A2-04</span><span>물리학 Ⅱ · 일과 에너지·열</span></div>
+    <h1>마찰 구간 문제의 에너지 장부</h1>
+    <p class="question"><i>Q</i>마찰 구간이 여러 개이거나 왕복하는 문제를 미지수 두세 개로 끝내려면?</p>
+  </div>
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="양쪽이 마찰 없는 곡면이고 바닥 가운데에 마찰 구간이 있는 궤도. 높이 h에서 놓은 물체(구리색)가 마찰 구간을 지날 때마다 역학적 에너지 일부가 열로 바뀌어 반대쪽 곡면을 점점 낮게 오르다 마찰 구간에서 멈춘다. 오른쪽 위 막대는 퍼텐셜 에너지 U, 운동 에너지 K, 열 Q의 장부다. 왼쪽 곡면을 끌면 처음 높이가 바뀐다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">곡면: K ↔ U</span><span class="pill" id="hud2">구간에서 간 거리 0 m</span><span class="pill" id="hud3">느린 화면 ×0.5</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider"><label for="f"><span class="lg">마찰력 </span>f</label><input id="f" type="range" min="0.5" max="10" step="0.5" value="2"><output id="fOut">2 N</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·조건</span><span class="sm">장면</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 조건">
+          <div class="sheet-head"><b>장면 · 조건 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="bowl" aria-pressed="true">왕복 (예제)</button>
+              <button type="button" class="btn" data-scene="slope" aria-pressed="false">등속 빗면 + 바닥</button>
+              <button type="button" class="btn" data-scene="force" aria-pressed="false">외력 F 와 견주기</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="grow" id="rowH">
+              <label class="ctl-label" for="h">처음 높이 h <output id="hOut">1 m</output></label>
+              <input id="h" type="range" min="0.2" max="1.5" step="0.05" value="1">
+            </div>
+            <div class="grow" id="rowL">
+              <label class="ctl-label" for="L"><span id="Lname">마찰 구간 길이 L</span><output id="LOut">2 m</output></label>
+              <input id="L" type="range" min="0.5" max="3" step="0.1" value="2">
+            </div>
+            <div class="grow" id="rowV" hidden>
+              <label class="ctl-label" for="v0">처음 속력 v₀ <output id="v0Out">4 m/s</output></label>
+              <input id="v0" type="range" min="1" max="6" step="0.5" value="4">
+            </div>
+            <div class="grow" id="rowF" hidden>
+              <label class="ctl-label" for="F">외력 F (왼쪽으로 고정) <output id="FOut">3 N</output></label>
+              <input id="F" type="range" min="0.5" max="8" step="0.5" value="3">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="m">질량 m <output id="mOut">1 kg</output></label>
+              <input id="m" type="range" min="0.5" max="3" step="0.5" value="1">
+            </div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="restart">↺ 처음부터</button>
+            <button type="button" class="btn" id="step">다음 장면 ▸</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×0.25</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="true">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="false">×1</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cArrow" checked>속도·힘 화살표</label>
+            <label class="chk"><input type="checkbox" id="cMark" checked>올라간 높이 표시</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">멈추는 곳</span><span id="ansCtx">m = 1 kg · h = 1 m · L = 2 m · f = 2 N</span></div>
+        <div class="big" id="ansBig">왼쪽 끝에서 1 m (가운데)</div>
+        <div class="sub">
+          <span class="f" id="ansF">처음 E = 마찰력 × 총 이동 거리 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">처음 E = mgh = 1 × 10 × <em>1</em> = <em>10 J</em>, 한 번 지날 때 fL = 2 × 2 = 4 J</span><span class="v">총 이동 거리 s = 10 ÷ <em>2</em> = <em>5 m</em></span><span class="v">5 m = 2 + 2 + 1 → <em>3회째</em>(왼 → 오)에 1 m 가서 멈춤</span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">지금 역학적 에너지 E = K + U</span><b id="mv1">10 J</b></div>
+          <div class="mini"><span id="mn2">지금까지 생긴 열 Q</span><b id="mv2">0 J</b></div>
+          <div class="mini"><span id="mn3">1번 지난 뒤 오른쪽 높이</span><b id="mv3">0.6 m</b></div>
+          <div class="mini"><span id="mn4">2번 지난 뒤 왼쪽 높이</span><b id="mv4">0.2 m</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 마찰 구간에서만 준다">
+          <div class="kind">관찰 1</div>
+          <h3>역학적 에너지는 마찰 구간에서만, 지난 길이에 비례해 줄어든다</h3>
+          <p>마찰 없는 곡면에서는 K 와 U 가 서로 바뀔 뿐 합 E 는 그대로다. 마찰 구간에 들어서는 순간부터 E 가 지난 거리에 비례해 직선으로 줄고, 줄어든 만큼 열이 된다. 마찰력이 일정하면 한 번 지날 때의 감소량은 <span class="eq">fL</span> 로 구간 길이에만 비례한다.</p>
+          <canvas class="flat" id="gEx" aria-label="위: 궤도의 옆모습과 물체의 자리. 아래: 위치에 따른 역학적 에너지. 곡면에서는 수평선이고 마찰 구간을 지날 때마다 직선으로 4 J씩 떨어진다."></canvas>
+          <p class="cap">오른쪽 위 장부 막대에서 빨간 열 칸이 커지는 것은 물체가 빗금 친 구간에 있을 때뿐이다. 그래서 오른쪽 곡면은 h − fL/mg = 0.6 m, 왼쪽은 0.2 m 로 낮아진다. 처음 높이는 무대의 왼쪽 곡면을 끌어 바꿀 수 있다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="one">한 번 지나가기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=bowl]; set:#L=1.5">구간 길이 1.5 m</button>
+            <button type="button" class="btn" data-do="click:#step">다음 장면 ▸</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 왕복해도 두 번 다 −">
+          <div class="kind">관찰 2</div>
+          <h3>마찰력은 돌아서면 같이 돌아서서, 갈 때도 올 때도 −fs 다</h3>
+          <p>무대의 빨간 화살표(마찰력)는 물체가 방향을 바꾸면 함께 방향을 바꿔 늘 운동 반대쪽을 향한다. 그래서 일은 매번 음수이고 열은 쌓이기만 한다. 반면 <b>방향이 고정된 힘</b>(외력 F, 중력)은 갈 때와 올 때 부호가 바뀌어 왕복하면 0 이다.</p>
+          <canvas class="flat" id="gW" aria-label="지나온 길에 따른 힘마다 한 일의 누적값. 마찰력이 한 일은 계단처럼 줄기만 하고, 방향이 고정된 힘이 한 일은 갔다가 되돌아오면 처음 값으로 돌아온다. 둘의 합이 운동 에너지 변화다."></canvas>
+          <p class="cap">가로축은 지나온 길(왕복하면 계속 늘어난다). 곡면의 중력은 내려갈 때 +, 오를 때 − 라서 같은 높이로 돌아오면 0 이 되고, 외력 F 장면의 F 도 마찬가지다. 두 일의 합이 그때의 운동 에너지 K(주황)다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="force">외력 F 와 견주기</button>
+            <button type="button" class="btn" data-try="back">되돌아올 때 멈춰 보기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 총 이동 거리로 세기">
+          <div class="kind">관찰 3</div>
+          <h3>처음 에너지 = 마찰력 × 총 이동 거리 → 몇 번 지나는지 센다</h3>
+          <p>왕복한 길을 한 줄로 펴 보면 역학적 에너지는 마찰 구간에서 간 거리에 대해 기울기 −f 인 직선 하나다. 0 이 되는 곳이 멈추는 곳이므로 <span class="eq">s = mgh ÷ f</span> 를 구간 길이로 나누면 몇 번째 통과에서 어디까지 가는지 바로 나온다.</p>
+          <canvas class="flat" id="gS" aria-label="마찰 구간에서 간 거리에 따른 역학적 에너지는 기울기 −f인 직선이다. 아래 띠는 같은 거리를 통과 순서대로 펼친 것으로 2 m, 2 m, 1 m로 나뉜다."></canvas>
+          <p class="cap">예제: 10 J ÷ 2 N = 5 m = 2 m(1회 →) + 2 m(2회 ←) + 1 m(3회 →). 세 번째 통과에서 왼쪽 끝으로부터 1 m, 곧 구간 가운데에서 멈춘다. 마찰력이나 높이를 바꿔 띠가 어떻게 나뉘는지 보자.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">멈출 때까지 보기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=bowl]; set:#f=3">f = 3 N</button>
+            <button type="button" class="btn" data-do="click:[data-scene=bowl]; set:#h=1.5">h = 1.5 m</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 등속 구간이 단위">
+          <div class="kind">관찰 4</div>
+          <h3>등속 구간의 손실은 mgΔh — 이것을 단위로 다른 구간은 길이 비로</h3>
+          <p>빗면 구간 A 를 등속으로 내려오면 운동 에너지가 그대로이므로 줄어든 퍼텐셜 에너지 mgΔh 가 모두 열이 된다. 이 손실 W 가 단위다. 같은 크기의 마찰력이 작용하는 다른 구간은 손실이 길이에 비례하므로 <span class="eq">W × (길이 비)</span> 로 바로 쓴다.</p>
+          <canvas class="flat" id="gU" aria-label="빗면 구간 A를 등속으로 내려올 때 마찰력과 중력의 빗면 성분이 같고 손실은 mgΔh다. 바닥 구간 B의 손실은 길이 비만큼이다."></canvas>
+          <p class="cap">무대의 장부 막대를 보면 빗면 구간 A 에서는 K 칸이 그대로이고 U 칸이 줄어든 만큼 열 칸이 는다. 길이 1.5 m 인 바닥 구간 B 는 1.5W = 3 J 이고, 그래서 오른쪽 곡면을 (10 − 2 − 3) J ÷ 10 N = 0.5 m 까지 오른다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="slope">등속 빗면 장면</button>
+            <button type="button" class="btn" data-try="slopeA">빗면 구간에서 멈춰 보기</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>처음 에너지 = 나중 에너지 + 마찰력 × 총 이동 거리</h3>
+          <ul>
+            <li><span class="eq">E처음 = E나중 + f s총</span>. 역학적 에너지는 마찰 구간에서만, 지난 거리에 비례해 준다.</li>
+            <li>한 구간 손실을 W 로 두고 다른 구간은 길이의 배수로 쓴다. W 는 등속 구간(<span class="eq">fl = mgΔh</span>)이나 오른 높이 차로 정한다.</li>
+            <li>정지 위치는 ‘처음 에너지 = 정지점의 퍼텐셜 + 누적 손실’, 곧 총 이동 거리를 구간 길이로 나눠 센다.</li>
+            <li>자주 하는 실수: 마찰 구간을 되돌아올 때는 손실이 없다고 보거나, 방향 고정 외력의 일을 되돌아올 때도 같은 부호로 센다.</li>
+          </ul>
+          <table class="tbl">
+            <thead><tr><th>일</th><th>갈 때</th><th>올 때</th><th>왕복 합</th></tr></thead>
+            <tbody>
+              <tr><td>마찰력 f</td><td class="mi">−fs</td><td class="mi">−fs</td><td class="mi">−2fs</td></tr>
+              <tr><td>방향 고정 외력 F</td><td class="pl">+Fs</td><td class="mi">−Fs</td><td>0</td></tr>
+              <tr><td>중력 (높이차 h)</td><td class="mi">−mgh<small>오를 때</small></td><td class="pl">+mgh<small>내릴 때</small></td><td>0</td></tr>
+            </tbody>
+          </table>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>질량 1 kg인 물체를 높이 1 m에서 놓았다. 양쪽이 마찰 없는 곡면이고 바닥 중앙에 길이 2 m, 마찰력 2 N인 구간이 있다. 물체가 멈추는 위치는? (g = 10 m/s²)</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>처음 역학적 에너지는 mgh = 10 J 이고, 마찰 구간을 한 번 다 지날 때마다 2 × 2 = 4 J 씩 잃는다. 마찰 구간에서 움직일 수 있는 총거리는 10 J ÷ 2 N = 5 m = 2 m(1회: 왼 → 오) + 2 m(2회: 오 → 왼) + 1 m(3회: 왼 → 오)다. 그래서 세 번째 통과 중 <b>마찰 구간 왼쪽 끝에서 1 m(구간 중앙)</b>에서 멈춘다. 그 사이 오른쪽 곡면은 0.6 m, 왼쪽 곡면은 0.2 m 까지 오른다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>마찰 없는 두 곡면 사이 바닥에 길이 1 m인 마찰 구간이 있다. 왼쪽 곡면의 높이 0.8 m에서 2 kg인 물체를 놓았더니 마찰 구간을 한 번 지난 뒤 오른쪽 곡면을 0.5 m까지 올라갔다. 마찰력의 크기는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1">0.8 m → 0.5 m 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>6 N</b>. 곡면은 마찰이 없으므로 역학적 에너지는 마찰 구간에서만 준다. 감소량 mg(0.8 − 0.5) = 2 × 10 × 0.3 = 6 J 가 마찰력 × 1 m 이므로 마찰력은 6 N 이다. 16 N 은 처음 퍼텐셜 에너지 전체를 한 번에 잃는다고 본 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>방향이 고정된 일정한 외력 F를 받으며 마찰 구간(마찰력 f)을 거리 s만큼 갔다가 같은 길을 s만큼 되돌아왔다. 왕복하는 동안 F와 마찰력이 한 일의 합은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q2">외력 F 장면 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>−2fs</b>. 방향이 고정된 F 는 갈 때와 올 때 부호가 반대라 왕복 합이 0 이다. 마찰력은 운동 방향이 바뀌면 함께 바뀌어 갈 때도 올 때도 −fs 다. 2Fs − 2fs 는 F 의 일을 되돌아올 때도 같은 부호로 센 실수다. 무대에서 F 칸은 0 으로 돌아오고 마찰력 칸만 두 배가 된다.</p></details>
+          </div>
+          <div class="q">
+            <h3>2 kg인 물체를 왼쪽 곡면 1.25 m에서 놓았다. 바닥의 마찰 구간 AB(1.6 m, A가 왼쪽)를 처음 지난 뒤 오른쪽을 0.45 m까지 올라갔다. 마찰력의 크기, 처음 B를 지날 때의 속력, 멈추는 위치는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q3">멈출 때까지 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>한 번 통과 손실 mg(1.25 − 0.45) = 16 J = f × 1.6 m 이므로 <b>f = 10 N</b>. 처음 B 를 지날 때 역학적 에너지는 mg × 0.45 = 9 J 이고 바닥에서는 모두 운동 에너지라 v = 3 m/s. 총 이동 거리 25 J ÷ 10 N = 2.5 m = 1.6 m + 0.9 m 이므로 두 번째 통과(B → A) 중 B 에서 0.9 m, 곧 A 에서 0.7 m 인 곳에서 멈춘다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../03/" rel="prev"><small>← 이전 개념 · A2-03</small><b>보존력과 비보존력</b></a><a href="../05/" rel="next"><small>다음 개념 · A2-05 →</small><b>포물선 운동의 에너지</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+<script src="../../kit/lab.js"></script>
+<script src="A2-04-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A2_04;
+  const {$, C, text, arrow, fmt} = Lab;
+  const G = M.G;
+
+  // ── 상태 ────────────────────────────────────────────────
+  const EX = {m: 1, h: 1, L: 2, f: 2};
+  const HA = 0.2, LA = 1;            // 등속 빗면 구간 A: 높이차 0.2 m, 길이 1 m (sinθ = 0.2)
+  const S = {scene: 'bowl', m: 1, h: 1, L: 2, LB: 1.5, f: 2, v0: 4, F: 3, t: 0, playing: !Lab.reduceMotion, speed: 0.5, hold: 0,
+    arrows: true, marks: true, pauseAt: null, drag: false};
+  let sim = null, ss = [], track = null;
+  const isF = () => S.scene === 'force';
+  const fNow = () => (S.scene === 'slope' ? M.constFriction(S.m, HA / LA) : S.f);
+  const hMin = () => (S.scene === 'slope' ? HA + 0.1 : 0.2);
+  function build() {
+    if (isF()) { track = null; sim = M.simulateForce(S.m, S.v0, S.F, S.f); }
+    else {
+      S.h = Math.max(hMin(), S.h);
+      track = S.scene === 'bowl' ? M.bowl(S.L) : M.slopeTrack(S.LB, LA, HA);
+      sim = M.simulate(track, S.m, S.h, fNow());
+    }
+    ss = M.samples(sim, Math.max(1 / 60, sim.tEnd / 2400));
+    S.t = Math.min(S.t, sim.tEnd);
+  }
+  const now = () => M.stateAt(sim, S.t);
+  const J = (v) => fmt(v, 2) + ' J';
+  const zoneDisp = (z) => (z === '마찰 구간' ? '' : z);
+  // 시각 t 까지 구간마다 생긴 열
+  function heatByZone(t) {
+    const out = {};
+    for (const L of sim.legs) {
+      if (!L.rough || L.t0 > t) continue;
+      const d = t >= L.t1 ? L.len : L.at(t - L.t0).d;
+      out[L.zone] = (out[L.zone] || 0) + sim.f * d;
+    }
+    return out;
+  }
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  function hatch(ctx, poly, col, gap = 6, al = 0.75) {          // 다각형 안 빗금
+    ctx.save(); ctx.beginPath(); poly.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath(); ctx.clip();
+    const xs = poly.map((p) => p[0]), ys = poly.map((p) => p[1]);
+    const y0 = Math.min(...ys), y1 = Math.max(...ys), x0 = Math.min(...xs) - (y1 - y0) - 8, x1 = Math.max(...xs) + 8;
+    ctx.strokeStyle = col; ctx.globalAlpha = al; ctx.lineWidth = 1.3; ctx.beginPath();
+    for (let x = x0; x < x1; x += gap) { ctx.moveTo(x, y1); ctx.lineTo(x + (y1 - y0), y0); }
+    ctx.stroke(); ctx.restore();
+  }
+  function fillPoly(ctx, poly, col) { ctx.save(); ctx.beginPath(); poly.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath(); ctx.fillStyle = col; ctx.fill(); ctx.restore(); }
+  function block(ctx, P, ang, w, h) {                            // P = 바닥에 닿은 가운데, ang = 면의 기울기(화면)
+    ctx.save(); ctx.translate(P[0], P[1]); ctx.rotate(ang);
+    Lab.rrect(ctx, -w / 2, -h, w, h, 4); ctx.fillStyle = C.copper; ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = C.paper; ctx.stroke();
+    ctx.restore();
+  }
+  function heatWisps(ctx, x, y, a) {                              // 마찰 면에서 피어오르는 열
+    ctx.save(); ctx.strokeStyle = C.neg; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) {
+      const ph = S.t * 9 + i * 2.1, xx = x + (i - 1) * 8, h = 14 + 4 * Math.sin(ph * 0.7);
+      ctx.globalAlpha = a * (0.45 + 0.35 * Math.sin(ph));
+      ctx.beginPath();
+      for (let k = 0; k <= 8; k++) { const yy = y - 4 - k / 8 * h, dx = 2.6 * Math.sin(ph + k * 0.9); k ? ctx.lineTo(xx + dx, yy) : ctx.moveTo(xx + dx, yy); }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  const seen = (v) => { if (!v.W) return false; const r = v.el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  // 이름표 겹침 피하기: [y, …] → 최소 간격 gap 으로 벌린 y
+  function spread(ys, gap, lo, hi) {
+    const idx = ys.map((y, i) => [y, i]).sort((a, b) => a[0] - b[0]), out = ys.slice();
+    let prev = -Infinity;
+    for (const [y, i] of idx) { const v = Math.max(y, prev + gap); out[i] = v; prev = v; }
+    const over = prev - hi;
+    if (over > 0) for (const [, i] of idx) out[i] -= over;
+    return out.map((y) => Math.max(lo, y));
+  }
+
+  // ── 무대 기하 ───────────────────────────────────────────
+  function geoT(W, H) {                                          // 곡면 궤도 (왕복·등속 빗면)
+    const nar = W < 520, short = !nar && H < 380, tr = track, xs = tr.x1 - tr.x0, panel = short ? 184 : 0;
+    const padX = nar ? 10 : 22, gy = H - (nar ? 64 : 66);
+    const room = gy - (nar ? 200 : short ? 40 : Math.max(118, H * 0.4));
+    const s = Math.max(16, Math.min((W - 2 * padX - panel) / xs, room / tr.top));
+    const ox = (W - panel - xs * s) / 2 - tr.x0 * s;
+    return {nar, short, cmp: nar || s < 85, s, gy, X: (x) => ox + x * s, Y: (y) => gy - y * s, W, H};
+  }
+  function geoF(W, H) {                                          // 평면 왕복 (외력 F)
+    const nar = W < 520, short = !nar && H < 380, x0 = -0.9, x1 = Math.max(1.6, sim.s) + 1.1, pad = nar ? 12 : 26, panel = short ? 200 : 0;
+    const s = (W - 2 * pad - panel) / (x1 - x0), gy = H - (nar ? 72 : short ? 84 : 96);
+    return {nar, short, s, gy, X: (x) => pad + (x - x0) * s, Y: (y) => gy - y * s, W, H, x0, x1};
+  }
+  function trackPts(g, n = 60) {
+    const xs = [];
+    for (const sg of track.segs) {
+      if (sg.kind === 'curve') for (let i = 0; i <= n; i++) xs.push(sg.x0 + (sg.x1 - sg.x0) * i / n);
+      else xs.push(sg.x0, sg.x1);
+    }
+    return xs.map((x) => [g.X(x), g.Y(M.yAt(track, x))]);
+  }
+  function zonePoly(g, z, th) {                                  // 마찰 구간 면 아래 띠
+    if (z.kind === 'rough') return [[g.X(z.x0), g.gy], [g.X(z.x1), g.gy], [g.X(z.x1), g.gy + th], [g.X(z.x0), g.gy + th]];
+    const A = [g.X(z.x0), g.Y(z.yTop)], B = [g.X(z.x1), g.Y(0)], L = Math.hypot(B[0] - A[0], B[1] - A[1]);
+    const n = [-(B[1] - A[1]) / L * th, (B[0] - A[0]) / L * th];
+    return [A, B, [B[0] + n[0], B[1] + n[1]], [A[0] + n[0], A[1] + n[1]]];
+  }
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W || !sim) return;
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (isF()) drawForceScene(ctx, W, H); else drawTrackScene(ctx, W, H);
+  }
+
+  function drawTrackScene(ctx, W, H) {
+    const g = geoT(W, H), st = now(), tr = track, nar = g.nar, f = sim.f;
+    const pts = trackPts(g);
+    fillPoly(ctx, [[pts[0][0], H + 2]].concat(pts, [[pts[pts.length - 1][0], H + 2]]), C['line-soft']);
+    // 마찰 구간: 거친 면(빗금) + 지금까지 생긴 열만큼 붉게
+    const heat = heatByZone(S.t);
+    for (const z of tr.zones) {
+      const q = heat[z.name] || 0, k = Math.min(1, q / Math.max(1e-9, sim.E0) * 1.6);
+      const poly = zonePoly(g, z, nar ? 7 : 9);
+      fillPoly(ctx, poly, Lab.alpha(C.neg, 0.1 + 0.45 * k));
+      hatch(ctx, poly, C.force, 6, 0.8);
+      if (k > 0.01) {                                            // 면 위로 번지는 열기
+        const P0 = poly[0], P1 = poly[1], up = nar ? 12 : 18;
+        const gr = ctx.createLinearGradient(0, Math.min(P0[1], P1[1]) - up, 0, Math.max(P0[1], P1[1]));
+        gr.addColorStop(0, Lab.alpha(C.neg, 0)); gr.addColorStop(1, Lab.alpha(C.neg, 0.22 * k));
+        fillPoly(ctx, [[P0[0], P0[1] - up], [P1[0], P1[1] - up], P1, P0], gr);
+      }
+    }
+    Lab.line(ctx, pts, C.ink, 2.6);
+    zoneLabels(ctx, g, f);
+    if (S.marks) heightMarks(ctx, g, st);
+    // 물체
+    const ang = Math.atan(-M.slopeAt(tr, st.x)), bw = nar ? 22 : 34, bh = nar ? 16 : 25;
+    const P = [g.X(st.x), g.Y(st.y)], tx = Math.cos(ang), ty = Math.sin(ang), nx = Math.sin(ang), ny = -Math.cos(ang);
+    const Cc = [P[0] + nx * bh / 2, P[1] + ny * bh / 2];
+    const moving = st.v > 0.02 && !st.done;
+    if (st.inZone && moving) heatWisps(ctx, P[0] - st.sgn * tx * bw * 0.35, P[1], 1);
+    block(ctx, P, ang, bw, bh);
+    if (S.arrows && moving) {
+      const k = nar ? 10 : 16, L = Math.min(st.v * k, nar ? 56 : 96), onA = st.inZone && st.zone === 'A' && st.sgn > 0;
+      const V0 = onA ? [Cc[0] + nx * bh * 0.42, Cc[1] + ny * bh * 0.42] : Cc;
+      arrow(ctx, V0[0], V0[1], V0[0] + st.sgn * tx * L, V0[1] + st.sgn * ty * L, C.vel, 3, 10);
+      text(ctx, 'v', V0[0] + st.sgn * tx * (L + 11) + nx * 4, V0[1] + st.sgn * ty * (L + 11) + ny * 4, {size: 14, w: 600, color: C.vel, halo: true});
+      if (st.inZone) {
+        const Lf = Math.max(nar ? 14 : 20, Math.min(f * (nar ? 5 : 8), nar ? 44 : 70));
+        const F0 = [P[0] + nx * 3, P[1] + ny * 3];
+        arrow(ctx, F0[0], F0[1], F0[0] - st.sgn * tx * Lf, F0[1] - st.sgn * ty * Lf, C.force, 3, 9);
+        text(ctx, g.cmp ? 'f' : '마찰력 f', F0[0] - st.sgn * tx * (Lf + 6) + nx * 13, F0[1] - st.sgn * ty * (Lf + 6) + ny * 13, {size: 13, w: 600, color: C.force, halo: true, align: st.sgn > 0 ? 'right' : 'left'});
+        if (st.zone === 'A' && st.sgn > 0) {                     // 등속: 중력의 빗면 성분 = 마찰력
+          const G0 = [Cc[0] - nx * bh * 0.12, Cc[1] - ny * bh * 0.12];
+          arrow(ctx, G0[0], G0[1], G0[0] + tx * Lf, G0[1] + ty * Lf, C.violet, 3, 9);
+          if (!g.cmp) text(ctx, 'mg sinθ', G0[0] + tx * (Lf + 6) - nx * 12, G0[1] + ty * (Lf + 6) - ny * 12, {size: 13, w: 600, color: C.violet, halo: true, align: 'left'});
+        }
+      }
+    }
+    if (st.t < 0.02 && !nar && !S.drag) text(ctx, '끌기', Math.max(26, P[0] + 4), P[1] - bh - 22, {size: 13, w: 600, color: C.copper, halo: true});
+    if (st.done) {
+      const sp = sim.stop, msg = tr.scene === 'bowl' ? '멈춤 · ' + sp.pass + '회째, 왼쪽 끝에서 ' + fmt(sp.fromLeft, 2) + ' m' : '멈춤 · 빗면 위 높이 ' + fmt(sp.y, 2) + ' m';
+      Lab.tag(ctx, nar ? msg.replace('멈춤 · ', '') : msg, Math.min(W - 90, Math.max(90, P[0])), P[1] - (nar ? 34 : 46), {size: nar ? 13 : 14, w: 700, color: C.acc, border: C.acc});
+    }
+    ledgerTrack(ctx, g, st);
+  }
+  function zoneLabels(ctx, g, f) {
+    const nar = g.cmp, tr = track;
+    if (tr.scene === 'bowl') {
+      const z = tr.zones[0], xm = g.X((z.x0 + z.x1) / 2), y = g.gy + (nar ? 19 : 24);
+      text(ctx, (nar ? '' : '마찰 구간 ') + 'L = ' + fmt(tr.L, 2) + ' m · f = ' + fmt(f, 2) + ' N', xm, y, {size: nar ? 13 : 14, w: 600, color: C.force});
+      for (const x of [z.x0, z.x1]) Lab.line(ctx, [[g.X(x), g.gy + 10], [g.X(x), y - 9]], C.force, 1.2);
+    } else {
+      const A = tr.zones[0], B = tr.zones[1];
+      const am = [g.X((A.x0 + A.x1) / 2), g.Y(A.yTop / 2)];
+      text(ctx, nar ? 'A' : '구간 A (빗면 1 m)', am[0] + (nar ? 4 : 0), am[1] + (nar ? 22 : 34), {size: 13, w: 600, color: C.force, halo: true, align: nar ? 'center' : 'left'});
+      const bm = g.X((B.x0 + B.x1) / 2), y = g.gy + (nar ? 19 : 24);
+      text(ctx, (nar ? 'B ' : '구간 B ') + fmt(tr.LB, 2) + ' m · f = ' + fmt(f, 2) + ' N', bm, y, {size: nar ? 13 : 14, w: 600, color: C.force});
+      for (const x of [B.x0, B.x1]) Lab.line(ctx, [[g.X(x), g.gy + 10], [g.X(x), y - 9]], C.force, 1.2);
+      // 빗면의 높이차
+      Lab.vbracket(ctx, g.X(A.x0) - 10, g.Y(A.yTop), g.Y(0), C.copper, '');
+      text(ctx, (nar ? '' : 'Δh = ') + fmt(A.yTop, 2) + ' m', g.X(A.x0) - 18, g.Y(A.yTop / 2), {size: 13, w: 600, color: C.copper, align: 'right', halo: true});
+    }
+  }
+  function heightMarks(ctx, g, st) {
+    const tr = track, nar = g.cmp, c0 = tr.segs[0], cR = tr.segs[tr.segs.length - 1];
+    const xs = c0.xAt(S.h), xr = cR.xAt(S.h);
+    Lab.line(ctx, [[g.X(xs), g.Y(S.h)], [g.X(xr), g.Y(S.h)]], C.muted, 1.2, [5, 5]);
+    text(ctx, (nar ? '' : '처음 높이 ') + 'h = ' + fmt(S.h, 2) + ' m', g.X(xs) + (nar ? 16 : 26), g.Y(S.h) - 12, {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
+    let n = 0;
+    for (const tp of sim.turns) {
+      if (tp.t > S.t + 1e-6) break;
+      n++;
+      const px = g.X(tp.x), py = g.Y(tp.y), R = tp.side === 'R';
+      Lab.line(ctx, [[px + (R ? -16 : 16), py], [px, py]], C.copper, 1.6);
+      Lab.circle(ctx, px, py, 3.6, {fill: C.copper});
+      text(ctx, (nar ? '' : 'h' + subN(n) + ' = ') + fmt(tp.y, 2) + ' m', px + (R ? -20 : 20), py - (nar ? 10 : 12), {size: 13, w: 600, color: C.copper, align: R ? 'right' : 'left', halo: true});
+    }
+  }
+  const subN = (n) => String(n).split('').map((c) => '₀₁₂₃₄₅₆₇₈₉'[+c]).join('');
+
+  // 에너지 장부 막대 (아래부터 U · K · 열 Q, 전체 = 처음 mgh)
+  function ledgerTrack(ctx, g, st) {
+    const nar = g.nar, E0 = sim.E0, bw = nar ? 20 : 30, x = g.W - (nar ? 14 : 26) - bw;
+    const top = nar ? 60 : 46, bot = g.short ? g.gy - 26 : Math.max(top + 70, Math.min(g.Y(track.top) - 20, nar ? 196 : g.H * 0.46));
+    const hb = bot - top, Yv = (e) => bot - e / E0 * hb;
+    text(ctx, '에너지 장부', x + bw, top - 15, {size: 13, w: 600, color: C.muted, align: 'right'});
+    const seg = (a, b, col) => { if (b - a > 1e-9) { ctx.fillStyle = col; ctx.fillRect(x, Yv(b), bw, Yv(a) - Yv(b)); } };
+    ctx.save();
+    seg(0, st.U, C.violet); seg(st.U, st.U + st.K, C.energy); seg(st.U + st.K, E0, C.neg);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(x, top, bw, hb);
+    ctx.restore();
+    if (st.Q > 1e-6) hatch(ctx, [[x, Yv(E0)], [x + bw, Yv(E0)], [x + bw, Yv(st.E)], [x, Yv(st.E)]], C.paper, 7, 0.35);
+    Lab.line(ctx, [[x - 6, Yv(st.E)], [x + bw + 4, Yv(st.E)]], C.acc, 2.4);
+    const rows = [['열 Q', st.Q, C.neg], ['E = K + U', st.E, C.acc], ['K', st.K, C.energy], ['U', st.U, C.violet]];
+    const y0 = top + 8, dy = Math.min(26, (hb - 12) / (rows.length - 1));
+    rows.forEach(([nm, v, col], i) => {
+      text(ctx, nm + '  ' + fmt(v, 1) + ' J', x - 10, y0 + i * dy, {size: 13, w: i === 1 ? 600 : 500, color: col, align: 'right', halo: true});
+    });
+    text(ctx, (nar ? '' : '처음 mgh = ') + fmt(E0, 1) + ' J', x + bw, bot + 13, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+  }
+
+  // ── 외력 F 장면 ─────────────────────────────────────────
+  function drawForceScene(ctx, W, H) {
+    const g = geoF(W, H), st = now(), nar = g.nar, gy = g.gy;
+    ctx.save(); ctx.fillStyle = C['line-soft']; ctx.fillRect(0, gy, W, H - gy); ctx.restore();
+    const poly = [[0, gy], [W, gy], [W, gy + 9], [0, gy + 9]];
+    fillPoly(ctx, poly, Lab.alpha(C.neg, 0.1 + 0.35 * Math.min(1, -st.Wf / sim.K0)));
+    hatch(ctx, poly, C.force, 6, 0.8);
+    Lab.line(ctx, [[0, gy], [W, gy]], C.ink, 2.6);
+    text(ctx, nar ? '바닥 전체 f = ' + fmt(sim.f) + ' N' : '바닥 전체가 마찰 구간 · f = ' + fmt(sim.f) + ' N', 14, gy + (nar ? 46 : 54), {size: 13, w: 600, color: C.force, align: 'left'});
+    // 출발점 · 돌아서는 곳 · 간 거리
+    const X0 = g.X(0), Xs = g.X(sim.s);
+    Lab.line(ctx, [[X0, gy - (nar ? 70 : 96)], [X0, gy]], C.muted, 1.3, [4, 4]);
+    text(ctx, '출발점', X0, gy - (nar ? 78 : 104), {size: 13, w: 600, color: C.muted, halo: true});
+    Lab.line(ctx, [[Xs, gy - (nar ? 70 : 96)], [Xs, gy]], C.muted, 1.3, [4, 4]);
+    text(ctx, sim.back ? '돌아서는 곳' : '멈추는 곳', Xs, gy - (nar ? 78 : 104), {size: 13, w: 600, color: C.muted, halo: true});
+    Lab.bracket(ctx, X0, Xs, gy + 24, C.copper, '', true);
+    Lab.tag(ctx, 's = ' + fmt(sim.s, 2) + ' m', (X0 + Xs) / 2, gy + 24, {size: 13, color: C.copper, border: C.copper});
+    // 물체와 힘
+    const bw = nar ? 26 : 38, bh = nar ? 20 : 28, P = [g.X(st.x), gy], moving = st.v > 0.02;
+    if (moving) heatWisps(ctx, P[0] - st.sgn * bw * 0.35, gy, 1);
+    block(ctx, P, 0, bw, bh);
+    if (S.arrows) {
+      const kF = nar ? 8 : 13, LF = Math.max(16, sim.F * kF);
+      const yF = gy - bh / 2;
+      arrow(ctx, P[0] - bw / 2 - 2, yF, P[0] - bw / 2 - 2 - LF, yF, C.violet, 3.2, 10);
+      const fl = nar ? 'F' : 'F (방향 고정)', fw = Lab.measure(ctx, fl, {size: 13, w: 600}), tipX = P[0] - bw / 2 - 2 - LF;
+      if (tipX - 6 - fw > 4) text(ctx, fl, tipX - 6, yF, {size: 13, w: 600, color: C.violet, align: 'right', halo: true});
+      else text(ctx, fl, Math.max(4, tipX), yF - 15, {size: 13, w: 600, color: C.violet, align: 'left', halo: true});
+      if (moving) {
+        const k = nar ? 12 : 20, Lv = st.v * k, yv = gy - bh - (nar ? 12 : 16);
+        arrow(ctx, P[0], yv, P[0] + st.sgn * Lv, yv, C.vel, 3, 10);
+        text(ctx, 'v', P[0] + st.sgn * (Lv + 10), yv, {size: 14, w: 600, color: C.vel, halo: true});
+        const Lf = Math.max(14, sim.f * kF);
+        arrow(ctx, P[0], gy + 3, P[0] - st.sgn * Lf, gy + 3, C.force, 3, 9);
+        text(ctx, 'f', P[0] - st.sgn * (Lf + 10), gy + 3, {size: 14, w: 600, color: C.force, halo: true});
+      }
+    }
+    if (st.done && !nar) {
+      const msg = sim.back ? '출발점으로 돌아옴 · K = ' + fmt(st.K, 2) + ' J' : 'F ≤ f → 멈춘 채 그대로';
+      Lab.tag(ctx, msg, Math.min(W - 110, Math.max(110, (g.X(0) + g.X(sim.s)) / 2)), gy - (nar ? 102 : 132), {size: 13, w: 700, color: sim.back ? C.acc : C.neg, border: sim.back ? C.acc : C.neg});
+    }
+    ledgerForce(ctx, g, st);
+  }
+  // 일 장부: K, F 가 한 일, 마찰력이 한 일 (가운데 가로선 = 0)
+  function ledgerForce(ctx, g, st) {
+    const nar = g.nar, K0 = sim.K0, bw = nar ? 18 : 26, gap = nar ? 34 : 58;
+    const x2 = g.W - (nar ? 18 : 30) - bw, xs = [x2 - 2 * gap, x2 - gap, x2];
+    const top = nar ? 64 : 52, bot = g.short ? g.gy - 34 : Math.max(top + 70, g.gy - (nar ? 112 : 140)), z = top + (bot - top) * 0.5, sc = (bot - top) * 0.5 / K0;
+    text(ctx, nar ? '일 장부 (J)' : '일과 운동 에너지 (J)', x2 + bw, top - 18, {size: 13, w: 600, color: C.muted, align: 'right'});
+    Lab.line(ctx, [[xs[0] - 10, z], [x2 + bw + 6, z]], C.muted, 1.2);
+    Lab.line(ctx, [[xs[0] - 8, z - K0 * sc], [xs[0] + bw + 8, z - K0 * sc]], C.energy, 1.2, [4, 3]);
+    const cols = [['K', st.K, C.energy], [nar ? 'F' : 'F 의 일', st.WF, C.violet], [nar ? '마찰' : g.short ? '마찰력' : '마찰력의 일', st.Wf, C.neg]];
+    cols.forEach(([nm, v, col], i) => {
+      const x = xs[i], y = z - v * sc;
+      ctx.save(); ctx.fillStyle = col; ctx.fillRect(x, Math.min(y, z), bw, Math.abs(y - z)); ctx.restore();
+      text(ctx, nm, x + bw / 2, bot + 14, {size: 13, w: 600, color: col, halo: true});
+      text(ctx, fmt(v, 1), x + bw / 2, v >= 0 ? y - 10 : y + 11, {size: 13, w: 600, color: col, halo: true});
+    });
+    if (!nar) text(ctx, 'K₀', xs[0] - 12, z - K0 * sc, {size: 13, w: 500, color: C.energy, align: 'right', halo: true});
+  }
+
+  // ── 관찰 1: 궤도 + 역학적 에너지–위치 ──────────────────────
+  const gEx = Lab.canvas('gEx', drawEx);
+  function drawEx() {
+    const {ctx, W, H} = gEx; if (!W || !sim) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, left = 46, right = 14, f = isF(), st = now();
+    const xa = f ? -0.6 : track.x0, xb = f ? Math.max(1.6, sim.s) + 0.6 : track.x1;
+    const X = (x) => left + (x - xa) / (xb - xa) * (W - left - right);
+    const E0 = f ? sim.K0 : sim.E0;
+    // 위: 궤도 옆모습
+    const tT = 10, tH = Math.max(36, H * 0.24), Yt = (y) => tT + tH - y / (f ? 1 : track.top) * (tH - 4);
+    const r = {x: left, y: tT + tH + 34, w: W - left - right, h: H - (tT + tH + 34) - 30};
+    const Y = (e) => r.y + r.h - e / (E0 * 1.08) * r.h;
+    const zones = f ? [{x0: xa, x1: xb}] : track.zones;
+    ctx.save();
+    if (!f) for (const z of zones) { ctx.fillStyle = Lab.alpha(C.neg, 0.08); ctx.fillRect(X(z.x0), tT, X(z.x1) - X(z.x0), r.y + r.h - tT); }
+    ctx.restore();
+    if (!f) for (const z of zones) for (const x of [z.x0, z.x1]) Lab.line(ctx, [[X(x), tT], [X(x), r.y + r.h]], C.muted, 1, [2, 4]);
+    let pts;
+    if (f) pts = [[X(xa), Yt(0)], [X(xb), Yt(0)]];
+    else { pts = []; for (let i = 0; i <= 160; i++) { const x = xa + (xb - xa) * i / 160; pts.push([X(x), Yt(M.yAt(track, x))]); } for (const sg of track.segs) if (sg.kind === 'slope') pts.push([X(sg.x0), Yt(sg.yTop)], [X(sg.x1), Yt(0)]); pts.sort((a, b) => a[0] - b[0]); }
+    fillPoly(ctx, [[pts[0][0], tT + tH + 6]].concat(pts, [[pts[pts.length - 1][0], tT + tH + 6]]), C['line-soft']);
+    Lab.line(ctx, pts, C.ink, 1.8);
+    if (!f) for (const z of zones) {
+      const za = z.kind === 'slope' ? [[X(z.x0), Yt(z.yTop)], [X(z.x1), Yt(0)]] : [[X(z.x0), Yt(0)], [X(z.x1), Yt(0)]];
+      Lab.line(ctx, za, C.force, 4);
+    } else Lab.line(ctx, [[X(xa), Yt(0)], [X(xb), Yt(0)]], C.force, 4);
+    Lab.circle(ctx, X(st.x), Yt(st.y) - 5, 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
+    // 아래: E–위치
+    Lab.axes(ctx, r, {xmin: xa, xmax: xb, ymin: 0, ymax: E0 * 1.08, yticks: [E0 / 2, E0], fmtY: (v) => fmt(v, 1), xlabel: '위치', grid: true, yAt: 'left'});
+    text(ctx, f ? '역학적 에너지 = K (J)' : '역학적 에너지 E (J)', left + 8, r.y - 12, {size: 13, w: 600, color: C.muted, align: 'left'});
+    const tr = [];
+    for (const p of ss) { if (p.t > S.t) break; tr.push([X(p.x), Y(f ? p.K : p.E)]); }
+    tr.push([X(st.x), Y(f ? st.K : st.E)]);
+    Lab.line(ctx, tr, C.acc, 2.8);
+    // 통과마다 줄어든 양
+    if (!f) {
+      const lab = [];
+      for (const L of sim.legs) {
+        if (!L.rough || L.t0 > S.t) continue;
+        const done = S.t >= L.t1, d = done ? L.len : L.at(S.t - L.t0).d;
+        if (d < 0.05 * (L.len || 1) && !done) continue;
+        const a = M.stateAt(sim, L.t0), b = M.stateAt(sim, Math.min(S.t, L.t1));
+        lab.push({x: (X(a.x) + X(b.x)) / 2, y: (Y(a.E) + Y(b.E)) / 2, s: '−' + fmt(sim.f * d, 1) + ' J', up: L.dir > 0});
+      }
+      (nar ? lab.slice(-1) : lab).forEach((o) => text(ctx, o.s, o.x + (o.up ? 6 : -6), Math.min(o.y + (o.up ? -14 : 16), r.y + r.h - 12), {size: 13, w: 600, color: C.neg, halo: true, align: o.up ? 'left' : 'right'}));
+    } else {
+      const go = ss.find((p) => p.kind === 'back');
+      text(ctx, '갈 때', X(sim.s * 0.5) + 6, Y(sim.K0 * 0.5) - 14, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+      if (go && S.t > go.t) text(ctx, '올 때', X(sim.s * 0.5) - 6, Y(sim.Kback * 0.5) - 14, {size: 13, w: 600, color: C.acc, align: 'right', halo: true});
+    }
+    Lab.circle(ctx, X(st.x), Y(f ? st.K : st.E), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
+    if (!f) for (const z of zones) text(ctx, z.kind === 'slope' ? 'A' : track.scene === 'slope' ? 'B' : '마찰 구간', X((z.x0 + z.x1) / 2), tT + 9, {size: 13, w: 600, color: C.force, halo: true});
+  }
+
+  // ── 관찰 2: 힘마다 한 일 – 지나온 길 ──────────────────────
+  const gW = Lab.canvas('gW', drawW);
+  function drawW() {
+    const {ctx, W, H} = gW; if (!W || !sim) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, f = isF(), st = now(), E0 = f ? sim.K0 : sim.E0, lmax = f ? Math.max(sim.s * (sim.back ? 2 : 1), 0.1) : sim.lEnd;
+    const r = {x: 46, y: nar ? 46 : 30, w: W - 46 - (nar ? 18 : 104), h: H - (nar ? 46 : 30) - 30};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: lmax * 1.02, ymin: -E0 * 1.1, ymax: E0 * 1.1, yticks: [-E0, 0, E0], fmtY: (v) => fmt(v, 1), grid: true});
+    text(ctx, '한 일 (J)', ax.x0 + 8, r.y - (nar ? 14 : 12), {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, '지나온 길 (m) →', r.x + r.w, r.y + r.h + 18, {size: 13, w: 600, color: C.muted, align: 'right'});
+    const P = (l, w) => [ax.X(l), ax.Y(w)];
+    const keyA = f ? 'WF' : 'Wg', nmA = f ? 'F 가 한 일' : '중력이 한 일';
+    const la = [], lf = [], lk = [];
+    for (const p of ss) { if (p.t > S.t) break; la.push(P(p.l, p[keyA])); lf.push(P(p.l, p.Wf)); lk.push(P(p.l, f ? p.K - sim.K0 : p.K)); }
+    la.push(P(st.l, st[keyA])); lf.push(P(st.l, st.Wf)); lk.push(P(st.l, f ? st.K - sim.K0 : st.K));
+    Lab.line(ctx, lk, C.energy, 1.8, [6, 4]);
+    Lab.line(ctx, la, C.violet, 3);
+    Lab.line(ctx, lf, C.neg, 3);
+    for (const [pt, col] of [[la[la.length - 1], C.violet], [lf[lf.length - 1], C.neg], [lk[lk.length - 1], C.energy]]) Lab.circle(ctx, pt[0], pt[1], 4.6, {fill: col, stroke: C.paper, width: 1.5});
+    const kName = f ? 'ΔK' : 'K';
+    if (!nar) {
+      const ex = r.x + r.w + 10, ys = spread([la[la.length - 1][1], lf[lf.length - 1][1], lk[lk.length - 1][1]], 17, r.y, r.y + r.h);
+      text(ctx, nmA, ex, ys[0], {size: 13, w: 600, color: C.violet, align: 'left'});
+      text(ctx, '마찰력이 한 일', ex, ys[1], {size: 13, w: 600, color: C.neg, align: 'left'});
+      text(ctx, kName + ' (합)', ex, ys[2], {size: 13, w: 600, color: C.energy, align: 'left'});
+    } else {
+      let lx = W - 8;
+      for (const [s1, col] of [['- - ' + kName, C.energy], ['— 마찰력', C.neg], ['— ' + (f ? 'F' : '중력'), C.violet]]) {
+        text(ctx, s1, lx, 12, {size: 13, w: 600, color: col, align: 'right'}); lx -= Lab.measure(ctx, s1, {size: 13, w: 600}) + 12;
+      }
+    }
+  }
+
+  // ── 관찰 3: 역학적 에너지 – 마찰 구간에서 간 거리 (펼친 길) ──────
+  const gS = Lab.canvas('gS', drawS);
+  function drawS() {
+    const {ctx, W, H} = gS; if (!W || !sim) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, f = isF(), st = now();
+    const ribH = nar ? 30 : 32, r = {x: 46, y: 30, w: W - 46 - 22, h: H - 30 - 46 - ribH - 18};
+    let E0, smax, yName, yOf, lineEnd;
+    if (f) { E0 = 2 * sim.f * sim.s; smax = sim.s * (sim.back ? 2 : 1); yName = '생긴 열 Q (J)'; yOf = (p) => -p.Wf; lineEnd = [smax, sim.f * smax]; }
+    else { E0 = sim.E0; smax = E0 / sim.f; yName = '역학적 에너지 E (J)'; yOf = (p) => p.E; lineEnd = [smax, 0]; }
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: smax * 1.04, ymin: 0, ymax: Math.max(E0, 1e-6) * 1.1, yticks: [E0], fmtY: (v) => fmt(v, 1), xlabel: f ? '지나온 길 (m)' : '마찰 구간에서 간 거리 (m)', xlabelBelow: true, grid: true});
+    text(ctx, yName, ax.x0 + 8, r.y - 12, {size: 13, w: 600, color: C.muted, align: 'left'});
+    Lab.line(ctx, [[ax.X(0), ax.Y(f ? 0 : E0)], [ax.X(lineEnd[0]), ax.Y(lineEnd[1])]], f ? C.neg : C.acc, 1.6, [6, 5]);
+    const pts = [];
+    for (const p of ss) { if (p.t > S.t) break; pts.push([ax.X(p.sf), ax.Y(yOf(p))]); }
+    pts.push([ax.X(st.sf), ax.Y(yOf(st))]);
+    Lab.line(ctx, pts, f ? C.neg : C.acc, 3);
+    Lab.circle(ctx, ax.X(st.sf), ax.Y(yOf(st)), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
+    if (!f) {
+      const sl = '기울기 −f = −' + fmt(sim.f, 2) + ' N';
+      text(ctx, sl, ax.X(smax * 0.5) + 8, ax.Y(E0 * 0.5) - 14, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    }
+    // 펼친 길: 통과마다 한 칸
+    const yR = r.y + r.h + 46, segs = [];
+    if (f) { segs.push({a: 0, b: sim.s, s: '갈 때 →'}); if (sim.back) segs.push({a: sim.s, b: 2 * sim.s, s: '올 때 ←'}); }
+    else {
+      let acc = 0;
+      for (const L of sim.legs) if (L.rough) {
+        const nm = track.scene === 'bowl' ? L.pass + '회 ' + (L.dir > 0 ? '→' : '←') : L.zone + ' ' + (L.zone === 'A' ? (L.dir > 0 ? '↘' : '↖') : (L.dir > 0 ? '→' : '←'));
+        segs.push({a: acc, b: acc + L.len, s: nm, t0: L.t0}); acc += L.len;
+      }
+    }
+    segs.forEach((o, i) => {
+      const x0 = ax.X(o.a), x1 = ax.X(o.b), reached = o.t0 == null || o.t0 <= S.t;
+      ctx.save(); ctx.fillStyle = Lab.alpha(C.neg, reached ? (i % 2 ? 0.34 : 0.2) : 0.06); ctx.fillRect(x0, yR - ribH / 2, x1 - x0, ribH); ctx.restore();
+      ctx.save(); ctx.strokeStyle = C.paper; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1, yR - ribH / 2); ctx.lineTo(x1, yR + ribH / 2); ctx.stroke(); ctx.restore();
+      const wd = x1 - x0, lab = wd > 64 ? o.s + ' ' + fmt(o.b - o.a, 2) + ' m' : wd > 34 ? o.s : '';
+      if (lab) text(ctx, lab, (x0 + x1) / 2, yR, {size: 13, w: 600, color: reached ? C.ink : C.muted});
+    });
+    if (!f) {
+      const end = ax.X(sim.Qend / sim.f);
+      Lab.line(ctx, [[end, yR - ribH / 2 - 6], [end, yR + ribH / 2 + 6]], C.copper, 2.4);
+      if (sim.stop && !sim.stop.cut && st.done) text(ctx, '멈춤', Math.min(end + 6, W - 30), yR - ribH / 2 - 10, {size: 13, w: 700, color: C.copper, align: 'left', halo: true});
+    }
+    Lab.circle(ctx, ax.X(st.sf), yR + ribH / 2 + 7, 4.5, {fill: C.copper});
+  }
+
+  // ── 관찰 4: 손실 단위 (등속 구간 → 길이 비) ──────────────────
+  const gU = Lab.canvas('gU', drawU);
+  function drawU() {
+    const {ctx, W, H} = gU; if (!W || !sim) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, m = S.m, LB = S.LB, W1 = M.constLoss(m, HA), f = W1 / LA, WB = M.lossByLength(W1, LA, LB);
+    const live = S.scene === 'slope', st = live ? now() : null;
+    // 빗면 삼각형 (기울기는 실제와 같게)
+    const triW = nar ? W - 70 : Math.min(W * 0.36, 200), sA = HA / LA, cA = Math.sqrt(1 - sA * sA);
+    const base = triW, hgt = base * sA / cA, tx0 = nar ? 46 : 48, ty1 = nar ? 34 + hgt + 22 : 40 + hgt + 30;
+    const A = [tx0, ty1 - hgt], B = [tx0 + base, ty1];
+    fillPoly(ctx, [A, B, [tx0, ty1]], C['line-soft']);
+    Lab.line(ctx, [A, B], C.force, 4);
+    Lab.line(ctx, [[tx0, ty1], B], C.ink, 1.4);
+    Lab.vbracket(ctx, tx0 - 10, A[1], ty1, C.copper, '');
+    text(ctx, 'Δh', tx0 - 18, (A[1] + ty1) / 2, {size: 13, w: 600, color: C.copper, align: 'right'});
+    const u = [(B[0] - A[0]) / Math.hypot(B[0] - A[0], B[1] - A[1]), (B[1] - A[1]) / Math.hypot(B[0] - A[0], B[1] - A[1])], nrm = [u[1], -u[0]];
+    const fr = st && st.zone === 'A' ? Math.min(1, Math.max(0, (st.x - track.zones[0].x0) / (track.zones[0].x1 - track.zones[0].x0))) : 0.45;
+    const Pc = [A[0] + (B[0] - A[0]) * fr, A[1] + (B[1] - A[1]) * fr], ang = Math.atan2(u[1], u[0]);
+    block(ctx, Pc, ang, nar ? 22 : 28, nar ? 16 : 20);
+    const Cc = [Pc[0] + nrm[0] * 10, Pc[1] + nrm[1] * 10], La = nar ? 34 : 44;
+    arrow(ctx, Cc[0], Cc[1], Cc[0] + u[0] * La, Cc[1] + u[1] * La, C.violet, 3, 9);
+    arrow(ctx, Pc[0], Pc[1], Pc[0] - u[0] * La, Pc[1] - u[1] * La, C.force, 3, 9);
+    text(ctx, 'mg sinθ', Cc[0] + u[0] * La + 4, Cc[1] + u[1] * La - 14, {size: 13, w: 600, color: C.violet, align: 'left', halo: true});
+    text(ctx, 'f', Pc[0] - u[0] * (La + 10), Pc[1] - u[1] * (La + 10) + 12, {size: 14, w: 600, color: C.force, halo: true});
+    text(ctx, '등속 → f = mg sinθ', tx0 - (nar ? 26 : 30), ty1 + 20, {size: 13, w: 600, color: C.ink, align: 'left'});
+    text(ctx, '손실 W = mgΔh = ' + fmt(W1, 2) + ' J', tx0 - (nar ? 26 : 30), ty1 + 40, {size: 13, w: 600, color: C.neg, align: 'left'});
+    // 손실 자: 같은 f → 손실 ∝ 길이
+    const rx0 = nar ? 20 : tx0 + triW + 46, rw = W - rx0 - (nar ? 20 : 18), unit = rw / Math.max(LA, LB) * 0.92;
+    const ry = nar ? ty1 + 64 : 46, bh = nar ? 22 : 26, gap = nar ? 48 : 58;
+    const bars = [{nm: 'A', len: LA, loss: W1, y: ry}, {nm: 'B', len: LB, loss: WB, y: ry + gap}];
+    for (const b of bars) {
+      const on = live && st && st.zone === b.nm;
+      ctx.save(); ctx.fillStyle = Lab.alpha(C.neg, on ? 0.45 : 0.22); ctx.fillRect(rx0, b.y, b.len * unit, bh); ctx.restore();
+      hatch(ctx, [[rx0, b.y], [rx0 + b.len * unit, b.y], [rx0 + b.len * unit, b.y + bh], [rx0, b.y + bh]], C.force, 7, on ? 0.7 : 0.45);
+      for (let k = 1; k * LA < b.len - 1e-9; k++) Lab.line(ctx, [[rx0 + k * LA * unit, b.y - 3], [rx0 + k * LA * unit, b.y + bh + 3]], C.ink, 1.6);
+      if (on) { ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.4; ctx.strokeRect(rx0 - 1, b.y - 1, b.len * unit + 2, bh + 2); ctx.restore(); }
+      text(ctx, b.nm, rx0 + 10, b.y + bh / 2, {size: 14, w: 700, color: C.ink, align: 'left', halo: true});
+      text(ctx, fmt(b.len, 2) + ' m → ' + (b.nm === 'A' ? 'W' : fmt(b.len / LA, 2) + 'W') + ' = ' + fmt(b.loss, 2) + ' J', rx0, b.y + bh + 14, {size: 13, w: 600, color: C.neg, align: 'left'});
+    }
+    if (!nar) text(ctx, '같은 f → 손실은 길이에 비례', rx0, ry - 14, {size: 13, w: 600, color: C.muted, align: 'left'});
+    if (!live) text(ctx, nar ? '(등속 빗면 장면의 값)' : '(등속 빗면 장면의 값: m = ' + fmt(m) + ' kg, B = ' + fmt(LB) + ' m)', W - 8, H - 10, {size: 13, w: 500, color: C.muted, align: 'right'});
+  }
+
+  // ── 수치 ────────────────────────────────────────────────
+  const setText = (id, s) => { const el = $(id); if (el && el.textContent !== s) el.textContent = s; };
+  let ansKey = '';
+  function readouts() {
+    let big, lines, o;
+    if (S.scene === 'bowl') {
+      const m = S.m, h = S.h, L = S.L, f = S.f, E0 = M.energy0(m, h), fL = M.passLoss(f, L), sp = M.stopOnZone(E0, f, L);
+      const parts = sp.pass <= 4 ? sp.parts.map((v) => fmt(v, 2)).join(' + ') : fmt(L, 2) + ' × ' + (sp.pass - 1) + ' + ' + fmt(sp.into, 2);
+      const mid = Math.abs(sp.x - L / 2) < 1e-6;
+      big = '왼쪽 끝에서 ' + fmt(sp.x, 2) + ' m' + (mid ? ' (가운데)' : '');
+      lines = ['처음 E = mgh = ' + fmt(m) + ' × 10 × <em>' + fmt(h, 2) + '</em> = <em>' + fmt(E0, 2) + ' J</em>, 한 번 지날 때 fL = ' + fmt(f) + ' × ' + fmt(L) + ' = ' + fmt(fL, 2) + ' J',
+        '총 이동 거리 s = ' + fmt(E0, 2) + ' ÷ <em>' + fmt(f) + '</em> = <em>' + fmt(sp.S, 2) + ' m</em>',
+        fmt(sp.S, 2) + ' m = ' + parts + ' → <em>' + sp.pass + '회째</em>(' + (sp.rightward ? '왼 → 오' : '오 → 왼') + ')에 ' + fmt(sp.into, 2) + ' m 가서 멈춤'];
+      o = {lab: '멈추는 곳', ctx: 'm = ' + fmt(m) + ' kg · h = ' + fmt(h, 2) + ' m · L = ' + fmt(L) + ' m · f = ' + fmt(f) + ' N', f: '처음 E = 마찰력 × 총 이동 거리 에 지금 값을 넣으면', tone: ''};
+      const hs = M.riseHeights(m, h, f, L);
+      setText('mn3', '1번 지난 뒤 오른쪽 높이'); setText('mv3', hs[0] ? fmt(hs[0].h, 2) + ' m' : '못 올라감 (1회째에 멈춤)');
+      setText('mn4', '2번 지난 뒤 왼쪽 높이'); setText('mv4', hs[1] ? fmt(hs[1].h, 2) + ' m' : '못 올라감');
+    } else if (S.scene === 'slope') {
+      const m = S.m, h = S.h, LB = S.LB, f = fNow(), W1 = M.constLoss(m, HA), WB = M.lossByLength(W1, LA, LB), E0 = M.energy0(m, h);
+      const h1 = (E0 - W1 - WB) / (m * G);
+      big = '손실 단위 W = mgΔh = ' + fmt(W1, 2) + ' J';
+      lines = ['빗면 구간 A 를 <em>등속</em>으로 내려간다 → ΔK = 0 → W = mgΔh = ' + fmt(m) + ' × 10 × 0.2 = <em>' + fmt(W1, 2) + ' J</em>',
+        'W = f × 1 m 이므로 f = ' + fmt(f, 2) + ' N. 바닥 구간 B (' + fmt(LB, 2) + ' m): W × ' + fmt(LB, 2) + ' ÷ 1 = <em>' + fmt(WB, 2) + ' J</em>',
+        h1 > 0 ? '오른쪽 곡면 높이 = (' + fmt(E0, 2) + ' − ' + fmt(W1, 2) + ' − ' + fmt(WB, 2) + ') ÷ ' + fmt(m * G) + ' = <em>' + fmt(h1, 2) + ' m</em>' : '처음 ' + fmt(E0, 2) + ' J 로는 바닥 구간 B 를 다 지나지 못한다'];
+      o = {lab: '등속 구간이 정한 손실 단위', ctx: 'm = ' + fmt(m) + ' kg · h = ' + fmt(h, 2) + ' m · A 1 m (Δh 0.2 m) · B ' + fmt(LB, 2) + ' m', f: '등속이면 손실 = mgΔh, 같은 f 인 구간은 길이 비로', tone: ''};
+      setText('mn3', '두 구간의 마찰력 f = mg sinθ'); setText('mv3', fmt(f, 2) + ' N');
+      setText('mn4', 'A 를 지난 뒤 오른쪽 높이'); setText('mv4', h1 > 0 ? fmt(h1, 2) + ' m' : '못 올라감');
+    } else {
+      const tr = M.forceTrip(S.m, S.v0, S.F, S.f), s = tr.s;
+      if (tr.back) {
+        big = 'W<sub>F</sub> + W<sub>f</sub> = −2fs = ' + fmt(-2 * S.f * s, 2) + ' J';
+        lines = ['갈 때 (' + fmt(s, 2) + ' m →): F 의 일 −Fs = ' + fmt(-S.F * s, 2) + ' J, 마찰력의 일 −fs = <em>' + fmt(-S.f * s, 2) + ' J</em>',
+          '올 때 (' + fmt(s, 2) + ' m ←): F 의 일 <em>+' + fmt(S.F * s, 2) + ' J</em> (부호 반대), 마찰력의 일 또 <em>' + fmt(-S.f * s, 2) + ' J</em>',
+          '왕복 합: F 는 0, 마찰력 −2fs = <em>' + fmt(-2 * S.f * s, 2) + ' J</em> = ΔK (' + fmt(tr.K0, 2) + ' → ' + fmt(tr.Kback, 2) + ' J)'];
+        o = {tone: ''};
+      } else {
+        big = '되돌아오지 않는다';
+        lines = ['갈 때 (' + fmt(s, 2) + ' m →): F 의 일 ' + fmt(-S.F * s, 2) + ' J, 마찰력의 일 ' + fmt(-S.f * s, 2) + ' J',
+          'F = ' + fmt(S.F) + ' N ≤ f = ' + fmt(S.f) + ' N 이라 멈춘 뒤 <em>정지 마찰력</em>이 붙잡는다'];
+        o = {tone: 'neg'};
+      }
+      Object.assign(o, {lab: '왕복하는 동안 두 힘이 한 일', ctx: 'm = ' + fmt(S.m) + ' kg · v₀ = ' + fmt(S.v0) + ' m/s · F = ' + fmt(S.F) + ' N · f = ' + fmt(S.f) + ' N', f: '갈 때와 올 때 일의 부호를 따로 세면'});
+      setText('mn3', '간 거리 s = K₀ ÷ (F + f)'); setText('mv3', fmt(s, 2) + ' m');
+      setText('mn4', '되돌아왔을 때 K = (F − f)s'); setText('mv4', tr.back ? fmt(tr.Kback, 2) + ' J' : '–');
+    }
+    o.html = true;
+    const key = big + lines.join('|') + o.ctx + o.lab + o.tone;
+    if (key !== ansKey) { ansKey = key; Lab.ans(big, lines, o); }
+    tick();
+    const ok = S.scene === 'bowl' && S.m === EX.m && S.h === EX.h && S.L === EX.L && S.f === EX.f;
+    Lab.check('exCheck', ok, '개념서 예제 (1 kg, 1 m, 구간 2 m · 2 N) → 총 이동 거리 5 m = 2 + 2 + 1, 왼쪽 끝에서 1 m(구간 가운데)에서 멈춤',
+      '예제: 1 kg을 1 m에서 놓고 2 m · 2 N 구간을 왕복 — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  // 자주 바뀌는 칸: HUD 와 지금 E·열
+  function tick() {
+    const st = now(), nar = (stage.W || 999) < 520;
+    let h1;
+    if (isF()) {
+      h1 = st.done ? (sim.back ? '출발점으로 돌아옴' : '멈춤') : st.kind === 'go' ? (nar ? '갈 때 →' : '갈 때 → (F·마찰력 둘 다 −)') : (nar ? '올 때 ←' : '올 때 ← (F 는 +, 마찰력은 또 −)');
+      setText('hud2', (nar ? '' : '지나온 길 ') + fmt(st.l, 2) + ' m');
+      setText('mn1', '지금 운동 에너지 K'); setText('mv1', J(st.K));
+      setText('mn2', '지금까지 F·마찰력이 한 일'); setText('mv2', fmt(st.WF, 2) + ' J · ' + fmt(st.Wf, 2) + ' J');
+    } else {
+      if (st.done) h1 = '멈춤 · E = ' + fmt(st.E, 1) + ' J';
+      else if (st.inZone) h1 = track.scene === 'bowl' ? st.pass + '회째 통과 ' + (st.sgn > 0 ? '→' : '←') : '구간 ' + st.zone + (st.zone === 'A' && st.sgn > 0 ? ' · 등속' : '') + ' ' + (st.sgn > 0 ? '→' : '←');
+      else h1 = st.kind === 'curve' ? (nar ? 'K ↔ U' : '곡면: K ↔ U, E 그대로') : (nar ? 'E 그대로' : '마찰 없는 바닥: E 그대로');
+      setText('hud2', (nar ? '구간 ' : '마찰 구간에서 간 거리 ') + fmt(st.sf, 2) + ' m');
+      setText('mn1', '지금 역학적 에너지 E = K + U'); setText('mv1', J(st.E));
+      setText('mn2', '지금까지 생긴 열 Q = f × ' + fmt(st.sf, 2) + ' m'); setText('mv2', J(st.Q));
+    }
+    setText('hud1', h1);
+    $('hud1').className = 'pill' + (st.done ? ' up' : st.inZone ? ' down' : '');
+    const h3 = $('hud3'); h3.hidden = nar || (stage.H || 999) < 380; setText('hud3', S.speed < 1 ? '느린 화면 ×' + S.speed : '실제 빠르기');
+  }
+  function drawAll() { drawStage(); drawEx(); drawW(); drawS(); drawU(); }
+  function live(all) { drawStage(); if (all) { drawEx(); drawW(); drawS(); drawU(); } else { if (seen(gEx)) drawEx(); if (seen(gW)) drawW(); if (seen(gS)) drawS(); if (seen(gU) && S.scene === 'slope') drawU(); } }
+  function refresh() { syncUI(); build(); readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; if (on && S.t >= sim.tEnd - 1e-9) { S.t = 0; S.hold = 0; live(true); } });
+  const setPlay = (on) => { playCtl.set(on, true); S.playing = on; };
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => { S.scene = v; S.t = 0; S.hold = 0; S.pauseAt = null; refresh(); }, S.scene);
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; tick(); }, S.speed);
+  const num = (id, fn) => $(id).addEventListener('input', (e) => { fn(+e.target.value); S.t = 0; S.hold = 0; S.pauseAt = null; refresh(); });
+  num('f', (v) => { if (S.scene === 'slope') { S.scene = 'bowl'; } S.f = v; });
+  num('h', (v) => { S.h = v; });
+  num('L', (v) => { if (S.scene === 'slope') S.LB = v; else S.L = v; });
+  num('m', (v) => { S.m = v; });
+  num('v0', (v) => { S.v0 = v; });
+  num('F', (v) => { S.F = v; });
+  $('cArrow').addEventListener('change', (e) => { S.arrows = e.target.checked; drawStage(); });
+  $('cMark').addEventListener('change', (e) => { S.marks = e.target.checked; drawStage(); });
+  $('restart').addEventListener('click', () => { S.t = 0; S.hold = 0; S.pauseAt = null; setPlay(true); tick(); live(true); });
+  $('step').addEventListener('click', () => {
+    setPlay(false); S.pauseAt = null; S.hold = 0;
+    if (S.t >= sim.tEnd - 1e-6) S.t = 0;
+    else { const k = M.legAt(sim, S.t + 1e-6); S.t = Math.min(sim.tEnd, sim.legs[k].t1); }
+    tick(); live(true);
+  });
+  function syncUI() {
+    const sc = S.scene, fo = sc === 'force';
+    $('rowH').hidden = fo; $('rowL').hidden = fo; $('rowV').hidden = !fo; $('rowF').hidden = !fo;
+    const hEl = $('h'); hEl.min = String(hMin()); S.h = Math.max(hMin(), S.h); hEl.value = S.h; $('hOut').textContent = fmt(S.h, 2) + ' m';
+    setText('Lname', sc === 'slope' ? '바닥 구간 B 길이' : '마찰 구간 길이 L');
+    const lv = sc === 'slope' ? S.LB : S.L; $('L').value = lv; $('LOut').textContent = fmt(lv, 2) + ' m';
+    const fEl = $('f'); fEl.disabled = sc === 'slope'; fEl.value = sc === 'slope' ? fNow() : S.f;
+    $('fOut').textContent = fmt(fNow(), 2) + ' N';
+    $('m').value = S.m; $('mOut').textContent = fmt(S.m) + ' kg';
+    $('v0').value = S.v0; $('v0Out').textContent = fmt(S.v0) + ' m/s';
+    $('F').value = S.F; $('FOut').textContent = fmt(S.F) + ' N';
+    $('cArrow').checked = S.arrows; $('cMark').checked = S.marks;
+    sceneG.set(S.scene, true); speedG.set(S.speed, true);
+  }
+  // 무대: 왼쪽 곡면을 끌어 처음 높이 바꾸기
+  function dragTo(x, y) {
+    const g = geoT(stage.W, stage.H), hv = Math.round((g.gy - y) / g.s / 0.05) * 0.05;
+    S.h = Math.max(hMin(), Math.min(1.5, +hv.toFixed(2))); S.t = 0; S.hold = 0; S.pauseAt = null;
+    syncUI(); build(); readouts(); live(true);
+  }
+  Lab.pointer(stage.el, {
+    down: (x, y) => { if (isF() || !stage.W) return; const g = geoT(stage.W, stage.H); if (x < g.X(track.segs[0].x1) + 6 && y > 30) { S.drag = true; dragTo(x, y); } },
+    move: (x, y) => { if (S.drag) dragTo(x, y); },
+    up: () => { S.drag = false; drawStage(); },
+  });
+
+  function setScene(sc, o) { Object.assign(S, {scene: sc, t: 0, hold: 0, pauseAt: null}, o); }
+  const firstTurn = () => (sim.turns[0] ? sim.turns[0].t : null);
+  const TRY = {
+    ex: () => { setScene('bowl', {m: 1, h: 1, L: 2, f: 2}); setPlay(true); },
+    one: () => { setScene('bowl', {m: 1, h: 1, L: 2, f: 2}); build(); S.pauseAt = firstTurn(); setPlay(true); },
+    back: () => { setScene('bowl', {m: 1, h: 1, L: 2, f: 2}); build(); const L2 = sim.legs.find((L) => L.rough && L.pass === 2); S.t = L2.t0 + L2.dur * 0.4; setPlay(false); },
+    force: () => { setScene('force', {m: 1, v0: 4, F: 3, f: 2}); setPlay(true); },
+    slope: () => { setScene('slope', {m: 1, h: 1, LB: 1.5}); setPlay(true); },
+    slopeA: () => { setScene('slope', {m: 1, h: 1, LB: 1.5}); build(); const a = sim.legs.find((L) => L.kind === 'slope'); S.t = a.t0 + a.dur * 0.5; setPlay(false); },
+    q1: () => { setScene('bowl', {m: 2, h: 0.8, L: 1, f: 6}); build(); S.pauseAt = firstTurn(); setPlay(true); },
+    q2: () => { setScene('force', {m: 1, v0: 4, F: 3, f: 2}); setPlay(true); },
+    q3: () => { setScene('bowl', {m: 2, h: 1.25, L: 1.6, f: 10}); setPlay(true); },
+  };
+  Lab.tries(TRY, () => { syncUI(); build(); readouts(); drawAll(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing || S.drag || !sim) return;
+    if (S.t >= sim.tEnd - 1e-9) {
+      S.hold += dt;
+      if (S.hold > 2.4) { S.t = 0; S.hold = 0; tick(); live(true); }
+      return;
+    }
+    const t0 = S.t;
+    S.t = Math.min(sim.tEnd, S.t + dt * S.speed);
+    if (S.pauseAt != null && t0 < S.pauseAt && S.t >= S.pauseAt) { S.t = S.pauseAt; S.pauseAt = null; setPlay(false); }
+    live(false);
+    roT += dt; if (roT > 0.08 || !S.playing || S.t >= sim.tEnd) { roT = 0; tick(); }
+  });
+  syncUI(); build(); readouts();
+})();
+</script>
+</body>
+</html>

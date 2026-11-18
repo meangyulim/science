@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>일·운동 에너지 정리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(거친 수평면에서 밀리는 상자 + 힘마다 한 일의 장부와 K 막대 / 같은 높이의 두 빗면 + 알짜힘–거리 넓이) | 오른쪽 지금 값 + 관찰 ①~③(K–위치, 세 경우의 속력–위치, 두 빗면의 속력–시간) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5}
+#gK{aspect-ratio:10/5.8}
+#gV{aspect-ratio:10/5.8}
+#gVt{aspect-ratio:10/5.8}
+@media (max-width:640px){ #gK{aspect-ratio:10/7} #gV{aspect-ratio:10/7} #gVt{aspect-ratio:10/7} }
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A2 일과 에너지·열: 개념 10개 가운데 2번째"><a class="uname" href="../">A2 일과 에너지·열</a><span class="dots"><a href="../01/" title="A2-01 일과 F-s 그래프" aria-label="A2-01 일과 F-s 그래프"></a><a class="cur" href="./" aria-current="page" title="A2-02 일·운동 에너지 정리" aria-label="A2-02 일·운동 에너지 정리 (지금)"></a><a href="../03/" title="A2-03 보존력과 비보존력" aria-label="A2-03 보존력과 비보존력"></a><a href="../04/" title="A2-04 마찰 구간 에너지 장부" aria-label="A2-04 마찰 구간 에너지 장부"></a><a href="../05/" title="A2-05 포물선 운동의 에너지" aria-label="A2-05 포물선 운동의 에너지"></a><a href="../06/" title="A2-06 단진자의 에너지" aria-label="A2-06 단진자의 에너지"></a><a href="../07/" title="A2-07 일-에너지와 운동학" aria-label="A2-07 일-에너지와 운동학"></a><a href="../08/" title="A2-08 열평형" aria-label="A2-08 열평형"></a><a href="../09/" title="A2-09 열역학 제1법칙" aria-label="A2-09 열역학 제1법칙"></a><a href="../10/" title="A2-10 열의 일당량" aria-label="A2-10 열의 일당량"></a></span></nav>
+  <div class="pn"><a href="../01/" rel="prev" title="이전 개념: A2-01 일과 F-s 그래프">‹ <span>01 일과 F-s 그래프</span></a><a href="../03/" rel="next" title="다음 개념: A2-03 보존력과 비보존력"><span>03 보존력과 비보존력</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A2-02</span><span>물리학 Ⅱ · 일과 에너지·열</span></div>
+    <h1>일·운동 에너지 정리</h1>
+    <p class="question"><i>Q</i>여러 힘이 동시에 작용할 때 물체의 속력 변화는 무엇으로 정해질까?</p>
+  </div>
+
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="거친 수평면에서 미는 힘을 받으며 움직이는 상자와, 그 아래 힘마다 한 일의 장부(미는 힘의 일, 마찰력의 일, 수직항력과 중력의 일, 합)와 운동 에너지 막대. 상자가 움직이는 만큼 막대가 자라고, 합이 운동 에너지 증가량과 같다. 두 빗면 장면에서는 높이가 같고 길이가 다른 마찰 없는 빗면에서 두 상자가 함께 미끄러지고, 아래에 알짜힘–거리 그래프의 넓이를 칠한다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">x = 0 m</span><span class="pill" id="hud2">v = 1 m/s</span><span class="pill" id="hud3">느린 화면</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider" id="slF"><label for="F"><span class="lg">미는 힘 </span>F</label><input id="F" type="range" min="0" max="20" step="1" value="12"><output id="FOut">12 N</output></div>
+          <div class="slider" id="slK" hidden><label for="kk"><span class="lg">B 빗면 길이 </span>L<sub>B</sub></label><input id="kk" type="range" min="1" max="4" step="0.5" value="2"><output id="kkOut">6 m</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·조건</span><span class="sm">장면</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 조건">
+          <div class="sheet-head"><b>장면 · 조건 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="push" aria-pressed="true">수평면에서 밀기</button>
+              <button type="button" class="btn" data-scene="ramps" aria-pressed="false">같은 높이 두 빗면</button>
+            </div>
+            <div class="group" role="group" aria-label="미는 힘이 작용하는 구간" id="grpHalf">
+              <span class="gl">F 구간</span>
+              <button type="button" class="btn" data-half="0" aria-pressed="true">끝까지</button>
+              <button type="button" class="btn" data-half="1" aria-pressed="false">앞 절반만</button>
+            </div>
+          </div>
+          <div class="row" id="rowPush">
+            <div class="grow"><label class="ctl-label" for="fr"><span>마찰력 f</span> <output id="frOut">4 N</output></label><input id="fr" type="range" min="0" max="10" step="1" value="4"></div>
+            <div class="grow"><label class="ctl-label" for="mm"><span>질량 m</span> <output id="mmOut">2 kg</output></label><input id="mm" type="range" min="1" max="4" step="0.5" value="2"></div>
+            <div class="grow"><label class="ctl-label" for="v0"><span>처음 속력 v₀</span> <output id="v0Out">1 m/s</output></label><input id="v0" type="range" min="0" max="6" step="0.5" value="1"></div>
+            <div class="grow"><label class="ctl-label" for="sE"><span>이동 구간 s</span> <output id="sEOut">3 m</output></label><input id="sE" type="range" min="1" max="10" step="0.5" value="3"></div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="step">0.5 m ▸</button>
+            <button type="button" class="btn" id="restart">처음부터</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">나중 속력</span><span id="ansCtx">2 kg · v₀ = 1 m/s · F = 12 N · f = 4 N · 3 m</span></div>
+        <div class="big" id="ansBig">v = 5 m/s</div>
+        <div class="sub">
+          <span class="f" id="ansF">일 장부(힘마다 한 일의 합 = ΔE<sub>k</sub>)에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">F의 일 <em>12</em> × 3 = +36 J, 마찰력의 일 −<em>4</em> × 3 = −12 J, N·mg 0</span><span class="v">합 = 36 − 12 = <em>24 J</em> = ΔE<sub>k</sub></span><span class="v">½ × 2 × v² = 1 + 24 = 25 J → <em>v = 5 m/s</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">처음 운동 에너지 K₀</span><b id="mv1">1 J</b></div>
+          <div class="mini"><span id="mn2">알짜힘 F − f</span><b id="mv2">8 N</b></div>
+          <div class="mini"><span id="mn3">지금 위치 x</span><b id="mv3">0 m</b></div>
+          <div class="mini"><span id="mn4">지금 속력 v</span><b id="mv4">1 m/s</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 일 장부">
+          <div class="kind">관찰 1</div>
+          <h3>힘마다 한 일을 부호 붙여 더하면 운동 에너지 변화가 된다</h3>
+          <p>상자에는 미는 힘 F, 마찰력 f, 수직항력 N, 중력 mg가 동시에 작용한다. 힘을 먼저 합성하지 않아도 된다. 힘마다 한 일을 따로 적으면 F는 +Fs, f는 −fs, N과 mg는 이동에 수직이라 0이다. 이 일 장부의 합이 운동 에너지 증가량이다: <span class="eq">ΣW = W<sub>알짜</sub> = ΔE<sub>k</sub></span></p>
+          <canvas class="flat" id="gK" aria-label="위치에 따른 운동 에너지. 처음 1 J에서 1 m마다 알짜힘 크기만큼 늘어난다. 점선은 미는 힘의 일만 받았을 때이고, 그 차이가 마찰력이 빼 간 에너지다."></canvas>
+          <p class="cap">위치에 따른 운동 에너지. 점선은 F의 일만 받았을 때이고, 그 아래 빨간 띠가 마찰력이 빼 간 에너지다. 실선 K는 1 m마다 (F − f) × 1 m = 8 J씩, 곧 기울기가 <b>알짜힘</b>인 직선으로 는다. 무대의 장부에서 「합」 막대와 K 막대 위쪽의 초록 조각(ΔE<sub>k</sub>)이 늘 같은 높이다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="exPlay">예제 상황으로 밀기</button>
+            <button type="button" class="btn" data-do="click:#step">0.5 m씩 ▸</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 합의 부호">
+          <div class="kind">관찰 2</div>
+          <h3>합이 양이면 빨라지고, 음이면 느려지고, 0이면 처음 속력 그대로다</h3>
+          <p>미는 힘을 마찰력보다 작게 하면 장부의 합이 음수가 되어 상자가 느려지다 멈춘다. 마찰력과 같게 하면 합이 0이라 속력이 그대로다. 합이 0이라는 것은 처음과 나중 속력이 같다는 뜻일 뿐, 중간에는 속력이 달라질 수 있다.</p>
+          <canvas class="flat" id="gV" aria-label="위치에 따른 속력을 세 경우로 비교. 미는 힘이 마찰력보다 크면 빨라지고, 같으면 그대로, 0이면 느려지다 멈춘다."></canvas>
+          <p class="cap">위치에 따른 속력. F &gt; f이면 빨라지고, F = f이면 그대로, F = 0이면 마찰력만 일을 해서 느려지다 멈춘다. 멈출 때까지의 거리는 <span class="eq">−fs = 0 − ½mv₀²</span>에서 바로 나온다(시간은 몰라도 된다).</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="eqf">F = f (4 N)</button>
+            <button type="button" class="btn" data-try="f0">F = 0</button>
+            <button type="button" class="btn" data-try="zero">앞 1.5 m만 8 N</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 같은 높이 빗면">
+          <div class="kind">관찰 3</div>
+          <h3>높이가 같으면 빗면 길이와 상관없이 같은 속력으로 내려온다</h3>
+          <p>높이 h가 같은 마찰 없는 두 빗면에서 중력이 한 일은 둘 다 mgh다(수직항력은 일 0). 그래서 바닥 속력이 같다. 길이가 2배인 빗면에서는 알짜힘 mg sin θ가 1/2이어야 알짜힘 × 거리가 mgh로 같아진다. 그래서 <b>알짜힘(가속도) 비 = 빗면 길이의 역비</b>이고, 경사각을 몰라도 길이만으로 가속도 비를 안다.</p>
+          <canvas class="flat" id="gVt" aria-label="두 빗면에서 미끄러지는 물체의 속력–시간 그래프. 둘 다 같은 속력에 이르지만 긴 빗면의 기울기(가속도)가 작고 걸린 시간이 길다."></canvas>
+          <p class="cap">두 물체의 속력–시간 그래프. 같은 6 m/s에 이르지만 기울기(가속도)는 길이에 반비례하고, 걸린 시간은 길이에 비례한다(두 빗면의 평균 속력이 (0 + v)/2로 같으므로). 무대 아래 알짜힘–거리 그래프에서 두 직사각형의 넓이가 mgh = 18 J로 같다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ramps">두 빗면에서 놓기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=ramps]; set:#kk=3">B 길이 3배</button>
+            <button type="button" class="btn" data-do="click:[data-scene=ramps]; set:#kk=4">B 길이 4배</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="④ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>속력 변화는 힘마다 한 일의 합(알짜힘의 일)이 정한다</h3>
+          <ul>
+            <li><span class="eq">ΣW = W<sub>알짜</sub> = ΔE<sub>k</sub> = ½mv² − ½mv₀²</span>. 일을 하는 힘을 전부 적고 부호를 붙여 더한다(이동과 수직인 힘은 0). 힘을 먼저 합성하지 않아도 된다.</li>
+            <li>합이 양이면 빨라지고, 음이면 느려지고, 0이면 처음과 나중 속력이 같다(중간에는 다를 수 있다). 중력만 일을 하면 mg(h₁ − h₂) = ½mv₂² − ½mv₁².</li>
+            <li>같은 높이의 마찰 없는 빗면: 중력의 일 mgh가 같아 바닥 속력이 같다. 알짜힘(가속도) 비 = 길이의 역비, 걸린 시간 비 = 길이 비.</li>
+            <li>곡선 경로(2차원)에서도 성립한다: 알짜힘에 수직인 속도 성분은 그대로이고 나란한 성분만 바뀐다. 실로 연결된 물체를 계 전체로 보면 장력이 두 물체에 한 일은 상쇄된다.</li>
+            <li>거리가 주어지면 일로, 시간이 주어지면 가속도와 속도 변화로 푼다. 같은 알짜힘이 같은 거리 작용하면 ΔE<sub>k</sub>가 같고, 같은 시간 작용하면 Δv가 같다.</li>
+            <li>자주 하는 실수: ΔE<sub>k</sub>(모든 힘의 일의 합)와 특정 힘 하나의 일을 헷갈린다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑤ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>질량 2 kg인 물체가 1 m/s로 움직이다가 수평면에서 운동 방향으로 12 N의 힘을 받으며 3 m 이동했다. 마찰력이 4 N일 때 나중 속력은?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="exPlay">처음부터 밀며 보기</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>일 장부: F의 일 = 12 × 3 = +36 J, 마찰력의 일 = −4 × 3 = −12 J, 수직항력·중력의 일 = 0. 합 = 36 − 12 = 24 J = ΔE<sub>k</sub>. 처음 운동 에너지가 ½ × 2 × 1² = 1 J이므로 나중 운동 에너지는 25 J이고, ½ × 2 × v² = 25에서 <b>v = 5 m/s</b>. 운동학으로 풀어도 a = (12 − 4) ÷ 2 = 4 m/s², v² = 1² + 2 × 4 × 3 = 25로 같다.</p></details>
+        </li>
+        <li class="card step" data-step="⑥ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>질량 4 kg인 물체가 수평면에서 6 m/s로 미끄러지다가 크기 8 N인 마찰력만 받아 멈추었다. 멈출 때까지 이동한 거리는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="stop9">마찰력만 받아 미끄러지기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>9 m</b>. 일하는 힘은 마찰력뿐이고 수직항력과 중력은 이동에 수직이라 일이 0이다. 일·운동 에너지 정리에서 −8 × s = 0 − ½ × 4 × 6² = −72 J이므로 s = 9 m다. 18 m는 운동 에너지 식의 ½을 빼먹은 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>높이가 같고 마찰이 없는 두 빗면 A(길이 L), B(길이 3L)의 꼭대기에서 같은 물체를 각각 가만히 놓았다. 옳은 것만 고르면? ㄱ. 바닥에 도달하는 순간의 속력은 같다. ㄴ. B에서 물체의 가속도 크기는 A에서의 1/3이다. ㄷ. B를 내려오는 데 걸리는 시간은 A의 3배이다.</h3>
+            <div class="acts"><button type="button" class="btn" data-try="r3">B 길이 3배로 놓기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄴ, ㄷ</b>. 중력이 한 일 mgh가 같으므로 바닥 속력이 같다. 알짜힘 × 길이 = mgh이므로 길이가 3배인 B의 알짜힘, 곧 가속도는 1/3이다. 두 빗면 모두 평균 속력이 (0 + v)/2로 같으므로 걸리는 시간은 길이에 비례해 3배다.</p></details>
+          </div>
+          <div class="q">
+            <h3>수평면에서 1 m/s로 움직이는 2 kg 물체를 처음 1.5 m 동안만 운동 방향으로 8 N으로 밀었다. 마찰력 4 N은 3 m 내내 작용한다. 3 m를 지난 순간의 속력은? 그 사이 속력은 어땠을까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="zeroEnd">앞 1.5 m만 8 N으로 밀기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>1 m/s</b>(처음과 같다). 장부: F의 일 8 × 1.5 = +12 J, 마찰력의 일 −4 × 3 = −12 J, 합 0이므로 ΔE<sub>k</sub> = 0이다. 하지만 1.5 m까지는 합이 +6 J라 √7 ≈ 2.6 m/s까지 빨라졌다가 다시 느려졌다. 알짜힘이 한 일이 0이면 처음과 나중의 속력만 같다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../01/" rel="prev"><small>← 이전 개념 · A2-01</small><b>일과 F-s 그래프</b></a><a href="../03/" rel="next"><small>다음 개념 · A2-03 →</small><b>보존력과 비보존력</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="A2-02-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A2_02;
+  const {$, C, text, rich, arrow, fmt} = Lab;
+  const EX = {m: 2, v0: 1, F: 12, f: 4, sE: 3, half: false};
+  const RH = 1.8, RLA = 3, RM = 1;                       // 같은 높이 빗면: 높이 1.8 m, A 길이 3 m, 질량 1 kg
+  const SLOW = 0.4, SLOWR = 0.6;                         // 느린 화면 (수평면, 빗면)
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = {scene: 'push', playing: !Lab.reduceMotion, speed: 1, m: 2, v0: 1, F: 12, f: 4, sE: 3, half: false, k: 2, t: 0, hold: 0};
+  const par = () => ({m: S.m, v0: S.v0, F: S.F, f: S.f, sF: S.half ? S.sE / 2 : S.sE});
+  const xEnd = () => Math.min(S.sE, M.stopAt(par()));
+  const tEnd = () => (S.scene === 'push' ? M.timeTo(par(), xEnd()) : M.ramp(RM, RH, RLA * S.k).t);
+  const posNow = () => { const r = M.posAt(par(), Math.min(S.t, tEnd())); return {x: Math.min(r.x, xEnd()), v: r.v}; };
+  const sgn = (v, d = 1) => (Math.abs(v) < 0.005 ? '0' : Lab.sg(v, d));
+  const J = (v, d = 1) => sgn(v, d) + ' J';
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  function floor(ctx, x0, x1, y) {
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.globalAlpha = 0.5; ctx.lineWidth = 1.1; ctx.beginPath();
+    for (let x = x0 + 8; x < x1 + 4; x += 10) { ctx.moveTo(x, y + 1); ctx.lineTo(x - 7, y + 8); }
+    ctx.stroke(); ctx.restore();
+    Lab.line(ctx, [[x0, y], [x1, y]], C.ink, 2);
+  }
+  function hatchRect(ctx, x, y, w, h, col, gap = 7) {
+    if (w <= 0 || h <= 0) return;
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (let u = x - h; u < x + w + gap; u += gap) { ctx.moveTo(u, y + h); ctx.lineTo(u + h, y); }
+    ctx.stroke(); ctx.restore();
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (S.scene === 'push') drawPush(ctx, W, H); else drawRamps(ctx, W, H);
+  }
+
+  // 수평면: 위 = 상자, 아래 = 일 장부
+  function geoP(W, H) {
+    const n = W < 520, bw = n ? 40 : 58, bh = n ? 30 : 42, room = n ? 50 : 86;
+    const x0 = (n ? 26 : 48) + bw / 2, x1 = W - (n ? 10 : 22) - room - bw / 2;
+    const flat = !n && H < 420, yF = Math.round(flat ? Math.max(92, H * 0.31) : H * (n ? 0.31 : 0.33));
+    return {n, flat, bw, bh, x0, x1, yF, X: (s) => x0 + s / S.sE * (x1 - x0), sOf: (x) => (x - x0) / (x1 - x0) * S.sE,
+      kF: (n ? 46 : 84) / 20, kv: (n ? 40 : 72) / 8, top: yF + (n ? 48 : flat ? 50 : 70), bot: H - (n ? 48 : 40)};
+  }
+  function drawPush(ctx, W, H) {
+    const g = geoP(W, H), p = par(), st = posNow(), x = st.x, L = M.ledger(p, x), cx = g.X(x), top = g.yF - g.bh, cy = g.yF - g.bh / 2;
+    floor(ctx, 8, W - 8, g.yF);
+    const xa = g.X(0) - g.bw / 2, xb = g.X(S.sE) + g.bw / 2;
+    if (S.f > 0) Lab.line(ctx, [[xa, g.yF + 3], [xb, g.yF + 3]], Lab.alpha(C.energy, 0.6), 4);       // 거친 면
+    if (p.sF < S.sE - 1e-9 && S.F > 0) {                                                            // 미는 힘이 작용하는 구간
+      Lab.line(ctx, [[g.X(0), g.yF - 3], [g.X(p.sF), g.yF - 3]], Lab.alpha(C.force, 0.55), 3);
+      Lab.line(ctx, [[g.X(p.sF), g.yF - 12], [g.X(p.sF), g.yF + 6]], C.force, 1.6, [3, 3]);
+      text(ctx, 'F 끝', g.X(p.sF) + 5, g.yF - 12, {size: 13, w: 600, color: C.force, align: 'left', halo: true});
+    }
+    // 끝 표시
+    Lab.line(ctx, [[g.X(S.sE), g.yF - 6], [g.X(S.sE), g.yF + 10]], C.muted, 1.4);
+    // 처음 자리
+    if (cx - g.X(0) > g.bw + 4) {
+      ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.3; Lab.rrect(ctx, g.X(0) - g.bw / 2, top, g.bw, g.bh, 4); ctx.stroke(); ctx.restore();
+      if (!g.n && top - 13 > 58) text(ctx, '처음 v₀ = ' + fmt(S.v0, 1) + ' m/s', g.X(0), top - 13, {size: 13, w: 500, color: C.muted, halo: true});
+    }
+    // 이동 거리 (넓은 화면: 바닥 아래 치수선)
+    if (!g.n && x > 0.01) {
+      const y = g.yF + 36;
+      Lab.line(ctx, [[g.X(0), y - 6], [g.X(0), y + 6]], C.copper, 1.6);
+      arrow(ctx, g.X(0), y, cx, y, C.copper, 2.2, 9);
+      text(ctx, 'x = ' + fmt(x, 2) + ' m', cx + 8, y, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    }
+    // 상자
+    ctx.save(); Lab.rrect(ctx, cx - g.bw / 2, top, g.bw, g.bh, 4); ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.vel; ctx.stroke(); ctx.restore();
+    text(ctx, 'm', cx, cy, {size: 14, w: 600, color: C.vel});
+    // 힘: N(위), mg(아래), f(왼쪽 아래), F(오른쪽)
+    const nx = cx - g.bw * 0.26, nL = g.n ? 24 : 34, fcol = C.force, moving = st.v > 0.01 || (x < xEnd() - 1e-6 && S.t < tEnd());
+    arrow(ctx, nx, top, nx, top - nL, Lab.alpha(fcol, 0.75), 2.4, 9);
+    text(ctx, 'N', nx - 7, top - nL + 5, {size: 13.5, w: 600, color: fcol, align: 'right', halo: true});
+    arrow(ctx, cx + g.bw * 0.18, cy, cx + g.bw * 0.18, g.yF + (g.n ? 14 : 22), Lab.alpha(fcol, 0.75), 2.4, 9);
+    text(ctx, 'mg', cx + g.bw * 0.18 + 6, g.yF + (g.n ? 10 : 16), {size: 13.5, w: 600, color: fcol, align: 'left', halo: true});
+    if (S.f > 0 && moving) {
+      const Lf = S.f * g.kF;
+      arrow(ctx, cx - g.bw / 2 + 4, g.yF - 5, cx - g.bw / 2 + 4 - Lf, g.yF - 5, fcol, 3, 10);
+      text(ctx, g.n ? 'f' : 'f = ' + fmt(S.f, 0) + ' N', cx - g.bw / 2 + 4 - Lf - 6, g.yF - 14, {size: 13.5, w: 600, color: fcol, align: 'right', halo: true});
+    }
+    if (S.F > 0 && x < p.sF - 1e-9) {
+      const LF = S.F * g.kF;
+      arrow(ctx, cx + g.bw / 2, cy, cx + g.bw / 2 + LF, cy, fcol, 3.4, 11);
+      text(ctx, g.n ? 'F' : 'F = ' + fmt(S.F, 0) + ' N', cx + g.bw / 2 + LF / 2, cy - 14, {size: 13.5, w: 600, color: fcol, halo: true});
+    }
+    // 속도 (넓은 화면: 상자 위, 폰: 바닥 아래)
+    const vy = g.n ? g.yF + 26 : Math.max(g.flat ? 22 : 54, top - 46), vL = st.v * g.kv;
+    if (vL > 3) arrow(ctx, cx, vy, cx + vL, vy, C.vel, 3, 10);
+    const vs = 'v = ' + fmt(st.v, 2) + ' m/s', vw = Lab.measure(ctx, vs, {size: 13.5, w: 600}), vr = cx + Math.max(vL, 0) + 8 + vw < W - 6;
+    text(ctx, vs, vr ? cx + Math.max(vL, 0) + 8 : cx - 8, vy, {size: 13.5, w: 600, color: C.vel, align: vr ? 'left' : 'right', halo: true});
+    if (!moving && x > 0.01 && x < S.sE - 1e-6) Lab.tag(ctx, '멈춤', cx + g.bw / 2 + 8, top + 2, {size: 13, color: C.neg, align: 'left'});
+    drawLedger(ctx, g, W, p, x);
+  }
+  // 일 장부: F의 일 · 마찰력의 일 · N·mg · 합 = ΔEk  |  K₀ + ΔEk = K
+  function drawLedger(ctx, g, W, p, x) {
+    const L = M.ledger(p, x), xe = xEnd(), n = g.n;
+    let pos = Math.max(1, p.F * Math.min(p.sF, xe)), neg = 0;
+    for (let i = 0; i <= 80; i++) { const q = M.ledger(p, xe * i / 80); pos = Math.max(pos, q.K, q.K0, q.sum); neg = Math.max(neg, -q.sum, p.f * xe); }
+    const top = g.top + (n ? 30 : g.flat ? 24 : 36), bot = g.bot - (n ? 34 : g.flat ? 26 : 38), k = (bot - top) / (pos + neg || 1), y0 = top + pos * k;
+    const cols = n ? [0.1, 0.27, 0.44, 0.62, 0.86] : [0.12, 0.29, 0.46, 0.63, 0.85], X = (u) => (n ? 10 : 30) + u * (W - (n ? 20 : 60));
+    const bw = n ? 30 : 46, Y = (v) => y0 - v * k;
+    text(ctx, '일 장부 (J)', n ? 12 : 30, g.top + 4, {size: 13.5, w: 700, color: C.ink, align: 'left'});
+    if (!n && !g.flat) text(ctx, '힘마다 한 일을 부호 붙여 더한다', 120, g.top + 4, {size: 13, w: 500, color: C.muted, align: 'left'});
+    Lab.line(ctx, [[X(cols[0]) - bw, y0], [X(cols[3]) + bw, y0]], C.ink, 1.6);
+    Lab.line(ctx, [[X(cols[4]) - bw, y0], [X(cols[4]) + bw, y0]], C.ink, 1.6);
+    const bar = (u, v, col, alpha) => { if (Math.abs(v) < 1e-9) return; ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = col; ctx.fillRect(X(u) - bw / 2, Math.min(y0, Y(v)), bw, Math.abs(Y(v) - y0)); ctx.restore(); };
+    const val = (u, v, col) => text(ctx, Math.abs(v) < 0.005 ? '0' : sgn(v, 1), X(u), v >= 0 ? Y(v) - 11 : Y(v) + 12, {size: 13.5, w: 600, color: col, halo: true});
+    bar(cols[0], L.WF, C.energy, 0.85); val(cols[0], L.WF, C.copper);
+    bar(cols[1], L.Wf, C.neg, 0.85); val(cols[1], L.Wf, C.neg);
+    val(cols[2], 0, C.muted);
+    bar(cols[3], L.sum, L.sum < 0 ? C.neg : C.acc, 0.85); val(cols[3], L.sum, L.sum < 0 ? C.neg : C.acc);
+    // 기준 점선: F의 일 꼭대기 → 합 (마찰력이 깎은 만큼)
+    if (L.WF > 0.01) Lab.line(ctx, [[X(cols[0]) + bw / 2, Y(L.WF)], [X(cols[3]) + bw / 2, Y(L.WF)]], C.muted, 1.1, [3, 4]);
+    // K 막대: K₀ 위에 ΔEk
+    const u = cols[4], K0 = L.K0, K = Math.max(0, L.K);
+    ctx.save(); ctx.globalAlpha = 0.45; ctx.fillStyle = C.energy; ctx.fillRect(X(u) - bw / 2, Y(Math.min(K0, K)), bw, Y(0) - Y(Math.min(K0, K))); ctx.restore();
+    if (L.sum > 0.005) bar(u, 0, C.acc, 0), (() => { ctx.save(); ctx.globalAlpha = 0.85; ctx.fillStyle = C.acc; ctx.fillRect(X(u) - bw / 2, Y(K), bw, Y(K0) - Y(K)); ctx.restore(); })();
+    else if (L.sum < -0.005) { ctx.save(); ctx.strokeStyle = C.neg; ctx.lineWidth = 1.4; ctx.setLineDash([4, 3]); ctx.strokeRect(X(u) - bw / 2 + 0.5, Y(K0), bw - 1, Y(K) - Y(K0)); ctx.restore(); hatchRect(ctx, X(u) - bw / 2, Y(K0), bw, Y(K) - Y(K0), Lab.alpha(C.neg, 0.55)); }
+    ctx.save(); ctx.strokeStyle = C.energy; ctx.lineWidth = 1.4; ctx.strokeRect(X(u) - bw / 2 + 0.5, Y(Math.max(K, K0)), bw - 1, Y(0) - Y(Math.max(K, K0))); ctx.restore();
+    Lab.line(ctx, [[X(u) - bw / 2 - 5, Y(K0)], [X(u) + bw / 2 + 5, Y(K0)]], C.muted, 1.2, [3, 3]);
+    text(ctx, 'K₀ ' + fmt(K0, 1), X(u) + bw / 2 + 7, Math.min(Y(K0), y0 - 8), {size: 13, w: 500, color: C.muted, align: 'left'});
+    text(ctx, 'K = ' + fmt(K, 1), X(u), Y(Math.max(K, K0)) - 11, {size: 13.5, w: 700, color: C.copper, halo: true});
+    if (Math.abs(Y(K) - Y(K0)) > 30 && !n) rich(ctx, 'ΔE_k', X(u) + bw / 2 + 7, (Y(K) + Y(K0)) / 2, {size: 13, w: 600, color: L.sum > 0 ? C.acc : C.neg, align: 'left'});
+    // 이름
+    const names = n ? ['F의 일', 'f의 일', 'N·mg', '합', 'K'] : ['F의 일', '마찰력의 일', 'N·mg의 일', '합 = ΔEk', '운동 에너지'];
+    names.forEach((s, i) => text(ctx, s, X(cols[i]), g.bot - 4, {size: 13, w: i === 3 ? 700 : 600, color: i === 3 ? C.acc : C.ink}));
+    text(ctx, '=', (X(cols[3]) + X(cols[4])) / 2, y0 - (n ? 10 : 14), {size: 18, w: 700, color: C.muted});
+  }
+
+  // 같은 높이의 두 빗면 (A 길이 3 m, B 길이 3k m), 아래 = 알짜힘–거리
+  function geoR(W, H) {
+    const n = W < 520, LA = RLA, LB = RLA * S.k, rA = Math.sqrt(LA * LA - RH * RH), rB = Math.sqrt(LB * LB - RH * RH), gap = 0.9;
+    const left = n ? 34 : 58, right = W - (n ? 46 : 104), topY = n ? 74 : 86, yB0 = Math.round(H * (n ? 0.48 : 0.5));
+    const sc = Math.max(8, Math.min((right - left) / (rA + gap + rB), (yB0 - topY) / RH));
+    const yB = yB0, aR = left + rA * sc, bR = aR + gap * sc + rB * sc;
+    return {n, LA, LB, rA, rB, sc, yB, yT: yB - RH * sc, A: {R: aR, foot: aR - rA * sc, L: LA}, B: {R: bR, foot: bR - rB * sc, L: LB},
+      fsTop: yB + (n ? 40 : 46), fsBot: H - (n ? 58 : 40)};
+  }
+  function rampState(L, t) {                          // 빗면 길이 L, 놓은 뒤 t 초: 간 거리·속력
+    const r = M.ramp(RM, RH, L), u = Math.min(t, r.t);
+    return {s: r.a * u * u / 2, v: r.a * u, done: t >= r.t - 1e-9, r};
+  }
+  function drawRamps(ctx, W, H) {
+    const g = geoR(W, H), t = Math.min(S.t, tEnd());
+    floor(ctx, 8, W - 8, g.yB);
+    Lab.line(ctx, [[g.A.R, g.yT], [g.B.R + 10, g.yT]], C.muted, 1.2, [5, 5]);
+    Lab.vbracket(ctx, g.B.R + (g.n ? 14 : 22), g.yT, g.yB, C.copper, g.n ? 'h' : 'h = 1.8 m', true);
+    [['A', g.A, C.vel], ['B', g.B, C.copper]].forEach(([nm, w, col]) => {
+      ctx.save(); ctx.beginPath(); ctx.moveTo(w.foot, g.yB); ctx.lineTo(w.R, g.yB); ctx.lineTo(w.R, g.yT); ctx.closePath();
+      ctx.fillStyle = C['line-soft']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.ink; ctx.stroke(); ctx.restore();
+      const st = rampState(w.L, t), c = Math.sqrt(w.L * w.L - RH * RH) / w.L, s = RH / w.L, d = [-c, s], nrm = [-s, -c];
+      const bs = g.n ? 16 : 24, P = [w.R + d[0] * st.s * g.sc, g.yT + d[1] * st.s * g.sc], Q = [P[0] + nrm[0] * bs / 2, P[1] + nrm[1] * bs / 2];
+      ctx.save(); ctx.translate(Q[0], Q[1]); ctx.rotate(Math.atan2(d[1], d[0]) + Math.PI);
+      Lab.rrect(ctx, -bs / 2, -bs / 2, bs, bs, 3); ctx.fillStyle = Lab.alpha(col, 0.25); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = col; ctx.stroke(); ctx.restore();
+      const vL = st.v * (g.n ? 5 : 8);
+      if (vL > 3 && !st.done) arrow(ctx, Q[0] + d[0] * bs * 0.6, Q[1] + d[1] * bs * 0.6, Q[0] + d[0] * (bs * 0.6 + vL), Q[1] + d[1] * (bs * 0.6 + vL), col, 2.8, 9);
+      const mx = (w.foot + w.R) / 2;                    // 이름표: 빗면 아래 바닥 밑에
+      text(ctx, nm + ' · ' + fmt(w.L, 1) + ' m' + (g.n ? '' : ' · 알짜힘 ' + fmt(st.r.Fnet, 2) + ' N'), mx, g.yB + 17, {size: 13.5, w: 600, color: col, halo: true});
+      const lab = st.done ? (g.n ? fmt(st.r.t, 1) + ' s' : '도착 ' + fmt(st.r.t, 2) + ' s · ' + fmt(st.r.v, 1) + ' m/s') : fmt(st.v, 1) + ' m/s';
+      const lx = Math.max(8, Q[0] - (st.done ? 0 : 0));
+      text(ctx, lab, lx, Q[1] - bs - 8, {size: 13, w: 600, color: col, align: st.done ? 'left' : 'center', halo: true});
+    });
+    drawFS(ctx, g, W, t);
+  }
+  function drawFS(ctx, g, W, t) {                     // 알짜힘–거리: 두 직사각형 넓이 = mgh
+    const x0 = g.n ? 40 : 60, x1 = W - (g.n ? 20 : 40), top = g.fsTop + 10, bot = g.fsBot, Fm = 6.9;
+    const X = (s) => x0 + s / g.LB * (x1 - x0), Y = (F) => bot - F / Fm * (bot - top);
+    arrow(ctx, x0, bot, x0, top - 12, C.muted, 1.3, 7); arrow(ctx, x0, bot, x1 + 12, bot, C.muted, 1.3, 7);
+    text(ctx, '알짜힘 (N)', x0 + 8, top - 10, {size: 13, w: 600, color: C.muted, align: 'left'});
+    if (!g.n) text(ctx, 's = 빗면을 따라 간 거리', x1, top - 10, {size: 13, w: 500, color: C.muted, align: 'right'});
+    const sA = rampState(g.LA, t), sB = rampState(g.LB, t), FA = sA.r.Fnet, FB = sB.r.Fnet;
+    for (const [L, F, st, col] of [[g.LB, FB, sB, C.copper], [g.LA, FA, sA, C.vel]]) {
+      ctx.save(); ctx.globalAlpha = 0.28; ctx.fillStyle = col; ctx.fillRect(X(0), Y(F), X(st.s) - X(0), bot - Y(F)); ctx.restore();
+      ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2.6; ctx.strokeRect(X(0), Y(F), X(L) - X(0), bot - Y(F)); ctx.restore();
+    }
+    text(ctx, fmt(FA, 2), x0 - 6, Y(FA), {size: 13, color: C.vel, align: 'right'});
+    text(ctx, fmt(FB, 2), x0 - 6, Y(FB), {size: 13, color: C.copper, align: 'right'});
+    text(ctx, fmt(g.LA, 1), X(g.LA), bot + 13, {size: 13, color: C.vel}); text(ctx, fmt(g.LB, 1) + ' m', X(g.LB), bot + 13, {size: 13, color: C.copper, align: 'right'});
+    text(ctx, '0', x0, bot + 13, {size: 13, color: C.muted});
+    const wA = FA * sA.s, wB = FB * sB.s;
+    text(ctx, (g.n ? 'A ' : 'A: ' + fmt(FA, 1) + ' N × ' + fmt(sA.s, 2) + ' m = ') + fmt(wA, 1) + ' J', X(g.LA) + 8, Y(FA) + 12, {size: 13.5, w: 600, color: C.vel, align: 'left', halo: true});
+    text(ctx, (g.n ? 'B ' : 'B: ' + fmt(FB, 2) + ' N × ' + fmt(sB.s, 2) + ' m = ') + fmt(wB, 1) + ' J', X(g.LB) - 6, Y(FB) - 12, {size: 13.5, w: 600, color: C.copper, align: 'right', halo: true});
+  }
+
+  // ── 관찰 1: 운동 에너지–위치 ────────────────────────────
+  const gK = Lab.canvas('gK', drawK);
+  function drawK() {
+    const {ctx, W, H} = gK; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const p = S.scene === 'push' ? par() : {m: EX.m, v0: EX.v0, F: EX.F, f: EX.f, sF: EX.sE}, sE = S.scene === 'push' ? S.sE : EX.sE;
+    const xe = Math.min(sE, M.stopAt(p)), K0 = M.kinetic(p.m, p.v0);
+    let Km = K0 + p.F * Math.min(p.sF, sE);
+    for (let i = 0; i <= 60; i++) Km = Math.max(Km, M.ledger(p, xe * i / 60).K);
+    Km = Math.max(Km * 1.12, 2);
+    const r = {x: 48, y: 26, w: W - 48 - 22, h: H - 26 - 34}, X = (x) => r.x + x / sE * r.w, Y = (k) => r.y + r.h - k / Km * r.h;
+    const pts = (f, a, b) => { const o = []; for (let i = 0; i <= 80; i++) { const x = a + (b - a) * i / 80; o.push([X(x), Y(f(x))]); } return o; };
+    const KF = (x) => K0 + p.F * Math.min(x, p.sF), KK = (x) => Math.max(0, M.ledger(p, x).K);
+    // 마찰력이 빼 간 몫
+    ctx.save(); ctx.beginPath(); pts(KF, 0, xe).forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]))); pts(KK, xe, 0).forEach((q) => ctx.lineTo(q[0], q[1])); ctx.closePath();
+    ctx.fillStyle = C['neg-soft']; ctx.fill(); ctx.restore();
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 10, C.muted, 1.3, 7); arrow(ctx, r.x, r.y + r.h, r.x + r.w + 10, r.y + r.h, C.muted, 1.3, 7);
+    text(ctx, 'K (J)', r.x + 8, r.y - 8, {size: 13, w: 600, color: C.muted, align: 'left'});
+    const stp = sE > 5 ? 2 : 1;
+    for (let x = 0; x <= sE + 1e-9; x += stp) { const last = x + stp > sE + 1e-9; text(ctx, fmt(x, 1) + (last ? ' m' : ''), X(x), r.y + r.h + 13, {size: 13, color: C.muted, align: last ? 'right' : 'center'}); }
+    Lab.line(ctx, pts(KF, 0, xe), C.energy, 2, [6, 4]);
+    Lab.line(ctx, pts(KK, 0, xe), C.energy, 3.2);
+    text(ctx, 'K₀ = ' + fmt(K0, 1), r.x - 6, Y(K0), {size: 13, w: 600, color: C.muted, align: 'right'});
+    if (W > 380) text(ctx, 'F의 일만이면', X(xe) - 4, Y(KF(xe)) - 12, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+    const net = p.F - p.f;
+    if (Math.abs(net) > 0.01 && p.sF >= 1 && xe >= 1) {                                      // 1 m 동안 늘어난 K = 알짜힘
+      const a = Math.min(1, p.sF - 1) * 0 + 0.2, A = [X(a), Y(KK(a))], B = [X(a + 1), Y(KK(a))], Cc = [X(a + 1), Y(KK(a + 1))];
+      Lab.line(ctx, [A, B, Cc], C.acc, 2);
+      text(ctx, (net > 0 ? '+' : '−') + fmt(Math.abs(net), 1) + ' J / 1 m = 알짜힘', B[0] + 6, (B[1] + Cc[1]) / 2, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    }
+    const x = S.scene === 'push' ? posNow().x : xe;
+    Lab.line(ctx, [[X(x), r.y + r.h], [X(x), Y(KK(x))]], C.copper, 1.3, [4, 4]);
+    Lab.circle(ctx, X(x), Y(KK(x)), 6, {fill: C.copper, stroke: C.paper, width: 2});
+    text(ctx, 'K = ' + fmt(KK(x), 1) + ' J', X(x) + (x > sE * 0.6 ? -10 : 10), Y(KK(x)) + 15, {size: 13, w: 600, color: C.copper, align: x > sE * 0.6 ? 'right' : 'left', halo: true});
+  }
+
+  // ── 관찰 2: 세 경우의 속력–위치 ─────────────────────────
+  const gV = Lab.canvas('gV', drawV);
+  function drawV() {
+    const {ctx, W, H} = gV; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const base = S.scene === 'push' ? {m: S.m, v0: S.v0, f: S.f, sE: S.sE} : {m: EX.m, v0: EX.v0, f: EX.f, sE: EX.sE};
+    const cur = S.scene === 'push' ? par() : {m: EX.m, v0: EX.v0, F: EX.F, f: EX.f, sF: EX.sE};
+    const same = (F) => Math.abs(cur.F - F) < 1e-9 && cur.sF >= base.sE - 1e-9;
+    const cases = [[cur, C.vel, '지금 F = ' + fmt(cur.F, 0) + ' N', 3.2, null]];
+    if (!same(base.f)) cases.push([{...cur, F: base.f, sF: base.sE}, C.muted, 'F = f', 2, [6, 4]]);
+    if (!same(0)) cases.push([{...cur, F: 0, sF: base.sE}, C.neg, 'F = 0', 2, [6, 4]]);
+    let vm = 1; for (const [p] of cases) for (let i = 0; i <= 40; i++) vm = Math.max(vm, M.ledger(p, Math.min(base.sE, M.stopAt(p)) * i / 40).v);
+    vm *= 1.18;
+    const r = {x: 44, y: 26, w: W - 44 - 22, h: H - 26 - 34}, X = (x) => r.x + x / base.sE * r.w, Y = (v) => r.y + r.h - v / vm * r.h;
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 10, C.muted, 1.3, 7); arrow(ctx, r.x, r.y + r.h, r.x + r.w + 10, r.y + r.h, C.muted, 1.3, 7);
+    text(ctx, 'v (m/s)', r.x + 8, r.y - 8, {size: 13, w: 600, color: C.muted, align: 'left'});
+    for (let x = 0; x <= base.sE + 1e-9; x += base.sE > 5 ? 2 : 1) text(ctx, fmt(x, 1) + (x + (base.sE > 5 ? 2 : 1) > base.sE + 1e-9 ? ' m' : ''), X(x), r.y + r.h + 13, {size: 13, color: C.muted, align: x + (base.sE > 5 ? 2 : 1) > base.sE + 1e-9 ? 'right' : 'center'});
+    text(ctx, fmt(base.v0, 1), r.x - 6, Y(base.v0), {size: 13, color: C.muted, align: 'right'});
+    const labs = [];
+    cases.slice().reverse().forEach(([p, col, nm, w, dash]) => {
+      const xe = Math.min(base.sE, M.stopAt(p)), pts = [];
+      for (let i = 0; i <= 120; i++) { const x = xe * i / 120; pts.push([X(x), Y(M.ledger(p, x).v)]); }
+      Lab.line(ctx, pts, col, w, dash || undefined);
+      const ve = M.ledger(p, xe).v;
+      if (xe < base.sE - 1e-6) { Lab.circle(ctx, X(xe), Y(0), 4.5, {fill: col}); labs.push([nm + ': ' + fmt(xe, 2) + ' m 에서 멈춤', X(xe) + 6, Y(0) - 12, col, 'left']); }
+      else labs.push([nm + ': ' + fmt(ve, 2) + ' m/s', r.x + r.w - 2, Y(ve) - 12, col, 'right']);
+    });
+    labs.sort((a, b) => a[2] - b[2]);
+    for (let i = 1; i < labs.length; i++) if (Math.abs(labs[i][2] - labs[i - 1][2]) < 15 && labs[i][4] === labs[i - 1][4]) labs[i][2] = labs[i - 1][2] + 15;
+    labs.forEach(([s0, x, y, col, al]) => {
+      const s = W < 420 ? s0.replace(/: [\d.]+ m 에서 멈춤/, ' 멈춤').replace('지금 ', '') : s0, tw = Lab.measure(ctx, s, {size: 13, w: 600});
+      if (al === 'left' && x + tw > W - 4) { x -= 12; al = 'right'; }
+      text(ctx, s, x, y, {size: 13, w: 600, color: col, align: al, halo: true});
+    });
+    if (S.scene === 'push') { const st = posNow(); Lab.circle(ctx, X(st.x), Y(M.ledger(cur, st.x).v), 6, {fill: C.copper, stroke: C.paper, width: 2}); }
+  }
+
+  // ── 관찰 3: 두 빗면의 속력–시간 ─────────────────────────
+  const gVt = Lab.canvas('gVt', drawVt);
+  function drawVt() {
+    const {ctx, W, H} = gVt; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const A = M.ramp(RM, RH, RLA), B = M.ramp(RM, RH, RLA * S.k), tm = B.t * 1.12, vm = 7.4;
+    const r = {x: 44, y: 26, w: W - 44 - 22, h: H - 26 - 34}, X = (t) => r.x + t / tm * r.w, Y = (v) => r.y + r.h - v / vm * r.h;
+    Lab.line(ctx, [[r.x, Y(6)], [r.x + r.w, Y(6)]], C.grid, 1);
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 10, C.muted, 1.3, 7); arrow(ctx, r.x, r.y + r.h, r.x + r.w + 10, r.y + r.h, C.muted, 1.3, 7);
+    text(ctx, 'v (m/s)', r.x + 8, r.y - 8, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, '6', r.x - 6, Y(6), {size: 13, color: C.muted, align: 'right'});
+    for (let t = 0; t <= tm + 1e-9; t += tm > 3 ? 1 : 0.5) text(ctx, fmt(t, 1) + (t + (tm > 3 ? 1 : 0.5) > tm ? ' s' : ''), X(t), r.y + r.h + 13, {size: 13, color: C.muted});
+    for (const [R, col, nm] of [[A, C.vel, 'A'], [B, C.copper, 'B']]) {
+      Lab.line(ctx, [[X(0), Y(0)], [X(R.t), Y(R.v)]], col, 3);
+      Lab.line(ctx, [[X(R.t), Y(R.v)], [X(tm), Y(R.v)]], col, 1.4, [4, 4]);
+      Lab.line(ctx, [[X(R.t), Y(R.v)], [X(R.t), r.y + r.h]], col, 1, [3, 4]);
+      const f = nm === 'A' ? 0.78 : 0.42;
+      text(ctx, nm + ': a = ' + fmt(R.a, 2) + ' m/s²', X(R.t * f) + 10, Y(R.v * f) + (nm === 'A' ? 0 : 10), {size: 13, w: 600, color: col, align: 'left', halo: true});
+    }
+    text(ctx, '같은 6 m/s', X(tm) - 4, Y(6) - 12, {size: 13, w: 600, color: C.ink, align: 'right', halo: true});
+    const t = S.scene === 'ramps' ? Math.min(S.t, tEnd()) : B.t;
+    Lab.line(ctx, [[X(t), r.y], [X(t), r.y + r.h]], Lab.alpha(C.copper, 0.7), 1.4);
+  }
+
+  // ── 수치 ────────────────────────────────────────────────
+  let ansKey = '';
+  function ans(big, lines, o) { const key = [big, o.tone, o.lab, o.ctx, o.f].concat(lines).join('|'); if (key !== ansKey) { ansKey = key; Lab.ans(big, lines, o); } }
+  const setMini = (i, name, val) => { const a = $('mn' + i), b = $('mv' + i); if (a.textContent !== name) a.textContent = name; if (b.textContent !== val) b.textContent = val; };
+  const setText = (id, s) => { const el = $(id); if (el && el.textContent !== s) el.textContent = s; };
+  function readouts() {
+    const nar = (stage.W || 999) < 520;
+    if (S.scene === 'push') {
+      const p = par(), xe = xEnd(), L = M.ledger(p, xe), st = posNow(), sF = Math.min(p.sF, xe), stopped = xe < S.sE - 1e-9;
+      const lines = [
+        'F의 일 <em>' + fmt(S.F, 0) + '</em> × ' + fmt(sF, 2) + ' = ' + J(L.WF) + ', 마찰력의 일 −<em>' + fmt(S.f, 0) + '</em> × ' + fmt(xe, 2) + ' = ' + J(L.Wf) + ', N·mg 0',
+        '합 = ' + fmt(L.WF, 1) + (L.Wf < 0 ? ' − ' + fmt(-L.Wf, 1) : '') + ' = <em>' + J(L.sum) + '</em> = ΔE<sub>k</sub>',
+        stopped ? '½ × ' + fmt(S.m, 1) + ' × v² = ' + fmt(L.K0, 2) + ' ' + (L.sum < 0 ? '− ' + fmt(-L.sum, 2) : '+ ' + fmt(L.sum, 2)) + ' = 0 → <em>' + fmt(xe, 2) + ' m 에서 멈춤</em>'
+          : '½ × ' + fmt(S.m, 1) + ' × v² = ' + fmt(L.K0, 2) + ' ' + (L.sum < 0 ? '− ' + fmt(-L.sum, 2) : '+ ' + fmt(L.sum, 2)) + ' = ' + fmt(L.K, 2) + ' J → <em>v = ' + fmt(L.v, 2) + ' m/s</em>'];
+      if (xe < 1e-9) lines[2] = '처음에 멈춰 있고 F ≤ f → <em>움직이지 않는다</em>';
+      ans(stopped ? (xe < 1e-9 ? '움직이지 않음' : fmt(xe, 2) + ' m 에서 멈춤') : 'v = ' + fmt(L.v, 2) + ' m/s', lines,
+        {tone: stopped ? 'neg' : '', lab: stopped ? '멈출 때까지' : S.sE + ' m 를 지난 순간의 속력', ctx: fmt(S.m, 1) + ' kg · v₀ = ' + fmt(S.v0, 1) + ' m/s · F = ' + fmt(S.F, 0) + ' N' + (S.half ? '(앞 절반)' : '') + ' · f = ' + fmt(S.f, 0) + ' N', f: '일 장부(힘마다 한 일의 합 = ΔE<sub>k</sub>)에 지금 값을 넣으면', html: false});
+      setMini(1, '처음 운동 에너지 K₀ = ½mv₀²', fmt(L.K0, 2) + ' J'); setMini(2, '알짜힘 (F 구간에서 F − f)', fmt(S.F - S.f, 1) + ' N');
+      setMini(3, '지금 위치 x', fmt(st.x, 2) + ' m'); setMini(4, '지금 속력 v (일 장부로)', fmt(M.ledger(p, st.x).v, 2) + ' m/s');
+      setText('hud1', 'x = ' + fmt(st.x, 2) + ' m'); setText('hud2', 'v = ' + fmt(M.ledger(p, st.x).v, 2) + ' m/s');
+      const h2 = $('hud2'), sum = M.ledger(p, st.x).sum, c = 'pill' + (sum > 0.005 ? ' up' : sum < -0.005 ? ' down' : ''); if (h2.className !== c) h2.className = c;
+    } else {
+      const A = M.ramp(RM, RH, RLA), B = M.ramp(RM, RH, RLA * S.k), t = Math.min(S.t, tEnd());
+      ans('v = ' + fmt(A.v, 1) + ' m/s (A, B 같다)', [
+        '중력의 일 = mgh = 1 × 10 × 1.8 = <em>18 J</em> (A, B 같다, 수직항력은 0)',
+        '½ × 1 × v² = 18 → <em>v = 6 m/s</em>',
+        '알짜힘: A ' + fmt(A.Fnet, 1) + ' N × 3 m = B <em>' + fmt(B.Fnet, 2) + ' N</em> × <em>' + fmt(RLA * S.k, 1) + ' m</em> = 18 J → 가속도 ' + fmt(S.k, 1) + ' : 1, 시간 1 : ' + fmt(S.k, 1)],
+      {tone: '', lab: '바닥에서의 속력', ctx: 'h = 1.8 m · A 3 m · B ' + fmt(RLA * S.k, 1) + ' m · 1 kg', f: 'mgh = ½mv² (중력만 일을 한다) 에 지금 값을 넣으면', html: false});
+      setMini(1, 'A 알짜힘 = 가속도 × m', fmt(A.Fnet, 2) + ' N'); setMini(2, 'B 알짜힘', fmt(B.Fnet, 2) + ' N');
+      setMini(3, 'A 도착 시간', fmt(A.t, 2) + ' s'); setMini(4, 'B 도착 시간', fmt(B.t, 2) + ' s');
+      setText('hud1', 't = ' + fmt(t, 2) + ' s'); setText('hud2', t >= B.t - 1e-6 ? '둘 다 6 m/s' : t >= A.t - 1e-6 ? 'A 도착' : '미끄러지는 중');
+      if ($('hud2').className !== 'pill') $('hud2').className = 'pill';
+    }
+    $('hud3').hidden = nar;
+    const ok = S.scene === 'push' && S.m === EX.m && S.v0 === EX.v0 && S.F === EX.F && S.f === EX.f && S.sE === EX.sE && !S.half;
+    Lab.check('exCheck', ok, '개념서 예제 (2 kg · 1 m/s · 12 N · 마찰력 4 N · 3 m) → 합 24 J = ΔEk, 나중 속력 5 m/s',
+      '예제: 2 kg, 1 m/s, 12 N 으로 3 m, 마찰력 4 N 일 때 나중 속력은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  const seen = (v) => { if (!v.W) return false; const r = v.el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  function drawAll() { drawStage(); drawK(); drawV(); drawVt(); }
+  function refresh() { syncUI(); readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; if (on && S.t >= tEnd() - 1e-9) { S.t = 0; S.hold = 0; } });
+  const setPlay = (on) => { playCtl.set(on, true); S.playing = on; };
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => { S.scene = v; S.hold = 0; S.t = S.playing ? 0 : tEnd(); refresh(); }, S.scene);
+  const halfG = Lab.group('[data-half]', 'half', (v) => { change(() => { S.half = v === '1'; }); }, '0');
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  function change(fn) {                                  // 조건을 바꾸면: 끝에 멈춰 있었으면 끝 그대로, 아니면 같은 시각
+    const atEnd = !S.playing && S.t >= tEnd() - 1e-9;
+    fn();
+    S.t = atEnd ? tEnd() : Math.min(S.t, tEnd());
+    refresh();
+  }
+  const num = (id, key) => $(id).addEventListener('input', (e) => change(() => { S[key] = +e.target.value; }));
+  num('F', 'F'); num('fr', 'f'); num('mm', 'm'); num('v0', 'v0'); num('sE', 'sE');
+  $('kk').addEventListener('input', (e) => change(() => { S.k = +e.target.value; }));
+  $('restart').addEventListener('click', () => { S.t = 0; S.hold = 0; setPlay(true); refresh(); });
+  $('step').addEventListener('click', () => {
+    setPlay(false); S.hold = 0;
+    if (S.scene === 'push') {
+      const xe = xEnd(), x = posNow().x, nx = x >= xe - 1e-6 ? 0 : Math.min(xe, (Math.floor(x / 0.5 + 1e-6) + 1) * 0.5);
+      S.t = nx <= 0 ? 0 : M.timeTo(par(), nx);
+    } else S.t = S.t >= tEnd() - 1e-9 ? 0 : Math.min(tEnd(), (Math.floor(S.t / 0.25 + 1e-6) + 1) * 0.25);
+    refresh();
+  });
+  function syncUI() {
+    const push = S.scene === 'push';
+    $('slF').hidden = !push; $('slK').hidden = push; $('rowPush').hidden = !push; $('grpHalf').hidden = !push;
+    $('F').value = S.F; $('fr').value = S.f; $('mm').value = S.m; $('v0').value = S.v0; $('sE').value = S.sE; $('kk').value = S.k;
+    setText('FOut', fmt(S.F, 0) + ' N'); setText('frOut', fmt(S.f, 0) + ' N'); setText('mmOut', fmt(S.m, 1) + ' kg'); setText('v0Out', fmt(S.v0, 1) + ' m/s');
+    setText('sEOut', fmt(S.sE, 1) + ' m'); setText('kkOut', fmt(RLA * S.k, 1) + ' m');
+    sceneG.set(S.scene, true); halfG.set(S.half ? '1' : '0', true);
+    setText('step', push ? '0.5 m ▸' : '0.25 s ▸');
+  }
+  const set = (o, play, end) => () => {
+    Object.assign(S, o); S.hold = 0; S.t = end ? tEnd() : 0; setPlay(play);
+  };
+  const PUSH = {scene: 'push', ...EX};
+  const TRY = {
+    ex: set({...PUSH}, false, true),
+    exPlay: set({...PUSH}, true, false),
+    eqf: set({...PUSH, F: 4}, true, false),
+    f0: set({...PUSH, F: 0}, true, false),
+    zero: set({...PUSH, F: 8, half: true}, true, false),
+    zeroEnd: set({...PUSH, F: 8, half: true}, false, true),
+    stop9: set({scene: 'push', m: 4, v0: 6, F: 0, f: 8, sE: 10, half: false}, false, true),
+    ramps: set({scene: 'ramps', k: 2}, true, false),
+    r3: set({scene: 'ramps', k: 3}, false, true),
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    if (!S.playing) return;
+    const te = tEnd();
+    if (S.t >= te - 1e-9) { S.hold += dt; if (S.hold > 1.6) { S.hold = 0; S.t = 0; } }
+    else S.t = Math.min(te, S.t + dt * S.speed * (S.scene === 'push' ? SLOW : SLOWR));
+    readouts(); drawStage();
+    if (S.scene === 'push') { if (seen(gK)) drawK(); if (seen(gV)) drawV(); } else if (seen(gVt)) drawVt();
+  });
+  S.t = S.playing ? 0 : tEnd();
+  syncUI(); readouts();
+})();
+</script>
+</body>
+</html>

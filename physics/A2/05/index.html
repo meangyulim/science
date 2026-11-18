@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>포물선 운동의 역학적 에너지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(수평면에서 비스듬히 던진 공, 같은 시간 간격 자리와 속도 성분, 오른쪽 에너지 장부 Kₓ·K_y·U) | 오른쪽 지금 값 + 관찰 ①~④(세 정사각형 K = Kₓ + K_y, 높이에 따른 나눔, 에너지–시간, 각에 따른 나눔) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.4;cursor:grab}
+#sq{aspect-ratio:10/5.6}
+#eh{aspect-ratio:10/6.4}
+#et{aspect-ratio:10/5.8}
+#ag{aspect-ratio:10/5.4}
+@media (max-width:640px){ #sq{aspect-ratio:10/7.4} #eh{aspect-ratio:10/8.2} #et{aspect-ratio:10/7.4} #ag{aspect-ratio:10/7.4} }
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A2 일과 에너지·열: 개념 10개 가운데 5번째"><a class="uname" href="../">A2 일과 에너지·열</a><span class="dots"><a href="../01/" title="A2-01 일과 F-s 그래프" aria-label="A2-01 일과 F-s 그래프"></a><a href="../02/" title="A2-02 일·운동 에너지 정리" aria-label="A2-02 일·운동 에너지 정리"></a><a href="../03/" title="A2-03 보존력과 비보존력" aria-label="A2-03 보존력과 비보존력"></a><a href="../04/" title="A2-04 마찰 구간 에너지 장부" aria-label="A2-04 마찰 구간 에너지 장부"></a><a class="cur" href="./" aria-current="page" title="A2-05 포물선 운동의 에너지" aria-label="A2-05 포물선 운동의 에너지 (지금)"></a><a href="../06/" title="A2-06 단진자의 에너지" aria-label="A2-06 단진자의 에너지"></a><a href="../07/" title="A2-07 일-에너지와 운동학" aria-label="A2-07 일-에너지와 운동학"></a><a href="../08/" title="A2-08 열평형" aria-label="A2-08 열평형"></a><a href="../09/" title="A2-09 열역학 제1법칙" aria-label="A2-09 열역학 제1법칙"></a><a href="../10/" title="A2-10 열의 일당량" aria-label="A2-10 열의 일당량"></a></span></nav>
+  <div class="pn"><a href="../04/" rel="prev" title="이전 개념: A2-04 마찰 구간 에너지 장부">‹ <span>04 마찰 구간 에너지 장부</span></a><a href="../06/" rel="next" title="다음 개념: A2-06 단진자의 에너지"><span>06 단진자의 에너지</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A2-05</span><span>물리학 Ⅱ · 일과 에너지·열</span></div>
+    <h1>포물선 운동의 역학적 에너지</h1>
+    <p class="question"><i>Q</i>포물선 운동에서 운동 에너지와 퍼텐셜 에너지는 정확히 무엇을 주고받을까?</p>
+  </div>
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="수평면에서 비스듬히 던진 공(구리색)이 포물선을 그린다. 같은 시간 간격의 자리마다 수평 속도 성분 화살표는 길이가 같고 연직 성분만 줄었다 는다. 오른쪽 에너지 장부는 운동 에너지의 수평 몫 Kx, 연직 몫 Ky, 퍼텐셜 에너지 U를 쌓은 막대로, Kx는 그대로이고 Ky와 U만 서로 바뀐다. 발사대 손잡이를 끌면 던지는 각이 바뀐다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">t = 0 s</span><span class="pill" id="hud2">던지는 순간</span><span class="pill" id="hud3">느린 화면 ×0.5</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider"><label for="th"><span class="lg">던지는 각 </span>θ</label><input id="th" type="range" min="5" max="85" step="1" value="30"><output id="thOut">30°</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">조건·보기</span><span class="sm">조건</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="조건과 보기">
+          <div class="sheet-head"><b>조건 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="grow">
+              <label class="ctl-label" for="v0">던지는 속력 v₀ <output id="v0Out">10 m/s</output></label>
+              <input id="v0" type="range" min="2" max="20" step="1" value="10">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="m">공의 질량 m <output id="mOut">0.2 kg</output></label>
+              <input id="m" type="range" min="0.1" max="2" step="0.1" value="0.2">
+            </div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="stepB">◀ 0.13 s</button>
+            <button type="button" class="btn" id="stepF">0.13 s ▶</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×0.25</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="true">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="false">×1</button>
+            </div>
+            <div class="group" role="group" aria-label="에너지 그래프의 가로축">
+              <span class="gl">그래프 가로축</span>
+              <button type="button" class="btn" data-ax="t" aria-pressed="true">시간 t</button>
+              <button type="button" class="btn" data-ax="x" aria-pressed="false">수평 위치 x</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cStrobe" checked>같은 시간 간격 자리</label>
+            <label class="chk"><input type="checkbox" id="cComp" checked>속도 성분 화살표</label>
+            <label class="chk"><input type="checkbox" id="cPhi">운동 방향 각 φ</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span>최고점의 운동 에너지와 최고 높이</span><span id="ansCtx">m = 0.2 kg · v₀ = 10 m/s · θ = 30°</span></div>
+        <div class="big" id="ansBig">K = 7.5 J, H = 1.25 m</div>
+        <div class="sub">
+          <span class="f" id="ansF">E = ½mv₀² = K<sub>x</sub> + mgH 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">처음 K₀ = ½ × 0.2 × <em>10</em>² = <em>10 J</em></span><span class="v">K<sub>x</sub> = ½ × 0.2 × (10 cos <em>30°</em>)² = ½ × 0.2 × 75 = <em>7.5 J</em> → 최고점 운동 에너지 (≠ 0)</span><span class="v">K<sub>y</sub> = 10 − 7.5 = 2.5 J = mgH → H = 2.5 ÷ (0.2 × 10) = <em>1.25 m</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span>지금 K<sub>x</sub> = ½mv<sub>x</sub>² (그대로)</span><b id="mv1">7.5 J</b></div>
+          <div class="mini"><span>지금 K<sub>y</sub> = ½mv<sub>y</sub>²</span><b id="mv2">2.5 J</b></div>
+          <div class="mini"><span>지금 U = mgy</span><b id="mv3">0 J</b></div>
+          <div class="mini"><span>합 E = K<sub>x</sub> + K<sub>y</sub> + U</span><b id="mv4">10 J</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① K 는 Kx + Ky">
+          <div class="kind">관찰 1</div>
+          <h3>운동 에너지도 성분으로 나뉜다: K = K<sub>x</sub> + K<sub>y</sub></h3>
+          <p>속력의 제곱은 성분 제곱의 합(v² = v<sub>x</sub>² + v<sub>y</sub>²)이므로 ½mv² 도 ½mv<sub>x</sub>² + ½mv<sub>y</sub>² 로 나뉜다. 아래 세 정사각형의 넓이가 곧 세 운동 에너지다. 수평 성분 정사각형과 연직 성분 정사각형의 넓이를 합치면 속력 정사각형의 넓이가 된다.</p>
+          <canvas class="flat" id="sq" aria-label="수평 속도 성분, 연직 속도 성분, 속력을 한 변으로 하는 세 정사각형. 넓이가 각각 Kx, Ky, K에 비례하고 앞의 둘을 더하면 셋째가 된다. 공이 오를수록 연직 성분 정사각형만 작아진다."></canvas>
+          <p class="cap">공이 오를수록 연직 성분 정사각형만 작아져 최고점에서 사라지고, 수평 성분 정사각형은 그대로다. 두 넓이의 비는 <span class="eq">K<sub>y</sub>/K<sub>x</sub> = tan²φ</span> (φ = 운동 방향이 수평과 이루는 각). 던지는 순간에는 tan²30° = 1/3 이라 2.5 J : 7.5 J 다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="launch">던지는 순간</button>
+            <button type="button" class="btn" data-try="phi45">φ = 45° 인 순간 (60°로)</button>
+            <button type="button" class="btn" data-do="click:#stepF">한 간격씩 ▸</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② Ky 만 U 와 주고받는다">
+          <div class="kind">관찰 2</div>
+          <h3>K<sub>x</sub> 는 끝까지 그대로, U 와 주고받는 것은 K<sub>y</sub> 뿐이다</h3>
+          <p>수평 속도 v<sub>x</sub> = v₀cosθ 는 바뀌지 않으므로 무대의 옅은 K<sub>x</sub> 칸은 한 번도 변하지 않는다. 오를 때는 K<sub>y</sub> 가 줄어든 만큼 U 가 늘고, 내려올 때는 거꾸로다. 연직 방향만 보면 연직 위로 던진 공의 에너지 보존과 똑같다.</p>
+          <canvas class="flat" id="eh" aria-label="세로축 높이, 가로축 에너지. 높이와 상관없이 같은 Kx 띠, 높이에 비례해 줄어드는 Ky, 높이에 비례해 느는 U. 최고 높이에서 Ky가 0이 된다."></canvas>
+          <p class="cap">높이 y 에서 <span class="eq">K<sub>y</sub> = K<sub>y0</sub> − mgy</span> 라 높이에 비례해 줄고, 최고 높이 H 에서 0 이 된다. 그래서 mgH = K<sub>y0</sub>, 곧 최고 높이는 연직 몫만으로 정해진다. 같은 높이면 오를 때와 내려올 때 나눔이 같다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="top">최고점에서 멈추기</button>
+            <button type="button" class="btn" data-do="click:#stepF">한 간격씩 ▸</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 최고점 K = Kx ≠ 0">
+          <div class="kind">관찰 3</div>
+          <h3>최고점의 운동 에너지는 0 이 아니라 K<sub>x</sub> 다</h3>
+          <p>U 는 위로 볼록, K 는 그 거울상이고 합 E 는 수평선이다. K 가 가장 작은 곳이 최고점인데, 그 값은 0 이 아니라 <b>K<sub>x</sub> = ½m(v₀cosθ)²</b> 다. 최고점의 운동 에너지를 0 으로 놓는 것이 이 단원에서 가장 흔한 실수다.</p>
+          <canvas class="flat" id="et" aria-label="시간(또는 수평 위치)에 따른 운동 에너지 K, 퍼텐셜 에너지 U, 역학적 에너지 E. K의 최솟값은 0이 아니라 Kx이다."></canvas>
+          <p class="cap">가로축을 수평 위치 x 로 바꿔도 모양이 같다(x = v<sub>x</sub>t 라 시간에 비례한다). 최고점은 시간으로도 위치로도 한가운데다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-do="click:[data-ax=t]">가로축 t</button>
+            <button type="button" class="btn" data-do="click:[data-ax=x]">가로축 x</button>
+            <button type="button" class="btn go" data-try="top">최고점에서 멈추기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 각이 나눔을 정한다">
+          <div class="kind">관찰 4</div>
+          <h3>던지는 각이 나눔을 정한다: K<sub>x</sub> = K₀cos²θ, K<sub>y</sub> = K₀sin²θ</h3>
+          <p>같은 속력으로 던지면 K₀ 는 같고, 각이 그것을 수평 몫과 연직 몫으로 나눈다. 최고점의 운동 에너지는 cos²θ 에, 최고 높이(mgH = K<sub>y0</sub>)는 sin²θ 에 비례한다.</p>
+          <canvas class="flat" id="ag" aria-label="던지는 각에 따른 Kx = K0 cos²θ 와 Ky = K0 sin²θ. 45도에서 같고, 여각끼리는 두 값을 맞바꾼다."></canvas>
+          <p class="cap">30° 와 60° 는 K<sub>x</sub> 와 K<sub>y</sub> 를 맞바꾼다(7.5 J ↔ 2.5 J). 45° 에서 반반이다. θ 막대나 무대의 발사대 손잡이를 끌어 바꿔 보자.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-do="set:#th=30">30°</button>
+            <button type="button" class="btn" data-do="set:#th=45">45°</button>
+            <button type="button" class="btn" data-do="set:#th=60">60°</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>포물선 = 수평 에너지 고정 + 연직 에너지만 교환</h3>
+          <ul>
+            <li>중력만 일을 하므로 <span class="eq">E = ½mv₀² = ½mv² + mgy</span> 가 일정하다.</li>
+            <li>K = K<sub>x</sub> + K<sub>y</sub>. K<sub>x</sub> = ½m(v₀cosθ)² 는 그대로이고 K<sub>y</sub> 와 U 만 주고받는다: <span class="eq">E = mgH + ½mv<sub>0x</sub>²</span></li>
+            <li>운동 방향의 각 φ 가 주어지면 <span class="eq">K<sub>y</sub>/K<sub>x</sub> = tan²φ</span> 로 바로 바꾼다.</li>
+            <li>자주 하는 실수: 최고점의 운동 에너지를 0 으로 놓는다. 연직 성분만 0 이고 ½m(v₀cosθ)² 가 남는다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>질량 0.2 kg인 공을 수평면과 30°를 이루며 10 m/s로 던졌다. 최고점의 운동 에너지와 최고 높이는? (g = 10 m/s²)</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>처음 운동 에너지는 ½ × 0.2 × 10² = 10 J 이다. 수평 속도 v<sub>x</sub> = 10 cos30° = 5√3 m/s 는 그대로이므로 K<sub>x</sub> = ½ × 0.2 × 75 = 7.5 J, 이것이 <b>최고점의 운동 에너지 7.5 J</b> 다. 나머지 K<sub>y</sub> = 10 − 7.5 = 2.5 J 가 최고점에서 모두 퍼텐셜 에너지가 되므로 mgH = 2.5 에서 H = 2.5 ÷ (0.2 × 10) = 1.25 m 다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>질량 0.5 kg인 공을 지면에서 비스듬히 던졌더니 최고점에서의 운동 에너지가 9 J, 최고 높이가 3.2 m였다. 던지는 순간 공의 운동 에너지는? (g = 10 m/s², 공기 저항 무시)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1">최고점 9 J · 3.2 m 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>25 J</b>. 중력만 일을 하므로 역학적 에너지가 보존된다. 처음 운동 에너지 = 최고점의 운동 에너지 + mgH = 9 + 0.5 × 10 × 3.2 = 25 J 이다. 16 J 는 최고점의 운동 에너지를 0 으로 놓은 실수다. 최고점에는 수평 몫 K<sub>x</sub> = 9 J 가 그대로 남는다(무대: 10 m/s, tanθ = 4/3 으로 던진 경우).</p></details>
+          </div>
+          <div class="q">
+            <h3>질량이 같은 두 공을 같은 속력으로 A는 30°, B는 60°로 던졌다. 최고점에서의 운동 에너지 비 K<sub>A</sub> : K<sub>B</sub> 와 최고 높이 비 H<sub>A</sub> : H<sub>B</sub> 는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q2a">A: 30° 최고점</button><button type="button" class="btn" data-try="q2b">B: 60° 최고점</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>3 : 1, 1 : 3</b>. 최고점 운동 에너지는 K<sub>x</sub> = K₀cos²θ 라 cos²30° : cos²60° = 3/4 : 1/4 = 3 : 1 이다. 최고 높이는 K<sub>y0</sub> = K₀sin²θ 에 비례해 1/4 : 3/4 = 1 : 3 이다. 0.2 kg, 10 m/s 이면 A 는 7.5 J·1.25 m, B 는 2.5 J·3.75 m 다.</p></details>
+          </div>
+          <div class="q">
+            <h3>0.2 kg인 공을 60°, 10 m/s로 던졌다. 운동 방향이 수평과 45°를 이루는 순간(오르는 중) 공의 높이는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="phi45">45° 인 순간 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>2.5 m</b>. 45° 이면 K<sub>y</sub>/K<sub>x</sub> = tan²45° = 1 이라 K<sub>y</sub> = K<sub>x</sub> = ½ × 0.2 × (10 cos60°)² = 2.5 J 이다. U = 10 − 2.5 − 2.5 = 5 J = mgy 에서 y = 5 ÷ 2 = 2.5 m 다. 최고 높이 3.75 m 보다 낮다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../04/" rel="prev"><small>← 이전 개념 · A2-04</small><b>마찰 구간 에너지 장부</b></a><a href="../06/" rel="next"><small>다음 개념 · A2-06 →</small><b>단진자의 에너지</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+<script src="../../kit/lab.js"></script>
+<script src="A2-05-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A2_05;
+  const {$, C, text, arrow, fmt} = Lab;
+  const RAD = Math.PI / 180, EPS = 1e-6;
+
+  // ── 상태 ────────────────────────────────────────────────
+  const EX = {m: 0.2, v0: 10, th: 30};
+  const S = {m: 0.2, v0: 10, th: 30, t: 0, playing: !Lab.reduceMotion, speed: 0.5, linger: 0, hold: 0, ax: 't',
+    strobe: true, comp: true, phi: false, drag: false};
+  const T = () => M.flightTime(S.v0, S.th);
+  const tTop = () => M.topTime(S.v0, S.th);
+  const dtS = () => T() / 8;
+  const tNow = () => Math.min(S.t, T());
+  const st = () => M.state(S.m, S.v0, S.th, tNow());
+  const thStr = (th) => fmt(th, Math.abs(th - Math.round(th)) < 1e-6 ? 0 : 1) + '°';
+  const J = (v) => fmt(v, 2) + ' J';
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  function ground(ctx, x0, x1, y) {
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.globalAlpha = 0.55; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (let x = x0 + 8; x < x1 + 4; x += 11) { ctx.moveTo(x, y + 1); ctx.lineTo(x - 8, y + 9); }
+    ctx.stroke(); ctx.restore();
+    Lab.line(ctx, [[x0, y], [x1, y]], C.ink, 2.2);
+  }
+  function darrow(ctx, x0, y0, x1, y1, col, w = 2, head = 8) {     // 점선 화살표 (성분)
+    const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy); if (L < 3) return;
+    const ux = dx / L, uy = dy / L, hh = Math.min(head, L * 0.6);
+    Lab.line(ctx, [[x0, y0], [x1 - ux * hh * 0.8, y1 - uy * hh * 0.8]], col, w, [5, 4]);
+    ctx.save(); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 - ux * hh - uy * hh * 0.5, y1 - uy * hh + ux * hh * 0.5); ctx.lineTo(x1 - ux * hh + uy * hh * 0.5, y1 - uy * hh - ux * hh * 0.5);
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function curve(ctx, f, a, b, col, w, dash, al = 1, n = 90) {
+    if (b <= a) return;
+    const pts = []; for (let i = 0; i <= n; i++) pts.push(f(a + (b - a) * i / n));
+    ctx.save(); ctx.globalAlpha = al; Lab.line(ctx, pts, col, w, dash); ctx.restore();
+  }
+  function fillPoly(ctx, poly, col) { ctx.save(); ctx.beginPath(); poly.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath(); ctx.fillStyle = col; ctx.fill(); ctx.restore(); }
+  function spread(vs, gap, lo, hi) {                              // 이름표 겹침 피하기
+    const idx = vs.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]), out = vs.slice();
+    let prev = -Infinity;
+    for (const [v, i] of idx) { const w = Math.max(v, prev + gap); out[i] = w; prev = w; }
+    const over = prev - hi;
+    if (over > 0) for (const [, i] of idx) out[i] -= over;
+    return out.map((v) => Math.max(lo, v));
+  }
+  const seen = (v) => { if (!v.W) return false; const r = v.el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  const KXFILL = () => Lab.alpha(C.energy, 0.3);                // Kₓ = 옅은 주황, K_y = 진한 주황, U = 보라
+
+  // ── 무대 기하 ───────────────────────────────────────────
+  // 위쪽 띠 = 에너지 필름(같은 시간 간격 자리마다 Kₓ·K_y·U 막대 + 공을 따라가는 지금 막대), 그 아래 = 던진 공.
+  // 땅의 원점에서 던진다. 두 축의 배율이 같다(각이 참값). 속도 화살표는 vₓ 화살표가 같은 시간 간격 자리 사이의 0.8 이 되게.
+  function geo(W, H) {
+    const nar = W < 520, v0 = S.v0, th = S.th, base = v0 * v0 / M.G;
+    const R = M.range(v0, th), Hm = M.maxHeight(v0, th);
+    const bandTop = nar ? 58 : 64, bandH = nar ? 62 : H < 380 ? 52 : Math.min(128, Math.max(64, H * 0.24));
+    const left = nar ? 12 : 26, right = nar ? 12 : 26, top = bandTop + bandH + (nar ? 42 : 46), bot = nar ? 56 : 56;
+    const bx1 = Math.max(R * 1.16, 0.42 * base * 1.04), bx0 = -0.06 * bx1, by = Math.max(Hm, 0.1 * base) * 1.1;
+    const s = Math.max(3, Math.min((W - left - right) / (bx1 - bx0), (H - top - bot) / by));
+    const gy = H - bot, ox = left - bx0 * s, k = Math.max(nar ? 2.6 : 3.4, 0.8 * dtS() * s);
+    return {nar, s, gy, ox, k, top, bandTop, bandH, W, H, X: (x) => ox + x * s, Y: (y) => gy - y * s};
+  }
+  const handleR = (g) => Math.max(g.nar ? 46 : 62, Math.min(150, g.k * S.v0 + 24));
+  const handleAt = (g) => { const r = handleR(g); return [g.X(0) + r * M.cosD(S.th), g.Y(0) - r * M.sinD(S.th)]; };
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    const g = geo(W, H), m = S.m, v0 = S.v0, th = S.th, Tf = T(), t = tNow(), now = st(), nar = g.nar;
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    film(ctx, g, now, t);
+    ground(ctx, 0, W, g.gy);
+    const R = M.range(v0, th), Hm = M.maxHeight(v0, th), P = (tt) => { const q = M.state(m, v0, th, tt); return [g.X(q.x), g.Y(q.y)]; };
+    curve(ctx, P, 0, Tf, C.muted, 1.5, [4, 5], 0.7);
+    curve(ctx, P, 0, t, C.vel, 2.6);
+    // 최고 높이
+    Lab.line(ctx, [[g.X(R / 2), g.Y(Hm)], [g.X(R / 2), g.gy]], C.muted, 1.2, [3, 4]);
+    if (Hm * g.s > 26) text(ctx, 'H = ' + fmt(Hm, 2) + ' m', g.X(R / 2) + 7, g.Y(Hm / 2), {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
+    // 발사대와 던지는 각
+    const O = [g.X(0), g.Y(0)];
+    ctx.save(); ctx.translate(O[0], O[1]); ctx.rotate(-th * RAD); ctx.fillStyle = C.ink; Lab.rrect(ctx, -5, -6, nar ? 22 : 30, 12, 5); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.fillStyle = C.muted; ctx.beginPath(); ctx.arc(O[0], O[1], 9, Math.PI, 0); ctx.fill(); ctx.restore();
+    Lab.angle(ctx, O[0], O[1], nar ? 30 : 40, 0, -th * RAD, C.ink, 'θ');
+    // 같은 시간 간격 자리: vₓ 화살표는 모두 같은 길이, v_y 만 줄었다 는다
+    if (S.strobe) for (let i = 0; i <= 8; i++) {
+      const tk = i * dtS(); if (tk > t + EPS) break;
+      const q = M.state(m, v0, th, tk), px = g.X(q.x), py = g.Y(q.y);
+      Lab.circle(ctx, px, py, 6, {fill: C.paper, stroke: C.vel, width: 2});
+      if (S.comp && i > 0 && i < 8) { darrow(ctx, px, py, px + q.vx * g.k, py, C.vel, 1.7, 7); if (Math.abs(q.vy) > 0.05) darrow(ctx, px, py, px, py - q.vy * g.k, C.vel, 1.7, 7); }
+    }
+    // 끌기 손잡이 (던지는 각)
+    const [hx, hy] = handleAt(g);
+    ctx.save(); ctx.globalAlpha = t > 0.02 && !S.drag ? 0.35 : 1; Lab.line(ctx, [O, [hx, hy]], C.copper, 1.6, [4, 4]);
+    Lab.circle(ctx, hx, hy, t > 0.02 && !S.drag ? 6 : 7.5, {fill: C.paper, stroke: C.copper, width: 2.4}); ctx.restore();
+    if (t < 0.02 && !nar && !S.drag) text(ctx, '끌기', hx + 12, hy - 12, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    // 공: 속도와 성분
+    const bx = g.X(now.x), by = g.Y(now.y);
+    if (S.comp) {
+      darrow(ctx, bx, by, bx + now.vx * g.k, by, C.vel, 2.2, 8);
+      if (Math.abs(now.vy) > 0.05) darrow(ctx, bx, by, bx, by - now.vy * g.k, C.vel, 2.2, 8);
+      Lab.rich(ctx, 'v_x', bx + now.vx * g.k + 6, by + 12, {size: 14, w: 600, color: C.vel, align: 'left'});
+      if (Math.abs(now.vy * g.k) > 16) Lab.rich(ctx, 'v_y', bx - 8, by - now.vy * g.k * 0.6, {size: 14, w: 600, color: C.vel, align: 'right'});
+    }
+    arrow(ctx, bx, by, bx + now.vx * g.k, by - now.vy * g.k, C.vel, 3, 10);
+    if (S.phi && now.v > 0.1) {
+      const a = -Math.atan2(now.vy, now.vx), r = nar ? 24 : 30;
+      Lab.line(ctx, [[bx, by], [bx + r + 10, by]], C.muted, 1.2, [3, 3]);
+      Lab.angle(ctx, bx, by, r, 0, a, C.copper, 'φ');
+    }
+    Lab.circle(ctx, bx, by, 8.5, {fill: C.copper, stroke: C.paper, width: 2});
+    // 최고점 이름표
+    if (Math.abs(t - tTop()) < 0.012 && (nar || H >= 380)) {
+      const s1 = nar ? '최고점: K = ' + J(now.K) + ' (≠ 0)' : '최고점: 연직 속도만 0 → K = ' + J(now.K) + ' (≠ 0)';
+      const tw = Lab.measure(ctx, s1, {size: nar ? 13 : 14, w: 700}) / 2 + 12;
+      Lab.tag(ctx, s1, Math.min(Math.max(bx, tw), W - tw), Math.max(g.top - 4, by - (nar ? 32 : 38)), {size: nar ? 13 : 14, w: 700, color: C.acc, border: C.acc});
+    }
+  }
+  // 에너지 필름: 막대 하나 = 그 순간의 E (아래부터 Kₓ 옅게 · K_y · U). 공이 지나간 자리부터 채운다
+  function stack(ctx, x, w, y1, h, q, E) {
+    const Yv = (e) => y1 - e / E * h, U = Math.max(0, q.U);
+    ctx.save();
+    ctx.fillStyle = KXFILL(); ctx.fillRect(x, Yv(q.Kx), w, y1 - Yv(q.Kx));
+    ctx.fillStyle = C.energy; ctx.fillRect(x, Yv(q.Kx + q.Ky), w, Yv(q.Kx) - Yv(q.Kx + q.Ky));
+    ctx.fillStyle = C.violet; ctx.fillRect(x, Yv(E), w, Yv(q.Kx + q.Ky) - Yv(E));
+    ctx.restore();
+    Lab.line(ctx, [[x, Yv(q.Kx)], [x + w, Yv(q.Kx)]], C.energy, 1.6);
+  }
+  function film(ctx, g, now, t) {
+    const m = S.m, v0 = S.v0, th = S.th, E = M.K0(m, v0), y1 = g.bandTop + g.bandH, h = g.bandH, nar = g.nar;
+    const pts = []; for (let i = 0; i <= 8; i++) pts.push(M.state(m, v0, th, i * dtS()));
+    const sp = Math.abs(g.X(pts[1].x) - g.X(pts[0].x)), bw = Math.max(6, Math.min(sp * 0.5, nar ? 12 : 16));
+    Lab.line(ctx, [[8, g.bandTop], [g.W - 8, g.bandTop]], C.acc, 1.4, [5, 4]);
+    Lab.line(ctx, [[8, y1], [g.W - 8, y1]], C.line, 1.2);
+    pts.forEach((q, i) => {
+      const x = g.X(q.x) - bw / 2, passed = i * dtS() <= t + EPS;
+      if (passed) {
+        stack(ctx, x, bw, y1, h, q, E);
+        ctx.save(); ctx.globalAlpha = 0.3; Lab.line(ctx, [[x + bw / 2, y1 + 2], [x + bw / 2, g.Y(q.y) - 9]], C.muted, 1, [2, 4]); ctx.restore();
+      } else { ctx.save(); ctx.fillStyle = C['line-soft']; ctx.fillRect(x, g.bandTop, bw, h); ctx.restore(); }
+    });
+    // 지금 막대: 공을 따라간다
+    const wl = bw + (nar ? 6 : 10), xl = Math.max(4, Math.min(g.W - 4 - wl, g.X(now.x) - wl / 2));
+    stack(ctx, xl, wl, y1, h, now, E);
+    ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.2; ctx.strokeRect(xl - 1, g.bandTop - 1, wl + 2, h + 2); ctx.restore();
+    text(ctx, '지금', xl + wl / 2, y1 + 12, {size: 13, w: 600, color: C.copper, halo: true});
+    // 범례와 E
+    if (!nar) {
+      let x = g.W - 12;
+      const items = [['E = ' + fmt(E, 2) + ' J (일정)', C.acc, null], ['U', C.violet, C.violet], ['K_y', C.energy, C.energy], ['K_x (그대로)', C.energy, KXFILL()]];
+      for (const [s1, col, sw] of items) {
+        const w = Lab.rich(ctx, s1, x, g.bandTop - 13, {size: 13, w: 600, color: col, align: 'right'});
+        x -= w + 6;
+        if (sw) { ctx.save(); ctx.fillStyle = sw; ctx.fillRect(x - 11, g.bandTop - 19, 11, 11); ctx.strokeStyle = C.energy; ctx.lineWidth = sw === C.violet ? 0 : 1; if (sw !== C.violet) ctx.strokeRect(x - 11, g.bandTop - 19, 11, 11); ctx.restore(); x -= 24; }
+        else x -= 16;
+      }
+    } else {
+      Lab.rich(ctx, '옅은 칸 K_x · 진한 칸 K_y · 보라 U', g.W / 2, y1 + 28, {size: 13, w: 600, color: C.muted});
+      text(ctx, 'E ' + fmt(E, 1) + ' J 일정', g.W - 10, g.bandTop - 10, {size: 13, w: 600, color: C.acc, align: 'right'});
+    }
+  }
+
+  // ── 관찰 1: 세 정사각형 (넓이 = 운동 에너지) ─────────────────
+  const sq = Lab.canvas('sq', drawSQ);
+  function drawSQ() {
+    const {ctx, W, H} = sq; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, m = S.m, v0 = S.v0, th = S.th, q = st();
+    const vx = Math.abs(q.vx), vy = Math.abs(q.vy), v = q.v, vx0 = v0 * M.cosD(th), vy0 = v0 * M.sinD(th);
+    const top = nar ? 50 : 46, bot = nar ? 44 : 40, signW = nar ? 22 : 34;
+    const k = Math.max(1, Math.min((W - 24 - 2 * signW) / (vx0 + vy0 + v0), (H - top - bot) / v0));
+    const a = vx * k, b = vy * k, c = v * k, y0 = H - bot;
+    const total = Math.max(vx0 * k, a) + Math.max(vy0 * k, b) + c + 2 * signW;
+    let x = Math.max(8, (W - total) / 2);
+    const xa = x; x += vx0 * k + signW; const xb = x; x += vy0 * k + signW; const xc = x;
+    // 수평 몫
+    ctx.save(); ctx.fillStyle = KXFILL(); ctx.fillRect(xa, y0 - a, a, a); ctx.strokeStyle = C.energy; ctx.lineWidth = 1.6; ctx.strokeRect(xa, y0 - a, a, a); ctx.restore();
+    // 연직 몫
+    if (b > 0.5) { ctx.save(); ctx.fillStyle = Lab.alpha(C.energy, 0.85); ctx.fillRect(xb, y0 - b, b, b); ctx.restore(); }
+    // 속력 정사각형: 넓이를 Kₓ(아래)와 K_y(위)로 나눠 칠한다
+    const fx = q.K > 0 ? q.Kx / q.K : 1;
+    ctx.save(); ctx.fillStyle = KXFILL(); ctx.fillRect(xc, y0 - c * fx, c, c * fx);
+    ctx.fillStyle = Lab.alpha(C.energy, 0.85); ctx.fillRect(xc, y0 - c, c, c * (1 - fx));
+    ctx.strokeStyle = C.energy; ctx.lineWidth = 1.6; ctx.strokeRect(xc, y0 - c, c, c); ctx.restore();
+    // 밑변 = 속도 성분
+    Lab.line(ctx, [[xa, y0], [xa + a, y0]], C.vel, 3.4);
+    if (b > 0.5) Lab.line(ctx, [[xb, y0], [xb + b, y0]], C.vel, 3.4);
+    Lab.line(ctx, [[xc, y0], [xc + c, y0]], C.vel, 3.4);
+    Lab.rich(ctx, 'v_x = ' + fmt(vx, 2), xa + a / 2, y0 + 14, {size: 13, w: 600, color: C.vel});
+    Lab.rich(ctx, '|v_y| = ' + fmt(vy, 2), xb + Math.max(b, 40) / 2, y0 + 14, {size: 13, w: 600, color: C.vel});
+    Lab.rich(ctx, 'v = ' + fmt(v, 2) + ' m/s', xc + c / 2, y0 + 14, {size: 13, w: 600, color: C.vel});
+    text(ctx, '+', xa + vx0 * k + signW / 2, y0 - Math.max(a, 24) / 2, {size: 20, w: 600, color: C.muted});
+    text(ctx, '=', xb + vy0 * k + signW / 2, y0 - Math.max(a, 24) / 2, {size: 20, w: 600, color: C.muted});
+    // 넓이 = 에너지
+    const inside = (xx, side, nm, val, dark) => {
+      if (side >= 46) { Lab.rich(ctx, nm, xx + side / 2, y0 - side / 2 - 9, {size: 14, w: 600, color: dark ? C.paper : C.ink}); text(ctx, fmt(val, 2) + ' J', xx + side / 2, y0 - side / 2 + 10, {size: 13, w: 600, color: dark ? C.paper : C.ink}); }
+      else Lab.rich(ctx, nm + ' ' + fmt(val, 2) + ' J', xx + Math.max(side, 30) / 2, y0 - side - 12, {size: 13, w: 600, color: C.energy});
+    };
+    inside(xa, a, 'K_x', q.Kx, false);
+    inside(xb, b, 'K_y', q.Ky, true);
+    Lab.rich(ctx, 'K = ' + fmt(q.K, 2) + ' J', xc + c / 2, y0 - c - 12, {size: 14, w: 600, color: C.energy});
+    // 위: 식과 비
+    const phi = Math.abs(q.phi);
+    Lab.rich(ctx, nar ? 'v^2 = v_x^2 + v_y^2 → K = K_x + K_y' : 'v^2 = v_x^2 + v_y^2  →  ½mv^2 = ½mv_x^2 + ½mv_y^2', 10, 14, {size: 13, w: 600, color: C.ink, align: 'left'});
+    Lab.rich(ctx, 'K_y / K_x = tan^2φ = tan^2' + fmt(phi, 1) + '° = ' + fmt(q.Ky / q.Kx, 2), 10, 34, {size: 13, w: 600, color: C.copper, align: 'left'});
+  }
+
+  // ── 관찰 2: 높이에 따른 나눔 ─────────────────────────────
+  const eh = Lab.canvas('eh', drawEH);
+  function drawEH() {
+    const {ctx, W, H} = eh; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, m = S.m, v0 = S.v0, th = S.th, q = st();
+    const E = M.K0(m, v0), kx = M.Kx(m, v0, th), Hm = M.maxHeight(v0, th);
+    const r = {x: 50, y: 34, w: W - 50 - 18, h: H - 34 - 44};
+    const Xe = (e) => r.x + e / (E * 1.03) * r.w, Yh = (y) => r.y + r.h - y / (Hm * 1.12) * r.h;
+    fillPoly(ctx, [[Xe(0), Yh(0)], [Xe(kx), Yh(0)], [Xe(kx), Yh(Hm)], [Xe(0), Yh(Hm)]], KXFILL());
+    fillPoly(ctx, [[Xe(kx), Yh(0)], [Xe(E), Yh(0)], [Xe(kx), Yh(Hm)]], Lab.alpha(C.energy, 0.8));
+    fillPoly(ctx, [[Xe(E), Yh(0)], [Xe(E), Yh(Hm)], [Xe(kx), Yh(Hm)]], Lab.alpha(C.violet, 0.6));
+    Lab.line(ctx, [[Xe(E), Yh(0)], [Xe(kx), Yh(Hm)]], C.ink, 1.4);
+    Lab.line(ctx, [[Xe(kx), Yh(0)], [Xe(kx), Yh(Hm)]], C.energy, 2.2);
+    // 축
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 10, C.muted, 1.3, 7);
+    arrow(ctx, r.x, r.y + r.h, r.x + r.w + 8, r.y + r.h, C.muted, 1.3, 7);
+    text(ctx, '높이 y (m)', r.x + 8, r.y - 16, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, '에너지 (J) →', r.x + r.w, r.y + r.h + 30, {size: 13, w: 600, color: C.muted, align: 'right'});
+    text(ctx, fmt(Hm, 2), r.x - 6, Yh(Hm), {size: 13, color: C.muted, align: 'right'});
+    text(ctx, '0', r.x - 6, Yh(0), {size: 13, color: C.muted, align: 'right'});
+    for (const [e, s1] of [[kx, fmt(kx, 2)], [E, fmt(E, 2)]]) { Lab.line(ctx, [[Xe(e), r.y + r.h - 3], [Xe(e), r.y + r.h + 3]], C.muted, 1); text(ctx, s1, Xe(e), r.y + r.h + 13, {size: 13, color: C.muted}); }
+    Lab.line(ctx, [[r.x, Yh(Hm)], [Xe(E), Yh(Hm)]], C.muted, 1, [3, 4]);
+    // 칸 이름
+    if (Xe(kx) - r.x > 40) Lab.rich(ctx, 'K_x', (r.x + Xe(kx)) / 2, Yh(Hm * 0.5), {size: 14, w: 600, color: C.ink});
+    Lab.rich(ctx, 'K_y', Xe(kx + (E - kx) / 3), Yh(Hm / 3), {size: 14, w: 600, color: C.paper});
+    text(ctx, 'U', Xe(E - (E - kx) / 3), Yh(Hm * 2 / 3), {size: 14, w: 600, color: C.paper});
+    // 지금 높이
+    const y = Math.max(0, q.y), U = m * M.G * y;
+    Lab.line(ctx, [[r.x, Yh(y)], [Xe(E), Yh(y)]], C.copper, 2.6);
+    Lab.circle(ctx, r.x, Yh(y), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
+    Lab.circle(ctx, Xe(E - U), Yh(y), 4.5, {fill: C.paper, stroke: C.copper, width: 2});
+    const lab = '지금 y = ' + fmt(y, 2) + ' m: K_y ' + fmt(q.Ky, 2) + ' · U ' + fmt(U, 2) + ' J';
+    Lab.rich(ctx, nar ? 'K_y ' + fmt(q.Ky, 2) + ' · U ' + fmt(U, 2) + ' J' : lab, W - 10, 13, {size: 13, w: 600, color: C.copper, align: 'right'});
+    Lab.rich(ctx, '최고점: K_y = 0', Xe(kx) + 6, Yh(Hm) - 12, {size: 13, w: 600, color: C.acc, align: 'left'});
+  }
+
+  // ── 관찰 3: 에너지–시간(또는 수평 위치) ──────────────────────
+  const et = Lab.canvas('et', drawET);
+  function drawET() {
+    const {ctx, W, H} = et; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, m = S.m, v0 = S.v0, th = S.th, Tf = T(), isX = S.ax === 'x', R = M.range(v0, th);
+    const E = M.K0(m, v0), kx = M.Kx(m, v0, th), r = {x: 46, y: 30, w: W - 46 - (nar ? 18 : 84), h: H - 30 - 40};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: isX ? R : Tf, ymin: 0, ymax: E * 1.1, yticks: [kx, E], fmtY: (v) => fmt(v, 1), grid: true});
+    text(ctx, '에너지 (J)', ax.x0 + 8, r.y - 12, {size: 13, w: 600, color: C.muted, align: 'left'});
+    const xOf = (t) => (isX ? M.state(m, v0, th, t).x : t);
+    text(ctx, isX ? '수평 위치 x (m) →' : '시간 t (s) →', r.x + r.w, r.y + r.h + 28, {size: 13, w: 600, color: C.muted, align: 'right'});
+    for (const [t, s1] of [[0, '0'], [Tf / 2, '최고점'], [Tf, fmt(isX ? R : Tf, 2)]]) {
+      Lab.line(ctx, [[ax.X(xOf(t)), r.y + r.h - 3], [ax.X(xOf(t)), r.y + r.h + 3]], C.muted, 1);
+      text(ctx, s1, ax.X(xOf(t)), r.y + r.h + 13, {size: 13, w: t === Tf / 2 ? 600 : 500, color: C.muted});
+    }
+    Lab.line(ctx, [[ax.X(xOf(Tf / 2)), r.y], [ax.X(xOf(Tf / 2)), r.y + r.h]], C.muted, 1, [2, 4]);
+    const F = (key) => (t) => { const q = M.state(m, v0, th, t); return [ax.X(isX ? q.x : t), ax.Y(q[key])]; };
+    Lab.line(ctx, [[ax.X(0), ax.Y(kx)], [ax.X(isX ? R : Tf), ax.Y(kx)]], C.energy, 1.6, [6, 4]);
+    Lab.line(ctx, [[ax.X(0), ax.Y(E)], [ax.X(isX ? R : Tf), ax.Y(E)]], C.acc, 2.6);
+    curve(ctx, F('U'), 0, Tf, C.violet, 3);
+    curve(ctx, F('K'), 0, Tf, C.energy, 3);
+    const ex = r.x + r.w + 8;
+    if (!nar) {
+      text(ctx, 'E (일정)', ex, ax.Y(E), {size: 13, w: 600, color: C.acc, align: 'left'});
+      text(ctx, 'K', ex, ax.Y(E) + 18, {size: 13, w: 600, color: C.energy, align: 'left'});
+      Lab.rich(ctx, 'K_x', ex, ax.Y(kx), {size: 13, w: 600, color: C.energy, align: 'left'});
+      text(ctx, 'U', ex, ax.Y(0) - 10, {size: 13, w: 600, color: C.violet, align: 'left'});
+    } else {
+      text(ctx, 'E', ax.X(isX ? R : Tf) - 4, ax.Y(E) - 11, {size: 13, w: 600, color: C.acc, align: 'right'});
+      text(ctx, 'U', ax.X(xOf(Tf / 2)) + 8, ax.Y(E - kx) - 12, {size: 13, w: 600, color: C.violet, align: 'left'});
+    }
+    Lab.rich(ctx, 'K 최솟값 = K_x = ' + fmt(kx, 2) + ' J (0 아님)', ax.X(xOf(Tf / 2)), ax.Y(kx) + 19, {size: 13, w: 600, color: C.energy});
+    const t = tNow(), q = M.state(m, v0, th, t), X0 = ax.X(isX ? q.x : t);
+    Lab.line(ctx, [[X0, r.y], [X0, r.y + r.h]], Lab.alpha(C.copper, 0.7), 1.6);
+    Lab.circle(ctx, X0, ax.Y(q.K), 5.5, {fill: C.energy, stroke: C.paper, width: 2});
+    Lab.circle(ctx, X0, ax.Y(q.U), 5.5, {fill: C.violet, stroke: C.paper, width: 2});
+  }
+
+  // ── 관찰 4: 각에 따른 나눔 ───────────────────────────────
+  const ag = Lab.canvas('ag', drawAG);
+  function drawAG() {
+    const {ctx, W, H} = ag; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, E = M.K0(S.m, S.v0), th = S.th, r = {x: 46, y: 30, w: W - 46 - (nar ? 16 : 120), h: H - 30 - 36};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 90, ymin: 0, ymax: E * 1.08, xticks: [30, 45, 60, 90], yticks: [E / 2, E], fmtX: (v) => v + '°', fmtY: (v) => fmt(v, 2), grid: true});
+    text(ctx, '에너지 (J)', ax.x0 + 8, r.y - 12, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, '던지는 각 θ →', r.x + r.w, r.y + r.h + 28, {size: 13, w: 600, color: C.muted, align: 'right'});
+    const fx = (a) => [ax.X(a), ax.Y(E * M.cosD(a) ** 2)], fy = (a) => [ax.X(a), ax.Y(E * M.sinD(a) ** 2)];
+    curve(ctx, fx, 0, 90, C.energy, 2.6, [7, 5]);
+    curve(ctx, fy, 0, 90, C.energy, 3.2);
+    if (!nar) {
+      Lab.rich(ctx, 'K_x = K_0cos^2θ', r.x + r.w + 8, ax.Y(E * 0.12), {size: 13, w: 600, color: C.energy, align: 'left'});
+      text(ctx, '(최고점의 K)', r.x + r.w + 8, ax.Y(E * 0.12) + 17, {size: 13, w: 500, color: C.muted, align: 'left'});
+      Lab.rich(ctx, 'K_y = K_0sin^2θ', r.x + r.w + 8, ax.Y(E * 0.96), {size: 13, w: 600, color: C.energy, align: 'left'});
+      text(ctx, '(= mgH)', r.x + r.w + 8, ax.Y(E * 0.96) + 17, {size: 13, w: 500, color: C.muted, align: 'left'});
+    } else {
+      Lab.rich(ctx, 'K_x (점선) · K_y (실선)', W - 8, 12, {size: 13, w: 600, color: C.energy, align: 'right'});
+    }
+    const c = 90 - th;
+    if (Math.abs(th - 45) > 0.5) {
+      ctx.save(); ctx.globalAlpha = 0.6; Lab.line(ctx, [[ax.X(c), r.y], [ax.X(c), r.y + r.h]], C.muted, 1.2, [3, 4]); ctx.restore();
+      Lab.circle(ctx, ...fx(c), 4, {fill: C.paper, stroke: C.energy, width: 2}); Lab.circle(ctx, ...fy(c), 4, {fill: C.paper, stroke: C.energy, width: 2});
+      text(ctx, fmt(c, 1) + '°', ax.X(c), r.y - 2, {size: 13, w: 500, color: C.muted});
+    }
+    Lab.line(ctx, [[ax.X(th), r.y], [ax.X(th), r.y + r.h]], C.copper, 1.8);
+    const px = fx(th), py = fy(th);
+    Lab.circle(ctx, px[0], px[1], 6, {fill: KXFILL(), stroke: C.copper, width: 2.4});
+    Lab.circle(ctx, py[0], py[1], 6, {fill: C.copper, stroke: C.paper, width: 2});
+    const sideR = th < 60;
+    Lab.rich(ctx, 'K_x ' + fmt(E * M.cosD(th) ** 2, 2), px[0] + (sideR ? 9 : -9), px[1] - 11, {size: 13, w: 600, color: C.copper, align: sideR ? 'left' : 'right'});
+    Lab.rich(ctx, 'K_y ' + fmt(E * M.sinD(th) ** 2, 2), py[0] + (sideR ? 9 : -9), py[1] + 13, {size: 13, w: 600, color: C.copper, align: sideR ? 'left' : 'right'});
+  }
+
+  // ── 수치 ────────────────────────────────────────────────
+  const setText = (id, s) => { const el = $(id); if (el && el.textContent !== s) el.textContent = s; };
+  const setHTML = (id, s) => { const el = $(id); if (el && el.innerHTML !== s) el.innerHTML = s; };
+  let ansKey = '';
+  function readouts() {
+    const m = S.m, v0 = S.v0, th = S.th, K0 = M.K0(m, v0), kx = M.Kx(m, v0, th), ky = M.Ky0(m, v0, th), Hm = M.maxHeight(v0, th);
+    const vxx = (v0 * M.cosD(th)) ** 2, thS = thStr(th);
+    const big = 'K = ' + fmt(kx, 2) + ' J, H = ' + fmt(Hm, 2) + ' m';
+    const lines = ['처음 K₀ = ½ × ' + fmt(m) + ' × <em>' + fmt(v0) + '</em>² = <em>' + fmt(K0, 2) + ' J</em>',
+      'K<sub>x</sub> = ½ × ' + fmt(m) + ' × (' + fmt(v0) + ' cos <em>' + thS + '</em>)² = ½ × ' + fmt(m) + ' × ' + fmt(vxx, 2) + ' = <em>' + fmt(kx, 2) + ' J</em> → 최고점 운동 에너지 (≠ 0)',
+      'K<sub>y</sub> = ' + fmt(K0, 2) + ' − ' + fmt(kx, 2) + ' = ' + fmt(ky, 2) + ' J = mgH → H = ' + fmt(ky, 2) + ' ÷ (' + fmt(m) + ' × 10) = <em>' + fmt(Hm, 2) + ' m</em>'];
+    const o = {ctx: 'm = ' + fmt(m) + ' kg · v₀ = ' + fmt(v0) + ' m/s · θ = ' + thS, html: true};
+    const key = big + lines.join('|') + o.ctx;
+    if (key !== ansKey) { ansKey = key; Lab.ans(big, lines, o); }
+    tick();
+    const ok = Math.abs(m - EX.m) < 1e-9 && v0 === EX.v0 && Math.abs(th - EX.th) < 1e-9;
+    Lab.check('exCheck', ok, '개념서 예제 (0.2 kg, 30°, 10 m/s) → 처음 10 J 중 수평 몫 7.5 J 가 최고점의 운동 에너지로 남고, 연직 몫 2.5 J = mgH → H = 1.25 m',
+      '예제: 0.2 kg 공을 30°, 10 m/s로 — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function tick() {
+    const q = st(), Tf = T(), t = tNow(), nar = (stage.W || 999) < 520;
+    setText('mv1', J(q.Kx)); setText('mv2', J(q.Ky)); setText('mv3', J(Math.max(0, q.U))); setText('mv4', J(q.E));
+    setText('hud1', 't = ' + fmt(t, 2) + ' s');
+    let s1, cls = '';
+    if (t >= Tf - EPS) { s1 = nar ? '착지: K = K₀' : '착지: 같은 높이 → K = K₀'; cls = ' up'; }
+    else if (Math.abs(t - tTop()) < 0.012) { s1 = nar ? '최고점: K = K<sub>x</sub>' : '최고점: K = K<sub>x</sub> ≠ 0'; cls = ' up'; }
+    else if (t < EPS) s1 = '던지는 순간';
+    else if (t < tTop()) s1 = nar ? '오름: K<sub>y</sub> → U' : '오르는 중: K<sub>y</sub> → U';
+    else s1 = nar ? '내려옴: U → K<sub>y</sub>' : '내려오는 중: U → K<sub>y</sub>';
+    setHTML('hud2', s1); $('hud2').className = 'pill' + cls;
+    const h3 = $('hud3'); h3.hidden = nar || (stage.H || 999) < 380; setText('hud3', S.speed < 1 ? '느린 화면 ×' + S.speed : '실제 빠르기');
+  }
+  function drawAll() { drawStage(); drawSQ(); drawEH(); drawET(); drawAG(); }
+  function live() { drawStage(); if (seen(sq)) drawSQ(); if (seen(eh)) drawEH(); if (seen(et)) drawET(); }
+  function refresh() { syncUI(); readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; if (on && S.t >= T() - EPS) { S.t = 0; S.hold = 0; refresh(); } });
+  const setPlay = (on) => { playCtl.set(on, true); S.playing = on; };
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; tick(); }, S.speed);
+  const axG = Lab.group('[data-ax]', 'ax', (v) => { S.ax = v; drawET(); }, S.ax);
+  const num = (id, key) => $(id).addEventListener('input', (e) => { S[key] = +e.target.value; S.t = Math.min(S.t, T()); S.hold = 0; S.linger = 0; refresh(); });
+  num('th', 'th'); num('v0', 'v0'); num('m', 'm');
+  const tog = (id, key) => $(id).addEventListener('change', (e) => { S[key] = e.target.checked; drawAll(); });
+  tog('cStrobe', 'strobe'); tog('cComp', 'comp'); tog('cPhi', 'phi');
+  function syncUI() {
+    $('th').value = Math.round(S.th); $('thOut').textContent = thStr(S.th);
+    $('v0').value = S.v0; $('v0Out').textContent = fmt(S.v0) + ' m/s';
+    $('m').value = S.m; $('mOut').textContent = fmt(S.m) + ' kg';
+    const d = fmt(dtS(), 2) + ' s'; $('stepB').textContent = '◀ ' + d; $('stepF').textContent = d + ' ▶';
+    $('cStrobe').checked = S.strobe; $('cComp').checked = S.comp; $('cPhi').checked = S.phi;
+    speedG.set(S.speed, true); axG.set(S.ax, true);
+  }
+  function stepBy(dir) {
+    setPlay(false); S.linger = 0; S.hold = 0;
+    const d = dtS(), te = T();
+    if (dir > 0) S.t = S.t >= te - EPS ? 0 : Math.min(te, (Math.floor(S.t / d + EPS) + 1) * d);
+    else S.t = Math.max(0, (Math.ceil(S.t / d - EPS) - 1) * d);
+    tick(); drawAll();
+  }
+  $('stepF').addEventListener('click', () => stepBy(1));
+  $('stepB').addEventListener('click', () => stepBy(-1));
+  // 발사대 손잡이를 끌어 던지는 각 바꾸기
+  function dragTo(x, y) {
+    const g = geo(stage.W, stage.H), a = Math.atan2(g.Y(0) - y, x - g.X(0)) / RAD;
+    S.th = Math.max(5, Math.min(85, Math.round(a))); S.t = 0; S.hold = 0; S.linger = 0;
+    refresh();
+  }
+  Lab.pointer(stage.el, {
+    down: (x, y) => { const g = geo(stage.W, stage.H), [hx, hy] = handleAt(g); if (Math.hypot(x - hx, y - hy) < 28) { S.drag = true; setPlay(false); dragTo(x, y); } },
+    move: (x, y) => { if (S.drag) dragTo(x, y); },
+    up: () => { if (S.drag) { S.drag = false; drawStage(); } },
+  });
+
+  const setup = (o, t, play) => { Object.assign(S, {linger: 0, hold: 0, phi: false}, o); S.t = typeof t === 'function' ? t() : t; setPlay(play); };
+  const TRY = {
+    ex: () => setup({m: 0.2, v0: 10, th: 30}, 0, true),
+    launch: () => setup({m: 0.2, v0: 10, th: 30, comp: true}, 0, false),
+    top: () => setup({m: 0.2, v0: 10, th: 30, comp: true}, () => tTop(), false),
+    phi45: () => setup({m: 0.2, v0: 10, th: 60, phi: true, comp: true}, () => M.tAtPhi(10, 60, 45), false),
+    q1: () => setup({m: 0.5, v0: 10, th: Math.atan2(4, 3) / RAD}, () => tTop(), false),
+    q2a: () => setup({m: 0.2, v0: 10, th: 30}, () => tTop(), false),
+    q2b: () => setup({m: 0.2, v0: 10, th: 60}, () => tTop(), false),
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing || S.drag) return;
+    if (S.linger > 0) { S.linger -= dt; return; }
+    const te = T(), t0 = S.t;
+    if (S.t >= te - EPS) { S.hold += dt; if (S.hold > 1.6) { S.t = 0; S.hold = 0; tick(); drawAll(); } return; }
+    S.t = Math.min(te, S.t + dt * S.speed);
+    if (t0 < tTop() - EPS && S.t >= tTop()) { S.t = tTop(); S.linger = 1; }
+    live();
+    roT += dt; if (roT > 0.08 || S.linger > 0 || S.t >= te) { roT = 0; tick(); }
+  });
+  syncUI(); readouts();
+})();
+</script>
+</body>
+</html>

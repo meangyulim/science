@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>일과 열의 전환·내부 에너지·열역학 제1법칙</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(피스톤 실린더 속 기체 분자 + 전열기·단열벽·외력 + 에너지 장부 Q = ΔU + W) | 오른쪽 지금 값 + 관찰 ①~④(열의 두 갈래, P–V 넓이, 등적, 단열과 부호 표) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5}
+#gPV{aspect-ratio:10/6.8}
+#gTab{aspect-ratio:10/4.6}
+@media (max-width:640px){ #gPV{aspect-ratio:10/8.2} #gTab{aspect-ratio:10/6.2} }
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A2 일과 에너지·열: 개념 10개 가운데 9번째"><a class="uname" href="../">A2 일과 에너지·열</a><span class="dots"><a href="../01/" title="A2-01 일과 F-s 그래프" aria-label="A2-01 일과 F-s 그래프"></a><a href="../02/" title="A2-02 일·운동 에너지 정리" aria-label="A2-02 일·운동 에너지 정리"></a><a href="../03/" title="A2-03 보존력과 비보존력" aria-label="A2-03 보존력과 비보존력"></a><a href="../04/" title="A2-04 마찰 구간 에너지 장부" aria-label="A2-04 마찰 구간 에너지 장부"></a><a href="../05/" title="A2-05 포물선 운동의 에너지" aria-label="A2-05 포물선 운동의 에너지"></a><a href="../06/" title="A2-06 단진자의 에너지" aria-label="A2-06 단진자의 에너지"></a><a href="../07/" title="A2-07 일-에너지와 운동학" aria-label="A2-07 일-에너지와 운동학"></a><a href="../08/" title="A2-08 열평형" aria-label="A2-08 열평형"></a><a class="cur" href="./" aria-current="page" title="A2-09 열역학 제1법칙" aria-label="A2-09 열역학 제1법칙 (지금)"></a><a href="../10/" title="A2-10 열의 일당량" aria-label="A2-10 열의 일당량"></a></span></nav>
+  <div class="pn"><a href="../08/" rel="prev" title="이전 개념: A2-08 열평형">‹ <span>08 열평형</span></a><a href="../10/" rel="next" title="다음 개념: A2-10 열의 일당량"><span>10 열의 일당량</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A2-09</span><span>물리학 Ⅱ · 일과 에너지·열</span></div>
+    <h1>일과 열의 전환·내부 에너지·열역학 제1법칙</h1>
+    <p class="question"><i>Q</i>기체에 열을 주면 그 에너지는 어디에 쓰이고, 일과 열은 어떤 장부로 정리될까?</p>
+  </div>
+
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="피스톤이 달린 실린더 속 기체 분자들. 아래 전열기로 열을 주면 분자가 빨라지고(내부 에너지 증가) 피스톤이 올라간다(기체가 한 일). 단열벽이면 열 출입이 없고 외력으로 누르거나 놓아 준다. 오른쪽 장부는 받은 열 Q, 내부 에너지 변화 ΔU, 기체가 한 일 W를 같은 축척의 막대로 보여 Q = ΔU + W 를 확인한다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">등압 팽창 (가열)</span><span class="pill" id="hud2">온도 상승</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider"><label for="k" id="kLab"><span class="lg">가한 열 </span>Q</label><input id="k" type="range" min="100" max="800" step="50" value="500"><output id="kOut">500 J</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">과정·보기</span><span class="sm">과정</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="과정과 보기">
+          <div class="sheet-head"><b>과정 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="과정">
+              <span class="gl">과정</span>
+              <button type="button" class="btn" data-proc="iso" aria-pressed="true">등압 팽창</button>
+              <button type="button" class="btn" data-proc="isoV" aria-pressed="false">등적 가열</button>
+              <button type="button" class="btn" data-proc="adc" aria-pressed="false">단열 압축</button>
+              <button type="button" class="btn" data-proc="ade" aria-pressed="false">단열 팽창</button>
+              <button type="button" class="btn" data-proc="mix" aria-pressed="false">압축·열 방출</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="grow"><label class="ctl-label" for="pP"><span>등압 팽창의 압력 P (추의 무게)</span><output id="pPOut">1 × 10⁵ Pa</output></label><input id="pP" type="range" min="1" max="2" step="0.25" value="1"></div>
+            <button type="button" class="btn" id="step">과정 ¼ ▸</button>
+            <button type="button" class="btn" id="reset">처음부터</button>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
+            <div class="toggles">
+              <label class="chk"><input type="checkbox" id="cArr" checked>분자 빠르기 화살표</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">등압 팽창 (가열)</span><span id="ansCtx">Q = 500 J · P = 1 × 10⁵ Pa</span></div>
+        <div class="big" id="ansBig">W = 200 J, ΔU = +300 J</div>
+        <div class="sub">
+          <span class="f" id="ansF">W = PΔV 와 Q = ΔU + W 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">W = PΔV = <em>1 × 10⁵</em> × <em>2 × 10⁻³</em> = <em>200 J</em> (팽창 → +)</span><span class="v">Q = ΔU + W → <em>500</em> = ΔU + 200</span><span class="v">ΔU = 500 − 200 = <em>+300 J</em> → 온도 상승</span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">부피 변화 ΔV</span><b id="mv1">+2 × 10⁻³ m³</b></div>
+          <div class="mini"><span id="mn2">압력 P</span><b id="mv2">1 × 10⁵ Pa (일정)</b></div>
+          <div class="mini"><span id="mn3">지금까지 Q · ΔU · W</span><b id="mv3">0 · 0 · 0 J</b></div>
+          <div class="mini"><span id="mn4">온도 (이상 기체: ΔU 부호 = 온도 변화)</span><b id="mv4">상승</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 열의 두 갈래">
+          <div class="kind">관찰 1</div>
+          <h3>받은 열은 분자를 빠르게 하고(ΔU), 피스톤을 밀어 올린다(W)</h3>
+          <p>실린더 속 기체에 열 Q를 주면 두 가지 일이 동시에 일어난다. 분자들이 빨라져 온도가 오르고(내부 에너지 증가 ΔU), 기체가 팽창하며 피스톤을 밀어 올린다(외부에 한 일 W). 들어온 에너지가 둘로 나뉘므로 <span class="eq">Q = ΔU + W</span> 다. 이것이 <b>열역학 제1법칙</b>, 곧 열까지 포함한 에너지 보존 법칙이다.</p>
+          <p class="cap">무대 오른쪽 장부에서 주황 Q 막대와 같은 높이까지 보라 ΔU 위에 파랑 W 가 얹힌다. 내부 에너지 U는 분자들의 운동 에너지와 퍼텐셜 에너지의 합이다. 이상 기체는 분자 사이 상호 작용이 없어 분자 운동 에너지의 합이고 온도에만 달려 있으므로, 온도 상승 = ΔU &gt; 0 으로 바로 읽는다. (분자 빠르기 차이는 과장해 그렸다.)</p>
+          <div class="acts"><button type="button" class="btn go" data-try="iso">등압 팽창 보기</button><button type="button" class="btn" data-do="click:#step">과정 ¼씩 ▸</button></div>
+        </li>
+        <li class="card step" data-step="② 넓이 = 일">
+          <div class="kind">관찰 2</div>
+          <h3>기체가 한 일은 압력–부피 그래프 아래 넓이다</h3>
+          <p>압력이 일정하면 넓이는 직사각형 PΔV, 압력이 변하면 곡선 아래 넓이다. 오른쪽(부피 증가)으로 가면 +, 왼쪽(부피 감소)으로 가면 −다. F–s 그래프의 넓이가 일인 것과 같은 원리다: 피스톤을 미는 힘 F = PA, 피스톤이 Δs 움직이면 ΔV = AΔs 이므로 W = FΔs = PΔV.</p>
+          <canvas class="flat" id="gPV" aria-label="압력–부피 그래프. 지금 과정의 경로와 그 아래 넓이(기체가 한 일)를 칠했다. 팽창이면 파랑(+), 압축이면 빨강(−), 부피가 그대로면 넓이 0."></canvas>
+          <p class="cap">파랑 넓이 = 기체가 한 일(+), 빨강 넓이 = 기체가 받은 일(W &lt; 0). 등적 가열은 세로선이라 넓이가 0, 곧 W = 0 이다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="iso">등압: 직사각형</button><button type="button" class="btn" data-try="ade">단열 팽창: 곡선 아래</button><button type="button" class="btn" data-try="adc">단열 압축: 왼쪽으로 → −</button></div>
+        </li>
+        <li class="card step" data-step="③ 부피가 그대로면">
+          <div class="kind">관찰 3</div>
+          <h3>부피가 그대로면 일을 하지 않아, 받은 열이 모두 내부 에너지가 된다</h3>
+          <p>피스톤을 핀으로 고정하고 같은 500 J을 주면 W = 0 이라 <span class="eq">Q = ΔU = 500 J</span> 이다. 피스톤을 밀어 올리는 데 쓰는 몫이 없으니, 등압 팽창(ΔU = 300 J)보다 분자가 더 빨라지고 온도가 더 많이 오른다. 장부의 W 막대가 사라지고 압력이 올라가는 것을 보자.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="isoV">등적 가열</button><button type="button" class="btn" data-try="iso">등압 팽창과 견주기</button></div>
+        </li>
+        <li class="card step" data-step="④ 단열 과정">
+          <div class="kind">관찰 4</div>
+          <h3>단열 압축하면 온도가 오르고, 단열 팽창하면 온도가 내려간다</h3>
+          <p>단열벽으로 열 출입을 막으면 Q = 0 이라 0 = ΔU + W, 곧 <span class="eq">ΔU = −W</span> 다. 외력이 피스톤을 눌러 압축하면 기체는 일을 받아(W &lt; 0) 그만큼 내부 에너지가 늘어 온도가 오른다. 반대로 기체가 피스톤을 밀어내며 팽창하면(W &gt; 0) 그만큼 내부 에너지가 줄어 온도가 내려간다.</p>
+          <canvas class="flat" id="gTab" aria-label="과정별 부호 표. 등압 팽창, 등적 가열, 단열 압축, 단열 팽창, 압축하며 열 방출에서 Q, W, ΔU의 부호와 온도 변화. 지금 무대의 과정을 칠하고 값을 적었다."></canvas>
+          <p class="cap">지금 무대의 과정이 칠해지고 값이 적힌다. W는 늘 ‘기체가 한 일’이다. 자전거 펌프를 빠르게 누르면 펌프가 뜨거워지는 것이 단열 압축, 높이 올라간 공기가 팽창하며 차가워지는 것이 단열 팽창의 예다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="adc">단열 압축</button><button type="button" class="btn" data-try="ade">단열 팽창</button></div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>Q = ΔU + W, W는 기체가 한 일</h3>
+          <ul>
+            <li><span class="eq">Q = ΔU + W</span>: 받은 열 = 내부 에너지 증가 + 기체가 한 일. 열까지 포함한 에너지 보존 법칙(열역학 제1법칙).</li>
+            <li>부호: 팽창 W &gt; 0, 압축 W &lt; 0. 열을 흡수하면 Q &gt; 0, 방출하면 Q &lt; 0. 이상 기체는 온도 상승 = ΔU &gt; 0.</li>
+            <li><span class="eq">W = PΔV</span> = P–V 그래프 아래 넓이(오른쪽 +, 왼쪽 −). 등적이면 W = 0 → Q = ΔU, 단열이면 Q = 0 → ΔU = −W.</li>
+            <li>일과 열은 서로 바뀐다. 사포질·망치질·손 비비기는 일이 마찰과 충돌로 내부 에너지가 되는 예, 주전자 뚜껑을 밀어 올리는 수증기나 열기관은 열이 일로 바뀌는 예다. 일은 모두 열로 바뀔 수 있지만, 열을 모두 일로 바꿀 수는 없다(열기관 효율 &lt; 1).</li>
+            <li>자주 하는 실수: W 를 ‘기체가 받은 일’로 쓴다. 압축되면 W &lt; 0 이다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>기체가 500 J의 열을 흡수하며 1 × 10⁵ Pa의 일정한 압력에서 부피가 2 × 10⁻³ m³ 증가했다. 기체가 한 일과 내부 에너지 변화는?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>W = PΔV = 1 × 10⁵ × 2 × 10⁻³ = <b>200 J</b>(팽창이므로 +). 제1법칙 Q = ΔU + W 에서 500 = ΔU + 200, ΔU = <b>+300 J</b>. 내부 에너지가 늘었으니 온도가 올라간다. P–V 그래프에서는 높이 1 × 10⁵ Pa, 너비 2 × 10⁻³ m³ 인 직사각형의 넓이가 200 J 이다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>기체가 외부로부터 300 J의 일을 받아 압축되는 동안 열 100 J을 방출했다. 기체의 내부 에너지 변화량은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1">압축하며 열 방출</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>+200 J</b>. Q = ΔU + W 에서 W 는 기체가 한 일이므로 압축된 W = −300 J, 방출한 열 Q = −100 J. ΔU = Q − W = −100 + 300 = +200 J. 장부에서 Q 막대는 아래로(−100), W 막대는 ΔU 끝에서 −300 J 내려와 Q 높이에서 끝난다. +400 J 는 받은 일에 방출한 열까지 더한 부호 실수다.</p></details>
+          </div>
+          <div class="q">
+            <h3>이상 기체에 대해 옳은 것만 고르면? ㄱ. 단열 팽창하면 온도가 내려간다. ㄴ. 부피를 일정하게 유지하며 가열하면, 받은 열은 모두 내부 에너지 증가가 된다. ㄷ. 압력–부피 그래프에서 부피가 줄어드는 과정의 그래프 아래 넓이는 기체가 외부에 한 양(+)의 일이다.</h3>
+            <div class="acts"><button type="button" class="btn" data-try="ade">ㄱ 단열 팽창</button><button type="button" class="btn" data-try="isoV">ㄴ 등적 가열</button><button type="button" class="btn" data-try="adc">ㄷ 부피가 줄 때</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄴ</b>. 단열 팽창은 Q = 0, W &gt; 0 이라 ΔU &lt; 0, 온도가 내려간다. 등적 과정은 W = 0 이라 Q = ΔU 다. 부피가 줄어드는 과정에서 그래프 아래 넓이는 기체가 받은 일, 곧 W &lt; 0 이다(관찰 2의 빨강 넓이).</p></details>
+          </div>
+          <div class="q">
+            <h3>단열된 실린더 속 기체를 외력으로 눌러 200 J의 일을 해 주었다. 기체가 한 일 W, 내부 에너지 변화 ΔU, 온도 변화는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="adc">단열 압축 (외력 200 J)</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>W = −200 J, ΔU = +200 J, 온도 상승</b>. 단열이라 Q = 0, 0 = ΔU + (−200) 에서 ΔU = +200 J. 외력이 해 준 일이 고스란히 분자 운동 에너지가 된다. 자전거 펌프를 빠르게 누르면 펌프가 뜨거워지는 까닭이다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../08/" rel="prev"><small>← 이전 개념 · A2-08</small><b>열평형</b></a><a href="../10/" rel="next"><small>다음 개념 · A2-10 →</small><b>열의 일당량</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="A2-09-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A2_09;
+  const {$, C, text, rich, arrow, fmt} = Lab;
+  const V1 = 2e-3, P0 = 1e5, DUR = 5, VMAX = 5.4e-3;     // 처음 부피(2 L)·압력, 과정 하나에 걸리는 화면 시간(s), 그림의 최대 부피
+  const NAME = {iso: '등압 팽창 (가열)', isoV: '등적 가열', adc: '단열 압축', ade: '단열 팽창', mix: '압축하며 열 방출'};
+  // 첫 줄 막대: 과정마다 뜻이 다르다
+  const KC = {
+    iso: {key: 'Q', lab: '<span class="lg">가한 열 </span>Q', min: 100, max: 800, step: 50, unit: ' J'},
+    isoV: {key: 'QV', lab: '<span class="lg">가한 열 </span>Q', min: 100, max: 800, step: 50, unit: ' J'},
+    adc: {key: 'Wc', lab: '<span class="lg">외력이 </span>해 준 일', min: 20, max: 250, step: 10, unit: ' J'},
+    ade: {key: 'We', lab: '<span class="lg">기체가 </span>한 일 W', min: 20, max: 130, step: 10, unit: ' J'},
+    mix: {key: 'Qo', lab: '내보낸 열', min: 0, max: 300, step: 10, unit: ' J'},
+  };
+  const DEF = {Q: 500, QV: 500, Wc: 200, We: 100, Qo: 100, P: 1e5};
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = Object.assign({proc: 'iso', u: 0, clock: 0, playing: !Lab.reduceMotion, speed: 1, arr: true}, DEF);
+  function opts(p = S.proc) {
+    if (p === 'iso') return {P1: S.P, V1, Q: S.Q};
+    if (p === 'isoV') return {P1: P0, V1, Q: S.QV};
+    if (p === 'adc') return {P1: P0, V1, V2: M.adiabaticV2(P0, V1, -S.Wc)};
+    if (p === 'ade') return {P1: P0, V1, V2: M.adiabaticV2(P0, V1, S.We)};
+    return {P1: P0, V1, W: -300, dU: 300 - S.Qo};
+  }
+  const at = (u = S.u, p = S.proc) => M.at(p, opts(p), u);
+  const fin = (p = S.proc) => at(1, p);
+  const Trel = (s, p = S.proc) => (s.P * s.V) / (opts(p).P1 * V1);       // T/T₁ (PV ∝ T)
+  const isEx = () => S.proc === 'iso' && S.Q === 500 && Math.abs(S.P - 1e5) < 1;
+  const J = (v) => fmt(Math.abs(v) < 0.5 ? 0 : v, 0);
+  const sJ = (v) => (Math.abs(v) < 0.5 ? '0' : Lab.sg(v, 0));
+  const P5 = (P) => Lab.sci(P, 2, {force: true});
+  const pill = (el, s, cls) => { if (el.textContent !== s) el.textContent = s; const c = 'pill' + (cls ? ' ' + cls : ''); if (el.className !== c) el.className = c; };
+
+  // ── 분자 ────────────────────────────────────────────────
+  function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  const R0 = rng(7), MOL = Array.from({length: 30}, () => ({x: 0.1 + 0.8 * R0(), y: 0.1 + 0.8 * R0(), a: R0() * 6.283, k: 0.65 + 0.7 * R0()}));
+  const vOf = (tr, nar) => (nar ? 46 : 64) * Math.max(0.35, tr);           // 화면 속 빠르기 ∝ 온도 (과장)
+  function moveMol(R, tr, dt, nar) {
+    if (R.w < 10 || R.h < 10) return;
+    const v = vOf(tr, nar), mx = 6 / R.w, my = 6 / R.h;
+    for (const p of MOL) {
+      const s = v * p.k * dt;
+      p.a += (Math.random() - 0.5) * 2.6 * dt;
+      p.x += Math.cos(p.a) * s / R.w; p.y += Math.sin(p.a) * s / R.h;
+      if (p.x < mx) { p.x = 2 * mx - p.x; p.a = Math.PI - p.a; } else if (p.x > 1 - mx) { p.x = 2 * (1 - mx) - p.x; p.a = Math.PI - p.a; }
+      if (p.y < my) { p.y = 2 * my - p.y; p.a = -p.a; } else if (p.y > 1 - my) { p.y = 2 * (1 - my) - p.y; p.a = -p.a; }
+      p.x = Math.min(1 - mx, Math.max(mx, p.x)); p.y = Math.min(1 - my, Math.max(my, p.y));
+    }
+  }
+
+  // ── 무대 기하 ───────────────────────────────────────────
+  function geo(W, H) {
+    const nar = W < 520, adi = S.proc === 'adc' || S.proc === 'ade', wall = adi ? (nar ? 11 : 14) : (nar ? 6 : 8);
+    const x0 = nar ? 18 : 40, iw = nar ? Math.min(104, W * 0.3) : Math.min(210, W * 0.27), x1 = x0 + iw;
+    const yb = H - (nar ? 64 : 86), top = Math.max(nar ? 104 : 96, Math.min(132, H * 0.27)), k = (yb - top) / VMAX;
+    const roomy = W >= 700, thX = x1 + wall + (nar ? 14 : roomy ? 104 : 30), lx0 = thX + (nar ? 22 : 40), lx1 = W - (nar ? 8 : 20);
+    return {nar, roomy, W, H, adi, wall, x0, x1, iw, cx: x0 + iw / 2, yb, top, k, thX, lx0, lx1};
+  }
+  const gasRect = (g, V) => { const yP = g.yb - g.k * V; return {x: g.x0, y: yP, w: g.iw, h: g.yb - yP}; };
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    const g = geo(W, H), s = at(), f1 = fin(), tr = Trel(s), moving = S.u < 1 && S.playing;
+    drawCylinder(ctx, g, s, tr, moving);
+    drawThermo(ctx, g, tr);
+    drawLedger(ctx, g, s, f1);
+  }
+  function hatch(ctx, x, y, w, h) {
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    ctx.fillStyle = Lab.alpha(C.muted, 0.14); ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = Lab.alpha(C.muted, 0.45); ctx.lineWidth = 1; ctx.beginPath();
+    for (let k = -h; k < w + h; k += 6) { ctx.moveTo(x + k, y + h); ctx.lineTo(x + k + h, y); }
+    ctx.stroke(); ctx.restore();
+  }
+  function drawCylinder(ctx, g, s, tr, moving) {
+    const R = gasRect(g, s.V), t = g.wall, rim = g.top - 30, P = S.proc;
+    // 기체 (분자의 온도 빛깔)
+    const h = Math.max(0, Math.min(1, (tr - 0.5) / 2.5));
+    ctx.save(); ctx.fillStyle = Lab.alpha(C.violet, 0.06 + 0.14 * h); ctx.fillRect(R.x, R.y, R.w, R.h); ctx.restore();
+    for (const p of MOL) {
+      const x = R.x + p.x * R.w, y = R.y + p.y * R.h;
+      if (S.arr) { const L = 3 + 13 * Math.min(1.9, Math.max(0.35, tr)) * p.k / 1.3; arrow(ctx, x, y, x + Math.cos(p.a) * L, y + Math.sin(p.a) * L, Lab.alpha(C.violet, 0.85), 1.5, 5); }
+      Lab.circle(ctx, x, y, g.nar ? 3.4 : 3.9, {fill: C.violet});
+    }
+    // 벽 (단열이면 두껍고 빗금)
+    if (g.adi) { hatch(ctx, g.x0 - t, rim, t, g.yb + t - rim); hatch(ctx, g.x1, rim, t, g.yb + t - rim); hatch(ctx, g.x0 - t, g.yb, g.iw + 2 * t, t); }
+    else { ctx.save(); ctx.fillStyle = C.muted; ctx.fillRect(g.x0 - t, rim, t, g.yb + t - rim); ctx.fillRect(g.x1, rim, t, g.yb + t - rim); ctx.fillRect(g.x0 - t, g.yb, g.iw + 2 * t, t); ctx.restore(); }
+    Lab.line(ctx, [[g.x0 - t, rim], [g.x0 - t, g.yb + t], [g.x1 + t, g.yb + t], [g.x1 + t, rim]], C.ink, 1.6);
+    Lab.line(ctx, [[g.x0, rim], [g.x0, g.yb], [g.x1, g.yb], [g.x1, rim]], C.ink, 1.4);
+    // 피스톤
+    const yP = R.y, th = g.nar ? 12 : 16;
+    ctx.save(); ctx.fillStyle = C.muted; ctx.fillRect(g.x0 + 1, yP - th, g.iw - 2, th); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.strokeRect(g.x0 + 1, yP - th, g.iw - 2, th); ctx.restore();
+    const topP = yP - th;
+    if (P === 'iso') {                                        // 추: 압력 일정
+      const n = Math.round(S.P / 0.5e5), bh = g.nar ? 7 : 9, bw = g.iw * 0.5;
+      for (let i = 0; i < n; i++) { const y = topP - (i + 1) * (bh + 1); ctx.save(); ctx.fillStyle = C.ink; Lab.rrect(ctx, g.cx - bw / 2, y, bw, bh, 2); ctx.fill(); ctx.restore(); }
+      if (!g.nar) text(ctx, '추 (압력 일정)', g.cx, topP - n * (bh + 1) - 12, {size: 13, w: 500, color: C.muted, halo: true});
+    } else {
+      const rod = g.nar ? 24 : 32;
+      Lab.line(ctx, [[g.cx, topP], [g.cx, topP - rod]], C.ink, g.nar ? 4 : 5);
+      if (P === 'isoV') {                                     // 고정 핀
+        for (const [x, d] of [[g.x0, 1], [g.x1, -1]]) { ctx.save(); ctx.fillStyle = C.ink; ctx.beginPath(); ctx.moveTo(x, topP - 1); ctx.lineTo(x + d * 14, topP - 1); ctx.lineTo(x, topP - 10); ctx.closePath(); ctx.fill(); ctx.restore(); }
+        if (!g.nar) text(ctx, '핀으로 고정 (부피 일정)', g.cx, topP - rod - 14, {size: 13, w: 500, color: C.muted, halo: true});
+      } else {                                                // 외력 (천천히: 기체가 미는 힘과 거의 같다)
+        const L = 12 + 16 * Math.min(4.6, s.P / P0) / 2;
+        arrow(ctx, g.cx, topP - rod - L - 4, g.cx, topP - rod + 1, C.force, 3.2, 10);
+        text(ctx, '외력', g.cx + 10, topP - rod - L * 0.6, {size: 13, w: 600, color: C.force, align: 'left', halo: true});
+      }
+    }
+    // 피스톤이 움직이는 방향 (기체가 한 일의 부호)
+    const vDir = Math.sign(fin().V - V1);
+    if (moving && vDir) {
+      const ax = g.x1 - (g.nar ? 14 : 22), y0 = topP - 8;
+      arrow(ctx, ax, y0 + (vDir > 0 ? 0 : -22), ax, y0 + (vDir > 0 ? -22 : 0), C.vel, 3, 9);
+      if (g.roomy) text(ctx, vDir > 0 ? '팽창 W > 0' : '압축 W < 0', g.x1 + g.wall + 6, topP - 18, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
+    }
+    // 아래: 전열기 / 냉각판 / 단열
+    const yH = g.yb + t + (g.nar ? 6 : 8);
+    if (P === 'iso' || P === 'isoV' || P === 'mix') {
+      const cool = P === 'mix', on = S.u < 1;
+      ctx.save(); Lab.rrect(ctx, g.x0 - t, yH, g.iw + 2 * t, g.nar ? 9 : 11, 3); ctx.fillStyle = cool ? C.vel : C.muted; ctx.fill(); ctx.restore();
+      if (on && !cool) { ctx.save(); ctx.strokeStyle = C.energy; ctx.lineWidth = 2.2; ctx.beginPath(); for (let x = g.x0; x < g.x1; x += 8) { ctx.moveTo(x, yH + 5); ctx.lineTo(x + 4, yH + 2); ctx.lineTo(x + 8, yH + 5); } ctx.stroke(); ctx.restore(); }
+      if (on && S.playing) {
+        for (const k of [0.25, 0.5, 0.75]) {
+          const x = g.x0 + g.iw * k, ph = (S.clock * 1.4 + k) % 1;
+          if (cool) arrow(ctx, x, g.yb - 14 + ph * 5, x, g.yb + t + 12 + ph * 5, Lab.alpha(C.energy, 0.9), 2.4, 7);
+          else arrow(ctx, x, yH - 2 - ph * 5, x, g.yb - 14 - ph * 5, Lab.alpha(C.energy, 0.9), 2.4, 7);
+        }
+      }
+      const lab = cool ? '열 방출 (Q < 0)' : '열 Q 흡수';
+      text(ctx, g.nar ? (cool ? '열 방출' : '열 Q') : lab, g.x0 - t, yH + (g.nar ? 22 : 26), {size: 13, w: 600, color: C.energy, align: 'left'});
+    } else text(ctx, g.nar ? '단열벽 Q = 0' : '단열벽: 열 출입 없음 (Q = 0)', g.x0 - t, yH + (g.nar ? 14 : 18), {size: 13, w: 600, color: C.muted, align: 'left'});
+  }
+  function drawThermo(ctx, g, tr) {                          // 온도계: 처음 온도에 작은 삼각형 (눈금은 상대값)
+    const x = g.thX, yT = g.top - 6, yB = g.yb - 8, Y = (v) => yB - (yB - yT) * Math.min(1, v / 4), w = g.nar ? 9 : 11;
+    ctx.save(); Lab.rrect(ctx, x - w / 2, yT - 6, w, yB - yT + 10, w / 2); ctx.fillStyle = C.paper; ctx.fill(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.3; ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.fillStyle = C.force; ctx.fillRect(x - 2.5, Y(tr), 5, yB + 2 - Y(tr)); ctx.restore();
+    Lab.circle(ctx, x, yB + 8, g.nar ? 7 : 9, {fill: C.force, stroke: C.muted, width: 1.3});
+    const y1 = Y(1);
+    ctx.save(); ctx.fillStyle = Lab.alpha(C.force, 0.6); ctx.beginPath(); ctx.moveTo(x + w / 2 + 2, y1); ctx.lineTo(x + w / 2 + 8, y1 - 5); ctx.lineTo(x + w / 2 + 8, y1 + 5); ctx.closePath(); ctx.fill(); ctx.restore();
+    text(ctx, '온도', x, yT - 18, {size: 13, w: 600, color: C.muted});
+  }
+  // 에너지 장부: Q | ΔU | W (W 는 ΔU 끝에서 시작해 Q 높이에서 끝난다 = Q = ΔU + W)
+  function drawLedger(ctx, g, s, f1) {
+    const nar = g.nar, av = g.lx1 - g.lx0;
+    if (av < 120) return;
+    const bw = nar ? 30 : Math.min(52, av * 0.14), gap = nar ? 20 : Math.min(48, av * 0.12), x0 = g.lx0 + (av - (3 * bw + 2 * gap)) / 2;
+    const xs = [x0, x0 + bw + gap, x0 + 2 * (bw + gap)];
+    const yEq = nar ? 62 : 74, yName = nar ? 104 : 124, yT = nar ? 126 : (g.H < 420 ? 152 : 168), yB = g.H - (nar ? 46 : 60);
+    const hiF = Math.max(0, f1.Q, f1.dU, f1.dU + f1.W), loF = Math.min(0, f1.Q, f1.dU, f1.dU + f1.W);
+    const span = Math.max(1, hiF - loF), sc = (yB - yT) / span, y0 = yT + hiF * sc, Y = (v) => y0 - v * sc;
+    // 식
+    text(ctx, 'Q = ΔU + W', (xs[0] + xs[2] + bw) / 2, yEq, {size: nar ? 15 : 17, w: 700});
+    const eq = sJ(s.Q) + ' = ' + sJ(s.dU) + ' + (' + sJ(s.W) + ')';
+    text(ctx, eq + ' J', (xs[0] + xs[2] + bw) / 2, yEq + (nar ? 20 : 24), {size: nar ? 13 : 15, w: 600, color: C.ink});
+    const cols = [[C.energy, 'Q', nar ? '' : '받은 열'], [C.violet, 'ΔU', nar ? '' : '내부 에너지'], [C.vel, 'W', nar ? '' : '기체가 한 일']];
+    cols.forEach(([col, n, sub], i) => {
+      text(ctx, n, xs[i] + bw / 2, yName, {size: 15, w: 600, color: col});
+      if (sub) text(ctx, sub, xs[i] + bw / 2, yName + 18, {size: 13, w: 500, color: C.muted});
+    });
+    // 0 줄
+    Lab.line(ctx, [[xs[0] - 10, y0], [xs[2] + bw + 10, y0]], C.ink, 1.4);
+    text(ctx, '0', xs[0] - 14, y0, {size: 13, w: 500, color: C.muted, align: 'right'});
+    const bar = (x, a, b, col) => {
+      const ya = Y(a), yb = Y(b), top = Math.min(ya, yb), hh = Math.abs(yb - ya);
+      ctx.save(); ctx.fillStyle = col; ctx.fillRect(x, top, bw, Math.max(hh, 0.5)); ctx.restore();
+      return {top, bot: top + hh};
+    };
+    // 나중 크기(점선 테두리)
+    const ghost = (x, a, b, col) => { const ya = Y(a), yb = Y(b); ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = Lab.alpha(col, 0.6); ctx.lineWidth = 1.2; ctx.strokeRect(x, Math.min(ya, yb), bw, Math.abs(yb - ya)); ctx.restore(); };
+    ghost(xs[0], 0, f1.Q, C.energy); ghost(xs[1], 0, f1.dU, C.violet); ghost(xs[2], f1.dU, f1.dU + f1.W, C.vel);
+    bar(xs[0], 0, s.Q, C.energy); bar(xs[1], 0, s.dU, C.violet); bar(xs[2], s.dU, s.dU + s.W, C.vel);
+    // W 의 방향: ΔU 끝에서 시작해 Q 높이에서 끝난다 (− 면 아래로)
+    const wa = Y(s.dU), wb = Y(s.dU + s.W), dn = wb > wa;
+    if (Math.abs(wb - wa) > 20) arrow(ctx, xs[2] + bw / 2, wa + (dn ? 4 : -4), xs[2] + bw / 2, wb + (dn ? -3 : 3), C.paper, 2.2, 8);
+    // W 가 얹히는 자리와 Q 높이를 잇는 점선
+    Lab.line(ctx, [[xs[1], Y(s.dU)], [xs[2] + bw, Y(s.dU)]], Lab.alpha(C.violet, 0.8), 1.2, [3, 3]);
+    Lab.line(ctx, [[xs[0], Y(s.Q)], [xs[2] + bw + 6, Y(s.Q)]], Lab.alpha(C.energy, 0.9), 1.4, [5, 3]);
+    // 값
+    const val = (x, v, yEnd, col) => {
+      if (Math.abs(v) < 0.5 && S.u === 0) return;
+      const up = v >= 0, y = up ? Math.min(yEnd, y0) - 11 : Math.max(yEnd, y0) + 12;
+      text(ctx, sJ(v), x + bw / 2, Math.max(yT - 6, Math.min(yB + 14, y)), {size: 13, w: 600, color: col, halo: true});
+    };
+    val(xs[0], s.Q, Y(s.Q), C.energy); val(xs[1], s.dU, Y(s.dU), C.violet);
+    const wEnd = s.W >= 0 ? Y(s.dU + s.W) : Y(s.dU + s.W);
+    val(xs[2], s.W, s.W >= 0 ? Math.min(Y(s.dU), wEnd) : Math.max(Y(s.dU), wEnd), C.vel);
+  }
+
+  // ── 관찰 2: P–V 그래프 ──────────────────────────────────
+  const gPV = Lab.canvas('gPV', drawPV);
+  function drawPV() {
+    const {ctx, W, H} = gPV; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, r = {x: 42, y: 28, w: W - 42 - 22, h: H - 28 - 48};
+    const o0 = opts(), Pm = Math.max(o0.P1, fin().P) / 1e5, ym = Math.max(2, Math.ceil(Pm * 1.25));
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 5.5, ymin: 0, ymax: ym, xticks: [1, 2, 3, 4, 5], yticks: Array.from({length: ym}, (_, i) => i + 1), grid: true,
+      xlabel: '부피 V (× 10⁻³ m³)', xlabelBelow: true, ylabel: '압력 P (× 10⁵ Pa)'});
+    const o = opts(), N = 90, pt = (u) => { const s = M.at(S.proc, o, u); return [ax.X(s.V * 1e3), ax.Y(s.P / 1e5)]; };
+    const s = at(), f1 = fin(), up = f1.V >= V1;
+    // 지금까지의 넓이 (= 기체가 한 일)
+    if (Math.abs(s.V - V1) > 1e-7) {
+      ctx.save(); ctx.beginPath(); ctx.moveTo(ax.X(V1 * 1e3), ax.y0);
+      for (let i = 0; i <= N; i++) { const p = pt(S.u * i / N); ctx.lineTo(p[0], p[1]); }
+      ctx.lineTo(ax.X(s.V * 1e3), ax.y0); ctx.closePath(); ctx.fillStyle = Lab.alpha(up ? C.vel : C.neg, 0.22); ctx.fill(); ctx.restore();
+    }
+    // 앞으로 갈 길 (점선)
+    ctx.save(); ctx.strokeStyle = Lab.alpha(C.ink, 0.35); ctx.setLineDash([5, 4]); ctx.lineWidth = 2; ctx.beginPath();
+    for (let i = 0; i <= N; i++) { const p = pt(i / N); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); } ctx.stroke(); ctx.restore();
+    // 지나온 길
+    const col = C.copper;
+    if (S.u > 0) {
+      ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 3.2; ctx.lineJoin = 'round'; ctx.beginPath();
+      for (let i = 0; i <= N; i++) { const p = pt(S.u * i / N); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); } ctx.stroke(); ctx.restore();
+      if (S.u > 0.3) { const a = pt(S.u * 0.45), b = pt(S.u * 0.5); arrow(ctx, a[0], a[1], b[0] + (b[0] - a[0]) * 0.5, b[1] + (b[1] - a[1]) * 0.5, col, 3, 11); }
+    }
+    const p0 = pt(0), pc = pt(S.u);
+    Lab.circle(ctx, p0[0], p0[1], 5, {fill: C.ink});
+    text(ctx, '처음', p0[0] + (up ? -8 : 8), p0[1] - 14, {size: 13, w: 600, align: up ? 'right' : 'left', halo: true});
+    Lab.circle(ctx, pc[0], pc[1], 6.5, {fill: col, stroke: C.paper, width: 2});
+    // 넓이 이름표
+    const isoV = S.proc === 'isoV', pLow = Math.min(o.P1, s.P) / 1e5;
+    if (isoV) text(ctx, '세로선: 넓이 0 → W = 0', ax.X(V1 * 1e3) + 12, ax.Y(pLow * 0.5), {size: 13, w: 600, color: C.ink, align: 'left', halo: true});
+    else if (Math.abs(s.V - V1) > 4e-5) {
+      const wTxt = (S.proc === 'iso' ? '넓이 = PΔV = ' : '넓이 = W = ') + sJ(s.W) + ' J';
+      text(ctx, wTxt, (ax.X(V1 * 1e3) + ax.X(s.V * 1e3)) / 2, ax.Y(pLow * 0.45), {size: 13, w: 600, color: up ? C.vel : C.neg, halo: true});
+    }
+    text(ctx, nar ? '오른쪽 +, 왼쪽 −' : '오른쪽(팽창) → W > 0 · 왼쪽(압축) → W < 0', r.x + r.w, r.y + 4, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+  }
+
+  // ── 관찰 4: 과정별 부호 표 ──────────────────────────────
+  const gTab = Lab.canvas('gTab', drawTab);
+  function drawTab() {
+    const {ctx, W, H} = gTab; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, rows = ['iso', 'isoV', 'adc', 'ade', 'mix'], rh = (H - 8) / (rows.length + 1);
+    const cx = nar ? [6, W * 0.46, W * 0.6, W * 0.74, W * 0.89] : [12, W * 0.42, W * 0.56, W * 0.7, W * 0.86];
+    const head = ['과정', 'Q', 'W', 'ΔU', '온도'], hc = [C.muted, C.energy, C.vel, C.violet, C.force];
+    head.forEach((h, i) => text(ctx, h, cx[i], rh * 0.55, {size: 13, w: 600, color: hc[i], align: i ? 'center' : 'left'}));
+    Lab.line(ctx, [[4, rh], [W - 4, rh]], C.line, 1);
+    rows.forEach((p, j) => {
+      const y = rh * (j + 1.5), on = p === S.proc, f = fin(p), sg = M.signs(f.Q, f.W, f.dU);
+      if (on) { ctx.save(); Lab.rrect(ctx, 2, y - rh / 2 + 2, W - 4, rh - 4, 8); ctx.fillStyle = C['copper-soft']; ctx.fill(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore(); }
+      text(ctx, NAME[p].replace(' (가열)', nar ? '' : ' (가열)').replace('압축하며 열 방출', '압축 + 열 방출'), cx[0] + (nar ? 4 : 0), y, {size: 13, w: on ? 600 : 500, align: 'left', color: on ? C.ink : C['ink'] });
+      const cell = (i, sym, v, col) => text(ctx, on ? (Math.abs(v) < 0.5 ? '0' : Lab.sg(v, 0)) : sym, cx[i], y, {size: on ? 13 : 15, w: 600, color: sym === '0' ? C.muted : col});
+      cell(1, sg.Q, f.Q, C.energy); cell(2, sg.W, f.W, C.vel); cell(3, sg.dU, f.dU, C.violet);
+      text(ctx, M.tempWord(f.dU), cx[4], y, {size: 13, w: on ? 600 : 500, color: f.dU > 0.5 ? C.force : f.dU < -0.5 ? C.vel : C.muted});
+    });
+  }
+
+  // ── 수치 (지금 값) ──────────────────────────────────────
+  let ansKey = '';
+  function ans(big, lines, o) { const k = [big, o.tone, o.lab, o.ctx, o.f].concat(lines).join('|'); if (k === ansKey) return; ansKey = k; Lab.ans(big, lines, Object.assign({html: true}, o)); }
+  const nw = (...a) => a.map((x) => '<span class="nw">' + x + '</span>').join(' ');
+  const setMini = (i, name, val) => { const a = $('mn' + i), b = $('mv' + i); if (a.innerHTML !== name) a.innerHTML = name; if (b.textContent !== val) b.textContent = val; };
+  function live() {
+    const s = at(), f1 = fin();
+    pill($('hud1'), NAME[S.proc] + (S.u >= 1 ? ' · 끝' : ''));
+    const tw = M.tempWord(f1.dU);
+    pill($('hud2'), '온도 ' + tw, tw === '상승' ? 'up' : tw === '하강' ? 'down' : '');
+    setMini(3, '지금까지 Q · ΔU · W', sJ(s.Q) + ' · ' + sJ(s.dU) + ' · ' + sJ(s.W) + ' J');
+  }
+  function readouts() {
+    const c = KC[S.proc], kEl = $('k');
+    if ($('kLab').innerHTML !== c.lab) $('kLab').innerHTML = c.lab;
+    if (+kEl.min !== c.min || +kEl.max !== c.max || +kEl.step !== c.step) { kEl.min = c.min; kEl.max = c.max; kEl.step = c.step; }
+    kEl.value = S[c.key]; $('kOut').textContent = S[c.key] + c.unit;
+    $('pPOut').textContent = P5(S.P) + ' Pa';
+    const f1 = fin(), o = opts(), dV = f1.V - V1, tw = M.tempWord(f1.dU);
+    const vol = (v) => (Math.abs(v) < 1e-9 ? '0' : Lab.sci(v, 2, {force: true}));
+    if (S.proc === 'iso') {
+      ans(nw('W = ' + J(f1.W) + ' J,', 'ΔU = ' + sJ(f1.dU) + ' J'), [
+        'W = PΔV = <em>' + P5(S.P) + '</em> × <em>' + vol(dV) + '</em> = <em>' + J(f1.W) + ' J</em> (팽창 → +)',
+        'Q = ΔU + W → <em>' + S.Q + '</em> = ΔU + ' + J(f1.W),
+        'ΔU = ' + S.Q + ' − ' + J(f1.W) + ' = <em>' + sJ(f1.dU) + ' J</em> → 온도 ' + tw,
+      ], {tone: '', lab: NAME.iso, ctx: 'Q = ' + S.Q + ' J · P = ' + P5(S.P) + ' Pa', f: 'W = PΔV 와 Q = ΔU + W 에 지금 값을 넣으면'});
+    } else if (S.proc === 'isoV') {
+      ans(nw('W = 0,', 'ΔU = ' + sJ(f1.dU) + ' J'), [
+        '부피가 그대로 → ΔV = 0 → W = PΔV = <em>0</em>',
+        'Q = ΔU + W → <em>' + S.QV + '</em> = ΔU + 0',
+        'ΔU = <em>' + sJ(f1.dU) + ' J</em> → 받은 열이 모두 내부 에너지 (온도 ' + tw + ')',
+      ], {tone: '', lab: NAME.isoV, ctx: 'Q = ' + S.QV + ' J · V = 2 × 10⁻³ m³ 일정', f: 'W = PΔV 와 Q = ΔU + W 에 지금 값을 넣으면'});
+    } else if (S.proc === 'adc' || S.proc === 'ade') {
+      const comp = S.proc === 'adc';
+      ans('ΔU = ' + sJ(f1.dU) + ' J', [
+        'W = 곡선 아래 넓이 = <em>' + sJ(f1.W) + ' J</em> (' + (comp ? '부피가 줄어 −, 기체가 일을 받음' : '팽창 → +, 기체가 피스톤을 밀어냄') + ')',
+        'Q = 0 → 0 = ΔU + (' + sJ(f1.W) + ')',
+        'ΔU = −W = <em>' + sJ(f1.dU) + ' J</em> → 온도 ' + tw,
+      ], {tone: comp ? '' : 'neg', lab: NAME[S.proc], ctx: '단열 · V ' + fmt(V1 * 1e3, 2) + ' → ' + fmt(o.V2 * 1e3, 2) + ' × 10⁻³ m³', f: '단열(Q = 0) 이면 Q = ΔU + W 에서 ΔU = −W'});
+    } else {
+      ans('ΔU = ' + sJ(f1.dU) + ' J', [
+        '압축되며 일을 받음 → W = <em>' + sJ(f1.W) + ' J</em>, 열을 내보냄 → Q = <em>' + sJ(f1.Q) + ' J</em>',
+        'ΔU = Q − W = (' + sJ(f1.Q) + ') − (' + sJ(f1.W) + ')',
+        'ΔU = <em>' + sJ(f1.dU) + ' J</em> → 온도 ' + tw,
+      ], {tone: f1.dU >= 0 ? '' : 'neg', lab: NAME.mix, ctx: '받은 일 300 J · 내보낸 열 ' + S.Qo + ' J', f: 'W 는 기체가 한 일: Q = ΔU + W → ΔU = Q − W'});
+    }
+    setMini(1, '부피 변화 ΔV', (dV > 1e-9 ? '+' : dV < -1e-9 ? Lab.MI : '') + vol(Math.abs(dV)) + ' m³');
+    setMini(2, '압력 P', S.proc === 'iso' ? P5(S.P) + ' Pa (일정)' : P5(o.P1) + ' → ' + P5(f1.P) + ' Pa');
+    setMini(4, '온도 (이상 기체: ΔU 부호 = 온도 변화)', tw + (S.proc === 'isoV' || S.proc === 'iso' ? '' : ''));
+    live();
+    Lab.check('exCheck', isEx(), '개념서 예제 (Q = 500 J, P = 1 × 10⁵ Pa, ΔV = 2 × 10⁻³ m³) → W = 200 J, ΔU = +300 J',
+      '예제: 500 J 흡수, 1 × 10⁵ Pa 일정, 부피 2 × 10⁻³ m³ 증가 → W 와 ΔU 는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  const seen = (v) => { if (!v.W) return false; const r = v.el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  function drawAll() { drawStage(); drawPV(); drawTab(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; if (on && S.u >= 1) S.u = 0; refresh(); });
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, String(S.speed));
+  const procG = Lab.group('[data-proc]', 'proc', (v) => { S.proc = v; S.u = 0; playCtl.set(true, true); S.playing = true; refresh(); }, S.proc);
+  $('k').addEventListener('input', (e) => { S[KC[S.proc].key] = +e.target.value; refresh(); });
+  $('pP').addEventListener('input', (e) => { S.P = +e.target.value * 1e5; if (S.proc !== 'iso') { S.proc = 'iso'; procG.set('iso', true); S.u = 0; } refresh(); });
+  $('cArr').addEventListener('change', (e) => { S.arr = e.target.checked; refresh(); });
+  $('step').addEventListener('click', () => { playCtl.set(false); S.u = S.u >= 1 - 1e-9 ? 0 : Math.min(1, Math.floor(S.u * 4 + 1e-6) / 4 + 0.25); S.clock += 0.3; refresh(); });
+  $('reset').addEventListener('click', () => { S.u = 0; playCtl.set(true); refresh(); });
+  function setup(proc, v) {
+    Object.assign(S, DEF, v || {}); S.proc = proc; S.u = 0;
+    procG.set(proc, true); $('pP').value = S.P / 1e5;
+    playCtl.set(true);
+  }
+  const TRY = {
+    ex: () => setup('iso'), iso: () => setup('iso'), isoV: () => setup('isoV'),
+    adc: () => setup('adc'), ade: () => setup('ade'), q1: () => setup('mix'),
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing) return;
+    const d = dt * S.speed;
+    S.clock += d;
+    if (S.u < 1) S.u = Math.min(1, S.u + d / DUR);
+    if (stage.W) { const g = geo(stage.W, stage.H), s = at(); moveMol(gasRect(g, s.V), Trel(s), d, g.nar); }
+    drawStage();
+    if (seen(gPV)) drawPV(); if (seen(gTab)) drawTab();
+    roT += dt; if (roT > 0.1) { roT = 0; live(); }
+  });
+  readouts();
+})();
+</script>
+</body>
+</html>
