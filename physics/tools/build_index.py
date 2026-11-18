@@ -79,7 +79,7 @@ def topbar(c):
     if nxt:
         pn += f'<a href="{href(c, nxt)}" rel="next" title="다음 개념: {esc(nxt["id"] + " " + short(nxt))}"><span>{esc(label(c, nxt))}</span> ›</a>'
     return (f'<header class="topbar"><div class="tb">\n'
-            f'  <a class="home" href="../../">← 물리 실험실</a>\n'
+            f'  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>\n'
             f'  <nav class="unitnav" aria-label="{esc(c["unit_code"] + " " + c["unit"])}: 개념 {len(cs)}개 가운데 {c["no"]}번째">'
             f'<a class="uname" href="../">{esc(c["unit_code"] + " " + c["unit"])}</a><span class="dots">{dots(cs, c)}</span></nav>\n'
             f'  <div class="pn">{pn}</div>\n'
@@ -163,7 +163,7 @@ a.u-card:hover{{border-color:var(--copper)}}
 </head>
 <body class="cx">
 <header class="topbar"><div class="tb">
-  <a class="home" href="../">← 물리 실험실</a>
+  <a class="home" href="../">← <span class="lg">물리 </span>실험실</a>
   <nav class="unitnav" aria-label="{esc(code + ' ' + u['unit'])}: 개념 {len(cs)}개"><span class="uname">{esc(code + ' ' + u['unit'])}</span><span class="dots">{dots(cs, None, '')}</span></nav>
   <div class="pn"></div>
 </div></header>

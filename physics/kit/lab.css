@@ -64,7 +64,7 @@ h1{margin:2px 0 0;font-family:var(--font-display);font-size:clamp(30px,4.2vw,42p
 .topbar .tb{max-width:1280px;margin:0 auto;height:var(--top);display:flex;align-items:center;gap:14px}
 .topbar .home{font-size:14px;color:var(--muted);text-decoration:none;white-space:nowrap}
 .topbar .home:hover{color:var(--ink)}
-.unitnav{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px}
+.unitnav{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;overflow:hidden}
 .unitnav .uname{font-size:14px;font-weight:600;color:var(--ink-2);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .unitnav .uname:hover{color:var(--copper-ink)}
 .dots{display:flex;gap:5px;align-items:center;flex:none}
@@ -239,6 +239,10 @@ details.ans p{margin-top:6px}
   .bench{--stage-h:min(calc(100vw - 32px),42vh)}
   .topbar .tb{gap:10px}
   .unitnav .uname{display:none}
+  .topbar .lg{display:none}
+  .dots{gap:4px}
+  .dots a,.dots span{width:7px;height:7px}
+  .dots a.cur{width:16px}
   .pn a{padding:0 11px}
   .pn a span{display:none}
   .title{padding:16px 0 12px}
