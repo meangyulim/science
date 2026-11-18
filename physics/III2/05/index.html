@@ -6,7 +6,7 @@
 <title>전하 결합 소자(CCD) — 영상 정보의 기록</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
 /* Layout: 왼쪽 무대(CCD 한 줄의 단면: 빛 → 필터 → 전극 → 규소 속 전자 우물 → 출력·측정 → 읽은 값·재구성한 색)와 조작판,
@@ -18,7 +18,14 @@
 @media (max-width:640px){ #stage{aspect-ratio:1/1.36} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III2 빛과 물질의 이중성: 개념 9개 가운데 5번째"><a class="uname" href="../">III2 빛과 물질의 이중성</a><span class="dots"><a href="../01/" title="III2-01 빛의 이중성" aria-label="III2-01 빛의 이중성"></a><a href="../02/" title="III2-02 광전 효과의 실험 사실" aria-label="III2-02 광전 효과의 실험 사실"></a><a href="../03/" title="III2-03 광전 방정식" aria-label="III2-03 광전 방정식"></a><a href="../04/" title="III2-04 광전 효과의 이용" aria-label="III2-04 광전 효과의 이용"></a><a class="cur" href="./" aria-current="page" title="III2-05 CCD" aria-label="III2-05 CCD (지금)"></a><a href="../06/" title="III2-06 물질파" aria-label="III2-06 물질파"></a><a href="../07/" title="III2-07 물질파 그래프·표 해석" aria-label="III2-07 물질파 그래프·표 해석"></a><a href="../08/" title="III2-08 입자의 파동성 증거" aria-label="III2-08 입자의 파동성 증거"></a><a href="../09/" title="III2-09 전자 현미경" aria-label="III2-09 전자 현미경"></a></span></nav>
+  <div class="pn"><a href="../04/" rel="prev" title="이전 개념: III2-04 광전 효과의 이용">‹ <span>04 광전 효과의 이용</span></a><a href="../06/" rel="next" title="다음 개념: III2-06 물질파"><span>06 물질파</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
   <header class="top">
     <a class="back" href="../../">← 물리 실험실</a>
@@ -151,7 +158,9 @@
         <details><summary>답 보기</summary><p>모든 색의 빛이 들어와 화소마다 전자 수가 <b>늘어난다</b>(예제 빛: 8 + 4 = 12개). 하지만 화소마다 세기만 기록되어 어느 색인지 알 수 없으므로 모든 화소 값이 같아져 <b>흑백 영상</b>이 된다. CCD는 세기만 재고, 색은 필터가 나눈다.</p></details>
       </li>
     </ol>
-    <nav class="pager"><a href="../04/">← III2-04 광전 효과의 이용</a><a class="home" href="../../">물리 실험실</a><a href="../06/">III2-06 물질파 →</a></nav>
+    <!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../04/" rel="prev"><small>← 이전 개념 · III2-04</small><b>광전 효과의 이용</b></a><a href="../06/" rel="next"><small>다음 개념 · III2-06 →</small><b>물질파</b></a></nav>
+<!-- /nextprev -->
   </section>
 </div>
 

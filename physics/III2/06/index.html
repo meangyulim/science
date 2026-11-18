@@ -6,7 +6,7 @@
 <title>물질파(드브로이 파)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
 /* Layout: 왼쪽 무대(입자 A·B 와 딸린 물질파, 아래에 같은 배율의 원자 자), 오른쪽 수치표·λ-E_k·λ-p 그래프·로그 눈금 파장 자 */
@@ -31,7 +31,14 @@
 @media (max-width:640px){ #stage{aspect-ratio:1/1.42} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III2 빛과 물질의 이중성: 개념 9개 가운데 6번째"><a class="uname" href="../">III2 빛과 물질의 이중성</a><span class="dots"><a href="../01/" title="III2-01 빛의 이중성" aria-label="III2-01 빛의 이중성"></a><a href="../02/" title="III2-02 광전 효과의 실험 사실" aria-label="III2-02 광전 효과의 실험 사실"></a><a href="../03/" title="III2-03 광전 방정식" aria-label="III2-03 광전 방정식"></a><a href="../04/" title="III2-04 광전 효과의 이용" aria-label="III2-04 광전 효과의 이용"></a><a href="../05/" title="III2-05 CCD" aria-label="III2-05 CCD"></a><a class="cur" href="./" aria-current="page" title="III2-06 물질파" aria-label="III2-06 물질파 (지금)"></a><a href="../07/" title="III2-07 물질파 그래프·표 해석" aria-label="III2-07 물질파 그래프·표 해석"></a><a href="../08/" title="III2-08 입자의 파동성 증거" aria-label="III2-08 입자의 파동성 증거"></a><a href="../09/" title="III2-09 전자 현미경" aria-label="III2-09 전자 현미경"></a></span></nav>
+  <div class="pn"><a href="../05/" rel="prev" title="이전 개념: III2-05 CCD">‹ <span>05 CCD</span></a><a href="../07/" rel="next" title="다음 개념: III2-07 물질파 그래프·표 해석"><span>07 물질파 그래프·표 해석</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
   <header class="top">
     <a class="back" href="../../">← 물리 실험실</a>
@@ -192,7 +199,9 @@
         <details><summary>답 보기</summary><p>h = 6.6 × 10⁻³⁴ J·s 가 매우 작아서, 시속 약 146 km(E<sub>k</sub> = 120 J)의 야구공은 λ ≈ 1.1 × 10⁻³⁴ m 이다. 원자(10⁻¹⁰ m)는커녕 원자핵(약 10⁻¹⁵ m)보다도 10¹⁹배쯤 짧아 회절·간섭을 일으킬 틈이 없다.</p></details>
       </li>
     </ol>
-    <nav class="pager"><a href="../05/">← III2-05 CCD</a><a class="home" href="../../">물리 실험실</a><a href="../07/">III2-07 물질파 그래프·표 해석 →</a></nav>
+    <!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../05/" rel="prev"><small>← 이전 개념 · III2-05</small><b>CCD</b></a><a href="../07/" rel="next"><small>다음 개념 · III2-07 →</small><b>물질파 그래프·표 해석</b></a></nav>
+<!-- /nextprev -->
   </section>
 </div>
 

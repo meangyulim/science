@@ -6,168 +6,179 @@
 <title>굴절과 스넬 법칙</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(위 = 매질 1, 아래 = 매질 2; 평행 광선 다발의 파면이 경계에서 꺾임)와 조작판, 오른쪽 수치·단위원 작도·sin 그래프·속력과 파장 */
+/* 관찰 노트: 왼쪽 실험대(위 = 매질 1, 아래 = 매질 2; 평행 광선 다발의 파면이 경계에서 꺾임) | 오른쪽 지금 값 + 관찰 ①~④ → 정리 → 예제 → 스스로 확인 */
 #stage{aspect-ratio:16/10.5;cursor:grab}
 #uc{aspect-ratio:10/7.2}
 #sg{aspect-ratio:10/8}
 #vw{aspect-ratio:10/6.2}
-.med .btn{padding:7px 11px}
-.quiz .tag{white-space:nowrap}
-/* 범례가 굴절 광선을 가리지 않게: 넓은 화면은 왼쪽 아래 세로 한 줄씩, 폰은 무대 아래로 */
-@media (min-width:641px){ .stage .legend{flex-direction:column;gap:0} }
-@media (min-width:641px) and (max-width:980px){ #vw{aspect-ratio:10/3.6} }
-@media (max-width:640px){ #stage{aspect-ratio:1/1.34} #vw{aspect-ratio:10/6.6} .stage .legend{position:static;margin:0 10px 10px;max-width:none} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III1 파동의 성질과 활용: 개념 12개 가운데 4번째"><a class="uname" href="../">III1 파동의 성질과 활용</a><span class="dots"><a href="../01/" title="III1-01 횡파와 종파" aria-label="III1-01 횡파와 종파"></a><a href="../02/" title="III1-02 파동 그래프와 진행 방향" aria-label="III1-02 파동 그래프와 진행 방향"></a><a href="../03/" title="III1-03 매질이 바뀔 때" aria-label="III1-03 매질이 바뀔 때"></a><a class="cur" href="./" aria-current="page" title="III1-04 굴절과 스넬 법칙" aria-label="III1-04 굴절과 스넬 법칙 (지금)"></a><a href="../05/" title="III1-05 생활 속 굴절 현상" aria-label="III1-05 생활 속 굴절 현상"></a><a href="../06/" title="III1-06 여러 매질의 굴절" aria-label="III1-06 여러 매질의 굴절"></a><a href="../07/" title="III1-07 전반사와 광섬유" aria-label="III1-07 전반사와 광섬유"></a><a href="../08/" title="III1-08 전자기파와 스펙트럼" aria-label="III1-08 전자기파와 스펙트럼"></a><a href="../09/" title="III1-09 전자기파의 이용" aria-label="III1-09 전자기파의 이용"></a><a href="../10/" title="III1-10 중첩 원리" aria-label="III1-10 중첩 원리"></a><a href="../11/" title="III1-11 물결파·소리의 간섭" aria-label="III1-11 물결파·소리의 간섭"></a><a href="../12/" title="III1-12 빛의 간섭" aria-label="III1-12 빛의 간섭"></a></span></nav>
+  <div class="pn"><a href="../03/" rel="prev" title="이전 개념: III1-03 매질이 바뀔 때">‹ <span>03 매질이 바뀔 때</span></a><a href="../05/" rel="next" title="다음 개념: III1-05 생활 속 굴절 현상"><span>05 생활 속 굴절 현상</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III1-04</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III1-04</span><span>물리학 Ⅰ · 파동의 성질과 활용</span></div>
     <h1>굴절과 스넬 법칙</h1>
-    <p class="lead">비스듬히 들어간 파면은 <b>먼저 닿은 끝(A)부터 느려지고</b>, 나머지 끝(B)은 아직 빠르게 달린다. 그래서 파면이 돌아가고 진행 방향이 꺾인다. 구리색 파면 하나를 따라가며 같은 시간에 간 거리 v₁t 와 v₂t 를 비교해 보면 <span class="eq">sinθ₁/sinθ₂ = v₁/v₂</span> 가 보인다.</p>
-  </header>
+    <p class="question"><i>Q</i>파동은 왜 경계에서 꺾이고, 얼마나 꺾일지는 무엇이 정할까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
         <canvas id="stage" aria-label="위 매질에서 아래 매질로 비스듬히 들어가는 평행 광선 다발. 파면(마루선)이 경계에서 꺾이고, 하위헌스 작도로 같은 시간에 간 거리를 비교한다. 광원을 끌어 입사각을 바꿀 수 있다."></canvas>
-        <div class="hud"><span class="pill num" id="hud1">θ₁ = 60°</span><span class="pill num" id="hud2">θ₂ = 30°</span><span class="pill" id="hud3">느린 화면</span></div>
-        <div class="legend">
+        <div class="hud"><span class="pill" id="hud1">θ₁ = 60°</span><span class="pill" id="hud2">θ₂ = 30°</span><span class="pill" id="hud3">느린 화면</span></div>
+        <div class="legend col">
           <span><b style="background:var(--vel)"></b>광선(진행 방향)</span>
           <span><b style="background:var(--violet)"></b>파면(마루선)</span>
           <span><i style="background:var(--copper)"></i>따라가는 파면</span>
           <span><b style="background:var(--acc)"></b>같은 시간에 간 거리</span>
         </div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <button type="button" class="btn" id="step">작도 ¼ 단계 ▸</button>
-          <button type="button" class="btn" id="rev">↕ 거꾸로 보내기</button>
-          <span class="spacer"></span>
-          <div class="group" role="group" aria-label="빠르기">
-            <span class="gl">빠르기</span>
-            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="false">×0.5</button>
-            <button type="button" class="btn mono" data-speed="1" aria-pressed="true">×1</button>
-            <button type="button" class="btn mono" data-speed="2" aria-pressed="false">×2</button>
-          </div>
+          <div class="slider"><label for="th"><span class="lg">입사각 </span>θ₁</label><input id="th" type="range" min="0" max="89" step="1" value="60"><output id="thOut">60°</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">매질·보기</span><span class="sm">매질</span></button>
         </div>
-        <div class="row">
-          <div class="grow">
-            <label class="ctl-label" for="th">입사각 θ₁ (법선과 진행 방향 사이, 무대의 광원을 끌어도 된다) <output id="thOut">60°</output></label>
-            <input id="th" type="range" min="0" max="89" step="1" value="60">
+        <div class="sheet" id="sheet" role="group" aria-label="매질과 보기">
+          <div class="sheet-head"><b>매질 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="매질 1 (위)">
+              <span class="gl">위</span>
+              <button type="button" class="btn" data-m1="air" aria-pressed="true">공기 1</button>
+              <button type="button" class="btn" data-m1="water" aria-pressed="false">물 1.33</button>
+              <button type="button" class="btn" data-m1="glass" aria-pressed="false">유리 1.5</button>
+              <button type="button" class="btn" data-m1="r3" aria-pressed="false">√3</button>
+              <button type="button" class="btn" data-m1="dia" aria-pressed="false">다이아몬드</button>
+            </div>
+            <div class="group" role="group" aria-label="매질 2 (아래)">
+              <span class="gl">아래</span>
+              <button type="button" class="btn" data-m2="air" aria-pressed="false">공기 1</button>
+              <button type="button" class="btn" data-m2="water" aria-pressed="false">물 1.33</button>
+              <button type="button" class="btn" data-m2="glass" aria-pressed="false">유리 1.5</button>
+              <button type="button" class="btn" data-m2="r3" aria-pressed="true">√3</button>
+              <button type="button" class="btn" data-m2="dia" aria-pressed="false">다이아몬드</button>
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="group med" role="group" aria-label="매질 1 (위)">
-            <span class="gl">매질 1 (위)</span>
-            <button type="button" class="btn" data-m1="air" aria-pressed="true">공기 1</button>
-            <button type="button" class="btn" data-m1="water" aria-pressed="false">물 1.33</button>
-            <button type="button" class="btn" data-m1="glass" aria-pressed="false">유리 1.5</button>
-            <button type="button" class="btn" data-m1="r3" aria-pressed="false">유리 √3</button>
-            <button type="button" class="btn" data-m1="dia" aria-pressed="false">다이아몬드 2.42</button>
+          <div class="row">
+            <button type="button" class="btn" id="step">작도 ¼ 단계 ▸</button>
+            <button type="button" class="btn" id="rev">↕ 거꾸로 보내기</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="group med" role="group" aria-label="매질 2 (아래)">
-            <span class="gl">매질 2 (아래)</span>
-            <button type="button" class="btn" data-m2="air" aria-pressed="false">공기 1</button>
-            <button type="button" class="btn" data-m2="water" aria-pressed="false">물 1.33</button>
-            <button type="button" class="btn" data-m2="glass" aria-pressed="false">유리 1.5</button>
-            <button type="button" class="btn" data-m2="r3" aria-pressed="true">유리 √3</button>
-            <button type="button" class="btn" data-m2="dia" aria-pressed="false">다이아몬드 2.42</button>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cFront" checked>파면(마루선)</label>
+            <label class="chk"><input type="checkbox" id="cHuy" checked>하위헌스 작도</label>
+            <label class="chk"><input type="checkbox" id="cDisp">빨간빛·보라색 빛</label>
           </div>
-        </div>
-        <div class="row toggles">
-          <label class="chk"><input type="checkbox" id="cFront" checked>파면(마루선)</label>
-          <label class="chk"><input type="checkbox" id="cHuy" checked>하위헌스 작도 (A·B·D·E)</label>
-          <label class="chk"><input type="checkbox" id="cDisp">빨간빛·보라색 빛 (색마다 굴절률 다름)</label>
         </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치</h2>
-        <div class="readouts">
-          <div class="ro cu"><span>입사각 θ₁</span><b id="rTh1">60°</b></div>
-          <div class="ro acc"><span>굴절각 θ₂</span><b id="rTh2">30°</b></div>
-          <div class="ro"><span>n₁ sinθ₁ = n₂ sinθ₂</span><b id="rInv">0.866</b></div>
-          <div class="ro vel"><span>매질 2 속력 v₂ = c/n₂</span><b id="rV2">1.73 × 10⁸ m/s</b></div>
-          <div class="ro"><span>상대 굴절률 n₂/n₁ = v₁/v₂</span><b id="rRel">1.73</b></div>
-          <div class="ro"><span>파장 λ₂/λ₁ = n₁/n₂</span><b id="rLam">0.577</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span>지금 굴절각</span><span id="ansCtx">공기 1 → 유리 √3</span></div>
+        <div class="big" id="ansBig">θ₂ = 30°</div>
+        <div class="sub">
+          <span class="f" id="ansF">n₁ sin θ₁ = n₂ sin θ₂ 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">1 × sin <em>60°</em> = √3 × sin θ₂</span><span class="v">sin θ₂ = 0.5 → <em>θ₂ = 30°</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="v2Name">유리 속 속력 v₂ = c/n₂</span><b id="rV2">1.73 × 10⁸ m/s</b></div>
+          <div class="mini"><span>상대 굴절률 n₂/n₁ = v₁/v₂</span><b id="rRel">√3</b></div>
+          <div class="mini"><span>파장 λ₂/λ₁ = n₁/n₂</span><b id="rLam">0.577</b></div>
+          <div class="mini"><span>n sin θ (경계 양쪽에서 같다)</span><b id="rInv">0.866</b></div>
         </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2>sinθ 작도 <small>반지름 1인 원</small></h2>
-        <canvas class="flat" id="uc" aria-label="입사점을 중심으로 반지름 1인 원을 그리면 광선과 원이 만나는 점에서 법선까지의 거리가 sinθ."></canvas>
-        <p class="cap">원과 광선이 만나는 점에서 법선까지의 거리가 <b>sinθ</b>. 두 선분의 길이 비가 <span class="eq">sinθ₁ : sinθ₂ = n₂ : n₁</span> 이다.</p>
-      </section>
-      <section class="panel">
-        <h2>sinθ₁–sinθ₂ 그래프 <small>매질 2를 바꿔 보자</small></h2>
-        <canvas class="flat" id="sg" aria-label="가로축 sinθ1, 세로축 sinθ2. 원점을 지나는 직선이고 기울기는 n1/n2."></canvas>
-        <p class="cap">원점을 지나는 직선, <b>기울기 = n₁/n₂</b>. 굴절률이 큰 매질일수록 기울기가 작아 같은 입사각에서 더 많이 꺾인다.</p>
-      </section>
-      <section class="panel wide">
-        <h2>매질 속 속력과 파장 <small>같은 시간 동안</small></h2>
-        <canvas class="flat" id="vw" aria-label="같은 파원에서 온 빛이 두 매질에서 같은 진동수로 진동하지만, 느린 매질에서는 파장이 짧다."></canvas>
-        <p class="cap">진동수 f 는 파원이 정하므로 그대로. 느려진 만큼 파장이 짧아진다: <span class="eq">v₂/v₁ = λ₂/λ₁ = n₁/n₂</span></p>
-      </section>
-    </aside>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 파면이 도는 까닭">
+          <div class="kind">관찰 1</div>
+          <h3>먼저 닿은 끝부터 느려진다</h3>
+          <p>비스듬히 들어간 파면 AB는 <b>A가 먼저</b> 경계에 닿는다. B가 v₁t를 가서 D에 닿는 동안, 느린 매질로 들어간 A는 v₂t만 가서 E에 이른다. 그래서 새 파면 ED가 경계 쪽으로 돌아가고 진행 방향이 꺾인다.</p>
+          <p class="cap">구리색 파면 하나를 ¼ 단계씩 따라가 보자. 줄지어 걷던 대열이 비스듬히 진흙밭에 들어가면 먼저 들어간 쪽부터 느려져 대열이 도는 것과 같다. 입사각은 무대의 광원을 끌거나 θ₁ 막대로 바꾼다.</p>
+          <div class="acts"><button type="button" class="btn go" data-do="click:#step">작도 ¼ 단계씩 ▸</button><button type="button" class="btn" data-do="check:#cHuy">작도 켜기</button></div>
+        </li>
+        <li class="card step" data-step="② sin θ 를 선분으로">
+          <div class="kind">관찰 2</div>
+          <h3>sin θ 를 길이로 보면</h3>
+          <p>입사점을 중심으로 반지름 1인 원을 그리면, 광선이 원과 만나는 점에서 법선까지의 거리가 sin θ 다. 삼각형 ABD와 AED가 빗변 AD를 함께 쓰므로 sin θ₁ = v₁t/AD, sin θ₂ = v₂t/AD 이다.</p>
+          <canvas class="flat" id="uc" aria-label="입사점을 중심으로 반지름 1인 원을 그리면 광선과 원이 만나는 점에서 법선까지의 거리가 sinθ."></canvas>
+          <p class="cap">두 선분의 비가 <span class="eq">sin θ₁ : sin θ₂ = v₁ : v₂ = n₂ : n₁</span> 이다. 무대에서 각을 바꾸면 선분도 같이 바뀐다.</p>
+        </li>
+        <li class="card step" data-step="③ 얼마나 꺾일까">
+          <div class="kind">관찰 3</div>
+          <h3>굴절률이 클수록 더 꺾인다</h3>
+          <canvas class="flat" id="sg" aria-label="가로축 sinθ1, 세로축 sinθ2. 원점을 지나는 직선이고 기울기는 n1/n2."></canvas>
+          <p class="cap">sin θ₁–sin θ₂ 는 원점을 지나는 직선이고 <b>기울기 = n₁/n₂</b>. 같은 입사각 60°라도 굴절률 1.5인 유리에서는 약 35°, √3인 유리에서는 30°로 꺾인다. 아래 매질을 바꿔 직선을 견줘 보자.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-do="click:[data-m2=water]">물 1.33</button>
+            <button type="button" class="btn" data-do="click:[data-m2=glass]">유리 1.5</button>
+            <button type="button" class="btn" data-do="click:[data-m2=r3]">유리 √3</button>
+            <button type="button" class="btn" data-do="click:[data-m2=dia]">다이아몬드 2.42</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 속력과 파장">
+          <div class="kind">관찰 4</div>
+          <h3>느려진 만큼 파장도 짧아진다</h3>
+          <canvas class="flat" id="vw" aria-label="같은 파원에서 온 빛이 두 매질에서 같은 진동수로 진동하지만, 느린 매질에서는 파장이 짧다."></canvas>
+          <p class="cap">진동수 f 는 파원이 정하므로 그대로다. 느려진 만큼 파장이 짧아진다: <span class="eq">v₂/v₁ = λ₂/λ₁ = n₁/n₂</span></p>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>각이 작은 쪽 = 느린 쪽</h3>
+          <ul>
+            <li><span class="eq">n₁ sin θ₁ = n₂ sin θ₂</span> (빛은 n = c/v). θ 는 진행 방향과 법선 사이 각이고, 파면과 경계면 사이 각과 같다.</li>
+            <li>법선과 이루는 각이 작은 쪽이 느린 쪽, 굴절률이 큰 쪽, 파장이 짧은 쪽이다. 공기 약 1.0003, 물 1.33, 유리 약 1.5~1.9, 다이아몬드 2.42.</li>
+            <li>수직으로 들어가면 꺾이지 않지만 속력과 파장은 바뀐다. 빛의 경로는 거꾸로도 성립한다(가역성).</li>
+          </ul>
+          <div class="acts"><button type="button" class="btn" data-do="click:#rev">↕ 거꾸로 보내기</button></div>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>공기(n = 1)에서 굴절률 √3인 유리로 입사각 60°로 빛이 들어간다. 굴절각과 유리 속 빛의 속력은? (c = 3 × 10⁸ m/s)</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>1 × sin 60° = √3 × sin θ₂ 에서 sin θ₂ = 1/2, <b>θ₂ = 30°</b>. v = c/n = 3 × 10⁸ ÷ √3 = √3 × 10⁸ ≈ <b>1.7 × 10⁸ m/s</b>. 단위원 작도의 두 선분도 0.87 : 0.5 = √3 : 1 이다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>빛이 공기에서 어떤 매질로 입사각 45°로 들어가 굴절각 30°로 꺾였다. 이 매질의 굴절률과 매질 속 빛의 속력은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="r2">45° → 30° 상황 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>1 × sin 45° = n × sin 30° 에서 n = (√2/2) ÷ (1/2) = <b>√2</b>, v = c/√2 ≈ <b>2.1 × 10⁸ m/s</b>. 매질 속 빛이 c 보다 빠를 수는 없으므로 4.2 × 10⁸ m/s 같은 값은 바로 지운다.</p></details>
+          </div>
+          <div class="q">
+            <h3>빨간빛과 보라색 빛이 공기에서 같은 유리로 같은 입사각으로 들어간다. 더 많이 꺾이는 빛과, 유리 속에서 더 느린 빛은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="disp">두 색을 같이 보내기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>둘 다 <b>보라색 빛</b>. 보라색 빛에 대한 유리의 굴절률이 더 커서 굴절각이 작고, v = c/n 이 작다. 각 빛의 진동수는 매질이 바뀌어도 그대로다. (무대는 굴절률 차이를 과장해 그렸다.)</p></details>
+          </div>
+          <div class="q">
+            <h3>빛이 경계에 수직으로(θ₁ = 0°) 들어가면 꺾이지 않는다. 그렇다면 속력과 파장도 그대로일까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="normal">수직으로 보내기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>아니다. 방향만 그대로이고, 유리 속에서는 속력이 c/n 으로 느려지고 파장도 n₁/n₂ 배로 짧아진다(마루선 간격이 좁아진다). 꺾이려면 비스듬히 들어가 파면의 양 끝이 경계에 닿는 시각이 달라야 한다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../03/" rel="prev"><small>← 이전 개념 · III1-03</small><b>매질이 바뀔 때</b></a><a href="../05/" rel="next"><small>다음 개념 · III1-05 →</small><b>생활 속 굴절 현상</b></a></nav>
+<!-- /nextprev -->
+    </section>
   </main>
-
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>꺾이는 까닭은 속력 차이</h3>
-        <p>파면 AB 의 A 가 먼저 경계에 닿는다. B 가 v₁t 를 가서 D 에 닿는 동안, A 에서 느린 매질로 나간 파는 v₂t 만 가서 E 에 이른다. 새 파면 ED 는 경계 쪽으로 돌아간다.</p>
-        <p>줄지어 걷던 대열이 비스듬히 진흙밭에 들어가면 먼저 들어간 쪽부터 느려져 대열이 도는 것과 같다.</p>
-      </article>
-      <article class="concept">
-        <h3>스넬 법칙</h3>
-        <p>직각삼각형 ABD 와 AED 는 빗변 AD 를 공유하므로 sinθ₁ = v₁t/AD, sinθ₂ = v₂t/AD. 나누면 <span class="eq">sinθ₁/sinθ₂ = v₁/v₂ = λ₁/λ₂</span>.</p>
-        <p>빛은 n = c/v 이므로 <span class="eq">n₁ sinθ₁ = n₂ sinθ₂</span>. θ 는 진행 방향과 법선 사이 각이며, 파면과 경계면 사이 각과 같다.</p>
-      </article>
-      <article class="concept">
-        <h3>각이 작은 쪽 = 느린 쪽</h3>
-        <p>각이 작은 쪽이 느린 쪽이고, 빛에서는 굴절률이 큰 쪽, 파장이 짧은 쪽과 같은 말이다. 공기 약 1.0003, 물 1.33, 유리 약 1.5~1.9, 다이아몬드 2.42.</p>
-        <p>수직으로 들어가면 꺾이지 않지만 속력과 파장은 바뀐다. 빛의 경로는 거꾸로도 성립한다(가역성).</p>
-      </article>
-    </div>
-    <p class="compare">같은 입사각 60°라도 굴절률 1.5인 매질에서는 약 35°, √3인 매질에서는 30°로 꺾인다 — 굴절률이 클수록 더 많이 꺾인다. 같은 유리라도 보라색 빛의 굴절률이 빨간빛보다 조금 커서 보라색 빛이 더 꺾이고 유리 속에서 더 느리다(분산).</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>공기(n = 1)에서 굴절률 √3인 유리로 입사각 60°로 빛이 들어간다. 굴절각과 유리 속 빛의 속력은? (c = 3 × 10⁸ m/s)<span class="tag">개념서 예제</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button></div>
-        <details><summary>답 보기</summary><p>1 × sin60° = √3 × sinθ₂ 에서 sinθ₂ = 1/2, <b>θ₂ = 30°</b>. v = c/n = 3 × 10⁸ ÷ √3 = √3 × 10⁸ ≈ <b>1.7 × 10⁸ m/s</b>. 단위원 작도의 두 선분도 0.87 : 0.5 = √3 : 1 이다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>빛이 공기에서 어떤 매질로 입사각 45°로 들어가 굴절각 30°로 꺾였다. 이 매질의 굴절률과 매질 속 빛의 속력은?</p>
-        <div class="acts"><button type="button" class="btn" data-try="r2">45° → 30° 상황 보기</button></div>
-        <details><summary>답 보기</summary><p>1 × sin45° = n × sin30° 에서 n = (√2/2) ÷ (1/2) = <b>√2</b>, v = c/√2 ≈ <b>2.1 × 10⁸ m/s</b>. 매질 속 빛이 c 보다 빠를 수는 없으므로 4.2 × 10⁸ m/s 같은 값은 바로 지운다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>빨간빛과 보라색 빛이 공기에서 같은 유리로 같은 입사각으로 들어간다. 더 많이 꺾이는 빛과, 유리 속에서 더 느린 빛은?</p>
-        <div class="acts"><button type="button" class="btn" data-try="disp">두 색을 같이 보내기</button></div>
-        <details><summary>답 보기</summary><p>둘 다 <b>보라색 빛</b>. 보라색 빛에 대한 유리의 굴절률이 더 커서 굴절각이 작고, v = c/n 이 작다. 각 빛의 진동수는 매질이 바뀌어도 그대로다. (무대는 굴절률 차이를 과장해 그렸다.)</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>빛이 경계에 수직으로(θ₁ = 0°) 들어가면 꺾이지 않는다. 그렇다면 속력과 파장도 그대로일까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="normal">수직으로 보내기</button></div>
-        <details><summary>답 보기</summary><p>아니다. 방향만 그대로이고, 유리 속에서는 속력이 c/n 으로 느려지고 파장도 n₁/n₂ 배로 짧아진다(마루선 간격이 좁아진다). 꺾이려면 비스듬히 들어가 파면의 양 끝이 경계에 닿는 시각이 달라야 한다.</p></details>
-      </li>
-    </ol>
-    <nav class="pager"><a href="../03/">← III1-03 매질이 바뀔 때</a><a class="home" href="../../">물리 실험실</a><a href="../05/">III1-05 생활 속 굴절 현상 →</a></nav>
-  </section>
 </div>
 
 <script src="../../kit/lab.js"></script>
@@ -494,14 +505,27 @@
 
   // ── 수치 ────────────────────────────────────────────────
   function readouts() {
-    const a = n1(), b = n2(), th2 = M.refract(a, b, S.th), tir = Number.isNaN(th2);
+    const a = n1(), b = n2(), th2 = M.refract(a, b, S.th), tir = Number.isNaN(th2), m1 = MED[S.m1], m2 = MED[S.m2];
+    const deg = (x) => (Number.isNaN(x) ? '전반사' : fmt(x, 1) + '°');
     $('thOut').textContent = fmt(S.th, 1) + '°';
-    $('rTh1').textContent = fmt(S.th, 1) + '°';
-    $('rTh2').textContent = tir ? '없음' : fmt(th2, 1) + '°';
     $('rInv').textContent = fmt(M.invariant(a, S.th), 3);
+    $('v2Name').textContent = m2.name + ' 속 속력 v₂ = c/n₂';
     $('rV2').textContent = Lab.sci(M.speed(b), 2) + ' m/s';
     $('rRel').textContent = nStr(M.relIndex(a, b));
     $('rLam').textContent = fmt(M.lambdaRatio(a, b), 3);
+    // 지금 값: n₁ sinθ₁ = n₂ sinθ₂ 에 지금 값을 넣는다
+    const ctx = m1.name + ' ' + m1.tag + ' → ' + m2.name + ' ' + m2.tag, lhs = nStr(a) + ' × sin <em>' + fmt(S.th, 1) + '°</em>';
+    if (S.disp) {
+      const nr = b - DISP, nv = b + DISP, r = M.refract(a, nr, S.th), v = M.refract(a, nv, S.th);
+      Lab.ans('빨강 ' + deg(r) + ' · 보라 ' + deg(v), [
+        '빨간빛: ' + lhs + ' = ' + fmt(nr, 2) + ' × sin θ₂ → <em>' + deg(r) + '</em>',
+        '보라색 빛: ' + lhs + ' = ' + fmt(nv, 2) + ' × sin θ₂ → <em>' + deg(v) + '</em>'], {tone: 'small', ctx: ctx + ' · 분산(과장)'});
+    } else {
+      const s2 = a * M.sinD(S.th) / b;
+      Lab.ans(tir ? '굴절 광선 없음' : 'θ₂ = ' + deg(th2), [lhs + ' = ' + nStr(b) + ' × sin θ₂',
+        tir ? 'sin θ₂ = ' + fmt(s2, 3) + ' > 1 → <em>전반사</em> (빛이 모두 되돌아온다)' : 'sin θ₂ = ' + fmt(s2, 3) + ' → <em>θ₂ = ' + deg(th2) + '</em>'],
+      {tone: tir ? 'neg' : '', ctx});
+    }
     if (S.disp) {
       const r = M.refract(a, b - DISP, S.th), v = M.refract(a, b + DISP, S.th);
       $('hud2').textContent = '빨강 ' + fmt(r, 1) + '° · 보라 ' + fmt(v, 1) + '°';
@@ -510,7 +534,7 @@
     const h3 = $('hud3'); h3.textContent = tir ? '전반사' : S.disp ? '분산 (과장)' : '느린 화면'; h3.className = 'pill' + (tir ? ' down' : '');
     const ok = Math.abs(S.th - EX.th) < 1e-9 && S.m1 === EX.m1 && S.m2 === EX.m2 && !S.disp;
     Lab.check('exCheck', ok, '개념서 예제 (공기 → 굴절률 √3, 입사각 60°) → 굴절각 30°, 유리 속 v = c/√3 ≈ 1.7 × 10⁸ m/s',
-      '예제: 공기 → 굴절률 √3 유리, 입사각 60°일 때 굴절각과 속력은? — ‘스스로 확인 1’로 돌아갈 수 있어요');
+      '예제: 공기 → 굴절률 √3 유리, 입사각 60°일 때 굴절각과 속력은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
   }
   function drawAll() { drawStage(); drawUC(); drawSG(); drawVW(); }
   function refresh() { readouts(); drawAll(); }

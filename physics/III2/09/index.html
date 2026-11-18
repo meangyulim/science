@@ -6,7 +6,7 @@
 <title>전자 현미경</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
 /* 왼쪽 무대: 현미경 단면(광원·렌즈·시료·스크린)과 그 상, 오른쪽: λ–V 그래프와 파장 자, 두 점의 밝기 그래프, 세 현미경 비교표 */
@@ -23,7 +23,14 @@
 @media (max-width:640px){ #stage{aspect-ratio:1/1.8} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III2 빛과 물질의 이중성: 개념 9개 가운데 9번째"><a class="uname" href="../">III2 빛과 물질의 이중성</a><span class="dots"><a href="../01/" title="III2-01 빛의 이중성" aria-label="III2-01 빛의 이중성"></a><a href="../02/" title="III2-02 광전 효과의 실험 사실" aria-label="III2-02 광전 효과의 실험 사실"></a><a href="../03/" title="III2-03 광전 방정식" aria-label="III2-03 광전 방정식"></a><a href="../04/" title="III2-04 광전 효과의 이용" aria-label="III2-04 광전 효과의 이용"></a><a href="../05/" title="III2-05 CCD" aria-label="III2-05 CCD"></a><a href="../06/" title="III2-06 물질파" aria-label="III2-06 물질파"></a><a href="../07/" title="III2-07 물질파 그래프·표 해석" aria-label="III2-07 물질파 그래프·표 해석"></a><a href="../08/" title="III2-08 입자의 파동성 증거" aria-label="III2-08 입자의 파동성 증거"></a><a class="cur" href="./" aria-current="page" title="III2-09 전자 현미경" aria-label="III2-09 전자 현미경 (지금)"></a></span></nav>
+  <div class="pn"><a href="../08/" rel="prev" title="이전 개념: III2-08 입자의 파동성 증거">‹ <span>08 입자의 파동성 증거</span></a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
   <header class="top">
     <a class="back" href="../../">← 물리 실험실</a>
@@ -164,7 +171,9 @@
         <details><summary>답 보기</summary><p><b>파란빛</b>. 파장이 짧을수록 한 점의 번짐이 작아 가까운 두 점이 갈라져 보인다. ‘분해능은 파장이 길수록 좋다’는 진술은 틀렸다.</p></details>
       </li>
     </ol>
-    <nav class="pager"><a href="../08/">← III2-08 입자의 파동성 증거</a><a class="home" href="../../">물리 실험실</a><span></span></nav>
+    <!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../08/" rel="prev"><small>← 이전 개념 · III2-08</small><b>입자의 파동성 증거</b></a><span></span></nav>
+<!-- /nextprev -->
   </section>
 </div>
 

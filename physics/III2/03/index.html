@@ -6,7 +6,7 @@
 <title>광전 방정식과 정지 전압</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
 /* Layout: 왼쪽 무대(광전관 + 전압을 바꾸는 전원)와 조작판, 오른쪽 지금 수치 · 에너지 장부 · E_k,max–f 그래프 · 광전류–전압 그래프 */
@@ -19,7 +19,14 @@
 @media (max-width:640px){ #stage{aspect-ratio:1/1.3} #led{aspect-ratio:10/8.6} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III2 빛과 물질의 이중성: 개념 9개 가운데 3번째"><a class="uname" href="../">III2 빛과 물질의 이중성</a><span class="dots"><a href="../01/" title="III2-01 빛의 이중성" aria-label="III2-01 빛의 이중성"></a><a href="../02/" title="III2-02 광전 효과의 실험 사실" aria-label="III2-02 광전 효과의 실험 사실"></a><a class="cur" href="./" aria-current="page" title="III2-03 광전 방정식" aria-label="III2-03 광전 방정식 (지금)"></a><a href="../04/" title="III2-04 광전 효과의 이용" aria-label="III2-04 광전 효과의 이용"></a><a href="../05/" title="III2-05 CCD" aria-label="III2-05 CCD"></a><a href="../06/" title="III2-06 물질파" aria-label="III2-06 물질파"></a><a href="../07/" title="III2-07 물질파 그래프·표 해석" aria-label="III2-07 물질파 그래프·표 해석"></a><a href="../08/" title="III2-08 입자의 파동성 증거" aria-label="III2-08 입자의 파동성 증거"></a><a href="../09/" title="III2-09 전자 현미경" aria-label="III2-09 전자 현미경"></a></span></nav>
+  <div class="pn"><a href="../02/" rel="prev" title="이전 개념: III2-02 광전 효과의 실험 사실">‹ <span>02 광전 효과의 실험 사실</span></a><a href="../04/" rel="next" title="다음 개념: III2-04 광전 효과의 이용"><span>04 광전 효과의 이용</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
   <header class="top">
     <a class="back" href="../../">← 물리 실험실</a>
@@ -160,7 +167,9 @@
         <details><summary>답 보기</summary><p><b>정지 전압은 그대로, 최대 광전류만 커진다.</b> eV<sub>s</sub> = hf − W는 진동수와 일함수로만 정해진다. 세기를 키우면 광자 수가 늘어 광전자 수(광전류)만 늘어난다. 두 곡선이 같은 −V<sub>s</sub>에서 0이 된다.</p></details>
       </li>
     </ol>
-    <nav class="pager"><a href="../02/">← III2-02 광전 효과의 실험 사실</a><a class="home" href="../../">물리 실험실</a><a href="../04/">III2-04 광전 효과의 이용 →</a></nav>
+    <!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../02/" rel="prev"><small>← 이전 개념 · III2-02</small><b>광전 효과의 실험 사실</b></a><a href="../04/" rel="next"><small>다음 개념 · III2-04 →</small><b>광전 효과의 이용</b></a></nav>
+<!-- /nextprev -->
   </section>
 </div>
 

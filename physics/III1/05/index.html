@@ -6,7 +6,7 @@
 <title>생활 속 굴절 현상</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
 /* Layout: 왼쪽 무대(소리·신기루·물 여섯 장면)와 조작판, 오른쪽 수치·높이별 속력·파면 조각 확대·한 원칙 표 */
@@ -23,7 +23,14 @@
 @media (max-width:640px){ #stage{aspect-ratio:1/1.12} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III1 파동의 성질과 활용: 개념 12개 가운데 5번째"><a class="uname" href="../">III1 파동의 성질과 활용</a><span class="dots"><a href="../01/" title="III1-01 횡파와 종파" aria-label="III1-01 횡파와 종파"></a><a href="../02/" title="III1-02 파동 그래프와 진행 방향" aria-label="III1-02 파동 그래프와 진행 방향"></a><a href="../03/" title="III1-03 매질이 바뀔 때" aria-label="III1-03 매질이 바뀔 때"></a><a href="../04/" title="III1-04 굴절과 스넬 법칙" aria-label="III1-04 굴절과 스넬 법칙"></a><a class="cur" href="./" aria-current="page" title="III1-05 생활 속 굴절 현상" aria-label="III1-05 생활 속 굴절 현상 (지금)"></a><a href="../06/" title="III1-06 여러 매질의 굴절" aria-label="III1-06 여러 매질의 굴절"></a><a href="../07/" title="III1-07 전반사와 광섬유" aria-label="III1-07 전반사와 광섬유"></a><a href="../08/" title="III1-08 전자기파와 스펙트럼" aria-label="III1-08 전자기파와 스펙트럼"></a><a href="../09/" title="III1-09 전자기파의 이용" aria-label="III1-09 전자기파의 이용"></a><a href="../10/" title="III1-10 중첩 원리" aria-label="III1-10 중첩 원리"></a><a href="../11/" title="III1-11 물결파·소리의 간섭" aria-label="III1-11 물결파·소리의 간섭"></a><a href="../12/" title="III1-12 빛의 간섭" aria-label="III1-12 빛의 간섭"></a></span></nav>
+  <div class="pn"><a href="../04/" rel="prev" title="이전 개념: III1-04 굴절과 스넬 법칙">‹ <span>04 굴절과 스넬 법칙</span></a><a href="../06/" rel="next" title="다음 개념: III1-06 여러 매질의 굴절"><span>06 여러 매질의 굴절</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
   <header class="top">
     <a class="back" href="../../">← 물리 실험실</a>
@@ -177,7 +184,9 @@
         <details><summary>답 보기</summary><p>느린 쪽이 반대다. 해수면 근처 찬 공기에서 빛이 느리므로 위로 가던 빛이 <b>아래로</b> 휘어 눈에 들어오고, 눈은 그 연장선 위쪽에 배가 있다고 느낀다(공중에 뜬 상). 뜨거운 도로는 지면 근처가 빨라 빛이 위로 휘고 상이 땅 아래에 생긴다.</p></details>
       </li>
     </ol>
-    <nav class="pager"><a href="../04/">← III1-04 굴절과 스넬 법칙</a><a class="home" href="../../">물리 실험실</a><a href="../06/">III1-06 여러 매질의 굴절 →</a></nav>
+    <!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../04/" rel="prev"><small>← 이전 개념 · III1-04</small><b>굴절과 스넬 법칙</b></a><a href="../06/" rel="next"><small>다음 개념 · III1-06 →</small><b>여러 매질의 굴절</b></a></nav>
+<!-- /nextprev -->
   </section>
 </div>
 

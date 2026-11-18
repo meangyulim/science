@@ -1,23 +1,28 @@
-/* 물리 실험실 공통 디자인 — 기준: physics/dc-motor (구리색 강조, 밝은·어두운 테마). 만드는 법은 kit/GUIDE.md
-   주의: .panel h2, .ctl-label, .chk, .legend span 은 flex 라서 안에 <sub> 를 쓰면 따로 떨어진다 → 글자를 <span> 으로 감쌀 것
-   배치: .lab = 왼쪽 큰 무대(.stage) + 조작판(.controls), 오른쪽 패널(.side .panel), 아래 개념 정리(.concepts)와 스스로 확인(.quiz) */
+/* 물리 실험실 공통 디자인 — 개념 실험 페이지는 「관찰 노트」 배치(A안). 만드는 법은 kit/GUIDE.md
+   배치: 맨 위 막대(.topbar: 실험실로 · 단원 진행 점 · 이전/다음) → 제목(.title: 번호·제목·질문)
+         → 두 칸(.lay): 왼쪽 실험대(.bench = 무대 .stage + 조작 .dock, 화면에 붙어 다님) | 오른쪽 노트(.notes = 지금 값 .answer + 관찰 단계 .steps)
+         좁은 화면(아이패드 세로·폰)에서는 무대와 첫 조작 줄(.r1)만 위에 붙고, 나머지 조작은 아래에서 올라오는 시트(.sheet)
+   글자: 본문 400, 강조 600, 제목·카드 제목 700. 숫자도 본문 글꼴(Noto Sans KR, 자릿수 맞춤). 굵은 글씨는 정말 중요한 곳에만.
+   주의: .ctl-label, .chk, .legend span 은 flex 라서 안에 <sub> 를 쓰면 따로 떨어진다 → 글자를 <span> 으로 감쌀 것
+   첫 화면(physics/index.html)도 이 파일의 토큰·body·.page·.back·h1·--font-num 을 쓴다 → 바꿀 때 같이 볼 것 */
 :root{
-  --bg:#f3f4f6; --paper:#ffffff; --ink:#111827; --muted:#475063; --line:#d9dde3; --line-soft:#e8ebef;
+  --bg:#f3f4f6; --paper:#ffffff; --ink:#111827; --ink-2:#374151; --muted:#475063; --line:#d9dde3; --line-soft:#e8ebef;
   --stage-top:#ffffff; --stage-bot:#f2f4f7; --grid:rgba(17,24,39,.06); --glass:rgba(255,255,255,.92);
-  --copper:#a95a22; --on-copper:#ffffff; --copper-soft:#f5e7dc;
+  --copper:#a95a22; --on-copper:#ffffff; --copper-soft:#f5e7dc; --copper-ink:#7d3f14;
   /* 물리량 색: 속도·위치 = 파랑, 가속도 = 초록, 힘 = 빨강, 에너지·강조 = 주황, 음(−)의 넓이 = 빨강 */
   --vel:#2463c7; --vel-soft:rgba(36,99,199,.16); --acc:#1f8a55; --acc-soft:rgba(31,138,85,.16);
   --force:#d63a2a; --neg:#d0453a; --neg-soft:rgba(208,69,58,.16); --energy:#d9822b; --violet:#7a52c7;
   --road:#cfd6d3; --road-line:#ffffff; --ghost:rgba(36,99,199,.22);
   --font-ui:"Noto Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --font-display:"Black Han Sans","Noto Sans KR",system-ui,sans-serif;
-  --font-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --font-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;   /* 첫 화면만 쓴다. 개념 페이지 숫자는 --font-ui */
+  --top:56px;   /* 맨 위 막대 높이 */
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0d1117; --paper:#161b24; --ink:#eef1f5; --muted:#a8b2c1; --line:#2c3443; --line-soft:#222937;
+    --bg:#0d1117; --paper:#161b24; --ink:#eef1f5; --ink-2:#cfd5de; --muted:#a8b2c1; --line:#2c3443; --line-soft:#222937;
     --stage-top:#1b2230; --stage-bot:#121822; --grid:rgba(255,255,255,.06); --glass:rgba(22,28,38,.92);
-    --copper:#e39a62; --on-copper:#1d1108; --copper-soft:#33241a;
+    --copper:#e39a62; --on-copper:#1d1108; --copper-soft:#33241a; --copper-ink:#f0b98e;
     --vel:#62a8ff; --vel-soft:rgba(98,168,255,.2); --acc:#4fc58b; --acc-soft:rgba(79,197,139,.2);
     --force:#ff6b57; --neg:#ff7a6b; --neg-soft:rgba(255,122,107,.2); --energy:#ffb057; --violet:#ab8cf5;
     --road:#2a3439; --road-line:#53636a; --ghost:rgba(98,168,255,.26);
@@ -25,9 +30,9 @@
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0d1117; --paper:#161b24; --ink:#eef1f5; --muted:#a8b2c1; --line:#2c3443; --line-soft:#222937;
+  --bg:#0d1117; --paper:#161b24; --ink:#eef1f5; --ink-2:#cfd5de; --muted:#a8b2c1; --line:#2c3443; --line-soft:#222937;
   --stage-top:#1b2230; --stage-bot:#121822; --grid:rgba(255,255,255,.06); --glass:rgba(22,28,38,.92);
-  --copper:#e39a62; --on-copper:#1d1108; --copper-soft:#33241a;
+  --copper:#e39a62; --on-copper:#1d1108; --copper-soft:#33241a; --copper-ink:#f0b98e;
   --vel:#62a8ff; --vel-soft:rgba(98,168,255,.2); --acc:#4fc58b; --acc-soft:rgba(79,197,139,.2);
   --force:#ff6b57; --neg:#ff7a6b; --neg-soft:rgba(255,122,107,.2); --energy:#ffb057; --violet:#ab8cf5;
   --road:#2a3439; --road-line:#53636a; --ghost:rgba(98,168,255,.26);
@@ -41,109 +46,216 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);f
 .page{max-width:1280px;margin:0 auto}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--copper);outline-offset:2px}
-.num,.mono{font-family:var(--font-num)}
-
-header.top{padding-block:20px 16px;display:grid;gap:4px}
 .back{font-size:13px;color:var(--muted);text-decoration:none;width:max-content}
 .back:hover{color:var(--ink)}
-.crumbs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.crumbs .id{font:600 12px var(--font-num);color:var(--copper);background:var(--copper-soft);padding:2px 8px;border-radius:999px}
-.kicker{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--copper)}
 h1{margin:2px 0 0;font-family:var(--font-display);font-size:clamp(30px,4.2vw,42px);font-weight:400;letter-spacing:-.01em;line-height:1.25;text-wrap:balance}
-.lead{margin:4px 0 0;color:var(--muted);max-width:68ch;font-size:16.5px}
+.num,.mono{font-family:var(--font-ui);font-variant-numeric:tabular-nums}
 
-.lab{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:18px;align-items:start}
-.left,.side{min-width:0}
+/* ── 개념 실험 페이지 (<body class="cx">) ───────────────── */
+.cx{line-height:1.75;font-variant-numeric:tabular-nums}
+.cx b,.cx strong{font-weight:600}
+.cx::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:31;background:var(--glass)}
+
+/* 맨 위 막대: 실험실로 · 단원 이름과 개념 점 · 이전/다음 */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px))) calc(-1 * max(16px,env(safe-area-inset-right,0px)));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:var(--glass);-webkit-backdrop-filter:saturate(1.4) blur(10px);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+.topbar .tb{max-width:1280px;margin:0 auto;height:var(--top);display:flex;align-items:center;gap:14px}
+.topbar .home{font-size:14px;color:var(--muted);text-decoration:none;white-space:nowrap}
+.topbar .home:hover{color:var(--ink)}
+.unitnav{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px}
+.unitnav .uname{font-size:14px;font-weight:600;color:var(--ink-2);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.unitnav .uname:hover{color:var(--copper-ink)}
+.dots{display:flex;gap:5px;align-items:center;flex:none}
+.dots a,.dots span{display:block;width:9px;height:9px;border-radius:50%}
+.dots a{background:var(--copper);opacity:.42}
+.dots a:hover{opacity:1}
+.dots a.cur{width:22px;border-radius:999px;opacity:1}
+.dots span{background:var(--line)}
+.pn{display:flex;gap:6px;flex:none}
+.pn a{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--paper);
+  color:var(--ink);text-decoration:none;font-size:14px;font-weight:500;white-space:nowrap}
+.pn a:hover{border-color:var(--copper);color:var(--copper-ink)}
+.pn .off{visibility:hidden}
+
+/* 제목: 번호 · 과목과 단원 · 제목 · 이 개념의 질문 */
+.title{padding:22px 0 18px;display:grid;gap:6px}
+.crumb{font-size:13.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.crumb .id{font-weight:600;color:var(--copper-ink);background:var(--copper-soft);padding:1px 9px;border-radius:999px}
+.title h1{margin:0;font-size:clamp(30px,4vw,42px);line-height:1.2}
+.question{margin:4px 0 0;display:flex;gap:10px;align-items:baseline;font-size:18px;font-weight:500;color:var(--ink-2);max-width:62ch}
+.question i{font-style:normal;flex:none;font-size:13px;font-weight:700;color:var(--on-copper);background:var(--copper);border-radius:6px;padding:1px 7px;transform:translateY(-2px)}
+
+/* 두 칸: 왼쪽 실험대 | 오른쪽 노트 */
+.lay{display:grid;grid-template-columns:minmax(0,1.32fr) minmax(360px,1fr);gap:22px;align-items:start}
+.bench{min-width:0;display:grid}
+.notes{min-width:0;display:grid;gap:12px}
 
 /* 무대 */
 .stage{position:relative;width:100%;border-radius:18px;overflow:hidden;border:1px solid var(--line);
   background:radial-gradient(120% 95% at 50% 18%,var(--stage-top),var(--stage-bot))}
 .stage canvas{display:block;width:100%;touch-action:pan-y}
 .hud{position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none;max-width:calc(100% - 24px)}
-.pill{font-size:13.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--line);white-space:nowrap}
-.pill.num{font-family:var(--font-num)}
+.pill{font-size:13.5px;font-weight:500;padding:3px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--line);white-space:nowrap}
 .pill.up{color:var(--acc);border-color:currentColor}
 .pill.down{color:var(--neg);border-color:currentColor}
-.legend{position:absolute;left:12px;bottom:10px;display:flex;gap:12px;flex-wrap:wrap;font-size:13px;font-weight:500;color:var(--ink);
+.legend{position:absolute;left:12px;bottom:10px;display:flex;flex-wrap:wrap;gap:2px 12px;font-size:13px;color:var(--ink-2);
   background:var(--glass);border:1px solid var(--line);border-radius:10px;padding:5px 10px;pointer-events:none;max-width:calc(100% - 24px)}
-.legend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-.legend b{display:inline-block;width:14px;height:3px;border-radius:2px}
-.legend i{display:inline-block;width:9px;height:9px;border-radius:50%}
+.legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.legend b{display:inline-block;width:14px;height:3px;border-radius:2px;flex:none}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+.legend.col{flex-direction:column;gap:0}   /* 넓은 무대에서 한 줄에 하나씩 */
+.nowstep{position:absolute;right:12px;bottom:10px;font-size:13px;font-weight:600;color:var(--copper-ink);background:var(--copper-soft);
+  border:1px solid var(--line);border-radius:999px;padding:2px 10px;pointer-events:none;max-width:calc(100% - 24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* 조작판 */
-.controls{margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:grid;gap:14px}
-.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
-.grow{flex:1 1 200px;min-width:0}
-.ctl-label{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;font-weight:600;color:var(--ink);gap:8px}
-.ctl-label output{font:600 15px var(--font-num);color:var(--ink);white-space:nowrap}
-input[type=range]{width:100%;height:30px;margin:2px 0 0;accent-color:var(--copper)}
-.btn{border:1px solid var(--line);background:var(--paper);padding:8px 13px;border-radius:10px;font-size:14.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+/* 조작: 첫 줄(.r1 = 재생 + 가장 중요한 조작) + 나머지(.sheet). 넓은 화면에서는 시트가 그냥 아래에 펼쳐진다 */
+.dock{display:grid;gap:10px;margin-top:10px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.r1{flex-wrap:nowrap}
+.r1 > .grow,.r1 > .slider{flex:1 1 200px}
+.sheet{display:grid;gap:10px}
+.dock .sheet-head,.dock .sheet-btn{display:none}
+.sub{display:grid;gap:10px}
+.grow{flex:1 1 220px;min-width:0}
+.spacer{flex:1}
+.play{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;background:var(--copper);color:var(--on-copper);height:40px;padding:0 14px;border-radius:12px;
+  font-size:14.5px;font-weight:600;cursor:pointer;min-width:104px;flex:none}
+.play svg{width:13px;height:13px;fill:currentColor}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--paper);min-height:36px;padding:4px 12px;border-radius:10px;
+  font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;line-height:1.3}
 .btn:hover{border-color:var(--muted)}
 .btn:disabled,.play:disabled{opacity:.45;cursor:not-allowed}
-.btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-.play{display:inline-flex;align-items:center;gap:8px;border:0;background:var(--copper);color:var(--on-copper);padding:10px 16px;border-radius:12px;
-  font-size:14.5px;font-weight:700;cursor:pointer;min-width:112px;justify-content:center}
-.play svg{width:14px;height:14px;fill:currentColor}
-.group{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
-.group .gl{font-size:14px;font-weight:600;color:var(--muted);margin-right:4px}
-.toggles{border-top:1px solid var(--line-soft);padding-top:12px}
-.chk{display:inline-flex;align-items:center;gap:6px;font-size:14.5px;cursor:pointer;white-space:nowrap}
-.chk input{width:17px;height:17px;accent-color:var(--copper);margin:0}
-.spacer{flex:1}
+.btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
+.btn.go{border-color:var(--copper);color:var(--copper-ink);background:var(--copper-soft);font-weight:600}
+.btn.ghost{background:transparent}
+/* 버튼 묶음: 한 줄짜리 묶음(.group = .seg) */
+.group,.seg{display:inline-flex;flex-wrap:wrap;align-items:center;gap:3px;padding:3px;border-radius:12px;background:var(--line-soft);max-width:100%}
+.group .btn,.seg .btn{min-height:30px;padding:3px 10px;border:0;background:transparent;font-size:13.5px}
+.group .btn[aria-pressed="true"],.seg .btn[aria-pressed="true"]{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.14)}
+.group .btn:hover,.seg .btn:hover{background:var(--paper)}
+.gl{font-size:12.5px;color:var(--muted);padding:0 4px 0 6px;white-space:nowrap}
 .case{display:inline-grid;grid-template-columns:auto auto;gap:0 6px;align-items:center;text-align:left;line-height:1.25}
-.case small{grid-column:1/-1;font-size:11.5px;font-weight:500;color:var(--muted)}
+.case small{grid-column:1/-1;font-size:11.5px;color:var(--muted)}
 .btn[aria-pressed="true"] .case small{color:inherit;opacity:.8}
+/* 막대: 한 줄(.slider = 이름 | 막대 | 값) 또는 두 줄(.grow = .ctl-label 위, 막대 아래) */
+.slider{min-width:0;display:grid;grid-template-columns:auto minmax(60px,1fr) auto;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:0 12px;height:40px}
+.slider label{font-size:14px;color:var(--ink-2);white-space:nowrap}
+.slider output{font-size:16px;font-weight:600;min-width:3.2em;text-align:right;white-space:nowrap}
+.ctl-label{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px;color:var(--ink-2)}
+.ctl-label output{font-size:15.5px;font-weight:600;color:var(--ink);white-space:nowrap}
+input[type=range]{width:100%;height:28px;margin:0;accent-color:var(--copper)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chk,.chip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--paper);
+  font-size:13.5px;cursor:pointer;white-space:nowrap}
+.chk input,.chip input{width:15px;height:15px;margin:0;accent-color:var(--copper)}
+.status{margin:0;font-size:14px;font-weight:500}
 
-/* 오른쪽 패널 */
-.side{display:grid;gap:14px}
-.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px 16px;min-width:0}
-.panel h2{margin:0 0 10px;font-size:16.5px;font-weight:700;letter-spacing:-.01em;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.panel h2 small{font-size:13px;font-weight:500;color:var(--muted)}
-canvas.flat{display:block;width:100%;border-radius:12px;touch-action:pan-y}
-.cap{margin:10px 0 0;font-size:14px;line-height:1.6;color:var(--muted)}
-.status{margin:0;font-size:14px;font-weight:600}
-.readouts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.ro{background:var(--bg);border-radius:12px;padding:8px 10px;min-width:0}
-.ro span{display:block;font-size:13px;color:var(--muted);font-weight:600}
-.ro b{font:600 20px var(--font-num);white-space:normal;overflow-wrap:break-word}
-.ro.neg b{color:var(--neg)} .ro.ok b{color:var(--acc)}
-.ro.vel b{color:var(--vel)} .ro.acc b{color:var(--acc)} .ro.cu b{color:var(--copper)}
-.check{margin:10px 0 0;padding:9px 12px;border-radius:12px;border:1px dashed var(--line);font-size:14px;color:var(--muted)}
-.check.ok{border-style:solid;border-color:var(--acc);color:var(--acc);background:var(--acc-soft);font-weight:600}
+/* 지금 값: 공식에 지금 값을 넣어 보여 준다 */
+.answer{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px 18px;display:grid;gap:10px;min-width:0}
+.answer .lab{font-size:13px;font-weight:600;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.answer .big{font-size:36px;font-weight:700;line-height:1.15;color:var(--acc);overflow-wrap:anywhere}
+.answer .big.neg,.answer .big.tir{color:var(--neg)}
+.answer .big.vel{color:var(--vel)} .answer .big.cu{color:var(--copper)} .answer .big.ink{color:var(--ink)}
+.answer .big.small{font-size:28px}
+.answer .sub{display:grid;gap:2px;font-size:16px;color:var(--ink-2);min-width:0}
+.answer .sub .f{color:var(--muted);font-size:14px}
+.answer .sub .v{display:block;font-weight:500;overflow-wrap:anywhere}
+.answer .sub em{font-style:normal;color:var(--copper-ink);font-weight:600}
+#ansLines{display:contents}
+.minis,.readouts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.mini,.ro{background:var(--bg);border-radius:10px;padding:6px 10px;min-width:0}
+.mini span,.ro span{display:block;font-size:12.5px;color:var(--muted)}
+.mini b,.ro b{display:block;font-size:16.5px;font-weight:600;white-space:normal;overflow-wrap:anywhere}
+.ro.neg b{color:var(--neg)} .ro.ok b,.ro.acc b{color:var(--acc)} .ro.vel b{color:var(--vel)} .ro.cu b{color:var(--copper)}
+.check{margin:0;padding:8px 12px;border-radius:12px;border:1px dashed var(--line);font-size:13.5px;color:var(--muted)}
+.check.ok{border-style:solid;border-color:var(--acc);color:var(--acc);background:var(--acc-soft);font-weight:500}
 
-/* 개념·확인 */
-.notes{margin-top:30px;display:grid;gap:18px}
-.notes > h2{margin:0;font-size:20px;letter-spacing:-.01em}
-.concepts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.concept{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px}
-.concept h3{margin:0 0 8px;font-size:17px}
-.concept p{margin:0;font-size:15px;line-height:1.7;color:var(--ink)}
-.concept p + p{margin-top:8px}
-.eq{font-family:var(--font-num);font-weight:600;color:var(--copper);white-space:nowrap}
-.compare{margin:0;font-size:15px;color:var(--muted)}
-.quiz{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.quiz li{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:10px;align-content:start}
-.quiz .q{margin:0;font-weight:700;font-size:15.5px}
-.quiz .q span{font-family:var(--font-num);color:var(--copper);margin-right:6px}
-.quiz .tag{font-size:11.5px;font-weight:600;color:var(--copper);background:var(--copper-soft);padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
-.quiz .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.quiz details{font-size:15px}
-.quiz summary{cursor:pointer;color:var(--copper);font-weight:600;width:max-content}
-.quiz details p{margin:8px 0 0}
-.pager{margin-top:28px;display:grid;grid-template-columns:1fr auto 1fr;gap:10px 16px;align-items:center;font-size:14px}
-.pager a{color:var(--copper);text-decoration:none;font-weight:600}
-.pager .home{text-align:center;color:var(--muted)}
-.pager > :last-child{text-align:right}
+/* 관찰 단계: ① 관찰 … → 정리 → 개념서 예제 → 스스로 확인. 지금 읽는 단계(.on)는 테두리, 무대에는 .nowstep 표시 */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px 18px;min-width:0}
+.card h3{margin:0 0 6px;font-size:17px;font-weight:700;line-height:1.45;text-wrap:balance}
+.card p{margin:0;color:var(--ink-2)}
+.card p + p{margin-top:8px}
+.card ul{margin:6px 0 0;padding-left:1.15em;color:var(--ink-2);display:grid;gap:3px}
+.cap{margin:8px 0 0;font-size:14px;line-height:1.65;color:var(--muted)}
+canvas.flat{display:block;width:100%;border-radius:12px;margin-top:10px;touch-action:pan-y}
+.eq{font-weight:600;color:var(--copper-ink);white-space:nowrap}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+details.ans{margin-top:8px}
+details.ans summary{cursor:pointer;color:var(--copper-ink);font-weight:600;font-size:14.5px;width:max-content;max-width:100%}
+details.ans p{margin-top:6px}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:12px;counter-reset:st}
+.step{position:relative;padding-left:58px;transition:border-color .2s,box-shadow .2s}
+.step::before{counter-increment:st;content:counter(st);position:absolute;left:16px;top:16px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  font-size:14px;font-weight:700;color:var(--muted);background:var(--line-soft)}
+.step.on{border-color:var(--copper);box-shadow:0 0 0 3px var(--copper-soft)}
+.step.on::before{background:var(--copper);color:var(--on-copper)}
+.kind{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:2px}
+.step.ex .kind,.step.sum .kind{color:var(--copper-ink)}
+.q + .q{margin-top:16px;padding-top:14px;border-top:1px solid var(--line-soft)}
+.q h3,.step.ex h3{font-size:16px;font-weight:600}
+.tagx{font-size:12px;font-weight:600;color:var(--copper-ink);background:var(--copper-soft);border-radius:999px;padding:1px 8px;margin-left:6px;white-space:nowrap}
 
-@media (max-width:980px){
-  .lab{grid-template-columns:minmax(0,1fr)}
-  .side{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .side .wide{grid-column:1/-1}
-  .concepts{grid-template-columns:minmax(0,1fr)}
+/* 쪽 끝: 이전·다음 개념 */
+.nextprev{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.nextprev a,.nextprev span{display:grid;gap:2px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:var(--ink);text-decoration:none;min-width:0}
+.nextprev span{visibility:hidden}
+.nextprev a:hover{border-color:var(--copper)}
+.nextprev small{font-size:13px;color:var(--muted)}
+.nextprev b{font-size:16px;font-weight:600}
+.nextprev > :last-child{text-align:right}
+
+/* 넓은 화면(가로 1000px 이상): 실험대가 화면에 붙어 다닌다. 무대는 조작 줄까지 화면에 들어오게 높이를 줄인다(--dock-h 는 lab.js 가 잰다) */
+@media (min-width:1000px) and (min-height:640px){
+  .bench{position:sticky;top:calc(var(--top) + env(safe-area-inset-top,0px) + 12px)}
+  .bench.free{position:static}
+  .bench canvas#stage{max-height:calc(100vh - var(--top) - var(--dock-h,150px) - 48px)}
+}
+/* 좁은 화면(아이패드 세로·폰): 한 칸. 무대(--stage-h)와 첫 조작 줄만 위에 붙고 나머지 조작은 아래 시트로 */
+@media (max-width:999px){
+  .lay{grid-template-columns:minmax(0,1fr);gap:14px}
+  .bench{--stage-h:min(80vw,42vh)}
+  .bench canvas#stage{aspect-ratio:auto;height:var(--stage-h)}
+  .dock .sheet-btn{display:inline-flex;height:40px;flex:none}
+  .sheet-btn svg{width:16px;height:16px}
+  .sheet-btn .sm{display:none}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--paper);border-top:1px solid var(--line);border-radius:20px 20px 0 0;
+    padding:12px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+    box-shadow:0 -10px 30px rgba(0,0,0,.18);max-height:64vh;overflow:auto;overscroll-behavior:contain;transform:translateY(105%);visibility:hidden;transition:transform .25s ease,visibility .25s}
+  .dock.open .sheet{transform:none;visibility:visible}
+  .dock .sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .sheet-head b{font-size:15px}
+  .sheet .legend{position:static;max-width:none;flex-direction:row;gap:4px 12px}
+  .notes canvas.flat{max-width:540px;margin-inline:auto}
+}
+@media (max-width:999px) and (min-height:560px){
+  .bench{position:sticky;top:calc(var(--top) + env(safe-area-inset-top,0px));z-index:20;background:var(--bg);padding:10px 4px 8px;margin:0 -4px}
+}
+@media (max-width:999px) and (max-height:559px){
+  .bench canvas#stage{height:auto;max-height:calc(100vh - 90px)}
 }
 @media (max-width:640px){
-  .side{grid-template-columns:minmax(0,1fr)}
-  .quiz{grid-template-columns:minmax(0,1fr)}
-  .pager{grid-template-columns:1fr 1fr}
-  .pager .home{grid-column:1/-1;grid-row:1}
+  .bench{--stage-h:min(calc(100vw - 32px),42vh)}
+  .topbar .tb{gap:10px}
+  .unitnav .uname{display:none}
+  .pn a{padding:0 11px}
+  .pn a span{display:none}
+  .title{padding:16px 0 12px}
+  .question{font-size:16.5px}
+  .play{min-width:44px;padding:0 13px}
+  .play span{display:none}
+  .r1 .slider{padding:0 10px;gap:8px}
+  .r1 .lg{display:none}
+  .sheet-btn .sm{display:inline}
+  .sheet-btn .lg{display:none}
+  .answer{padding:14px 16px}
+  .answer .big{font-size:30px}
+  .card.step{padding-left:50px}
+  .step::before{left:13px;top:15px;width:26px;height:26px;font-size:13px}
+  .card{padding:14px 16px}
+  .nextprev{grid-template-columns:1fr}
+  .nextprev > :last-child{text-align:left}
+  .nextprev span{display:none}
+}
+@media (prefers-reduced-motion: reduce){
+  .sheet,.step{transition:none}
 }

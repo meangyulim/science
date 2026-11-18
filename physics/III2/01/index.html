@@ -6,7 +6,7 @@
 <title>빛의 이중성</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
 /* Layout: 왼쪽 무대(같은 빛, 세 실험: 이중 슬릿 · 광전 효과 · 콤프턴 산란)와 조작판, 오른쪽 지금 수치 · 장면 그래프 · 현상 분류 */
@@ -22,7 +22,14 @@
 @media (max-width:640px){ #stage{aspect-ratio:1/1.28} #sg{aspect-ratio:10/8} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III2 빛과 물질의 이중성: 개념 9개 가운데 1번째"><a class="uname" href="../">III2 빛과 물질의 이중성</a><span class="dots"><a class="cur" href="./" aria-current="page" title="III2-01 빛의 이중성" aria-label="III2-01 빛의 이중성 (지금)"></a><a href="../02/" title="III2-02 광전 효과의 실험 사실" aria-label="III2-02 광전 효과의 실험 사실"></a><a href="../03/" title="III2-03 광전 방정식" aria-label="III2-03 광전 방정식"></a><a href="../04/" title="III2-04 광전 효과의 이용" aria-label="III2-04 광전 효과의 이용"></a><a href="../05/" title="III2-05 CCD" aria-label="III2-05 CCD"></a><a href="../06/" title="III2-06 물질파" aria-label="III2-06 물질파"></a><a href="../07/" title="III2-07 물질파 그래프·표 해석" aria-label="III2-07 물질파 그래프·표 해석"></a><a href="../08/" title="III2-08 입자의 파동성 증거" aria-label="III2-08 입자의 파동성 증거"></a><a href="../09/" title="III2-09 전자 현미경" aria-label="III2-09 전자 현미경"></a></span></nav>
+  <div class="pn"><a href="../../III1/12/" rel="prev" title="이전 개념: III1-12 빛의 간섭">‹ <span>III1-12 빛의 간섭</span></a><a href="../02/" rel="next" title="다음 개념: III2-02 광전 효과의 실험 사실"><span>02 광전 효과의 실험 사실</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
   <header class="top">
     <a class="back" href="../../">← 물리 실험실</a>
@@ -161,7 +168,9 @@
         <details><summary>답 보기</summary><p><b>입자성</b>. 전자는 광자 <b>1개</b>의 에너지 hf만 받는다. 빨간빛 광자(1.9 eV)는 나트륨의 일함수(2.3 eV)보다 작아 아무리 많이 와도(세게 비춰도) 전자를 떼어 내지 못하고, 보랏빛 광자(3.1 eV)는 하나만 와도 떼어 낸다.</p></details>
       </li>
     </ol>
-    <nav class="pager"><a href="../../III1/12/">← III1-12 빛의 간섭</a><a class="home" href="../../">물리 실험실</a><a href="../02/">III2-02 광전 효과의 실험 사실 →</a></nav>
+    <!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../../III1/12/" rel="prev"><small>← 이전 개념 · III1-12</small><b>빛의 간섭</b></a><a href="../02/" rel="next"><small>다음 개념 · III2-02 →</small><b>광전 효과의 실험 사실</b></a></nav>
+<!-- /nextprev -->
   </section>
 </div>
 

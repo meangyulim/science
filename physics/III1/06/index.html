@@ -6,7 +6,7 @@
 <title>여러 매질의 굴절과 물결파 굴절</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
 /* Layout: 왼쪽 무대(장면 1 = 위에서 본 물결 탱크, 장면 2 = 평행한 여러 층을 지나는 빛)와 조작판,
@@ -21,7 +21,14 @@
 @media (max-width:640px){ #stage{aspect-ratio:1/1.3} .stage .legend{position:static;margin:0 10px 10px;max-width:none} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III1 파동의 성질과 활용: 개념 12개 가운데 6번째"><a class="uname" href="../">III1 파동의 성질과 활용</a><span class="dots"><a href="../01/" title="III1-01 횡파와 종파" aria-label="III1-01 횡파와 종파"></a><a href="../02/" title="III1-02 파동 그래프와 진행 방향" aria-label="III1-02 파동 그래프와 진행 방향"></a><a href="../03/" title="III1-03 매질이 바뀔 때" aria-label="III1-03 매질이 바뀔 때"></a><a href="../04/" title="III1-04 굴절과 스넬 법칙" aria-label="III1-04 굴절과 스넬 법칙"></a><a href="../05/" title="III1-05 생활 속 굴절 현상" aria-label="III1-05 생활 속 굴절 현상"></a><a class="cur" href="./" aria-current="page" title="III1-06 여러 매질의 굴절" aria-label="III1-06 여러 매질의 굴절 (지금)"></a><a href="../07/" title="III1-07 전반사와 광섬유" aria-label="III1-07 전반사와 광섬유"></a><a href="../08/" title="III1-08 전자기파와 스펙트럼" aria-label="III1-08 전자기파와 스펙트럼"></a><a href="../09/" title="III1-09 전자기파의 이용" aria-label="III1-09 전자기파의 이용"></a><a href="../10/" title="III1-10 중첩 원리" aria-label="III1-10 중첩 원리"></a><a href="../11/" title="III1-11 물결파·소리의 간섭" aria-label="III1-11 물결파·소리의 간섭"></a><a href="../12/" title="III1-12 빛의 간섭" aria-label="III1-12 빛의 간섭"></a></span></nav>
+  <div class="pn"><a href="../05/" rel="prev" title="이전 개념: III1-05 생활 속 굴절 현상">‹ <span>05 생활 속 굴절 현상</span></a><a href="../07/" rel="next" title="다음 개념: III1-07 전반사와 광섬유"><span>07 전반사와 광섬유</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
   <header class="top">
     <a class="back" href="../../">← 물리 실험실</a>
@@ -192,7 +199,9 @@
         <details><summary>답 보기</summary><p>n sinθ 가 일정하고 처음과 마지막이 같은 공기이므로 나오는 각 = 들어간 각, 즉 <b>처음 방향과 평행</b>하다. 굴절률을 바꿔도 방향은 그대로이고 옆으로 밀린 거리만 달라진다.</p></details>
       </li>
     </ol>
-    <nav class="pager"><a href="../05/">← III1-05 생활 속 굴절 현상</a><a class="home" href="../../">물리 실험실</a><a href="../07/">III1-07 전반사와 광섬유 →</a></nav>
+    <!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../05/" rel="prev"><small>← 이전 개념 · III1-05</small><b>생활 속 굴절 현상</b></a><a href="../07/" rel="next"><small>다음 개념 · III1-07 →</small><b>전반사와 광섬유</b></a></nav>
+<!-- /nextprev -->
   </section>
 </div>
 

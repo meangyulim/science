@@ -6,7 +6,7 @@
 <title>파동 그래프와 진행 방향</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
 /* Layout: 왼쪽 무대(줄 = 지금 순간의 y-x 사진, 구슬마다 운동 방향 화살표)와 조작판(판정 연습 포함), 오른쪽 수치·점 P 의 y-t 그래프·판단 다리 */
@@ -36,7 +36,14 @@
 @media (max-width:640px){ #stage{aspect-ratio:1/1.17} .stage.tall #stage{aspect-ratio:1/1.42} .pager a:last-child{margin-left:auto} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III1 파동의 성질과 활용: 개념 12개 가운데 2번째"><a class="uname" href="../">III1 파동의 성질과 활용</a><span class="dots"><a href="../01/" title="III1-01 횡파와 종파" aria-label="III1-01 횡파와 종파"></a><a class="cur" href="./" aria-current="page" title="III1-02 파동 그래프와 진행 방향" aria-label="III1-02 파동 그래프와 진행 방향 (지금)"></a><a href="../03/" title="III1-03 매질이 바뀔 때" aria-label="III1-03 매질이 바뀔 때"></a><a href="../04/" title="III1-04 굴절과 스넬 법칙" aria-label="III1-04 굴절과 스넬 법칙"></a><a href="../05/" title="III1-05 생활 속 굴절 현상" aria-label="III1-05 생활 속 굴절 현상"></a><a href="../06/" title="III1-06 여러 매질의 굴절" aria-label="III1-06 여러 매질의 굴절"></a><a href="../07/" title="III1-07 전반사와 광섬유" aria-label="III1-07 전반사와 광섬유"></a><a href="../08/" title="III1-08 전자기파와 스펙트럼" aria-label="III1-08 전자기파와 스펙트럼"></a><a href="../09/" title="III1-09 전자기파의 이용" aria-label="III1-09 전자기파의 이용"></a><a href="../10/" title="III1-10 중첩 원리" aria-label="III1-10 중첩 원리"></a><a href="../11/" title="III1-11 물결파·소리의 간섭" aria-label="III1-11 물결파·소리의 간섭"></a><a href="../12/" title="III1-12 빛의 간섭" aria-label="III1-12 빛의 간섭"></a></span></nav>
+  <div class="pn"><a href="../01/" rel="prev" title="이전 개념: III1-01 횡파와 종파">‹ <span>01 횡파와 종파</span></a><a href="../03/" rel="next" title="다음 개념: III1-03 매질이 바뀔 때"><span>03 매질이 바뀔 때</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
   <header class="top">
     <a class="back" href="../../">← 물리 실험실</a>
@@ -191,7 +198,9 @@
         <details><summary>답 보기</summary><p>시간 간격이 주기보다 짧으므로 마루는 보이는 거리 3 cm만 갔다: v = 3 ÷ 0.25 = 12 cm/s, T = λ/v = 12 ÷ 12 = <b>1 s</b>. 조건이 없으면 3 + 12 = 15 cm, 27 cm …를 갔을 수도 있다. 계속 움직여 t = 1 s(한 주기)가 되면 파형이 처음 모습(회색 점선)과 똑같아진다.</p></details>
       </li>
     </ol>
-    <nav class="pager"><a href="../01/">← III1-01 횡파와 종파</a><a class="home" href="../../">물리 실험실</a><a href="../03/">III1-03 매질이 바뀔 때 →</a></nav>
+    <!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../01/" rel="prev"><small>← 이전 개념 · III1-01</small><b>횡파와 종파</b></a><a href="../03/" rel="next"><small>다음 개념 · III1-03 →</small><b>매질이 바뀔 때</b></a></nav>
+<!-- /nextprev -->
   </section>
 </div>
 
