@@ -180,7 +180,7 @@
         <li class="card step" data-step="③ 중력 렌즈">
           <div class="kind">관찰 3 · 중력 렌즈</div>
           <h3>질량이 큰 천체 둘레를 지난 빛이 휘어 상이 여러 개나 고리로 보인다</h3>
-          <p>멀리 있는 광원의 빛이 은하나 은하단 근처를 지나며 휘면, 관찰자는 빛이 들어온 방향을 따라 상을 본다. 광원–렌즈–관찰자가 <b>일직선</b>이면 모든 방향에서 똑같이 휘어 아인슈타인의 고리가 되고, 조금 어긋나면 상이 여러 개(아인슈타인의 십자가)로 보인다. 렌즈 천체의 질량이 클수록 많이 휜다.</p>
+          <p>멀리 있는 광원의 빛이 은하나 은하단 근처를 지나며 휘면, 관찰자는 빛이 들어온 방향을 따라 상을 본다. 광원–렌즈–관찰자가 <b>일직선</b>이면 모든 방향에서 똑같이 휘어 아인슈타인의 고리가 되고, 조금 어긋나면 상이 여러 개(아인슈타인의 십자가)로 보인다. 렌즈 천체의 질량이 클수록 많이 휜다. 무대의 광원(★)이나 하늘 그림을 끌어(누르면) 어긋남을 바꿀 수 있다.</p>
           <p class="cap">1919년 에딩턴은 일식 때 태양 근처 별이 밤하늘에서보다 태양에서 약간 먼 쪽(약 1.75″)에 보임을 확인했다. 빛을 내지 않는 암흑 물질의 분포도 빛이 휜 정도로 추정한다. 무대의 각은 크게 과장했다.</p>
           <div class="acts">
             <button type="button" class="btn go" data-try="lens">일직선 → 고리</button>
@@ -518,6 +518,7 @@
     return {wide, bot, side: {x0: 0, x1: W, y0: 50, y1: sideH + 18}, sky: {cx: W / 2, cy: sideH + 18 + (H - bot - sideH - 18) / 2 + 2, R}};
   }
   const skyImg = {cv: document.createElement('canvas'), key: ''};
+  let LG = null;                                              // 마지막으로 그린 렌즈 장면의 기하 (끌기에 쓴다)
   function renderSky(R, p) {                                  // 관찰자가 본 하늘: 화소마다 렌즈 방정식을 거꾸로 풀어 광원에서 왔는지 본다
     const N = Math.max(60, Math.round(R * 1.1)), key = [N, p.thE, p.beta, p.rho, p.sun, C.energy, C.copper].join();
     if (skyImg.key === key) return skyImg.cv;
@@ -540,6 +541,7 @@
     const {x0, x1, y0, y1} = g.side, w = x1 - x0, h = y1 - y0;
     const yA = y0 + h * 0.56, xO = x0 + w * 0.07, xL = x0 + w * 0.47, xS = x0 + w * 0.9, DL = xL - xO, DS = xS - xO;
     const q = (h * (p.sun ? 0.13 : 0.17)) / DL, Yl = (th) => yA - q * th * DL, Ys = (th) => yA - q * th * DS;
+    LG = {x0, x1, y1, yA, q, DS, cx: g.sky.cx, cy: g.sky.cy, R: g.sky.R, s: g.sky.R / FOV, sun: p.sun};
     ctx.save(); ctx.beginPath(); ctx.rect(x0, y0 - 6, w, h + 6); ctx.clip();
     space(ctx, x0, 0, w, y1);
     Lab.line(ctx, [[xO, yA], [xS + 10, yA]], Lab.alpha(C.muted, 0.5), 1, [3, 5]);
@@ -573,7 +575,7 @@
       text(ctx, nar ? '렌즈 은하' : '렌즈 은하(단)', xL, yA + 26, {size: 13, w: 600, color: C.violet, halo: true});
     }
     starShape(ctx, src[0], src[1], nar ? 7 : 9, p.sun ? C.ink : C.copper, null);
-    text(ctx, '광원', src[0], src[1] + (p.beta >= 0 ? -15 : 16), {size: 13, w: 600, color: C.copper, halo: true});
+    text(ctx, p.sun || nar ? '광원' : '광원 (끌기)', src[0] - 4, src[1] + (p.beta >= 0 ? -15 : 16), {size: 13, w: 600, color: C.copper, halo: true, align: p.sun || nar ? 'center' : 'right'});
     Lab.circle(ctx, xO, yA, nar ? 6 : 8, {fill: C.vel});
     text(ctx, p.sun ? '지구' : '관찰자', xO + 2, yA + 20, {size: 13, w: 600, color: C.vel, halo: true});
     if (!nar) text(ctx, '☆ 보이는 위치', x1 - 10, y1 - 10, {size: 13, w: 500, color: C.muted, align: 'right'});
@@ -892,6 +894,7 @@
     S.scene = sc;
     document.querySelectorAll('[data-for]').forEach((el) => { el.hidden = el.dataset.for !== sc; });
     $('legend').innerHTML = LEG[sc];
+    stage.el.style.cursor = sc === 'lens' ? 'grab' : '';
     sceneG.set(sc, true);
     refresh();
   }
@@ -915,6 +918,21 @@
     pairG.set(S.pair, true); lvG.set(S.lv, true); modeG.set(S.mode, true);
     aEq.set(S.aEq, true); aL.set(S.aL, true); lm.set(S.lm, true); beta.set(S.beta, true); mc.set(S.mc, true); cCover.set(S.cover, true);
   }
+  // 렌즈 장면: 옆모습에서 광원 높이를, 하늘 그림에서 광원 방향을 끌어 어긋남 β 를 바꾼다 (일식 보기에서는 끌지 않는다)
+  const dragBeta = (x, y) => {
+    if (!LG || LG.sun) return false;
+    let b;
+    if (Math.hypot(x - LG.cx, y - LG.cy) <= LG.R + 12) b = (LG.cy - y) / LG.s;
+    else if (x >= LG.x0 && x <= LG.x1 && y <= LG.y1) b = (LG.yA - y) / (LG.q * LG.DS);
+    else return false;
+    S.beta = clamp(Math.round(b / 0.05) * 0.05, -1.5, 1.5); if (Math.abs(S.beta) < 1e-9) S.beta = 0;
+    beta.set(S.beta, true); refresh(); return true;
+  };
+  Lab.pointer(stage.el, {
+    down(x, y) { S.drag = S.scene === 'lens' && dragBeta(x, y); },
+    move(x, y) { if (S.drag) dragBeta(x, y); },
+    up() { S.drag = false; },
+  });
   const go = (sc, o) => () => {
     Object.assign(S, o);
     if (Lab.reduceMotion) { if ('te' in o) S.te = 0.9; if ('tl' in o) S.tl = 0.9; if ('col' in o) S.col = 1; }
