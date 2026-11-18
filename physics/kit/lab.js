@@ -149,7 +149,9 @@
     ctx.restore();
   }
   function rrect(ctx, x, y, w, h, r) {
-    r = Math.min(r, w / 2, h / 2);
+    if (w < 0) { x += w; w = -w; }   // 크기가 음수로 계산돼도(아주 작은 화면) arcTo 오류가 나지 않게
+    if (h < 0) { y += h; h = -h; }
+    r = Math.max(0, Math.min(r || 0, w / 2, h / 2));
     ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
     ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
   }
@@ -195,12 +197,13 @@
 
   // ── 움직임 ──────────────────────────────────────────────
   function loop(fn) {
-    let last = 0, alive = true;
+    let last = 0, alive = true, warned = false;
     const step = (ts) => {
       if (!alive) return;
+      requestAnimationFrame(step);   // 다음 프레임을 먼저 건다: 한 프레임에서 오류가 나도 움직임이 멈추지 않게
       const dt = last ? Math.min(0.05, (ts - last) / 1000) : 0; last = ts;
-      if (!document.hidden) fn(dt);
-      requestAnimationFrame(step);
+      if (document.hidden) return;
+      try { fn(dt); } catch (e) { if (!warned) { warned = true; console.error(e); } }
     };
     requestAnimationFrame(step);
     return {stop: () => { alive = false; }};
@@ -424,14 +427,19 @@
 
   // ── 「지금 값」 카드 ─────────────────────────────────────
   // Lab.ans('θ₂ = 30°', ['1 × sin <em>60°</em> = √3 × sin θ₂', 'sin θ₂ = 0.5 → <em>θ₂ = 30°</em>'], {ctx: '공기 → 유리'})
-  function ans(big, lines, o = {}) {
-    const b = $('ansBig');
-    if (b) { if (o.html) b.innerHTML = big; else b.textContent = big; b.className = 'big' + (o.tone ? ' ' + o.tone : ''); }
-    if (o.lab != null && $('ansLab')) $('ansLab').textContent = o.lab;
-    if (o.ctx != null && $('ansCtx')) $('ansCtx').textContent = o.ctx;
-    if (o.f != null && $('ansF')) $('ansF').innerHTML = o.f;
-    const L = $('ansLines');
-    if (L && lines) L.innerHTML = lines.map((h) => '<span class="v">' + h + '</span>').join('');
+  function ans(big, lines, o = {}) {   // 바뀐 칸만 다시 쓴다 (막대를 끄는 동안 자주 불려도 가볍게)
+    const put = (id, v, html) => {
+      const el = $(id);
+      if (!el || v == null) return;
+      if (html) { if (el.innerHTML !== v) el.innerHTML = v; } else if (el.textContent !== v) el.textContent = v;
+    };
+    put('ansBig', big, o.html);
+    const b = $('ansBig'), cls = 'big' + (o.tone ? ' ' + o.tone : '');
+    if (b && b.className !== cls) b.className = cls;
+    put('ansLab', o.lab, false);
+    put('ansCtx', o.ctx, false);
+    put('ansF', o.f, true);
+    if (lines) put('ansLines', lines.map((h) => '<span class="v">' + h + '</span>').join(''), true);
   }
 
   // ── 관찰 노트 배치: 붙어 다니는 실험대 · 조작 시트 · 지금 읽는 단계 · [data-do] ──

@@ -258,6 +258,9 @@ details.ans p{margin-top:6px}
   .nextprev > :last-child{text-align:left}
   .nextprev span{display:none}
 }
+@media (max-width:359px){   /* 아주 좁은 폰: 시트 버튼은 아이콘만 (글자는 화면 읽기 프로그램용으로 남김) */
+  .sheet-btn .sm{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+}
 @media (prefers-reduced-motion: reduce){
   .sheet,.step{transition:none}
 }
