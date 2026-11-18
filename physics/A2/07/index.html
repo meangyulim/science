@@ -304,13 +304,28 @@
     return y + h;
   }
 
+  // 납작한 무대(넓고 낮은 화면)에서는 장부를 오른쪽 세로 막대로: 아래부터 열 · U · K (공중에서는 K_y · K_x)
+  function ledgerCol(ctx, W, H, parts, total, title) {
+    const x = W - 44, w = 24, y0 = 66, y1 = H - 52, k = (y1 - y0) / Math.max(total, 1e-9);
+    text(ctx, title, W - 16, y0 - 14, {size: 13, w: 600, color: C.muted, align: 'right'});
+    let y = y1;
+    for (const [v, col, name] of [...parts].reverse()) {
+      const h = Math.max(0, v) * k;
+      if (h > 0.3) { ctx.save(); ctx.fillStyle = col; ctx.fillRect(x, y - h, w, h); ctx.restore(); }
+      if (h > 15) rich(ctx, name + ' ' + fmt(v, 1), x - 7, y - h / 2, {size: 13, w: 600, color: col === parts.pale ? C.energy : col, align: 'right'});
+      y -= h;
+    }
+    ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y0 + 0.5, w - 1, y1 - y0 - 1); ctx.restore();
+    return 0;
+  }
+
   // ── 무대: 빗면 → 포물선 ─────────────────────────────────
   function geoR(W, H) {
-    const narrow = W < 520, p = PR, x0 = -0.9, x1 = Math.max(16.4, (p.fly ? p.F.x : 0) + 2.2);
-    const top = Math.min(narrow ? 132 : 150, H * 0.4), gy = H - (narrow ? 48 : 40), padL = narrow ? 8 : 16, padR = narrow ? 8 : 16;
+    const narrow = W < 520, compact = !narrow && H < 380, p = PR, x0 = -0.9, x1 = Math.max(16.4, (p.fly ? p.F.x : 0) + 2.2);
+    const top = compact ? 84 : Math.min(narrow ? 132 : 150, H * 0.4), gy = H - (narrow ? 48 : 40), padL = narrow ? 8 : 16, padR = narrow ? 8 : compact ? 132 : 16;
     const s = Math.max(4, Math.min((W - padL - padR) / (x1 - x0), (gy - top) / R.H));
     const ox = padL + ((W - padL - padR) - (x1 - x0) * s) / 2 - x0 * s;
-    return {narrow, W, H, s, gy, top, ox, x0, x1, X: (x) => ox + x * s, Y: (y) => gy - y * s, kv: Math.max(s * 0.2, narrow ? 4.2 : 6), r: narrow ? 6 : 8};
+    return {narrow, compact, W, H, s, gy, top, ox, x0, x1, X: (x) => ox + x * s, Y: (y) => gy - y * s, kv: Math.max(s * 0.2, narrow || compact ? 4.2 : 6), r: narrow || compact ? 6 : 8};
   }
   function drawRamp(ctx, W, H) {
     const g = geoR(W, H), p = PR, {X, Y, narrow, gy} = g, st = rampState(S.t), flying = st.phase === 'fly' || st.phase === 'land';
@@ -319,7 +334,9 @@
     const parts = flying ? [[Kx, pale, 'K_x', '(그대로)'], [K - Kx, C.energy, 'K_y', st.phase === 'land' ? '= 중력의 일' : ''], [U, C.violet, 'U', ''], [st.heat, C.neg, '열', '']]
       : [[K, C.energy, 'K', ''], [U, C.violet, 'U', ''], [st.heat, C.neg, '열', '']];
     parts.pale = pale;
-    const yb = ledgerBar(ctx, W, narrow, parts, p.L.K1, narrow ? '에너지 장부 · 합 ' + fmt(p.L.K1, 1) + ' J' : '에너지 장부 (J) · 합 = 처음 운동 에너지 ' + fmt(p.L.K1, 1) + ' J (일정)');
+    const short = narrow || g.compact;
+    const yb = g.compact ? ledgerCol(ctx, W, H, parts, p.L.K1, '장부 · 합 ' + fmt(p.L.K1, 1) + ' J')
+      : ledgerBar(ctx, W, narrow, parts, p.L.K1, narrow ? '에너지 장부 · 합 ' + fmt(p.L.K1, 1) + ' J' : '에너지 장부 (J) · 합 = 처음 운동 에너지 ' + fmt(p.L.K1, 1) + ' J (일정)');
     // 땅 · 건물(빗면 + 꼭대기 평면 + 절벽) · 착지 경사면
     ground(ctx, 0, W, gy);
     const c = 0.3;
@@ -341,14 +358,14 @@
     const n = [-R.sin, R.cos], off = 3.4 / g.s, A0 = [R.b0 * R.cos, R.b0 * R.sin], A1 = [R.b1 * R.cos, R.b1 * R.sin];
     ctx.save(); ctx.globalAlpha = S.f > 0 ? 0.8 : 0.22;
     Lab.line(ctx, [[X(A0[0] + n[0] * off), Y(A0[1] + n[1] * off)], [X(A1[0] + n[0] * off), Y(A1[1] + n[1] * off)]], C.neg, 6.5); ctx.restore();
-    const fl = narrow ? '마찰 f = ' + fmt(S.f, 2) + ' N' : '마찰 구간 5 m · f = ' + fmt(S.f, 2) + ' N', fw = Lab.measure(ctx, fl, {size: 13, w: 600});
+    const fl = short ? '마찰 f = ' + fmt(S.f, 2) + ' N' : '마찰 구간 5 m · f = ' + fmt(S.f, 2) + ' N', fw = Lab.measure(ctx, fl, {size: 13, w: 600});
     let lx = X((A0[0] + A1[0]) / 2 + n[0] * 22 / g.s), ly = Y((A0[1] + A1[1]) / 2 + n[1] * 22 / g.s);
     if (lx - fw < 6) { lx = 6 + fw; ly -= 10; }
     text(ctx, fl, lx, ly, {size: 13, w: 600, color: C.neg, align: 'right', halo: true});
     // 자르는 곳: 이탈점 q 의 세로선과 두 구간 이름 (지금 구간을 진하게)
-    const segY = Math.max(yb + 28, Y(R.H) - 44), cutX = X(R.qx), inAir = flying;
+    const segY = g.compact ? Y(R.H) - 32 : Math.max(yb + 28, Y(R.H) - 44), cutX = X(R.qx), inAir = flying;
     Lab.line(ctx, [[cutX, segY - 9], [cutX, Y(R.H) - 4]], C.copper, 1.6, [5, 4]);
-    const L1 = narrow ? '1 빗면: 일-에너지' : '1 빗면 구간 · 일-에너지 정리 (거리 → 일)', L2 = narrow ? '2 공중: 운동학' : '2 포물선 구간 · 운동학 (시간 → Δv)';
+    const L1 = short ? '1 빗면: 일-에너지' : '1 빗면 구간 · 일-에너지 정리 (거리 → 일)', L2 = short ? '2 공중: 운동학' : '2 포물선 구간 · 운동학 (시간 → Δv)';
     text(ctx, L1, cutX - 10, segY, {size: 13, w: !inAir ? 700 : 500, color: !inAir ? C.energy : C.muted, align: 'right', halo: true});
     text(ctx, L2, cutX + 10, segY, {size: 13, w: inAir ? 700 : 500, color: inAir ? C.vel : C.muted, align: 'left', halo: true});
     // 지나갈 길(점선)과 지나온 길
@@ -373,7 +390,7 @@
     text(ctx, 'q', cutX - g.r - 9, Y(R.H) - g.r - 8, {size: 14, w: 700, color: C.copper, halo: true});
     if (p.fly && (st.phase !== 'ramp')) {
       arrow(ctx, cutX, Y(R.H) - 1, cutX + p.vq * g.kv, Y(R.H) - 1, C.copper, 2.6, 9);
-      if (!narrow || !flying) rich(ctx, 'v_q = ' + fmt(p.vq, 2) + ' m/s', cutX + 8, Y(R.H) - 17, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+      if (!g.compact && (!narrow || !flying)) rich(ctx, 'v_q = ' + fmt(p.vq, 2) + ' m/s', cutX + 8, Y(R.H) - 17, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
     }
     // 착지 표시
     if (st.phase === 'land') drawLanding(ctx, g, st);
@@ -404,18 +421,19 @@
 
   // ── 무대: 진자 → 끊김 → 수평 투사 ───────────────────────
   function geoW(W, H) {
-    const narrow = W < 520, p = PS, l = S.l, Hb = S.hb, x0 = -l * Math.sin(p.th0) - 0.5, x1 = Math.max(p.F.x + 0.75, 1.6);
-    const yTop = Hb + l + 0.1, top = Math.min(narrow ? 122 : 138, H * 0.38), gy = H - (narrow ? 50 : 44), padL = narrow ? 8 : 16, padR = narrow ? 8 : 16;
+    const narrow = W < 520, compact = !narrow && H < 380, p = PS, l = S.l, Hb = S.hb, x0 = -l * Math.sin(p.th0) - 0.5, x1 = Math.max(p.F.x + 0.75, 1.6);
+    const yTop = Hb + l + 0.1, top = compact ? 60 : Math.min(narrow ? 122 : 138, H * 0.38), gy = H - (narrow ? 50 : 44), padL = narrow ? 8 : 16, padR = narrow ? 8 : compact ? 132 : 16;
     const s = Math.max(12, Math.min((W - padL - padR) / (x1 - x0), (gy - top) / yTop));
     const ox = padL + ((W - padL - padR) - (x1 - x0) * s) / 2 - x0 * s;
-    return {narrow, W, H, s, gy, top, ox, X: (x) => ox + x * s, Y: (y) => gy - y * s, kv: s * 0.14, r: narrow ? 7 : 9, F: s * l * 0.2};
+    return {narrow, compact, W, H, s, gy, top, ox, X: (x) => ox + x * s, Y: (y) => gy - y * s, kv: s * 0.14, r: narrow ? 7 : 9, F: s * l * 0.2};
   }
   function drawSwing(ctx, W, H) {
     const g = geoW(W, H), p = PS, {X, Y, narrow, gy} = g, st = swingState(S.t), l = S.l, Hb = S.hb, flying = st.phase !== 'swing';
     const K = 0.5 * MS * st.sp * st.sp, U = MS * G * st.y, Kx = flying ? 0.5 * MS * p.v * p.v : 0, pale = Lab.alpha(C.energy, 0.45), E0 = MS * G * (Hb + p.h);
     const parts = flying ? [[Kx, pale, 'K_x', '(그대로)'], [K - Kx, C.energy, 'K_y', ''], [U, C.violet, 'U', '']] : [[K, C.energy, 'K', ''], [U, C.violet, 'U', '']];
     parts.pale = pale;
-    const yb = ledgerBar(ctx, W, narrow, parts, E0, narrow ? '에너지 장부 · 합 ' + fmt(E0, 2) + ' J' : '에너지 장부 (J, 추 0.5 kg, 바닥 기준) · 합 ' + fmt(E0, 2) + ' J (일정)');
+    const yb = g.compact ? 50 + ledgerCol(ctx, W, H, parts, E0, '장부 · 합 ' + fmt(E0, 2) + ' J')
+      : ledgerBar(ctx, W, narrow, parts, E0, narrow ? '에너지 장부 · 합 ' + fmt(E0, 2) + ' J' : '에너지 장부 (J, 추 0.5 kg, 바닥 기준) · 합 ' + fmt(E0, 2) + ' J (일정)');
     ground(ctx, 0, W, gy);
     const pv = [X(0), Y(Hb + l)], bot = [X(0), Y(Hb)];
     ceiling(ctx, pv[0], pv[1], narrow ? 34 : 50);
@@ -457,7 +475,7 @@
       arrow(ctx, O[0], O[1], O[0], O[1] + g.F, C.force, 3, 10);
       text(ctx, narrow ? '장력' : '장력 ' + fmt(Tn, 2) + ' N', O[0] - 10, O[1] - g.F * Tn / mg + 6, {size: 13, w: 600, color: C.force, align: 'right', halo: true});
       text(ctx, narrow ? 'mg' : 'mg ' + fmt(mg, 2) + ' N', O[0] + 10, O[1] + g.F, {size: 13, w: 600, color: C.force, align: 'left', halo: true});
-      if (!narrow) Lab.tag(ctx, '장력 − mg = mv²/l = ' + fmt(Tn - mg, 2) + ' N', X(Math.max(1.1, p.F.x * 0.62)), Y(Hb + l * 0.7), {size: 13, w: 600, color: C.force, border: C.force});
+      if (!narrow && !g.compact) Lab.tag(ctx, '장력 − mg = mv²/l = ' + fmt(Tn - mg, 2) + ' N', X(Math.max(1.1, p.F.x * 0.62)), Y(Hb + l * 0.7), {size: 13, w: 600, color: C.force, border: C.force});
     }
     if (st.sp > 0.05) {
       const vx = st.vx * g.kv, vy = -st.vy * g.kv, B = st.phase === 'land' ? [O[0] - vx, O[1] - vy] : O;
