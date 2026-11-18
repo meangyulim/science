@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
 /* 관찰 노트: 왼쪽 실험대(장면 원운동 · 같은 축 · 벨트) | 오른쪽 지금 값 + 관찰 ①~④(속도의 방향, Δv 작도와 속도 원, A·B 비교 막대, 성분 그래프) → 정리 → 예제 → 스스로 확인 */
-#stage{aspect-ratio:16/10.6}
+#stage{aspect-ratio:16/10.6;cursor:grab}
 #hodo{aspect-ratio:10/6.4}
 #cmp{aspect-ratio:10/5.4}
 #comp{aspect-ratio:10/7.2}
@@ -36,7 +36,7 @@
   <main class="lay">
     <section class="bench" aria-label="실험대">
       <div class="stage">
-        <canvas id="stage" aria-label="실에 매인 공이 원 궤도를 일정한 속력으로 돈다. 속도 화살표는 접선, 가속도 화살표는 중심을 향한다. 장면을 바꾸면 같은 축에 붙은 두 점, 벨트로 이은 두 바퀴가 돈다."></canvas>
+        <canvas id="stage" aria-label="실에 매인 공이 원 궤도를 일정한 속력으로 돈다. 속도 화살표는 접선, 가속도 화살표는 중심을 향한다. 공을 끌어 원 위의 자리를 옮길 수 있다. 장면을 바꾸면 같은 축에 붙은 두 점, 벨트로 이은 두 바퀴가 돈다."></canvas>
         <div class="hud"><span class="pill" id="hud1">v = 6.28 m/s</span><span class="pill" id="hud2">a = 19.7 m/s²</span><span class="pill" id="hud3" hidden></span></div>
         <div class="legend col" id="legend"></div>
         <span class="nowstep" id="nowstep" hidden></span>
@@ -115,7 +115,7 @@
           <div class="kind">관찰 1</div>
           <h3>속력은 그대로인데 속도의 방향이 계속 바뀐다</h3>
           <p>같은 시간 간격으로 찍은 공의 자리(작은 점)가 원 위에 같은 간격으로 놓인다. 속력이 일정하다는 뜻이다. 그런데 속도 화살표는 늘 원의 <b>접선</b> 방향이라 방향이 계속 돈다. 속도가 변하므로 등속 원운동은 가속도 운동이다.</p>
-          <p class="cap">실을 놓으면 공은 그 순간의 속도 방향, 곧 접선 방향으로 곧게 날아간다(놓은 뒤에는 같은 간격의 점이 직선 위에 찍힌다). 반지름과 접선은 수직이므로, 반지름이 연직선과 θ인 곳에서 벗어나면 속도는 수평과 θ를 이룬다.</p>
+          <p class="cap">실을 놓으면 공은 그 순간의 속도 방향, 곧 접선 방향으로 곧게 날아간다(놓은 뒤에는 같은 간격의 점이 직선 위에 찍힌다). 반지름과 접선은 수직이므로, 반지름이 연직선과 θ인 곳에서 벗어나면 속도는 수평과 θ를 이룬다. 무대의 공을 끌어 원 위의 자리를 옮겨 봐도 된다.</p>
           <div class="acts">
             <button type="button" class="btn go" data-do="click:#rel">실 놓기</button>
             <button type="button" class="btn" data-try="rel30">연직과 30°인 곳에서 놓기</button>
@@ -729,6 +729,24 @@
     xmax: () => { base({shadow: true}); setScene('circ'); S.phi = TAU * Math.ceil(S.phi / TAU); playCtl.set(false); },
   };
   Lab.tries(TRY, () => { sync(); refresh(); });
+
+  // 무대에서 공 끌기 (원운동 장면): 원 위의 자리를 옮긴다. 끄는 동안 멈춘다
+  let drag = false;
+  Lab.pointer(stage.el, {
+    down: (x, y) => {
+      if (S.scene !== 'circ' || !stage.W) return;
+      const g = geoCirc(stage.W, stage.H), d = Math.hypot(x - g.O[0], y - g.O[1]);
+      if (Math.abs(d - g.R) > 46) return;
+      drag = true; S.rel = null; playCtl.set(false); setPhi(x, y);
+    },
+    move: (x, y) => { if (drag) setPhi(x, y); },
+    up: () => { drag = false; },
+  });
+  function setPhi(x, y) {
+    const g = geoCirc(stage.W, stage.H), a = Math.atan2(g.O[1] - y, x - g.O[0]);
+    S.phi += Math.atan2(Math.sin(a - S.phi), Math.cos(a - S.phi));     // 가까운 쪽으로 (누적 각 유지)
+    drawStage(); drawHodo(); drawComp();
+  }
 
   // ── 돌리기 ──────────────────────────────────────────────
   Lab.loop((dt) => {

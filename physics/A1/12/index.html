@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
 /* 관찰 노트: 왼쪽 실험대(태양을 한 초점으로 하는 타원 궤도, 같은 시간마다 쓸고 간 부채꼴) | 오른쪽 지금 값 + 관찰 ①~③(타원과 초점, 넓이·간 거리 막대, T–a·log 그래프) → 정리 → 예제 → 스스로 확인 */
-#stage{aspect-ratio:16/10.4}
+#stage{aspect-ratio:16/10.4;cursor:grab}
 #areas{aspect-ratio:10/5.6}
 #kep3{aspect-ratio:10/4.8}
 @media (max-width:640px){ #areas{aspect-ratio:10/7.6} #kep3{aspect-ratio:10/12.4} }
@@ -34,7 +34,7 @@
   <main class="lay">
     <section class="bench" aria-label="실험대">
       <div class="stage">
-        <canvas id="stage" aria-label="태양을 한 초점으로 하는 타원 궤도를 행성이 돈다. 같은 시간 간격마다 태양과 행성을 잇는 선분이 쓸고 간 부채꼴이 칠해지고, 근일점에서 빠르고 원일점에서 느리다."></canvas>
+        <canvas id="stage" aria-label="태양을 한 초점으로 하는 타원 궤도를 행성이 돈다. 같은 시간 간격마다 태양과 행성을 잇는 선분이 쓸고 간 부채꼴이 칠해지고, 근일점에서 빠르고 원일점에서 느리다. 행성을 끌어 궤도 위의 자리를 옮길 수 있다."></canvas>
         <div class="hud"><span class="pill" id="hud1">t = 0년</span><span class="pill" id="hud2">r = 1 AU</span><span class="pill" id="hud3" hidden></span></div>
         <div class="legend"><span><b style="background:var(--vel)"></b>궤도·속도</span><span><i style="background:var(--copper)"></i>지금 쓸고 가는 넓이</span><span><b style="background:var(--force)"></b>태양이 당기는 힘</span></div>
         <span class="nowstep" id="nowstep" hidden></span>
@@ -114,7 +114,7 @@
           <h3>같은 시간 동안 쓸고 간 넓이가 같다 → 태양 가까이에서 빠르다</h3>
           <p>태양과 행성을 잇는 선분이 같은 시간 Δt 동안 쓸고 가는 넓이는 늘 같다(면적 속도 일정). 반지름이 짧은 근일점 쪽 부채꼴은 넓이가 같으려면 호가 길어야 하므로 행성이 빠르고, 원일점 쪽은 느리다. 근일점·원일점에서는 속도가 반지름에 수직이라 <span class="eq">r₁v₁ = r₂v₂</span></p>
           <canvas class="flat" id="areas" aria-label="같은 시간 간격마다 쓸고 간 넓이는 모두 같고, 그동안 간 거리는 근일점에서 가장 길다."></canvas>
-          <p class="cap">위는 Δt마다 쓸고 간 넓이(모두 같다), 아래는 그동안 간 거리(근일점에서 가장 길다). 왜 빨라질까? ‘태양이 당기는 힘’을 켜 보면, 원일점에서 근일점으로 가는 동안 힘의 일부(점선)가 진행 방향을 향해 속력을 키우고, 근일점을 지나면 거꾸로 줄인다.</p>
+          <p class="cap">위는 Δt마다 쓸고 간 넓이(모두 같다), 아래는 그동안 간 거리(근일점에서 가장 길다). 왜 빨라질까? ‘태양이 당기는 힘’을 켜 보면, 원일점에서 근일점으로 가는 동안 힘의 일부(점선)가 진행 방향을 향해 속력을 키우고, 근일점을 지나면 거꾸로 줄인다. 행성을 끌어 궤도 위 여러 자리에서 견줘 보자.</p>
           <div class="acts">
             <button type="button" class="btn go" data-try="force">태양이 당기는 힘 보기</button>
             <button type="button" class="btn" data-do='click:[data-n="8"]'>Δt = T/8</button>
@@ -259,7 +259,7 @@
       }
       // 근일점 쪽과 원일점 쪽 부채꼴에 같은 넓이 S 표시
       const lab = (k, col, f) => {
-        const [t1, t2] = wedgeT(k, o.T, N), p = M.posAt((t1 + t2) / 2, S.r1, S.r2), Q = g.P(p.x * f, p.y * f);
+        const [t1, t2] = wedgeT(k, o.T, N), p = M.posAt((t1 + t2) / 2, S.r1, S.r2), ff = Math.max(f, 26 / Math.max(1, p.r * g.sc)), Q = g.P(p.x * ff, p.y * ff);   // 태양에 붙지 않게 26 px 이상
         text(ctx, 'S', Q[0], Q[1], {size: 15, w: 700, color: col, halo: true});
       };
       lab(0, C.acc, 0.6); if (N % 2 === 0) lab(N / 2, C.violet, 0.42);
@@ -446,6 +446,25 @@
     ch: () => { set({sameA: true}); setR(1, 5); playCtl.set(true); },
   };
   Lab.tries(TRY, () => { S.sc = 0; sync(); refresh(); });
+
+  // 무대에서 행성 끌기: 궤도 위의 자리(곧 시각)를 옮긴다. 끄는 동안 멈춘다
+  let drag = false;
+  function tAt(x, y) {   // 화면 점 → 태양에서 본 각(진근점 이각) → 케플러 방정식으로 시각
+    const g = geo(stage.W, stage.H), o = orbit(), X = (x - g.F[0]) / g.sc, Y = (g.F[1] - y) / g.sc;
+    const nu = Math.atan2(Y, X), E = 2 * Math.atan(Math.sqrt((1 - o.e) / (1 + o.e)) * Math.tan(nu / 2));
+    const Mm = ((E - o.e * Math.sin(E)) % TAU + TAU) % TAU;
+    return Mm / TAU * o.T;
+  }
+  Lab.pointer(stage.el, {
+    down: (x, y) => {
+      if (!stage.W) return;
+      const g = geo(stage.W, stage.H), p = M.posAt(S.t, S.r1, S.r2), B = g.P(p.x, p.y);
+      if (Math.hypot(x - B[0], y - B[1]) > 44) return;
+      drag = true; playCtl.set(false); S.t = tAt(x, y); live(); drawStage(); drawAreas();
+    },
+    move: (x, y) => { if (drag) { S.t = tAt(x, y); live(); drawStage(); drawAreas(); } },
+    up: () => { drag = false; },
+  });
 
   // ── 돌리기 ──────────────────────────────────────────────
   Lab.loop((dt) => {
