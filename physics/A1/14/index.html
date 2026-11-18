@@ -280,7 +280,7 @@
     if (hb < 50) return;
     text(ctx, '에너지', (x0 + x1 + bw) / 2, y0 - hb - 26, {size: 13, w: 600, color: C.muted});
     Lab.line(ctx, [[x0 - 6, y0 - hb], [x1 + bw + 6, y0 - hb]], C.acc, 2, [5, 3]);
-    text(ctx, 'E', x1 + bw + 10, y0 - hb, {size: 13, w: 600, color: C.acc, align: 'left'});
+    text(ctx, 'E', x0 - 10, y0 - hb, {size: 13, w: 600, color: C.acc, align: 'right', halo: true});
     for (const [x, v, col, nm] of [[x0, e.K, C.energy, 'K'], [x1, e.U, C.violet, 'U']]) {
       ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(x, y0 - hb, bw, hb);
       ctx.fillStyle = col; ctx.fillRect(x, y0 - hb * v, bw, hb * v); ctx.restore();
@@ -304,10 +304,11 @@
     const Tn = 3 * Math.cos(th) - 2 * Math.cos(S.th0 * RAD);              // 장력 / mg (역학적 에너지 보존)
     arrow(ctx, bx, by, bx - er[0] * Fm * Tn, by - er[1] * Fm * Tn, C.force, 2.6, 10);
     const side = th >= 0 ? 1 : -1, lab = (s, x, y, al, c = C.force) => rich(ctx, s, x, y, {size: 14, w: 600, color: c, align: al, halo: true});
-    lab('mg', tip[0] - side * 10, tip[1] - 4, side > 0 ? 'right' : 'left');
+    const mgN = S.m * gv(), vals = !narrow;
+    lab(vals ? 'mg ' + fmt(mgN, 1) + ' N' : 'mg', tip[0] - side * 10, tip[1] - 4, side > 0 ? 'right' : 'left');
     if (!narrow) lab('mg cosθ', cTip[0] + side * 8, cTip[1] + 10, side > 0 ? 'left' : 'right', Lab.alpha(C.force, 0.85));
     if (Math.abs(fs) > 12) lab(narrow ? 'mg sinθ' : 'mg sinθ (복원력)', sTip[0] - side * 6, sTip[1] - 16, side > 0 ? 'right' : 'left');
-    lab('T', bx - er[0] * Fm * Tn - side * 10, by - er[1] * Fm * Tn + 4, side > 0 ? 'right' : 'left');
+    lab(vals ? 'T ' + fmt(mgN * Tn, 1) + ' N' : 'T', bx - er[0] * Fm * Tn - side * 10, by - er[1] * Fm * Tn + 4, side > 0 ? 'right' : 'left');
   }
   function drawShadow(ctx, g, th, bx, by, w) {
     const {L, top, px, narrow} = g, A = L * Math.sin(S.th0 * RAD), cy = top + L + 18 + A, ph = w * S.t;
@@ -390,7 +391,7 @@
     for (let i = 0; i <= 120; i++) { const x = -xm + 2 * xm * i / 120, X = ax.X(x), Y = ax.Y(-mg * Math.sin(x / l)); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }
     ctx.stroke(); ctx.restore();
     rich(ctx, nar ? 'F = −kx' : 'F = −(mg/l)x  (k = ' + fmt(mg / l, 2) + ' N/m)', ax.X(-xm) + 6, ax.Y(mg / l * xm) - 2, {size: 13, w: 600, color: C.muted, align: 'left'});
-    rich(ctx, '−mg sinθ', ax.X(xm) - 4, ax.Y(-mg * Math.sin(xm / l)) - 16, {size: 13, w: 600, color: C.force, align: 'right'});
+    rich(ctx, '−mg sinθ', ax.X(xm) - 4, ax.Y(-mg * Math.sin(xm / l)) + 17, {size: 13, w: 600, color: C.force, align: 'right'});
     const th = S.cmp === 'one' ? thetaAt(S.th0, wm(), S.t) : thetaAt(S.th0, wm(), S.t), x = l * th, F = -mg * Math.sin(th);
     Lab.line(ctx, [[ax.X(x), ax.y0], [ax.X(x), ax.Y(F)]], C.copper, 1.4, [4, 4]);
     Lab.circle(ctx, ax.X(x), ax.Y(F), 6.5, {fill: C.copper, stroke: C.paper, width: 2});
@@ -438,7 +439,7 @@
     text(ctx, S.gk === 1 ? 'g/4 행성' : 'g = π²', ax.X(xo) + (S.gk === 1 ? 8 : -8), ax.Y(kOther * xo) + (S.gk === 1 ? 8 : 14), {size: 13, w: 500, color: C.muted, align: S.gk === 1 ? 'left' : 'right'});
     line(k, C.acc, 3);
     for (const l of [0.25, 1, 2.25, 4]) if (k * l <= 18) Lab.circle(ctx, ax.X(l), ax.Y(k * l), 4.5, {fill: C.vel});
-    text(ctx, '기울기 4π²/g = ' + fmt(k, 2) + ' s²/m', r.x + 12, r.y + 8, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    text(ctx, (nar ? '기울기 ' : '기울기 4π²/g = ') + fmt(k, 2) + ' s²/m', ax.X(9 / k) + 14, ax.Y(9) + 4, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
     const T = Tm(), y = T * T;
     if (y <= 18.5) {
       const X = ax.X(S.l), Y = ax.Y(Math.min(18, y));
@@ -460,7 +461,7 @@
     const cur = (f, col) => { ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2.8; ctx.beginPath(); for (let j = 0; j <= 220; j++) { const t = 2 * T * j / 220, X = ax.X(t), Y = ax.Y(f(t)); j ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); } ctx.stroke(); ctx.restore(); };
     cur((t) => Math.cos(w * t) ** 2, C.violet);
     cur((t) => Math.sin(w * t) ** 2, C.energy);
-    text(ctx, 'U', ax.X(0) + 10, ax.Y(0.93), {size: 14, w: 700, color: C.violet, halo: true});
+    text(ctx, 'U', ax.X(T / 2) + 12, ax.Y(0.9), {size: 14, w: 700, color: C.violet, halo: true});
     text(ctx, 'K', ax.X(T / 4) + 12, ax.Y(0.9), {size: 14, w: 700, color: C.energy, halo: true});
     if (!nar) text(ctx, 'K + U = E (일정)', ax.X(2 * T), ax.Y(1) - 11, {size: 13, w: 600, color: C.acc, align: 'right', halo: true});
     Lab.bracket(ctx, ax.X(T / 4), ax.X(3 * T / 4), r.y - 12, C.energy, 'K 최대 간격 T/2 = ' + fmt(T / 2, 2) + ' s');
@@ -493,7 +494,7 @@
   function hud() {
     $('hud1').textContent = 't = ' + fmt(S.t, 2) + ' s';
     const nar = isNarrow();
-    $('hud3').hidden = nar;
+    $('hud3').hidden = nar || S.cmp !== 'one';
     $('hud3').textContent = S.cmp === 'one' ? posText(S.t) : '두 진자 비교';
   }
   function readouts() {

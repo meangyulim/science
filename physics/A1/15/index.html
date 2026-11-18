@@ -529,7 +529,8 @@
     BRUN = busRun(S.bph, S.ba); S.bt = 0;
     const v0 = BRUN.v(0);
     S.strap = {th: 0, w: 0};                             // 출발 전에는 멈춰 있거나 등속 → 손잡이는 연직
-    S.ball = {X: BRUN.x(0) + (S.bph === 'brake' ? 0.3 : 0.62) * BUS_L, V: v0};
+    S.ballU0 = (S.bph === 'brake' ? 0.3 : 0.62) * BUS_L;
+    S.ball = {X: BRUN.x(0) + S.ballU0, V: v0};
     S.drop = null;
   }
   function releaseDrop() {
@@ -654,7 +655,7 @@
     // 바닥의 공 (마찰 없음)
     const B = S.ball, [qx, qy] = P(B.X - b.x, FLOOR + BALL_R);
     Lab.circle(ctx, qx, qy, BALL_R * k, {fill: C.vel, stroke: C.paper, width: 1.2});
-    if (big && !g.nar) text(ctx, '공 (마찰 없음)', qx, qy - BALL_R * k - 12, {size: 13, w: 500, color: C.vel, halo: true});
+    if (big && !g.nar && Math.abs(B.X - b.x - S.ballU0) < 0.6) text(ctx, '공 (마찰 없음)', qx, qy - BALL_R * k - 12, {size: 13, w: 500, color: C.vel, halo: true});   // 움직이기 전에만
     // 천장 가까이에서 놓는 공: 놓는 점 표시 + 떨어지는 공 + 같은 시간 간격 위치
     const [hx, hy] = P(DROP_U, FLOOR + DROP_H + 2 * DR);
     if (S.autoDrop || S.drop) { Lab.line(ctx, [P(DROP_U, CEIL), [hx, hy - 4]], Lab.alpha(C.muted, 0.8), 1.4); Lab.line(ctx, [[hx - 5, hy - 5], [hx + 5, hy - 5]], C.muted, 2); }
@@ -946,7 +947,7 @@
   // ── 지금 값 ─────────────────────────────────────────────
   const LEG = {
     elev: '<span><b style="background:var(--force)"></b>실제 힘 (N, mg)</span><span><b class="dash"></b>관성력 (가상의 힘)</span><span><b style="background:var(--acc)"></b>합력 · 가속도</span><span><i style="background:var(--copper)"></i>체중계 눈금</span>',
-    bus: '<span><b style="background:var(--force)"></b>실제 힘 (T, mg)</span><span><b class="dash"></b>관성력</span><span><b style="background:var(--acc)"></b>합력 · 가속도</span><span><b style="background:var(--violet)"></b>g − a 방향</span><span><i style="background:var(--copper)"></i>놓은 공</span>',
+    bus: '<span><b style="background:var(--force)"></b>실제 힘 (T, mg)</span><span><b class="dash"></b>관성력</span><span><b style="background:var(--acc)"></b>합력 · 가속도</span><span><b style="background:var(--violet)"></b>g − a 방향</span><span><i style="background:var(--vel)"></i>바닥의 공</span><span><i style="background:var(--copper)"></i>놓은 공</span>',
     stn: '<span><b style="background:var(--force)"></b>벽이 미는 힘 N</span><span><b class="dash"></b>원심력 (관성력)</span><span><b style="background:var(--vel)"></b>속도</span><span><i style="background:var(--copper)"></i>놓은 공</span>',
   };
   let ansKey = '';

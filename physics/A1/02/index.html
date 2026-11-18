@@ -470,9 +470,11 @@
       const mq = [(O[0] + Q[0]) / 2, (O[1] + Q[1]) / 2];
       let side = [-uq[1] / lq, uq[0] / lq];
       if (side[0] * (Pp[0] - mq[0]) + side[1] * (Pp[1] - mq[1]) > 0) side = [-side[0], -side[1]];   // 미는 점에서 먼 쪽
-      const dl = 'd = ' + m1(dlen), dw = Lab.measure(ctx, dl, {size: 14, w: 600}), al = side[0] > 0.3 ? 'left' : side[0] < -0.3 ? 'right' : 'center';
-      let lx = mq[0] + side[0] * 16; lx = al === 'right' ? Math.max(8 + dw, lx) : al === 'left' ? Math.min(W - 8 - dw, lx) : Math.max(8 + dw / 2, Math.min(W - 8 - dw / 2, lx));
-      lbl(ctx, dl, lx, mq[1] + side[1] * 16, C.copper, {size: 14, align: al});
+      const dl = 'd = ' + m1(dlen), dw = Lab.measure(ctx, dl, {size: 14, w: 600});
+      const fits = (sd2) => { const x = mq[0] + sd2[0] * 16; return sd2[0] > 0.3 ? x + dw < W - 8 : sd2[0] < -0.3 ? x - dw > 8 : x - dw / 2 > 8 && x + dw / 2 < W - 8; };
+      if (!fits(side)) side = [-side[0], -side[1]];                    // 무대 밖으로 나가면 반대쪽에
+      const al = side[0] > 0.3 ? 'left' : side[0] < -0.3 ? 'right' : 'center';
+      lbl(ctx, dl, mq[0] + side[0] * 16, mq[1] + side[1] * 16, C.copper, {size: 14, align: al});
     } else if (S.arm) lbl(ctx, '작용선이 축을 지난다 → d = 0', O[0] + 10, O[1] - sd * 30, C.copper, {size: 13, align: 'left'});
     // 성분
     if (S.comp) {
