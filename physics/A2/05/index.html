@@ -246,7 +246,7 @@
   function geo(W, H) {
     const nar = W < 520, v0 = S.v0, th = S.th, base = v0 * v0 / M.G;
     const R = M.range(v0, th), Hm = M.maxHeight(v0, th);
-    const bandTop = nar ? 58 : 64, bandH = nar ? 62 : Math.min(128, Math.max(64, H * 0.24));
+    const bandTop = nar ? 58 : 64, bandH = nar ? 62 : H < 380 ? 52 : Math.min(128, Math.max(64, H * 0.24));
     const left = nar ? 12 : 26, right = nar ? 12 : 26, top = bandTop + bandH + (nar ? 42 : 46), bot = nar ? 56 : 56;
     const bx1 = Math.max(R * 1.16, 0.42 * base * 1.04), bx0 = -0.06 * bx1, by = Math.max(Hm, 0.1 * base) * 1.1;
     const s = Math.max(3, Math.min((W - left - right) / (bx1 - bx0), (H - top - bot) / by));
@@ -304,7 +304,7 @@
     }
     Lab.circle(ctx, bx, by, 8.5, {fill: C.copper, stroke: C.paper, width: 2});
     // 최고점 이름표
-    if (Math.abs(t - tTop()) < 0.012) {
+    if (Math.abs(t - tTop()) < 0.012 && (nar || H >= 380)) {
       const s1 = nar ? '최고점: K = ' + J(now.K) + ' (≠ 0)' : '최고점: 연직 속도만 0 → K = ' + J(now.K) + ' (≠ 0)';
       const tw = Lab.measure(ctx, s1, {size: nar ? 13 : 14, w: 700}) / 2 + 12;
       Lab.tag(ctx, s1, Math.min(Math.max(bx, tw), W - tw), Math.max(g.top - 4, by - (nar ? 32 : 38)), {size: nar ? 13 : 14, w: 700, color: C.acc, border: C.acc});
@@ -387,12 +387,12 @@
     text(ctx, '=', xb + vy0 * k + signW / 2, y0 - Math.max(a, 24) / 2, {size: 20, w: 600, color: C.muted});
     // 넓이 = 에너지
     const inside = (xx, side, nm, val, dark) => {
-      if (side >= 46) { Lab.rich(ctx, nm, xx + side / 2, y0 - side / 2 - 9, {size: 14, w: 700, color: dark ? C.paper : C.ink}); text(ctx, fmt(val, 2) + ' J', xx + side / 2, y0 - side / 2 + 10, {size: 13, w: 600, color: dark ? C.paper : C.ink}); }
+      if (side >= 46) { Lab.rich(ctx, nm, xx + side / 2, y0 - side / 2 - 9, {size: 14, w: 600, color: dark ? C.paper : C.ink}); text(ctx, fmt(val, 2) + ' J', xx + side / 2, y0 - side / 2 + 10, {size: 13, w: 600, color: dark ? C.paper : C.ink}); }
       else Lab.rich(ctx, nm + ' ' + fmt(val, 2) + ' J', xx + Math.max(side, 30) / 2, y0 - side - 12, {size: 13, w: 600, color: C.energy});
     };
     inside(xa, a, 'K_x', q.Kx, false);
     inside(xb, b, 'K_y', q.Ky, true);
-    Lab.rich(ctx, 'K = ' + fmt(q.K, 2) + ' J', xc + c / 2, y0 - c - 12, {size: 14, w: 700, color: C.energy});
+    Lab.rich(ctx, 'K = ' + fmt(q.K, 2) + ' J', xc + c / 2, y0 - c - 12, {size: 14, w: 600, color: C.energy});
     // 위: 식과 비
     const phi = Math.abs(q.phi);
     Lab.rich(ctx, nar ? 'v^2 = v_x^2 + v_y^2 → K = K_x + K_y' : 'v^2 = v_x^2 + v_y^2  →  ½mv^2 = ½mv_x^2 + ½mv_y^2', 10, 14, {size: 13, w: 600, color: C.ink, align: 'left'});
@@ -423,9 +423,9 @@
     for (const [e, s1] of [[kx, fmt(kx, 2)], [E, fmt(E, 2)]]) { Lab.line(ctx, [[Xe(e), r.y + r.h - 3], [Xe(e), r.y + r.h + 3]], C.muted, 1); text(ctx, s1, Xe(e), r.y + r.h + 13, {size: 13, color: C.muted}); }
     Lab.line(ctx, [[r.x, Yh(Hm)], [Xe(E), Yh(Hm)]], C.muted, 1, [3, 4]);
     // 칸 이름
-    if (Xe(kx) - r.x > 40) Lab.rich(ctx, 'K_x', (r.x + Xe(kx)) / 2, Yh(Hm * 0.5), {size: 14, w: 700, color: C.ink});
-    Lab.rich(ctx, 'K_y', Xe(kx + (E - kx) / 3), Yh(Hm / 3), {size: 14, w: 700, color: C.paper});
-    text(ctx, 'U', Xe(E - (E - kx) / 3), Yh(Hm * 2 / 3), {size: 14, w: 700, color: C.paper});
+    if (Xe(kx) - r.x > 40) Lab.rich(ctx, 'K_x', (r.x + Xe(kx)) / 2, Yh(Hm * 0.5), {size: 14, w: 600, color: C.ink});
+    Lab.rich(ctx, 'K_y', Xe(kx + (E - kx) / 3), Yh(Hm / 3), {size: 14, w: 600, color: C.paper});
+    text(ctx, 'U', Xe(E - (E - kx) / 3), Yh(Hm * 2 / 3), {size: 14, w: 600, color: C.paper});
     // 지금 높이
     const y = Math.max(0, q.y), U = m * M.G * y;
     Lab.line(ctx, [[r.x, Yh(y)], [Xe(E), Yh(y)]], C.copper, 2.6);
@@ -460,12 +460,12 @@
     const ex = r.x + r.w + 8;
     if (!nar) {
       text(ctx, 'E (일정)', ex, ax.Y(E), {size: 13, w: 600, color: C.acc, align: 'left'});
-      text(ctx, 'K', ex, ax.Y(E) + 18, {size: 13, w: 700, color: C.energy, align: 'left'});
+      text(ctx, 'K', ex, ax.Y(E) + 18, {size: 13, w: 600, color: C.energy, align: 'left'});
       Lab.rich(ctx, 'K_x', ex, ax.Y(kx), {size: 13, w: 600, color: C.energy, align: 'left'});
-      text(ctx, 'U', ex, ax.Y(0) - 10, {size: 13, w: 700, color: C.violet, align: 'left'});
+      text(ctx, 'U', ex, ax.Y(0) - 10, {size: 13, w: 600, color: C.violet, align: 'left'});
     } else {
-      text(ctx, 'E', ax.X(isX ? R : Tf) - 4, ax.Y(E) - 11, {size: 13, w: 700, color: C.acc, align: 'right'});
-      text(ctx, 'U', ax.X(xOf(Tf / 2)) + 8, ax.Y(E - kx) - 12, {size: 13, w: 700, color: C.violet, align: 'left'});
+      text(ctx, 'E', ax.X(isX ? R : Tf) - 4, ax.Y(E) - 11, {size: 13, w: 600, color: C.acc, align: 'right'});
+      text(ctx, 'U', ax.X(xOf(Tf / 2)) + 8, ax.Y(E - kx) - 12, {size: 13, w: 600, color: C.violet, align: 'left'});
     }
     Lab.rich(ctx, 'K 최솟값 = K_x = ' + fmt(kx, 2) + ' J (0 아님)', ax.X(xOf(Tf / 2)), ax.Y(kx) + 19, {size: 13, w: 600, color: C.energy});
     const t = tNow(), q = M.state(m, v0, th, t), X0 = ax.X(isX ? q.x : t);
@@ -539,7 +539,7 @@
     else if (t < tTop()) s1 = nar ? '오름: K<sub>y</sub> → U' : '오르는 중: K<sub>y</sub> → U';
     else s1 = nar ? '내려옴: U → K<sub>y</sub>' : '내려오는 중: U → K<sub>y</sub>';
     setHTML('hud2', s1); $('hud2').className = 'pill' + cls;
-    const h3 = $('hud3'); h3.hidden = nar; setText('hud3', S.speed < 1 ? '느린 화면 ×' + S.speed : '실제 빠르기');
+    const h3 = $('hud3'); h3.hidden = nar || (stage.H || 999) < 380; setText('hud3', S.speed < 1 ? '느린 화면 ×' + S.speed : '실제 빠르기');
   }
   function drawAll() { drawStage(); drawSQ(); drawEH(); drawET(); drawAG(); }
   function live() { drawStage(); if (seen(sq)) drawSQ(); if (seen(eh)) drawEH(); if (seen(et)) drawET(); }

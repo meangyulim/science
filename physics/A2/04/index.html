@@ -297,17 +297,17 @@
 
   // ── 무대 기하 ───────────────────────────────────────────
   function geoT(W, H) {                                          // 곡면 궤도 (왕복·등속 빗면)
-    const nar = W < 520, tr = track, xs = tr.x1 - tr.x0;
+    const nar = W < 520, short = !nar && H < 380, tr = track, xs = tr.x1 - tr.x0, panel = short ? 184 : 0;
     const padX = nar ? 10 : 22, gy = H - (nar ? 64 : 66);
-    const room = gy - (nar ? 200 : Math.max(118, H * 0.4));
-    const s = Math.max(16, Math.min((W - 2 * padX) / xs, room / tr.top));
-    const ox = (W - xs * s) / 2 - tr.x0 * s;
-    return {nar, s, gy, X: (x) => ox + x * s, Y: (y) => gy - y * s, W, H};
+    const room = gy - (nar ? 200 : short ? 40 : Math.max(118, H * 0.4));
+    const s = Math.max(16, Math.min((W - 2 * padX - panel) / xs, room / tr.top));
+    const ox = (W - panel - xs * s) / 2 - tr.x0 * s;
+    return {nar, short, cmp: nar || s < 85, s, gy, X: (x) => ox + x * s, Y: (y) => gy - y * s, W, H};
   }
   function geoF(W, H) {                                          // 평면 왕복 (외력 F)
-    const nar = W < 520, x0 = -0.9, x1 = Math.max(1.6, sim.s) + 1.1, pad = nar ? 12 : 26;
-    const s = (W - 2 * pad) / (x1 - x0), gy = H - (nar ? 72 : 96);
-    return {nar, s, gy, X: (x) => pad + (x - x0) * s, Y: (y) => gy - y * s, W, H, x0, x1};
+    const nar = W < 520, short = !nar && H < 380, x0 = -0.9, x1 = Math.max(1.6, sim.s) + 1.1, pad = nar ? 12 : 26, panel = short ? 200 : 0;
+    const s = (W - 2 * pad - panel) / (x1 - x0), gy = H - (nar ? 72 : short ? 84 : 96);
+    return {nar, short, s, gy, X: (x) => pad + (x - x0) * s, Y: (y) => gy - y * s, W, H, x0, x1};
   }
   function trackPts(g, n = 60) {
     const xs = [];
@@ -370,11 +370,11 @@
         const Lf = Math.max(nar ? 14 : 20, Math.min(f * (nar ? 5 : 8), nar ? 44 : 70));
         const F0 = [P[0] + nx * 3, P[1] + ny * 3];
         arrow(ctx, F0[0], F0[1], F0[0] - st.sgn * tx * Lf, F0[1] - st.sgn * ty * Lf, C.force, 3, 9);
-        text(ctx, nar ? 'f' : '마찰력 f', F0[0] - st.sgn * tx * (Lf + 6) + nx * 13, F0[1] - st.sgn * ty * (Lf + 6) + ny * 13, {size: 13, w: 600, color: C.force, halo: true, align: st.sgn > 0 ? 'right' : 'left'});
+        text(ctx, g.cmp ? 'f' : '마찰력 f', F0[0] - st.sgn * tx * (Lf + 6) + nx * 13, F0[1] - st.sgn * ty * (Lf + 6) + ny * 13, {size: 13, w: 600, color: C.force, halo: true, align: st.sgn > 0 ? 'right' : 'left'});
         if (st.zone === 'A' && st.sgn > 0) {                     // 등속: 중력의 빗면 성분 = 마찰력
           const G0 = [Cc[0] - nx * bh * 0.12, Cc[1] - ny * bh * 0.12];
           arrow(ctx, G0[0], G0[1], G0[0] + tx * Lf, G0[1] + ty * Lf, C.violet, 3, 9);
-          if (!nar) text(ctx, 'mg sinθ', G0[0] + tx * (Lf + 6) - nx * 12, G0[1] + ty * (Lf + 6) - ny * 12, {size: 13, w: 600, color: C.violet, halo: true, align: 'left'});
+          if (!g.cmp) text(ctx, 'mg sinθ', G0[0] + tx * (Lf + 6) - nx * 12, G0[1] + ty * (Lf + 6) - ny * 12, {size: 13, w: 600, color: C.violet, halo: true, align: 'left'});
         }
       }
     }
@@ -386,7 +386,7 @@
     ledgerTrack(ctx, g, st);
   }
   function zoneLabels(ctx, g, f) {
-    const nar = g.nar, tr = track;
+    const nar = g.cmp, tr = track;
     if (tr.scene === 'bowl') {
       const z = tr.zones[0], xm = g.X((z.x0 + z.x1) / 2), y = g.gy + (nar ? 19 : 24);
       text(ctx, (nar ? '' : '마찰 구간 ') + 'L = ' + fmt(tr.L, 2) + ' m · f = ' + fmt(f, 2) + ' N', xm, y, {size: nar ? 13 : 14, w: 600, color: C.force});
@@ -404,7 +404,7 @@
     }
   }
   function heightMarks(ctx, g, st) {
-    const tr = track, nar = g.nar, c0 = tr.segs[0], cR = tr.segs[tr.segs.length - 1];
+    const tr = track, nar = g.cmp, c0 = tr.segs[0], cR = tr.segs[tr.segs.length - 1];
     const xs = c0.xAt(S.h), xr = cR.xAt(S.h);
     Lab.line(ctx, [[g.X(xs), g.Y(S.h)], [g.X(xr), g.Y(S.h)]], C.muted, 1.2, [5, 5]);
     text(ctx, (nar ? '' : '처음 높이 ') + 'h = ' + fmt(S.h, 2) + ' m', g.X(xs) + (nar ? 16 : 26), g.Y(S.h) - 12, {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
@@ -423,7 +423,7 @@
   // 에너지 장부 막대 (아래부터 U · K · 열 Q, 전체 = 처음 mgh)
   function ledgerTrack(ctx, g, st) {
     const nar = g.nar, E0 = sim.E0, bw = nar ? 20 : 30, x = g.W - (nar ? 14 : 26) - bw;
-    const top = nar ? 60 : 46, bot = Math.max(top + 70, Math.min(g.Y(track.top) - 20, nar ? 196 : g.H * 0.46));
+    const top = nar ? 60 : 46, bot = g.short ? g.gy - 26 : Math.max(top + 70, Math.min(g.Y(track.top) - 20, nar ? 196 : g.H * 0.46));
     const hb = bot - top, Yv = (e) => bot - e / E0 * hb;
     text(ctx, '에너지 장부', x + bw, top - 15, {size: 13, w: 600, color: C.muted, align: 'right'});
     const seg = (a, b, col) => { if (b - a > 1e-9) { ctx.fillStyle = col; ctx.fillRect(x, Yv(b), bw, Yv(a) - Yv(b)); } };
@@ -466,7 +466,9 @@
       const kF = nar ? 8 : 13, LF = Math.max(16, sim.F * kF);
       const yF = gy - bh / 2;
       arrow(ctx, P[0] - bw / 2 - 2, yF, P[0] - bw / 2 - 2 - LF, yF, C.violet, 3.2, 10);
-      text(ctx, nar ? 'F' : 'F (방향 고정)', P[0] - bw / 2 - 8 - LF, yF, {size: 13, w: 600, color: C.violet, align: 'right', halo: true});
+      const fl = nar ? 'F' : 'F (방향 고정)', fw = Lab.measure(ctx, fl, {size: 13, w: 600}), tipX = P[0] - bw / 2 - 2 - LF;
+      if (tipX - 6 - fw > 4) text(ctx, fl, tipX - 6, yF, {size: 13, w: 600, color: C.violet, align: 'right', halo: true});
+      else text(ctx, fl, Math.max(4, tipX), yF - 15, {size: 13, w: 600, color: C.violet, align: 'left', halo: true});
       if (moving) {
         const k = nar ? 12 : 20, Lv = st.v * k, yv = gy - bh - (nar ? 12 : 16);
         arrow(ctx, P[0], yv, P[0] + st.sgn * Lv, yv, C.vel, 3, 10);
@@ -476,7 +478,7 @@
         text(ctx, 'f', P[0] - st.sgn * (Lf + 10), gy + 3, {size: 14, w: 600, color: C.force, halo: true});
       }
     }
-    if (st.done) {
+    if (st.done && !nar) {
       const msg = sim.back ? '출발점으로 돌아옴 · K = ' + fmt(st.K, 2) + ' J' : 'F ≤ f → 멈춘 채 그대로';
       Lab.tag(ctx, msg, Math.min(W - 110, Math.max(110, (g.X(0) + g.X(sim.s)) / 2)), gy - (nar ? 102 : 132), {size: 13, w: 700, color: sim.back ? C.acc : C.neg, border: sim.back ? C.acc : C.neg});
     }
@@ -486,11 +488,11 @@
   function ledgerForce(ctx, g, st) {
     const nar = g.nar, K0 = sim.K0, bw = nar ? 18 : 26, gap = nar ? 34 : 58;
     const x2 = g.W - (nar ? 18 : 30) - bw, xs = [x2 - 2 * gap, x2 - gap, x2];
-    const top = nar ? 64 : 52, bot = Math.max(top + 70, g.gy - (nar ? 112 : 140)), z = top + (bot - top) * 0.5, sc = (bot - top) * 0.5 / K0;
+    const top = nar ? 64 : 52, bot = g.short ? g.gy - 34 : Math.max(top + 70, g.gy - (nar ? 112 : 140)), z = top + (bot - top) * 0.5, sc = (bot - top) * 0.5 / K0;
     text(ctx, nar ? '일 장부 (J)' : '일과 운동 에너지 (J)', x2 + bw, top - 18, {size: 13, w: 600, color: C.muted, align: 'right'});
     Lab.line(ctx, [[xs[0] - 10, z], [x2 + bw + 6, z]], C.muted, 1.2);
     Lab.line(ctx, [[xs[0] - 8, z - K0 * sc], [xs[0] + bw + 8, z - K0 * sc]], C.energy, 1.2, [4, 3]);
-    const cols = [['K', st.K, C.energy], [nar ? 'F' : 'F 의 일', st.WF, C.violet], [nar ? '마찰' : '마찰력의 일', st.Wf, C.neg]];
+    const cols = [['K', st.K, C.energy], [nar ? 'F' : 'F 의 일', st.WF, C.violet], [nar ? '마찰' : g.short ? '마찰력' : '마찰력의 일', st.Wf, C.neg]];
     cols.forEach(([nm, v, col], i) => {
       const x = xs[i], y = z - v * sc;
       ctx.save(); ctx.fillStyle = col; ctx.fillRect(x, Math.min(y, z), bw, Math.abs(y - z)); ctx.restore();
@@ -751,7 +753,7 @@
     }
     setText('hud1', h1);
     $('hud1').className = 'pill' + (st.done ? ' up' : st.inZone ? ' down' : '');
-    const h3 = $('hud3'); h3.hidden = nar; setText('hud3', S.speed < 1 ? '느린 화면 ×' + S.speed : '실제 빠르기');
+    const h3 = $('hud3'); h3.hidden = nar || (stage.H || 999) < 380; setText('hud3', S.speed < 1 ? '느린 화면 ×' + S.speed : '실제 빠르기');
   }
   function drawAll() { drawStage(); drawEx(); drawW(); drawS(); drawU(); }
   function live(all) { drawStage(); if (all) { drawEx(); drawW(); drawS(); drawU(); } else { if (seen(gEx)) drawEx(); if (seen(gW)) drawW(); if (seen(gS)) drawS(); if (seen(gU) && S.scene === 'slope') drawU(); } }
