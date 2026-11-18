@@ -104,12 +104,47 @@
     return T.tUp + Math.sqrt(2 * Math.min(L - d, d) / T.aDn);
   }
 
+  // ── 상자의 실제 운동 (변하는 힘 · 비스듬한 힘 장면) ─────
+  // 마찰 없는 바닥에서 질량 m, 처음 속력 v0 으로 움직이던 상자가 이동 방향 성분이 segs(F–s 그래프)인 힘 하나만 받는다.
+  // 수직항력·중력(과 힘의 수직 성분)은 이동과 수직이라 속력을 바꾸지 않으므로, 위치 s 에서 운동 에너지는
+  // K(s) = ½mv0² + (0~s 넓이) 이고 속력은 v(s) = √(2K/m). 시각은 t(s) = ∫ ds / v (멈추지 않는 범위, 늘 K > 0 에서 쓴다).
+  const kinAt = (segs, m, v0, s) => m * v0 * v0 / 2 + areaTo(segs, s);
+  const speedAt = (segs, m, v0, s) => { const K = kinAt(segs, m, v0, s); return K > 0 ? Math.sqrt(2 * K / m) : 0; };
+  function minKin(segs, m, v0, sEnd, n = 600) {         // 0 ~ sEnd 에서 가장 작은 운동 에너지 (0 보다 커야 끝까지 간다)
+    let k = Infinity;
+    for (let i = 0; i <= n; i++) k = Math.min(k, kinAt(segs, m, v0, i * sEnd / n));
+    return k;
+  }
+  function motion(segs, m, v0, sEnd, n = 600) {          // 위치 → 시각 표 (1/v 를 사다리꼴로 더한다)
+    const ds = sEnd / n, ts = [0];
+    let prev = 1 / Math.max(1e-9, speedAt(segs, m, v0, 0));
+    for (let i = 1; i <= n; i++) {
+      const inv = 1 / Math.max(1e-9, speedAt(segs, m, v0, i * ds));
+      ts.push(ts[i - 1] + ds * (prev + inv) / 2); prev = inv;
+    }
+    return {m, v0, sEnd, n, ds, ts, T: ts[n]};
+  }
+  function posAt(mo, t) {                                // 시각 t 의 위치
+    if (t <= 0) return 0;
+    if (t >= mo.T) return mo.sEnd;
+    let lo = 0, hi = mo.n;
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (mo.ts[mid] <= t) lo = mid; else hi = mid; }
+    return (lo + (t - mo.ts[lo]) / (mo.ts[hi] - mo.ts[lo])) * mo.ds;
+  }
+  function timeAt(mo, s) {                               // 위치 s 에 이르는 시각
+    if (s <= 0) return 0;
+    if (s >= mo.sEnd) return mo.T;
+    const x = s / mo.ds, i = Math.min(mo.n - 1, Math.floor(x));
+    return mo.ts[i] + (x - i) * (mo.ts[i + 1] - mo.ts[i]);
+  }
+
   // ── 그 밖 ───────────────────────────────────────────────
   const gravityWork = (m, drop, g = G) => m * g * drop;    // 내려간 높이 × mg (경로 무관, = −ΔEp)
   const power = (F, v) => F * v;                           // (교과 심화) 일정한 속력으로 끌 때 P = Fv
 
   const api = {G, RAD, cosD, sinD, work, along, perp, sign, kind, dot, seg, forceAt, areaTo, parts, exampleSegs, examplePieces,
-    riemann, springForce, elasticPE, springWork, springSegs, slopeTrip, tripWorks, tripAngles, tripAt, tripTime, gravityWork, power};
+    riemann, springForce, elasticPE, springWork, springSegs, slopeTrip, tripWorks, tripAngles, tripAt, tripTime,
+    kinAt, speedAt, minKin, motion, posAt, timeAt, gravityWork, power};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.A2_01 = api;
 })(typeof window !== 'undefined' ? window : globalThis);
