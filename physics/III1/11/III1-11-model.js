@@ -56,6 +56,7 @@
   // 소리 세기 (상대값 0~4 = 진폭²)
   const loudness = (dl, opposite) => ampFactor(dl, opposite) ** 2;
   // 앞쪽 선(파원 선에서 L 떨어진 선)을 따라 걸을 때, 중앙에서 처음 상쇄되는 곳까지 거리
+  // (반대 위상이면 중앙(Δ = 0)이 이미 조용하므로, 중앙 다음으로 조용한 곳 Δ = λ 까지의 거리)
   function firstQuiet(d, L, lambda, opposite) {
     const target = opposite ? lambda : lambda / 2;          // 같은 위상: Δ = λ/2, 반대 위상: Δ = λ
     if (target >= d) return NaN;
