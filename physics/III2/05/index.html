@@ -37,7 +37,7 @@
     <section class="bench" aria-label="실험대">
       <div class="stage">
         <canvas id="stage" aria-label="CCD 한 줄의 단면. 색 필터를 통과한 광자가 규소에서 전자를 만들고, 전자가 (+) 전극 아래에 모였다가 전극 전압이 바뀔 때마다 옆 칸으로 옮겨져 출력에서 측정된다."></canvas>
-        <div class="hud"><span class="pill" id="hudPhase">① 빛 받기</span><span class="pill" id="hudStep">0.0 / 2 s</span><span class="pill" id="hudSlow">빠르기 ×1</span></div>
+        <div class="hud"><span class="pill" id="hudPhase">1단계 빛 받기</span><span class="pill" id="hudStep">0.0 / 2 s</span><span class="pill" id="hudSlow">빠르기 ×1</span></div>
         <div class="legend">
           <span><b style="background:var(--muted)"></b>광자(빛의 색)</span>
           <span><i style="background:var(--vel)"></i>전자</span>
@@ -124,7 +124,7 @@
         <li class="card step" data-step="③ 전자 묶음 옮기기">
           <div class="kind">관찰 3</div>
           <h3>전극 전압을 차례로 바꿔 전자 묶음을 옮긴다</h3>
-          <p>전자는 스스로 옆 칸으로 가지 않는다. 이웃 전극에도 (+) 전압을 걸면 전자가 두 전극 아래로 고르게 퍼지고(②), 앞 전극의 전압을 0으로 하면 다음 전극 아래로 모두 옮겨 간다(③). 이것이 <b>전하 결합</b>이다.</p>
+          <p>전자는 스스로 옆 칸으로 가지 않는다. 이웃 전극에도 (+) 전압을 걸면 전자가 두 전극 아래로 고르게 퍼지고(2단계), 앞 전극의 전압을 0으로 하면 다음 전극 아래로 모두 옮겨 간다(3단계). 이것이 <b>전하 결합</b>이다.</p>
           <p class="cap">이 과정을 되풀이해 전자 묶음을 끝의 전하량 측정 장치까지 옮긴다. 출력에 가까운 화소부터 차례로 전하량(= 빛의 세기)이 읽히고, 디지털 값(0~255)으로 바뀌어 그림 파일로 저장된다.</p>
           <div class="acts"><button type="button" class="btn go" data-do="click:#step">한 단계 앞으로 ▸</button><button type="button" class="btn" data-try="shift">노출을 끝내고 옮기기부터</button></div>
         </li>
@@ -164,7 +164,7 @@
           <div class="q">
             <h3>화소에 모인 전자는 스스로 옆 칸으로 이동할까? 어떻게 측정 장치까지 옮겨질까?</h3>
             <div class="acts"><button type="button" class="btn" data-try="shift">전하 옮기기를 한 단계씩</button></div>
-            <details class="ans"><summary>답 보기</summary><p><b>스스로 이동하지 않는다.</b> 이웃 전극에도 (+) 전압을 걸면 전자가 두 전극 아래로 고르게 퍼지고(②), 앞 전극의 전압을 0으로 하면 다음 전극 아래로 모두 옮겨 간다(③). 전극 전압을 차례로 바꾸는 이 과정을 되풀이해 전자 묶음을 끝까지 옮긴 뒤 화소마다 전하량(= 빛의 세기)을 읽는다. ‘한 단계 앞으로’를 눌러 확인해 보자.</p></details>
+            <details class="ans"><summary>답 보기</summary><p><b>스스로 이동하지 않는다.</b> 이웃 전극에도 (+) 전압을 걸면 전자가 두 전극 아래로 고르게 퍼지고(2단계), 앞 전극의 전압을 0으로 하면 다음 전극 아래로 모두 옮겨 간다(3단계). 전극 전압을 차례로 바꾸는 이 과정을 되풀이해 전자 묶음을 끝까지 옮긴 뒤 화소마다 전하량(= 빛의 세기)을 읽는다. ‘한 단계 앞으로’를 눌러 확인해 보자.</p></details>
           </div>
           <div class="q">
             <h3>색 필터를 모두 없애면 화소의 전자 수와 재구성한 영상은 어떻게 될까?</h3>
@@ -393,12 +393,12 @@
   }
   function caption() {
     const n = G && G.n;
-    if (S.phase === 'expose') return n ? '광자 1개 → 전자 1개' : '① 광자 1개가 전자 1개를 만들고, 전자는 (+) 전극 아래에 모인다';
-    if (S.phase === 'settle') return n ? '셔터 닫힘 → 노출 끝' : '① 노출 끝 — 셔터가 닫혀 더 이상 전자가 생기지 않는다';
+    if (S.phase === 'expose') return n ? '광자 1개 → 전자 1개' : '1단계: 광자 1개가 전자 1개를 만들고, 전자는 (+) 전극 아래에 모인다';
+    if (S.phase === 'settle') return n ? '셔터 닫힘 → 노출 끝' : '1단계 끝: 셔터가 닫혀 더 이상 전자가 생기지 않는다';
     if (S.phase === 'shift') {
       if (S.s === 0) return n ? '이제 묶음을 옮긴다' : '이제 전극 전압을 차례로 바꿔 전자 묶음을 옮긴다';
-      return S.s % 2 ? (n ? '이웃 전극도 (+) → 퍼짐' : '② 이웃 전극에도 (+) → 전자가 두 전극 아래로 고르게 퍼진다')
-        : (n ? '앞 전극 0 → 다음 칸으로' : '③ 앞 전극을 0으로 → 전자가 다음 전극 아래로 옮겨 모인다');
+      return S.s % 2 ? (n ? '이웃 전극도 (+) → 퍼짐' : '2단계: 이웃 전극에도 (+) → 전자가 두 전극 아래로 고르게 퍼진다')
+        : (n ? '앞 전극 0 → 다음 칸으로' : '3단계: 앞 전극을 0으로 → 전자가 다음 전극 아래로 옮겨 모인다');
     }
     return n ? '다 읽었다 → 색 재구성' : '모든 묶음을 읽었다 → 화소 값으로 색을 재구성한다';
   }
@@ -626,10 +626,10 @@
   let lastHud = '';
   function hud() {
     let a, b;
-    if (S.phase === 'expose') { a = '① 빛 받기 (노출)'; b = clamp(S.tg - S.tOpen, 0, S.T).toFixed(1) + ' / ' + Lab.fmt(S.T, 1) + ' s'; }
-    else if (S.phase === 'settle') { a = '① 노출 끝'; b = '셔터 닫힘'; }
-    else if (S.phase === 'shift') { a = S.s % 2 ? '② 두 전극으로 퍼짐' : S.s ? '③ 다음 전극으로 이동' : '전하 옮기기 준비'; b = '전압 단계 ' + S.s + ' / ' + 6 * N; }
-    else { a = '④ 읽기 끝'; b = '색 재구성'; }
+    if (S.phase === 'expose') { a = '1단계 빛 받기 (노출)'; b = clamp(S.tg - S.tOpen, 0, S.T).toFixed(1) + ' / ' + Lab.fmt(S.T, 1) + ' s'; }
+    else if (S.phase === 'settle') { a = '1단계 노출 끝'; b = '셔터 닫힘'; }
+    else if (S.phase === 'shift') { a = S.s % 2 ? '2단계 두 전극으로 퍼짐' : S.s ? '3단계 다음 전극으로 이동' : '전하 옮기기 준비'; b = '전압 단계 ' + S.s + ' / ' + 6 * N; }
+    else { a = '4단계 읽기 끝'; b = '색 재구성'; }
     const key = a + b + S.speed;
     if (key === lastHud) return;
     lastHud = key;

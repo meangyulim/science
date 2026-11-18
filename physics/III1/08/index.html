@@ -65,8 +65,8 @@
             </div>
             <div class="group" role="group" aria-label="예제 파장">
               <span class="gl">예제</span>
-              <button type="button" class="btn" data-ex="1" aria-pressed="true">① 0.6 μm</button>
-              <button type="button" class="btn" data-ex="2" aria-pressed="false">② 3 m</button>
+              <button type="button" class="btn" data-ex="1" aria-pressed="true">1 · 0.6 μm</button>
+              <button type="button" class="btn" data-ex="2" aria-pressed="false">2 · 3 m</button>
             </div>
           </div>
           <div class="row">
@@ -185,7 +185,7 @@
         <li class="card step ex" data-step="⑥ 개념서 예제">
           <div class="kind">개념서 예제</div>
           <h3>진공에서 파장이 0.6 μm인 가시광선과 파장이 3 m인 라디오파의 진동수를 각각 구하라. (c = 3 × 10⁸ m/s)</h3>
-          <div class="acts"><button type="button" class="btn go" data-try="ex">① 0.6 μm 가시광선으로</button><button type="button" class="btn" data-try="ex2">② 3 m 라디오파로</button></div>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 1 · 0.6 μm 가시광선으로</button><button type="button" class="btn" data-try="ex2">예제 2 · 3 m 라디오파로</button></div>
           <details class="ans"><summary>풀이 보기</summary><p>f = c/λ 를 쓴다. 가시광선: 3 × 10⁸ ÷ (0.6 × 10⁻⁶) = <b>5 × 10¹⁴ Hz</b>, 라디오파: 3 × 10⁸ ÷ 3 = <b>1 × 10⁸ Hz</b>. 파장이 500만 배 길면 진동수는 500만 분의 1이다. 띠의 구리색 표시가 오른쪽(파장 김)으로 갈수록 위의 진동수 눈금은 작아진다.</p></details>
         </li>
         <li class="card step" data-step="⑦ 스스로 확인">
@@ -884,7 +884,7 @@
     // 예제 확인
     const e1 = near(lam, EX1), e2 = near(lam, EX2);
     Lab.check('exCheck', e1 || e2,
-      e1 ? '개념서 예제 ①: λ = 0.6 μm → f = c/λ = 5 × 10¹⁴ Hz (가시광선)' : '개념서 예제 ②: λ = 3 m → f = c/λ = 1 × 10⁸ Hz (라디오파). 파장 500만 배 → 진동수 500만 분의 1',
+      e1 ? '개념서 예제 1: λ = 0.6 μm → f = c/λ = 5 × 10¹⁴ Hz (가시광선)' : '개념서 예제 2: λ = 3 m → f = c/λ = 1 × 10⁸ Hz (라디오파). 파장 500만 배 → 진동수 500만 분의 1',
       '예제: 진공에서 λ = 0.6 μm 가시광선과 3 m 라디오파의 진동수는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
     exG.set(e1 ? '1' : e2 ? '2' : '', true);
   }
