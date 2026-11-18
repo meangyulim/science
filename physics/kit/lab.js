@@ -23,8 +23,9 @@
  *          Lab.toggle(id, onChange) → {get(), set(b, quiet)}   체크 상자
  *          Lab.check(id, ok, okText, idleText)    예제 확인 줄 (.check / .check.ok)
  *          Lab.tries(map, after)   [data-try] 버튼 → map[key]() 실행, after(). 무대가 반도 안 보이면 무대로 스크롤
- *          Lab.ans(big, lines, {tone, ctx, f})   「지금 값」 카드: #ansBig 에 큰 결과, #ansLines 에 식 줄(HTML 배열),
- *             tone = 'neg'|'vel'|'cu'|'ink'|'small' (기본 초록), ctx → #ansCtx (오른쪽 위 상황), f → #ansF (식 안내 줄)
+ *          Lab.ans(big, lines, {tone, ctx, f, html})   「지금 값」 카드: #ansBig 에 큰 결과, #ansLines 에 식 줄(HTML 배열),
+ *             tone = 'neg'|'vel'|'cu'|'ink'|'small' (기본 초록), ctx → #ansCtx (오른쪽 위 상황), f → #ansF (식 안내 줄),
+ *             html: true 면 큰 결과도 HTML (λ<sub>A</sub> 처럼 아래첨자)
  *          Lab.pointer(el, {down(x,y), move(x,y), up()})   마우스·터치 끌기 (세로 스크롤은 페이지가 가짐)
  *  색 섞기 Lab.alpha(color, a) → 'rgba(…)'  토큰 색(#hex·rgb)에 투명도를 입힌다 (그라디언트 멈춤점 등)
  *          Lab.rgb(color) → [r, g, b]   (ImageData 로 픽셀을 칠할 때)      Lab.isDark() → 지금 어두운 테마인가
@@ -425,7 +426,7 @@
   // Lab.ans('θ₂ = 30°', ['1 × sin <em>60°</em> = √3 × sin θ₂', 'sin θ₂ = 0.5 → <em>θ₂ = 30°</em>'], {ctx: '공기 → 유리'})
   function ans(big, lines, o = {}) {
     const b = $('ansBig');
-    if (b) { b.textContent = big; b.className = 'big' + (o.tone ? ' ' + o.tone : ''); }
+    if (b) { if (o.html) b.innerHTML = big; else b.textContent = big; b.className = 'big' + (o.tone ? ' ' + o.tone : ''); }
     if (o.ctx != null && $('ansCtx')) $('ansCtx').textContent = o.ctx;
     if (o.f != null && $('ansF')) $('ansF').innerHTML = o.f;
     const L = $('ansLines');

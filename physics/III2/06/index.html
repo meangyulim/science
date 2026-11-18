@@ -9,26 +9,26 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(입자 A·B 와 딸린 물질파, 아래에 같은 배율의 원자 자), 오른쪽 수치표·λ-E_k·λ-p 그래프·로그 눈금 파장 자 */
+/* 관찰 노트: 왼쪽 실험대(입자 A·B 와 딸린 물질파, 아래에 같은 배율의 원자 자) | 오른쪽 지금 값(λ = h/√(2mE_k) + A·B 비교표) + 관찰 ①~④ → 정리 → 예제 → 스스로 확인 */
 #stage{aspect-ratio:16/10.5}
 #gE{aspect-ratio:10/7}
 #gP{aspect-ratio:10/7}
 #ruler{aspect-ratio:10/3.9}
-.gl.a{color:var(--vel)} .gl.b{color:var(--force)}
-.ro.b b{color:var(--force)}
-.ro small{display:block;font:500 12.5px var(--font-num);color:var(--muted);white-space:nowrap}
-.cmp{width:100%;border-collapse:collapse;margin-top:10px;font-size:13.5px}
-.cmp th,.cmp td{padding:5px 3px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
-.cmp td small{display:block;font:500 12px var(--font-num);color:var(--muted);line-height:1.2}
-.cmp th{font-weight:600;color:var(--muted)}
-.cmp th:first-child,.cmp td:first-child{text-align:left;font-family:var(--font-ui);font-weight:600;color:var(--ink)}
-.cmp td{font:600 13px var(--font-num);line-height:1.35}
-.cmp .a{color:var(--vel)} .cmp .b{color:var(--force)} .cmp .r{color:var(--copper)}
-.glegend{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13.5px;font-weight:600;margin:-2px 0 8px}
+@media (max-width:640px){ #ruler{aspect-ratio:10/4.5} }   /* 좁은 폭: 두 입자 이름이 아래위로 갈 자리 */
+.gl.a,.slider .ka{color:var(--vel)} .gl.b{color:var(--force)}
+.slider .ka{font-weight:600}
+.glegend{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13.5px;font-weight:500;margin:10px 0 -4px}
 .glegend > span{display:inline-flex;align-items:center;gap:6px}
 .glegend b{display:inline-block;width:18px;height:3px;border-radius:2px}
-.quiz .tag{white-space:nowrap}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.42} }
+/* 지금 값 카드의 A·B 비교표 (한 입자 보기에서는 A 칸만) */
+.cmp{width:100%;border-collapse:collapse;font-size:13.5px}
+.cmp th,.cmp td{padding:5px 3px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+.cmp th{font-weight:600;color:var(--muted)}
+.cmp th:first-child,.cmp td:first-child{text-align:left;font-weight:500;color:var(--ink-2)}
+.cmp td{font-size:13px;font-weight:600;line-height:1.35}
+.cmp td small{display:block;font-size:12px;font-weight:400;color:var(--muted);line-height:1.2}
+.cmp .a{color:var(--vel)} .cmp .b{color:var(--force)} .cmp .r{color:var(--copper)}
+.cmp.one .b,.cmp.one .r{display:none}
 </style>
 </head>
 <body class="cx">
@@ -40,18 +40,17 @@
 </div></header>
 <!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III2-06</span><span class="kicker">물리학 Ⅰ · 빛과 물질의 이중성</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III2-06</span><span>물리학 Ⅰ · 빛과 물질의 이중성</span></div>
     <h1>물질파(드브로이 파)</h1>
-    <p class="lead">움직이는 입자에는 파장이 <b>λ = h/p</b> 인 물질파가 딸려 있다. 운동 에너지를 4배로 키우면 물결이 1/4이 아니라 <b>1/2</b>로 촘촘해지는 것, 같은 운동 에너지라도 무거운 양성자의 물결은 돋보기로 봐야 할 만큼 짧은 것을 두 입자를 나란히 놓고 보자.</p>
-  </header>
+    <p class="question"><i>Q</i>빛이 입자처럼 행동한다면, 전자 같은 입자도 파동처럼 행동할 수 있을까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
         <canvas id="stage" aria-label="입자 A와 B가 물질파(파속)를 달고 오른쪽으로 날아간다. 아래에는 같은 배율의 원자 크기 자가 있다."></canvas>
-        <div class="hud"><span class="pill num" id="hudZoom">화면 폭 2 nm</span><span class="pill" id="hudKeep" hidden></span></div>
+        <div class="hud"><span class="pill" id="hudZoom">화면 폭 2 nm</span><span class="pill" id="hudKeep" hidden></span></div>
         <div class="legend">
           <span><i style="background:var(--vel)"></i>입자 A</span>
           <span id="legB"><i style="background:var(--force)"></i>입자 B</span>
@@ -59,69 +58,69 @@
           <span><b style="background:var(--copper)"></b>파장 λ</span>
           <span style="color:var(--muted)">진폭·속력은 그림용</span>
         </div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <button type="button" class="btn" id="restart">나란히 출발</button>
-          <div class="group" role="group" aria-label="보기">
-            <span class="gl">보기</span>
-            <button type="button" class="btn" data-view="one" aria-pressed="false">한 입자</button>
-            <button type="button" class="btn" data-view="two" aria-pressed="true">두 입자 비교</button>
-          </div>
+          <div class="slider"><label for="eA"><span class="ka">A</span><span class="lg">의 운동 에너지</span> E<sub>k</sub></label><input id="eA" type="range" min="0" max="120" step="1" value="0"><output id="eAOut">25 eV</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">입자·비교</span><span class="sm">입자</span></button>
         </div>
-        <div class="row">
-          <div class="group" role="group" aria-label="입자 A 고르기">
-            <span class="gl a">A</span>
-            <button type="button" class="btn" data-pa="e" aria-pressed="true">전자</button>
-            <button type="button" class="btn" data-pa="p" aria-pressed="false">양성자</button>
-            <button type="button" class="btn" data-pa="a" aria-pressed="false">알파 입자</button>
-            <button type="button" class="btn" data-pa="ball" aria-pressed="false">야구공</button>
+        <div class="sheet" id="sheet" role="group" aria-label="입자와 비교 방법">
+          <div class="sheet-head"><b>입자 · 비교 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="입자 A 고르기">
+              <span class="gl a">A</span>
+              <button type="button" class="btn" data-pa="e" aria-pressed="true">전자</button>
+              <button type="button" class="btn" data-pa="p" aria-pressed="false">양성자</button>
+              <button type="button" class="btn" data-pa="a" aria-pressed="false">알파 입자</button>
+              <button type="button" class="btn" data-pa="ball" aria-pressed="false">야구공</button>
+            </div>
+            <div class="group" role="group" aria-label="보기">
+              <span class="gl">보기</span>
+              <button type="button" class="btn" data-view="one" aria-pressed="false">한 입자</button>
+              <button type="button" class="btn" data-view="two" aria-pressed="true">두 입자 비교</button>
+            </div>
+            <button type="button" class="btn" id="restart">나란히 출발</button>
           </div>
-          <div class="grow">
-            <label class="ctl-label" for="eA"><span>A의 운동 에너지 E<sub>k</sub> (로그 눈금)</span> <output id="eAOut">25 eV</output></label>
-            <input id="eA" type="range" min="0" max="120" step="1" value="0">
+          <div class="row" id="rowB">
+            <div class="group" role="group" aria-label="입자 B 고르기">
+              <span class="gl b">B</span>
+              <button type="button" class="btn" data-pb="e" aria-pressed="true">전자</button>
+              <button type="button" class="btn" data-pb="p" aria-pressed="false">양성자</button>
+              <button type="button" class="btn" data-pb="a" aria-pressed="false">알파 입자</button>
+              <button type="button" class="btn" data-pb="ball" aria-pressed="false">야구공</button>
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="eB"><span>B의 운동 에너지 E<sub>k</sub> (로그 눈금)</span> <output id="eBOut">100 eV</output></label>
+              <input id="eB" type="range" min="0" max="120" step="1" value="0">
+            </div>
           </div>
-        </div>
-        <div class="row" id="rowB">
-          <div class="group" role="group" aria-label="입자 B 고르기">
-            <span class="gl b">B</span>
-            <button type="button" class="btn" data-pb="e" aria-pressed="true">전자</button>
-            <button type="button" class="btn" data-pb="p" aria-pressed="false">양성자</button>
-            <button type="button" class="btn" data-pb="a" aria-pressed="false">알파 입자</button>
-            <button type="button" class="btn" data-pb="ball" aria-pressed="false">야구공</button>
+          <div class="row" id="rowKeep">
+            <div class="group" role="group" aria-label="B를 A와 같게 맞출 양">
+              <span class="gl">B를 A와</span>
+              <button type="button" class="btn" data-keep="free" aria-pressed="true">따로 조절</button>
+              <button type="button" class="btn" data-keep="Ek" aria-pressed="false">같은 운동 에너지</button>
+              <button type="button" class="btn" data-keep="p" aria-pressed="false">같은 운동량</button>
+              <button type="button" class="btn" data-keep="v" aria-pressed="false">같은 속력</button>
+            </div>
           </div>
-          <div class="grow">
-            <label class="ctl-label" for="eB"><span>B의 운동 에너지 E<sub>k</sub> (로그 눈금)</span> <output id="eBOut">100 eV</output></label>
-            <input id="eB" type="range" min="0" max="120" step="1" value="0">
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cRuler" checked>파장 자</label>
+            <label class="chk"><input type="checkbox" id="cAtoms" checked>원자 크기 자</label>
+            <label class="chk"><input type="checkbox" id="cTrap" checked><span>틀린 생각(λ ∝ 1/E<sub>k</sub>)과 비교</span></label>
           </div>
-        </div>
-        <div class="row toggles" id="rowKeep">
-          <div class="group" role="group" aria-label="B를 A와 같게 맞출 양">
-            <span class="gl">B를 A와</span>
-            <button type="button" class="btn" data-keep="free" aria-pressed="true">따로 조절</button>
-            <button type="button" class="btn" data-keep="Ek" aria-pressed="false">같은 운동 에너지</button>
-            <button type="button" class="btn" data-keep="p" aria-pressed="false">같은 운동량</button>
-            <button type="button" class="btn" data-keep="v" aria-pressed="false">같은 속력</button>
-          </div>
-        </div>
-        <div class="row">
-          <label class="chk"><input type="checkbox" id="cRuler" checked>파장 자</label>
-          <label class="chk"><input type="checkbox" id="cAtoms" checked>원자 크기 자</label>
-          <label class="chk"><input type="checkbox" id="cTrap" checked><span>틀린 생각(λ ∝ 1/E<sub>k</sub>)과 비교</span></label>
         </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치 <small id="roNote">A와 B 비교</small></h2>
-        <div class="readouts">
-          <div class="ro vel" id="t1"><span>A의 파장 λ<sub>A</sub></span><b>–</b><small></small></div>
-          <div class="ro b" id="t2"><span>B의 파장 λ<sub>B</sub></span><b>–</b><small></small></div>
-          <div class="ro cu" id="t3"><span>파장 비 λ<sub>B</sub> ÷ λ<sub>A</sub></span><b>–</b><small></small></div>
-          <div class="ro" id="t4"><span>운동량 비 p<sub>B</sub> ÷ p<sub>A</sub></span><b>–</b><small></small></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span>지금 물질파 파장</span><span id="ansCtx">A 전자 25 eV · B 전자 100 eV</span></div>
+        <div class="big" id="ansBig">B의 파장 = A의 1/2배</div>
+        <div class="sub">
+          <span class="f" id="ansF">λ = h/√(2mE<sub>k</sub>) 에 지금 값(kg, J)을 넣으면</span>
+          <span id="ansLines"></span>
         </div>
         <table class="cmp" id="cmp">
           <thead><tr><th></th><th class="a">A</th><th class="b">B</th><th class="r">B ÷ A</th></tr></thead>
@@ -134,75 +133,83 @@
           </tbody>
         </table>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2><span>λ–E<sub>k</sub> 그래프</span> <small>λ = h/√(2mE<sub>k</sub>)</small></h2>
-        <div class="glegend" id="gELeg"></div>
-        <canvas class="flat" id="gE" aria-label="운동 에너지에 따른 물질파 파장. 같은 입자는 한 곡선 위에 있고, 무거운 입자일수록 아래 곡선."></canvas>
-        <p class="cap">같은 입자에서 E<sub>k</sub> 4배 → λ <b>½배</b>: λ는 E<sub>k</sub>가 아니라 <b>√E<sub>k</sub></b>에 반비례한다. 같은 E<sub>k</sub>에서는 무거울수록 아래 곡선(λ ∝ 1/√m).</p>
-      </section>
-      <section class="panel">
-        <h2>λ–p 그래프 <small>λ = h/p</small></h2>
-        <div class="glegend"><span><b style="background:var(--ink)"></b><span>λ = h/p — 질량과 관계없이 곡선 하나</span></span></div>
-        <canvas class="flat" id="gP" aria-label="운동량에 따른 물질파 파장. 모든 입자가 같은 곡선 λ = h/p 위에 있다."></canvas>
-        <p class="cap">곡선이 <b>하나</b>뿐이다 → 운동량이 같으면 전자든 양성자든 파장이 같다. ‘B를 A와 같은 운동량’으로 두면 두 점이 겹친다.</p>
-      </section>
-      <section class="panel wide">
-        <h2>파장의 크기 <small>로그 눈금 (단위 m, 한 칸 = 10배)</small></h2>
-        <canvas class="flat" id="ruler" aria-label="10의 -36제곱 m 부터 10의 -5제곱 m 까지의 로그 눈금 위에 A, B의 파장과 원자핵·원자·가시광선 크기를 표시."></canvas>
-        <p class="cap" id="rulerCap"></p>
-      </section>
-    </aside>
-  </main>
+      </div>
 
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>드브로이의 생각: λ = h/p</h3>
-        <p>파동인 빛이 입자성(광자의 운동량 p = h/λ)을 보인다면, 입자인 전자도 파동성을 보이지 않을까? 드브로이는 질량이 있는 입자에도 파장 <span class="eq">λ = h/p</span> 인 파동이 따른다고 보았다. 이것이 <b>물질파(드브로이 파)</b>다.</p>
-        <p>p = mv, E<sub>k</sub> = p²/2m 이므로 <span class="eq">λ = h/mv = h/√(2mE<sub>k</sub>)</span>.</p>
-      </article>
-      <article class="concept">
-        <h3>무엇이 같은지부터 본다</h3>
-        <p><b>같은 운동량</b> → 질량과 관계없이 파장이 같다. <b>같은 운동 에너지</b> → 무거울수록 짧다(λ&nbsp;∝&nbsp;1/√m). <b>같은 속력</b> → λ&nbsp;∝&nbsp;1/m.</p>
-        <p>같은 입자에서 λ는 √E<sub>k</sub>에 반비례한다. 운동 에너지 4배 → 파장 <b>1/2배</b>, 속력 2배 → 파장 1/2배.</p>
-      </article>
-      <article class="concept">
-        <h3>야구공의 파동성은 왜 안 보일까</h3>
-        <p>h가 매우 작아서 mv가 큰 물체는 파장이 터무니없이 짧다. 100 eV 전자는 약 10⁻¹⁰ m(원자 크기)라 결정에서 회절하지만, 날아가는 야구공은 약 10⁻³⁴ m라 관측할 수 없다.</p>
-        <p>전자뿐 아니라 양성자·중성자·분자에서도 파동성이 확인되었다 — <b>물질의 이중성</b>.</p>
-      </article>
-    </div>
-    <p class="compare">역학과 이어 보기: 충격량 = 운동량 변화 → λ = h/p, 알짜힘이 한 일 = 운동 에너지 변화 → λ = h/√(2mE<sub>k</sub>). 곱이 일정한 관계 <span class="eq">mvλ = h</span>, <span class="eq">2mE<sub>k</sub>λ² = h²</span> 에서 두 양의 비만 알면 나머지 비가 바로 나온다.</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>운동 에너지 E로 움직이던 전자를 가속해 4E로 만들었다. 물질파 파장은 처음의 몇 배인가? 또 운동 에너지가 4E인 양성자(질량은 전자의 약 1840배)의 파장은 이 전자의 몇 배인가?<span class="tag">개념서 예제</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="ex2">4E 양성자와 비교</button></div>
-        <details><summary>답 보기</summary><p>같은 입자에서 λ ∝ 1/√E<sub>k</sub> → 1/√4 = <b>1/2배</b>. 같은 운동 에너지에서 λ ∝ 1/√m → 1/√1840 ≈ <b>1/43배</b>. 무대에서 양성자의 물결은 돋보기로 확대해야 보인다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>전자와 양성자의 물질파 파장이 같다. 운동 에너지·속력·운동량 가운데 두 입자가 같은 것은?</p>
-        <div class="acts"><button type="button" class="btn" data-try="same">파장이 같은 전자와 양성자</button></div>
-        <details><summary>답 보기</summary><p><b>운동량의 크기</b>가 같다(λ = h/p). 그러면 E<sub>k</sub> = p²/2m 에서 무거운 양성자의 운동 에너지는 전자의 1/1840, 속력도 1/1840이다. ‘파장이 같으면 운동 에너지가 같다’는 흔한 착각이다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>어떤 입자의 속력을 3배로 하면 물질파 파장과 운동 에너지는 각각 몇 배가 될까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="three">속력 3배와 비교</button></div>
-        <details><summary>답 보기</summary><p>λ = h/mv → 파장 <b>1/3배</b>, E<sub>k</sub> ∝ v² → 운동 에너지 <b>9배</b>. 거꾸로 운동 에너지 9배 → 파장 1/√9 = 1/3배로 λ ∝ 1/√E<sub>k</sub> 와도 맞는다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>모든 물체가 물질파를 가진다면, 날아가는 야구공의 파동성은 왜 관측되지 않을까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="ball">전자와 야구공 비교</button></div>
-        <details><summary>답 보기</summary><p>h = 6.6 × 10⁻³⁴ J·s 가 매우 작아서, 시속 약 146 km(E<sub>k</sub> = 120 J)의 야구공은 λ ≈ 1.1 × 10⁻³⁴ m 이다. 원자(10⁻¹⁰ m)는커녕 원자핵(약 10⁻¹⁵ m)보다도 10¹⁹배쯤 짧아 회절·간섭을 일으킬 틈이 없다.</p></details>
-      </li>
-    </ol>
-    <!-- nextprev -->
+      <ol class="steps">
+        <li class="card step" data-step="① 입자에도 파장이 있다">
+          <div class="kind">관찰 1</div>
+          <h3>움직이는 입자에는 파장 λ&nbsp;=&nbsp;h/p 인 물질파가 따른다</h3>
+          <p>파동인 빛이 입자성(광자의 운동량 p = h/λ)을 보인다면, 입자인 전자도 파동성을 보이지 않을까? 드브로이는 질량이 있는 입자에도 파장 <span class="eq">λ = h/p</span> 인 파동이 따른다고 보았다. 이것이 <b>물질파(드브로이 파)</b>다.</p>
+          <p class="cap">무대에서 입자 뒤에 끌려가는 보라색 물결이 물질파이고, 구리색 치수선이 파장 λ 다. p = mv, E<sub>k</sub> = p²/2m 이므로 λ = h/mv = h/√(2mE<sub>k</sub>). 물결의 진폭과 날아가는 빠르기는 그림용이다.</p>
+          <div class="acts"><button type="button" class="btn" data-do="click:[data-view=one]">한 입자만 보기</button><button type="button" class="btn" data-do="click:[data-view=two]">두 입자 나란히</button></div>
+        </li>
+        <li class="card step" data-step="② 에너지 4배 → 파장 ½배">
+          <div class="kind">관찰 2</div>
+          <h3>운동 에너지가 4배면 파장은 1/4이 아니라 1/2배다</h3>
+          <p>A는 25 eV, B는 100 eV 전자다. B의 운동 에너지가 4배인데 물결은 1/2로만 촘촘해진다. 같은 입자에서 λ 는 E<sub>k</sub> 가 아니라 <b>√E<sub>k</sub></b> 에 반비례한다.</p>
+          <div class="glegend" id="gELeg"></div>
+          <canvas class="flat" id="gE" aria-label="운동 에너지에 따른 물질파 파장. 같은 입자는 한 곡선 위에 있고, 무거운 입자일수록 아래 곡선."></canvas>
+          <p class="cap">같은 입자는 한 곡선 위에 있고, 같은 E<sub>k</sub>에서는 무거운 입자일수록 아래 곡선이다(λ&nbsp;∝&nbsp;1/&#8288;√m). 점선은 ‘λ ∝ 1/E<sub>k</sub>’라고 잘못 생각했을 때의 곡선이고, 빈 동그라미가 그때 B가 있을 자리다. 속력 2배 → 파장 1/2배와도 같은 말이다. 운동 에너지 막대는 로그 눈금이다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">25 eV → 100 eV (예제)</button><button type="button" class="btn" data-try="three">10 eV → 90 eV</button></div>
+        </li>
+        <li class="card step" data-step="③ 무엇이 같은가">
+          <div class="kind">관찰 3</div>
+          <h3>운동량이 같으면 질량과 관계없이 파장이 같다</h3>
+          <p>λ = h/p 이므로 <b>같은 운동량</b>이면 전자든 양성자든 파장이 같다. 같은 운동 에너지라면 무거울수록 짧고(λ&nbsp;∝&nbsp;1/&#8288;√m), 같은 속력이라면 λ&nbsp;∝&nbsp;1/m 이다. 무엇이 같은지부터 보고 비를 구한다.</p>
+          <div class="glegend"><span><b style="background:var(--ink)"></b><span>λ = h/p — 질량과 관계없이 곡선 하나</span></span></div>
+          <canvas class="flat" id="gP" aria-label="운동량에 따른 물질파 파장. 모든 입자가 같은 곡선 λ = h/p 위에 있다."></canvas>
+          <p class="cap">λ–p 그래프는 곡선이 하나뿐이라, 운동량이 같으면 두 점이 겹친다. 지금 값 카드의 표에서 무엇이 ‘같다’인지 견줘 보자.</p>
+          <div class="acts"><button type="button" class="btn" data-try="same">같은 운동량: 전자·양성자</button><button type="button" class="btn" data-try="ex2">같은 운동 에너지</button><button type="button" class="btn" data-try="samev">같은 속력</button></div>
+        </li>
+        <li class="card step" data-step="④ 파장의 크기">
+          <div class="kind">관찰 4</div>
+          <h3>전자의 파장은 원자 크기, 야구공은 관측할 수 없을 만큼 짧다</h3>
+          <p>h 가 매우 작아서 mv가 큰 물체는 파장이 터무니없이 짧다. 100 eV 전자는 약 10⁻¹⁰ m(원자 크기)라 결정에서 회절하지만, 날아가는 야구공은 약 10⁻³⁴ m라 관측할 수 없다.</p>
+          <canvas class="flat" id="ruler" aria-label="10의 -36제곱 m 부터 10의 -4제곱 m 까지의 로그 눈금 위에 A, B의 파장과 원자핵·원자·가시광선 크기를 표시."></canvas>
+          <p class="cap" id="rulerCap"></p>
+          <p class="cap">로그 눈금이라 한 칸이 10배다. 무대 아래의 원자 자는 물결과 같은 배율이다. 전자뿐 아니라 양성자·중성자·분자에서도 파동성이 확인되었다 — 물질의 이중성.</p>
+          <div class="acts"><button type="button" class="btn" data-try="alpha">알파 입자(5 MeV)와 비교</button><button type="button" class="btn" data-try="ball">전자와 야구공 비교</button></div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>λ = h/p — 무엇이 같은지부터 본다</h3>
+          <ul>
+            <li><span class="eq">λ = h/p = h/mv = h/√(2mE<sub>k</sub>)</span>, h = 6.6 × 10⁻³⁴ J·s</li>
+            <li>같은 p → 같은 λ. 같은 E<sub>k</sub> → λ&nbsp;∝&nbsp;1/&#8288;√m. 같은 v → λ&nbsp;∝&nbsp;1/m.</li>
+            <li>같은 입자에서 λ&nbsp;∝&nbsp;1/&#8288;√E<sub>k</sub>(1/E<sub>k</sub> 가 아니다): 운동 에너지 4배 → 파장 1/2배, 속력 2배 → 파장 1/2배.</li>
+            <li>곱이 일정한 관계 <span class="eq">mvλ = h</span>, <span class="eq">2mE<sub>k</sub>λ² = h²</span> 에서 두 양의 비만 알면 나머지 비가 바로 나온다. 역학과 이어 보면 충격량 = 운동량 변화 → λ = h/p, 알짜힘이 한 일 = 운동 에너지 변화 → λ = h/√(2mE<sub>k</sub>).</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>운동 에너지 E로 움직이던 전자를 가속해 4E로 만들었다. 물질파 파장은 처음의 몇 배인가? 또 운동 에너지가 4E인 양성자(질량은 전자의 약 1840배)의 파장은 이 전자의 몇 배인가?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="ex2">4E 양성자와 비교</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>같은 입자에서 λ ∝ 1/√E<sub>k</sub> 이므로 운동 에너지 4배 → 파장 1/√4 = <b>1/2배</b>(무대: 25 eV 0.245 nm → 100 eV 0.122 nm). 같은 운동 에너지에서 λ&nbsp;∝&nbsp;1/&#8288;√m 이므로 양성자의 파장은 전자의 1/&#8288;√1840 ≈ 1/43배다. 무대에서 양성자의 물결은 돋보기로 확대해야 보인다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>전자와 양성자의 물질파 파장이 같다. 운동 에너지·속력·운동량 가운데 두 입자가 같은 것은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="same">파장이 같은 전자와 양성자</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>운동량의 크기</b>가 같다(λ = h/p). 그러면 E<sub>k</sub> = p²/2m 에서 무거운 양성자의 운동 에너지는 전자의 1/1840, 속력도 1/1840이다. ‘파장이 같으면 운동 에너지가 같다’는 흔한 착각이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>어떤 입자의 속력을 3배로 하면 물질파 파장과 운동 에너지는 각각 몇 배가 될까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="three">속력 3배와 비교</button></div>
+            <details class="ans"><summary>답 보기</summary><p>λ = h/mv → 파장 <b>1/3배</b>, E<sub>k</sub> ∝ v² → 운동 에너지 9배. 거꾸로 운동 에너지 9배 → 파장 1/√9 = 1/3배로 λ ∝ 1/√E<sub>k</sub> 와도 맞는다.</p></details>
+          </div>
+          <div class="q">
+            <h3>모든 물체가 물질파를 가진다면, 날아가는 야구공의 파동성은 왜 관측되지 않을까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="ball">전자와 야구공 비교</button></div>
+            <details class="ans"><summary>답 보기</summary><p>h = 6.6 × 10⁻³⁴ J·s 가 매우 작아서, 시속 약 146 km(E<sub>k</sub> = 120 J)의 야구공은 λ ≈ 1.1 × 10⁻³⁴ m 이다. 원자(10⁻¹⁰ m)는커녕 원자핵(약 10⁻¹⁵~10⁻¹⁴ m)보다도 <b>10¹⁹배 넘게 짧아</b> 회절·간섭을 일으킬 틈이 없다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../05/" rel="prev"><small>← 이전 개념 · III2-05</small><b>CCD</b></a><a href="../07/" rel="next"><small>다음 개념 · III2-07 →</small><b>물질파 그래프·표 해석</b></a></nav>
 <!-- /nextprev -->
-  </section>
+    </section>
+  </main>
 </div>
 
 <script src="../../kit/lab.js"></script>
@@ -328,7 +335,7 @@
       return;
     }
     Lab.circle(ctx, x, y, r, {fill: col, stroke: C.paper, width: 2});
-    text(ctx, P[type].sym, x, y + 0.5, {size: 13, w: 700, color: C.paper});
+    text(ctx, P[type].sym, x, y + 0.5, {size: 13, w: 600, color: C.paper});
   }
   // 파속: 가우스 포락선 × 코사인. 입자 뒤에 끌려가듯 그린다 (교과서 그림과 같은 약속)
   function drawPacket(ctx, xs, xe, xw, sigma, yc, amp, lamPx) {
@@ -363,25 +370,27 @@
     ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 6; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(cx + R * 0.74, cy + R * 0.74); ctx.lineTo(cx + R * 0.74 + 9, cy + R * 0.74 + 9); ctx.stroke(); ctx.restore();
     Lab.circle(ctx, cx, cy, R, {stroke: C.ink, width: 2.6});
-    text(ctx, '×' + mag, cx + R * 0.72, cy - R * 0.86, {size: 14, w: 700, color: C.copper, halo: true, align: 'left', mono: true});
+    text(ctx, '×' + mag, cx + R * 0.72, cy - R * 0.86, {size: 14, w: 600, color: C.copper, halo: true, align: 'left', mono: true});
   }
 
   // ── 무대 ────────────────────────────────────────────────
   const stage = Lab.canvas('stage', () => drawStage());
   const gE = Lab.canvas('gE', () => drawGE()), gP = Lab.canvas('gP', () => drawGP()), ruler = Lab.canvas('ruler', () => drawRuler());
 
+  const legendOff = window.matchMedia ? matchMedia('(max-width: 999px)') : {matches: false};   // 좁은 화면: 범례는 시트 안에 있다
   function layout(W, H) {
     const narrow = W < 520, n = S.view === 'two' ? 2 : 1;
-    const x0 = narrow ? 12 : 20, x1 = W - x0, top = narrow ? 46 : 50;
-    const legendH = narrow ? 66 : 44, rulerH = S.atoms ? (narrow ? 74 : 84) : 0;
+    const x0 = narrow ? 12 : 20, x1 = W - x0, top = narrow ? 44 : 50;
+    // 아래 자리: 넓은 화면은 범례(44px), 좁은 화면은 오른쪽 아래 ‘지금 단계’ 표시(30px). 폰 무대는 거의 정사각형이라 원자 자를 낮게
+    const legendH = legendOff.matches ? 30 : 44, rulerH = S.atoms ? (narrow ? 60 : 84) : 0;
     const lanesBot = H - legendH - rulerH, laneH = (lanesBot - top) / n;
     const lanes = shown().map((k, i) => ({key: k, y0: top + i * laneH, h: laneH}));
     return {narrow, x0, x1, laneW: x1 - x0, lanes, rulerTop: lanesBot, rulerH};
   }
   const geo = (L, ln, st) => {
     const r = RAD[st.type] * (L.narrow ? 0.9 : 1), sigma = L.laneW * 0.09;
-    // 물결 마루 위의 파장 자 글자가 이름표 줄(위 23 px)과 겹치지 않게 기준선을 내린다
-    const amp = Math.min(ln.h * 0.25, 50), yc = ln.y0 + Math.min(ln.h - amp - 4, Math.max(ln.h * 0.6, 58 + amp));
+    // 물결 마루 위의 파장 자 글자가 이름표 줄(위 23 px)과 겹치지 않게 기준선을 내린다. 폰은 돋보기가 칸 안에 들게 조금 올린다
+    const amp = Math.min(ln.h * (L.narrow ? 0.22 : 0.25), 50), yc = ln.y0 + Math.min(ln.h - amp - (L.narrow ? 10 : 4), Math.max(ln.h * 0.6, 58 + amp));
     return {r, sigma, yc, amp, packFrac: (5 * sigma + r + 2) / L.laneW};
   };
 
@@ -412,15 +421,15 @@
     // 돋보기: 화면에서 물결이 뭉개질 만큼 짧을 때
     if (drawable && lamPx < 5) {
       const mags = [2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
-      const mag = mags.find((m) => lamPx * m >= 22);
-      if (mag) lens(ctx, xw, yc, amp + 10, lamPx, mag, amp * 0.8);
+      const mag = mags.find((m) => lamPx * m >= 22), R = Math.min(amp + (L.narrow ? 4 : 10), ln.y0 + ln.h - yc - 8);
+      if (mag) lens(ctx, xw, yc, R, lamPx, mag, Math.min(amp * 0.8, R - 6));
     }
     // 파장 자
     if (S.ruler && drawable && lamPx >= 12) {
       let a = xw - lamPx, b = xw;
       if (a < L.x0 + 4) { a = xw; b = xw + lamPx; }
       if (b < xe && a > L.x0 - 2) {
-        const yb = yc - amp - 12;
+        const yb = yc - amp - (L.narrow ? 9 : 12);
         ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.2; ctx.setLineDash([2, 3]);
         for (const x of [a, b]) { const e = Math.exp(-((x - xw) * (x - xw)) / (2 * sigma * sigma)); ctx.beginPath(); ctx.moveTo(x, yc - amp * e - 3); ctx.lineTo(x, yb); ctx.stroke(); }
         ctx.restore();
@@ -431,17 +440,17 @@
     drawParticle(ctx, bx, yc, r, st.type, col);
     const Lv = (L.narrow ? 12 : 16) + (L.narrow ? 34 : 46) * f.v / vRef;
     arrow(ctx, bx + r + 4, yc, bx + r + 4 + Lv, yc, col, 3, 10);
-    text(ctx, 'v', bx + r + 4 + Lv / 2, yc - 12, {size: 14, w: 700, color: col, halo: true});
+    text(ctx, 'v', bx + r + 4 + Lv / 2, yc - 12, {size: 14, w: 600, color: col, halo: true});
     ctx.restore();
     // 이름표: 왼쪽 = 입자·운동 에너지, 오른쪽 = 파장
     const ly = ln.y0 + 15, sz = L.narrow ? 14 : 15;
     Lab.circle(ctx, L.x0 + 11, ly, 11, {fill: col});
-    text(ctx, ln.key, L.x0 + 11, ly + 0.5, {size: 13, w: 700, color: C.paper});
-    rich(ctx, f.t.name + (L.narrow ? ' · ' : ' · E_k = ') + fmtE(st.E, f.t.micro), L.x0 + 28, ly, {size: sz, w: 700, align: 'left', halo: true});
+    text(ctx, ln.key, L.x0 + 11, ly + 0.5, {size: 13, w: 600, color: C.paper});
+    rich(ctx, f.t.name + (L.narrow ? ' · ' : ' · E_k = ') + fmtE(st.E, f.t.micro), L.x0 + 28, ly, {size: sz, w: 600, align: 'left', halo: true});
     rich(ctx, 'λ = ' + fmtLen(f.lam), L.x1, ly, {size: sz, w: 700, align: 'right', color: C.violet, halo: true});
     if (ln.key === 'B' && !L.narrow && fs.A && drawable && fs.A.lam >= 1e-16) {
       const rr = f.lam / fs.A.lam, t = ratioText(rr);
-      text(ctx, Math.abs(rr - 1) < 1e-6 ? 'A와 같다' : 'A의 ' + (hasRoot(t) ? approxText(rr).replace('≈ ', '약 ') : t) + '배', L.x1, ly + 21, {size: 13, w: 700, align: 'right', color: C.copper, halo: true});
+      text(ctx, Math.abs(rr - 1) < 1e-6 ? 'A와 같다' : 'A의 ' + (hasRoot(t) ? approxText(rr).replace('≈ ', '약 ') : t) + '배', L.x1, ly + 21, {size: 13, w: 600, align: 'right', color: C.copper, halo: true});
     }
     if (!drawable) {
       text(ctx, (L.narrow ? '너무 짧아 그릴 수 없다 (원자핵의 약 10' : '너무 짧아 그릴 수 없다 — 원자핵 크기(10⁻¹⁵ m)의 약 10') + sup(Math.round(Math.log10(f.lam / 1e-15))) + (L.narrow ? '배)' : '배'),
@@ -458,13 +467,13 @@
     const Ls = niceNear(S.VwShow / (L.narrow ? 4 : 5)), lp = Ls * pxm;
     ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(L.x1 - lp, yl - 5); ctx.lineTo(L.x1 - lp, yl + 5); ctx.moveTo(L.x1 - lp, yl); ctx.lineTo(L.x1, yl); ctx.moveTo(L.x1, yl - 5); ctx.lineTo(L.x1, yl + 5); ctx.stroke(); ctx.restore();
-    text(ctx, fmtLen(Ls), L.x1 - lp - 8, yl, {size: 13, w: 700, align: 'right', mono: true});
+    text(ctx, fmtLen(Ls), L.x1 - lp - 8, yl, {size: 13, w: 600, align: 'right', mono: true});
     const mode = dA >= 4 && dA <= L.laneW * 0.6 ? 'row' : dA > L.laneW * 0.6 ? 'huge' : 'tiny';
     const nw = L.narrow;
     const title = mode === 'row' ? (nw ? '원자 (지름 10⁻¹⁰ m)' : '원자 (지름 ≈ 10⁻¹⁰ m) — 같은 배율')
       : mode === 'huge' ? (nw ? '원자 = 화면 폭의 ' : '원자 지름(10⁻¹⁰ m)이 화면 폭의 ') + sig(M.ATOM / S.Vw, 2) + '배'
       : (nw ? '원자 = 화면 폭의 1/' : '원자 지름(10⁻¹⁰ m)은 화면 폭의 1/') + sig(S.Vw / M.ATOM, 2);
-    text(ctx, title, L.x0, yl, {size: 13, w: 700, align: 'left', color: C.muted, halo: true});
+    text(ctx, title, L.x0, yl, {size: 13, w: 500, align: 'left', color: C.muted, halo: true});
     ctx.save(); ctx.beginPath(); ctx.rect(L.x0, y0 + 26, L.laneW, h - 28); ctx.clip();
     if (mode === 'row') {
       for (let i = 0; L.x0 + dA * i < L.x1; i++) {
@@ -478,7 +487,7 @@
       if (dN >= 3 && dN < L.laneW * 0.6) {
         const nx = L.x0 + L.laneW * 0.62;
         Lab.circle(ctx, nx, ya, Math.max(3, dN / 2), {fill: Lab.alpha(C.force, 0.25), stroke: C.force, width: 1.4});
-        text(ctx, '원자핵 (≈ 10⁻¹⁴ m)', nx + dN / 2 + 8, ya, {size: 13, w: 700, align: 'left', color: C.force, halo: true});
+        text(ctx, '원자핵 (10⁻¹⁵~10⁻¹⁴ m)', nx + dN / 2 + 8, ya, {size: 13, w: 600, align: 'left', color: C.force, halo: true});
       }
     } else {
       ctx.fillStyle = Lab.alpha(C.muted, 0.5);
@@ -521,7 +530,7 @@
       const o = list[1 - i], near = o && Math.hypot(q.x - o.x, q.y - o.y) < 22;
       Lab.circle(ctx, q.x + (near ? (i ? 3 : -3) : 0), q.y, 6.5, {fill: LCOL(q.key), stroke: C.paper, width: 2.2});
       const dx = near && i ? 14 : (near ? -14 : 12), dy = near && i ? 14 : -13;
-      text(ctx, q.key, q.x + dx, q.y + dy, {size: 14, w: 700, color: LCOL(q.key), halo: true});
+      text(ctx, q.key, q.x + dx, q.y + dy, {size: 14, w: 600, color: LCOL(q.key), halo: true});
     });
   }
   function guides(ctx, ax, list) {
@@ -601,7 +610,7 @@
     points(ctx, list);
     if (pts.length === 2 && Math.abs(pts[1].f.p / pts[0].f.p - 1) < 1e-6) {
       const q = list[0], left = q.x > r.x + r.w * 0.6;
-      text(ctx, '운동량이 같다 → 같은 점', q.x + (left ? -16 : 16), q.y - 30, {size: 13, w: 700, color: C.acc, align: left ? 'right' : 'left', halo: true});
+      text(ctx, '운동량이 같다 → 같은 점', q.x + (left ? -16 : 16), q.y - 30, {size: 13, w: 600, color: C.acc, align: left ? 'right' : 'left', halo: true});
     }
     noteOut(ctx, r);
   }
@@ -621,7 +630,7 @@
     const X = (l) => Math.max(x0, Math.min(x1, x0 + (Math.log10(l) - lo) / (hi - lo) * (x1 - x0)));
     const every = W < 430 ? 8 : 4;
     // 기준: 원자핵, 원자, 가시광선 (이름표가 겹치면 한 줄 위로)
-    const refs = [[1e-15, 1e-14, '원자핵'], [5e-11, 3e-10, '원자'], [3.8e-7, 7.5e-7, '가시광선']];
+    const refs = [[1e-15, 1e-14, '원자핵'], [5e-11, 3e-10, '원자'], [3.8e-7, 7.5e-7, W < 430 ? '가시광' : '가시광선']];   // 좁은 폭: 짧은 이름이라야 ‘원자’와 다른 줄에 든다
     const rows = [[], []];
     refs.forEach(([a, b, s]) => {
       if (s === '가시광선') {
@@ -653,7 +662,7 @@
       ctx.save(); ctx.strokeStyle = LCOL(q.key); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(q.x, yL); ctx.lineTo(q.x, y - 8); ctx.stroke(); ctx.restore();
       Lab.circle(ctx, q.x, yL, 6.5, {fill: LCOL(q.key), stroke: C.paper, width: 2});
       const al = q.x < x0 + 50 ? 'left' : q.x > x1 - 50 ? 'right' : 'center';
-      text(ctx, q.s, q.x + (al === 'left' ? -6 : al === 'right' ? 6 : 0), y, {size: 13, w: 700, color: LCOL(q.key), align: al, halo: true});
+      text(ctx, q.s, q.x + (al === 'left' ? -6 : al === 'right' ? 6 : 0), y, {size: 13, w: 600, color: LCOL(q.key), align: al, halo: true});
     });
   }
 
@@ -667,27 +676,35 @@
     nucleus: '원자핵 크기 정도',
     none: '너무 짧아 어떤 장치로도 파동성을 관측할 수 없다',
   };
-  function setTile(id, label, val, sub) { const el = $(id); el.querySelector('span').innerHTML = label; el.querySelector('b').textContent = val; el.querySelector('small').textContent = sub || ''; }
+  const em = (x) => '<em>' + x + '</em>';
+  const numS = (v) => (Math.abs(v) >= 1e-3 && Math.abs(v) < 1e4 ? Lab.fmt(v, 3) : Lab.sci(v, 2, {force: true})).replace(/ /g, '\u00a0');
+  const SHORT = {wide: '원자 여러 개만큼 길다', atom: '원자 크기 정도', sub: '원자보다 훨씬 짧다', nucleus: '원자핵 크기 정도', none: '관측할 수 없을 만큼 짧다'};
+  // λ = h/√(2mE_k) 에 지금 값(kg, J)을 넣은 줄
+  const lamLine = (key, f) => (key ? 'λ<sub>' + key + '</sub>' : 'λ') + ' = 6.6\u00a0×\u00a010⁻³⁴ ÷ √(2 × ' + numS(f.m) + ' × ' + em(numS(f.E)) + ') = ' + em(fmtLen(f.lam));
+  // B ÷ A: 무엇이 같은지에 따라 가장 짧은 길로
+  function ratioLine(a, b) {
+    const rl = b.lam / a.lam, t = ratioText(rl), r = hasRoot(t) ? t + ' ' + approxText(rl) : t, eq = (x) => (x[0] === '≈' ? x : '= ' + x);
+    if (Math.abs(b.p / a.p - 1) < 1e-6) return 'p<sub>A</sub> = p<sub>B</sub> 이면 λ = h/p 도 같다 → ' + em('λ<sub>B</sub> = λ<sub>A</sub>');
+    if (a.t === b.t) return '같은 입자: λ<sub>B</sub> ÷ λ<sub>A</sub> = √(E<sub>A</sub> ÷ E<sub>B</sub>) = √(' + fmtE(a.E, a.t.micro) + ' ÷ ' + fmtE(b.E, b.t.micro) + ') ' + em(eq(r));
+    if (Math.abs(b.E / a.E - 1) < 1e-6) return '같은 E<sub>k</sub>: λ<sub>B</sub> ÷ λ<sub>A</sub> = √(m<sub>A</sub> ÷ m<sub>B</sub>) ' + em(eq(r));
+    if (Math.abs(b.v / a.v - 1) < 1e-6) return '같은 v: λ = h/mv → λ<sub>B</sub> ÷ λ<sub>A</sub> = m<sub>A</sub> ÷ m<sub>B</sub> ' + em(eq(r));
+    return 'λ<sub>B</sub> ÷ λ<sub>A</sub> = √(m<sub>A</sub>E<sub>A</sub> ÷ m<sub>B</sub>E<sub>B</sub>) ' + em(eq(r));
+  }
   function readouts() {
     const a = info(S.A), b = info(S.B), two = S.view === 'two';
     $('eAOut').textContent = fmtE(S.A.E, a.t.micro);
     $('eBOut').textContent = fmtE(S.B.E, b.t.micro) + (S.keep !== 'free' ? ' (자동)' : '');
+    // 지금 값: λ = h/√(2mE_k)
     if (two) {
-      setTile('t1', 'A의 파장 λ<sub>A</sub>', fmtLen(a.lam), Lab.sci(a.lam, 2) + ' m');
-      setTile('t2', 'B의 파장 λ<sub>B</sub>', fmtLen(b.lam), Lab.sci(b.lam, 2) + ' m');
-      const rl = b.lam / a.lam, rp = b.p / a.p, tl = ratioText(rl), tp = ratioText(rp);
-      setTile('t3', '파장 비 λ<sub>B</sub> ÷ λ<sub>A</sub>', tl, (hasRoot(tl) ? approxText(rl) + ' · ' : '') + small(rl));
-      setTile('t4', '운동량 비 p<sub>B</sub> ÷ p<sub>A</sub>', tp, (hasRoot(tp) ? approxText(rp) + ' · ' : '') + small(rp));
+      const rl = b.lam / a.lam, t = ratioText(rl), exact = !hasRoot(t) && t[0] !== '≈';
+      const big = Math.abs(rl - 1) < 1e-6 ? 'B의 파장 = A와 같다' : 'B의 파장 ' + (exact ? '= A의 ' + t : '≈ A의 ' + approxText(rl).replace('≈ ', '')) + '배';
+      Lab.ans(big, [lamLine('A', a), lamLine('B', b), ratioLine(a, b)],
+        {tone: big.length > 17 ? 'small' : '', ctx: 'A ' + a.t.name + ' ' + fmtE(a.E, a.t.micro) + ' · B ' + b.t.name + ' ' + fmtE(b.E, b.t.micro)});
     } else {
-      setTile('t1', '파장 λ = h/p', fmtLen(a.lam), Lab.sci(a.lam, 2) + ' m');
-      setTile('t2', '운동량 p = √(2mE<sub>k</sub>)', num2(a.p).replace('×', ' × '), 'kg·m/s');
-      setTile('t3', '속력 v', num2(a.v).replace('×', ' × '), 'm/s');
-      setTile('t4', '질량 m', num2(a.m).replace('×', ' × '), 'kg');
+      Lab.ans('λ = ' + fmtLen(a.lam), [lamLine('', a), '= ' + Lab.sci(a.lam, 2) + ' m → ' + em(SHORT[M.scaleOf(a.lam)])],
+        {tone: '', ctx: a.t.name + ' ' + fmtE(a.E, a.t.micro) + (a.t.micro ? ' = ' + Lab.sci(a.E, 2) + ' J' : '')});
     }
-    $('t2').className = 'ro' + (two ? ' b' : '');
-    $('t3').className = 'ro' + (two ? ' cu' : '');
-    $('roNote').textContent = two ? 'A와 B 비교' : P[S.A.type].name;
-    $('cmp').hidden = !two;
+    $('cmp').classList.toggle('one', !two);
     const cells = [['cm', 'm', num2], ['ce', 'E', null], ['cp', 'p', num2], ['cv', 'v', num2], ['cl', 'lam', num2]];
     cells.forEach(([id, k, f]) => {
       $(id + 'A').textContent = f ? f(a[k]) : fmtE(a.E, a.t.micro);
@@ -707,7 +724,7 @@
     const ex2 = two && S.A.type === 'e' && S.B.type === 'p' && Math.abs(S.B.E / S.A.E - 1) < 1e-6;
     if (ex1) Lab.check('exCheck', true, '예제 ①: 전자의 운동 에너지 4배(' + fmtE(S.A.E, true) + ' → ' + fmtE(S.B.E, true) + ') → 파장 ' + sig(b.lam / a.lam, 3) + '배 = 1/2배');
     else if (ex2) Lab.check('exCheck', true, '예제 ②: 운동 에너지가 같은(' + fmtE(S.A.E, true) + ') 양성자의 파장 = 전자의 ' + sig(b.lam / a.lam, 3) + '배 ≈ 1/43배');
-    else Lab.check('exCheck', false, '', '예제: 전자의 운동 에너지 E → 4E 이면 파장은? 4E 양성자는? — ‘스스로 확인 1’의 두 버튼으로 확인');
+    else Lab.check('exCheck', false, '', '예제: 전자의 운동 에너지 E → 4E 이면 파장은? 4E 양성자는? — ‘개념서 예제’ 단계의 두 버튼으로 확인');
   }
 
   // ── 조작 ────────────────────────────────────────────────
@@ -746,7 +763,7 @@
   const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
   $('restart').addEventListener('click', () => { S.A.u = S.B.u = U0; drawStage(); });
 
-  // 스스로 확인: 그 상황으로 바꾸기
+  // 단계 카드의 상황 버튼
   function scene(o) {
     S.view = 'two'; S.keep = o.keep || 'free'; S.trap = !!o.trap;
     S.A.type = o.A[0]; S.A.E = o.A[1]; S.B.type = o.B[0]; if (o.B[1] != null) S.B.E = o.B[1];
@@ -757,6 +774,8 @@
     ex: () => scene({A: ['e', 25 * EV], B: ['e', 100 * EV], trap: true}),
     ex2: () => scene({A: ['e', 100 * EV], B: ['p', 100 * EV], keep: 'Ek'}),
     same: () => scene({A: ['e', 100 * EV], B: ['p', null], keep: 'p'}),
+    samev: () => scene({A: ['e', 100 * EV], B: ['p', null], keep: 'v'}),
+    alpha: () => scene({A: ['e', 100 * EV], B: ['a', 5e6 * EV]}),
     three: () => scene({A: ['e', 10 * EV], B: ['e', 90 * EV]}),
     ball: () => scene({A: ['e', 100 * EV], B: ['ball', 120]}),
   };
