@@ -324,9 +324,9 @@
     if (narrow) {
       const xs = [14, 33, 52], w = 14, yT = H - 132, yB = H - 34, hb = yB - yT;
       text(ctx, 'E = ' + fmt(e.E, 2) + ' J', 12, yT - 13, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
-      [[e.K, C.energy, 'K'], [e.U, C.violet, 'U']].forEach(([v, col, nm], i) => { frame(ctx, xs[i], yT, w, yB); vbar(ctx, xs[i], yB, w, hb * v / Em, col); text(ctx, nm, xs[i] + w / 2, yB + 11, {size: 13, w: 700, color: col}); });
+      [[e.K, C.energy, 'K'], [e.U, C.violet, 'U']].forEach(([v, col, nm], i) => { frame(ctx, xs[i], yT, w, yB); vbar(ctx, xs[i], yB, w, hb * v / Em, col); text(ctx, nm, xs[i] + w / 2, yB + 11, {size: 13, w: 600, color: col}); });
       frame(ctx, xs[2], yT, w, yB); vbar(ctx, xs[2], yB, w, hb * e.K / Em, C.energy); vbar(ctx, xs[2], yB - hb * e.K / Em, w, hb * e.U / Em, C.violet);
-      text(ctx, 'E', xs[2] + w / 2, yB + 11, {size: 13, w: 700, color: C.acc});
+      text(ctx, 'E', xs[2] + w / 2, yB + 11, {size: 13, w: 600, color: C.acc});
       Lab.line(ctx, [[xs[0] - 4, yB - hb * e.E / Em], [xs[2] + w + 4, yB - hb * e.E / Em]], C.acc, 1.8, [4, 3]);
       return;
     }
@@ -337,11 +337,11 @@
     for (const v of [0, Em / 2, Em]) { Lab.line(ctx, [[xa - 3, Y(v)], [xa + 3, Y(v)]], C.muted, 1); text(ctx, fmt(v, 2), xa - 6, Y(v), {size: 13, w: 500, color: C.muted, align: 'right'}); }
     [[e.K, C.energy, 'K'], [e.U, C.violet, 'U']].forEach(([v, col, nm], i) => {
       frame(ctx, xs[i], yT, w, yB); vbar(ctx, xs[i], yB, w, hb * v / Em, col);
-      text(ctx, nm, xs[i] + w / 2, yB + 14, {size: 14, w: 700, color: col});
+      text(ctx, nm, xs[i] + w / 2, yB + 14, {size: 14, w: 600, color: col});
       text(ctx, fmt(v, 2), xs[i] + w / 2, Y(v) - 10, {size: 13, w: 600, color: col, halo: true});
     });
     frame(ctx, xs[2], yT, w, yB); vbar(ctx, xs[2], yB, w, hb * e.K / Em, C.energy); vbar(ctx, xs[2], Y(e.K), w, hb * e.U / Em, C.violet);
-    text(ctx, 'E', xs[2] + w / 2, yB + 14, {size: 14, w: 700, color: C.acc});
+    text(ctx, 'E', xs[2] + w / 2, yB + 14, {size: 14, w: 600, color: C.acc});
     text(ctx, fmt(e.E, 2), xs[2] + w / 2, Y(e.E) - 10, {size: 13, w: 600, color: C.acc, halo: true});
     Lab.line(ctx, [[xa + 4, Y(e.E)], [xs[2] + w + 6, Y(e.E)]], C.acc, 1.8, [5, 3]);
     // 놓은 뒤 일의 장부: 중력이 한 일 = E − U = K, 장력이 한 일 = 0
@@ -498,7 +498,7 @@
     }
     // 위: 수평 위치
     Lab.line(ctx, [[x0, cA], [x1, cA]], C.muted, 1.1);
-    text(ctx, 'x', 16, cA, {size: 15, w: 700, color: C.copper});
+    text(ctx, 'x', 16, cA, {size: 15, w: 600, color: C.copper});
     const pos = [], amp = hA * 0.45;
     for (let i = 0; i <= 240; i++) { const t = tm * i / 240; pos.push([X(t), cA - amp * S.side * Math.sin(at(p, t).th) * p.l / xm]); }
     Lab.line(ctx, pos, C.copper, 2.8);
@@ -513,8 +513,8 @@
     if (cmp) curve((t) => M.energies(q.m, q.g, q.l, q.th0, at(q, t).th).K, Lab.alpha(C.vel, 0.85), 2.2, [6, 4]);
     curve((t) => M.energies(p.m, G, p.l, p.th0, at(p, t).th).U, C.violet, 2.8);
     curve((t) => M.energies(p.m, G, p.l, p.th0, at(p, t).th).K, C.energy, 3);
-    text(ctx, 'K', X(T / 4) - 10, Y(E * 0.86), {size: 14, w: 700, color: C.energy, align: 'right', halo: true});
-    text(ctx, 'U', X(T / 2) + 10, Y(E * 0.86), {size: 14, w: 700, color: C.violet, align: 'left', halo: true});
+    text(ctx, 'K', X(T / 4) - 10, Y(E * 0.86), {size: 14, w: 600, color: C.energy, align: 'right', halo: true});
+    text(ctx, 'U', X(T / 2) + 10, Y(E * 0.86), {size: 14, w: 600, color: C.violet, align: 'left', halo: true});
     text(ctx, 'K + U = E', x1, Y(E) - 11, {size: 13, w: 600, color: C.acc, align: 'right', halo: true});
     if (cmp) text(ctx, CMP[S.cmp].short + '의 K', X(S.cmp === 'g4' ? T : T / 4) + 8, Y(Eq) - 10, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
     Lab.bracket(ctx, X(T / 4), X(3 * T / 4), yB - 27, C.energy, 'K 최대 간격 T/2 = ' + fmt(T / 2, 2) + ' s');
