@@ -158,6 +158,7 @@ input[type=range]{width:100%;height:28px;margin:0;accent-color:var(--copper)}
 .answer .big{font-size:36px;font-weight:700;line-height:1.15;color:var(--acc);overflow-wrap:anywhere}
 .answer .big.neg,.answer .big.tir{color:var(--neg)}
 .answer .big.vel{color:var(--vel)} .answer .big.cu{color:var(--copper)} .answer .big.ink{color:var(--ink)}
+.answer .big.violet{color:var(--violet)} .answer .big.force{color:var(--force)} .answer .big.energy{color:var(--energy)}
 .answer .big.small{font-size:28px}
 .answer .sub{display:grid;gap:2px;font-size:16px;color:var(--ink-2);min-width:0}
 .answer .sub .f{color:var(--muted);font-size:14px}

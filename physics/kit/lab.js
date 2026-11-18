@@ -24,7 +24,7 @@
  *          Lab.check(id, ok, okText, idleText)    예제 확인 줄 (.check / .check.ok)
  *          Lab.tries(map, after)   [data-try] 버튼 → map[key]() 실행, after(). 무대가 반도 안 보이면 무대로 스크롤
  *          Lab.ans(big, lines, {tone, lab, ctx, f, html})   「지금 값」 카드: #ansBig 에 큰 결과, #ansLines 에 식 줄(HTML 배열),
- *             tone = 'neg'|'vel'|'cu'|'ink'|'small' (기본 초록), lab → #ansLab (왼쪽 위 제목), ctx → #ansCtx (오른쪽 위 상황), f → #ansF (식 안내 줄),
+ *             tone = 'neg'|'vel'|'cu'|'ink'|'violet'|'force'|'energy'|'small' (기본 초록), lab → #ansLab (왼쪽 위 제목), ctx → #ansCtx (오른쪽 위 상황), f → #ansF (식 안내 줄),
  *             html: true 면 큰 결과도 HTML (λ<sub>A</sub> 처럼 아래첨자)
  *          Lab.pointer(el, {down(x,y), move(x,y), up()})   마우스·터치 끌기 (세로 스크롤은 페이지가 가짐)
  *  색 섞기 Lab.alpha(color, a) → 'rgba(…)'  토큰 색(#hex·rgb)에 투명도를 입힌다 (그라디언트 멈춤점 등)

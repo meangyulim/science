@@ -140,7 +140,7 @@
           <h3>질량·진폭을 바꿔도 주기는 그대로, 길이가 4배면 주기는 2배</h3>
           <p>복원력 (mg/l)x 도 관성 m 도 질량에 비례하므로 서로 약분된다. 그래서 <span class="eq">T = 2π√(l/g)</span> 는 길이와 g로만 정해진다(진자의 등시성). 질량이 다른 진자, 진폭이 다른 진자와 나란히 흔들어 보면 끝까지 발이 맞는다.</p>
           <canvas class="flat" id="gT" aria-label="주기의 제곱–길이 그래프. 원점을 지나는 직선이고 기울기는 4π²/g."></canvas>
-          <p class="cap">T²–l 그래프는 원점을 지나는 직선이고 기울기는 4π²/g다. 그래서 길이와 주기를 재면 g를 구할 수 있다. g가 1/4인 행성에서는 기울기가 4배, 같은 길이의 주기는 2배다.</p>
+          <p class="cap">T²–l 그래프는 원점을 지나는 직선이고 기울기는 4π²/g다. 그래서 길이와 주기를 재면 g를 구할 수 있다. g가 1/4인 행성에서는 기울기가 4배, 같은 길이의 주기는 2배다. 한 진자 보기는 길이를 바꿔도 같은 크기로 그리므로, 길이는 ‘길이 4배와 비교’에서 같은 축척으로 견준다. 무대는 진폭이 작다고 보고 단진동으로 움직인다(진폭이 크면 실제 주기는 조금 길어진다).</p>
           <div class="acts">
             <button type="button" class="btn go" data-try="cm">질량 2배와 비교</button>
             <button type="button" class="btn" data-try="ca">진폭 ½과 비교</button>
@@ -272,6 +272,8 @@
     if (S.view === 'force') drawForces(ctx, g, th, bx, by);
     else drawShadow(ctx, g, th, bx, by, w);
     pendulum(ctx, px, top, L, th, {arc: S.th0, rb: g.rb});
+    const sd = th >= 0 ? -1 : 1;                      // 실 길이 이름표: 추 반대쪽 (한 진자 보기는 길이가 바뀌면 축척이 바뀐다)
+    text(ctx, 'l = ' + fmt(S.l, 2) + ' m', px + sd * 14, top + L * 0.42, {size: 13, w: 600, color: C.copper, align: sd < 0 ? 'right' : 'left', halo: true});
     energyBars(ctx, W, H, w);
   }
   function energyBars(ctx, W, H, w) {               // 운동·퍼텐셜 에너지 막대 (합은 늘 E)
@@ -341,7 +343,7 @@
   }
   // 두 진자 비교: 왼쪽 = 기준(구리색), 오른쪽 = 비교(파랑). 길이 4배면 같은 축척으로 그린다
   function drawCompare(ctx, W, H) {
-    const narrow = W < 520, top = narrow ? 24 : 30, Lmax = H - top - 30, c = cmpPend();
+    const narrow = W < 520, top = narrow ? 54 : 30, Lmax = H - top - 30, c = cmpPend();
     const L2 = S.cmp === 'l4' ? Lmax : Lmax * 0.82, L1 = S.cmp === 'l4' ? Lmax / 4 : L2;
     const pend = [
       {x: W * 0.3, L: L1, l: S.l, m: S.m, th0: S.th0, col: C.copper, name: '기준', val: S.m + ' kg · ' + S.th0 + '° · ' + fmt(S.l, 2) + ' m'},
@@ -358,7 +360,8 @@
       const al = i ? 'left' : 'right', lx = p.x + (i ? 22 : -22), n = Math.floor(S.t / T + 1e-9);
       text(ctx, p.name, lx, top + 26, {size: 14, w: 700, color: p.col, align: al, halo: true});
       if (!narrow) text(ctx, p.val, lx, top + 46, {size: 13, w: 500, color: C.muted, align: al, halo: true});
-      text(ctx, 'T = ' + fmt(T, 2) + ' s · 왕복 ' + n + '번', lx, top + (narrow ? 46 : 66), {size: 13, w: 600, color: C.ink, align: al, halo: true});
+      text(ctx, 'T = ' + fmt(T, 2) + ' s' + (narrow ? '' : ' · 왕복 ' + n + '번'), lx, top + (narrow ? 46 : 66), {size: 13, w: 600, color: C.ink, align: al, halo: true});
+      if (narrow) text(ctx, '왕복 ' + n + '번', lx, top + 64, {size: 13, w: 500, color: C.muted, align: al, halo: true});
     });
   }
 
@@ -544,9 +547,9 @@
   $('reset').addEventListener('click', () => { S.t = 0; playCtl.set(true); refresh(); });
 
   // 단계 카드의 버튼: 그 상황으로
-  function setup(o) {
-    if (o.l != null) { S.l = o.l; lenEl.value = o.l; }
-    if (o.gk != null) { S.gk = o.gk; gG.set(String(o.gk), true); }
+  function setup(o) {                                 // 길이·g 는 말하지 않으면 예제 값(1 m, π²)으로
+    S.l = o.l != null ? o.l : 1; lenEl.value = S.l;
+    S.gk = o.gk != null ? o.gk : 1; gG.set(String(S.gk), true);
     if (o.view) setView(o.view);
     setCmp(o.cmp || 'one');
     S.t = o.t != null ? o.t * Tm() : 0;
