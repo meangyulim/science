@@ -37,7 +37,7 @@
     <section class="bench" aria-label="실험대">
       <div class="stage">
         <canvas id="stage" aria-label="천장에 매단 단진자가 흔들린다. 힘 보기에서는 중력과 그 두 성분, 장력을, 그림자 보기에서는 아래의 원 위를 등속으로 도는 점과 그 그림자가 추와 같이 움직이는 모습을 보인다. 비교 보기에서는 질량·진폭·길이가 다른 진자를 나란히 흔든다."></canvas>
-        <div class="hud"><span class="pill" id="hud1">t = 0 s</span><span class="pill" id="hud2">T = 2 s</span><span class="pill" id="hud3">오른쪽 끝</span></div>
+        <div class="hud"><span class="pill" id="hud1">t = 0 s</span><span class="pill" id="hud3">오른쪽 끝</span></div>
         <div class="legend col" id="legend"></div>
         <span class="nowstep" id="nowstep" hidden></span>
       </div>
@@ -259,8 +259,8 @@
   // 한 진자 배치: 힘 보기·그림자 보기에서 크기가 같게 (진폭 최대 20° 기준)
   function geo(W, H) {
     const narrow = W < 520, top = narrow ? 24 : 30, px = W / 2, s20 = Math.sin(TH_MAX * RAD);
-    const L = Math.max(60, Math.min((H - top - 12) / 1.54, (H - top - 26) / (1 + 2 * s20)));
-    return {narrow, top, px, L, rb: (narrow ? 9 : 11) * Math.cbrt(S.m), F: 0.27 * L};
+    const L = Math.max(60, Math.min((H - top - 22) / 1.72, (H - top - 26) / (1 + 2 * s20)));     // 힘: 줄 + mg(최대 2 kg) / 그림자: 줄 + 원
+    return {narrow, top, px, L, rb: (narrow ? 9 : 11) * Math.cbrt(S.m), F: 0.36 * L};
   }
   function drawSingle(ctx, W, H) {
     const g = geo(W, H), {top, px, L} = g, w = wm(), th = thetaAt(S.th0, w, S.t);
@@ -272,6 +272,20 @@
     if (S.view === 'force') drawForces(ctx, g, th, bx, by);
     else drawShadow(ctx, g, th, bx, by, w);
     pendulum(ctx, px, top, L, th, {arc: S.th0, rb: g.rb});
+    energyBars(ctx, W, H, w);
+  }
+  function energyBars(ctx, W, H, w) {               // 운동·퍼텐셜 에너지 막대 (합은 늘 E)
+    const narrow = W < 520, bw = narrow ? 16 : 22, gap = narrow ? 8 : 12, x1 = W - (narrow ? 14 : 34) - bw, x0 = x1 - gap - bw;
+    const y0 = H - (narrow ? 64 : 78), hb = Math.min(narrow ? 150 : 210, y0 - (narrow ? 70 : 96)), e = M.energies(S.t, w);
+    if (hb < 50) return;
+    text(ctx, '에너지', (x0 + x1 + bw) / 2, y0 - hb - 26, {size: 13, w: 600, color: C.muted});
+    Lab.line(ctx, [[x0 - 6, y0 - hb], [x1 + bw + 6, y0 - hb]], C.acc, 2, [5, 3]);
+    text(ctx, 'E', x1 + bw + 10, y0 - hb, {size: 13, w: 600, color: C.acc, align: 'left'});
+    for (const [x, v, col, nm] of [[x0, e.K, C.energy, 'K'], [x1, e.U, C.violet, 'U']]) {
+      ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(x, y0 - hb, bw, hb);
+      ctx.fillStyle = col; ctx.fillRect(x, y0 - hb * v, bw, hb * v); ctx.restore();
+      text(ctx, nm, x + bw / 2, y0 + 12, {size: 14, w: 700, color: col});
+    }
   }
   function drawForces(ctx, g, th, bx, by) {
     const {L, narrow} = g, Fm = g.F * S.m, er = [Math.sin(th), Math.cos(th)], et = [Math.cos(th), -Math.sin(th)];
@@ -279,7 +293,7 @@
     if (Math.abs(th) > 1.5 * RAD) {
       ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath();
       ctx.arc(g.px, g.top, L, Math.PI / 2 - Math.max(th, 0), Math.PI / 2 - Math.min(th, 0)); ctx.stroke(); ctx.restore();
-      if (!narrow) text(ctx, 'x = lθ', g.px + L * Math.sin(th / 2), g.top + L * Math.cos(th / 2) + 22, {size: 14, w: 600, color: C.copper, halo: true});
+      if (!narrow) text(ctx, 'x = lθ', g.px - (th > 0 ? 8 : -8), g.top + L + 20, {size: 14, w: 600, color: C.copper, align: th > 0 ? 'right' : 'left', halo: true});
     }
     const fs = Math.sin(th) * Fm, fc = Math.cos(th) * Fm;                 // mg sinθ, mg cosθ (px)
     const tip = [bx, by + Fm], cTip = [bx + er[0] * fc, by + er[1] * fc], sTip = [bx - et[0] * fs, by - et[1] * fs];
@@ -459,7 +473,7 @@
 
   // ── 수치 (지금 값) ──────────────────────────────────────
   const LEG = {
-    force: '<span><i style="background:var(--copper)"></i>추 · 1/16 주기마다 자리</span><span><b style="background:var(--force)"></b>중력 mg 와 두 성분 · 장력 T</span><span><b style="background:var(--copper)"></b>변위 x = lθ (호)</span>',
+    force: '<span><i style="background:var(--copper)"></i>추 · 1/16 주기마다 자리</span><span><b style="background:var(--force)"></b>중력 mg 와 두 성분 · 장력 T</span><span><b style="background:var(--copper)"></b>변위 x = lθ (호)</span><span><b style="background:var(--energy)"></b>운동 에너지 K · 퍼텐셜 U</span>',
     circle: '<span><i style="background:var(--vel)"></i>원 위를 등속으로 도는 점</span><span><b style="background:var(--copper)"></b>그림자 = 추의 가로 위치</span><span><b style="background:var(--vel)"></b>속도 (가로 성분 = 추의 속도)</span><span><b style="background:var(--acc)"></b>가속도 (가로 성분 = 추의 가속도)</span>',
     cmp: '<span><i style="background:var(--copper)"></i>기준 진자</span><span><i style="background:var(--vel)"></i>비교 진자</span><span><b style="background:var(--vel)"></b>속도</span>',
   };
@@ -479,8 +493,7 @@
   function hud() {
     $('hud1').textContent = 't = ' + fmt(S.t, 2) + ' s';
     const nar = isNarrow();
-    $('hud2').hidden = nar; $('hud3').hidden = nar;
-    $('hud2').textContent = 'T = ' + fmt(Tm(), 2) + ' s';
+    $('hud3').hidden = nar;
     $('hud3').textContent = S.cmp === 'one' ? posText(S.t) : '두 진자 비교';
   }
   function readouts() {

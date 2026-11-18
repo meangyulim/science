@@ -318,7 +318,7 @@
     ctx.fillRect(fx - 9, apex[1] + 22, 18, g.yF - apex[1] - 22); ctx.strokeRect(fx - 9, apex[1] + 22, 18, g.yF - apex[1] - 22);
     ctx.beginPath(); ctx.moveTo(apex[0], apex[1]); ctx.lineTo(fx - 15, apex[1] + 22); ctx.lineTo(fx + 15, apex[1] + 22); ctx.closePath(); ctx.fillStyle = C.paper; ctx.fill(); ctx.stroke(); ctx.restore();
     lbl(ctx, '받침점', fx + 18, apex[1] + 34, C.ink, {size: 13, w: 500, align: 'left'});
-    if (S.hint) lbl(ctx, '끌기', fx - 18, apex[1] + 34, C.copper, {size: 13, align: 'right'});
+    if (S.hint && Math.abs(S.psi) < 0.02) lbl(ctx, '끌기', fx - 18, apex[1] + 34, C.copper, {size: 13, align: 'right'});
     // 막대는 받침점(꼭짓점)을 축으로 tilt 만큼 돈다 (+ = 시계 방향)
     const c = Math.cos(tilt), sn = Math.sin(tilt);
     const R = (p) => [apex[0] + (p[0] - apex[0]) * c - (p[1] - apex[1]) * sn, apex[1] + (p[0] - apex[0]) * sn + (p[1] - apex[1]) * c];
@@ -412,8 +412,8 @@
     ctx.save(); ctx.globalAlpha = n >= 2 ? 1 : 0.35; Lab.arrow(ctx, gw[0], gw[1], gw[0], gw[1] + (nar ? 40 : 56), C.force, 3, 11); ctx.restore();
     if (n >= 2) lbl(ctx, 'mg', gw[0] + 9, gw[1] + (nar ? 34 : 48), C.force, {size: 14, align: 'left'});
     const dev = Math.abs((((phi - phiEq(S.hole)) / RAD + 540) % 360) - 180);
-    Lab.tag(ctx, dev > 0.6 ? '흔들리는 중' : n >= 2 ? '두 연장선의 교점 = 무게중심' : '멈춤 → 연장선을 그었다', W - 12, nar ? 64 : 24,
-      {size: 13, color: dev > 0.6 ? C.muted : C.acc, bg: dev > 0.6 ? C.paper : C['acc-soft'], border: dev > 0.6 ? C.line : C.acc, align: 'right'});
+    Lab.tag(ctx, dev > 0.6 ? '흔들리는 중' : n >= 2 ? '두 연장선의 교점 = 무게중심' : '멈춤 → 연장선을 그었다', nar ? 12 : W - 12, nar ? H - 20 : 24,
+      {size: 13, color: dev > 0.6 ? C.muted : C.acc, bg: dev > 0.6 ? C.paper : C['acc-soft'], border: dev > 0.6 ? C.line : C.acc, align: nar ? 'left' : 'right'});
     if (S.hint && !nar) lbl(ctx, '구멍을 누르면 그 점에 매단다', 14, H - 56, C.copper, {size: 13, align: 'left'});
   }
 
@@ -441,7 +441,7 @@
     const pts = rect.map((p) => boxPt(g, p, th));
     ctx.save(); ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath();
     ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
-    if (S.hint) { const tc = [(pts[2][0] + pts[3][0]) / 2, (pts[2][1] + pts[3][1]) / 2]; lbl(ctx, '끌어 기울이기', tc[0], tc[1] - 14, C.copper, {size: 13}); }
+    if (S.hint && th < 2) { const tc = [(pts[2][0] + pts[3][0]) / 2, (pts[2][1] + pts[3][1]) / 2]; lbl(ctx, '끌어 기울이기', tc[0], tc[1] - 14, C.copper, {size: 13}); }
     // θ (바닥과 밑변 사이)
     if (th > 1) {
       ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(g.xP, g.yF, 34, Math.PI, Math.PI + th * RAD); ctx.stroke(); ctx.restore();
