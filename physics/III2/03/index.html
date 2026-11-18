@@ -443,7 +443,7 @@
     // 금속: 위 표면(가장 얕은 전자) = −W
     ctx.fillStyle = C.line; ctx.fillRect(xm0, Y(-Wm), xm1 - xm0, bot - Y(-Wm));
     for (let x = xm0 + 9; x < xm1 - 6; x += 15) Lab.circle(ctx, x, Y(-Wm) + 8, 4.5, {fill: C.vel});
-    text(ctx, '금속 K', xm1 - 6, bot - 12, {size: 13, w: 600, align: 'right', color: C.muted});
+    text(ctx, '금속 K', xm1 - 6, bot - 12, {size: 13, w: 500, align: 'right', color: C.muted});
     Lab.line(ctx, [[xm0, Y(0)], [W - 8, Y(0)]], C.muted, 1.4, [5, 4]);
     text(ctx, W < 400 ? 'E = 0 (밖에서 정지)' : 'E = 0 (금속 밖에서 정지)', xm1 + 8, Y(0) + 13, {size: 13, w: 500, color: C.muted, align: 'left'});
     // 더 깊은 전자: 같은 hf 를 받아도 더 작은 운동 에너지
@@ -587,7 +587,7 @@
     }
     const f = 'hf = W + E<sub>k,max</sub>, eV<sub>s</sub> = E<sub>k,max</sub> 에 지금 값을 넣으면', ctx = `${m.name} · W = ${Ws} eV`;
     const key = [big, tone, ctx].concat(lines).join('|');
-    if (key !== lastAns) { lastAns = key; Lab.ans(big, lines, {tone, ctx, f}); $('ansBig').innerHTML = big; }
+    if (key !== lastAns) { lastAns = key; Lab.ans(big, lines, {tone, ctx, f, html: true}); }
     $('mL0').textContent = `빛의 진동수 f (${Math.round(n)} nm ${bandName(n)})`;
     $('mV0').textContent = Lab.sci(M.freq(S.E), 2) + ' Hz';
     $('mV1').textContent = Lab.sci(M.f0(Wm), 2) + ' Hz';

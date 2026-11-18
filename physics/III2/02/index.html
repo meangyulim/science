@@ -135,7 +135,7 @@
           <h3>세기는 광전자 수만, 진동수는 운동 에너지를 바꾼다</h3>
           <p>빛 하나로 바꿔 세기와 진동수를 따로 바꿔 보자. 세기를 키우면 광자가 많아져 광전자 수(광전류)가 늘지만 꼬리 길이(빠르기)는 그대로다. 진동수를 키우면 광자 하나의 에너지가 커져 광전자가 더 빠르게 나온다.</p>
           <canvas class="flat" id="facts" aria-label="진동수-최대 운동 에너지, 세기-최대 운동 에너지, 세기-광전류 그래프와 지금 빛의 위치"></canvas>
-          <p class="cap">세 가지 실험 사실. <b>진동수</b> → 방출 여부와 최대 운동 에너지, 세기 → 광전자 수(광전류). 점은 지금 비추는 빛, 빨간 점선은 파동설이 예상한 모양이다.</p>
+          <p class="cap">세 가지 실험 사실(사실 1~3). <b>진동수</b> → 방출 여부와 최대 운동 에너지, 세기 → 광전자 수(광전류). 점은 지금 비추는 빛, 빨간 점선은 파동설이 예상한 모양이다.</p>
           <div class="acts">
             <button type="button" class="btn go" data-try="tube">빛 하나로</button>
             <button type="button" class="btn" data-try="double">세기만 2배로</button>
@@ -188,7 +188,7 @@
           <div class="q">
             <h3>옳은 것만 고르면? ㄱ. 문턱 진동수 이상의 빛은 아무리 약해도 광전자가 즉시 나온다. ㄴ. 빛의 세기를 키우면 광전자의 최대 운동 에너지가 커진다. ㄷ. 문턱 이상에서 세기를 키우면 광전류가 커진다.</h3>
             <div class="acts"><button type="button" class="btn" data-try="double">세기만 2배로</button></div>
-            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄷ</b>. 세기를 2배로 하면 광전자가 2배로 늘지만(꼬리 길이 = 빠르기는 그대로) 광자 1개의 에너지 hf는 그대로라 최대 운동 에너지는 변하지 않는다. ㄴ은 빛을 연속적인 파동으로 본 예상이다(관찰 2 그래프 ②의 빨간 점선).</p></details>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄷ</b>. 세기를 2배로 하면 광전자가 2배로 늘지만(꼬리 길이 = 빠르기는 그대로) 광자 1개의 에너지 hf는 그대로라 최대 운동 에너지는 변하지 않는다. ㄴ은 빛을 연속적인 파동으로 본 예상이다(관찰 2의 ‘사실 2’ 그래프에 그린 빨간 점선).</p></details>
           </div>
           <div class="q">
             <h3>처음에 중성인 아연판 검전기에 자외선(아연의 문턱 진동수보다 큼)을 비추면 금속박은 어떻게 될까?</h3>
@@ -596,7 +596,7 @@
     const Wm = metalW(), Ls = lights(), row = W >= 600, n = 3;
     const cw = row ? W / n : W, ch = row ? H : H / n;
     const ymax = 1.15 * Wm, sel = cur(), gh = S.ghost && S.scene === 'tube' ? S.ghost : null;
-    const titles = ['① 진동수가 정한다', '② 세기와 무관', '③ 세기 → 광전자 수'];
+    const titles = ['사실 1 · 진동수가 정한다', '사실 2 · 세기와 무관', '사실 3 · 세기 → 광전자 수'];
     const ylab = (A, r, s) => Lab.rich(ctx, s, A.x0 + 8, r.y - 4, {size: 13, w: 600, color: C.muted, align: 'left'});
     for (let k = 0; k < n; k++) {
       const cx = row ? k * cw : 0, cy = row ? 0 : k * ch;
@@ -716,7 +716,7 @@
       mini(3, '금속박', !(on && ok) ? '그대로' : q < -0.02 ? '오므라드는 중' : q <= 0.02 ? '닫힘' : q >= M.Q_CAP - 0.01 ? '벌어짐 (멈춤)' : '벌어지는 중', 'copper');
     }
     const key = [lab, big, tone, f, ctx].concat(lines).join('|');
-    if (key !== lastAns) { lastAns = key; $('ansLab').textContent = lab; Lab.ans(big, lines, {tone, ctx, f}); }
+    if (key !== lastAns) { lastAns = key; Lab.ans(big, lines, {tone, lab, ctx, f}); }
     const {A, B} = S.L;
     const ok = sc === 'two' && S.light && A.on && B.on && Math.abs(A.r - EX.A.r) < 1e-9 && Math.abs(B.r - EX.B.r) < 1e-9 && A.I >= 0.8 && B.I > 0 && B.I <= 0.3;
     Lab.check('exCheck', ok, '예제: A(0.8f₀, 매우 세게) 방출 없음 · B(1.2f₀, 약하게) 방출 · 함께 비추면 B에 의한 광전자만',

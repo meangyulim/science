@@ -648,7 +648,7 @@
   function ans(lab, big, lines, o) {                  // 값이 바뀔 때만 카드를 고친다
     const key = [lab, big, o.tone, o.ctx, o.f].concat(lines).join('|');
     if (key === ansKey) return;
-    ansKey = key; $('ansLab').textContent = lab; Lab.ans(big, lines, o);
+    ansKey = key; Lab.ans(big, lines, Object.assign({lab}, o));
   }
   function minis(list) { list.forEach(([name, val], i) => { $('mn' + (i + 1)).innerHTML = name; $('mv' + (i + 1)).textContent = val; }); }
   // 두 점 사이 거리 s 와 상의 파장 λ 를 견준 판정 (모형의 판정 M.resolved 를 따른다)

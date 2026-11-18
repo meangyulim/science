@@ -386,10 +386,10 @@
     ctx.save(); ctx.fillStyle = C.ink;
     if (vertical) {                                 // 세로 도선 위: 위가 (+) 긴 판
       ctx.fillRect(x - 14, y - 5, 28, 2.6); ctx.fillRect(x - 8, y + 3, 16, 5);
-      text(ctx, '+', x + 20, y - 8, {size: 13, color: C.muted, w: 600});
+      text(ctx, '+', x + 20, y - 8, {size: 13, color: C.muted, w: 500});
     } else {                                        // 가로 도선 위: 오른쪽이 (+) 긴 판
       ctx.fillRect(x + 3, y - 14, 2.6, 28); ctx.fillRect(x - 8, y - 8, 5, 16);
-      text(ctx, '+', x + 12, y - 18, {size: 13, color: C.muted, w: 600});
+      text(ctx, '+', x + 12, y - 18, {size: 13, color: C.muted, w: 500});
     }
     ctx.restore();
     if (label) text(ctx, label, lx, ly, {size: 13, color: C.muted, w: 500, align: la || 'center'});
@@ -429,7 +429,7 @@
     ctx.beginPath(); ctx.moveTo(x, cy); ctx.lineTo(x + Math.cos(a) * (rr + 2), cy + Math.sin(a) * (rr + 2)); ctx.stroke();
     ctx.beginPath(); ctx.arc(x, cy, 3.2, 0, TAU); ctx.fillStyle = C.ink; ctx.fill();
     ctx.restore();
-    text(ctx, 'A', x, y + r * 0.62, {size: 13, color: C.muted, w: 600});
+    text(ctx, 'A', x, y + r * 0.62, {size: 13, color: C.muted, w: 500});
     if (label) text(ctx, label, lx, y, {size: 13, color: C.muted, w: 500, align: la || 'right'});
   }
   function photon(ctx, p, col) {                    // 파동 묶음 + 머리
@@ -1093,11 +1093,11 @@
         : sc === 'fire' ? (alarm ? '산란광 → 광전류 · 경보!' : '광전류 0 · 조용')
           : sc === 'street' ? (closed ? '광전류 작음 → 켜짐' : '광전류 흐름 → 꺼짐') : '전류 ∝ 빛의 세기';
       const ok = sc === 'burglar' && S.src === 'violet' && blocked(G || geo(stage.W, stage.H)) && z.light < 0.5 && closed;
-      Lab.check('exCheck', ok, '개념 체크 ④ 확인: 빛이 가려져 광전류 0 → 전자석이 힘을 잃음 → 용수철이 스위치를 닫아 경보',
+      Lab.check('exCheck', ok, '개념 체크 정답(4번) 확인: 빛이 가려져 광전류 0 → 전자석이 힘을 잃음 → 용수철이 스위치를 닫아 경보',
         '개념 체크: 경보가 울리는 순간 무엇이 바뀔까? — 도난 경보기에서 침입자를 빛줄기 속으로 끌어 보세요');
     }
     const a = answer(), ak = [a.lab, a.big, a.tone, a.f, a.ctx].concat(a.lines).join('|');
-    if (ak !== lastAns) { lastAns = ak; $('ansLab').textContent = a.lab; Lab.ans(a.big, a.lines, {tone: a.tone, ctx: a.ctx, f: a.f}); }
+    if (ak !== lastAns) { lastAns = ak; Lab.ans(a.big, a.lines, {tone: a.tone, lab: a.lab, ctx: a.ctx, f: a.f}); }
   }
   const CAP_CHAIN = {
     burglar: '빛이 가려지면 광전류 → 전자석 → 스위치가 차례로 뒤집혀 경보가 울린다.',
