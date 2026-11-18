@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>단진동과 단진자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(천장에 매단 단진자: 힘 분해 · 등속 원운동의 그림자 · 두 진자 비교) | 오른쪽 지금 값 + 관찰 ①~④(복원력–변위, x·v·a–t, T²–l, 에너지–t) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5}
+#gF{aspect-ratio:10/5.6}
+#gX{aspect-ratio:10/7.6}
+#gT{aspect-ratio:10/5.8}
+#gE{aspect-ratio:10/5.4}
+@media (max-width:640px){ #gX{aspect-ratio:10/9.4} #gE{aspect-ratio:10/6.4} }
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A1 힘과 운동: 개념 16개 가운데 14번째"><a class="uname" href="../">A1 힘과 운동</a><span class="dots"><a href="../01/" title="A1-01 힘의 합성·분해" aria-label="A1-01 힘의 합성·분해"></a><a href="../02/" title="A1-02 돌림힘과 평형" aria-label="A1-02 돌림힘과 평형"></a><a href="../03/" title="A1-03 무게중심과 안정성" aria-label="A1-03 무게중심과 안정성"></a><a href="../04/" title="A1-04 한계 조건과 강체" aria-label="A1-04 한계 조건과 강체"></a><a href="../05/" title="A1-05 운동의 벡터" aria-label="A1-05 운동의 벡터"></a><a href="../06/" title="A1-06 평면 등가속도 운동" aria-label="A1-06 평면 등가속도 운동"></a><a href="../07/" title="A1-07 중력장의 직선 운동" aria-label="A1-07 중력장의 직선 운동"></a><a href="../08/" title="A1-08 포물선 운동" aria-label="A1-08 포물선 운동"></a><a href="../09/" title="A1-09 상대 운동" aria-label="A1-09 상대 운동"></a><a href="../10/" title="A1-10 등속 원운동" aria-label="A1-10 등속 원운동"></a><a href="../11/" title="A1-11 여러 가지 구심력" aria-label="A1-11 여러 가지 구심력"></a><a href="../12/" title="A1-12 케플러 법칙" aria-label="A1-12 케플러 법칙"></a><a href="../13/" title="A1-13 만유인력과 인공위성" aria-label="A1-13 만유인력과 인공위성"></a><a class="cur" href="./" aria-current="page" title="A1-14 단진동과 단진자" aria-label="A1-14 단진동과 단진자 (지금)"></a><a href="../15/" title="A1-15 관성력" aria-label="A1-15 관성력"></a><a href="../16/" title="A1-16 등가 원리" aria-label="A1-16 등가 원리"></a></span></nav>
+  <div class="pn"><a href="../13/" rel="prev" title="이전 개념: A1-13 만유인력과 인공위성">‹ <span>13 만유인력과 인공위성</span></a><a href="../15/" rel="next" title="다음 개념: A1-15 관성력"><span>15 관성력</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A1-14</span><span>물리학 Ⅱ · 힘과 운동</span></div>
+    <h1>단진동과 단진자</h1>
+    <p class="question"><i>Q</i>진자의 주기는 왜 추의 질량과 진폭에 상관없을까?</p>
+  </div>
+
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="천장에 매단 단진자가 흔들린다. 힘 보기에서는 중력과 그 두 성분, 장력을, 그림자 보기에서는 아래의 원 위를 등속으로 도는 점과 그 그림자가 추와 같이 움직이는 모습을 보인다. 비교 보기에서는 질량·진폭·길이가 다른 진자를 나란히 흔든다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">t = 0 s</span><span class="pill" id="hud3">오른쪽 끝</span></div>
+        <div class="legend col" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider"><label for="len"><span class="lg">실의 길이 </span>l</label><input id="len" type="range" min="0.25" max="4" step="0.05" value="1"><output id="lenOut">1 m</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">보기·조건</span><span class="sm">보기</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="보기와 조건">
+          <div class="sheet-head"><b>보기 · 조건 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="보기">
+              <span class="gl">보기</span>
+              <button type="button" class="btn" data-view="force" aria-pressed="true">힘 분해</button>
+              <button type="button" class="btn" data-view="circle" aria-pressed="false">원운동 그림자</button>
+            </div>
+            <div class="group" role="group" aria-label="비교 진자">
+              <span class="gl">비교</span>
+              <button type="button" class="btn" data-cmp="one" aria-pressed="true">하나만</button>
+              <button type="button" class="btn" data-cmp="m2" aria-pressed="false">질량 2배</button>
+              <button type="button" class="btn" data-cmp="a2" aria-pressed="false">진폭 ½</button>
+              <button type="button" class="btn" data-cmp="l4" aria-pressed="false">길이 4배</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="grow">
+              <label class="ctl-label" for="amp">진폭 θ₀ (작은 각) <output id="ampOut">15°</output></label>
+              <input id="amp" type="range" min="2" max="20" step="1" value="15">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="mass">추의 질량 m <output id="massOut">1 kg</output></label>
+              <input id="mass" type="range" min="0.5" max="2" step="0.1" value="1">
+            </div>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="중력 가속도">
+              <span class="gl">g</span>
+              <button type="button" class="btn" data-g="1" aria-pressed="true">π² m/s² (지구)</button>
+              <button type="button" class="btn" data-g="0.25" aria-pressed="false">π²/4 (g가 1/4인 행성)</button>
+            </div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="step">⅛ 주기 ▸</button>
+            <button type="button" class="btn" id="reset">끝에서 다시 놓기</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×¼</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×½</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+            </div>
+            <label class="chk"><input type="checkbox" id="cStrobe" checked>같은 시간 간격 자리</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 주기</span><span id="ansCtx">l = 1 m · g = π² m/s²</span></div>
+        <div class="big" id="ansBig">T = 2 s</div>
+        <div class="sub">
+          <span class="f" id="ansF">T = 2π√(l/g) 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">T = 2π√(<em>1</em> ÷ π²) = 2 × √1 = <em>2 s</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">진동수 f = 1/T</span><b id="mv1">0.5 Hz</b></div>
+          <div class="mini"><span id="mn2">최저점 속력 √(2gl(1 − cos θ₀))</span><b id="mv2">0.82 m/s</b></div>
+          <div class="mini"><span id="mn3">복원력 최대 mg sin θ₀ (양 끝)</span><b id="mv3">2.55 N</b></div>
+          <div class="mini"><span id="mn4">최저점 장력 mg + mv²/l</span><b id="mv4">10.5 N</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 되돌리는 힘">
+          <div class="kind">관찰 1</div>
+          <h3>추를 평형점으로 되돌리는 힘은 변위에 비례한다</h3>
+          <p>실이 연직과 θ를 이룰 때 중력 mg는 실 방향 mg cos θ와 접선 방향 mg sin θ로 나뉜다. 실 방향 성분은 장력과 함께 원운동을 맡고, <b>접선 성분 mg sin θ</b>가 추를 평형점 쪽으로 되돌리는 복원력이다. 끝에서 가장 크고 최저점에서 0이다.</p>
+          <canvas class="flat" id="gF" aria-label="복원력–변위 그래프. 정확한 값 mg sinθ(곡선)와 직선 −(mg/l)x가 작은 각에서 겹친다. 지금 추의 자리를 점으로 표시."></canvas>
+          <p class="cap">진폭이 작으면 sin θ ≈ θ = x/l 이라 <span class="eq">F ≈ −(mg/l)x</span>: 변위에 비례하고 방향이 반대인 복원력이므로 단진동이다(유효 상수 k = mg/l). 그래프의 회색 띠가 지금 진폭이고, 각이 커지면 곡선이 직선에서 벗어난다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="end">끝에서 멈춰 힘 보기</button>
+            <button type="button" class="btn" data-do="click:[data-view=force]; click:#step">⅛ 주기씩 ▸</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 원운동의 그림자">
+          <div class="kind">관찰 2</div>
+          <h3>등속 원운동하는 점의 그림자가 추와 똑같이 움직인다</h3>
+          <p>무대 아래 원 위를 일정한 빠르기로 도는 점을 위로 비추면, 그 그림자(x 좌표)가 추와 꼭 맞게 움직인다. 그래서 단진동의 변위는 <span class="eq">x = A cos ωt</span>, <span class="eq">ω = 2π/T</span> 이다. 점의 속도와 구심 가속도를 가로로 비춘 성분이 곧 추의 속도와 가속도다.</p>
+          <canvas class="flat" id="gX" aria-label="변위, 속도, 가속도–시간 그래프. 끝(변위 최대)에서 속도 0·가속도 최대, 평형점에서 속도 최대·가속도 0. 지금 시각을 세로줄로 표시."></canvas>
+          <p class="cap">양 끝에서는 속력 0, 가속도 최대이고, 최저점(진동 중심)에서는 속력 최대, 접선 가속도 0이다. a = −ω²x 라서 가속도 그래프는 변위 그래프를 뒤집은 모양이다. 무대의 흐린 점은 1/16 주기마다 추가 있던 자리로, 끝에서 촘촘하고 가운데서 성기다. 끝에서 최저점까지 T/4가 걸린다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="circle">그림자 보기</button>
+            <button type="button" class="btn" data-do="click:[data-view=circle]; click:#step">⅛ 주기씩 ▸</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 주기를 정하는 것">
+          <div class="kind">관찰 3</div>
+          <h3>질량·진폭을 바꿔도 주기는 그대로, 길이가 4배면 주기는 2배</h3>
+          <p>복원력 (mg/l)x 도 관성 m 도 질량에 비례하므로 서로 약분된다. 그래서 <span class="eq">T = 2π√(l/g)</span> 는 길이와 g로만 정해진다(진자의 등시성). 질량이 다른 진자, 진폭이 다른 진자와 나란히 흔들어 보면 끝까지 발이 맞는다.</p>
+          <canvas class="flat" id="gT" aria-label="주기의 제곱–길이 그래프. 원점을 지나는 직선이고 기울기는 4π²/g."></canvas>
+          <p class="cap">T²–l 그래프는 원점을 지나는 직선이고 기울기는 4π²/g다. 그래서 길이와 주기를 재면 g를 구할 수 있다. g가 1/4인 행성에서는 기울기가 4배, 같은 길이의 주기는 2배다. 한 진자 보기는 길이를 바꿔도 같은 크기로 그리므로, 길이는 ‘길이 4배와 비교’에서 같은 축척으로 견준다. 무대는 진폭이 작다고 보고 단진동으로 움직인다(진폭이 크면 실제 주기는 조금 길어진다).</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="cm">질량 2배와 비교</button>
+            <button type="button" class="btn" data-try="ca">진폭 ½과 비교</button>
+            <button type="button" class="btn" data-try="cl">길이 4배와 비교</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 에너지는 T/2">
+          <div class="kind">관찰 4</div>
+          <h3>운동 에너지는 한 주기에 두 번 최대가 된다</h3>
+          <p>추는 최저점을 지날 때마다 가장 빠르다. 한 주기 동안 최저점을 두 번(오른쪽으로 한 번, 왼쪽으로 한 번) 지나므로 운동 에너지도 두 번 최대가 된다. 그래서 에너지–시간 그래프의 반복 간격은 <b>T/2</b>다.</p>
+          <canvas class="flat" id="gE" aria-label="운동 에너지와 퍼텐셜 에너지–시간 그래프. 둘의 합은 일정하고, 각각 진동 주기의 절반마다 되풀이된다."></canvas>
+          <p class="cap">가장 많이 틀리는 곳이다. 에너지 그래프의 반복 간격을 진동 주기로 읽으면 안 된다. 최고점과 최저점의 높이차 h = l(1 − cos θ₀)가 최저점 속력 √(2gh)를 정한다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="energy">끝에서 놓고 에너지 보기</button>
+            <button type="button" class="btn" data-try="bottom">최저점에서 멈춤</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>복원력 ∝ 변위면 단진동, 주기는 길이와 g만 본다</h3>
+          <ul>
+            <li>복원력 = 중력의 접선 성분 mg sin θ. 작은 진폭에서 <span class="eq">F ≈ −(mg/l)x</span> → 단진동, a = −ω²x (양 끝 최대, 평형점 0).</li>
+            <li><span class="eq">T = 2π√(l/g)</span>: 질량·진폭과 무관(등시성), 길이 4배 → 주기 2배. T²–l 은 기울기 4π²/g 인 직선.</li>
+            <li>등속 원운동의 그림자가 단진동: <span class="eq">x = A cos ωt</span>, ω = 2π/T. 끝 → 최저점 T/4, 반대쪽 끝까지 T/2.</li>
+            <li>최저점 속력 √(2gl(1 − cos θ₀)) (같은 각이면 ∝ √l), 최저점 장력 mg + mv²/l &gt; mg, 끝의 장력 mg cos θ₀.</li>
+            <li>자주 하는 실수: 운동 에너지·퍼텐셜 에너지–시간 그래프의 반복 간격 T/2 를 진동 주기로 읽는다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>길이 1 m인 단진자가 작은 진폭으로 진동한다. g = π² m/s²로 두면 주기는? 길이를 4 m로 바꾸면? 운동 에너지가 최대가 되는 시간 간격은?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="ex4">길이 4 m로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>T = 2π√(1/π²) = 2π/π = <b>2 s</b>. T ∝ √l 이므로 길이가 4배면 주기는 2배인 4 s. 운동 에너지는 최저점을 지날 때마다, 곧 한 주기에 두 번 최대이므로 간격은 T/2 = 1 s(길이 1 m일 때)다. 관찰 4의 그래프에서 운동 에너지 봉우리 사이가 1 s인지 확인해 보자.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>지구에서 작은 진폭으로 진동하는 단진자의 운동 에너지가 0.5 s마다 최대가 된다. 이 진자를 중력 가속도가 지구의 1/4인 행성에서 작은 진폭으로 진동시키면 주기는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1a">지구에서 (l = 0.25 m)</button><button type="button" class="btn" data-try="q1b">g가 1/4인 행성에서</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>2 s</b>. 운동 에너지는 한 주기에 두 번 최대이므로 지구에서의 주기는 2 × 0.5 = 1 s다. T = 2π√(l/g)에서 g가 1/4이면 주기는 2배인 2 s다. 1 s는 0.5 s를 주기로 잘못 읽은 뒤 2배 한 값이고, 4 s는 주기가 g에 반비례한다고 본 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>작은 진폭으로 진동하는 단진자에 대해 옳은 것만 고르면? ㄱ. 진동의 양 끝에서 접선 방향 가속도의 크기가 최대이다. ㄴ. 최저점에서 실의 장력은 추의 무게와 같다. ㄷ. 추의 질량만 2배로 하면 주기는 √2배가 된다.</h3>
+            <div class="acts"><button type="button" class="btn" data-try="end">ㄱ 끝에서 멈춤</button><button type="button" class="btn" data-try="bottom">ㄴ 최저점에서 멈춤</button><button type="button" class="btn" data-try="cm">ㄷ 질량 2배와 비교</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ</b>. 복원력 mg sin θ는 변위가 가장 큰 양 끝에서 최대이고 최저점에서 0이다. 최저점에서는 원운동 중이라 장력이 mg + mv²/l 로 무게보다 크다. 복원력과 관성이 모두 질량에 비례해 약분되므로 주기는 질량과 무관하다.</p></details>
+          </div>
+          <div class="q">
+            <h3>같은 각 θ₀로 당겼다 놓을 때 실의 길이만 4배로 하면, 최저점을 지나는 속력과 주기는 각각 몇 배가 될까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="cl">길이 4배와 나란히</button></div>
+            <details class="ans"><summary>답 보기</summary><p>둘 다 <b>2배</b>. 높이차 h = l(1 − cos θ₀)가 4배라 속력 √(2gh)는 2배이고, T = 2π√(l/g)도 2배다. 속력은 높이차로만 보고, 주기는 길이와 g로만 본다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../13/" rel="prev"><small>← 이전 개념 · A1-13</small><b>만유인력과 인공위성</b></a><a href="../15/" rel="next"><small>다음 개념 · A1-15 →</small><b>관성력</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="A1-14-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_14;
+  const {$, C, text, rich, arrow, fmt} = Lab;
+  const RAD = Math.PI / 180, TH_MAX = 20;
+  const CMP = {
+    one: null,
+    m2: {name: '질량 2배', short: '2m'},
+    a2: {name: '진폭 ½', short: 'θ₀/2'},
+    l4: {name: '길이 4배', short: '4l'},
+  };
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = {view: 'force', cmp: 'one', l: 1, gk: 1, th0: 15, m: 1, t: 0, playing: !Lab.reduceMotion, speed: 1, strobe: true};
+  const gv = () => M.PI2 * S.gk;
+  const Tm = () => M.period(S.l, gv());
+  const wm = () => M.omega(S.l, gv());
+  const gStr = () => (S.gk === 1 ? 'π²' : 'π²/4');
+  const isNarrow = () => (stage.W ? stage.W < 520 : innerWidth < 560);
+  // 비교 진자의 조건
+  function cmpPend() {
+    const c = S.cmp;
+    return {l: c === 'l4' ? 4 * S.l : S.l, m: c === 'm2' ? 2 * S.m : S.m, th0: c === 'a2' ? S.th0 / 2 : S.th0};
+  }
+
+  // ── 진자 그리기 ─────────────────────────────────────────
+  // 작은 진폭의 단진동: 추의 가로 위치 = L sinθ₀ · cos ωt (그림자 원과 꼭 맞게), θ = asin(sinθ₀ cos ωt)
+  const thetaAt = (th0, w, t) => Math.asin(Math.sin(th0 * RAD) * Math.cos(w * t));
+  function ceiling(ctx, x, y, half) {
+    Lab.line(ctx, [[x - half, y], [x + half, y]], C.ink, 2.4);
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.3;
+    for (let u = -half + 8; u <= half; u += 12) { ctx.beginPath(); ctx.moveTo(x + u, y); ctx.lineTo(x + u - 8, y - 9); ctx.stroke(); }
+    ctx.restore();
+    Lab.circle(ctx, x, y, 3.2, {fill: C.ink});
+  }
+  function pendulum(ctx, px, top, L, th, o = {}) {        // 실·추(구리색 또는 o.col), 흔들림 범위
+    const bx = px + L * Math.sin(th), by = top + L * Math.cos(th);
+    if (o.arc) {
+      ctx.save(); ctx.setLineDash([4, 5]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(px, top, L, Math.PI / 2 - o.arc * RAD, Math.PI / 2 + o.arc * RAD); ctx.stroke(); ctx.restore();
+    }
+    Lab.line(ctx, [[px, top], [bx, by]], C.ink, 1.8);
+    Lab.circle(ctx, bx, by, o.rb, {fill: o.col || C.copper, stroke: C.paper, width: 2});
+    return [bx, by];
+  }
+  function strobeDots(ctx, px, top, L, th0, n = 16) {     // 1/16 주기마다 추가 있던 자리
+    for (let k = 0; k < n / 2 + 1; k++) {
+      const th = Math.asin(Math.sin(th0 * RAD) * Math.cos(2 * Math.PI * k / n));
+      Lab.circle(ctx, px + L * Math.sin(th), top + L * Math.cos(th), 4.2, {stroke: Lab.alpha(C.copper, 0.75), width: 1.6});
+    }
+  }
+
+  // 한 진자 배치: 힘 보기·그림자 보기에서 크기가 같게 (진폭 최대 20° 기준)
+  function geo(W, H) {
+    const narrow = W < 520, top = narrow ? 24 : 30, px = W / 2, s20 = Math.sin(TH_MAX * RAD);
+    const L = Math.max(60, Math.min((H - top - 22) / 1.72, (H - top - 26) / (1 + 2 * s20)));     // 힘: 줄 + mg(최대 2 kg) / 그림자: 줄 + 원
+    return {narrow, top, px, L, rb: (narrow ? 9 : 11) * Math.cbrt(S.m), F: 0.36 * L};
+  }
+  function drawSingle(ctx, W, H) {
+    const g = geo(W, H), {top, px, L} = g, w = wm(), th = thetaAt(S.th0, w, S.t);
+    ceiling(ctx, px, top, g.narrow ? 46 : 64);
+    Lab.line(ctx, [[px, top], [px, top + L + 14]], C.muted, 1.2, [5, 5]);       // 연직선 (평형 위치)
+    if (S.strobe) strobeDots(ctx, px, top, L, S.th0);
+    const bx = px + L * Math.sin(th), by = top + L * Math.cos(th);
+    if (Math.abs(th) > 2.5 * RAD) Lab.angle(ctx, px, top, Math.min(46, L * 0.22), Math.PI / 2, Math.PI / 2 - th, C.ink, 'θ');
+    if (S.view === 'force') drawForces(ctx, g, th, bx, by);
+    else drawShadow(ctx, g, th, bx, by, w);
+    pendulum(ctx, px, top, L, th, {arc: S.th0, rb: g.rb});
+    const sd = th >= 0 ? -1 : 1;                      // 실 길이 이름표: 추 반대쪽 (한 진자 보기는 길이가 바뀌면 축척이 바뀐다)
+    text(ctx, 'l = ' + fmt(S.l, 2) + ' m', px + sd * 14, top + L * 0.42, {size: 13, w: 600, color: C.copper, align: sd < 0 ? 'right' : 'left', halo: true});
+    energyBars(ctx, W, H, w);
+  }
+  function energyBars(ctx, W, H, w) {               // 운동·퍼텐셜 에너지 막대 (합은 늘 E)
+    const narrow = W < 520, bw = narrow ? 16 : 22, gap = narrow ? 8 : 12, x1 = W - (narrow ? 14 : 34) - bw, x0 = x1 - gap - bw;
+    const y0 = H - (narrow ? 64 : 78), hb = Math.min(narrow ? 150 : 210, y0 - (narrow ? 70 : 96)), e = M.energies(S.t, w);
+    if (hb < 50) return;
+    text(ctx, '에너지', (x0 + x1 + bw) / 2, y0 - hb - 26, {size: 13, w: 600, color: C.muted});
+    Lab.line(ctx, [[x0 - 6, y0 - hb], [x1 + bw + 6, y0 - hb]], C.acc, 2, [5, 3]);
+    text(ctx, 'E', x0 - 10, y0 - hb, {size: 13, w: 600, color: C.acc, align: 'right', halo: true});
+    for (const [x, v, col, nm] of [[x0, e.K, C.energy, 'K'], [x1, e.U, C.violet, 'U']]) {
+      ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(x, y0 - hb, bw, hb);
+      ctx.fillStyle = col; ctx.fillRect(x, y0 - hb * v, bw, hb * v); ctx.restore();
+      text(ctx, nm, x + bw / 2, y0 + 12, {size: 14, w: 700, color: col});
+    }
+  }
+  function drawForces(ctx, g, th, bx, by) {
+    const {L, narrow} = g, Fm = g.F * S.m, er = [Math.sin(th), Math.cos(th)], et = [Math.cos(th), -Math.sin(th)];
+    // 변위 x = lθ (호)
+    if (Math.abs(th) > 1.5 * RAD) {
+      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath();
+      ctx.arc(g.px, g.top, L, Math.PI / 2 - Math.max(th, 0), Math.PI / 2 - Math.min(th, 0)); ctx.stroke(); ctx.restore();
+      if (!narrow) text(ctx, 'x = lθ', g.px - (th > 0 ? 8 : -8), g.top + L + 20, {size: 14, w: 600, color: C.copper, align: th > 0 ? 'right' : 'left', halo: true});
+    }
+    const fs = Math.sin(th) * Fm, fc = Math.cos(th) * Fm;                 // mg sinθ, mg cosθ (px)
+    const tip = [bx, by + Fm], cTip = [bx + er[0] * fc, by + er[1] * fc], sTip = [bx - et[0] * fs, by - et[1] * fs];
+    Lab.line(ctx, [cTip, tip, sTip], C.muted, 1.1, [3, 3]);              // 평행사변형
+    arrow(ctx, bx, by, tip[0], tip[1], C.force, 3, 11);
+    arrow(ctx, bx, by, cTip[0], cTip[1], Lab.alpha(C.force, 0.7), 2.2, 9);
+    if (Math.abs(fs) > 4) arrow(ctx, bx, by, sTip[0], sTip[1], C.force, 3.4, Math.min(11, Math.abs(fs) * 0.7));
+    const Tn = 3 * Math.cos(th) - 2 * Math.cos(S.th0 * RAD);              // 장력 / mg (역학적 에너지 보존)
+    arrow(ctx, bx, by, bx - er[0] * Fm * Tn, by - er[1] * Fm * Tn, C.force, 2.6, 10);
+    const side = th >= 0 ? 1 : -1, lab = (s, x, y, al, c = C.force) => rich(ctx, s, x, y, {size: 14, w: 600, color: c, align: al, halo: true});
+    const mgN = S.m * gv(), vals = !narrow;
+    lab(vals ? 'mg ' + fmt(mgN, 1) + ' N' : 'mg', tip[0] - side * 10, tip[1] - 4, side > 0 ? 'right' : 'left');
+    if (!narrow) lab('mg cosθ', cTip[0] + side * 8, cTip[1] + 10, side > 0 ? 'left' : 'right', Lab.alpha(C.force, 0.85));
+    if (Math.abs(fs) > 12) lab(narrow ? 'mg sinθ' : 'mg sinθ (복원력)', sTip[0] - side * 6, sTip[1] - 16, side > 0 ? 'right' : 'left');
+    lab(vals ? 'T ' + fmt(mgN * Tn, 1) + ' N' : 'T', bx - er[0] * Fm * Tn - side * 10, by - er[1] * Fm * Tn + 4, side > 0 ? 'right' : 'left');
+  }
+  function drawShadow(ctx, g, th, bx, by, w) {
+    const {L, top, px, narrow} = g, A = L * Math.sin(S.th0 * RAD), cy = top + L + 18 + A, ph = w * S.t;
+    const P = [px + A * Math.cos(ph), cy - A * Math.sin(ph)], Vc = narrow ? 30 : 40, Ac = narrow ? 24 : 32;
+    Lab.circle(ctx, px, cy, A, {stroke: C.muted, width: 1.4});
+    Lab.line(ctx, [[px - A - 10, cy], [px + A + 10, cy]], C.line, 1);
+    if (S.strobe) for (let k = 0; k < 16; k++) { const a = 2 * Math.PI * k / 16; Lab.circle(ctx, px + A * Math.cos(a), cy - A * Math.sin(a), 2.6, {fill: Lab.alpha(C.vel, 0.45)}); }
+    Lab.line(ctx, [P, [P[0], by]], C.copper, 1.6, [5, 4]);                 // 그림자: 같은 x
+    Lab.line(ctx, [[px, cy], P], C.muted, 1.4);
+    const phi = ((ph % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI), ra = Math.min(20, A * 0.45);   // ωt: 오른쪽에서 시계 반대 방향으로 돈 각
+    if (phi > 0.15) {
+      ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(px, cy, ra, 0, -phi, true); ctx.stroke(); ctx.restore();
+      if (A > 34) text(ctx, 'ωt', px + Math.cos(-phi / 2) * (ra + 13), cy + Math.sin(-phi / 2) * (ra + 13), {size: 13, w: 600, color: C.muted, halo: true});
+    }
+    // 원운동: 속도(접선)·구심 가속도와 그 가로 성분
+    const vx = -Vc * Math.sin(ph), vy = -Vc * Math.cos(ph), ax = -Ac * Math.cos(ph), ay = Ac * Math.sin(ph);
+    arrow(ctx, P[0], P[1], P[0] + vx, P[1] + vy, Lab.alpha(C.vel, 0.55), 2.2, 8);
+    arrow(ctx, P[0], P[1], P[0] + ax, P[1] + ay, Lab.alpha(C.acc, 0.55), 2.2, 8);
+    if (Math.abs(vx) > 3) arrow(ctx, P[0], P[1], P[0] + vx, P[1], C.vel, 2.6, 9);
+    if (Math.abs(ax) > 3) arrow(ctx, P[0], P[1] + 1, P[0] + ax, P[1] + 1, C.acc, 2.6, 9);
+    Lab.circle(ctx, P[0], P[1], 5.5, {fill: C.vel, stroke: C.paper, width: 2});
+    // 추의 속도·가속도 (접선 방향, 가로 성분이 원운동의 가로 성분과 같다)
+    const et = [Math.cos(th), -Math.sin(th)];
+    if (Math.abs(vx) > 3) arrow(ctx, bx, by, bx + et[0] * vx / et[0], by + et[1] * vx / et[0], C.vel, 3, 10);
+    if (Math.abs(ax) > 3) arrow(ctx, bx, by, bx + et[0] * ax / et[0], by + et[1] * ax / et[0], C.acc, 3, 10);
+    if (!narrow) {
+      text(ctx, '등속 원운동 (ω = 2π/T)', px - A - 14, cy - A * 0.6, {size: 13, w: 600, color: C.muted, align: 'right', halo: true});
+      rich(ctx, '그림자 x = A cos ωt', px + A + 14, cy + A * 0.6, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    }
+  }
+  // 두 진자 비교: 왼쪽 = 기준(구리색), 오른쪽 = 비교(파랑). 길이 4배면 같은 축척으로 그린다
+  function drawCompare(ctx, W, H) {
+    const narrow = W < 520, top = narrow ? 54 : 30, Lmax = H - top - 30, c = cmpPend();
+    const L2 = S.cmp === 'l4' ? Lmax : Lmax * 0.82, L1 = S.cmp === 'l4' ? Lmax / 4 : L2;
+    const pend = [
+      {x: W * 0.3, L: L1, l: S.l, m: S.m, th0: S.th0, col: C.copper, name: '기준', val: S.m + ' kg · ' + S.th0 + '° · ' + fmt(S.l, 2) + ' m'},
+      {x: W * 0.7, L: L2, l: c.l, m: c.m, th0: c.th0, col: C.vel, name: CMP[S.cmp].name, val: fmt(c.m, 1) + ' kg · ' + fmt(c.th0, 1) + '° · ' + fmt(c.l, 2) + ' m'},
+    ];
+    const vref = M.vMax(gv(), S.l, S.th0 * RAD), Vpx = narrow ? 30 : 40;
+    pend.forEach((p, i) => {
+      const w = M.omega(p.l, gv()), T = M.period(p.l, gv()), th = thetaAt(p.th0, w, S.t);
+      ceiling(ctx, p.x, top, narrow ? 34 : 50);
+      Lab.line(ctx, [[p.x, top], [p.x, top + p.L + 12]], C.muted, 1.1, [5, 5]);
+      const [bx, by] = pendulum(ctx, p.x, top, p.L, th, {arc: p.th0, rb: (narrow ? 8 : 10) * Math.cbrt(p.m), col: p.col});
+      const v = -M.vMax(gv(), p.l, p.th0 * RAD) * Math.sin(w * S.t), lv = Vpx * v / vref;
+      if (Math.abs(lv) > 3) arrow(ctx, bx, by, bx + Math.cos(th) * lv, by - Math.sin(th) * lv, C.vel, 2.8, 9);
+      const al = i ? 'left' : 'right', lx = p.x + (i ? 22 : -22), n = Math.floor(S.t / T + 1e-9);
+      text(ctx, p.name, lx, top + 26, {size: 14, w: 700, color: p.col, align: al, halo: true});
+      if (!narrow) text(ctx, p.val, lx, top + 46, {size: 13, w: 500, color: C.muted, align: al, halo: true});
+      text(ctx, 'T = ' + fmt(T, 2) + ' s' + (narrow ? '' : ' · 왕복 ' + n + '번'), lx, top + (narrow ? 46 : 66), {size: 13, w: 600, color: C.ink, align: al, halo: true});
+      if (narrow) text(ctx, '왕복 ' + n + '번', lx, top + 64, {size: 13, w: 500, color: C.muted, align: al, halo: true});
+    });
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  let lastNar = null;
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    if ((W < 520) !== lastNar) { lastNar = W < 520; readouts(); }
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (S.cmp === 'one') drawSingle(ctx, W, H); else drawCompare(ctx, W, H);
+  }
+  const seen = (v) => { if (!v.W) return false; const r = v.el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  const tCur = () => S.t % (2 * Tm());
+
+  // 관찰 1: 복원력–변위 (정확한 mg sinθ 와 직선 −(mg/l)x)
+  const gF = Lab.canvas('gF', drawF);
+  function drawF() {
+    const {ctx, W, H} = gF; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, l = S.l, mg = S.m * gv(), xm = 0.72 * l, Fm = mg * 0.78, th0 = S.th0 * RAD, A = l * th0, F0 = mg * Math.sin(th0);
+    const r = {x: 16, y: 24, w: W - 32, h: H - 24 - 30};
+    const ax = Lab.axes(ctx, r, {xmin: -xm, xmax: xm, ymin: -Fm, ymax: Fm, xticks: [-A, A], yticks: [-F0, F0], fmtX: (v) => fmt(v, 2), fmtY: (v) => fmt(v, 2), grid: true});
+    text(ctx, nar ? 'x (m)' : '변위 x (m)', r.x + r.w, ax.y0 - 14, {size: 13, w: 600, color: C.muted, align: 'right'});
+    text(ctx, nar ? 'F (N)' : '복원력 F (N)', ax.X(0) + 8, r.y - 6, {size: 13, w: 600, color: C.muted, align: 'left'});
+    ctx.save(); ctx.fillStyle = Lab.alpha(C.muted, 0.12); ctx.fillRect(ax.X(-A), r.y, ax.X(A) - ax.X(-A), r.h); ctx.restore();
+    Lab.line(ctx, [[ax.X(-xm), ax.Y(mg / l * xm)], [ax.X(xm), ax.Y(-mg / l * xm)]], C.muted, 2, [6, 5]);
+    ctx.save(); ctx.strokeStyle = C.force; ctx.lineWidth = 3; ctx.beginPath();
+    for (let i = 0; i <= 120; i++) { const x = -xm + 2 * xm * i / 120, X = ax.X(x), Y = ax.Y(-mg * Math.sin(x / l)); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }
+    ctx.stroke(); ctx.restore();
+    rich(ctx, nar ? 'F = −kx' : 'F = −(mg/l)x  (k = ' + fmt(mg / l, 2) + ' N/m)', ax.X(-xm) + 6, ax.Y(mg / l * xm) - 2, {size: 13, w: 600, color: C.muted, align: 'left'});
+    rich(ctx, '−mg sinθ', ax.X(xm) - 4, ax.Y(-mg * Math.sin(xm / l)) + 17, {size: 13, w: 600, color: C.force, align: 'right'});
+    const th = S.cmp === 'one' ? thetaAt(S.th0, wm(), S.t) : thetaAt(S.th0, wm(), S.t), x = l * th, F = -mg * Math.sin(th);
+    Lab.line(ctx, [[ax.X(x), ax.y0], [ax.X(x), ax.Y(F)]], C.copper, 1.4, [4, 4]);
+    Lab.circle(ctx, ax.X(x), ax.Y(F), 6.5, {fill: C.copper, stroke: C.paper, width: 2});
+  }
+
+  // 관찰 2: x·v·a–t (세 줄, 같은 시간축 0 ~ 2T)
+  const gX = Lab.canvas('gX', drawX);
+  function drawX() {
+    const {ctx, W, H} = gX; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, T = Tm(), w = wm(), tm = 2 * T, x0 = 34, x1 = W - 12, X = (t) => x0 + (x1 - x0) * t / tm;
+    const top = 8, bot = H - 26, hs = (bot - top) / 3, amp = hs * 0.36;
+    for (let k = 1; k <= 8; k++) Lab.line(ctx, [[X(k * T / 4), top], [X(k * T / 4), bot]], k % 2 ? C.grid : C.line, 1);
+    const rows = [['x', C.copper, (t) => Math.cos(w * t)], ['v', C.vel, (t) => -Math.sin(w * t)], ['a', C.acc, (t) => -Math.cos(w * t)]];
+    const tc = tCur();
+    rows.forEach(([nm, col, f], i) => {
+      const yc = top + hs * (i + 0.5);
+      Lab.line(ctx, [[x0, yc], [x1, yc]], C.muted, 1.1);
+      text(ctx, nm, 14, yc, {size: 15, w: 700, color: col});
+      ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2.6; ctx.beginPath();
+      for (let j = 0; j <= 200; j++) { const t = tm * j / 200, Y = yc - amp * f(t); j ? ctx.lineTo(X(t), Y) : ctx.moveTo(X(t), Y); }
+      ctx.stroke(); ctx.restore();
+      Lab.circle(ctx, X(tc), yc - amp * f(tc), 5.5, {fill: col, stroke: C.paper, width: 2});
+    });
+    Lab.line(ctx, [[X(tc), top], [X(tc), bot]], Lab.alpha(C.copper, 0.7), 1.6);
+    const ticks = nar ? [[T / 2, 'T/2'], [T, 'T'], [1.5 * T, '3T/2'], [2 * T, '2T']] : [[T / 4, 'T/4'], [T / 2, 'T/2'], [0.75 * T, '3T/4'], [T, 'T'], [1.5 * T, '3T/2'], [2 * T, '2T']];
+    ticks.forEach(([t, s]) => text(ctx, s, X(t), bot + 12, {size: 13, w: 500, color: C.muted, align: t === 2 * T ? 'right' : 'center'}));
+    text(ctx, '0', X(0), bot + 12, {size: 13, w: 500, color: C.muted});
+    if (!nar) {
+      text(ctx, '끝: v = 0, |a| 최대', X(0) + 6, top + hs * 1.5 - amp - 10, {size: 13, w: 600, color: C.ink, align: 'left', halo: true});
+      text(ctx, '평형점: |v| 최대, a = 0', X(T / 4) + 6, top + hs * 2.5 - 12, {size: 13, w: 600, color: C.ink, align: 'left', halo: true});
+    }
+  }
+
+  // 관찰 3: T²–l (원점을 지나는 직선, 기울기 4π²/g)
+  const gT = Lab.canvas('gT', drawT);
+  function drawT() {
+    const {ctx, W, H} = gT; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, r = {x: 44, y: 24, w: W - 44 - 26, h: H - 24 - 36};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 4.4, ymin: 0, ymax: 18, xticks: [1, 2, 3, 4], yticks: [4, 8, 12, 16], fmtX: (v) => v + ' m', xlabel: 'l', ylabel: 'T² (s²)', grid: true});
+    const line = (k, col, w, dash) => { const xe = Math.min(4.4, 18 / k); Lab.line(ctx, [[ax.X(0), ax.Y(0)], [ax.X(xe), ax.Y(k * xe)]], col, w, dash); return xe; };
+    const kOther = M.t2Slope(M.PI2 * (S.gk === 1 ? 0.25 : 1)), k = M.t2Slope(gv());
+    const xo = line(kOther, Lab.alpha(C.muted, 0.8), 1.6, [5, 5]);
+    text(ctx, S.gk === 1 ? 'g/4 행성' : 'g = π²', ax.X(xo) + (S.gk === 1 ? 8 : -8), ax.Y(kOther * xo) + (S.gk === 1 ? 8 : 14), {size: 13, w: 500, color: C.muted, align: S.gk === 1 ? 'left' : 'right'});
+    line(k, C.acc, 3);
+    for (const l of [0.25, 1, 2.25, 4]) if (k * l <= 18) Lab.circle(ctx, ax.X(l), ax.Y(k * l), 4.5, {fill: C.vel});
+    text(ctx, (nar ? '기울기 ' : '기울기 4π²/g = ') + fmt(k, 2) + ' s²/m', ax.X(9 / k) + 14, ax.Y(9) + 4, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    const T = Tm(), y = T * T;
+    if (y <= 18.5) {
+      const X = ax.X(S.l), Y = ax.Y(Math.min(18, y));
+      Lab.line(ctx, [[X, ax.y0], [X, Y], [ax.x0, Y]], C.copper, 1.3, [4, 4]);
+      Lab.circle(ctx, X, Y, 6.5, {fill: C.copper, stroke: C.paper, width: 2});
+      const right = X < r.x + r.w * 0.6;
+      text(ctx, 'l = ' + fmt(S.l, 2) + ' m → T = ' + fmt(T, 2) + ' s', X + (right ? 12 : -12), Y + 16, {size: 13, w: 600, color: C.copper, align: right ? 'left' : 'right', halo: true});
+    } else text(ctx, 'T² = ' + fmt(y, 1) + ' s² (그래프 밖)', r.x + r.w, r.y + 30, {size: 13, w: 600, color: C.copper, align: 'right', halo: true});
+  }
+
+  // 관찰 4: 운동·퍼텐셜 에너지–t (합 일정, 각각 T/2 마다 되풀이)
+  const gE = Lab.canvas('gE', drawE);
+  function drawE() {
+    const {ctx, W, H} = gE; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, T = Tm(), w = wm(), r = {x: 40, y: 46, w: W - 40 - 18, h: H - 46 - 58};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 2 * T, ymin: 0, ymax: 1.12, xticks: [T / 2, T, 1.5 * T, 2 * T], yticks: [1], fmtX: (v) => fmt(v, 2), fmtY: () => 'E', xlabel: 't (s)', ylabel: nar ? '' : '에너지', grid: true});
+    Lab.line(ctx, [[ax.X(0), ax.Y(1)], [ax.X(2 * T), ax.Y(1)]], C.acc, 2, [6, 4]);
+    const cur = (f, col) => { ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2.8; ctx.beginPath(); for (let j = 0; j <= 220; j++) { const t = 2 * T * j / 220, X = ax.X(t), Y = ax.Y(f(t)); j ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); } ctx.stroke(); ctx.restore(); };
+    cur((t) => Math.cos(w * t) ** 2, C.violet);
+    cur((t) => Math.sin(w * t) ** 2, C.energy);
+    text(ctx, 'U', ax.X(T / 2) + 12, ax.Y(0.9), {size: 14, w: 700, color: C.violet, halo: true});
+    text(ctx, 'K', ax.X(T / 4) + 12, ax.Y(0.9), {size: 14, w: 700, color: C.energy, halo: true});
+    if (!nar) text(ctx, 'K + U = E (일정)', ax.X(2 * T), ax.Y(1) - 11, {size: 13, w: 600, color: C.acc, align: 'right', halo: true});
+    Lab.bracket(ctx, ax.X(T / 4), ax.X(3 * T / 4), r.y - 12, C.energy, 'K 최대 간격 T/2 = ' + fmt(T / 2, 2) + ' s');
+    Lab.bracket(ctx, ax.X(0), ax.X(T), ax.y0 + 36, C.ink, (nar ? 'T = ' : '진동 주기 T = ') + fmt(T, 2) + ' s', false);
+    const tc = tCur(), e = M.energies(tc, w);
+    Lab.line(ctx, [[ax.X(tc), ax.y0], [ax.X(tc), r.y]], Lab.alpha(C.copper, 0.7), 1.6);
+    Lab.circle(ctx, ax.X(tc), ax.Y(e.K), 5.5, {fill: C.energy, stroke: C.paper, width: 2});
+    Lab.circle(ctx, ax.X(tc), ax.Y(e.U), 5.5, {fill: C.violet, stroke: C.paper, width: 2});
+  }
+
+  // ── 수치 (지금 값) ──────────────────────────────────────
+  const LEG = {
+    force: '<span><i style="background:var(--copper)"></i>추 · 1/16 주기마다 자리</span><span><b style="background:var(--force)"></b>중력 mg 와 두 성분 · 장력 T</span><span><b style="background:var(--copper)"></b>변위 x = lθ (호)</span><span><b style="background:var(--energy)"></b>운동 에너지 K · 퍼텐셜 U</span>',
+    circle: '<span><i style="background:var(--vel)"></i>원 위를 등속으로 도는 점</span><span><b style="background:var(--copper)"></b>그림자 = 추의 가로 위치</span><span><b style="background:var(--vel)"></b>속도 (가로 성분 = 추의 속도)</span><span><b style="background:var(--acc)"></b>가속도 (가로 성분 = 추의 가속도)</span>',
+    cmp: '<span><i style="background:var(--copper)"></i>기준 진자</span><span><i style="background:var(--vel)"></i>비교 진자</span><span><b style="background:var(--vel)"></b>속도</span>',
+  };
+  let ansKey = '';
+  function ans(big, lines, o) {
+    const key = [big, o.tone, o.ctx, o.f].concat(lines).join('|');
+    if (key === ansKey) return;
+    ansKey = key; Lab.ans(big, lines, o);
+  }
+  const setMini = (i, name, val) => { const a = $('mn' + i), b = $('mv' + i); if (a.textContent !== name) a.textContent = name; if (b.textContent !== val) b.textContent = val; };
+  function posText(t) {
+    const ph = wm() * t, c = Math.cos(ph), s = Math.sin(ph);
+    if (Math.abs(c) > 0.995) return (c > 0 ? '오른쪽 끝' : '왼쪽 끝') + ' · v = 0, a 최대';
+    if (Math.abs(c) < 0.06) return '최저점 · v 최대, a = 0';
+    return c * s > 0 ? '평형점 쪽으로 · 빨라진다' : '끝 쪽으로 · 느려진다';
+  }
+  function hud() {
+    $('hud1').textContent = 't = ' + fmt(S.t, 2) + ' s';
+    const nar = isNarrow();
+    $('hud3').hidden = nar || S.cmp !== 'one';
+    $('hud3').textContent = S.cmp === 'one' ? posText(S.t) : '두 진자 비교';
+  }
+  function readouts() {
+    const l = S.l, g = gv(), T = Tm(), th0 = S.th0 * RAD, m = S.m, cf = S.gk === 1 ? 2 : 4;   // T = cf × √l
+    const ls = fmt(l, 2), lines = [
+      'T = 2π√(<em>' + ls + '</em> ÷ ' + (S.gk === 1 ? 'π²' : '(π²/4)') + ') = ' + cf + ' × √' + ls + ' = <em>' + fmt(T, 2) + ' s</em>',
+      '운동 에너지가 최대인 간격 = T/2 = <em>' + fmt(T / 2, 2) + ' s</em>',
+    ];
+    const c = cmpPend(), T2 = M.period(c.l, g);
+    if (S.cmp === 'one') lines.push('추의 질량 m, 진폭 θ₀ 은 식에 없다 → 주기와 무관');
+    else if (S.cmp === 'l4') lines.push('길이 4배(' + fmt(c.l, 2) + ' m) 진자: T = <em>' + fmt(T2, 2) + ' s</em> → 2배');
+    else lines.push(CMP[S.cmp].name + ' 진자도 T = <em>' + fmt(T2, 2) + ' s</em> (' + (S.cmp === 'm2' ? '질량' : '진폭') + '이 식에 없다)');
+    ans('T = ' + fmt(T, 2) + ' s', lines, {tone: '', ctx: 'l = ' + ls + ' m · g = ' + gStr() + ' m/s²' + (S.cmp === 'one' ? '' : ' · 비교: ' + CMP[S.cmp].name), f: 'T = 2π√(l/g) 에 지금 값을 넣으면'});
+    const vm = M.vMax(g, l, th0);
+    setMini(1, '진동수 f = 1/T', fmt(1 / T, 2) + ' Hz');
+    setMini(2, '최저점 속력 √(2gl(1 − cos θ₀))', fmt(vm, 2) + ' m/s');
+    setMini(3, '복원력 최대 mg sin θ₀ (양 끝)', fmt(m * g * Math.sin(th0), 2) + ' N');
+    setMini(4, '최저점 장력 mg + mv²/l (무게 ' + fmt(m * g, 1) + ' N)', fmt(M.tensionBottom(m, g, l, th0), 1) + ' N');
+    $('lenOut').textContent = fmt(l, 2) + ' m';
+    $('ampOut').textContent = S.th0 + '°';
+    $('massOut').textContent = fmt(m, 1) + ' kg';
+    $('legend').innerHTML = S.cmp === 'one' ? LEG[S.view] : LEG.cmp;
+    hud();
+    const ex1 = Math.abs(l - 1) < 1e-9 && S.gk === 1, ex4 = Math.abs(l - 4) < 1e-9 && S.gk === 1;
+    Lab.check('exCheck', ex1 || ex4, ex1 ? '개념서 예제 (l = 1 m, g = π²) → T = 2 s, 길이 4 m면 4 s, 운동 에너지 최대 간격 T/2 = 1 s' : '예제 둘째 물음: 길이 4 m → T = 2π√(4/π²) = 4 s (1 m일 때의 2배)',
+      '예제: 길이 1 m, g = π² 인 단진자의 주기는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function drawAll() { drawStage(); drawF(); drawX(); drawT(); drawE(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  const viewG = Lab.group('[data-view]', 'view', (v) => { S.view = v; if (S.cmp !== 'one') setCmp('one'); refresh(); }, S.view);
+  const cmpG = Lab.group('[data-cmp]', 'cmp', (v) => { setCmp(v); S.t = 0; refresh(); }, S.cmp);
+  const gG = Lab.group('[data-g]', 'g', (v) => { S.gk = +v; S.t = 0; refresh(); }, String(S.gk));
+  function setCmp(v) { S.cmp = v; cmpG.set(v, true); }
+  function setView(v) { S.view = v; viewG.set(v, true); }
+  const lenEl = $('len'), ampEl = $('amp'), massEl = $('mass');
+  // 길이를 바꿔도 같은 위상(끝에서 놓은 뒤 같은 몫의 주기)을 유지한다
+  function setL(v) { const f = S.t / Tm(); S.l = Math.max(0.25, Math.min(4, v)); lenEl.value = S.l; S.t = f * Tm(); refresh(); }
+  lenEl.addEventListener('input', () => setL(+lenEl.value));
+  ampEl.addEventListener('input', () => { S.th0 = +ampEl.value; refresh(); });
+  massEl.addEventListener('input', () => { S.m = +massEl.value; refresh(); });
+  $('cStrobe').addEventListener('change', (e) => { S.strobe = e.target.checked; refresh(); });
+  $('step').addEventListener('click', () => { playCtl.set(false); const q = Tm() / 8; S.t = (Math.floor(S.t / q + 1e-6) + 1) * q; refresh(); });
+  $('reset').addEventListener('click', () => { S.t = 0; playCtl.set(true); refresh(); });
+
+  // 단계 카드의 버튼: 그 상황으로
+  function setup(o) {                                 // 길이·g 는 말하지 않으면 예제 값(1 m, π²)으로
+    S.l = o.l != null ? o.l : 1; lenEl.value = S.l;
+    S.gk = o.gk != null ? o.gk : 1; gG.set(String(S.gk), true);
+    if (o.view) setView(o.view);
+    setCmp(o.cmp || 'one');
+    S.t = o.t != null ? o.t * Tm() : 0;
+    playCtl.set(o.play !== false);
+  }
+  const TRY = {
+    ex: () => setup({l: 1, gk: 1}),
+    ex4: () => setup({l: 4, gk: 1}),
+    end: () => setup({view: 'force', t: 0, play: false}),
+    bottom: () => setup({view: 'force', t: 0.25, play: false}),
+    circle: () => setup({view: 'circle'}),
+    energy: () => setup({view: 'circle', t: 0}),
+    cm: () => setup({cmp: 'm2'}), ca: () => setup({cmp: 'a2'}), cl: () => setup({cmp: 'l4'}),
+    q1a: () => setup({l: 0.25, gk: 1, view: 'circle'}),
+    q1b: () => setup({l: 0.25, gk: 0.25, view: 'circle'}),
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing) return;
+    S.t += dt * S.speed;
+    drawStage();
+    if (seen(gF)) drawF(); if (seen(gX)) drawX(); if (seen(gE)) drawE();
+    roT += dt; if (roT > 0.1) { roT = 0; hud(); }
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>

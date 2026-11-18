@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>상대 운동과 빗면 좌표계 — 만남 문제의 도구</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(만남: 땅에서 본 모습 | A에서 본 모습을 나란히 / 빗면: 축을 빗면에 맞춘 포물선) | 오른쪽 지금 값 + 관찰 ①~④(높이–시간, 속도의 차, 위치 차–시간, 빗면 수직 거리–시간) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10}
+#dy{aspect-ratio:10/5.6}
+#vs{aspect-ratio:10/6}
+#dd{aspect-ratio:10/5.6}
+#ic{aspect-ratio:10/5.4}
+@media (max-width:640px){ #dy{aspect-ratio:10/7} #vs{aspect-ratio:10/8} #dd{aspect-ratio:10/7} #ic{aspect-ratio:10/6.6} }
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A1 힘과 운동: 개념 16개 가운데 9번째"><a class="uname" href="../">A1 힘과 운동</a><span class="dots"><a href="../01/" title="A1-01 힘의 합성·분해" aria-label="A1-01 힘의 합성·분해"></a><a href="../02/" title="A1-02 돌림힘과 평형" aria-label="A1-02 돌림힘과 평형"></a><a href="../03/" title="A1-03 무게중심과 안정성" aria-label="A1-03 무게중심과 안정성"></a><a href="../04/" title="A1-04 한계 조건과 강체" aria-label="A1-04 한계 조건과 강체"></a><a href="../05/" title="A1-05 운동의 벡터" aria-label="A1-05 운동의 벡터"></a><a href="../06/" title="A1-06 평면 등가속도 운동" aria-label="A1-06 평면 등가속도 운동"></a><a href="../07/" title="A1-07 중력장의 직선 운동" aria-label="A1-07 중력장의 직선 운동"></a><a href="../08/" title="A1-08 포물선 운동" aria-label="A1-08 포물선 운동"></a><a class="cur" href="./" aria-current="page" title="A1-09 상대 운동" aria-label="A1-09 상대 운동 (지금)"></a><a href="../10/" title="A1-10 등속 원운동" aria-label="A1-10 등속 원운동"></a><a href="../11/" title="A1-11 여러 가지 구심력" aria-label="A1-11 여러 가지 구심력"></a><a href="../12/" title="A1-12 케플러 법칙" aria-label="A1-12 케플러 법칙"></a><a href="../13/" title="A1-13 만유인력과 인공위성" aria-label="A1-13 만유인력과 인공위성"></a><a href="../14/" title="A1-14 단진동과 단진자" aria-label="A1-14 단진동과 단진자"></a><a href="../15/" title="A1-15 관성력" aria-label="A1-15 관성력"></a><a href="../16/" title="A1-16 등가 원리" aria-label="A1-16 등가 원리"></a></span></nav>
+  <div class="pn"><a href="../08/" rel="prev" title="이전 개념: A1-08 포물선 운동">‹ <span>08 포물선 운동</span></a><a href="../10/" rel="next" title="다음 개념: A1-10 등속 원운동"><span>10 등속 원운동</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A1-09</span><span>물리학 Ⅱ · 힘과 운동</span></div>
+    <h1>상대 운동과 빗면 좌표계 — 만남 문제의 도구</h1>
+    <p class="question"><i>Q</i>같은 중력을 받는 두 물체를 서로에게서 보면 왜 등속 직선 운동일까?</p>
+  </div>
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="왼쪽: 땅에서 본 두 공. 원점에서 던진 공 B(파랑)와 같은 순간 놓은 A(구리색)가 둘 다 떨어진다. 오른쪽: A에서 본 모습. B는 곧게, 일정한 빠르기로 다가온다. 왼쪽 칸에서 A와 B의 처음 속도 화살표 끝을 끌 수 있다."></canvas>
+        <div class="hud"><span class="pill" id="hudT">t = 0 s</span><span class="pill" id="hudS">다가가는 중</span><span class="pill" id="hudV">느린 화면 ×0.1</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider" id="slVs"><label for="vs0"><span class="lg">B의 처음 </span>속력</label><input id="vs0" type="range" min="3" max="40" step="1" value="25"><output id="vsOut">25 m/s</output></div>
+          <div class="slider" id="slAl" hidden><label for="al"><span class="lg">빗면 </span>경사각 α</label><input id="al" type="range" min="10" max="50" step="1" value="30"><output id="alOut">30°</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·보기</span><span class="sm">장면</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 보기">
+          <div class="sheet-head"><b>장면 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="meet" aria-pressed="true">두 공의 만남</button>
+              <button type="button" class="btn" data-scene="incline" aria-pressed="false">빗면 좌표계</button>
+            </div>
+            <button type="button" class="btn" id="back">◀ 0.1 s</button>
+            <button type="button" class="btn" id="step">0.1 s ▶</button>
+          </div>
+          <div class="row" id="rowMeet">
+            <div class="grow">
+              <label class="ctl-label" for="vbx"><span>B의 처음 속도 x 성분</span> <output id="vbxOut">15 m/s</output></label>
+              <input id="vbx" type="range" min="-30" max="30" step="1" value="15">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="vby"><span>y 성분</span> <output id="vbyOut">20 m/s</output></label>
+              <input id="vby" type="range" min="-10" max="30" step="1" value="20">
+            </div>
+          </div>
+          <div class="row" id="rowInc" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="vp"><span>빗면 수직 속력 v⊥</span> <output id="vpOut">8.66 m/s</output></label>
+              <input id="vp" type="range" min="2" max="15" step="any" value="8.66">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="vq"><span>빗면 방향 속력 v∥</span> <output id="vqOut">10 m/s</output></label>
+              <input id="vq" type="range" min="-10" max="15" step="1" value="10">
+            </div>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">느리게</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">보통</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">빠르게</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label class="chk" id="wAim"><input type="checkbox" id="cAim" checked>겨냥선·중력이 없을 때의 길</label>
+            <label class="chk" id="wDrop"><input type="checkbox" id="cDrop" checked>½gt² 괄호</label>
+            <label class="chk"><input type="checkbox" id="cStrobe" checked>같은 시간 간격으로 찍기</label>
+            <label class="chk" id="wBlock" hidden><input type="checkbox" id="cBlock">빗면 위 물체 같이</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">두 공의 만남</span><span id="ansCtx">A (6, 8) m · B (15, 20) m/s</span></div>
+        <div class="big" id="ansBig">0.4 s 뒤 (6, 7.2) m에서 만난다</div>
+        <div class="sub">
+          <span class="f" id="ansF">상대 운동으로 시간을, 한 물체의 실제 운동으로 위치를 구하면</span>
+          <span id="ansLines"><span class="v">상대 속도 = (<em>15</em>, <em>20</em>) − (0, 0) = (15, 20) m/s → <em>25 m/s</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="m1n">상대 속력</span><b id="m1">25 m/s</b></div>
+          <div class="mini"><span id="m2n">처음 거리</span><b id="m2">10 m</b></div>
+          <div class="mini"><span id="m3n">만나는 시간</span><b id="m3">0.4 s</b></div>
+          <div class="mini"><span id="m4n">그동안 둘 다 떨어진 거리 ½gt²</span><b id="m4">0.8 m</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 땅에서 보면">
+          <div class="kind">관찰 1</div>
+          <h3>땅에서 보면 둘 다 떨어지지만, 매 순간 같은 거리 ½gt² 만큼 떨어진다</h3>
+          <p>중력이 없다면 B 는 처음 속도 방향(파란 점선)으로 곧게 가고 A 는 제자리에 있었을 것이다. 중력은 둘을 똑같이 ½gt² 만큼 끌어내린다(초록 괄호). 그래서 B 와 A 를 잇는 선(구리색 점선)은 늘 처음 겨냥선과 평행하게 내려오고, 땅에 닿기 전이라면 둘은 반드시 만난다.</p>
+          <canvas class="flat" id="dy" aria-label="높이-시간 그래프. 중력이 없을 때의 직선(점선)과 실제 높이(실선)의 차이는 두 공 모두 ½gt²로 같다."></canvas>
+          <p class="cap">점선은 중력이 없을 때의 높이, 실선은 실제 높이다. 두 공 모두 점선에서 똑같이 ½gt² 만큼 처지므로, 두 높이의 차는 중력과 상관없이 직선으로 줄어든다. 예제(0.4 s 에 0.8 m)는 처짐이 작으니 B 를 느리게 던져 보자(1 s 에 5 m).</p>
+          <div class="acts"><button type="button" class="btn go" data-try="aim">10 m/s 로 느리게 던지기</button><button type="button" class="btn" data-do="click:#step">한 간격씩 ▸</button></div>
+        </li>
+        <li class="card step" data-step="② A에서 보면">
+          <div class="kind">관찰 2</div>
+          <h3>A 에서 보면 B 는 처음 상대 속도 그대로 곧게 다가온다</h3>
+          <p>같은 순간 두 속도의 차를 보자. v<sub>B</sub> = (15, 20 − 10t), v<sub>A</sub> = (0, −10t) 이므로 v<sub>B</sub> − v<sub>A</sub> = (15, 20) 이다. 중력이 만든 −gt 가 양쪽에서 똑같이 빠져나가 지워진다. 그래서 무대 오른쪽(A 에서 본 모습)의 B 는 상대 속도 (15, 20) m/s 로 등속 직선 운동을 한다.</p>
+          <canvas class="flat" id="vs" aria-label="같은 순간 B와 A의 속도 화살표와 그 차. 두 속도는 아래로 변하지만 차는 처음 그대로다."></canvas>
+          <p class="cap">두 속도 화살표는 시간이 갈수록 아래로 기울지만, 그 차(초록)는 처음 그대로다. 무대 오른쪽에서 B 의 점 간격이 고르고 곧은 것이 그 증거다. A 에서 보면 땅이 ½gt² 만큼 올라온다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="mid">0.2 s 순간 보기</button><button type="button" class="btn" data-do="click:#step">한 간격씩 ▸</button></div>
+        </li>
+        <li class="card step" data-step="③ 만남의 조건">
+          <div class="kind">관찰 3</div>
+          <h3>상대 속도가 상대를 향해야 만난다 — 어긋나면 최소 거리, 느리면 땅이 먼저</h3>
+          <p>만나려면 A 에서 본 B 의 상대 속도가 처음부터 A 를 향해야 하고, 만나는 시간은 처음 거리 ÷ 상대 속력이다. 방향이 어긋나면 만나지 않고, 가장 가까울 때의 거리는 A 에서 상대 속도 직선까지의 수직 거리다. 방향이 맞아도 너무 느리면 만나기 전에 땅에 닿는다.</p>
+          <canvas class="flat" id="dd" aria-label="위치 차-시간 그래프. 가로·세로 위치 차는 직선이고, 두 직선이 같은 순간 0이 되어야 만난다."></canvas>
+          <p class="cap">위치 차 Δx, Δy 는 시간에 대해 직선이다(상대 속도 일정 = 두 가속도가 같다). 두 직선이 같은 순간 0 을 지나야 만나고, 아니면 거리(구리색)는 0 까지 줄지 못한다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="miss">방향을 (20, 15)로</button>
+            <button type="button" class="btn" data-try="slow">느리게 (3, 4) m/s</button>
+            <button type="button" class="btn" data-try="exm">다시 (15, 20)</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 빗면 좌표계">
+          <div class="kind">관찰 4</div>
+          <h3>빗면이 나오면 축을 빗면에 맞춘다 — 수직 방향만 보면 위로 던진 운동이다</h3>
+          <p>경사각 α 인 빗면에서 중력 가속도를 빗면 방향 g sinα 와 빗면 수직 방향 g cosα 로 나눈다. 빗면에 다시 닿는 것은 ‘빗면 수직 변위 = 0’ 이므로, 수직 방향만 보면 위로 던진 운동과 같아 <span class="eq">T = 2v⊥/(g cosα)</span> 이다. 빗면에서 가장 먼 순간(속도 ∥ 빗면)은 그 절반이다.</p>
+          <canvas class="flat" id="ic" aria-label="빗면까지의 수직 거리-시간 그래프. 위로 던진 운동처럼 T/2에 가장 크고 T에 0이 된다."></canvas>
+          <p class="cap">빗면 방향 속력 v∥ 는 언제 닿는지는 바꾸지 못하고 어디에 닿는지만 바꾼다. 빗면 위를 미끄러지는 물체도 빗면 방향 가속도가 g sinα 로 같아서, 같은 v∥ 로 출발하면 늘 공 바로 아래에 있다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="incl">빗면에서 던지기</button>
+            <button type="button" class="btn" data-try="block">빗면 위 물체와 같이</button>
+            <button type="button" class="btn" data-do="set:#al=45">α = 45°</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>같은 가속도면 중력을 지우고, 빗면이면 축을 돌린다</h3>
+          <ul>
+            <li>상대 속도 <span class="eq">v<sub>B</sub> − v<sub>A</sub></span>, 상대 가속도 a<sub>B</sub> − a<sub>A</sub>. 같은 중력장이면 상대 가속도가 0 이라 서로에게서 보면 등속 직선 운동이다.</li>
+            <li>만남: 상대 속도가 상대를 향하고, 시간 = 처음 거리 ÷ 상대 속력. 위치는 한 물체의 실제 운동 식으로 구한다(2단 구조). 최소 거리 = 상대 속도 직선까지의 수직 거리.</li>
+            <li>빗면 좌표계: a∥ = g sinα, a⊥ = g cosα, 다시 빗면에 닿는 시간 T = 2v⊥/(g cosα), 가장 먼 순간 T/2.</li>
+            <li>자주 하는 실수: 빗면 좌표계와 수평 좌표계를 한 식에서 섞는다. 축을 정했으면 속도·가속도·변위를 모두 같은 축으로 나눈다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>원점에서 공 B를 (15, 20) m/s로 던지는 순간, (6, 8) m에 있던 공 A를 가만히 놓았다. 두 공은 만나는가? 만난다면 언제, 어디서? (g = 10 m/s²)</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>두 공의 가속도가 g 로 같으므로 A 에서 본 B 는 상대 속도 (15, 20) m/s 로 등속 운동한다. 처음 상대 위치(B → A)는 (6, 8) m 로 상대 속도와 같은 방향이므로 만난다. 시간 = 거리 ÷ 상대 속력 = 10 ÷ 25 = 0.4 s. 만남 위치는 A 의 실제 운동으로 구한다: 0.4 s 동안 ½ × 10 × 0.4² = 0.8 m 떨어지므로 <b>0.4 s 뒤 (6, 7.2) m</b> 에서 만난다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>같은 높이에서 30 m 떨어진 두 공 A, B를 동시에 서로를 향해 수평으로 던졌다. A는 8 m/s, B는 12 m/s이다. 땅에 닿기 전에 만나려면 던진 높이는 최소 몇 m보다 높아야 할까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1">11.25 m 에서 던져 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>11.25 m</b>. 가속도가 g 로 같아 A 에서 본 B 는 상대 속력 8 + 12 = 20 m/s 로 곧게 다가오므로 30 ÷ 20 = 1.5 s 에 만난다. 그동안 두 공은 똑같이 ½ × 10 × 1.5² = 11.25 m 떨어진다. 31.25 m 는 상대 속력 대신 B 의 속력 12 m/s 만으로 시간을 잡은 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>경사각 30°인 빗면 위의 한 점에서 공을 빗면에 수직인 방향으로 5√3 m/s로 던졌다. 공이 다시 빗면에 닿을 때까지 걸린 시간은? (g = 10 m/s²)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q2">빗면에 수직으로 던지기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>2 s</b>. 축을 빗면에 맞추면 빗면 수직 방향 가속도는 g cos30° = 5√3 m/s² 이고, 빗면에 닿는 것은 수직 변위가 0 인 순간이라 2v⊥/(g cosα) = 2 × 5√3 ÷ 5√3 = 2 s 다. √3 s 는 g cosα 대신 g 를 쓴 값이다. 빗면에서 가장 멀어지는 순간은 그 절반인 1 s 다.</p></details>
+          </div>
+          <div class="q">
+            <h3>공중에서 같은 순간, 두 물체를 서로의 처음 위치를 향해 던졌다. 땅에 닿기 전이라면 두 물체는 반드시 만날까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q3">서로를 향해 던지기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>그렇다</b>. 두 물체의 가속도가 g 로 같아 상대 운동은 처음 상대 속도 방향의 등속 직선 운동이고, 그 방향이 처음부터 서로를 향하기 때문이다. 만나는 시간은 처음 거리 ÷ (두 속력의 합)이다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../08/" rel="prev"><small>← 이전 개념 · A1-08</small><b>포물선 운동</b></a><a href="../10/" rel="next"><small>다음 개념 · A1-10 →</small><b>등속 원운동</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+<script src="../../kit/lab.js"></script>
+<script src="A1-09-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_09;
+  const {$, C, text, arrow, fmt} = Lab;
+  const RAD = Math.PI / 180, EPS = 1e-6, VP0 = 5 * Math.sqrt(3);
+
+  // ── 상태 ────────────────────────────────────────────────
+  const EX = {pA: [6, 8], vA: [0, 0], pB: [0, 0], vB: [15, 20]};
+  const S = {scene: 'meet', pA: [6, 8], vA: [0, 0], pB: [0, 0], vB: [15, 20], t: 0, playing: !Lab.reduceMotion, speed: 1, hold: 0, linger: 0,
+    aim: true, drops: true, strobe: true, al: 30, vp: VP0, vq: 10, block: false, drag: null, boxLock: null};
+  const isM = () => S.scene === 'meet';
+  const base = () => (isM() ? 0.1 : 0.5);                 // 화면 빠르기 (실제의 몇 배)
+  const MT = () => M.meet(S.pA, S.vA, S.pB, S.vB);
+  function tEnd() {
+    if (!isM()) return M.returnTime(S.vp, S.al);
+    const m = MT();
+    if (m.meets) return m.t;
+    return m.toward ? Math.min(m.tGround, 3) : Math.min(m.tGround, Math.max(2 * m.tMin, 0.6));
+  }
+  const dtS = () => (isM() ? (tEnd() <= 0.8 + EPS ? 0.1 : 0.25) : M.returnTime(S.vp, S.al) / 8);
+  const stamps = () => { const d = dtS(), out = []; for (let k = 0; k * d <= tEnd() + EPS; k++) out.push(k * d); return out; };
+  const posA = (t) => M.posAt(S.pA, S.vA, t), posB = (t) => M.posAt(S.pB, S.vB, t);
+  const vecS = (v, d = 2) => '(' + fmt(v[0], d) + ', ' + fmt(v[1], d) + ')';
+  const r3s = (v) => (Math.abs(v - VP0) < 1e-9 ? '5√3' : fmt(v, 2));
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  function ground(ctx, x0, x1, y, al = 1) {
+    ctx.save(); ctx.globalAlpha = al; ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (let x = x0 + 8; x < x1 + 4; x += 11) { ctx.moveTo(x, y + 1); ctx.lineTo(x - 8, y + 9); }
+    ctx.globalAlpha = 0.55 * al; ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.globalAlpha = al; Lab.line(ctx, [[x0, y], [x1, y]], C.ink, 2.2); ctx.restore();
+  }
+  function darrow(ctx, x0, y0, x1, y1, col, w = 2.2, head = 8) {
+    const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy); if (L < 3) return;
+    const ux = dx / L, uy = dy / L, hh = Math.min(head, L * 0.6);
+    Lab.line(ctx, [[x0, y0], [x1 - ux * hh * 0.8, y1 - uy * hh * 0.8]], col, w, [5, 4]);
+    ctx.save(); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 - ux * hh - uy * hh * 0.5, y1 - uy * hh + ux * hh * 0.5); ctx.lineTo(x1 - ux * hh + uy * hh * 0.5, y1 - uy * hh - ux * hh * 0.5);
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function boxA(ctx, x, y, r, o = {}) {                   // 공 A (구리색 상자)
+    ctx.save(); Lab.rrect(ctx, x - r, y - r, 2 * r, 2 * r, 3);
+    if (o.fill) { ctx.fillStyle = o.fill; ctx.fill(); }
+    ctx.lineWidth = o.width || 2; ctx.strokeStyle = o.stroke || C.copper; ctx.globalAlpha = o.alpha == null ? 1 : o.alpha; ctx.stroke(); ctx.restore();
+  }
+  // 아래첨자 글자를 캔버스 폭 안에 (넘치면 왼쪽으로 당긴다)
+  function richFit(ctx, s, x, y, o, W) {
+    const w = Lab.measure(ctx, s.replace(/[_{}]/g, ''), {size: o.size || 13, w: o.w}) + 2;
+    Lab.rich(ctx, s, Math.max(4, Math.min(x, W - 6 - w)), y, Object.assign({}, o, {align: 'left'}));
+  }
+  function clipRect(ctx, x, y, w, h) { ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); }
+  // 직선 P + k·d 를 사각형 [x0,x1]×[y0,y1] 안에서 자른 두 끝 (화면 좌표)
+  function lineInRect(P, d, x0, y0, x1, y1) {
+    let lo = -1e9, hi = 1e9;
+    for (const [p, v, a, b] of [[P[0], d[0], x0, x1], [P[1], d[1], y0, y1]]) {
+      if (Math.abs(v) < 1e-12) { if (p < a || p > b) return null; continue; }
+      let k1 = (a - p) / v, k2 = (b - p) / v; if (k1 > k2) [k1, k2] = [k2, k1];
+      lo = Math.max(lo, k1); hi = Math.min(hi, k2);
+    }
+    return lo < hi ? [[P[0] + d[0] * lo, P[1] + d[1] * lo], [P[0] + d[0] * hi, P[1] + d[1] * hi]] : null;
+  }
+
+  // ── 만남 장면의 기하: 두 칸이 같은 배율 ─────────────────
+  function boxMeet() {
+    if (S.boxLock) return S.boxLock;
+    const te = tEnd(), u = M.sub(S.vB, S.vA), xs = [0, S.pA[0], S.pB[0]], ys = [0, S.pA[1], S.pB[1]];
+    for (let i = 0; i <= 30; i++) {
+      const t = te * i / 30, a = posA(t), b = posB(t);
+      xs.push(a[0], b[0], S.pB[0] + u[0] * t); ys.push(a[1], b[1], S.pB[1] + u[1] * t);
+    }
+    const q = (v, up) => (up ? Math.ceil(v / 2) * 2 : Math.floor(v / 2) * 2);
+    return {x0: q(Math.min(...xs) - 1, false), x1: q(Math.max(...xs) + 1, true), y0: -0.8, y1: q(Math.max(...ys) + 1.4, true)};
+  }
+  function geo(W, H) {
+    const narrow = W < 520;
+    if (isM()) {
+      const b = boxMeet(), pw = W / 2, top = narrow ? 82 : 78, bot = narrow ? 42 : 46, pad = narrow ? 8 : 18;
+      const s = Math.max(1, Math.min((pw - 2 * pad) / (b.x1 - b.x0), (H - top - bot) / (b.y1 - b.y0)));
+      const ex = (pw - 2 * pad - (b.x1 - b.x0) * s) / 2;
+      const XL = (x) => pad + ex + (x - b.x0) * s, XR = (x) => pw + pad + ex + (x - b.x0) * s, Y = (y) => H - bot - (y - b.y0) * s;
+      return {narrow, W, H, b, pw, top, bot, pad, s, XL, XR, Y, kh: s * (narrow ? 0.1 : 0.12)};
+    }
+    // 빗면: 공이 출발하는 점 O = (0, 0), 빗면 방향 e∥ = (cosα, sinα)
+    const al = S.al, T = M.returnTime(S.vp, al), ss = [0], ys = [0];
+    for (let i = 0; i <= 40; i++) { const p = M.inclinePos(S.vq, S.vp, al, T * i / 40); ss.push(p.s); ys.push(M.toWorld(p.s, p.n, al)[1]); }
+    const sb = Math.min(...ss) - 3.5, st = Math.max(...ss) + 5, Pb = M.toWorld(sb, 0, al), Pt = M.toWorld(st, 0, al);
+    const b = {x0: Pb[0] - 1, x1: Pt[0] + 1.5, y0: Pb[1] - 0.6, y1: Math.max(Pt[1], ...ys) + 1.6};
+    const top = narrow ? 60 : 64, bot = narrow ? 44 : 46, pad = narrow ? 10 : 20;
+    const s = Math.max(1, Math.min((W - 2 * pad) / (b.x1 - b.x0), (H - top - bot) / (b.y1 - b.y0)));
+    const ex = (W - 2 * pad - (b.x1 - b.x0) * s) / 2;
+    const X = (x) => pad + ex + (x - b.x0) * s, Y = (y) => H - bot - (y - b.y0) * s;
+    return {narrow, W, H, b, top, bot, pad, s, X, Y, sb, st, Pb, Pt, kh: s * 0.16};
+  }
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    const g = geo(W, H);
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (isM()) { drawGround(ctx, g); drawAFrame(ctx, g); } else drawIncline(ctx, g);
+  }
+  const handleB = (g) => [g.XL(S.pB[0]) + S.vB[0] * g.kh, g.Y(S.pB[1]) - S.vB[1] * g.kh];
+
+  // 왼쪽 칸: 땅에서 본 모습
+  function drawGround(ctx, g) {
+    const {XL: X, Y, s, narrow, pw} = g, te = tEnd(), t = Math.min(S.t, te), m = MT(), hs = narrow ? 7 : 9;
+    clipRect(ctx, 0, 0, pw, g.H);
+    ground(ctx, 0, pw, Y(0));
+    text(ctx, narrow ? '땅에서 보면' : '땅에서 본 모습', g.pad, g.top - 22, {size: 14, w: 600, align: 'left'});
+    const A0 = [X(S.pA[0]), Y(S.pA[1])], B0 = [X(S.pB[0]), Y(S.pB[1])];
+    if (S.aim) {
+      const ln = lineInRect(B0, [A0[0] - B0[0], A0[1] - B0[1]], 0, g.top - 6, pw, Y(0));
+      if (ln) Lab.line(ctx, ln, C.muted, 1.3, [7, 5]);
+      const dl = Math.hypot(A0[0] - B0[0], A0[1] - B0[1]) || 1, ax = A0[0] + (A0[0] - B0[0]) / dl * 34, ay = A0[1] + (A0[1] - B0[1]) / dl * 34;
+      const lw = Lab.measure(ctx, '처음 겨냥선', {size: 13});
+      if (!narrow && ax - lw - 10 > 4 && ay > g.top) text(ctx, '처음 겨냥선', ax - 10, ay, {size: 13, color: C.muted, align: 'right', halo: true});
+      // 중력이 없을 때 B 의 길
+      ctx.save(); ctx.globalAlpha = 0.55; Lab.line(ctx, [B0, [X(S.pB[0] + S.vB[0] * te), Y(S.pB[1] + S.vB[1] * te)]], C.vel, 1.6, [3, 4]); ctx.restore();
+    }
+    const curve = (f, a, b2, col, w, dash, al = 1) => { if (b2 <= a) return; const pts = []; for (let i = 0; i <= 60; i++) { const p = f(a + (b2 - a) * i / 60); pts.push([X(p[0]), Y(p[1])]); } ctx.save(); ctx.globalAlpha = al; Lab.line(ctx, pts, col, w, dash); ctx.restore(); };
+    curve(posB, 0, te, C.muted, 1.4, [4, 5], 0.7); curve(posB, 0, t, C.vel, 2.6);
+    curve(posA, 0, te, C.copper, 1.2, [2, 4], 0.6); curve(posA, 0, t, C.copper, 2.2);
+    // 같은 시간 간격: B→A 잇는 선은 늘 처음 겨냥선과 평행
+    if (S.strobe) for (const tk of stamps()) {
+      if (tk > t + EPS) break;
+      const a = posA(tk), b = posB(tk);
+      ctx.save(); ctx.globalAlpha = 0.45; Lab.line(ctx, [[X(b[0]), Y(b[1])], [X(a[0]), Y(a[1])]], C.copper, 1.1, [2, 3]); ctx.restore();
+      Lab.circle(ctx, X(b[0]), Y(b[1]), narrow ? 4.5 : 5.5, {fill: C.paper, stroke: C.vel, width: 1.8});
+      boxA(ctx, X(a[0]), Y(a[1]), hs - 2, {fill: C.paper, width: 1.6});
+    }
+    const a = posA(t), b = posB(t), PA = [X(a[0]), Y(a[1])], PB = [X(b[0]), Y(b[1])];
+    // ½gt² : 중력이 없을 때의 자리에서 아래로
+    if (S.drops && t > EPS && M.freeDrop(t) * s > 9) {
+      const bs = M.add(S.pB, M.mul(S.vB, t)), as = M.add(S.pA, M.mul(S.vA, t)), d = fmt(M.freeDrop(t), 2);
+      Lab.circle(ctx, X(bs[0]), Y(bs[1]), narrow ? 4.5 : 5.5, {stroke: C.vel, width: 1.4});
+      boxA(ctx, X(as[0]), Y(as[1]), hs - 2, {alpha: 0.5, width: 1.4});
+      Lab.vbracket(ctx, X(bs[0]) - (narrow ? 9 : 12), Y(bs[1]), PB[1], C.acc, narrow ? '' : '½gt²', false);
+      const rt = X(as[0]) + hs + 6 + 50 < pw - 4;
+      Lab.vbracket(ctx, X(as[0]) + (rt ? hs + 6 : -hs - 6), Y(as[1]), PA[1], C.acc, narrow ? '' : '½gt²', rt);
+    }
+    if (t > EPS) Lab.line(ctx, [PB, PA], C.copper, 1.8, [6, 4]);
+    // 공들과 화살표
+    const vb = M.velAt(S.vB, t), va = M.velAt(S.vA, t), done = m.meets && t >= m.t - EPS;
+    if (!done) {
+      arrow(ctx, PB[0], PB[1], PB[0] + vb[0] * g.kh, PB[1] - vb[1] * g.kh, C.vel, 2.6, 9);
+      if (Math.hypot(va[0], va[1]) * g.kh > 6) arrow(ctx, PA[0], PA[1], PA[0] + va[0] * g.kh, PA[1] - va[1] * g.kh, C.copper, 2.4, 8);
+      const ga = narrow ? 18 : 24;
+      arrow(ctx, PB[0] - 11, PB[1] + 2, PB[0] - 11, PB[1] + 2 + ga, C.acc, 2.2, 7);
+      arrow(ctx, PA[0] - hs - 7, PA[1] - 2, PA[0] - hs - 7, PA[1] - 2 + ga, C.acc, 2.2, 7);
+    }
+    Lab.circle(ctx, PB[0], PB[1], narrow ? 6.5 : 8, {fill: C.vel, stroke: C.paper, width: 2});
+    boxA(ctx, PA[0], PA[1], hs, {fill: C.copper, stroke: C.paper, width: 1.6});
+    text(ctx, 'A', PA[0], PA[1] + 0.5, {size: 13, w: 600, color: C['on-copper']});
+    text(ctx, 'B', PB[0] - (narrow ? 12 : 14), PB[1] - (narrow ? 10 : 12), {size: 13, w: 600, color: C.vel, halo: true});
+    // 처음 속도 손잡이 (t = 0 일 때 크게)
+    const hb = handleB(g);
+    ctx.save(); ctx.globalAlpha = t > EPS ? 0.45 : 1; arrow(ctx, B0[0], B0[1], hb[0], hb[1], C.copper, 2.2, 9); ctx.restore();
+    Lab.circle(ctx, hb[0], hb[1], 7, {fill: C.paper, stroke: C.copper, width: 2.2});
+    if (t < EPS && !narrow) text(ctx, '끌기', hb[0] + 11, hb[1] - 10, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    if (done) {
+      const lab = narrow ? '만남 ' + fmt(m.t, 2) + ' s' : '만남! ' + fmt(m.t, 2) + ' s, ' + vecS(m.point) + ' m';
+      Lab.tag(ctx, lab, Math.min(Math.max(PA[0], 70), pw - 70), Math.max(g.top + 2, PA[1] - 30), {size: 13, w: 700, color: C.acc, border: C.acc});
+    }
+    ctx.restore();
+    Lab.line(ctx, [[pw, g.top - 34], [pw, g.H - 8]], C.line, 1.2);
+  }
+
+  // 오른쪽 칸: A 에서 본 모습 (A 는 처음 자리에 고정, 나머지는 A 가 움직인 만큼 거꾸로 옮겨 그린다)
+  function drawAFrame(ctx, g) {
+    const {XR: X, Y, narrow, pw, W} = g, te = tEnd(), t = Math.min(S.t, te), m = MT(), u = m.u, hs = narrow ? 7 : 9;
+    clipRect(ctx, pw + 1, 0, W - pw - 1, g.H);
+    const sh = M.sub(S.pA, posA(t));                       // A 가 움직인 만큼 반대로
+    ground(ctx, pw, W, Y(sh[1]), 0.85);
+    if (sh[1] * g.s > 14 && !narrow) text(ctx, '땅이 ½gt² 만큼 올라온다', W - 12, Y(sh[1]) - 12, {size: 13, color: C.muted, align: 'right', halo: true});
+    text(ctx, narrow ? 'A에서 보면' : 'A에서 본 모습 (A는 제자리)', pw + g.pad, g.top - 22, {size: 14, w: 600, align: 'left'});
+    const A0 = [X(S.pA[0]), Y(S.pA[1])], B0 = [X(S.pB[0]), Y(S.pB[1])], dir = [u[0], -u[1]];
+    // 상대 속도 직선
+    const ln = lineInRect(B0, dir, pw, g.top - 6, W, g.H - 6);
+    if (ln && Math.hypot(u[0], u[1]) > 1e-9) Lab.line(ctx, [B0, ln[1]], C.vel, 1.4, [7, 5]);
+    if (!m.toward && Math.hypot(u[0], u[1]) > 1e-9) {        // 최소 거리
+      const c = M.add(S.pB, M.mul(u, m.tMin)), P = [X(c[0]), Y(c[1])];
+      Lab.line(ctx, [A0, P], C.neg, 2.4);
+      Lab.circle(ctx, P[0], P[1], 4, {fill: C.neg});
+      text(ctx, '최소 거리 ' + fmt(m.dMin, 2) + ' m', (A0[0] + P[0]) / 2 + 8, (A0[1] + P[1]) / 2, {size: 13, w: 600, color: C.neg, align: 'left', halo: true});
+    }
+    if (S.strobe) for (const tk of stamps()) {
+      if (tk > t + EPS) break;
+      const r = M.add(S.pB, M.mul(u, tk));
+      Lab.circle(ctx, X(r[0]), Y(r[1]), narrow ? 4.5 : 5.5, {fill: C.paper, stroke: C.vel, width: 1.8});
+    }
+    const r = M.add(S.pB, M.mul(u, t)), PB = [X(r[0]), Y(r[1])];
+    if (t > EPS) Lab.line(ctx, [PB, A0], C.copper, 1.8, [6, 4]);
+    const done = m.meets && t >= m.t - EPS;
+    const un = Math.hypot(u[0], u[1]) || 1, nx = u[1] / un, ny = u[0] / un;   // 화면에서 직선의 한쪽 (오른쪽 아래)
+    if (!done) {
+      arrow(ctx, PB[0], PB[1], PB[0] + u[0] * g.kh, PB[1] - u[1] * g.kh, C.vel, 2.8, 9);
+      if (!narrow) {
+        const s1 = 'v_B − v_A = ' + vecS(u, 1), wv = Lab.measure(ctx, s1.replace(/_/g, ''), {size: 13, w: 600});
+        let lx = PB[0] + u[0] * g.kh * 0.5 + nx * 16, ly = PB[1] - u[1] * g.kh * 0.5 + ny * 16;
+        lx = Math.max(pw + 6, Math.min(W - 8 - wv, lx - (nx < 0 ? wv : 0)));
+        Lab.rich(ctx, s1, lx, ly, {size: 13, w: 600, color: C.vel, align: 'left'});
+      }
+    }
+    boxA(ctx, A0[0], A0[1], hs, {fill: C.copper, stroke: C.paper, width: 1.6});
+    text(ctx, 'A', A0[0], A0[1] + 0.5, {size: 13, w: 600, color: C['on-copper']});
+    Lab.circle(ctx, PB[0], PB[1], narrow ? 6.5 : 8, {fill: C.vel, stroke: C.paper, width: 2});
+    if (!narrow && t < te - EPS) {
+      const s2 = '곧게, 일정한 빠르기로', w2 = Lab.measure(ctx, s2, {size: 13, w: 600});
+      let lx = (B0[0] + A0[0]) / 2 - nx * 16, ly = (B0[1] + A0[1]) / 2 - ny * 16;
+      lx = Math.max(pw + 6, Math.min(W - 8 - w2, lx - (nx > 0 ? w2 : 0)));
+      text(ctx, s2, lx, ly, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
+    }
+    ctx.restore();
+  }
+
+  // 빗면 장면
+  function drawIncline(ctx, g) {
+    const {X, Y, s, narrow, W} = g, al = S.al, T = M.returnTime(S.vp, al), t = Math.min(S.t, T);
+    const W2 = (sv, n) => { const p = M.toWorld(sv, n, al); return [X(p[0]), Y(p[1])]; };
+    // 빗면 (삼각형)
+    const Pb = [X(g.Pb[0]), Y(g.Pb[1])], Pt = [X(g.Pt[0]), Y(g.Pt[1])];
+    ctx.save(); ctx.fillStyle = C['line-soft']; ctx.beginPath(); ctx.moveTo(Pb[0], Pb[1]); ctx.lineTo(Pt[0], Pt[1]); ctx.lineTo(Pt[0], Pb[1]); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
+    ground(ctx, 0, W, Pb[1]);
+    Lab.angle(ctx, Pb[0], Pb[1], 34, 0, -al * RAD, C.ink, 'α');
+    // 빗면 축 (x′, y′)
+    const O = W2(0, 0), L = narrow ? 50 : 70;
+    const eq = [Math.cos(al * RAD), -Math.sin(al * RAD)], ep = [-Math.sin(al * RAD), -Math.cos(al * RAD)];
+    arrow(ctx, O[0], O[1], O[0] + eq[0] * L, O[1] + eq[1] * L, C.muted, 1.4, 7);
+    arrow(ctx, O[0], O[1], O[0] + ep[0] * L * 0.8, O[1] + ep[1] * L * 0.8, C.muted, 1.4, 7);
+    text(ctx, 'x′', O[0] + eq[0] * (L + 10), O[1] + eq[1] * (L + 10) + 2, {size: 13, w: 600, color: C.muted, halo: true});
+    text(ctx, 'y′', O[0] + ep[0] * (L * 0.8 + 11), O[1] + ep[1] * (L * 0.8 + 11), {size: 13, w: 600, color: C.muted, halo: true});
+    // 중력 나누기 (왼쪽 위)
+    const gx = g.pad + (narrow ? 64 : 76), gyy = g.top + (narrow ? 8 : 12), gl = narrow ? 44 : 60;
+    const gs = gl * Math.sin(al * RAD), gc = gl * Math.cos(al * RAD);
+    arrow(ctx, gx, gyy, gx, gyy + gl, C.acc, 3, 9);
+    darrow(ctx, gx, gyy, gx - eq[0] * gs, gyy - eq[1] * gs, C.acc, 2, 8);
+    darrow(ctx, gx, gyy, gx - ep[0] * gc, gyy - ep[1] * gc, C.acc, 2, 8);
+    text(ctx, 'g', gx - 9, gyy + gl * 0.7, {size: 14, w: 600, color: C.acc, align: 'right', halo: true});
+    text(ctx, 'g sinα', gx - eq[0] * gs - 6, gyy - eq[1] * gs + 13, {size: 13, w: 600, color: C.acc, align: 'right', halo: true});
+    text(ctx, 'g cosα', gx - ep[0] * gc + 8, gyy - ep[1] * gc + 4, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    // 궤적
+    const P = (tt) => { const p = M.inclinePos(S.vq, S.vp, al, tt); return W2(p.s, p.n); };
+    const pts = (a, b2) => { const out = []; for (let i = 0; i <= 60; i++) out.push(P(a + (b2 - a) * i / 60)); return out; };
+    ctx.save(); ctx.globalAlpha = 0.7; Lab.line(ctx, pts(0, T), C.muted, 1.4, [4, 5]); ctx.restore();
+    if (t > EPS) Lab.line(ctx, pts(0, t), C.vel, 2.6);
+    if (S.strobe) for (const tk of stamps()) { if (tk > t + EPS) break; const q = P(tk); Lab.circle(ctx, q[0], q[1], narrow ? 4.5 : 5.5, {fill: C.paper, stroke: C.vel, width: 1.8}); }
+    // 빗면까지 수직 거리
+    const p = M.inclinePos(S.vq, S.vp, al, t), B = W2(p.s, p.n), F = W2(p.s, 0);
+    if (p.n * s > 4) {
+      Lab.line(ctx, [F, B], C.violet, 2, [5, 4]);
+      const sq = 8; Lab.line(ctx, [[F[0] + eq[0] * sq, F[1] + eq[1] * sq], [F[0] + eq[0] * sq + ep[0] * sq, F[1] + eq[1] * sq + ep[1] * sq], [F[0] + ep[0] * sq, F[1] + ep[1] * sq]], C.violet, 1.2);
+      text(ctx, 'y′ = ' + fmt(p.n, 2) + ' m', (F[0] + B[0]) / 2 + 10, (F[1] + B[1]) / 2 + 4, {size: 13, w: 600, color: C.violet, align: 'left', halo: true});
+    }
+    if (S.block) {                                          // 빗면 위를 미끄러지는 물체 (같은 v∥)
+      const c = W2(M.slideS(S.vq, al, t), 0);
+      ctx.save(); ctx.translate(c[0], c[1]); ctx.rotate(-al * RAD); ctx.fillStyle = C.ink; Lab.rrect(ctx, -13, -14, 26, 14, 3); ctx.fill(); ctx.restore();
+    }
+    // 공과 속도 (빗면 축 성분)
+    const v = M.inclineVel(S.vq, S.vp, al, t), vw = M.toWorld(v.s, v.n, al), landed = t >= T - EPS;
+    if (!landed) {
+      darrow(ctx, B[0], B[1], B[0] + eq[0] * v.s * g.kh, B[1] + eq[1] * v.s * g.kh, C.vel, 1.8, 7);
+      darrow(ctx, B[0], B[1], B[0] + ep[0] * v.n * g.kh, B[1] + ep[1] * v.n * g.kh, C.vel, 1.8, 7);
+      arrow(ctx, B[0], B[1], B[0] + vw[0] * g.kh, B[1] - vw[1] * g.kh, C.vel, 2.8, 9);
+    }
+    Lab.circle(ctx, B[0], B[1], narrow ? 7 : 8.5, {fill: C.copper, stroke: C.paper, width: 2});
+    const Tm = T / 2;
+    if (Math.abs(t - Tm) < 0.02) Lab.tag(ctx, narrow ? 'T/2: 속도 ∥ 빗면, 가장 멂' : 'T/2 = ' + fmt(Tm, 2) + ' s: 속도 ∥ 빗면 → 빗면에서 가장 멂', Math.min(Math.max(B[0], W * 0.35), W * 0.65), Math.max(g.top, B[1] - 34), {size: 14, w: 700, color: C.acc, border: C.acc});
+    if (landed) Lab.tag(ctx, '다시 빗면에 닿음 · T = ' + fmt(T, 2) + ' s', Math.min(Math.max(B[0], W * 0.3), W * 0.7), Math.max(g.top, B[1] - 34), {size: 13, color: C.ink});
+  }
+
+  // ── 관찰 1: 높이–시간 (중력이 없을 때와 견주기) ───────────
+  const dy = Lab.canvas('dy', drawDY);
+  function drawDY() {
+    const {ctx, W, H} = dy; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const te = tEnd(), live = isM(), t = live ? Math.min(S.t, te) : te;
+    const ya = (tt) => posA(tt)[1], yb = (tt) => posB(tt)[1], ya0 = (tt) => S.pA[1] + S.vA[1] * tt, yb0 = (tt) => S.pB[1] + S.vB[1] * tt;
+    let lo = 0, hi = 1; for (let i = 0; i <= 30; i++) { const tt = te * i / 30; for (const f of [ya, yb, ya0, yb0]) { lo = Math.min(lo, f(tt)); hi = Math.max(hi, f(tt)); } }
+    const r = {x: 44, y: 30, w: W - 44 - 64, h: H - 30 - 32};
+    const X = (tt) => r.x + tt / te * r.w, Yv = (y) => r.y + r.h - (y - lo) / (hi - lo) * r.h;
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 8, C.muted, 1.3, 7);
+    arrow(ctx, r.x, Yv(Math.max(lo, 0)), r.x + r.w + 10, Yv(Math.max(lo, 0)), C.muted, 1.3, 7);
+    text(ctx, '높이 (m)', r.x + 7, r.y - 10, {size: 13, w: 600, color: C.muted, align: 'left'});
+    for (const v of [0, S.pA[1]]) text(ctx, fmt(v, 2), r.x - 6, Yv(v), {size: 13, color: C.muted, align: 'right'});
+    text(ctx, fmt(te, 2) + ' s', X(te), r.y + r.h + 15, {size: 13, color: C.muted});
+    text(ctx, '0', X(0), r.y + r.h + 15, {size: 13, color: C.muted});
+    const cv = (f, col, w, dash, b2 = te) => { const pts = []; for (let i = 0; i <= 60; i++) { const tt = b2 * i / 60; pts.push([X(tt), Yv(f(tt))]); } Lab.line(ctx, pts, col, w, dash); };
+    cv(yb0, C.vel, 1.6, [5, 4]); cv(ya0, C.copper, 1.6, [5, 4]);
+    cv(yb, C.vel, 3); cv(ya, C.copper, 3);
+    Lab.rich(ctx, 'B', X(te) + 8, Yv(yb(te)) + (yb(te) > ya(te) - 0.3 ? -9 : 9), {size: 13, w: 600, color: C.vel, align: 'left'});
+    Lab.rich(ctx, 'A', X(te) + 8, Yv(ya(te)) + (yb(te) > ya(te) - 0.3 ? 9 : -9), {size: 13, w: 600, color: C.copper, align: 'left'});
+    if (t > EPS) {
+      const d = M.freeDrop(t);
+      Lab.line(ctx, [[X(t), r.y], [X(t), r.y + r.h]], C.copper, 1, [2, 3]);
+      Lab.vbracket(ctx, X(t) - 8, Yv(yb0(t)), Yv(yb(t)), C.acc, '', false);
+      Lab.vbracket(ctx, X(t) + 8, Yv(ya0(t)), Yv(ya(t)), C.acc, '', true);
+      text(ctx, '둘 다 ½gt² = ' + fmt(d, 2) + ' m', W - 10, 13, {size: 13, w: 600, color: C.acc, align: 'right'});
+      Lab.circle(ctx, X(t), Yv(yb(t)), 4.5, {fill: C.vel});
+      Lab.circle(ctx, X(t), Yv(ya(t)), 4.5, {fill: C.copper});
+    }
+    if (!live) text(ctx, '(만남 장면의 값)', r.x + 80, r.y - 10, {size: 13, color: C.muted, align: 'left'});
+  }
+
+  // ── 관찰 2: 같은 순간 두 속도와 그 차 ─────────────────────
+  const vsC = Lab.canvas('vs', drawVS);
+  function drawVS() {
+    const {ctx, W, H} = vsC; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const te = tEnd(), live = isM(), t = live ? Math.min(S.t, te) : 0;
+    const vb = M.velAt(S.vB, t), va = M.velAt(S.vA, t), u = M.sub(vb, va);
+    let xs = [0], ys = [0];
+    for (const tt of [0, te]) { const b = M.velAt(S.vB, tt), a = M.velAt(S.vA, tt); xs.push(b[0], a[0]); ys.push(b[1], a[1]); }
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    const k = Math.min((W - 70) / Math.max(1, x1 - x0), (H - 64) / Math.max(1, y1 - y0));
+    const O = [36 + (-x0) * k + Math.max(0, (W - 70 - (x1 - x0) * k) / 2), 30 + y1 * k];
+    const P = (v) => [O[0] + v[0] * k, O[1] - v[1] * k];
+    ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(8, O[1]); ctx.lineTo(W - 8, O[1]); ctx.moveTo(O[0], 8); ctx.lineTo(O[0], H - 8); ctx.stroke(); ctx.restore();
+    // 처음 속도 (옅게)
+    if (t > EPS) { ctx.save(); ctx.globalAlpha = 0.35; arrow(ctx, O[0], O[1], ...P(S.vB), C.vel, 2, 8); ctx.restore(); }
+    arrow(ctx, O[0], O[1], ...P(vb), C.vel, 3, 10);
+    if (Math.hypot(va[0], va[1]) * k > 4) arrow(ctx, O[0], O[1], ...P(va), C.copper, 3, 10);
+    // 차: A 의 화살표 끝 → B 의 화살표 끝
+    arrow(ctx, ...P(va), ...P(vb), C.acc, 3.2, 11);
+    const nw = W < 420;
+    richFit(ctx, 'v_B = ' + vecS(vb, 1), P(vb)[0] + 8, P(vb)[1] - 4, {size: 13, w: 600, color: C.vel}, W);
+    richFit(ctx, 'v_A = ' + vecS(va, 1), P(va)[0] + 8, P(va)[1] + 12, {size: 13, w: 600, color: C.copper}, W);
+    const mid = [(P(va)[0] + P(vb)[0]) / 2, (P(va)[1] + P(vb)[1]) / 2];
+    richFit(ctx, (nw ? '' : 'v_B − v_A = ') + vecS(u, 1) + (nw ? '' : ' (그대로)'), mid[0] + 10, mid[1] + 4, {size: 14, w: 600, color: C.acc}, W);
+    text(ctx, 't = ' + fmt(t, 2) + ' s', 10, 13, {size: 13, w: 600, color: C.copper, align: 'left'});
+    if (!live) text(ctx, '(만남 장면의 값)', W - 10, 13, {size: 13, color: C.muted, align: 'right'});
+  }
+
+  // ── 관찰 3: 위치 차–시간 ────────────────────────────────
+  const dd = Lab.canvas('dd', drawDD);
+  function drawDD() {
+    const {ctx, W, H} = dd; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const m = MT(), te = tEnd(), live = isM(), t = live ? Math.min(S.t, te) : null;
+    const dxy = (tt) => M.sub(posA(tt), posB(tt));          // B → A
+    let lo = 0, hi = 1; for (let i = 0; i <= 30; i++) { const d = dxy(te * i / 30); lo = Math.min(lo, d[0], d[1]); hi = Math.max(hi, d[0], d[1], Math.hypot(d[0], d[1])); }
+    const nw = W < 440, r = {x: 44, y: nw ? 50 : 30, w: W - 44 - 44, h: H - (nw ? 50 : 30) - 32};
+    const X = (tt) => r.x + tt / te * r.w, Yv = (v) => r.y + r.h - (v - lo) / (hi - lo) * r.h;
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 8, C.muted, 1.3, 7);
+    arrow(ctx, r.x, Yv(0), r.x + r.w + 10, Yv(0), C.muted, 1.3, 7);
+    text(ctx, '위치 차 A − B (m)', r.x + 7, r.y - 10, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, '0', r.x - 6, Yv(0), {size: 13, color: C.muted, align: 'right'});
+    text(ctx, fmt(te, 2) + ' s', X(te), r.y + r.h + 15, {size: 13, color: C.muted});
+    const cv = (f, col, w, dash) => { const pts = []; for (let i = 0; i <= 80; i++) { const tt = te * i / 80; pts.push([X(tt), Yv(f(tt))]); } Lab.line(ctx, pts, col, w, dash); };
+    cv((tt) => Math.hypot(...dxy(tt)), C.copper, 2.6);
+    cv((tt) => dxy(tt)[0], C.vel, 2.6);
+    cv((tt) => dxy(tt)[1], C.violet, 2.6, [8, 5]);
+    Lab.rich(ctx, 'Δx', X(0) + 8, Yv(dxy(0)[0]) + (dxy(0)[0] > dxy(0)[1] ? -10 : 12), {size: 13, w: 600, color: C.vel, align: 'left'});
+    Lab.rich(ctx, 'Δy', X(0) + 8, Yv(dxy(0)[1]) + (dxy(0)[1] >= dxy(0)[0] ? -10 : 12), {size: 13, w: 600, color: C.violet, align: 'left'});
+    text(ctx, '거리', X(te * 0.16), Yv(Math.hypot(...dxy(te * 0.16))) - 11, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    // 0 을 지나는 시각
+    const zs = [];
+    for (const i of [0, 1]) { const u = m.u[i], r0 = -m.r0[i]; if (Math.abs(u) > 1e-9) { const tz = r0 / u; if (tz >= 0 && tz <= te + EPS) zs.push([tz, i ? C.violet : C.vel]); } }
+    zs.forEach(([tz, col]) => Lab.circle(ctx, X(tz), Yv(0), 4.5, {fill: C.paper, stroke: col, width: 2}));
+    const msg = m.meets ? (nw ? fmt(m.t, 2) + ' s 에 함께 0 → 만남' : '두 직선이 ' + fmt(m.t, 2) + ' s 에 함께 0 → 만남') : !m.toward ? (nw ? '0 이 되는 때가 다름 → 최소 ' : '0 이 되는 때가 다르다 → 최소 거리 ') + fmt(m.dMin, 2) + ' m' : '만나기 전에 땅에 닿는다';
+    text(ctx, msg, W - 10, 13, {size: 13, w: 600, color: m.meets ? C.acc : C.neg, align: 'right'});
+    if (!m.toward && m.tMin <= te) Lab.circle(ctx, X(m.tMin), Yv(m.dMin), 5, {fill: C.neg});
+    if (t != null) { Lab.line(ctx, [[X(t), r.y], [X(t), r.y + r.h]], C.copper, 1.2); }
+  }
+
+  // ── 관찰 4: 빗면까지 수직 거리–시간 ─────────────────────
+  const ic = Lab.canvas('ic', drawIC);
+  function drawIC() {
+    const {ctx, W, H} = ic; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const al = S.al, T = M.returnTime(S.vp, al), live = !isM(), t = live ? Math.min(S.t, T) : null, Dm = M.farDist(S.vp, al);
+    const nw = W < 440, r = {x: 44, y: nw ? 54 : 32, w: W - 44 - 34, h: H - (nw ? 54 : 32) - 32};
+    const X = (tt) => r.x + tt / T * r.w, Yv = (n) => r.y + r.h - n / (Dm * 1.15) * r.h;
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 8, C.muted, 1.3, 7);
+    arrow(ctx, r.x, r.y + r.h, r.x + r.w + 10, r.y + r.h, C.muted, 1.3, 7);
+    text(ctx, nw ? 'y′ (m)' : '빗면까지 수직 거리 y′ (m)', r.x + 7, r.y - 12, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, fmt(Dm, 2), r.x - 6, Yv(Dm), {size: 13, color: C.muted, align: 'right'});
+    for (const [tt, s] of [[0, '0'], [T / 2, 'T/2 = ' + fmt(T / 2, 2)], [T, 'T = ' + fmt(T, 2) + ' s']]) text(ctx, s, X(tt), r.y + r.h + 15, {size: 13, color: C.muted, align: tt === T ? 'right' : 'center'});
+    Lab.line(ctx, [[X(T / 2), Yv(Dm)], [X(T / 2), r.y + r.h]], C.muted, 1, [3, 4]);
+    const pts = []; for (let i = 0; i <= 80; i++) { const tt = T * i / 80; pts.push([X(tt), Yv(M.inclinePos(S.vq, S.vp, al, tt).n)]); }
+    Lab.line(ctx, pts, C.violet, 3);
+    text(ctx, nw ? '위로 던진 운동과 같은 모양' : '위로 던진 운동과 같은 모양 (가속도 −g cosα)', X(T / 2), Yv(Dm) - 13, {size: 13, w: 600, color: C.violet, halo: true});
+    if (t != null) {
+      const n = M.inclinePos(S.vq, S.vp, al, t).n;
+      Lab.line(ctx, [[X(t), r.y], [X(t), r.y + r.h]], C.copper, 1.2);
+      Lab.circle(ctx, X(t), Yv(n), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
+    } else text(ctx, '(빗면 장면의 값)', W - 10, 13, {size: 13, color: C.muted, align: 'right'});
+  }
+
+  // ── 수치 ────────────────────────────────────────────────
+  const setText = (id, s) => { const el = $(id); if (el && el.textContent !== s) el.textContent = s; };
+  let ansKey = '';
+  function readouts() {
+    const nar = (stage.W || 999) < 520;
+    let big, lines, o;
+    if (isM()) {
+      const m = MT(), u = m.u, r0 = M.mul(m.r0, -1);         // r0 → A 를 향한 처음 상대 위치 (B → A)
+      const uS = '(<em>' + fmt(S.vB[0], 2) + '</em>, <em>' + fmt(S.vB[1], 2) + '</em>) − ' + vecS(S.vA) + ' = ' + vecS(u);
+      lines = ['상대 속도 v<sub>B</sub> − v<sub>A</sub> = ' + uS + ' m/s → <em>' + fmt(m.speed, 2) + ' m/s</em>'];
+      if (m.meets) {
+        big = fmt(m.t, 2) + ' s 뒤 ' + vecS(m.point) + ' m에서 만난다';
+        lines.push('B → A 처음 ' + vecS(r0) + ' m 와 같은 방향 → t = ' + fmt(m.d0, 2) + ' ÷ ' + fmt(m.speed, 2) + ' = <em>' + fmt(m.t, 2) + ' s</em>');
+        const a = S.pA, va = S.vA, tt = m.t;
+        const term = (p0, v) => fmt(p0, 2) + (Math.abs(v) > 1e-9 ? (v > 0 ? ' + ' : ' − ') + fmt(Math.abs(v), 2) + ' × ' + fmt(tt, 2) : '');
+        lines.push('A 의 실제 운동: (' + term(a[0], va[0]) + ', ' + term(a[1], va[1]) + ' − ½ × 10 × ' + fmt(tt, 2) + '²) = <em>' + vecS(m.point) + ' m</em>');
+        o = {tone: '', lab: '두 공의 만남'};
+      } else if (m.toward) {
+        big = '만나기 전에 땅에 닿는다';
+        lines.push('방향은 맞지만 t = ' + fmt(m.d0, 2) + ' ÷ ' + fmt(m.speed, 2) + ' = <em>' + fmt(m.t, 2) + ' s</em> 가 걸린다');
+        lines.push('그 전에 ' + fmt(m.tGround, 2) + ' s 에 땅에 닿아 <em>못 만난다</em>');
+        o = {tone: 'neg', lab: '두 공의 만남'};
+      } else {
+        big = '만나지 않는다 · 최소 ' + fmt(m.dMin, 2) + ' m';
+        lines.push('B → A 처음 ' + vecS(r0) + ' m 와 상대 속도 ' + vecS(u) + ' 의 방향이 <em>다르다</em>');
+        lines.push('가장 가까울 때 t = <em>' + fmt(m.tMin, 2) + ' s</em>, 거리 = 상대 속도 직선까지 수직 거리 <em>' + fmt(m.dMin, 2) + ' m</em>');
+        o = {tone: 'neg', lab: '두 공의 만남'};
+      }
+      o.ctx = 'A ' + vecS(S.pA) + ' m · B ' + vecS(S.vB) + ' m/s'; o.f = '상대 운동으로 시간을, 한 물체의 실제 운동으로 위치를 구하면';
+      setText('m1n', '상대 속력'); setText('m1', fmt(m.speed, 2) + ' m/s');
+      setText('m2n', '처음 거리'); setText('m2', fmt(m.d0, 2) + ' m');
+      setText('m3n', m.meets ? '만나는 시간' : m.toward ? '땅에 먼저 닿는 시각' : '가장 가까운 시각');
+      setText('m3', fmt(m.meets ? m.t : m.toward ? m.tGround : m.tMin, 2) + ' s');
+      const tm = m.meets ? m.t : Math.min(S.t, tEnd());
+      setText('m4n', (m.meets ? '만날 때까지' : '지금까지') + ' 둘 다 떨어진 거리 ½gt²'); setText('m4', fmt(M.freeDrop(tm), 2) + ' m');
+    } else {
+      const al = S.al, gp = M.gPerp(al), T = M.returnTime(S.vp, al), vpS = r3s(S.vp), D = M.farDist(S.vp, al);
+      const sT = M.inclinePos(S.vq, S.vp, al, T).s;
+      big = 'T = ' + fmt(T, 2) + ' s';
+      lines = ['a⊥ = g cosα = 10 × cos <em>' + al + '°</em> = <em>' + fmt(gp, 2) + ' m/s²</em>' + (al === 30 ? ' (= 5√3)' : ''),
+        'T = 2v⊥ ÷ (g cosα) = 2 × <em>' + vpS + '</em> ÷ ' + fmt(gp, 2) + ' = <em>' + fmt(T, 2) + ' s</em> (v∥ 와 무관)',
+        '가장 먼 순간 T/2 = <em>' + fmt(T / 2, 2) + ' s</em>, 그때 거리 v⊥² ÷ (2g cosα) = <em>' + fmt(D, 2) + ' m</em>'];
+      o = {tone: 'vel', lab: '빗면에 다시 닿는 시간', ctx: 'α = ' + al + '° · v⊥ = ' + vpS + ' m/s · v∥ = ' + fmt(S.vq) + ' m/s', f: '축을 빗면에 맞추면 수직 방향은 위로 던진 운동: T = 2v⊥/(g cosα)'};
+      setText('m1n', '빗면 방향 가속도 g sinα'); setText('m1', fmt(M.gAlong(al), 2) + ' m/s² (아래쪽)');
+      setText('m2n', '빗면 수직 가속도 g cosα'); setText('m2', fmt(gp, 2) + ' m/s²');
+      setText('m3n', '가장 먼 순간 (속도 ∥ 빗면)'); setText('m3', fmt(T / 2, 2) + ' s');
+      setText('m4n', '다시 닿는 곳 (빗면 방향)'); setText('m4', (Math.abs(sT) < 0.005 ? '던진 곳' : sT > 0 ? '위로 ' + fmt(sT, 2) + ' m' : '아래로 ' + fmt(-sT, 2) + ' m'));
+    }
+    const key = big + lines.join('|') + o.ctx + o.tone;
+    if (key !== ansKey) { ansKey = key; Lab.ans(big, lines, o); }
+    // HUD
+    const te = tEnd(); let st, cls = '';
+    setText('hudT', 't = ' + fmt(S.t, 2) + ' s');
+    if (isM()) {
+      const m = MT();
+      if (m.meets && S.t >= m.t - EPS) { st = '만남!'; cls = ' up'; }
+      else if (S.t >= te - EPS) { st = nar ? '땅' : '땅에 닿음'; cls = ' down'; }
+      else st = !m.toward && S.t > m.tMin ? (nar ? '멀어짐' : '멀어지는 중') : (nar ? '다가감' : '다가가는 중');
+    } else {
+      const T = M.returnTime(S.vp, S.al);
+      if (S.t >= T - EPS) { st = nar ? '닿음' : '빗면에 닿음'; cls = ' up'; }
+      else if (Math.abs(S.t - T / 2) < 0.02) { st = nar ? '가장 멂' : '빗면에서 가장 멂'; cls = ' up'; }
+      else st = nar ? '나는 중' : '날아가는 중';
+    }
+    setText('hudS', st); $('hudS').className = 'pill' + cls;
+    const sp = base() * S.speed, hv = $('hudV'); hv.hidden = nar; setText('hudV', sp < 1 ? '느린 화면 ×' + fmt(sp, 2) : '실제 빠르기');
+    const eq = (a, b) => Math.abs(a[0] - b[0]) < 1e-9 && Math.abs(a[1] - b[1]) < 1e-9;
+    const ok = isM() && eq(S.pA, EX.pA) && eq(S.vA, EX.vA) && eq(S.pB, EX.pB) && eq(S.vB, EX.vB);
+    Lab.check('exCheck', ok, '개념서 예제 (B (15, 20) m/s, A (6, 8) m) → 0.4 s 뒤 (6, 7.2) m 에서 만난다',
+      '예제: 원점에서 B 를 (15, 20) m/s 로 던지는 순간 (6, 8) m 의 A 를 놓기 — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function drawAll() { drawStage(); drawDY(); drawVS(); drawDD(); drawIC(); }
+  function drawLive() { drawStage(); if (isM()) { drawDY(); drawVS(); drawDD(); } else drawIC(); }
+  const refresh = () => { syncUI(); readouts(); drawAll(); };
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; if (on && S.t >= tEnd() - EPS) { S.t = 0; S.hold = 0; refresh(); } });
+  const setPlay = (on) => { playCtl.set(on, true); S.playing = on; };
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => { S.scene = v; S.t = 0; S.hold = 0; refresh(); }, S.scene);
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; readouts(); }, S.speed);
+  const toScene = (sc) => { if (S.scene !== sc) { S.scene = sc; S.t = 0; S.hold = 0; } };
+  const afterEdit = () => { S.t = Math.min(S.t, tEnd()); S.hold = 0; refresh(); };
+  $('vs0').addEventListener('input', (e) => {                  // B 의 처음 속력 (방향은 그대로)
+    toScene('meet'); const sp = +e.target.value, n = M.norm(S.vB) || 1;
+    S.vB = M.norm(S.vB) > 1e-9 ? M.mul(S.vB, sp / n) : [sp * 0.6, sp * 0.8]; afterEdit();
+  });
+  $('vbx').addEventListener('input', (e) => { toScene('meet'); S.vB = [+e.target.value, S.vB[1]]; afterEdit(); });
+  $('vby').addEventListener('input', (e) => { toScene('meet'); S.vB = [S.vB[0], +e.target.value]; afterEdit(); });
+  $('al').addEventListener('input', (e) => { toScene('incline'); S.al = +e.target.value; afterEdit(); });
+  $('vp').addEventListener('input', (e) => { toScene('incline'); S.vp = Math.round(+e.target.value * 2) / 2; afterEdit(); });
+  $('vq').addEventListener('input', (e) => { toScene('incline'); S.vq = +e.target.value; afterEdit(); });
+  const tog = (id, key) => $(id).addEventListener('change', (e) => { S[key] = e.target.checked; readouts(); drawAll(); });
+  tog('cAim', 'aim'); tog('cDrop', 'drops'); tog('cStrobe', 'strobe'); tog('cBlock', 'block');
+  function syncUI() {
+    const m = isM();
+    $('slVs').hidden = !m; $('slAl').hidden = m; $('rowMeet').hidden = !m; $('rowInc').hidden = m;
+    $('wAim').hidden = !m; $('wDrop').hidden = !m; $('wBlock').hidden = m;
+    const sp = M.norm(S.vB);
+    $('vs0').value = Math.round(sp); $('vsOut').textContent = fmt(sp, 1) + ' m/s';
+    $('vbx').value = S.vB[0]; $('vbxOut').textContent = fmt(S.vB[0], 2) + ' m/s';
+    $('vby').value = S.vB[1]; $('vbyOut').textContent = fmt(S.vB[1], 2) + ' m/s';
+    $('al').value = S.al; $('alOut').textContent = S.al + '°';
+    $('vp').value = S.vp; $('vpOut').textContent = (Math.abs(S.vp - VP0) < 1e-9 ? '5√3 ≈ 8.66' : fmt(S.vp, 2)) + ' m/s';
+    $('vq').value = S.vq; $('vqOut').textContent = fmt(S.vq) + ' m/s';
+    const d = fmt(dtS(), 2) + ' s';
+    $('back').textContent = '◀ ' + d; $('step').textContent = d + ' ▶';
+    $('cAim').checked = S.aim; $('cDrop').checked = S.drops; $('cStrobe').checked = S.strobe; $('cBlock').checked = S.block;
+    sceneG.set(S.scene, true); speedG.set(S.speed, true);
+  }
+  function stepBy(dir) {
+    setPlay(false); S.hold = 0;
+    const d = dtS(), te = tEnd();
+    if (dir > 0) S.t = S.t >= te - EPS ? 0 : Math.min(te, (Math.floor(S.t / d + EPS) + 1) * d);
+    else S.t = Math.max(0, (Math.ceil(S.t / d - EPS) - 1) * d);
+    readouts(); drawAll();
+  }
+  $('step').addEventListener('click', () => stepBy(1));
+  $('back').addEventListener('click', () => stepBy(-1));
+  // 왼쪽 칸에서 끌기: B 의 처음 속도 화살표 끝, 또는 A 의 처음 자리
+  function dragTo(x, y) {
+    const g = geo(stage.W, stage.H);
+    if (S.drag === 'v') {
+      const vx = Math.round((x - g.XL(S.pB[0])) / g.kh), vy = Math.round((g.Y(S.pB[1]) - y) / g.kh);
+      S.vB = [Math.max(-30, Math.min(30, vx)), Math.max(-10, Math.min(30, vy))];
+    } else {
+      const b = g.b, wx = b.x0 + (x - g.XL(b.x0)) / g.s, wy = b.y0 + (g.Y(b.y0) - y) / g.s;
+      S.pA = [Math.max(b.x0 + 0.5, Math.min(b.x1 - 0.5, Math.round(wx * 2) / 2)), Math.max(1, Math.min(b.y1 - 0.5, Math.round(wy * 2) / 2))];
+    }
+    S.t = 0; S.hold = 0; syncUI(); readouts(); drawAll();
+  }
+  Lab.pointer(stage.el, {
+    down: (x, y) => {
+      if (!isM()) return;
+      const g = geo(stage.W, stage.H); if (x > g.pw) return;
+      const hb = handleB(g), pa = [g.XL(S.pA[0]), g.Y(S.pA[1])], an = posA(Math.min(S.t, tEnd())), pn = [g.XL(an[0]), g.Y(an[1])];
+      if (Math.hypot(x - hb[0], y - hb[1]) < 24) S.drag = 'v';
+      else if (Math.hypot(x - pa[0], y - pa[1]) < 22 || Math.hypot(x - pn[0], y - pn[1]) < 22) S.drag = 'a';
+      else return;
+      S.boxLock = boxMeet(); setPlay(false); dragTo(x, y);
+    },
+    move: (x, y) => { if (S.drag) dragTo(x, y); },
+    up: () => { if (S.drag) { S.drag = null; S.boxLock = null; refresh(); } },
+  });
+
+  const setMeet = (o) => { Object.assign(S, {scene: 'meet', hold: 0, aim: true, drops: true, strobe: true}, o); };
+  const TRY = {
+    ex: () => { setMeet({pA: [6, 8], vA: [0, 0], pB: [0, 0], vB: [15, 20]}); S.t = 0.4; setPlay(false); },
+    exm: () => { setMeet({pA: [6, 8], vA: [0, 0], pB: [0, 0], vB: [15, 20]}); S.t = 0; setPlay(true); },
+    aim: () => { setMeet({pA: [6, 8], vA: [0, 0], pB: [0, 0], vB: [6, 8]}); S.t = 0; S.speed = 1; setPlay(true); },
+    mid: () => { setMeet({}); S.t = Math.min(0.2, tEnd()); setPlay(false); },
+    miss: () => { setMeet({pA: [6, 8], vA: [0, 0], pB: [0, 0], vB: [20, 15]}); S.t = 0; setPlay(true); },
+    slow: () => { setMeet({pA: [6, 8], vA: [0, 0], pB: [0, 0], vB: [3, 4]}); S.t = 0; setPlay(true); },
+    q1: () => { setMeet({pA: [0, 11.25], vA: [8, 0], pB: [30, 11.25], vB: [-12, 0]}); S.t = 0; setPlay(true); },
+    q3: () => { setMeet({pA: [8, 6], vA: [-4, -3], pB: [0, 0], vB: [12, 9]}); S.t = 0; setPlay(true); },
+    incl: () => { Object.assign(S, {scene: 'incline', al: 30, vp: VP0, vq: 10, block: false, hold: 0}); S.t = 0; setPlay(true); },
+    block: () => { Object.assign(S, {scene: 'incline', block: true, hold: 0}); S.t = 0; setPlay(true); },
+    q2: () => { Object.assign(S, {scene: 'incline', al: 30, vp: VP0, vq: 0, hold: 0}); S.t = 0; setPlay(true); },
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    if (!S.playing || S.drag) return;
+    if (S.linger > 0) { S.linger -= dt; return; }
+    const te = tEnd(), t0 = S.t;
+    S.t += dt * base() * S.speed;
+    if (!isM()) { const Tm = M.returnTime(S.vp, S.al) / 2; if (t0 < Tm - EPS && S.t >= Tm) { S.t = Tm; S.linger = 1; } }
+    if (S.t >= te) { S.t = te; S.hold += dt; if (S.hold > 1.8) { S.t = 0; S.hold = 0; } }
+    readouts(); drawLive();
+  });
+  syncUI(); readouts();
+})();
+</script>
+</body>
+</html>

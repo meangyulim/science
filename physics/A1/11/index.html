@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>여러 가지 구심력</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(장면 ① 원뿔 진자 ② 원형 도로 ③ 연직 원 ④ 인공위성) | 오른쪽 지금 값 + 관찰 ①~④(힘의 합·주기 그래프, 필요한 마찰력, 장력–위치) → 정리(구심력 표) → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.6}
+#ftri{aspect-ratio:10/5.6}
+#per{aspect-ratio:10/5.6}
+#rd{aspect-ratio:10/6}
+#tg{aspect-ratio:10/5.6}
+@media (max-width:640px){ #ftri{aspect-ratio:10/8} #per{aspect-ratio:10/7.4} #rd{aspect-ratio:10/8} #tg{aspect-ratio:10/7.4} }
+/* 정리 카드의 구심력 표: 줄을 누르면 그 장면으로 */
+.cf{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;margin-top:8px}
+.cf th{text-align:left;font-size:13px;font-weight:600;color:var(--muted);padding:2px 6px 6px;border-bottom:1px solid var(--line)}
+.cf td{padding:7px 6px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink-2)}
+.cf tbody tr{cursor:pointer}
+.cf tr.on td{background:var(--copper-soft)}
+.cf tr.on td:first-child{box-shadow:inset 3px 0 0 var(--copper)}
+.cf .fc{font-weight:600;color:var(--force)}
+.cf .eqn{white-space:nowrap}
+@media (max-width:640px){ .cf .eqn{white-space:normal} }
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A1 힘과 운동: 개념 16개 가운데 11번째"><a class="uname" href="../">A1 힘과 운동</a><span class="dots"><a href="../01/" title="A1-01 힘의 합성·분해" aria-label="A1-01 힘의 합성·분해"></a><a href="../02/" title="A1-02 돌림힘과 평형" aria-label="A1-02 돌림힘과 평형"></a><a href="../03/" title="A1-03 무게중심과 안정성" aria-label="A1-03 무게중심과 안정성"></a><a href="../04/" title="A1-04 한계 조건과 강체" aria-label="A1-04 한계 조건과 강체"></a><a href="../05/" title="A1-05 운동의 벡터" aria-label="A1-05 운동의 벡터"></a><a href="../06/" title="A1-06 평면 등가속도 운동" aria-label="A1-06 평면 등가속도 운동"></a><a href="../07/" title="A1-07 중력장의 직선 운동" aria-label="A1-07 중력장의 직선 운동"></a><a href="../08/" title="A1-08 포물선 운동" aria-label="A1-08 포물선 운동"></a><a href="../09/" title="A1-09 상대 운동" aria-label="A1-09 상대 운동"></a><a href="../10/" title="A1-10 등속 원운동" aria-label="A1-10 등속 원운동"></a><a class="cur" href="./" aria-current="page" title="A1-11 여러 가지 구심력" aria-label="A1-11 여러 가지 구심력 (지금)"></a><a href="../12/" title="A1-12 케플러 법칙" aria-label="A1-12 케플러 법칙"></a><a href="../13/" title="A1-13 만유인력과 인공위성" aria-label="A1-13 만유인력과 인공위성"></a><a href="../14/" title="A1-14 단진동과 단진자" aria-label="A1-14 단진동과 단진자"></a><a href="../15/" title="A1-15 관성력" aria-label="A1-15 관성력"></a><a href="../16/" title="A1-16 등가 원리" aria-label="A1-16 등가 원리"></a></span></nav>
+  <div class="pn"><a href="../10/" rel="prev" title="이전 개념: A1-10 등속 원운동">‹ <span>10 등속 원운동</span></a><a href="../12/" rel="next" title="다음 개념: A1-12 케플러 법칙"><span>12 케플러 법칙</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A1-11</span><span>물리학 Ⅱ · 힘과 운동</span></div>
+    <h1>여러 가지 구심력</h1>
+    <p class="question"><i>Q</i>구심력은 어떤 종류의 힘일까? — 새로운 힘이 아니라 '중심 방향 합력'의 이름이다.</p>
+  </div>
+
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="장면에 따라 원뿔 진자, 원형 도로의 자동차, 연직면에서 도는 공, 인공위성이 움직이고, 실제로 작용하는 힘(빨강)과 그 합력(초록)이 표시된다. 합력은 늘 원의 중심을 향한다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">주기 1.4 s</span><span class="pill" id="hud2">장력 2mg</span><span class="pill" id="hud3" hidden></span></div>
+        <div class="legend"><span><b style="background:var(--force)"></b>실제로 작용하는 힘</span><span><b style="background:var(--acc)"></b>합력 = 구심력</span><span><b style="background:var(--vel)"></b>속도</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="group" role="group" aria-label="장면">
+            <span class="gl lg">장면</span>
+            <button type="button" class="btn" data-scene="cone" aria-pressed="true" aria-label="① 원뿔 진자">①<span class="lg">원뿔 진자</span></button>
+            <button type="button" class="btn" data-scene="road" aria-pressed="false" aria-label="② 원형 도로">②<span class="lg">도로</span></button>
+            <button type="button" class="btn" data-scene="vert" aria-pressed="false" aria-label="③ 연직 원">③<span class="lg">연직 원</span></button>
+            <button type="button" class="btn" data-scene="sat" aria-pressed="false" aria-label="④ 인공위성">④<span class="lg">위성</span></button>
+          </div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">조건 바꾸기</span><span class="sm">조건</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="장면의 조건">
+          <div class="sheet-head"><b>조건 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <!-- ① 원뿔 진자 -->
+          <div class="row" data-for="cone">
+            <div class="grow">
+              <label class="ctl-label" for="th"><span>연직과 이루는 각 θ</span> <output id="thOut">60°</output></label>
+              <input id="th" type="range" min="10" max="75" step="1" value="60">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="len"><span>실 길이 l</span> <output id="lenOut">1 m</output></label>
+              <input id="len" type="range" min="0.5" max="1.5" step="0.1" value="1">
+            </div>
+          </div>
+          <div class="toggles" data-for="cone">
+            <label class="chk"><input type="checkbox" id="cSameH">같은 h 진자 겹쳐 보기</label>
+            <label class="chk"><input type="checkbox" id="cComp" checked>장력의 성분</label>
+          </div>
+          <!-- ② 원형 도로 -->
+          <div class="row" data-for="road" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="bank"><span>도로 기울기 θ</span> <output id="bankOut">45°</output></label>
+              <input id="bank" type="range" min="0" max="50" step="1" value="45">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="spd"><span>속력 v</span> <output id="spdOut">20 m/s</output></label>
+              <input id="spd" type="range" min="2" max="34" step="1" value="20">
+            </div>
+          </div>
+          <div class="row" data-for="road" hidden>
+            <div class="group" role="group" aria-label="정지 마찰 계수">
+              <span class="gl">마찰 μ</span>
+              <button type="button" class="btn" data-mu="0" aria-pressed="false">0</button>
+              <button type="button" class="btn" data-mu="0.3" aria-pressed="false">0.3</button>
+              <button type="button" class="btn" data-mu="0.6" aria-pressed="true">0.6</button>
+            </div>
+            <div class="group" role="group" aria-label="자동차 질량">
+              <span class="gl">질량</span>
+              <button type="button" class="btn" data-mass="1000" aria-pressed="true">1 t</button>
+              <button type="button" class="btn" data-mass="2000" aria-pressed="false">2 t</button>
+            </div>
+          </div>
+          <!-- ③ 연직 원 -->
+          <div class="row" data-for="vert" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="v0"><span>바닥에서의 속력 v₀ (실 0.4 m)</span> <output id="v0Out">5.66 m/s</output></label>
+              <input id="v0" type="range" min="1" max="8" step="0.05" value="5.66">
+            </div>
+            <button type="button" class="btn" id="restart">바닥에서 다시</button>
+          </div>
+          <div class="toggles" data-for="vert" hidden>
+            <label class="chk"><input type="checkbox" id="cTan">중력의 접선 성분</label>
+          </div>
+          <!-- ④ 인공위성 -->
+          <div class="row" data-for="sat" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="orb"><span>궤도 반지름 r (지구 반지름 R 단위)</span> <output id="orbOut">1 R</output></label>
+              <input id="orb" type="range" min="1" max="3" step="0.1" value="1">
+            </div>
+            <label class="chk"><input type="checkbox" id="cAtom">원자 속 전자로 보기</label>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="시간 빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×¼</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×½</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">원뿔 진자의 주기와 장력</span><span id="ansCtx">l = 1 m · θ = 60°</span></div>
+        <div class="big" id="ansBig">주기 1.4 s · 장력 2mg</div>
+        <div class="sub">
+          <span class="f" id="ansF">연직 T cos θ = mg, 수평 T sin θ = mrω² 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">h = l cos θ = 1 × cos <em>60°</em> = <em>0.5 m</em></span><span class="v">주기 = 2π√(h/g) = 2π√(0.5 ÷ 10) ≈ <em>1.4 s</em></span><span class="v">T cos 60° = mg → <em>T = 2mg</em> (무게의 2배)</span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="ml1">반지름 r = l sin θ</span><b id="mv1">0.87 m</b></div>
+          <div class="mini"><span id="ml2">각속도 ω = √(g/h)</span><b id="mv2">4.47 rad/s</b></div>
+          <div class="mini"><span id="ml3">합력(구심력) = T sin θ</span><b id="mv3">1.73mg</b></div>
+          <div class="mini"><span id="ml4">속력 v = rω</span><b id="mv4">3.87 m/s</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 장력 + 중력">
+          <div class="kind">관찰 1 · 원뿔 진자</div>
+          <h3>장력과 중력의 합력이 수평으로 중심을 향한다</h3>
+          <p>추에 작용하는 실제 힘은 장력 T와 중력 mg 둘뿐이다. 장력의 연직 성분은 중력과 평형(T cos θ = mg)을 이루고, 남은 수평 성분 T sin θ가 원의 중심을 향한다. 이 <b>합력</b>이 구심력 mrω²다. 구심력 화살표를 하나 더 그리면 같은 힘을 두 번 센 것이다.</p>
+          <canvas class="flat" id="ftri" aria-label="원뿔 진자를 옆에서 본 힘. 장력과 중력을 더하면 수평으로 중심을 향하는 합력이 된다."></canvas>
+          <p class="cap">옆에서 본 힘. 장력과 중력을 꼬리–머리로 이으면 합력은 수평이다. r = l sin θ를 넣으면 ω² = g/(l cos θ), 장력 = mg/cos θ = mlω²</p>
+          <canvas class="flat" id="per" aria-label="실 길이별로 연직과 이루는 각에 따른 원뿔 진자의 주기. 각이 클수록 주기가 짧다."></canvas>
+          <p class="cap">주기는 매단 점에서 궤도면까지의 높이 h = l cos θ로만 정해진다: <span class="eq">주기 = 2π√(h/g)</span>. 같은 실에서 θ를 키우면 h가 줄어 주기가 짧아진다. 무대의 옅은 진자는 길이와 각이 달라도 h가 같아 늘 나란히 돈다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">예제 (l = 1 m, θ = 60°)</button>
+            <button type="button" class="btn" data-try="th30">θ = 30°로</button>
+            <button type="button" class="btn" data-do="click:[data-scene=cone]; check:#cSameH">같은 h 진자 겹쳐 보기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 마찰력·수직항력">
+          <div class="kind">관찰 2 · 원형 도로</div>
+          <h3>도로에서는 마찰력이나 수직항력의 수평 성분이 구심력이 된다</h3>
+          <p>평평한 도로(θ = 0)에서는 정지 마찰력 혼자 구심력을 맡는다. 속력을 높여 mv²/r이 최대 정지 마찰력보다 커지면 버티지 못하고 바깥으로 미끄러진다. 도로를 기울이면 수직항력의 수평 성분이 구심력을 맡고, <span class="eq">tan θ = v²/(gr)</span>인 설계 속력에서는 마찰이 없어도 돈다.</p>
+          <canvas class="flat" id="rd" aria-label="속력에 따라 필요한 정지 마찰력과 낼 수 있는 최대 정지 마찰력의 범위. 마찰이 0인 속력이 설계 속력이다."></canvas>
+          <p class="cap">초록 띠 안이면 정지 마찰력으로 버틴다. 설계 속력보다 빠르면 마찰력이 안쪽(빗면 아래)으로, 느리면 바깥쪽(빗면 위)으로 필요하다. tan θ = v²/(gr)에는 질량이 없어 무거운 차도 같은 속력으로 돈다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="flat">평평한 도로에서 빠르게</button>
+            <button type="button" class="btn" data-try="bank">45° 도로, 설계 속력</button>
+            <button type="button" class="btn" data-try="mass2">질량 2배인 차</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 꼭대기와 바닥">
+          <div class="kind">관찰 3 · 연직 원</div>
+          <h3>꼭대기에서는 T + mg, 바닥에서는 T − mg가 mv²/r이다</h3>
+          <p>높이에 따라 속력이 바뀌므로 등속 원운동이 아니다. 각 점의 속력은 역학적 에너지 보존으로 구하고, 그 점에서 '중심 방향 합력 = mv²/r'을 쓴다. 꼭대기에서는 장력과 중력이 모두 아래(중심)를 향하고, 바닥에서는 장력만 중심(위)을 향하고 중력은 바깥을 향한다.</p>
+          <canvas class="flat" id="tg" aria-label="연직 원운동에서 바닥부터 잰 각에 따른 실의 장력. 바닥에서 가장 크고 꼭대기에서 가장 작다."></canvas>
+          <p class="cap">장력은 바닥에서 가장 크고 꼭대기에서 가장 작다(한 바퀴를 돌면 차이는 늘 6mg). 꼭대기에서 T ≥ 0, 곧 v² ≥ gr이어야 실이 느슨해지지 않는다. 바닥 속력이 모자라면 꼭대기에 닿기 전에 실이 느슨해져 공이 원을 벗어난다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="top">꼭대기에서 멈추기</button>
+            <button type="button" class="btn" data-try="bottom">바닥에서 멈추기</button>
+            <button type="button" class="btn" data-try="slow">바닥 속력이 모자라면</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 만유인력">
+          <div class="kind">관찰 4 · 인공위성</div>
+          <h3>위성에서는 만유인력이 구심력이고, 구심력은 일을 하지 않는다</h3>
+          <p>인공위성에 작용하는 힘은 지구의 만유인력 하나다. 이 힘이 늘 지구 중심을 향해 <span class="eq">GMm/r² = mv²/r</span>이 된다. 원자 속 전자에서는 핵이 당기는 전기력이 같은 역할을 한다. 구심력은 속도와 늘 수직이라 일을 하지 않으므로, 등속 원운동의 운동 에너지는 일정하다.</p>
+          <p class="cap">무대의 직각 표시를 보자. 힘의 방향으로는 조금도 움직이지 않으니 한 일이 0이고, 그래서 속력이 변하지 않는다. 궤도 반지름을 키우면 만유인력이 약해져 더 느리게 돈다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="sat">위성 보기</button>
+            <button type="button" class="btn" data-try="atom">원자 속 전자로</button>
+            <button type="button" class="btn" data-try="sat2">궤도 반지름 2R</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>구심력 = 실제 힘들의 중심 방향 합력 = mv²/r</h3>
+          <table class="cf">
+            <thead><tr><th>상황</th><th>구심력이 되는 힘</th><th>식</th></tr></thead>
+            <tbody>
+              <tr data-row="cone" tabindex="0"><td>원뿔 진자</td><td class="fc">장력의 수평 성분</td><td class="eqn">T sin θ = mrω², T cos θ = mg</td></tr>
+              <tr data-row="flat" tabindex="0"><td>평평한 원형 도로</td><td class="fc">정지 마찰력</td><td class="eqn">f = mv²/r (최대 정지 마찰력 이하)</td></tr>
+              <tr data-row="bank" tabindex="0"><td>기울어진 도로 (마찰 없음)</td><td class="fc">수직항력의 수평 성분</td><td class="eqn">tan θ = v²/(gr)</td></tr>
+              <tr data-row="vert" tabindex="0"><td>연직 원 꼭대기 (실)</td><td class="fc">장력 + 중력</td><td class="eqn">T + mg = mv²/r</td></tr>
+              <tr data-row="sat" tabindex="0"><td>인공위성</td><td class="fc">만유인력</td><td class="eqn">GMm/r² = mv²/r</td></tr>
+            </tbody>
+          </table>
+          <p class="cap">표의 줄을 누르면 무대가 그 장면으로 바뀐다.</p>
+          <ul>
+            <li>힘 그림에는 실제 힘만 그린다. 그 힘들의 중심 방향 성분의 합이 <span class="eq">mv²/r = mrω²</span>이 되어야 한다는 것이 구심력 식이다.</li>
+            <li>원뿔 진자: <span class="eq">주기 = 2π√(h/g)</span>, h = l cos θ, 장력 = mg/cos θ = mlω². 원뿔 안쪽 면을 수평으로 도는 물체도 기울어진 도로와 같은 식이다.</li>
+            <li>마찰 없는 수평면의 구멍을 지난 실에 추 M을 매달면 장력 Mg가 구심력이다: Mg = mr(2π/T)². 실로 차례로 이어 함께 도는 물체는 ω가 같고, 바깥 물체부터 푼다(안쪽 실의 장력 = 그 바깥 모든 물체의 구심력 합).</li>
+            <li>자주 하는 실수: 구심력을 따로 그려 두 번 세기, 연직 원 꼭대기에 바닥 식 T − mg = mv²/r를 쓰기.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>길이 1 m인 실에 매단 추가 실이 연직과 60°를 이룬 채 원뿔 진자 운동을 한다. 주기와, 장력이 추 무게의 몇 배인지 구하라. (g = 10 m/s², π ≈ 3.14)</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>높이 h = l cos 60° = 0.5 m이므로 주기 = 2π√(h/g) = 2π√0.05 ≈ 6.28 × 0.224 ≈ <b>1.4 s</b>. 장력의 연직 성분이 mg와 평형이므로 장력 = mg/cos 60° = 2mg, 곧 무게의 2배다. 이때 수평 성분 2mg sin 60° ≈ 1.73mg가 구심력이다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>길이 0.4 m인 실에 매단 공이 연직면에서 원운동을 한다. 꼭대기에서 공의 속력이 4 m/s일 때, 실의 장력은 공의 무게의 몇 배인가? (g = 10 m/s²)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="top">꼭대기 4 m/s 상황 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>3배</b>. 꼭대기에서는 장력과 중력이 모두 중심(아래)을 향하므로 T + mg = mv²/r = m × 16 ÷ 0.4 = 40m = 4mg, 따라서 T = 3mg다. 5배는 바닥 식 T − mg = mv²/r를 꼭대기에 잘못 쓴 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>옳은 것만 고르면? ㄱ. 원뿔 진자에서 구심력 역할을 하는 것은 장력의 수평 성분이다. ㄴ. 등속 원운동하는 물체에 구심력은 양(+)의 일을 한다. ㄷ. 마찰 없는 기울어진 도로를 일정한 반지름으로 돌 수 있는 속력은 자동차의 질량과 무관하다.</h3>
+            <div class="acts">
+              <button type="button" class="btn" data-try="ex">ㄱ 원뿔 진자</button>
+              <button type="button" class="btn" data-try="sat">ㄴ 힘과 속도의 방향</button>
+              <button type="button" class="btn" data-try="mass2">ㄷ 질량 2배인 차</button>
+            </div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄷ</b>. 원뿔 진자는 장력의 수평 성분, 기울어진 도로는 수직항력의 수평 성분이 구심력 역할을 하고, 도로는 tan θ = v²/(gr)이라 질량이 들어 있지 않다. 구심력은 속도와 늘 수직이라 일을 하지 않는다(ㄴ 틀림).</p></details>
+          </div>
+          <div class="q">
+            <h3>실 길이가 같은 원뿔 진자는 실이 연직과 이루는 각이 클수록 주기가 길까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="th30">θ = 30°로</button><button type="button" class="btn" data-try="th75">θ = 75°로</button></div>
+            <details class="ans"><summary>답 보기</summary><p>아니다. 주기 = 2π√(l cos θ/g)이므로 θ가 커지면 h = l cos θ가 줄어 <b>주기가 짧아진다</b>. 실 1 m에서 θ = 30°이면 약 1.85 s, 60°이면 1.4 s, 75°이면 약 1.0 s다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../10/" rel="prev"><small>← 이전 개념 · A1-10</small><b>등속 원운동</b></a><a href="../12/" rel="next"><small>다음 개념 · A1-12 →</small><b>케플러 법칙</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="A1-11-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_11;
+  const {$, C, text, arrow, fmt} = Lab;
+  const PI = Math.PI, TAU = 2 * PI, RAD = PI / 180, g0 = M.G;
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const add = (P, u, k) => [P[0] + u[0] * k, P[1] + u[1] * k];
+  const unit = (v) => { const n = Math.hypot(v[0], v[1]) || 1; return [v[0] / n, v[1] / n]; };
+
+  // ── 상태 ────────────────────────────────────────────────
+  // 예제: 원뿔 진자 l = 1 m, θ = 60° → 주기 2π√0.05 ≈ 1.4 s, 장력 = 2mg
+  const EX = {l: 1, th: 60};
+  const VR = 0.4;                                  // 연직 원의 실 길이 (개념 체크 값)
+  const S = {scene: 'cone', playing: !Lab.reduceMotion, speed: 1,
+    l: 1, th: 60, phi: 0.5, sameH: false, comp: true,
+    bank: 45, v: 20, rr: 40, mu: 0.6, m: 1000, ang: 0, slip: null,
+    v0: Math.sqrt(32), vphi: 0, vom: 0, free: null, hold: 0, tan: false, trail: [], trT: 0,
+    rR: 1, sang: 0.6, atom: false};
+
+  // ── 캔버스·공통 도우미 ──────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage), ftri = Lab.canvas('ftri', drawFtri), per = Lab.canvas('per', drawPer),
+    rd = Lab.canvas('rd', drawRd), tg = Lab.canvas('tg', drawTg);
+  const stageBox = stage.el.parentNode, legendEl = stageBox.querySelector('.legend');
+  let room = 0;
+  const legendRoom = () => (legendEl && legendEl.parentNode === stageBox && legendEl.offsetHeight ? legendEl.offsetHeight + 14 : 0);
+  const narrowOf = (W) => W < 520;
+  function frame(W, H) {   // 그릴 수 있는 칸: 위 HUD, 아래 범례(넓은 화면)·지금 단계 표시
+    const narrow = narrowOf(W);
+    return {narrow, top: 52, bot: H - (narrow ? 42 : Math.max(42, room + 4))};
+  }
+  function lbl(ctx, s, x, y, o = {}) {
+    const W = stage.W, H = stage.H;
+    const w = Lab.measure(ctx, s, {size: o.size || 14, w: o.w || 600}) / 2 + 6;
+    const al = o.align || 'center', xl = al === 'left' ? x + w - 6 : al === 'right' ? x - w + 6 : x;
+    const xc = clamp(xl, w + 4, W - w - 4), dx = xc - xl;
+    text(ctx, s, x + dx, clamp(y, 54, H - 12), Object.assign({size: 14, w: 600, halo: true}, o));
+  }
+  function forceArrow(ctx, P, v, col, name, o = {}) {   // v = 화면 벡터(px). 이름은 끝 바깥에
+    const L = Math.hypot(v[0], v[1]); if (L < 2) return;
+    const E = add(P, v, 1); arrow(ctx, P[0], P[1], E[0], E[1], col, o.w || 3.4, 12);
+    if (name) { const u = unit(v); lbl(ctx, name, E[0] + u[0] * (o.off || 16) + (o.dx || 0), E[1] + u[1] * (o.off || 16) + (o.dy || 0), {color: col, size: o.size || 14, align: o.align}); }
+  }
+  function ballAt(ctx, P, rad, col) {
+    Lab.circle(ctx, P[0], P[1], rad, {fill: col, stroke: C.paper, width: 1.8});
+    Lab.circle(ctx, P[0] - rad * 0.32, P[1] - rad * 0.32, rad * 0.3, {fill: Lab.isDark() ? Lab.alpha(C.ink, 0.3) : Lab.alpha(C.paper, 0.55)});
+  }
+  const mgs = (x, d = 2) => (Math.abs(x - 1) < 5e-3 ? 'mg' : fmt(x, d) + 'mg');
+
+  // ── 장면 ①: 원뿔 진자 (비스듬히 내려다본 3차원) ─────────
+  function geoCone(W, H) {
+    const f = frame(W, H), l = S.l, c = M.conical(l, S.th), k = Math.min(0.4, 0.85 * c.h / c.r);   // 납작한 원뿔은 덜 기울여 본다 (궤도 뒤쪽이 천장 위로 가지 않게)
+    const s = Math.max(40, Math.min((f.bot - f.top - 80) / l, (W / 2 - 40) / (l * Math.sin(75 * RAD) + (f.narrow ? 0.1 : 0.3))));
+    const Fs = Math.min(f.narrow ? 32 : 46, 0.7 * l * s * Math.cos(S.th * RAD));
+    const Hd = c.h * s + k * c.r * s + Fs + 34;                        // 천장 ~ mg 이름표까지 높이
+    return {...f, cx: W / 2, py: f.top + 8 + Math.max(0, (f.bot - f.top - 8 - Hd) / 2), s, k, Fs};
+  }
+  function coneState(phi) {
+    const c = M.conical(S.l, S.th);
+    return {c, x: c.r * Math.cos(phi), z: c.r * Math.sin(phi), y: c.h};
+  }
+  function drawCone(ctx, W, H) {
+    const g = geoCone(W, H), {cx, py, s, k} = g, st = coneState(S.phi), c = st.c;
+    const pj = (x, y, z) => [cx + x * s, py + y * s + k * z * s];       // 3차원(x 오른쪽, y 아래, z 앞) → 화면
+    const P = [cx, py], O = pj(0, c.h, 0), rp = c.r * s;
+    // 천장
+    Lab.line(ctx, [[cx - 80, py], [cx + 80, py]], C.ink, 3);
+    for (let x = cx - 74; x <= cx + 74; x += 12) Lab.line(ctx, [[x, py - 1], [x + 8, py - 9]], C.muted, 1.4);
+    // 궤도(타원), 중심축
+    ctx.save(); ctx.setLineDash([6, 5]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.ellipse(O[0], O[1], rp, rp * k, 0, 0, TAU); ctx.stroke(); ctx.restore();
+    Lab.line(ctx, [P, [O[0], O[1] + 26]], C.muted, 1.3, [4, 4]);
+    Lab.circle(ctx, O[0], O[1], 3.5, {fill: C.muted});
+    // 옆모습 안내: 오른쪽 끝(φ = 0)의 실, θ, h, r
+    const Q = pj(c.r, c.h, 0);
+    Lab.line(ctx, [P, Q], Lab.alpha(C.muted, 0.7), 1.3, [3, 4]);
+    Lab.line(ctx, [O, Q], Lab.alpha(C.copper, 0.8), 1.4, [3, 3]);
+    const mth = Lab.angle(ctx, P[0], P[1], 34, PI / 2, Math.atan2(Q[1] - P[1], Q[0] - P[0]), C.copper, '');
+    lbl(ctx, g.narrow ? 'θ' : 'θ = ' + S.th + '°', P[0] + 52 * Math.cos(mth) + (g.narrow ? 4 : 18), P[1] + 52 * Math.sin(mth), {color: C.copper, size: 13});
+    // h: 궤도 바깥 왼쪽에 (추가 지나가지 않는 곳)
+    const hx = cx - rp - 26;
+    Lab.line(ctx, [[cx - 80, py], [hx - 6, py]], Lab.alpha(C.copper, 0.6), 1.2, [3, 4]);
+    Lab.line(ctx, [[cx - rp - 4, O[1]], [hx - 6, O[1]]], Lab.alpha(C.copper, 0.6), 1.2, [3, 4]);
+    Lab.vbracket(ctx, hx, py, O[1], C.copper, '', false);
+    lbl(ctx, g.narrow ? 'h' : 'h = ' + fmt(c.h, 2) + ' m', hx - 8, (py + O[1]) / 2, {color: C.copper, size: 13, align: 'right'});
+    lbl(ctx, 'r', (O[0] + Q[0]) / 2, O[1] - 10, {color: C.copper, size: 13});
+    // 같은 h 진자 (옅게): 늘 나란히 돈다
+    if (S.sameH) {
+      const th2 = S.th > 35 ? S.th - 22 : S.th + 18, l2 = c.h / Math.cos(th2 * RAD), r2 = l2 * Math.sin(th2 * RAD);
+      const B2 = pj(r2 * Math.cos(S.phi), c.h, r2 * Math.sin(S.phi));
+      ctx.save(); ctx.globalAlpha = 0.45; ctx.setLineDash([5, 4]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.ellipse(O[0], O[1], r2 * s, r2 * s * k, 0, 0, TAU); ctx.stroke(); ctx.restore();
+      Lab.line(ctx, [P, B2], Lab.alpha(C.ink, 0.4), 1.8);
+      Lab.circle(ctx, B2[0], B2[1], 7, {fill: Lab.alpha(C.vel, 0.45), stroke: C.paper, width: 1.4});
+      lbl(ctx, 'l = ' + fmt(l2, 2) + ' m', B2[0] + (Math.cos(S.phi) >= 0 ? -36 : 36), B2[1] + 18, {color: C.muted, size: 13, w: 500});
+    }
+    // 추와 힘 (3차원 벡터를 그대로 비춘 것)
+    const B = pj(st.x, st.y, st.z), Fs = g.Fs;
+    const fv = (x, y, z, sc) => [x * sc, (y + k * z) * sc];
+    const t = c.tension, cph = Math.cos(S.phi), sph = Math.sin(S.phi), tn = Math.tan(S.th * RAD);
+    const Tv = fv(-st.x / S.l * t, -st.y / S.l * t, -st.z / S.l * t, Fs), Gv = fv(0, 1, 0, Fs), Fv = fv(-cph * tn, 0, -sph * tn, Fs);
+    Lab.line(ctx, [P, B], C.ink, 2.2);
+    if (S.comp) {   // 장력의 성분 (점선): 연직 = mg 와 평형, 수평 = 합력
+      const Tt = add(B, Tv, 1), Ft = add(B, Fv, 1);
+      Lab.line(ctx, [B, [B[0], B[1] - Fs]], Lab.alpha(C.force, 0.7), 1.6, [4, 4]);
+      Lab.line(ctx, [Ft, Tt], Lab.alpha(C.force, 0.7), 1.6, [4, 4]);
+      Lab.line(ctx, [[B[0], B[1] - Fs], Tt], Lab.alpha(C.force, 0.7), 1.6, [4, 4]);
+    }
+    const vel = fv(-sph, 0, cph, 0.55 * Math.min(rp, 120) / 1);
+    forceArrow(ctx, B, [vel[0], vel[1]], C.vel, '', {w: 3});
+    forceArrow(ctx, B, Gv, C.force, 'mg', {off: 14});
+    const pT = unit([Tv[1], -Tv[0]]), sd = (pT[0] * (B[0] - cx) >= 0 ? 1 : -1) * 20;     // 실 바깥쪽으로 비켜서
+    forceArrow(ctx, B, Tv, C.force, g.narrow ? 'T' : 'T = ' + mgs(t), {off: 2, dx: pT[0] * sd, dy: pT[1] * sd});
+    forceArrow(ctx, B, Fv, C.acc, g.narrow ? '합력' : '합력(구심력) ' + mgs(c.fc), {off: 16, w: 3.8});
+    ballAt(ctx, B, 10, C.vel);
+  }
+
+  // ── 장면 ②: 원형 도로 (단면 + 위에서 본 길) ─────────────
+  function geoRoad(W, H) {
+    const f = frame(W, H), narrow = f.narrow, rho = narrow ? 30 : 38;
+    const box = {w: 2 * rho + 26, h: 2 * rho + 42};
+    box.x = W - 12 - box.w; box.y = narrow ? f.top + 2 : 12;
+    const th = S.bank * RAD, Fs = narrow ? 44 : 62;
+    const Q = [W * (narrow ? 0.5 : 0.48), narrow ? f.bot - 44 : f.top + (f.bot - f.top) * 0.68];   // 바퀴가 닿는 곳
+    return {...f, rho, box, Fs, th, Q, u: [Math.cos(th), -Math.sin(th)], n: [-Math.sin(th), -Math.cos(th)],
+      cw: narrow ? 96 : 136, ch: narrow ? 34 : 46, wr: narrow ? 10 : 13};
+  }
+  function roadNow() { return M.roadSlip(S.m, S.v, S.rr, S.bank, S.mu); }
+  function drawRoad(ctx, W, H) {
+    const g = geoRoad(W, H), {Q, u, n, Fs, th, wr} = g, q = roadNow();
+    const Qc = add(Q, u, S.slip ? S.slip.d : 0);                              // 미끄러진 거리만큼 빗면을 따라
+    // 땅과 길
+    const L = 2 * W, a = add(Q, u, -L), b = add(Q, u, L);
+    ctx.save(); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(b[0], H + 10); ctx.lineTo(a[0], H + 10); ctx.closePath();
+    ctx.fillStyle = C['line-soft']; ctx.fill(); ctx.restore();
+    Lab.line(ctx, [a, b], C.ink, 3);
+    if (S.bank > 0) {
+      const A0 = add(Q, u, -(g.narrow ? 120 : 170));
+      Lab.line(ctx, [A0, [A0[0] + 70, A0[1]]], C.muted, 1.3, [4, 4]);
+      Lab.angle(ctx, A0[0], A0[1], 40, 0, -th, C.ink, '');
+      lbl(ctx, 'θ = ' + S.bank + '°', A0[0] + 58, A0[1] - 13, {size: 13, w: 600, align: 'left'});
+    }
+    lbl(ctx, '← 원의 중심 쪽 (r = ' + S.rr + ' m)', 16, g.top + (g.narrow ? 12 : 26), {size: 13, w: 500, color: C.muted, align: 'left'});
+    // 자동차 (뒤에서 본 모습). 2 t 는 크게
+    const big = S.m > 1500, cw = g.cw * (big ? 1.12 : 1), ch = g.ch * (big ? 1.3 : 1);
+    ctx.save(); ctx.translate(Qc[0], Qc[1]); ctx.rotate(-th);
+    Lab.rrect(ctx, -cw / 2, -wr * 1.6 - ch, cw, ch, 10); ctx.fillStyle = Lab.alpha(C.vel, 0.85); ctx.fill();
+    Lab.rrect(ctx, -cw / 2 + 12, -wr * 1.6 - ch + 7, cw - 24, ch * 0.4, 6); ctx.fillStyle = Lab.alpha(C.paper, 0.7); ctx.fill();
+    for (const x of [-cw / 2 + 15, cw / 2 - 15]) { Lab.rrect(ctx, x - 9, -wr * 2, 18, wr * 2, 5); ctx.fillStyle = C.ink; ctx.fill(); }
+    ctx.restore();
+    // 힘: 무게중심 G 에 mg·N, 바퀴 닿는 곳에 f, 합력(초록)은 수평으로 중심 쪽
+    const G = add(Qc, n, wr * 1.6 + ch * 0.5), Ng = q.N / (S.m * g0), fg = q.f / (S.m * g0), ag = q.ac / g0;
+    const fShown = q.ok ? fg : Math.sign(fg) * q.lim / (S.m * g0);           // 미끄러지면 최대 정지 마찰력까지만
+    const netg = Ng * Math.sin(th) + fShown * Math.cos(th);                  // 실제 수평 합력 (mg 단위, 중심 쪽 +)
+    if (S.comp && S.bank > 0) {
+      const Nt = add(G, n, Ng * Fs);
+      Lab.line(ctx, [Nt, [Nt[0], G[1]]], Lab.alpha(C.force, 0.6), 1.5, [4, 4]);
+      Lab.line(ctx, [Nt, [G[0], Nt[1]]], Lab.alpha(C.force, 0.6), 1.5, [4, 4]);
+    }
+    forceArrow(ctx, G, [0, Fs], C.force, 'mg', {off: 4, dx: 18, align: 'left'});
+    forceArrow(ctx, G, [n[0] * Ng * Fs, n[1] * Ng * Fs], C.force, 'N = ' + mgs(Ng), {off: 14, align: S.bank > 20 ? 'right' : 'center'});
+    if (Math.abs(fShown) > 0.01) {
+      const P0 = add(Qc, n, 4), fv = [-u[0] * fShown * Fs, -u[1] * fShown * Fs];
+      forceArrow(ctx, P0, fv, C.force, 'f = ' + mgs(Math.abs(fShown)), {off: 4, w: 3, dy: 20, align: fShown > 0 ? 'right' : 'left'});
+    }
+    const left = Math.min(Qc[0], G[0]) - cw / 2 - 8;                         // 초록 이름표는 차체 왼쪽 바깥에
+    if (!q.ok) {   // 필요한 구심력(점선) > 실제 합력 → 미끄러짐
+      ctx.save(); ctx.setLineDash([5, 4]); Lab.line(ctx, [[G[0], G[1] + 10], [G[0] - ag * Fs, G[1] + 10]], C.acc, 2); ctx.restore();
+      lbl(ctx, (g.narrow ? '필요 ' : '필요한 mv²/r = ') + mgs(ag), Math.min(left, G[0] - ag * Fs - 8), G[1] + 14, {color: C.acc, size: 13, align: 'right'});
+      lbl(ctx, q.dir === 'out' ? '바깥으로 미끄러진다' : '안쪽으로 미끄러진다', g.narrow ? 16 : W / 2, g.top + (g.narrow ? 36 : 56), {color: C.neg, size: 15, w: 700, align: g.narrow ? 'left' : 'center'});
+    }
+    if (netg > 0.005) {
+      arrow(ctx, G[0], G[1], G[0] - netg * Fs, G[1], C.acc, 3.8, 12);
+      lbl(ctx, (q.ok ? (g.narrow ? '합력 ' : '합력 = mv²/r = ') : '합력 ') + mgs(netg), Math.min(left, G[0] - netg * Fs - 8), G[1] - 14, {color: C.acc, size: 14, align: 'right'});
+    }
+    Lab.circle(ctx, G[0], G[1], 4, {fill: C.ink});
+    if (big) lbl(ctx, '2 t', G[0] + n[0] * -2 + u[0] * cw * 0.3, G[1] + u[1] * cw * 0.3, {size: 13, color: C.paper, halo: false});
+    drawTopView(ctx, g, q);
+  }
+  function drawTopView(ctx, g, q) {
+    const {box, rho} = g, cxy = [box.x + box.w / 2, box.y + 30 + rho];
+    ctx.save(); Lab.rrect(ctx, box.x, box.y, box.w, box.h, 12); ctx.fillStyle = Lab.alpha(C.paper, 0.92); ctx.fill(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
+    text(ctx, '위에서 본 길', box.x + box.w / 2, box.y + 12, {size: 13, w: 600, color: C.muted});
+    Lab.circle(ctx, cxy[0], cxy[1], rho, {stroke: C.line, width: 8});
+    Lab.circle(ctx, cxy[0], cxy[1], 3, {fill: C.ink});
+    const rr = rho * (1 + (S.slip ? S.slip.d / 160 : 0));                  // 미끄러지면 바깥(안쪽)으로 밀려난다
+    const P = [cxy[0] + rr * Math.cos(S.ang), cxy[1] - rr * Math.sin(S.ang)], tu = [-Math.sin(S.ang), -Math.cos(S.ang)];
+    arrow(ctx, P[0], P[1], P[0] + tu[0] * 20, P[1] + tu[1] * 20, C.vel, 2.4, 8);
+    Lab.circle(ctx, P[0], P[1], 5.5, {fill: C.copper, stroke: C.paper, width: 1.4});
+  }
+
+  // ── 장면 ③: 연직 원 (실 0.4 m) ──────────────────────────
+  function geoVert(W, H) {
+    const f = frame(W, H), R = Math.max(50, Math.min((f.bot - f.top) / 2 - (f.narrow ? 16 : 26), W * (f.narrow ? 0.34 : 0.24)));
+    const Tmax = Math.max(1, S.v0 * S.v0 / (VR * g0) + 1);                   // 바닥 장력 ÷ mg (가장 큰 힘)
+    return {...f, R, O: [W / 2, (f.top + f.bot) / 2], Fs: Math.min(f.narrow ? 24 : 32, 0.9 * R / Tmax)};
+  }
+  // 상태: 실이 팽팽하면 φ(바닥에서 잰 각), ω. 느슨하면 공은 포물선 운동(free)
+  function vertReset() { S.vphi = 0; S.vom = S.v0 / VR; S.free = null; S.hold = 0; S.trail = []; S.trT = 0; }
+  function vertStep(dt) {
+    if (S.hold > 0) { S.hold -= dt; if (S.hold <= 0) vertReset(); return; }
+    const n = Math.max(1, Math.ceil(dt / 0.002)), h = dt / n;
+    for (let i = 0; i < n; i++) {
+      if (S.free) {
+        const f = S.free; f.vy -= g0 * h; f.x += f.vx * h; f.y += f.vy * h;
+        if (Math.hypot(f.x, f.y) >= VR && f.x * f.vx + f.y * f.vy > 0) { S.hold = 0.9; return; }
+      } else {
+        // φ'' = −(g/r) sinφ (반 단계 속도 갱신)
+        S.vom += -(g0 / VR) * Math.sin(S.vphi) * h / 2; S.vphi += S.vom * h; S.vom += -(g0 / VR) * Math.sin(S.vphi) * h / 2;
+        const T = VR * S.vom * S.vom + g0 * Math.cos(S.vphi);           // 장력 ÷ m
+        if (T < 0) {
+          const v = VR * S.vom;
+          S.free = {x: VR * Math.sin(S.vphi), y: -VR * Math.cos(S.vphi), vx: v * Math.cos(S.vphi), vy: v * Math.sin(S.vphi)};
+        }
+      }
+    }
+    S.trT += dt;
+    if (S.trT >= 0.03) { S.trT = 0; S.trail.push(vertPos()); if (S.trail.length > 18) S.trail.shift(); }
+  }
+  const vertPos = () => (S.free ? [S.free.x, S.free.y] : [VR * Math.sin(S.vphi), -VR * Math.cos(S.vphi)]);
+  function drawVert(ctx, W, H) {
+    const g = geoVert(W, H), {O, R, Fs} = g, k = R / VR;
+    const toS = (p) => [O[0] + p[0] * k, O[1] - p[1] * k];
+    ctx.save(); ctx.setLineDash([6, 6]); Lab.circle(ctx, O[0], O[1], R, {stroke: C.muted, width: 1.6}); ctx.restore();
+    S.trail.forEach((p, i) => { const P = toS(p); Lab.circle(ctx, P[0], P[1], 3.4, {fill: Lab.alpha(C.vel, 0.12 + 0.4 * i / S.trail.length)}); });
+    const B = toS(vertPos());
+    if (S.free) {   // 느슨한 실
+      const mid = [(O[0] + B[0]) / 2 + 10, (O[1] + B[1]) / 2 + 14];
+      ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.8; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(O[0], O[1]); ctx.quadraticCurveTo(mid[0], mid[1], B[0], B[1]); ctx.stroke(); ctx.restore();
+    } else Lab.line(ctx, [O, B], C.ink, 2.2);
+    Lab.circle(ctx, O[0], O[1], 5, {fill: C.ink});
+    lbl(ctx, '꼭대기', O[0] - 18, O[1] - R - 14, {size: 13, w: 500, color: C.muted, align: 'right'});
+    lbl(ctx, '바닥', O[0] - 18, O[1] + R + 14, {size: 13, w: 500, color: C.muted, align: 'right'});
+    if (!S.free) {
+      const ph = S.vphi, c = Math.cos(ph), sn = Math.sin(ph), v2 = (VR * S.vom) ** 2;
+      const Tm = v2 / VR + g0 * c, inw = unit([O[0] - B[0], O[1] - B[1]]), cap = R * 0.95;   // 한 축척: 가장 큰 바닥 장력도 실 안에 들어간다
+      const Lt = Math.min(cap, Tm / g0 * Fs), Ln = Math.min(cap, v2 / VR / g0 * Fs);
+      let pT = [-inw[1], inw[0]]; if (pT[0] > 1e-9 || (Math.abs(pT[0]) < 1e-9 && pT[1] > 0)) pT = [-pT[0], -pT[1]];   // 장력은 왼쪽(위)으로 비켜서
+      forceArrow(ctx, add(B, [1, 0], 11), [0, Fs], C.force, 'mg', {off: 4, dx: 16, align: 'left'});
+      if (Lt > 2) forceArrow(ctx, add(B, pT, 11), [inw[0] * Lt, inw[1] * Lt], C.force, 'T = ' + mgs(Tm / g0, 1), {off: 2, dx: pT[0] * 30, dy: pT[1] * 30});
+      if (S.tan) {   // 중력의 접선 성분 (속력을 바꾼다)
+        const tu = [Math.cos(ph), -Math.sin(ph)], gt = -sn;
+        forceArrow(ctx, B, [tu[0] * gt * Fs, tu[1] * gt * Fs], Lab.alpha(C.force, 0.75), '', {w: 2.2});
+      }
+      forceArrow(ctx, B, [inw[0] * Ln, inw[1] * Ln], C.acc, '합력 ' + mgs(v2 / VR / g0, 1), {off: 4, w: 3.6, dx: -pT[0] * 40, dy: -pT[1] * 40});
+      const vu = [Math.cos(ph) * Math.sign(S.vom || 1), -Math.sin(ph) * Math.sign(S.vom || 1)], vl = Math.min(R * 0.6, Math.sqrt(v2) * 9);
+      if (vl > 3) forceArrow(ctx, B, [vu[0] * vl, vu[1] * vl], C.vel, '', {w: 3});
+    } else lbl(ctx, '실이 느슨해짐 → 포물선 운동', O[0], O[1] + 34, {color: C.neg, size: 14, w: 700});
+    ballAt(ctx, B, 10, C.vel);
+    // 꼭대기·바닥 식
+    if (!g.narrow) {
+      text(ctx, '꼭대기: T + mg = mv²/r', O[0] + R + 24, O[1] - R + 4, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+      text(ctx, '바닥: T − mg = mv²/r', O[0] + R + 24, O[1] + R - 4, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    }
+  }
+
+  // ── 장면 ④: 인공위성 (원자 속 전자) ─────────────────────
+  function geoSat(W, H) {
+    const f = frame(W, H), half = Math.min((f.bot - f.top) / 2 - 16, W / 2 - 30);
+    const Re = half / Math.max(S.rR + 0.14, 1.75), ro = Re * S.rR + 10;
+    return {...f, O: [W / 2, (f.top + f.bot) / 2], Re, ro};
+  }
+  function drawSat(ctx, W, H) {
+    const g = geoSat(W, H), {O, Re, ro} = g;
+    if (S.atom) {
+      Lab.circle(ctx, O[0], O[1], 16, {fill: Lab.alpha(C.force, 0.85), stroke: C.paper, width: 1.6});
+      text(ctx, '+', O[0], O[1], {size: 18, w: 700, color: C.paper});
+      lbl(ctx, '원자핵', O[0], O[1] - 30, {size: 13, color: C.muted});
+    } else {
+      Lab.circle(ctx, O[0], O[1], Re, {fill: C['vel-soft'], stroke: C.vel, width: 2});
+      lbl(ctx, '지구', O[0], O[1] + Re * 0.5, {size: 14, color: C.vel});
+    }
+    ctx.save(); ctx.setLineDash([6, 6]); Lab.circle(ctx, O[0], O[1], ro, {stroke: C.muted, width: 1.5}); ctx.restore();
+    const a = S.sang, P = [O[0] + ro * Math.cos(a), O[1] - ro * Math.sin(a)];
+    const inw = [-Math.cos(a), Math.sin(a)], tu = [-Math.sin(a), -Math.cos(a)];
+    const Lf = Math.min(ro * (S.atom ? 0.4 : 0.55), 46 / Math.pow(S.rR, 0.6)), Lv = Math.min(ro * 0.7, 62 / Math.pow(S.rR, 0.5));
+    forceArrow(ctx, P, [inw[0] * Lf, inw[1] * Lf], C.force, S.atom ? '전기력' : '만유인력', {off: 16});
+    forceArrow(ctx, P, [tu[0] * Lv, tu[1] * Lv], C.vel, 'v', {off: 14});
+    // 직각 표시: 힘 ⟂ 속도
+    const c1 = add(P, inw, 11), c2 = add(add(P, inw, 11), tu, 11), c3 = add(P, tu, 11);
+    Lab.line(ctx, [c1, c2, c3], C.ink, 1.4);
+    if (S.atom) { Lab.circle(ctx, P[0], P[1], 8, {fill: C.vel, stroke: C.paper, width: 1.6}); text(ctx, '−', P[0], P[1] - 1, {size: 14, w: 700, color: C.paper}); }
+    else {
+      ctx.save(); ctx.translate(P[0], P[1]); ctx.rotate(-a);
+      ctx.fillStyle = Lab.alpha(C.vel, 0.55); ctx.fillRect(-4, -17, 8, 10); ctx.fillRect(-4, 7, 8, 10);
+      ctx.fillStyle = C.copper; ctx.fillRect(-6, -6, 12, 12); ctx.restore();
+    }
+    // 운동 에너지 막대 (일정)
+    if (!g.narrow) {
+      const x = 22, y1 = g.bot - 8, hh = 70;
+      ctx.fillStyle = Lab.alpha(C.energy, 0.85); ctx.fillRect(x, y1 - hh, 18, hh);
+      text(ctx, '운동 에너지', x + 26, y1 - hh + 8, {size: 13, w: 600, color: C.energy, align: 'left'});
+      text(ctx, '일정 (일 = 0)', x + 26, y1 - hh + 26, {size: 13, color: C.muted, align: 'left'});
+    }
+    lbl(ctx, 'F ⟂ v → 일 = 0', P[0] + (Math.cos(a) > 0 ? 40 : -40), P[1] + (Math.sin(a) > 0 ? -34 : 34), {size: 13, color: C.ink, w: 600});
+  }
+
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    room = legendRoom();
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (S.scene === 'cone') drawCone(ctx, W, H);
+    else if (S.scene === 'road') drawRoad(ctx, W, H);
+    else if (S.scene === 'vert') drawVert(ctx, W, H);
+    else drawSat(ctx, W, H);
+  }
+
+  // ── 관찰 1: 옆에서 본 힘의 합 ───────────────────────────
+  function drawFtri() {
+    const {ctx, W, H} = ftri; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const narrow = W < 430, c = M.conical(S.l, S.th), th = S.th * RAD, t = c.tension;
+    const Fs = Math.min(H * (narrow ? 0.17 : 0.26), W * 0.13);
+    // 왼쪽(좁으면 위): 추에 작용하는 두 힘과 합력
+    const B = narrow ? [W * 0.6, H * 0.3] : [W * 0.36, H * 0.48];
+    const Tu = [-Math.sin(th), -Math.cos(th)];                               // 추에서 매단 점 쪽
+    const Tt = add(B, Tu, Fs * t), Gt = [B[0], B[1] + Fs], Ft = [B[0] - Fs * c.fc, B[1]];
+    Lab.line(ctx, [Ft, Tt], Lab.alpha(C.force, 0.7), 1.5, [4, 4]);
+    Lab.line(ctx, [[B[0], B[1] - Fs], Tt], Lab.alpha(C.force, 0.7), 1.5, [4, 4]);
+    arrow(ctx, B[0], B[1], Tt[0], Tt[1], C.force, 3.2, 12);
+    arrow(ctx, B[0], B[1], Gt[0], Gt[1], C.force, 3.2, 12);
+    arrow(ctx, B[0], B[1], Ft[0], Ft[1], C.acc, 3.6, 12);
+    Lab.circle(ctx, B[0], B[1], 8, {fill: C.vel, stroke: C.paper, width: 1.6});
+    text(ctx, 'T = ' + mgs(t), Tt[0] - 8, Tt[1] - 2, {size: 13.5, w: 600, color: C.force, align: 'right', halo: true});
+    text(ctx, 'mg', Gt[0] + 8, Gt[1] - 2, {size: 13.5, w: 600, color: C.force, align: 'left', halo: true});
+    text(ctx, 'T cos θ = mg', B[0] + 8, B[1] - Fs * 0.55, {size: 13, color: C.force, align: 'left', halo: true});
+    text(ctx, '합력 T sin θ = ' + mgs(c.fc), B[0] - 10, B[1] + 18, {size: 13.5, w: 600, color: C.acc, align: 'right', halo: true});
+    text(ctx, '← 중심', Ft[0] - 8, B[1] - 1, {size: 13, color: C.muted, align: 'right', halo: true});
+    const m = Lab.angle(ctx, B[0], B[1], 26, -PI / 2, Math.atan2(Tu[1], Tu[0]), C.ink, '');
+    text(ctx, 'θ', B[0] + 40 * Math.cos(m), B[1] + 40 * Math.sin(m), {size: 13, w: 600, halo: true});
+    // 오른쪽(좁으면 아래): 꼬리–머리로 이은 힘의 삼각형
+    {
+      const S0 = narrow ? [W * 0.66, H * 0.6] : [W * 0.8, H * 0.2], G1 = [S0[0], S0[1] + Fs], T1 = add(G1, Tu, Fs * t);
+      arrow(ctx, S0[0], S0[1], G1[0], G1[1], C.force, 3, 11);
+      arrow(ctx, G1[0], G1[1], T1[0], T1[1], C.force, 3, 11);
+      arrow(ctx, S0[0], S0[1], T1[0], T1[1], C.acc, 3.4, 11);
+      text(ctx, 'mg', S0[0] + 10, (S0[1] + G1[1]) / 2, {size: 13, w: 600, color: C.force, align: 'left'});
+      text(ctx, 'T', (G1[0] + T1[0]) / 2 + 12, (G1[1] + T1[1]) / 2 + 6, {size: 13, w: 600, color: C.force, align: 'left'});
+      text(ctx, '합력', (S0[0] + T1[0]) / 2, S0[1] - 12, {size: 13, w: 600, color: C.acc});
+      text(ctx, 'mg + T = 수평 합력', S0[0] - Fs * c.fc / 2, G1[1] + 26, {size: 13, color: C.muted});
+    }
+  }
+  // ── 관찰 1: 주기–θ ──────────────────────────────────────
+  function drawPer() {
+    const {ctx, W, H} = per; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const r = {x: 40, y: 26, w: W - 40 - 26, h: H - 26 - 34};
+    const A = Lab.axes(ctx, r, {xmin: 0, xmax: 80, ymin: 0, ymax: 2.6, xticks: [20, 40, 60, 80], yticks: [1, 2], fmtX: (v) => v + '°', xlabel: 'θ', ylabel: '주기 (s)', grid: true});
+    for (const l of [0.5, 1, 1.5]) {
+      const cur = Math.abs(l - S.l) < 1e-9, pts = [];
+      for (let t = 0; t <= 80; t += 1) pts.push([A.X(t), A.Y(M.conical(l, t).period)]);
+      ctx.save(); if (!cur) ctx.globalAlpha = 0.45; Lab.line(ctx, pts, cur ? C.vel : C.muted, cur ? 3 : 1.6); ctx.restore();
+      text(ctx, 'l = ' + l + ' m', A.X(30), A.Y(M.conical(l, 30).period) - 11, {size: 13, w: cur ? 600 : 500, color: cur ? C.vel : C.muted, halo: true});
+    }
+    if (![0.5, 1, 1.5].some((l) => Math.abs(l - S.l) < 1e-9)) {
+      const pts = []; for (let t = 0; t <= 80; t += 1) pts.push([A.X(t), A.Y(M.conical(S.l, t).period)]);
+      Lab.line(ctx, pts, C.vel, 3);
+    }
+    const p = M.conical(S.l, S.th).period;
+    Lab.line(ctx, [[A.X(S.th), A.Y(0)], [A.X(S.th), A.Y(p)], [A.X(0), A.Y(p)]], C.copper, 1.3, [4, 4]);
+    Lab.circle(ctx, A.X(S.th), A.Y(p), 6, {fill: C.copper, stroke: C.paper, width: 1.6});
+    text(ctx, fmt(p, 2) + ' s', A.X(S.th) + 10, A.Y(p) - 14, {size: 13.5, w: 600, color: C.copper, align: 'left', halo: true});
+  }
+  // ── 관찰 2: 필요한 정지 마찰력과 낼 수 있는 범위 ────────
+  function drawRd() {
+    const {ctx, W, H} = rd; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const th = S.bank, r0 = S.rr, mu = S.mu, vmax = 35;
+    const fOf = (v) => M.road(1, v, r0, th).f / g0, lim = (v) => mu * M.road(1, v, r0, th).N / g0;
+    let lo = -1, hi = 1;
+    for (let v = 0; v <= vmax; v += 0.5) { lo = Math.min(lo, fOf(v), -lim(v)); hi = Math.max(hi, fOf(v), lim(v)); }
+    lo = Math.max(lo, -3); hi = Math.min(hi, 3.2);
+    const r = {x: 46, y: 24, w: W - 46 - 20, h: H - 24 - 34};
+    const A = Lab.axes(ctx, r, {xmin: 0, xmax: vmax, ymin: lo, ymax: hi, xticks: [10, 20, 30], yticks: [-1, 1, 2, 3].filter((y) => y > lo && y < hi), fmtY: (v) => fmt(v, 0) + 'mg', xlabel: 'v (m/s)', grid: true});
+    text(ctx, '필요한 마찰력 (+ 안쪽)', A.x0 + 8, r.y - 8, {size: 13, w: 600, color: C.muted, align: 'left'});
+    // 버틸 수 있는 띠
+    ctx.save(); ctx.beginPath();
+    for (let v = 0; v <= vmax + 1e-9; v += 0.5) { const y = A.Y(clamp(lim(v), lo, hi)); v ? ctx.lineTo(A.X(v), y) : ctx.moveTo(A.X(v), y); }
+    for (let v = vmax; v >= -1e-9; v -= 0.5) ctx.lineTo(A.X(v), A.Y(clamp(-lim(v), lo, hi)));
+    ctx.closePath(); ctx.fillStyle = C['acc-soft']; ctx.fill(); ctx.restore();
+    Lab.line(ctx, [[A.X(0), A.Y(0)], [A.X(vmax), A.Y(0)]], C.muted, 1);
+    const pts = []; for (let v = 0; v <= vmax + 1e-9; v += 0.5) pts.push([A.X(v), A.Y(clamp(fOf(v), lo, hi))]);
+    Lab.line(ctx, pts, C.force, 3);
+    if (th > 0) {
+      const vd = M.bankSpeed(r0, th);
+      if (vd <= vmax) { Lab.circle(ctx, A.X(vd), A.Y(0), 5, {fill: C.acc}); text(ctx, '설계 속력 ' + fmt(vd, 1) + ' m/s', A.X(vd) - 8, A.Y(0) - 14, {size: 13, w: 600, color: C.acc, align: 'right', halo: true}); }
+    }
+    const q = roadNow(), fy = q.f / (S.m * g0);
+    Lab.circle(ctx, A.X(S.v), A.Y(clamp(fy, lo, hi)), 6.5, {fill: q.ok ? C.copper : C.neg, stroke: C.paper, width: 1.6});
+    text(ctx, q.ok ? '지금' : '버틸 수 없음', A.X(S.v) + (S.v > 26 ? -10 : 10), A.Y(clamp(fy, lo, hi)) + (S.bank > 0 && Math.abs(fy) < 0.15 ? 16 : -14), {size: 13, w: 600, color: q.ok ? C.copper : C.neg, align: S.v > 26 ? 'right' : 'left', halo: true});
+  }
+  // ── 관찰 3: 장력–위치 ───────────────────────────────────
+  function drawTg() {
+    const {ctx, W, H} = tg; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const v0 = S.v0, Tm = (ph) => M.tension(1, v0, VR, ph) / g0, ok = (ph) => M.speedSq(v0, VR, ph) >= 0;
+    const hi = Math.max(2, Math.ceil(Tm(0) + 1.5)), lo = Math.min(-1, Math.floor(Tm(PI) - 0.5));
+    const r = {x: 40, y: 22, w: W - 40 - 20, h: H - 22 - 34};
+    const A = Lab.axes(ctx, r, {xmin: 0, xmax: 360, ymin: lo, ymax: hi, xticks: [90, 180, 270, 360], yticks: [0, Math.round(hi / 2), hi - 1].filter((y, i, a) => a.indexOf(y) === i && y > lo && y < hi), fmtX: (v) => v + '°', fmtY: (v) => fmt(v, 0) + 'mg', xlabel: '바닥부터의 각', xlabelBelow: true, grid: true});
+    text(ctx, '실의 장력 T', A.x0 + 8, r.y - 8, {size: 13, w: 600, color: C.muted, align: 'left'});
+    const sl = M.slackAngle(v0, VR);
+    const pts = [];
+    for (let d = 0; d <= 360; d += 2) { const ph = d * RAD; if (ok(ph)) pts.push([A.X(d), A.Y(Tm(ph))]); }
+    Lab.line(ctx, pts, C.force, 3);
+    if (sl !== null) {
+      const d1 = sl / RAD, d2 = 360 - d1;
+      ctx.fillStyle = C['neg-soft']; ctx.fillRect(A.X(d1), r.y, A.X(d2) - A.X(d1), r.h);
+      text(ctx, '실이 느슨해짐 (T < 0)', A.X(180), r.y + 14, {size: 13, w: 600, color: C.neg});
+    }
+    const top = Tm(PI), bot = Tm(0);
+    Lab.circle(ctx, A.X(0), A.Y(bot), 4.5, {fill: C.force});
+    text(ctx, '바닥 ' + mgs(bot, 1), A.X(0) + 10, A.Y(bot) - 12, {size: 13, w: 600, color: C.force, align: 'left', halo: true});
+    if (sl === null && ok(PI)) { Lab.circle(ctx, A.X(180), A.Y(top), 4.5, {fill: C.force}); text(ctx, '꼭대기 ' + mgs(top, 1), A.X(180), A.Y(top) + 16, {size: 13, w: 600, color: C.force, halo: true}); }
+    if (!S.free && S.scene === 'vert') {
+      const d = ((S.vphi / RAD) % 360 + 360) % 360, y = Tm(S.vphi);
+      if (ok(S.vphi)) Lab.circle(ctx, A.X(d), A.Y(clamp(y, lo, hi)), 6, {fill: C.copper, stroke: C.paper, width: 1.6});
+    }
+  }
+
+  // ── 지금 값 ─────────────────────────────────────────────
+  let lastKey = '', roT = 0;
+  function readouts() {
+    let big, lines, f, lab, ctx, tone = '', html = false;
+    const ms = [];
+    if (S.scene === 'cone') {
+      const c = M.conical(S.l, S.th), ls = fmt(S.l, 2), ts = S.th + '°';
+      lab = '원뿔 진자의 주기와 장력'; ctx = 'l = ' + ls + ' m · θ = ' + ts;
+      f = '연직 T cos θ = mg, 수평 T sin θ = mrω² 에 지금 값을 넣으면';
+      big = '주기 ' + fmt(c.period, 2) + ' s · 장력 ' + mgs(c.tension);
+      lines = ['h = l cos θ = <em>' + ls + '</em> × cos <em>' + ts + '</em> = <em>' + fmt(c.h, 3) + ' m</em>',
+        '주기 = 2π√(h/g) = 2π√(' + fmt(c.h, 3) + ' ÷ 10) ≈ <em>' + fmt(c.period, 2) + ' s</em>',
+        'T cos ' + ts + ' = mg → <em>T = ' + mgs(c.tension) + '</em>' + (Math.abs(c.tension - 2) < 1e-9 ? ' (무게의 2배)' : '')];
+      ms.push(['반지름 r = l sin θ', fmt(c.r, 2) + ' m'], ['각속도 ω = √(g/h)', fmt(c.w, 2) + ' rad/s'],
+        ['합력(구심력) = T sin θ', mgs(c.fc)], ['속력 v = rω', fmt(c.v, 2) + ' m/s']);
+      $('hud1').textContent = '주기 ' + fmt(c.period, 2) + ' s'; $('hud2').textContent = '장력 ' + mgs(c.tension);
+    } else if (S.scene === 'road') {
+      const q = roadNow(), mgN = S.m * g0, kn = (x) => fmt(x / 1000, 1) + ' kN', th = S.bank, vd = q.design;
+      lab = '도로에서 구심력이 되는 힘'; ctx = 'θ = ' + th + '° · r = ' + S.rr + ' m · v = ' + S.v + ' m/s · ' + (S.m / 1000) + ' t';
+      f = '수평 N sin θ + f cos θ = mv²/r, 연직 N cos θ − f sin θ = mg 에 넣으면';
+      const need = '필요한 구심력 mv²/r = ' + fmt(S.m, 0) + ' × ' + S.v + '² ÷ ' + S.rr + ' = <em>' + kn(q.fc) + '</em>';
+      if (!q.ok) {
+        big = q.dir === 'out' ? '바깥으로 미끄러진다' : '안쪽으로 미끄러진다'; tone = 'neg';
+        lines = [need, '필요한 마찰력 ' + kn(Math.abs(q.f)) + ' &gt; 최대 정지 마찰력 μN = ' + kn(q.lim) + ' → <em>버틸 수 없다</em>',
+          th > 0 ? '설계 속력 √(gr tan θ) = <em>' + fmt(vd, 1) + ' m/s</em>보다 ' + (q.dir === 'out' ? '빠르다' : '느리다') : '평평한 도로의 최대 속력 √(μgr) = <em>' + fmt(M.flatMaxSpeed(S.rr, S.mu), 1) + ' m/s</em>'];
+      } else if (Math.abs(q.f) < 1e-6 * mgN) {
+        big = '마찰 없이 돈다'; tone = '';
+        lines = [need, '수직항력의 수평 성분 N sin θ = ' + kn(q.N * Math.sin(th * RAD)) + ' = 구심력',
+          '설계 속력 √(gr tan θ) = √(10 × ' + S.rr + ' × ' + fmt(Math.tan(th * RAD), 2) + ') = <em>' + fmt(vd, 1) + ' m/s</em> (질량 m 이 없다)'];
+      } else {
+        big = (th === 0 ? '정지 마찰력이 구심력' : '마찰력 ' + (q.f > 0 ? '안쪽' : '바깥쪽') + ' ' + kn(Math.abs(q.f))); tone = th === 0 ? '' : 'ink';
+        lines = [need, th === 0 ? '평평한 도로: f = mv²/r = <em>' + kn(q.f) + '</em> ≤ μmg = ' + kn(q.lim) + ' → 버틴다'
+          : 'N sin θ + f cos θ = mv²/r: 수직항력이 ' + kn(q.N * Math.sin(th * RAD)) + ', 마찰력이 ' + kn(q.f * Math.cos(th * RAD)) + ' 맡는다',
+        th > 0 ? '설계 속력 <em>' + fmt(vd, 1) + ' m/s</em>보다 ' + (q.f > 0 ? '빨라 마찰력이 빗면 아래(안쪽)로' : '느려 마찰력이 빗면 위(바깥쪽)로') : '최대 속력 √(μgr) = <em>' + fmt(M.flatMaxSpeed(S.rr, S.mu), 1) + ' m/s</em>'];
+      }
+      ms.push(['수직항력 N', kn(q.N)], ['정지 마찰력 f (+ 안쪽)', kn(q.f)], ['최대 정지 마찰력 μN', kn(q.lim)], ['설계 속력 √(gr tan θ)', th > 0 ? fmt(vd, 1) + ' m/s' : '없음 (θ = 0)']);
+      $('hud1').textContent = 'mv²/r = ' + mgs(q.ac / g0); $('hud2').textContent = q.ok ? (Math.abs(q.f) < 1e-6 * mgN ? '마찰 0' : '마찰 ' + mgs(Math.abs(q.f) / mgN)) : '미끄러짐';
+    } else if (S.scene === 'vert') {
+      const v0 = S.v0, vt2 = v0 * v0 - 4 * g0 * VR, sl = M.slackAngle(v0, VR), v0s = fmt(v0, 2);
+      lab = '연직 원운동의 장력'; ctx = '실 0.4 m · 바닥 속력 ' + v0s + ' m/s'; f = '속력은 역학적 에너지 보존, 힘은 그 점의 중심 방향 식';
+      if (sl === null && vt2 >= g0 * VR - 1e-9) {
+        const tt = M.topTension(1, Math.sqrt(vt2), VR) / g0, tb = M.bottomTension(1, v0, VR) / g0;
+        big = '꼭대기 T = ' + mgs(tt, 1) + ' · 바닥 T = ' + mgs(tb, 1); tone = 'small';
+        lines = ['꼭대기 속력: v² = v₀² − 4gr = ' + fmt(v0 * v0, 1) + ' − 16 = ' + fmt(vt2, 1) + ' → v = <em>' + fmt(Math.sqrt(vt2), 2) + ' m/s</em>',
+          '꼭대기: T + mg = mv²/r = ' + mgs(vt2 / VR / g0, 1) + ' → <em>T = ' + mgs(tt, 1) + '</em>',
+          '바닥: T − mg = mv₀²/r = ' + mgs(v0 * v0 / VR / g0, 1) + ' → <em>T = ' + mgs(tb, 1) + '</em>'];
+      } else {
+        big = '실이 느슨해진다'; tone = 'neg';
+        lines = ['꼭대기에서 T ≥ 0 이려면 v² ≥ gr = 4, 곧 v₀² ≥ 5gr = <em>20</em> (v₀ ≥ 4.47 m/s)',
+          sl !== null ? '지금 v₀² = ' + fmt(v0 * v0, 1) + ' → 바닥에서 <em>' + fmt(sl / RAD, 0) + '°</em> 올라간 곳에서 T = 0, 실이 느슨해진다' : '지금 v₀² = ' + fmt(v0 * v0, 1) + ' ≤ 2gr = 8 → 수평보다 낮은 곳에서 되돌아온다 (진자)',
+          '느슨해진 뒤에는 중력만 받아 포물선 운동을 한다'];
+      }
+      const ph = S.vphi, v2 = (VR * S.vom) ** 2, d = ((ph / RAD) % 360 + 360) % 360;
+      ms.push(['지금 위치 (바닥부터)', S.free ? '포물선 운동 중' : fmt(d, 0) + '°'], ['지금 속력', S.free ? '–' : fmt(Math.sqrt(v2), 2) + ' m/s'],
+        ['지금 장력', S.free ? '0 (느슨함)' : mgs((v2 / VR + g0 * Math.cos(ph)) / g0, 1)],
+        ['꼭대기 최소 속력 √(gr)', fmt(M.minTopSpeed(VR), 2) + ' m/s']);
+      $('hud1').textContent = S.free ? '포물선 운동' : 'v = ' + fmt(Math.sqrt(v2), 2) + ' m/s';
+      $('hud2').textContent = S.free ? 'T = 0' : 'T = ' + mgs((v2 / VR + g0 * Math.cos(ph)) / g0, 1);
+    } else {
+      const s = M.satellite(S.rR), rs = fmt(S.rR, 1);
+      lab = S.atom ? '원자 속 전자: 구심력 = 전기력' : '인공위성: 구심력 = 만유인력'; ctx = S.atom ? '핵 둘레를 도는 전자' : 'r = ' + rs + 'R (R = 6.4 × 10⁶ m)';
+      if (S.atom) {
+        f = '핵이 전자를 당기는 전기력이 늘 중심을 향한다'; big = '전기력 = mv²/r'; tone = 'small';
+        lines = ['kQq/r² = mv²/r: 실도 땅도 없이 전기력 하나가 <em>구심력</em>', '전기력 ⟂ 속도 → 한 일 = 0 → <em>속력 일정</em>', '위성의 만유인력과 같은 구조 (힘의 종류만 다르다)'];
+      } else {
+        const sv = Lab.sci(s.v, 2, {force: true});
+        f = 'GMm/r² = mv²/r, GM = gR² 에 넣으면'; big = 'v ≈ ' + sv + ' m/s';
+        lines = ['v = √(GM/r) = √(gR ÷ ' + rs + ') = √(10 × 6.4 × 10⁶ ÷ ' + rs + ') ≈ <em>' + sv + ' m/s</em>',
+          '주기 = 2πr/v ≈ <em>' + Lab.sci(s.period, 2, {force: true}) + ' s</em> (약 ' + fmt(s.period / 60, 0) + '분)',
+          '만유인력 ⟂ 속도 → 한 일 = 0 → <em>속력이 변하지 않는다</em>'];
+      }
+      ms.push(['궤도의 중력 가속도 g(R/r)²', fmt(s.gHere, 2) + ' m/s²'], ['속력', Lab.sci(s.v, 2, {force: true}) + ' m/s'], ['주기', fmt(s.period / 60, 0) + '분'], ['구심력이 하는 일', '0']);
+      $('hud1').textContent = S.atom ? '전기력 → 중심' : 'v ≈ ' + fmt(s.v / 1000, 1) + ' km/s'; $('hud2').textContent = 'F ⟂ v';
+    }
+    document.querySelectorAll('.cf tbody tr').forEach((tr) => {
+      const r = tr.dataset.row; tr.classList.toggle('on', r === S.scene || (S.scene === 'road' && r === (S.bank > 0 ? 'bank' : 'flat')));
+    });
+    const key = [S.scene, big, tone, lab, ctx, f].concat(lines).join('|');
+    if (key !== lastKey) { lastKey = key; Lab.ans(big, lines, {tone, lab, ctx, f, html}); }
+    ms.forEach(([l, v], i) => { $('ml' + (i + 1)).textContent = l; $('mv' + (i + 1)).textContent = v; });
+    const h3 = $('hud3'), x = S.scene === 'sat' ? '빠른 화면' : S.speed < 1 ? '느린 화면 ×' + (S.speed === 0.25 ? '¼' : '½') : '';
+    h3.hidden = !x; h3.textContent = x;
+    const ok = S.scene === 'cone' && Math.abs(S.l - EX.l) < 1e-9 && S.th === EX.th;
+    Lab.check('exCheck', ok, '개념서 예제 (l = 1 m, θ = 60°) → h = 0.5 m, 주기 = 2π√0.05 ≈ 1.4 s, 장력 = 2mg (무게의 2배)',
+      '예제: 실 1 m, 연직과 60°인 원뿔 진자의 주기와 장력은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function drawAll() { drawStage(); drawFtri(); drawPer(); drawRd(); drawTg(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; readouts(); }, S.speed);
+  const muG = Lab.group('[data-mu]', 'mu', (v) => { S.mu = +v; S.slip = null; refresh(); }, S.mu);
+  const massG = Lab.group('[data-mass]', 'mass', (v) => { S.m = +v; S.slip = null; refresh(); }, S.m);
+  const sl = (id, out, fmtf, set) => { const el = $(id); el.addEventListener('input', () => { set(+el.value); $(out).textContent = fmtf(+el.value); refresh(); }); return el; };
+  const thSl = sl('th', 'thOut', (v) => v + '°', (v) => { S.th = v; });
+  const lenSl = sl('len', 'lenOut', (v) => fmt(v, 1) + ' m', (v) => { S.l = Math.round(v * 10) / 10; });
+  const bankSl = sl('bank', 'bankOut', (v) => v + '°', (v) => { S.bank = v; S.slip = null; });
+  const spdSl = sl('spd', 'spdOut', (v) => v + ' m/s', (v) => { S.v = v; S.slip = null; });
+  const v0Sl = sl('v0', 'v0Out', (v) => fmt(v, 2) + ' m/s', (v) => { S.v0 = v; vertReset(); });
+  const orbSl = sl('orb', 'orbOut', (v) => fmt(v, 1) + ' R', (v) => { S.rR = v; });
+  const cSameH = $('cSameH'), cComp = $('cComp'), cTan = $('cTan'), cAtom = $('cAtom');
+  cSameH.addEventListener('change', () => { S.sameH = cSameH.checked; drawStage(); });
+  cComp.addEventListener('change', () => { S.comp = cComp.checked; drawStage(); });
+  cTan.addEventListener('change', () => { S.tan = cTan.checked; drawStage(); });
+  cAtom.addEventListener('change', () => { S.atom = cAtom.checked; refresh(); });
+  $('restart').addEventListener('click', () => { vertReset(); if (!S.playing) playCtl.set(true); refresh(); });
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => setScene(v), S.scene);
+  function setScene(sc) {
+    if (sc !== S.scene) {
+      S.speed = sc === 'vert' ? 0.25 : 1; speedG.set(S.speed, true);
+      if (sc === 'vert') vertReset();
+      S.slip = null;
+    }
+    S.scene = sc;
+    document.querySelectorAll('[data-for]').forEach((el) => { el.hidden = el.dataset.for !== sc; });
+    sceneG.set(sc, true);
+    refresh();
+  }
+  function sync() {
+    thSl.value = S.th; $('thOut').textContent = S.th + '°'; lenSl.value = S.l; $('lenOut').textContent = fmt(S.l, 1) + ' m';
+    bankSl.value = S.bank; $('bankOut').textContent = S.bank + '°'; spdSl.value = S.v; $('spdOut').textContent = S.v + ' m/s';
+    v0Sl.value = S.v0; $('v0Out').textContent = fmt(S.v0, 2) + ' m/s'; orbSl.value = S.rR; $('orbOut').textContent = fmt(S.rR, 1) + ' R';
+    muG.set(S.mu, true); massG.set(S.m, true); speedG.set(S.speed, true);
+    cSameH.checked = S.sameH; cComp.checked = S.comp; cTan.checked = S.tan; cAtom.checked = S.atom;
+  }
+  // 정지 위치로 옮기기 (연직 원): φ 에서 에너지 보존 속력으로
+  function vertAt(phi) {
+    vertReset(); const v2 = M.speedSq(S.v0, VR, phi);
+    S.vphi = phi; S.vom = Math.sqrt(Math.max(0, v2)) / VR; playCtl.set(false);
+  }
+  const TRY = {
+    ex: () => { setScene('cone'); Object.assign(S, {l: 1, th: 60, sameH: false}); playCtl.set(true); },
+    th30: () => { setScene('cone'); Object.assign(S, {l: 1, th: 30}); playCtl.set(true); },
+    th75: () => { setScene('cone'); Object.assign(S, {l: 1, th: 75}); playCtl.set(true); },
+    flat: () => { setScene('road'); Object.assign(S, {bank: 0, v: 20, mu: 0.6, m: 1000, slip: null}); playCtl.set(true); },
+    bank: () => { setScene('road'); Object.assign(S, {bank: 45, v: 20, mu: 0, m: 1000, slip: null}); playCtl.set(true); },
+    mass2: () => { setScene('road'); Object.assign(S, {bank: 45, v: 20, mu: 0, m: 2000, slip: null}); playCtl.set(true); },
+    top: () => { setScene('vert'); S.v0 = Math.sqrt(32); vertAt(PI); },
+    bottom: () => { setScene('vert'); S.v0 = Math.sqrt(32); vertAt(0); },
+    slow: () => { setScene('vert'); S.v0 = 4; vertReset(); playCtl.set(true); },
+    sat: () => { setScene('sat'); Object.assign(S, {rR: 1, atom: false}); playCtl.set(true); },
+    atom: () => { setScene('sat'); Object.assign(S, {atom: true}); playCtl.set(true); },
+    sat2: () => { setScene('sat'); Object.assign(S, {rR: 2, atom: false}); playCtl.set(true); },
+    vert: () => { setScene('vert'); },
+    cone: () => { setScene('cone'); },
+  };
+  Lab.tries(TRY, () => { sync(); refresh(); });
+  document.querySelectorAll('.cf tbody tr').forEach((tr) => {
+    const go = () => { const f = TRY[tr.dataset.row]; if (f) { f(); sync(); refresh(); } };
+    tr.addEventListener('click', go);
+    tr.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    if (!S.playing) return;
+    const d = dt * S.speed;
+    if (S.scene === 'cone') S.phi += M.conical(S.l, S.th).w * d;
+    else if (S.scene === 'road') {
+      S.ang += S.v / S.rr * d;
+      const q = roadNow();
+      if (!q.ok) {
+        if (!S.slip) S.slip = {d: 0, w: 0, age: 0};
+        const sgn = q.dir === 'out' ? 1 : -1, acc = (Math.abs(q.f) - q.lim) / S.m * 9;   // 화면에서 보이게 키운 미끄럼
+        S.slip.w += acc * d; S.slip.d += sgn * S.slip.w * d; S.slip.age += d;
+        if (S.slip.age > 2.6) S.slip = {d: 0, w: 0, age: 0};
+      } else S.slip = null;
+    } else if (S.scene === 'vert') vertStep(d);
+    else S.sang += TAU / (4 * Math.pow(S.rR, 1.5)) * d;               // 빠른 화면: 지표 가까운 궤도 한 바퀴 = 4 s
+    drawStage();
+    roT += dt;
+    if (roT > 0.12) { roT = 0; if (S.scene === 'vert') { readouts(); drawTg(); } }
+  });
+  vertReset();
+  setScene('cone');
+})();
+</script>
+</body>
+</html>

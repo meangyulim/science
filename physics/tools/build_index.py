@@ -4,7 +4,7 @@
   (물리 실험실 첫 화면 physics/index.html 이 이 파일과 physics_concepts.json 을 읽어 단원별 목록을 그린다).
 - 개념 페이지가 하나라도 있는 단원은 단원 목록 페이지 physics/<단원>/index.html 을 새로 만든다.
 - 개념 페이지의 맨 위 막대(<!-- topbar --> … <!-- /topbar -->)와 끝의 이전·다음 개념(<!-- nextprev --> … <!-- /nextprev -->)을
-  새로 채운다: 단원 이름과 개념 점(만든 개념 = 링크, 지금 개념 = 긴 점), 바로 앞·뒤 개념(만든 것만 링크).
+  새로 채운다: 단원 이름과 개념 점(만든 개념 = 링크, 지금 개념 = 긴 점), 바로 앞·뒤 개념(같은 과목에서 만든 것만 링크).
   짧은 이름은 physics/data/short_names.json (없으면 concept).
 개념 페이지를 새로 만들면 이 스크립트를 한 번 돌리면 된다(그다음 thumbs.cjs)."""
 import html, json, os, re
@@ -57,9 +57,11 @@ def dots(cs, cur=None, base='../'):
 
 
 def neighbors(c):
+    """바로 앞·뒤 개념 (같은 과목 안에서, 만든 것만)"""
     i = concepts.index(c)
-    prev = concepts[i - 1] if i > 0 and concepts[i - 1]['id'] in built else None
-    nxt = concepts[i + 1] if i + 1 < len(concepts) and concepts[i + 1]['id'] in built else None
+    ok = lambda o: o['id'] in built and o['subject'] == c['subject']
+    prev = concepts[i - 1] if i > 0 and ok(concepts[i - 1]) else None
+    nxt = concepts[i + 1] if i + 1 < len(concepts) and ok(concepts[i + 1]) else None
     return prev, nxt
 
 
@@ -77,7 +79,7 @@ def topbar(c):
     if nxt:
         pn += f'<a href="{href(c, nxt)}" rel="next" title="다음 개념: {esc(nxt["id"] + " " + short(nxt))}"><span>{esc(label(c, nxt))}</span> ›</a>'
     return (f'<header class="topbar"><div class="tb">\n'
-            f'  <a class="home" href="../../">← 물리 실험실</a>\n'
+            f'  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>\n'
             f'  <nav class="unitnav" aria-label="{esc(c["unit_code"] + " " + c["unit"])}: 개념 {len(cs)}개 가운데 {c["no"]}번째">'
             f'<a class="uname" href="../">{esc(c["unit_code"] + " " + c["unit"])}</a><span class="dots">{dots(cs, c)}</span></nav>\n'
             f'  <div class="pn">{pn}</div>\n'
@@ -161,7 +163,7 @@ a.u-card:hover{{border-color:var(--copper)}}
 </head>
 <body class="cx">
 <header class="topbar"><div class="tb">
-  <a class="home" href="../">← 물리 실험실</a>
+  <a class="home" href="../">← <span class="lg">물리 </span>실험실</a>
   <nav class="unitnav" aria-label="{esc(code + ' ' + u['unit'])}: 개념 {len(cs)}개"><span class="uname">{esc(code + ' ' + u['unit'])}</span><span class="dots">{dots(cs, None, '')}</span></nav>
   <div class="pn"></div>
 </div></header>

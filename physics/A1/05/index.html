@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>위치·변위·속도·가속도 벡터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(평면 위를 움직이는 공 · 보기 ① 변위와 이동 거리 ② 할선 → 접선 ③ 속도 변화 Δv ④ 가속도의 두 성분) | 오른쪽 지금 값 + 관찰 ①~④(거리·변위 그래프, 평균 속도 그래프, 속도 모아 보기, 속력–시간 그래프) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/11}
+#gS,#gV,#gP{aspect-ratio:10/6}
+#gH{aspect-ratio:10/7}
+.stage .legend{left:auto;right:12px;top:12px;bottom:auto}
+.legend em{font-style:normal}
+.legend b.dash{height:0;border-top:3px dashed currentColor;background:none!important;width:18px}
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A1 힘과 운동: 개념 16개 가운데 5번째"><a class="uname" href="../">A1 힘과 운동</a><span class="dots"><a href="../01/" title="A1-01 힘의 합성·분해" aria-label="A1-01 힘의 합성·분해"></a><a href="../02/" title="A1-02 돌림힘과 평형" aria-label="A1-02 돌림힘과 평형"></a><a href="../03/" title="A1-03 무게중심과 안정성" aria-label="A1-03 무게중심과 안정성"></a><a href="../04/" title="A1-04 한계 조건과 강체" aria-label="A1-04 한계 조건과 강체"></a><a class="cur" href="./" aria-current="page" title="A1-05 운동의 벡터" aria-label="A1-05 운동의 벡터 (지금)"></a><a href="../06/" title="A1-06 평면 등가속도 운동" aria-label="A1-06 평면 등가속도 운동"></a><a href="../07/" title="A1-07 중력장의 직선 운동" aria-label="A1-07 중력장의 직선 운동"></a><a href="../08/" title="A1-08 포물선 운동" aria-label="A1-08 포물선 운동"></a><a href="../09/" title="A1-09 상대 운동" aria-label="A1-09 상대 운동"></a><a href="../10/" title="A1-10 등속 원운동" aria-label="A1-10 등속 원운동"></a><a href="../11/" title="A1-11 여러 가지 구심력" aria-label="A1-11 여러 가지 구심력"></a><a href="../12/" title="A1-12 케플러 법칙" aria-label="A1-12 케플러 법칙"></a><a href="../13/" title="A1-13 만유인력과 인공위성" aria-label="A1-13 만유인력과 인공위성"></a><a href="../14/" title="A1-14 단진동과 단진자" aria-label="A1-14 단진동과 단진자"></a><a href="../15/" title="A1-15 관성력" aria-label="A1-15 관성력"></a><a href="../16/" title="A1-16 등가 원리" aria-label="A1-16 등가 원리"></a></span></nav>
+  <div class="pn"><a href="../04/" rel="prev" title="이전 개념: A1-04 한계 조건과 강체">‹ <span>04 한계 조건과 강체</span></a><a href="../06/" rel="next" title="다음 개념: A1-06 평면 등가속도 운동"><span>06 평면 등가속도 운동</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A1-05</span><span>물리학 Ⅱ · 힘과 운동</span></div>
+    <h1>위치·변위·속도·가속도 벡터</h1>
+    <p class="question"><i>Q</i>가속도의 방향은 속도의 방향과 무슨 관계일까? — 아무 관계가 없다.</p>
+  </div>
+
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="평면 위를 움직이는 공. 보기에 따라 위치 벡터와 변위·이동 거리, 할선과 접선, 속도 변화 Δv, 가속도의 두 성분을 그린다. 점 P(와 기준점 O)를 끌어 옮길 수 있다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">Δt = 4 s</span><span class="pill" id="hud2">원 · 일정한 속력</span></div>
+        <div class="legend" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider" id="slDt"><label for="dt"><span class="lg">시간 간격 </span>Δt</label><input id="dt" type="range" min="0.1" max="8" step="0.1" value="4"><output id="dtOut">4 s</output></div>
+          <div class="slider" id="slT" hidden><label for="ts"><span class="lg">시각 </span>t</label><input id="ts" type="range" min="0" max="8" step="0.05" value="0"><output id="tOut">0 s</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">보기·운동</span><span class="sm">보기</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="보기와 운동">
+          <div class="sheet-head"><b>보기 · 운동 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="보기">
+              <span class="gl">보기</span>
+              <button type="button" class="btn" data-view="disp" aria-pressed="true">변위·거리</button>
+              <button type="button" class="btn" data-view="tan" aria-pressed="false">할선→접선</button>
+              <button type="button" class="btn" data-view="dv" aria-pressed="false">속도 변화 Δv</button>
+              <button type="button" class="btn" data-view="acc" aria-pressed="false">가속도 성분</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="운동">
+              <span class="gl">운동</span>
+              <button type="button" class="btn" data-mk="circ" aria-pressed="true">원 · 일정한 속력</button>
+              <button type="button" class="btn" data-mk="fast" aria-pressed="false">원 · 빨라짐</button>
+              <button type="button" class="btn" data-mk="slow" aria-pressed="false">원 · 느려짐</button>
+              <button type="button" class="btn" data-mk="square" aria-pressed="false">정사각형</button>
+              <button type="button" class="btn" data-mk="throw" aria-pressed="false">위로 던진 공</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="grow">
+              <label class="ctl-label" for="t1">P를 지나는 시각 t₁ <output id="t1Out">0 s</output></label>
+              <input id="t1" type="range" min="0" max="8" step="0.1" value="0">
+            </div>
+            <div class="toggles">
+              <label class="chk"><input type="checkbox" id="cStrobe" checked>같은 시간 간격의 점</label>
+              <label class="chk"><input type="checkbox" id="cR" checked>위치 벡터 r</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">P → Q 평균 (Δt = 4 s)</span><span id="ansCtx">원 · 일정한 속력 · 반지름 2 m</span></div>
+        <div class="big small" id="ansBig"><span class="nw">평균 속력 1.57 m/s</span> · <span class="nw">평균 속도 1 m/s</span></div>
+        <div class="sub">
+          <span class="f" id="ansF">평균 속력 = 이동 거리 ÷ 시간, 평균 속도 = 변위 ÷ 시간 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">이동 거리 s = <em>6.28 m</em> → 평균 속력 = 6.28 ÷ <em>4</em> = <em>1.57 m/s</em></span><span class="v">변위 |Δr| = <em>4 m</em> → 평균 속도 = 4 ÷ 4 = <em>1 m/s</em> (P → Q 방향)</span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="m1n">이동 거리 s</span><b id="m1">6.28 m</b></div>
+          <div class="mini"><span id="m2n">변위 Δr</span><b id="m2">(4, 0) m</b></div>
+          <div class="mini"><span id="m3n">평균 속도 v̄</span><b id="m3">(1, 0) m/s</b></div>
+          <div class="mini"><span id="m4n">순간 속력</span><b id="m4">1.57 m/s</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 거리와 변위">
+          <div class="kind">관찰 1</div>
+          <h3>곡선 길에서는 이동 거리가 변위의 크기보다 크다</h3>
+          <p>위치 벡터 r은 기준점 O에서 물체까지의 화살표다. 변위 <span class="eq">Δr = r₂ − r₁</span>은 처음과 나중 위치만으로 정해지는 곧은 화살표(파랑)이고, 이동 거리는 실제로 지나간 길의 길이(구리색 점선)다. 그래서 <b>평균 속력 ≥ 평균 속도의 크기</b>.</p>
+          <canvas class="flat" id="gS" aria-label="P에서 출발한 뒤 시간 간격에 따른 이동 거리와 변위의 크기. 이동 거리는 늘 변위의 크기보다 크거나 같다."></canvas>
+          <p class="cap">반 바퀴(Δt = 4 s)에서 이동 거리 2π ≈ 6.28 m, 변위 4 m. 한 바퀴(8 s)를 돌아 제자리에 오면 변위가 0이라 평균 속도는 0이지만 평균 속력은 그대로 1.57 m/s다. 무대의 O를 끌어 옮기면 r₁, r₂는 바뀌어도 Δr은 그대로다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">반 바퀴 (Δt = 4 s)</button>
+            <button type="button" class="btn" data-try="full">한 바퀴 (Δt = 8 s)</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 할선 → 접선">
+          <div class="kind">관찰 2</div>
+          <h3>Δt를 줄이면 평균 속도의 방향(할선)이 접선으로 다가간다</h3>
+          <p>평균 속도 Δr/Δt는 P에서 Q로 그은 할선 방향이다. Q를 P에 가깝게(Δt → 0) 할수록 할선이 P의 접선에 겹쳐진다. 그래서 <b>순간 속도의 방향은 언제나 경로의 접선 방향</b>이다.</p>
+          <canvas class="flat" id="gV" aria-label="시간 간격에 따른 평균 속도의 크기와 평균 속력. Δt가 0으로 가면 둘 다 P의 순간 속력으로 다가간다."></canvas>
+          <p class="cap">Δt → 0이면 평균 속도의 크기(파랑)와 평균 속력(구리색)이 모두 P의 순간 속력으로 다가간다. 순간에는 속도의 크기와 속력이 같다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="shrink">Δt → 0 보기</button>
+            <button type="button" class="btn" data-try="dt1">Δt = 1 s</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ Δv 방향 = 가속도">
+          <div class="kind">관찰 3</div>
+          <h3>속도 변화 Δv는 경로가 휘어 들어가는 쪽을 향한다</h3>
+          <p>두 속도 벡터의 꼬리를 모아 v₁의 머리에서 v₂의 머리로 그은 화살표가 <span class="eq">Δv = v₂ − v₁</span>이다. 평균 가속도 <span class="eq">ā = Δv/Δt</span>는 이 방향이고, v₁·v₂ 어느 쪽과도 같을 필요가 없다. 뉴턴 제2법칙 F = ma에 따라 가속도의 방향은 알짜힘의 방향이다.</p>
+          <canvas class="flat" id="gH" aria-label="속도 벡터를 한 점에서 모아 그린 그림. 일정한 속력으로 원을 돌면 속도의 머리가 원을 그리고, Δv는 원 궤도의 중심 쪽을 향한다."></canvas>
+          <p class="cap">속도 벡터를 한 점에 모아 그렸다(옅은 선 = 운동 내내 속도 머리가 지나는 곳). 일정한 속력으로 원을 돌면 머리 끝이 원을 그리고 Δv는 늘 원 궤도의 중심 쪽(오목한 쪽)을 향한다. Δt가 작을수록 Δv는 속도에 수직에 가깝다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="dvRun">P를 옮기며 보기</button>
+            <button type="button" class="btn" data-try="dvSmall">Δt = 0.5 s</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ a∥ 속력 · a⊥ 방향">
+          <div class="kind">관찰 4</div>
+          <h3>가속도의 나란한 성분은 속력을, 수직 성분은 방향을 바꾼다</h3>
+          <p>가속도를 속도에 나란한 성분 a∥와 수직인 성분 a⊥로 나누어 보자. a∥가 속도와 같은 쪽이면 빨라지고(예각) 반대쪽이면 느려진다(둔각). a⊥는 운동 방향만 바꾸며 늘 경로의 오목한 쪽을 향한다. 가속도가 늘 속도에 수직이면 속력이 일정한 원운동이 된다.</p>
+          <canvas class="flat" id="gP" aria-label="공의 속력–시간 그래프. 접선의 기울기가 가속도의 나란한 성분 a∥이다."></canvas>
+          <p class="cap">속력–시간 그래프의 기울기가 a∥다. 위로 던진 공은 올라가는 동안 가속도가 속도와 반대(180°)라 느려지고, 최고점에서 <b>속도 0인데도 가속도는 g</b>이며, 내려올 때는 같은 방향(0°)이라 빨라진다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="fast">빨라지는 원운동</button>
+            <button type="button" class="btn" data-try="slow">느려지는 원운동</button>
+            <button type="button" class="btn" data-try="throw">위로 던진 공</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>가속도의 방향 = Δv의 방향 = 알짜힘의 방향</h3>
+          <ul>
+            <li><span class="eq">Δr = r₂ − r₁</span>은 처음·나중 위치만, 이동 거리는 경로 전체. 이동 거리 ≥ |Δr| 이므로 평균 속력 ≥ 평균 속도의 크기(한 바퀴 돌면 평균 속도 0).</li>
+            <li>순간 속도 = Δt → 0인 평균 속도: 방향은 경로의 접선, 크기는 순간 속력.</li>
+            <li><span class="eq">ā = Δv/Δt</span>. 가속도 방향은 알짜힘 방향이고 속도 방향과는 관계가 없다(최고점: v = 0, a = g).</li>
+            <li>a∥는 속력을, a⊥는 방향을 바꾼다. a가 늘 v에 수직이면 등속 원운동, a가 일정하고 처음 속도와 나란하면 직선 운동, 나란하지 않으면 포물선 운동(다음 개념).</li>
+            <li>그래프: v–t 그래프의 기울기 = 가속도, 넓이 = 변위, a–t 그래프의 넓이 = 속도 변화량. 평면 운동은 x, y 성분마다 따로 읽는다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>반지름 2 m인 원 궤도를 따라 반 바퀴를 4 s 동안 일정한 속력으로 돌았다. 평균 속력과 평균 속도의 크기는?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>이동 거리 = 반원 둘레 = π × 2 = 2π m, 변위 = 지름 = 4 m. <b>평균 속력 = 2π ÷ 4 = π/2 ≈ 1.57 m/s, 평균 속도의 크기 = 4 ÷ 4 = 1 m/s</b>이고 평균 속도의 방향은 출발점 → 도착점이다. 길이 휘어 있어 평균 속력이 더 크다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>한 변이 3 m인 정사각형 ABCD의 둘레를 따라 A → B → C → D로 6 s 동안 이동했다. 평균 속력과 평균 속도의 크기는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="sq">A → D (6 s) 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>평균 속력 1.5 m/s, 평균 속도 0.5 m/s</b>. 이동 거리는 세 변 9 m라 9 ÷ 6 = 1.5 m/s, 변위는 A에서 D까지 한 변 3 m뿐이라 3 ÷ 6 = 0.5 m/s다. 길이 꺾이면 이동 거리가 변위의 크기보다 커서 평균 속력이 더 크다.</p></details>
+          </div>
+          <div class="q">
+            <h3>곡선 경로를 따라 운동하는 물체의 속력이 점점 줄고 있다. 이 순간 가속도의 방향은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="slow">느려지는 원운동</button><button type="button" class="btn" data-try="fast">빨라질 때와 비교</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>경로의 오목한 쪽을 향하며 속도와 둔각</b>을 이룬다. 방향이 바뀌므로 수직 성분 a⊥가 있고 오목한 쪽을 향한다. 속력이 줄고 있으니 나란한 성분 a∥는 속도 반대쪽이다. 둘을 합치면 둔각이다. 예각이면 속력이 늘고 있는 경우다.</p></details>
+          </div>
+          <div class="q">
+            <h3>공을 연직 위로 던졌다. 최고점에서 공의 속도와 가속도는 각각 얼마일까? (g = 10 m/s²)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="top">최고점에 멈춰 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>속도는 0이지만 가속도는 연직 아래로 10 m/s²</b>다. 가속도는 알짜힘(중력)이 정하므로 속도가 0인 순간에도 그대로다. 그래서 공은 최고점에 머물지 않고 곧바로 내려온다. 가속도와 속도의 방향은 서로 관계가 없다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../04/" rel="prev"><small>← 이전 개념 · A1-04</small><b>한계 조건과 강체</b></a><a href="../06/" rel="next"><small>다음 개념 · A1-06 →</small><b>평면 등가속도 운동</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="A1-05-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_05;
+  const {$, C, text, rich, arrow, fmt} = Lab;
+  const {add, sub, mul, len, dot} = M;
+  const RAD = Math.PI / 180;
+
+  // ── 운동별 그림 설정: pad 여백(m), O 기준점, vS·aS 화살표 눈금(m per m/s, m per m/s²), dot 같은 시간 간격(s), 기본 t₁·Δt ──
+  const MK = {
+    circ: {K: [-0.35, -0.55], O: [-2.6, -2.1], vS: 1.0, aS: 1.0, dot: 0.5, t1: 0, dt: 4, ctx: '원 · 일정한 속력 · 반지름 2 m'},
+    fast: {K: [-0.3, 0.2], O: [-0.7, -1.3], vS: 0.6, aS: 0.55, dot: 0.25, t1: 0, dt: 4, ctx: '원 · 빨라짐 · 반지름 2 m'},
+    slow: {K: [-0.3, 0.2], O: [-0.7, -1.3], vS: 0.6, aS: 0.55, dot: 0.25, t1: 0, dt: 4, ctx: '원 · 느려짐 · 반지름 2 m'},
+    square: {K: [1.2, 1.2], O: [1.5, -1.1], vS: 0.8, aS: 0.8, dot: 0.5, t1: 0, dt: 6, ctx: '정사각형 ABCD · 한 변 3 m · 1.5 m/s'},
+    throw: {K: [2.2, 2.6], O: [-1.7, 0.6], vS: 0.16, aS: 0.13, dot: 0.1, t1: 0, dt: 2, ctx: '위로 던진 공 · 10 m/s · g = 10 m/s²'},
+  };
+  const S = {mk: 'circ', view: 'disp', t1: 0, dt: 4, dt0: 4, tau: Lab.reduceMotion ? 4 : 0, t: 0.6, hold: 0, playing: !Lab.reduceMotion, speed: 1,
+    strobe: true, rvec: true, O: MK.circ.O.slice(), drag: null};
+  const mot = () => M.PRESETS[S.mk];
+  const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const fv = (v, d = 2) => '(' + fmt(v[0], d) + ', ' + fmt(v[1], d) + ')';
+  const fs = (v, d = 2) => fmt(v, d);
+
+  // ── 무대 좌표: 경로가 다 들어가게 m → px ─────────────────
+  // 보기 ①(변위)은 경로와 기준점 O 가, 나머지 보기는 경로와 속도·가속도 화살표 끝이 다 들어가게 맞춘다
+  let VW = null, VWkey = '';
+  function view(W, H) {
+    const key = S.mk + ':' + (S.view === 'disp') + ':' + W + 'x' + H; if (key === VWkey) return VW;
+    const m = mot(), c = MK[S.mk], narrow = W < 520, top = narrow ? 50 : 54, bot = narrow ? 40 : 42, side = narrow ? 10 : 22;
+    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    const grow = (p) => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); };
+    for (let i = 0; i <= 240; i++) {
+      const t = m.T * i / 240, p = m.pos(t); grow(p);
+      if (S.view !== 'disp') { grow(add(p, mul(m.vel(t), c.vS))); grow(add(p, mul(m.acc(t), c.aS))); }
+    }
+    if (S.view === 'disp') grow(c.O);
+    if (S.view === 'dv') { grow(add(c.K, [0.8, 0])); grow(add(c.K, [-0.8, -0.4])); }
+    const pad = S.view === 'disp' ? 0.75 : 0.5, padB = 0.55;
+    x0 -= pad; x1 += pad; y0 -= padB; y1 += pad;
+    const sc = Math.min((W - 2 * side) / (x1 - x0), (H - top - bot) / (y1 - y0));
+    const ox = W / 2 - (x0 + x1) / 2 * sc, oy = top + (H - top - bot) / 2 + (y0 + y1) / 2 * sc;
+    VW = {sc, narrow, W, H, X: (p) => [ox + p[0] * sc, oy - p[1] * sc], inv: (x, y) => [(x - ox) / sc, (oy - y) / sc]};
+    VWkey = key;
+    return VW;
+  }
+  const scrAng = (v) => Math.atan2(-v[1], v[0]);              // 화면 각 (오른쪽 0, 아래 +)
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function aW(ctx, V, P, vec, col, w = 3, head = 12) {        // 세계 좌표 화살표
+    const a = V.X(P), b = V.X(add(P, vec));
+    if (Math.hypot(b[0] - a[0], b[1] - a[1]) > 2) arrow(ctx, a[0], a[1], b[0], b[1], col, w, head);
+    return b;
+  }
+  function labelAt(ctx, s, P, dir, d, o) {                     // 화면 점 P 에서 dir(화면 단위 벡터) 쪽으로 d 만큼
+    rich(ctx, s, P[0] + dir[0] * d, P[1] + dir[1] * d, Object.assign({size: 14, w: 600, halo: true}, o));
+  }
+  const perpOf = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1; return [-dy / L, dx / L]; };
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    const V = view(W, H), m = mot();
+    ctx.clearRect(0, 0, W, H);
+    drawGrid(ctx, V);
+    // 경로 전체 (옅은 점선)
+    const pts = []; for (let i = 0; i <= 320; i++) pts.push(V.X(m.pos(m.T * i / 320)));
+    Lab.line(ctx, pts, C.muted, 1.8, [6, 6]);
+    if (S.mk === 'square') ['A', 'B', 'C', 'D'].forEach((nm, i) => {
+      const P = V.X(m.pos(2 * i)), out = [[-1, 1], [1, 1], [1, -1], [-1, -1]][i];
+      text(ctx, nm, P[0] + out[0] * 13, P[1] + out[1] * 13, {size: 15, w: 600, color: C.muted, halo: true});
+    });
+    if (S.strobe && (S.view === 'acc' || S.view === 'disp')) drawStrobe(ctx, V, m);
+    if (S.view === 'disp') drawDisp(ctx, V, m);
+    else if (S.view === 'tan') drawTan(ctx, V, m);
+    else if (S.view === 'dv') drawDv(ctx, V, m);
+    else drawAcc(ctx, V, m);
+    if (S.mk === 'throw') text(ctx, '(올라가는 길과 내려오는 길이 겹친다)', W - 12, H - 52, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+  }
+  function drawGrid(ctx, V) {
+    const a = V.inv(0, 0), b = V.inv(V.W, V.H);
+    ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath();
+    for (let x = Math.ceil(a[0]); x <= b[0]; x++) { const X = V.X([x, 0])[0]; ctx.moveTo(X, 0); ctx.lineTo(X, V.H); }
+    for (let y = Math.ceil(b[1]); y <= a[1]; y++) { const Y = V.X([0, y])[1]; ctx.moveTo(0, Y); ctx.lineTo(V.W, Y); }
+    ctx.stroke(); ctx.restore();
+    // 눈금 막대 1 m 와 x·y 방향
+    const x0 = V.narrow ? 14 : 22, y0 = V.H - 16;
+    Lab.bracket(ctx, x0, x0 + V.sc, y0, C.muted, '', true);
+    text(ctx, '1 m', x0 + V.sc + 8, y0, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
+    const ax = x0 + V.sc + 52, ay = y0 + 2;
+    arrow(ctx, ax, ay, ax + 22, ay, C.muted, 1.4, 7); arrow(ctx, ax, ay, ax, ay - 22, C.muted, 1.4, 7);
+    text(ctx, 'x', ax + 29, ay, {size: 13, w: 500, color: C.muted}); text(ctx, 'y', ax + 8, ay - 25, {size: 13, w: 500, color: C.muted});
+  }
+  function drawStrobe(ctx, V, m) {
+    const d = MK[S.mk].dot;
+    for (let t = 0; t <= m.T + 1e-9; t += d) { const P = V.X(m.pos(t)); Lab.circle(ctx, P[0], P[1], 3.4, {fill: Lab.alpha(C.ink, 0.35)}); }
+  }
+  function ball(ctx, P) { Lab.circle(ctx, P[0], P[1], 9, {fill: C.vel, stroke: C.paper, width: 2.4}); }
+  function mark(ctx, P, name, dir) {
+    Lab.circle(ctx, P[0], P[1], 6, {fill: C.paper, stroke: C.copper, width: 2.6});
+    text(ctx, name, P[0] + dir[0] * 18, P[1] + dir[1] * 18, {size: 15, w: 600, color: C.copper, halo: true});
+  }
+  // P·Q 이름을 경로 바깥쪽에 (원이면 중심 반대쪽, 나머지는 속도에 수직)
+  function outDir(m, t) {
+    if (m.R) { const p = m.pos(t), L = len(p) || 1; return [p[0] / L, -p[1] / L]; }
+    const v = m.vel(t), L = len(v) || 1; return [v[1] / L, v[0] / L];
+  }
+
+  // 보기 ①: 위치 벡터 r₁·r₂, 변위 Δr(곧은 화살표), 이동 거리(지나간 길)
+  function drawDisp(ctx, V, m) {
+    const t1 = S.t1, tb = t1 + Math.min(S.tau, S.dt), O = S.O, P = m.pos(t1), B = m.pos(tb), Q = m.pos(t1 + S.dt);
+    const XO = V.X(O), XP = V.X(P), XB = V.X(B);
+    // 지나간 길
+    const n = Math.max(2, Math.ceil(80 * (tb - t1) / m.T) + 2), path = [];
+    for (let i = 0; i <= n; i++) path.push(V.X(m.pos(t1 + (tb - t1) * i / n)));
+    if (tb - t1 > 1e-6) Lab.line(ctx, path, C.copper, 4.2, [9, 6]);
+    // 위치 벡터
+    if (S.rvec) {
+      arrow(ctx, XO[0], XO[1], XP[0], XP[1], C.muted, 2.4, 11);
+      if (tb - t1 > 0.05) arrow(ctx, XO[0], XO[1], XB[0], XB[1], C.muted, 2.4, 11);
+      const lab = (A, Bp, s) => { const mid = [(A[0] + Bp[0]) / 2, (A[1] + Bp[1]) / 2], pp = perpOf(A, Bp); labelAt(ctx, s, mid, pp, -14, {color: C.muted, size: 14}); };
+      lab(XO, XP, 'r_1'); if (tb - t1 > 0.05) lab(XO, XB, 'r_2');
+      Lab.circle(ctx, XO[0], XO[1], 5, {fill: C.ink});
+      text(ctx, V.narrow ? 'O' : 'O (기준점)', XO[0], XO[1] + 17, {size: 14, w: 600, halo: true});
+    }
+    // 변위
+    const D = sub(B, P), dl = len(D);
+    if (dl * V.sc > 6) arrow(ctx, XP[0], XP[1], XB[0], XB[1], C.vel, 3.8, 13);
+    mark(ctx, XP, 'P', outDir(m, t1));
+    if (S.tau >= S.dt - 1e-9) mark(ctx, V.X(Q), 'Q', outDir(m, t1 + S.dt));
+    ball(ctx, XB);
+    // 값 이름표
+    const s = m.dist(tb) - m.dist(t1);
+    if (dl * V.sc > 30) { const mid = [(XP[0] + XB[0]) / 2, (XP[1] + XB[1]) / 2], od = outDir(m, t1 + (tb - t1) / 2); labelAt(ctx, '|Δr| = ' + fs(dl) + ' m', mid, [-od[0], -od[1]], 16, {color: C.vel}); }
+    if (s > 0.05) {
+      const k = Math.min(path.length - 1, Math.round(path.length * 0.5)), A0 = path[k];
+      const tm = t1 + (tb - t1) / 2, od = outDir(m, tm);
+      labelAt(ctx, '이동 거리 ' + fs(s) + ' m', A0, od, V.narrow ? 22 : 28, {color: C.copper});
+    }
+  }
+
+  // 보기 ②: 할선 PQ(평균 속도 방향)가 접선(순간 속도 방향)으로
+  function drawTan(ctx, V, m) {
+    const t1 = S.t1, P = m.pos(t1), XP = V.X(P), v = m.vel(t1), vl = len(v);
+    const ext = (Pp, dir, L) => [V.X(sub(Pp, mul(dir, L))), V.X(add(Pp, mul(dir, L)))];
+    if (vl > 1e-9) {
+      const u = mul(v, 1 / vl), [a, b] = ext(P, u, 3.4);
+      Lab.line(ctx, [a, b], Lab.alpha(C.vel, 0.55), 1.6, [7, 5]);
+      const L0 = vl * MK[S.mk].vS + 0.55, T0 = V.X(add(P, mul(u, L0))), nn = [-u[1], -u[0]];
+      text(ctx, '접선', T0[0] + nn[0] * 14, T0[1] + nn[1] * 14, {size: 13, w: 600, color: C.vel, halo: true});
+    }
+    // 지난 할선 몇 개 (옅게)
+    for (const k of [4, 2]) {
+      const dt = S.dt * k; if (t1 + dt > m.T + 1e-9 || dt > 8) continue;
+      const Q = m.pos(t1 + dt), XQ = V.X(Q);
+      ctx.save(); ctx.globalAlpha = 0.28; Lab.line(ctx, [XP, XQ], C.copper, 2); ctx.restore();
+      Lab.circle(ctx, XQ[0], XQ[1], 3.5, {fill: Lab.alpha(C.copper, 0.4)});
+    }
+    const Q = m.pos(t1 + S.dt), XQ = V.X(Q), D = sub(Q, P), dl = len(D);
+    if (dl > 1e-9) {
+      const u = mul(D, 1 / dl), [a, b] = ext(P, u, 3.4);
+      Lab.line(ctx, [a, b], Lab.alpha(C.copper, 0.5), 1.4);
+      arrow(ctx, XP[0], XP[1], XQ[0], XQ[1], C.copper, 3.2, 12);
+      // 평균 속도 화살표 (눈금 = 속도 눈금)
+      const vb = mul(D, 1 / S.dt);
+      aW(ctx, V, P, mul(vb, MK[S.mk].vS), Lab.alpha(C.copper, 0.85), 2.4, 10);
+    }
+    if (vl > 1e-9) {
+      const tip = aW(ctx, V, P, mul(v, MK[S.mk].vS), C.vel, 3.6, 13);
+      const d = [tip[0] - XP[0], tip[1] - XP[1]], L = Math.hypot(...d) || 1;
+      rich(ctx, 'v', tip[0] + d[0] / L * 14, tip[1] + d[1] / L * 14, {size: 15, w: 600, color: C.vel, halo: true});
+      if (dl > 1e-9) {
+        const ang = M.chordAngle(m, t1, S.dt);
+        if (ang > 0.4) Lab.angle(ctx, XP[0], XP[1], V.narrow ? 30 : 40, scrAng(v), scrAng(D), C.copper, fmt(ang, 1) + '°');
+      }
+    }
+    mark(ctx, XP, 'P', outDir(m, t1));
+    if (dl * V.sc > 10) { Lab.circle(ctx, XQ[0], XQ[1], 5, {fill: C.copper}); text(ctx, 'Q', XQ[0] + outDir(m, t1 + S.dt)[0] * 16, XQ[1] + outDir(m, t1 + S.dt)[1] * 16, {size: 15, w: 600, color: C.copper, halo: true}); }
+  }
+
+  // 보기 ③: 경로 위의 v₁(P)·v₂(Q), 그리고 빈 자리 K 에서 꼬리를 모아 그린 Δv = v₂ − v₁
+  function drawDv(ctx, V, m) {
+    const t1 = S.t1, t2 = t1 + S.dt, P = m.pos(t1), Q = m.pos(t2), v1 = m.vel(t1), v2 = m.vel(t2), k = MK[S.mk].vS, K = MK[S.mk].K;
+    const XP = V.X(P), XQ = V.X(Q), XK = V.X(K);
+    if (len(v1) * k * V.sc > 3) { const tp = aW(ctx, V, P, mul(v1, k), C.vel, 3.4, 12); labelAt(ctx, 'v_1', tp, unitScr(XP, tp), 14, {color: C.vel, size: 15}); }
+    if (len(v2) * k * V.sc > 3) { const tq = aW(ctx, V, Q, mul(v2, k), C.vel, 3.4, 12); labelAt(ctx, 'v_2', tq, unitScr(XQ, tq), 14, {color: C.vel, size: 15}); }
+    mark(ctx, XP, 'P', outDir(m, t1)); mark(ctx, XQ, 'Q', outDir(m, t2));
+    // 꼬리를 모은 작도
+    const a1 = V.X(add(K, mul(v1, k))), a2 = V.X(add(K, mul(v2, k)));
+    if (len(v1) * k * V.sc > 3) arrow(ctx, XK[0], XK[1], a1[0], a1[1], Lab.alpha(C.vel, 0.8), 2.6, 11);
+    if (len(v2) * k * V.sc > 3) arrow(ctx, XK[0], XK[1], a2[0], a2[1], Lab.alpha(C.vel, 0.8), 2.6, 11);
+    Lab.circle(ctx, XK[0], XK[1], 4, {fill: C.ink});
+    labelAt(ctx, 'v_1', a1, unitScr(XK, a1), 13, {color: C.vel, size: 14});
+    labelAt(ctx, 'v_2', a2, unitScr(XK, a2), 13, {color: C.vel, size: 14});
+    const dv = sub(v2, v1);
+    if (len(dv) * k * V.sc > 4) {
+      arrow(ctx, a1[0], a1[1], a2[0], a2[1], C.acc, 4, 13);
+      const mid = [(a1[0] + a2[0]) / 2, (a1[1] + a2[1]) / 2], pp = perpOf(a1, a2);
+      const side = dot(pp, [mid[0] - XK[0], mid[1] - XK[1]]) >= 0 ? 1 : -1;
+      labelAt(ctx, 'Δv', mid, pp, 16 * side, {color: C.acc, size: 16, w: 700});
+    }
+    // 이름표는 세 화살표가 없는 쪽: 두 속도의 평균 방향 반대편
+    const u1 = unitScr(XK, a1), u2 = unitScr(XK, a2), av = [u1[0] + u2[0], u1[1] + u2[1]], L = Math.hypot(av[0], av[1]);
+    const dir = L > 0.3 ? [-av[0] / L, -av[1] / L] : [-u1[1], u1[0]];
+    text(ctx, '꼬리를 모아 그림', XK[0] + dir[0] * 22, XK[1] + dir[1] * 22 + 2, {size: 13, w: 500, color: C.muted, halo: true, align: Math.abs(dir[0]) > 0.5 ? (dir[0] > 0 ? 'left' : 'right') : 'center'});
+  }
+  const unitScr = (A, B) => { const dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy) || 1; return [dx / L, dy / L]; };
+
+  // 보기 ④: 움직이는 공의 v 와 a, a 를 v 에 나란한·수직인 성분으로
+  function drawAcc(ctx, V, m) {
+    const t = S.t, P = m.pos(t), XP = V.X(P), pr = M.parts(m, t), c = MK[S.mk];
+    const a = pr.a, al = len(a);
+    if (pr.kind !== 'rest' && pr.kind !== 'none' && al > 1e-9) {
+      const u = pr.u, apar = mul(u, pr.par), aperp = sub(a, apar);
+      const A1 = V.X(add(P, mul(apar, c.aS))), A2 = V.X(add(P, mul(aperp, c.aS))), AT = V.X(add(P, mul(a, c.aS)));
+      const both = Math.abs(pr.par) * c.aS * V.sc > 6 && pr.perp * c.aS * V.sc > 6;
+      if (both) {
+        Lab.line(ctx, [A1, AT, A2], Lab.alpha(C.acc, 0.5), 1.2, [4, 4]);
+        arrow(ctx, XP[0], XP[1], A1[0], A1[1], Lab.alpha(C.acc, 0.9), 2.4, 10); labelAt(ctx, 'a∥', A1, unitScr(XP, A1), 15, {color: C.acc, size: 14});
+        arrow(ctx, XP[0], XP[1], A2[0], A2[1], Lab.alpha(C.acc, 0.9), 2.4, 10); labelAt(ctx, 'a⊥', A2, unitScr(XP, A2), 15, {color: C.acc, size: 14});
+      }
+    }
+    if (pr.kind !== 'rest') {
+      const tip = aW(ctx, V, P, mul(pr.v, c.vS), C.vel, 3.6, 13);
+      labelAt(ctx, 'v', tip, unitScr(XP, tip), 14, {color: C.vel, size: 15, w: 600});
+    }
+    if (al > 1e-9) {
+      const tip = aW(ctx, V, P, mul(a, c.aS), C.acc, 4, 13);
+      const nm = pr.kind === 'turn' ? 'a = a⊥' : (pr.kind === 'faster' || pr.kind === 'slower') && pr.perp < 1e-6 ? 'a = a∥' : 'a';
+      labelAt(ctx, nm, tip, unitScr(XP, tip), nm === 'a' ? 15 : 22, {color: C.acc, size: 15, w: 600});
+      if (pr.kind !== 'rest' && pr.kind !== 'none') {
+        const r = V.narrow ? 22 : 28;
+        Lab.angle(ctx, XP[0], XP[1], r, scrAng(pr.v), scrAng(a), C.ink, fmt(pr.ang, 0) + '°');
+      }
+    }
+    ball(ctx, XP);
+    if (pr.kind === 'rest') text(ctx, 'v = 0 인데 a = ' + fmt(al, 0) + ' m/s²', XP[0] + 16, XP[1] - 4, {size: 14, w: 700, color: C.neg, align: 'left', halo: true});
+    if (pr.kind === 'none') text(ctx, 'a = 0 (곧은 길 · 일정한 속력)', XP[0] + 14, XP[1] + 22, {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
+  }
+
+  // ── 관찰 1: 이동 거리와 변위의 크기 – Δt ─────────────────
+  const gS = Lab.canvas('gS', drawGS);
+  function drawGS() {
+    const {ctx, W, H} = gS; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const m = mot(), t1 = S.t1, span = m.T - t1;
+    const sMax = m.dist(m.T) - m.dist(t1);
+    const ymax = niceMax(sMax), r = {x: 44, y: 24, w: W - 44 - 22, h: H - 24 - 38};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: span, ymin: 0, ymax, xticks: ticks(span), yticks: ticks(ymax), xlabel: 'Δt (s)', ylabel: '길이 (m)', grid: true});
+    const N = 160, sp = [], dp = [];
+    for (let i = 0; i <= N; i++) { const d = span * i / N; sp.push([ax.X(d), ax.Y(m.dist(t1 + d) - m.dist(t1))]); dp.push([ax.X(d), ax.Y(len(M.disp(m, t1, t1 + d)))]); }
+    ctx.save(); ctx.beginPath(); sp.forEach((p, i) => (i ? ctx.lineTo(...p) : ctx.moveTo(...p))); for (let i = dp.length - 1; i >= 0; i--) ctx.lineTo(...dp[i]);
+    ctx.closePath(); ctx.fillStyle = Lab.alpha(C.copper, 0.12); ctx.fill(); ctx.restore();
+    Lab.line(ctx, sp, C.copper, 3); Lab.line(ctx, dp, C.vel, 3);
+    const at = Math.round(N * 0.24);
+    text(ctx, '이동 거리 s', sp[at][0] - 4, sp[at][1] - 13, {size: 13, w: 600, color: C.copper, align: 'right', halo: true});
+    text(ctx, '변위 크기 |Δr|', dp[at][0] + 6, dp[at][1] + 15, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
+    const d = S.dt, X = ax.X(d), s = m.dist(t1 + d) - m.dist(t1), dl = len(M.disp(m, t1, t1 + d));
+    Lab.line(ctx, [[X, r.y], [X, r.y + r.h]], C.ink, 1.2, [4, 4]);
+    Lab.circle(ctx, X, ax.Y(s), 5.5, {fill: C.copper, stroke: C.paper, width: 1.6});
+    Lab.circle(ctx, X, ax.Y(dl), 5.5, {fill: C.vel, stroke: C.paper, width: 1.6});
+    const al = X > r.x + r.w * 0.6 ? 'right' : 'left', dx = al === 'right' ? -9 : 9;
+    text(ctx, fs(s) + ' m', X + dx, ax.Y(s) - (Math.abs(ax.Y(s) - ax.Y(dl)) < 22 ? 10 : 0), {size: 13, w: 600, color: C.copper, align: al, halo: true});
+    text(ctx, fs(dl) + ' m', X + dx, ax.Y(dl) + (Math.abs(ax.Y(s) - ax.Y(dl)) < 22 ? 10 : 0), {size: 13, w: 600, color: C.vel, align: al, halo: true});
+  }
+  function niceMax(v) { const st = v > 12 ? 4 : v > 6 ? 2 : v > 3 ? 1 : 0.5; return Math.ceil(v / st + 0.05) * st; }
+  function ticks(v) { const st = v > 12 ? 4 : v > 6 ? 2 : v > 3 ? 1 : 0.5, out = []; for (let x = st; x <= v + 1e-9; x += st) out.push(+x.toFixed(2)); return out; }
+
+  // ── 관찰 2: 평균 속도의 크기와 평균 속력 – Δt ────────────
+  const gV = Lab.canvas('gV', drawGV);
+  function drawGV() {
+    const {ctx, W, H} = gV; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const m = mot(), t1 = S.t1, span = m.T - t1, v0 = len(m.vel(t1));
+    const N = 160, sp = [], dp = []; let top = v0;
+    const r = {x: 44, y: 24, w: W - 44 - 22, h: H - 24 - 38};
+    const val = (d) => [(m.dist(t1 + d) - m.dist(t1)) / d, len(M.disp(m, t1, t1 + d)) / d];
+    for (let i = 1; i <= N; i++) { const d = span * i / N, [a, b] = val(d); top = Math.max(top, a, b); }
+    const ymax = niceMax(top * 1.3);
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: span, ymin: 0, ymax, xticks: ticks(span), yticks: ticks(ymax), xlabel: 'Δt (s)', ylabel: '(m/s)', grid: true});
+    for (let i = 0; i <= N; i++) { const d = Math.max(1e-4, span * i / N), [a, b] = val(d); sp.push([ax.X(d), ax.Y(a)]); dp.push([ax.X(d), ax.Y(b)]); }
+    Lab.line(ctx, sp, C.copper, 3); Lab.line(ctx, dp, C.vel, 3);
+    text(ctx, '평균 속력 s/Δt', sp[N][0] - 2, sp[N][1] - 13, {size: 13, w: 600, color: C.copper, align: 'right', halo: true});
+    const at = Math.round(N * 0.62), gap = dp[at][1] - sp[at][1];
+    text(ctx, '|평균 속도| = |Δr|/Δt', dp[at][0], dp[at][1] + (gap > 34 ? -13 : 15), {size: 13, w: 600, color: C.vel, halo: true});
+    Lab.circle(ctx, ax.X(0), ax.Y(v0), 6, {fill: C.paper, stroke: C.vel, width: 2.6});
+    text(ctx, 'P의 순간 속력 ' + fs(v0) + ' m/s', ax.X(0) + 10, ax.Y(v0) - 15, {size: 13, w: 600, color: C.ink, align: 'left', halo: true});
+    const d = Math.max(1e-4, S.dt), X = ax.X(d), [a, b] = val(d);
+    Lab.line(ctx, [[X, r.y], [X, r.y + r.h]], C.ink, 1.2, [4, 4]);
+    Lab.circle(ctx, X, ax.Y(a), 5.5, {fill: C.copper, stroke: C.paper, width: 1.6});
+    Lab.circle(ctx, X, ax.Y(b), 5.5, {fill: C.vel, stroke: C.paper, width: 1.6});
+  }
+
+  // ── 관찰 3: 속도 벡터를 한 점에서 모아 보기 ───────────────
+  const gH = Lab.canvas('gH', drawGH);
+  function drawGH() {
+    const {ctx, W, H} = gH; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const m = mot(), c = [W / 2, H / 2 + 6];
+    let vmax = 0; for (let i = 0; i <= 200; i++) vmax = Math.max(vmax, len(m.vel(m.T * i / 200)));
+    const k = Math.min(W, H) * 0.4 / vmax, Xv = (v) => [c[0] + v[0] * k, c[1] - v[1] * k];
+    Lab.line(ctx, [[14, c[1]], [W - 14, c[1]]], C.line, 1); Lab.line(ctx, [[c[0], 14], [c[0], H - 10]], C.line, 1);
+    rich(ctx, 'v_x', W - 14, c[1] - 12, {size: 13, w: 500, color: C.muted, align: 'right'}); rich(ctx, 'v_y', c[0] - 8, 16, {size: 13, w: 500, color: C.muted, align: 'right'});
+    // 운동 내내 속도 머리가 지나는 곳
+    if (S.mk === 'square') [[1.5, 0], [0, 1.5], [-1.5, 0], [0, -1.5]].forEach((v) => { const p = Xv(v); Lab.circle(ctx, p[0], p[1], 4, {fill: Lab.alpha(C.vel, 0.35)}); });
+    else {
+      const pts = []; for (let i = 0; i <= 240; i++) pts.push(Xv(m.vel(m.T * i / 240))); Lab.line(ctx, pts, Lab.alpha(C.vel, 0.35), 2.2);
+      const d = MK[S.mk].dot * (S.mk === 'throw' ? 2 : 1);
+      for (let t = 0; t <= m.T + 1e-9; t += d) { const p = Xv(m.vel(t)); Lab.circle(ctx, p[0], p[1], 3, {fill: Lab.alpha(C.vel, 0.45)}); }
+    }
+    const t1 = S.t1, t2 = t1 + S.dt, v1 = m.vel(t1), v2 = m.vel(t2), p1 = Xv(v1), p2 = Xv(v2);
+    if (len(v1) * k > 3) arrow(ctx, c[0], c[1], p1[0], p1[1], C.vel, 3.2, 12);
+    if (len(v2) * k > 3) arrow(ctx, c[0], c[1], p2[0], p2[1], C.vel, 3.2, 12);
+    Lab.circle(ctx, c[0], c[1], 3.5, {fill: C.ink});
+    const lb = (s, p) => { const u = unitScr(c, p); rich(ctx, s, p[0] + u[0] * 15, p[1] + u[1] * 15, {size: 15, w: 600, color: C.vel, halo: true}); };
+    if (len(v1) * k > 3) lb('v_1', p1); else text(ctx, 'v₁ = 0', c[0] + 10, c[1] - 14, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
+    if (len(v2) * k > 3) lb('v_2', p2); else text(ctx, 'v₂ = 0', c[0] + 10, c[1] + 16, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
+    const dv = sub(v2, v1);
+    if (len(dv) * k > 4) {
+      arrow(ctx, p1[0], p1[1], p2[0], p2[1], C.acc, 4, 13);
+      const mid = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2], pp = perpOf(p1, p2), side = dot(pp, [mid[0] - c[0], mid[1] - c[1]]) >= 0 ? 1 : -1;
+      rich(ctx, 'Δv', mid[0] + pp[0] * 16 * side, mid[1] + pp[1] * 16 * side, {size: 16, w: 700, color: C.acc, halo: true});
+    }
+    const aa = mul(dv, 1 / S.dt);
+    text(ctx, 'ā = Δv/Δt = ' + fv(aa) + ' m/s²', 12, 14, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+  }
+
+  // ── 관찰 4: 속력–시간 (기울기 = a∥) ──────────────────────
+  const gP = Lab.canvas('gP', drawGP);
+  function drawGP() {
+    const {ctx, W, H} = gP; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const m = mot(); let top = 0; for (let i = 0; i <= 200; i++) top = Math.max(top, len(m.vel(m.T * i / 200)));
+    const ymax = niceMax(top * 1.12), r = {x: 44, y: 24, w: W - 44 - 22, h: H - 24 - 38};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: m.T, ymin: 0, ymax, xticks: ticks(m.T), yticks: ticks(ymax), xlabel: 't (s)', ylabel: '속력 (m/s)', grid: true});
+    const pts = []; for (let i = 0; i <= 240; i++) { const t = m.T * i / 240; pts.push([ax.X(t), ax.Y(len(m.vel(t)))]); }
+    Lab.line(ctx, pts, C.vel, 3);
+    const t = S.t, pr = M.parts(m, t), X = ax.X(t), Y = ax.Y(pr.speed);
+    Lab.line(ctx, [[X, r.y], [X, r.y + r.h]], C.ink, 1.2, [4, 4]);
+    if (pr.kind !== 'rest') {
+      const h = Math.min(1.2, m.T * 0.18), sl = pr.par, ta = Math.max(0, t - h), tb = Math.min(m.T, t + h);
+      const a0 = [ax.X(ta), ax.Y(pr.speed + sl * (ta - t))], a1 = [ax.X(tb), ax.Y(pr.speed + sl * (tb - t))];
+      Lab.line(ctx, [a0, a1], C.acc, 2.6);
+      const s = '기울기 = a∥ = ' + fmt(sl, 2) + ' m/s²', wd = Lab.measure(ctx, s, {size: 13, w: 600});
+      const right = X + 10 + wd > W - 6;
+      text(ctx, s, X + (right ? -10 : 10), Math.max(r.y + 8, Math.min(Y, a1[1], a0[1]) - 16), {size: 13, w: 600, color: C.acc, align: right ? 'right' : 'left', halo: true});
+    } else text(ctx, '속력 0 (최고점) · a = g 그대로', X + 10, Y - 14, {size: 13, w: 600, color: C.neg, align: 'left', halo: true});
+    Lab.circle(ctx, X, Y, 6, {fill: C.vel, stroke: C.paper, width: 2});
+  }
+
+  // ── 범례 · 수치 ─────────────────────────────────────────
+  const LEG = {
+    disp: '<span><b style="background:var(--muted)"></b><em>위치 벡터 r</em></span><span><b style="background:var(--vel)"></b><em>변위 Δr</em></span><span><b class="dash" style="color:var(--copper)"></b><em>이동 거리</em></span>',
+    tan: '<span><b style="background:var(--copper)"></b><em>할선 PQ (평균 속도)</em></span><span><b style="background:var(--vel)"></b><em>순간 속도 v (접선)</em></span>',
+    dv: '<span><b style="background:var(--vel)"></b><em>속도 v₁, v₂</em></span><span><b style="background:var(--acc)"></b><em>속도 변화 Δv</em></span>',
+    acc: '<span><b style="background:var(--vel)"></b><em>속도 v</em></span><span><b style="background:var(--acc)"></b><em>가속도 a · 성분</em></span><span><i style="background:var(--muted)"></i><em>같은 시간 간격</em></span>',
+  };
+  function setH(id, h) { const el = $(id); if (el && el.innerHTML !== h) el.innerHTML = h; }
+  function minis(list) { list.forEach(([n, v], i) => { setH('m' + (i + 1) + 'n', n); setH('m' + (i + 1), v); }); }
+  function readouts() {
+    const m = mot(), c = MK[S.mk], t1 = S.t1, t2 = t1 + S.dt;
+    $('dtOut').textContent = fmt(S.dt, 2) + ' s'; $('t1Out').textContent = fmt(t1, 2) + ' s'; $('tOut').textContent = fmt(S.t, 2) + ' s';
+    let big, lines, lab, f, tone = 'small';
+    if (S.view === 'disp') {
+      const s = M.distance(m, t1, t2), D = M.disp(m, t1, t2), dl = len(D), vs = s / S.dt, vb = dl / S.dt;
+      lab = 'P → Q 평균 (Δt = ' + fmt(S.dt, 2) + ' s)'; f = '평균 속력 = 이동 거리 ÷ 시간, 평균 속도 = 변위 ÷ 시간 에 지금 값을 넣으면';
+      big = '<span class="nw">평균 속력 ' + fs(vs) + ' m/s</span> · <span class="nw">평균 속도 ' + fs(vb) + ' m/s</span>';
+      lines = ['이동 거리 s = <em>' + fs(s) + ' m</em> → 평균 속력 = ' + fs(s) + ' ÷ <em>' + fmt(S.dt, 2) + '</em> = <em>' + fs(vs) + ' m/s</em>',
+        '변위 |Δr| = <em>' + fs(dl) + ' m</em> → 평균 속도 = ' + fs(dl) + ' ÷ ' + fmt(S.dt, 2) + ' = <em>' + fs(vb) + ' m/s</em>' + (dl > 1e-6 ? ' (P → Q 방향)' : ' (제자리)')];
+      minis([['이동 거리 s', fs(s) + ' m'], ['변위 Δr', fv(D) + ' m'], ['평균 속도 v̄', fv(mul(D, 1 / S.dt)) + ' m/s'], ['s − |Δr|', fs(s - dl) + ' m']]);
+    } else if (S.view === 'tan') {
+      const D = M.disp(m, t1, t2), dl = len(D), vb = dl / S.dt, v0 = len(m.vel(t1)), ang = M.chordAngle(m, t1, S.dt);
+      lab = 'P의 평균 속도 → 순간 속도'; f = '평균 속도 = Δr ÷ Δt 에서 Δt 를 줄여 가면';
+      big = '<span class="nw">|v̄| = ' + fs(vb) + ' m/s</span> · <span class="nw">접선과 ' + (isNaN(ang) ? '–' : fmt(ang, 1) + '°') + '</span>';
+      lines = ['Δt = <em>' + fmt(S.dt, 2) + ' s</em> 동안 |Δr| = <em>' + fs(dl, 3) + ' m</em> → |v̄| = ' + fs(dl, 3) + ' ÷ ' + fmt(S.dt, 2) + ' = <em>' + fs(vb) + ' m/s</em>',
+        '할선 PQ와 P의 접선 사이 각 <em>' + (isNaN(ang) ? '–' : fmt(ang, 1) + '°') + '</em> → Δt → 0 이면 0°',
+        'P의 순간 속도: 크기 <em>' + fs(v0) + ' m/s</em>, 방향 = 경로의 접선'];
+      minis([['Δt', fmt(S.dt, 2) + ' s'], ['|Δr|', fs(dl, 3) + ' m'], ['평균 속도의 크기 |v̄|', fs(vb) + ' m/s'], ['P의 순간 속력', fs(v0) + ' m/s']]);
+    } else if (S.view === 'dv') {
+      const v1 = m.vel(t1), v2 = m.vel(t2), dv = sub(v2, v1), aa = mul(dv, 1 / S.dt);
+      lab = 'P → Q 평균 가속도 (Δt = ' + fmt(S.dt, 2) + ' s)'; f = 'Δv = v₂ − v₁, ā = Δv ÷ Δt 에 지금 값을 넣으면 (성분 (x, y))';
+      big = 'ā = ' + fv(aa) + ' m/s²';
+      lines = ['Δv = ' + fv(v2) + ' − ' + fv(v1) + ' = <em>' + fv(dv) + ' m/s</em>',
+        'ā = ' + fv(dv) + ' ÷ <em>' + fmt(S.dt, 2) + '</em> = <em>' + fv(aa) + ' m/s²</em> (크기 ' + fs(len(aa)) + ' m/s²)',
+        'ā는 v₁·v₂ 어느 쪽과도 다른 방향 → 경로가 <em>휘어 들어가는 쪽</em>'];
+      minis([['v₁ (P)', fv(v1) + ' m/s'], ['v₂ (Q)', fv(v2) + ' m/s'], ['Δv', fv(dv) + ' m/s'], ['v₁과 ā 사이 각', isNaN(M.angle(v1, aa)) ? '–' : fmt(M.angle(v1, aa), 0) + '°']]);
+    } else {
+      const pr = M.parts(m, S.t), al = len(pr.a);
+      lab = '공의 지금 가속도 (t = ' + fmt(S.t, 2) + ' s)'; f = '가속도를 속도에 나란한 성분 a∥와 수직 성분 a⊥로 나누면';
+      if (pr.kind === 'rest') {
+        tone = 'neg'; big = 'v = 0 인데 a = ' + fmt(al, 0) + ' m/s²';
+        lines = ['최고점: 속도 <em>0</em>, 가속도는 그대로 <em>' + fmt(al, 0) + ' m/s² (아래)</em>', '가속도는 알짜힘(중력)이 정한다 → 속도와 관계없다'];
+      } else if (pr.kind === 'none') {
+        tone = 'ink'; big = 'a = 0';
+        lines = ['곧은 길을 일정한 속력으로: a∥ = 0, a⊥ = 0', '모서리에서만 속도의 방향이 갑자기 바뀐다'];
+      } else {
+        const kind = pr.kind === 'faster' ? '빨라진다' : pr.kind === 'slower' ? '느려진다' : '속력 일정';
+        const angS = fmt(pr.ang, 0) + '°', which = pr.ang < 89.5 ? '예각' : pr.ang > 90.5 ? '둔각' : '직각';
+        big = kind + ' · v와 a 사이 ' + angS;
+        lines = ['a∥ = <em>' + fmt(pr.par, 2) + ' m/s²</em> → ' + (Math.abs(pr.par) < 1e-9 ? '속력은 그대로' : pr.par > 0 ? '속력이 <em>커진다</em>' : '속력이 <em>줄어든다</em>'),
+          'a⊥ = <em>' + fmt(pr.perp, 2) + ' m/s²</em> → ' + (pr.perp < 1e-9 ? '방향은 그대로(곧게 간다)' : '운동 방향이 바뀐다 (오목한 쪽)'),
+          'v와 a 사이 각 <em>' + angS + '</em> (' + which + ') → <em>' + kind + '</em>'];
+      }
+      minis([['속력 v', fs(pr.speed) + ' m/s'], ['가속도 크기 a', fs(al) + ' m/s²'], ['a∥ (속력을 바꿈)', isNaN(pr.par) ? '–' : fmt(pr.par, 2) + ' m/s²'], ['a⊥ (방향을 바꿈)', isNaN(pr.perp) ? '–' : fmt(pr.perp, 2) + ' m/s²']]);
+    }
+    Lab.ans(big, lines, {tone, lab, ctx: c.ctx, f, html: true});
+    $('hud1').textContent = S.view === 'acc' ? 't = ' + fmt(S.t, 1) + ' s' : (S.view === 'dv' ? 't₁ = ' + fmt(S.t1, 1) + ' s · ' : '') + 'Δt = ' + fmt(S.dt, 2) + ' s';
+    $('hud2').textContent = m.name;
+    const ok = S.mk === 'circ' && near(S.t1, 0) && near(S.dt, 4);
+    Lab.check('exCheck', ok, '개념서 예제 (반지름 2 m, 반 바퀴 4 s) → 이동 거리 2π m, 변위 4 m: 평균 속력 π/2 ≈ 1.57 m/s, 평균 속도 1 m/s',
+      '예제: 반지름 2 m 원 궤도를 반 바퀴 4 s 동안 돌 때 평균 속력과 평균 속도는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function drawAll() { drawStage(); gS.redraw(); gV.redraw(); gH.redraw(); gP.redraw(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const dtSl = $('dt'), tSl = $('ts'), t1Sl = $('t1');
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; S.hold = 0; if (on && S.view === 'disp' && S.tau >= S.dt) S.tau = 0; if (on && S.view === 'tan') S.dt0 = Math.max(S.dt0, S.dt); });
+  function syncCtl() {
+    const m = mot();
+    dtSl.max = m.T; dtSl.value = S.dt; t1Sl.max = m.T; t1Sl.value = S.t1; tSl.max = m.T; tSl.value = S.t;
+    $('slDt').hidden = S.view === 'acc'; $('slT').hidden = S.view !== 'acc';
+    $('cStrobe').checked = S.strobe; $('cR').checked = S.rvec;
+    mkG.set(S.mk, true); viewG.set(S.view, true);
+    setH('legend', LEG[S.view]);
+  }
+  function setDt(v) { const m = mot(); S.dt = clamp(Math.round(v * 100) / 100, 0.02, m.T - S.t1); if (S.dt < 0.02) { S.t1 = Math.max(0, m.T - 0.1); S.dt = m.T - S.t1; } }
+  function setMk(k) { S.mk = k; S.O = MK[k].O.slice(); S.t1 = MK[k].t1; S.dt = MK[k].dt; S.dt0 = S.dt; S.tau = 0; S.t = Math.min(S.t, mot().T); VWkey = ''; }
+  function setView(v) { S.view = v; S.hold = 0; if (v === 'disp') S.tau = S.playing ? 0 : S.dt; if (v === 'tan') S.dt0 = S.dt; }
+  dtSl.addEventListener('input', () => { playCtl.set(false); setDt(+dtSl.value); S.dt0 = S.dt; S.tau = S.dt; refresh(); });
+  tSl.addEventListener('input', () => { playCtl.set(false); S.t = +tSl.value; refresh(); });
+  t1Sl.addEventListener('input', () => { playCtl.set(false); S.t1 = clamp(+t1Sl.value, 0, mot().T - 0.1); setDt(S.dt); S.tau = S.dt; syncCtl(); refresh(); });
+  const mkG = Lab.group('[data-mk]', 'mk', (v) => { setMk(v); syncCtl(); refresh(); }, S.mk);
+  const viewG = Lab.group('[data-view]', 'view', (v) => { setView(v); syncCtl(); refresh(); }, S.view);
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  $('cStrobe').addEventListener('change', (e) => { S.strobe = e.target.checked; drawStage(); });
+  $('cR').addEventListener('change', (e) => { S.rvec = e.target.checked; drawStage(); });
+  // 무대 끌기: O(보기 ①), P(보기 ①②③), 공(보기 ④)
+  function nearestT(px, py, tmax) {
+    const V = view(stage.W, stage.H), m = mot(); let best = 0, bd = 1e9;
+    for (let i = 0; i <= 400; i++) { const t = tmax * i / 400, p = V.X(m.pos(t)), d = Math.hypot(p[0] - px, p[1] - py); if (d < bd) { bd = d; best = t; } }
+    return [best, bd];
+  }
+  Lab.pointer(stage.el, {
+    down: (x, y) => {
+      const V = view(stage.W, stage.H), m = mot();
+      if (S.view === 'disp' && S.rvec) { const o = V.X(S.O); if (Math.hypot(o[0] - x, o[1] - y) < 26) { S.drag = 'O'; playCtl.set(false); return; } }
+      if (S.view === 'acc') { const [t, d] = nearestT(x, y, m.T); if (d < 40) { S.drag = 'ball'; playCtl.set(false); S.t = Math.round(t * 20) / 20; tSl.value = S.t; refresh(); } return; }
+      const [t, d] = nearestT(x, y, m.T - 0.1); if (d < 40) { S.drag = 'P'; playCtl.set(false); S.t1 = Math.round(t * 20) / 20; setDt(S.dt); S.tau = S.dt; syncCtl(); refresh(); }
+    },
+    move: (x, y) => {
+      if (!S.drag) return;
+      const V = view(stage.W, stage.H), m = mot();
+      if (S.drag === 'O') { const p = V.inv(x, y); S.O = [clamp(p[0], V.inv(14, 0)[0], V.inv(V.W - 14, 0)[0]), clamp(p[1], V.inv(0, V.H - 30)[1], V.inv(0, 50)[1])]; drawStage(); return; }
+      if (S.drag === 'ball') { S.t = Math.round(nearestT(x, y, m.T)[0] * 20) / 20; tSl.value = S.t; refresh(); return; }
+      S.t1 = Math.round(nearestT(x, y, m.T - 0.1)[0] * 20) / 20; setDt(S.dt); S.tau = S.dt; t1Sl.value = S.t1; dtSl.value = S.dt; refresh();
+    },
+    up: () => { S.drag = null; },
+  });
+
+  const TRY = {
+    ex: () => { setMk('circ'); setView('disp'); S.tau = 0; playCtl.set(true); },
+    full: () => { setMk('circ'); setView('disp'); S.dt = 8; S.dt0 = 8; S.tau = 0; playCtl.set(true); },
+    shrink: () => { if (!['circ', 'fast', 'slow'].includes(S.mk)) setMk('circ'); setView('tan'); S.t1 = 1; S.dt = Math.min(4, mot().T - 1); S.dt0 = S.dt; playCtl.set(true); },
+    dt1: () => { if (!['circ', 'fast', 'slow'].includes(S.mk)) setMk('circ'); setView('tan'); S.t1 = 1; S.dt = 1; S.dt0 = 1; playCtl.set(false); },
+    dvRun: () => { if (!['circ', 'fast', 'slow'].includes(S.mk)) setMk('circ'); setView('dv'); S.t1 = 0; S.dt = 1.5; playCtl.set(true); },
+    dvSmall: () => { if (!['circ', 'fast', 'slow'].includes(S.mk)) setMk('circ'); setView('dv'); S.t1 = 1.5; S.dt = 0.5; playCtl.set(false); },
+    fast: () => { setMk('fast'); setView('acc'); S.t = 2; playCtl.set(true); },
+    slow: () => { setMk('slow'); setView('acc'); S.t = 2; playCtl.set(true); },
+    throw: () => { setMk('throw'); setView('acc'); S.t = 0.3; playCtl.set(true); },
+    top: () => { setMk('throw'); setView('acc'); S.t = 1; playCtl.set(false); },
+    sq: () => { setMk('square'); setView('disp'); S.t1 = 0; S.dt = 6; S.tau = 0; playCtl.set(true); },
+  };
+  Lab.tries(TRY, () => { if (!S.playing) S.tau = S.dt; syncCtl(); refresh(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing || S.drag) return;
+    const d = dt * S.speed, m = mot();
+    if (S.hold > 0) { S.hold -= dt; if (S.hold > 0) return; if (S.view === 'disp') S.tau = 0; else if (S.view === 'tan') S.dt = S.dt0; else if (S.view === 'acc') S.t = 0; }
+    if (S.view === 'disp') { S.tau += d; if (S.tau >= S.dt) { S.tau = S.dt; S.hold = 1.5; } }
+    else if (S.view === 'tan') { S.dt = S.dt * Math.exp(-0.7 * d); if (S.dt <= 0.03) { S.dt = 0.03; S.hold = 1.6; } dtSl.value = S.dt; }
+    else if (S.view === 'dv') { S.t1 += d * 0.6; if (S.t1 > m.T - S.dt) S.t1 = 0; t1Sl.value = S.t1; }
+    else { S.t += d * (S.mk === 'throw' ? 0.35 : 1); if (S.t >= m.T) { S.t = m.T; S.hold = 0.9; } tSl.value = S.t; }
+    drawStage(); gS.redraw(); gV.redraw(); gH.redraw(); gP.redraw();
+    roT += dt; if (roT > 0.1) { roT = 0; readouts(); }
+  });
+  syncCtl();
+  refresh();
+})();
+</script>
+</body>
+</html>

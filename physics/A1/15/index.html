@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>가속 좌표계와 관성력</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(같은 장면을 밖 = 관성 좌표계 | 안 = 가속 좌표계 두 칸으로: 엘리베이터 · 버스 · 회전 우주선) | 오른쪽 지금 값 + 관찰 ①~④ → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/11}
+#fb{aspect-ratio:10/6.2}
+#vt{aspect-ratio:10/7.4}
+#tri{aspect-ratio:10/6}
+.xs{display:none}
+@media (max-width:640px){ .r1 .xs{display:inline} #fb{aspect-ratio:10/7.6} #vt{aspect-ratio:10/8.8} #tri{aspect-ratio:10/7.4} }
+.legend b.dash{background:repeating-linear-gradient(90deg,var(--force) 0 5px,transparent 5px 8px)}
+/* 정리 카드의 두 관찰자 표 */
+.obs{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;margin-top:8px}
+.obs th{text-align:left;font-size:13px;font-weight:600;color:var(--muted);padding:2px 6px 6px;border-bottom:1px solid var(--line)}
+.obs td{padding:7px 6px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink-2)}
+.obs .who{font-weight:600;white-space:nowrap;color:var(--ink)}
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A1 힘과 운동: 개념 16개 가운데 15번째"><a class="uname" href="../">A1 힘과 운동</a><span class="dots"><a href="../01/" title="A1-01 힘의 합성·분해" aria-label="A1-01 힘의 합성·분해"></a><a href="../02/" title="A1-02 돌림힘과 평형" aria-label="A1-02 돌림힘과 평형"></a><a href="../03/" title="A1-03 무게중심과 안정성" aria-label="A1-03 무게중심과 안정성"></a><a href="../04/" title="A1-04 한계 조건과 강체" aria-label="A1-04 한계 조건과 강체"></a><a href="../05/" title="A1-05 운동의 벡터" aria-label="A1-05 운동의 벡터"></a><a href="../06/" title="A1-06 평면 등가속도 운동" aria-label="A1-06 평면 등가속도 운동"></a><a href="../07/" title="A1-07 중력장의 직선 운동" aria-label="A1-07 중력장의 직선 운동"></a><a href="../08/" title="A1-08 포물선 운동" aria-label="A1-08 포물선 운동"></a><a href="../09/" title="A1-09 상대 운동" aria-label="A1-09 상대 운동"></a><a href="../10/" title="A1-10 등속 원운동" aria-label="A1-10 등속 원운동"></a><a href="../11/" title="A1-11 여러 가지 구심력" aria-label="A1-11 여러 가지 구심력"></a><a href="../12/" title="A1-12 케플러 법칙" aria-label="A1-12 케플러 법칙"></a><a href="../13/" title="A1-13 만유인력과 인공위성" aria-label="A1-13 만유인력과 인공위성"></a><a href="../14/" title="A1-14 단진동과 단진자" aria-label="A1-14 단진동과 단진자"></a><a class="cur" href="./" aria-current="page" title="A1-15 관성력" aria-label="A1-15 관성력 (지금)"></a><a href="../16/" title="A1-16 등가 원리" aria-label="A1-16 등가 원리"></a></span></nav>
+  <div class="pn"><a href="../14/" rel="prev" title="이전 개념: A1-14 단진동과 단진자">‹ <span>14 단진동과 단진자</span></a><a href="../16/" rel="next" title="다음 개념: A1-16 등가 원리"><span>16 등가 원리</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A1-15</span><span>물리학 Ⅱ · 힘과 운동</span></div>
+    <h1>가속 좌표계와 관성력</h1>
+    <p class="question"><i>Q</i>급출발하는 버스에서 몸이 뒤로 쏠리는 '힘'은 누가 주는 걸까?</p>
+  </div>
+
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="같은 장면을 두 칸으로 나란히 보여 준다. 왼쪽(위)은 땅에 선 사람이 본 모습(관성 좌표계), 오른쪽(아래)은 함께 타고 가는 사람이 본 모습(가속 좌표계)이다. 엘리베이터 속 체중계 위의 사람, 급출발하는 버스의 손잡이와 공, 회전 우주선의 사람과 공을 고를 수 있다."></canvas>
+        <div class="hud"><span class="pill" id="hudA">밖 · 관성 좌표계</span></div>
+        <div class="legend" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="group" role="group" aria-label="장면">
+            <span class="gl lg">장면</span>
+            <button type="button" class="btn" data-scene="elev" aria-pressed="true"><span class="lg">엘리베이터</span><span class="xs">승강기</span></button>
+            <button type="button" class="btn" data-scene="bus" aria-pressed="false">버스</button>
+            <button type="button" class="btn" data-scene="stn" aria-pressed="false"><span class="lg">회전 우주선</span><span class="xs">우주선</span></button>
+          </div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">조건·보기</span><span class="sm">조건</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="조건과 보기">
+          <div class="sheet-head"><b>조건 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <!-- 엘리베이터 -->
+          <div class="row" data-for="elev">
+            <div class="group" role="group" aria-label="엘리베이터의 운동">
+              <span class="gl">운동</span>
+              <button type="button" class="btn" data-ph="upAcc" aria-pressed="true">위로 가속</button>
+              <button type="button" class="btn" data-ph="upDec" aria-pressed="false">위로 감속</button>
+              <button type="button" class="btn" data-ph="downAcc" aria-pressed="false">아래로 가속</button>
+              <button type="button" class="btn" data-ph="downDec" aria-pressed="false">아래로 감속</button>
+              <button type="button" class="btn" data-ph="upConst" aria-pressed="false">등속</button>
+              <button type="button" class="btn" data-ph="free" aria-pressed="false">자유 낙하</button>
+              <button type="button" class="btn" data-ph="trip" aria-pressed="false">한 번 운행</button>
+            </div>
+          </div>
+          <div class="row" data-for="elev">
+            <div class="grow">
+              <label class="ctl-label" for="aE">가속도 크기 a <output id="aEOut">2 m/s²</output></label>
+              <input id="aE" type="range" min="0" max="10" step="0.1" value="2">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="mE">사람의 질량 m <output id="mEOut">50 kg</output></label>
+              <input id="mE" type="range" min="30" max="80" step="5" value="50">
+            </div>
+          </div>
+          <div class="toggles" data-for="elev">
+            <label class="chk"><input type="checkbox" id="cPend">천장에 매단 진자</label>
+          </div>
+          <!-- 버스 -->
+          <div class="row" data-for="bus" hidden>
+            <div class="group" role="group" aria-label="버스의 운동">
+              <span class="gl">운동</span>
+              <button type="button" class="btn" data-bph="start" aria-pressed="true">급출발</button>
+              <button type="button" class="btn" data-bph="const" aria-pressed="false">등속</button>
+              <button type="button" class="btn" data-bph="brake" aria-pressed="false">브레이크</button>
+              <button type="button" class="btn" data-bph="trip" aria-pressed="false">한 번 운행</button>
+            </div>
+            <button type="button" class="btn" id="dropB">천장에서 공 놓기</button>
+          </div>
+          <div class="row" data-for="bus" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="aB">버스 가속도 크기 a <output id="aBOut">7.5 m/s²</output></label>
+              <input id="aB" type="range" min="0" max="10" step="0.5" value="7.5">
+            </div>
+          </div>
+          <!-- 회전 우주선 -->
+          <div class="row" data-for="stn" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="wS">각속도 ω <output id="wSOut">0.5 rad/s</output></label>
+              <input id="wS" type="range" min="0.1" max="1" step="0.05" value="0.5">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="rS">반지름 r <output id="rSOut">40 m</output></label>
+              <input id="rS" type="range" min="10" max="100" step="5" value="40">
+            </div>
+            <button type="button" class="btn" id="dropS">손에서 공 놓기</button>
+          </div>
+          <!-- 공통 -->
+          <div class="row">
+            <button type="button" class="btn" id="stepBtn">0.1초 앞으로 ▸</button>
+            <button type="button" class="btn" id="again">처음부터</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×0.25</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="true">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="false">×1</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cForce" checked>힘 화살표</label>
+            <label class="chk"><input type="checkbox" id="cStrobe" checked>같은 시간 간격의 위치</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 체중계 눈금</span><span id="ansCtx">엘리베이터 · 위로 가속</span></div>
+        <div class="big" id="ansBig">N = 600 N</div>
+        <div class="sub">
+          <span class="f" id="ansF">가속도가 위 → 안에서는 관성력 ma 가 아래로 더해진다</span>
+          <span id="ansLines"><span class="v">N = mg + ma = m(g + a)</span><span class="v">= 50 × (10 + <em>2</em>) = <em>600 N</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">무게 mg</span><b id="mv1">500 N</b></div>
+          <div class="mini"><span id="mn2">관성력 ma</span><b id="mv2">100 N · 아래</b></div>
+          <div class="mini"><span id="mn3">엘리베이터 가속도</span><b id="mv3">2 m/s² · 위</b></div>
+          <div class="mini"><span id="mn4">눈금 ÷ 무게</span><b id="mv4">1.2배 · 무거워짐</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 두 관찰자">
+          <div class="kind">관찰 1 · 엘리베이터</div>
+          <h3>밖에서는 합력이 ma, 안에서는 관성력까지 더해 평형</h3>
+          <p>급출발하는 버스에서는 몸이 뒤로 쏠리고, 위로 출발하는 엘리베이터에서는 몸이 바닥에 눌린다. 그 ‘힘’을 찾으려고 같은 장면을 두 관찰자의 눈으로 나란히 본다. 무대 왼쪽은 건물에 선 사람(정지한 <b>관성 좌표계</b>), 오른쪽은 함께 탄 사람(가속 좌표계)이 본 모습이다.</p>
+          <canvas class="flat" id="fb" aria-label="체중계 위 사람에 작용하는 힘을 두 관찰자가 적은 장부. 밖에서는 수직항력과 중력의 합력이 ma, 안에서는 관성력까지 더해 합이 0."></canvas>
+          <p class="cap">밖에서 보면 사람은 엘리베이터와 함께 가속하므로 실제 힘의 합력이 <span class="eq">N − mg = ma</span> 다. 안에서 보면 사람은 멈춰 있는데도 N &gt; mg 다. 그래서 좌표계 가속도의 반대쪽으로 크기 ma 인 관성력을 더해 <span class="eq">N − mg − ma = 0</span> 으로 쓴다. 두 식은 같은 N 을 준다. 관성력은 어떤 물체가 주는 힘이 아니라서 반작용이 없다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">위로 가속하는 엘리베이터</button>
+            <button type="button" class="btn" data-do="click:[data-ph=upConst]">등속과 견주기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 가속도 방향이 정한다">
+          <div class="kind">관찰 2 · 엘리베이터 눈금</div>
+          <h3>눈금은 속도가 아니라 가속도 방향이 정한다</h3>
+          <p>가속도가 위(올라가며 빨라짐, 내려가며 느려짐)면 관성력이 아래로 더해져 <span class="eq">N = m(g + a)</span> 로 무거워진다. 가속도가 아래(올라가며 느려짐, 내려가며 빨라짐)면 <span class="eq">N = m(g − a)</span> 로 가벼워진다. 등속이면 정지할 때와 같고, 자유 낙하하면 0 이다.</p>
+          <canvas class="flat" id="vt" aria-label="한 번 운행하는 동안의 속도-시간 그래프와 체중계 눈금-시간 그래프. 속도 그래프의 기울기가 양수인 구간에서 눈금이 mg보다 크다."></canvas>
+          <p class="cap">위는 한 번 운행하는 동안의 v–t 그래프, 아래는 눈금 N–t 그래프다. v–t 의 기울기(가속도)가 + 인 구간(빨간 띠)에서 눈금이 mg 보다 크고, − 인 구간(파란 띠)에서 작다. v 의 부호, 곧 운동 방향과는 상관없다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="trip">한 번 운행 전체</button>
+            <button type="button" class="btn" data-do="click:[data-ph=upDec]">위로 감속</button>
+            <button type="button" class="btn" data-do="click:[data-ph=downAcc]">아래로 가속</button>
+            <button type="button" class="btn" data-do="click:[data-ph=downDec]">아래로 감속</button>
+            <button type="button" class="btn" data-do="click:[data-ph=free]">자유 낙하</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 버스 안의 g − a">
+          <div class="kind">관찰 3 · 버스</div>
+          <h3>뒤로 미는 힘은 없다 — 버스 안은 ‘중력’이 g − a 로 바뀐 세상</h3>
+          <p>처음 질문의 답이다. 버스가 급출발하면 손잡이가 뒤로 기울고 바닥의 공은 뒤로 굴러간다. 그런데 밖에서 보면 공은 <b>그 자리에 있고</b> 버스가 앞으로 나갈 뿐이다(관성). 안에서는 이것을 모든 물체에 뒤쪽으로 관성력 ma 가 작용하는 것으로 설명하고, 실제 중력과 합친 g − a(벡터)가 새 ‘중력’처럼 작용한다.</p>
+          <canvas class="flat" id="tri" aria-label="버스 손잡이에 작용하는 힘. 중력 mg와 관성력 ma를 이으면 유효 중력 방향이 되고, 장력은 그 반대 방향이다. tanθ = a/g."></canvas>
+          <p class="cap">손잡이는 g − a 방향으로 늘어진다: <span class="eq">tan θ = a/g</span>, 장력 <span class="eq">T = m√(g² + a²)</span>. 천장 가까이에서 놓은 공도 안에서는 이 방향으로 곧게(등가속도 직선 운동), 밖에서는 포물선을 그리며 떨어진다. 단진자 주기도 <span class="eq">2π√(l/g_eff)</span> 로 바뀐다. 브레이크를 밟으면 모두 반대로 앞쪽으로 쏠린다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="bus">버스 급출발</button>
+            <button type="button" class="btn" data-try="drop">천장에서 공 놓기</button>
+            <button type="button" class="btn" data-do="click:[data-bph=const]">등속</button>
+            <button type="button" class="btn" data-do="click:[data-bph=brake]">브레이크</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 회전 우주선">
+          <div class="kind">관찰 4 · 회전 우주선</div>
+          <h3>회전 좌표계의 관성력은 원심력 — 인공 중력이 된다</h3>
+          <p>회전하는 우주선의 벽(바닥)에 선 사람을 안에서 보면, 벽이 미는 힘 N 과 바깥쪽 <b>원심력</b> mrω² 이 평형이라 ‘무게’를 느낀다(인공 중력 rω²). 밖(관성 좌표계)에서 보면 원심력은 없고, N 이 구심력이 되어 원운동을 할 뿐이다.</p>
+          <p class="cap">손을 놓은 공은 밖에서 보면 놓는 순간의 속도로 등속 직선 운동을 한다. 그동안 바닥이 돌아와 공과 만나므로, 안에서는 공이 ‘바닥으로 떨어지는’ 것처럼 보인다(바닥이 공보다 빨리 돌아 발보다 조금 뒤에 떨어진다). 반지름 40 m 에서 ω = 0.5 rad/s 면 rω² = 10 m/s² = g 다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="stn">우주선 돌리기</button>
+            <button type="button" class="btn" data-try="stnDrop">손에서 공 놓기</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>관찰자가 가속하면 관성력 −ma 를 더한다</h3>
+          <table class="obs">
+            <thead><tr><th>관찰자</th><th>작용하는 힘</th><th>물체의 상태</th><th>식</th></tr></thead>
+            <tbody>
+              <tr><td class="who">밖 (관성 좌표계)</td><td>장력, 중력 (실제 힘만)</td><td>버스와 함께 가속</td><td>T + mg = ma (벡터)</td></tr>
+              <tr><td class="who">안 (가속 좌표계)</td><td>장력, 중력, 관성력 −ma</td><td>정지 (평형)</td><td>T + mg − ma = 0 (벡터)</td></tr>
+            </tbody>
+          </table>
+          <ul>
+            <li>정지하거나 등속도로 움직이는 관찰자(관성 좌표계)는 실제 힘만으로 F = ma 를 쓴다. 가속하는 관찰자는 모든 물체에 좌표계 가속도의 반대쪽으로 관성력 −ma 를 더한다. 한 풀이 안에서 두 시점을 섞지 않는다.</li>
+            <li>엘리베이터: 가속도가 위면 <span class="eq">N = m(g + a)</span>, 아래면 <span class="eq">N = m(g − a)</span>, 등속이면 mg, 자유 낙하하면 0. 아래로 움직여도 감속 중이면 무거워진다.</li>
+            <li>가속 좌표계 안은 유효 중력 <span class="eq">g − a</span> 의 세상: 실은 그 방향으로 기울고(tan θ = a/g), 놓은 물체는 그 방향으로 떨어지며, 진자 주기는 2π√(l/g_eff). 회전 좌표계의 관성력은 원심력 mrω².</li>
+            <li>관성력은 다른 물체와의 상호 작용이 아니므로 반작용이 없다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>질량 50 kg인 사람이 엘리베이터 안 체중계 위에 서 있다. 엘리베이터가 (가) 위로 출발하며 2 m/s²로 가속할 때, (나) 위로 가다가 2 m/s²로 감속할 때 눈금은? (g = 10 m/s²)</h3>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">(가) 위로 가속</button>
+            <button type="button" class="btn" data-try="exB">(나) 위로 감속</button>
+          </div>
+          <details class="ans"><summary>풀이 보기</summary><p>(가) 가속도가 위 → 안에서 보면 관성력이 아래로 → N = m(g + a) = 50 × 12 = <b>600 N</b>. (나) 위로 가지만 감속하므로 가속도는 아래 → 관성력이 위로 → N = m(g − a) = 50 × 8 = <b>400 N</b>. 운동 방향(위)은 같아도 가속도 방향이 달라 눈금이 반대로 변한다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>수평 도로를 달리는 버스 천장에 매단 추가 뒤쪽으로 기울어, 실이 연직선과 θ를 이룬 채 버스에 대해 정지해 있다. tan θ = 0.75일 때 버스의 가속도는? (g = 10 m/s²)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1">tan θ = 0.75 인 버스</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>앞쪽으로 7.5 m/s²</b>. 안에서 보면 장력·중력·관성력(가속도 반대쪽, 크기 ma)이 평형이고 실은 가속도 반대쪽으로 기운다. 실이 뒤로 기울었으니 가속도는 앞쪽이고, tan θ = a/g 에서 a = 7.5 m/s² 다. 6 m/s² 는 tan θ 대신 sin θ(0.6)를 쓴 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>엘리베이터 안에서 일어나는 현상으로 옳은 것만을 고르면? ㄱ. 아래로 내려가며 속력이 줄어드는 동안 체중계의 눈금은 정지해 있을 때보다 크다. ㄴ. 줄이 끊어져 자유 낙하하는 동안, 안에서 가만히 놓은 공은 안의 관찰자에게 떠 있는 것으로 보인다. ㄷ. 아래 방향으로 g/3의 가속도로 움직이는 동안 단진자의 주기는 정지해 있을 때보다 짧다.</h3>
+            <div class="acts">
+              <button type="button" class="btn" data-try="q2a">ㄱ 내려가며 감속</button>
+              <button type="button" class="btn" data-try="q2b">ㄴ 자유 낙하</button>
+              <button type="button" class="btn" data-try="q2c">ㄷ 아래로 g/3 가속</button>
+            </div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄴ</b>. 내려가며 감속하면 가속도가 위라서 N = m(g + a)로 눈금이 커진다. 자유 낙하하는 엘리베이터 안에서는 유효 중력이 0 이라 놓은 공이 떠 있다. 가속도가 아래로 g/3 이면 유효 중력이 2g/3 로 작아져 주기 2π√(l/g_eff)는 오히려 √1.5 ≈ 1.22 배로 길어진다(무대의 점선 진자는 정지한 엘리베이터의 같은 진자).</p></details>
+          </div>
+          <div class="q">
+            <h3>가속도 7.5 m/s²로 달리는 트럭 안, 바닥에서 1.8 m 높이에서 공을 가만히 놓으면 트럭 안에서 볼 때 공은 몇 초 뒤 어디에 떨어질까? (g = 10 m/s²)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="drop">트럭(버스)에서 공 놓기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>0.6 s 뒤, 놓은 점 바로 아래에서 뒤쪽으로 1.35 m</b>. 안에서 공은 처음 속도 0, 가속도 g_eff(아래 10, 뒤 7.5 m/s²)로 등가속도 직선 운동을 한다. 연직 1.8 = ½ × 10 × t² 에서 t = 0.6 s, 그동안 뒤로 ½ × 7.5 × 0.6² = 1.35 m 간다. 같은 트럭에 매단 길이 0.5 m 단진자의 주기는 2π√(0.5/12.5) = 0.4π ≈ 1.26 s 다.</p></details>
+          </div>
+          <div class="q">
+            <h3>반지름 40 m인 회전 우주선의 바닥(벽)에서 지구와 같은 인공 중력(10 m/s²)을 느끼려면 각속도가 얼마여야 할까? 이때 손을 놓은 공은 밖에서 보면 어떻게 움직일까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="stnDrop">ω = 0.5 rad/s 에서 공 놓기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>rω² = g 에서 ω = √(10/40) = <b>0.5 rad/s</b> (한 바퀴 약 12.6 s). 놓은 공은 밖에서 보면 놓는 순간의 속도 ωr 로 등속 직선 운동을 하고, 돌아온 바닥과 만난다. 원심력은 회전 좌표계 안에서만 쓰는 관성력이다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../14/" rel="prev"><small>← 이전 개념 · A1-14</small><b>단진동과 단진자</b></a><a href="../16/" rel="next"><small>다음 개념 · A1-16 →</small><b>등가 원리</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="A1-15-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_15;
+  const {$, C, text, fmt} = Lab;
+  const G = M.G, TAU = Math.PI * 2;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const narrowMQ = window.matchMedia ? matchMedia('(max-width: 999px)') : {matches: false};
+
+  // ── 상태 ────────────────────────────────────────────────
+  const EX = {m: 50, a: 2};
+  const S = {
+    scene: 'elev', playing: !Lab.reduceMotion, speed: 0.5, forces: true, strobe: true,
+    // 엘리베이터: 구간(ph), 가속도 크기 a, 질량 m, 구간 안 시각 et, 진자(pd = 이 엘리베이터, g = 정지한 엘리베이터의 같은 진자)
+    ph: 'upAcc', a: 2, m: 50, pend: false, et: 0, pd: {th: 0.3, w: 0, gth: 0.3, gw: 0},
+    // 버스: 구간(bph), 가속도 크기 ba, 구간 안 시각 bt, 손잡이(strap), 바닥의 공(ball), 놓은 공(drop)
+    bph: 'start', ba: 7.5, bt: 0, strap: {th: 0, w: 0}, ball: null, drop: null, autoDrop: false,
+    // 회전 우주선: 각속도 w, 반지름 R, 시각 st, 놓은 공(sdrop)
+    w: 0.5, R: 40, st: 0, sdrop: null, sAuto: false,
+  };
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  const legendOn = () => !narrowMQ.matches;              // 넓은 화면: 범례가 무대 아래에 있다 → 그 자리를 비운다
+  const BOT = (H) => (legendOn() ? 46 : (H < 400 ? 10 : 16));
+  // 점선 화살표(속이 빈 촉): 관성력
+  function darrow(ctx, x0, y0, x1, y1, col, w = 2.6, head = 11) {
+    const L = Math.hypot(x1 - x0, y1 - y0); if (L < 1) return;
+    const ux = (x1 - x0) / L, uy = (y1 - y0) / L, hh = Math.min(head, L * 0.7);
+    if (L - hh > 2) Lab.line(ctx, [[x0, y0], [x1 - ux * hh * 0.9, y1 - uy * hh * 0.9]], col, w, [6, 4]);
+    ctx.save(); ctx.beginPath(); ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 - ux * hh - uy * hh * 0.5, y1 - uy * hh + ux * hh * 0.5);
+    ctx.lineTo(x1 - ux * hh + uy * hh * 0.5, y1 - uy * hh - ux * hh * 0.5); ctx.closePath();
+    ctx.fillStyle = C.paper; ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke(); ctx.restore();
+  }
+  // 힘 화살표 + 이름표. dash 면 관성력(점선)
+  function farrow(ctx, x0, y0, dx, dy, col, label, o = {}) {
+    if (Math.hypot(dx, dy) < 0.8) return;
+    if (o.dash) darrow(ctx, x0, y0, x0 + dx, y0 + dy, col, o.w || 2.6, o.head || 11);
+    else Lab.arrow(ctx, x0, y0, x0 + dx, y0 + dy, col, o.w || 3, o.head || 11);
+    if (label) {
+      const at = o.at == null ? 1 : o.at;
+      text(ctx, label, x0 + dx * at + (o.lx || 0), y0 + dy * at + (o.ly || 0), {size: o.size || 14, w: 600, color: col, align: o.align || 'left', halo: true});
+    }
+  }
+  // HUD 알약과 같은 모양 (안쪽 칸의 이름표)
+  function pill(ctx, s, x, y) {
+    const w = Lab.measure(ctx, s, {size: 13.5, w: 500}) + 22, h = 31.5;
+    ctx.save(); Lab.rrect(ctx, x, y, w, h, h / 2); ctx.fillStyle = C.glass; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = C.line; ctx.stroke(); ctx.restore();
+    text(ctx, s, x + w / 2, y + h / 2 + 0.5, {size: 13.5, w: 500});
+  }
+  // 서 있는 사람: 발 (x, y), 1 m = k px, rot = 머리 방향 회전(라디안)
+  function person(ctx, x, y, k, o = {}) {
+    const col = o.col || C.vel;
+    ctx.save(); ctx.translate(x, y); if (o.rot) ctx.rotate(o.rot);
+    ctx.fillStyle = Lab.alpha(col, o.fa == null ? 0.14 : o.fa); ctx.strokeStyle = Lab.alpha(col, o.sa == null ? 0.7 : o.sa); ctx.lineWidth = Math.max(1.2, Math.min(2, k * 0.012));
+    const part = (x0, y0, w, h, r) => { Lab.rrect(ctx, x0 * k, y0 * k, w * k, h * k, r * k); ctx.fill(); ctx.stroke(); };
+    part(-0.16, -0.84, 0.14, 0.84, 0.05); part(0.02, -0.84, 0.14, 0.84, 0.05);       // 다리
+    part(-0.29, -1.38, 0.1, 0.56, 0.05); part(0.19, -1.38, 0.1, 0.56, 0.05);         // 팔
+    part(-0.2, -1.42, 0.4, 0.66, 0.11);                                              // 몸통
+    ctx.beginPath(); ctx.arc(0, -1.55 * k, 0.13 * k, 0, TAU); ctx.fill(); ctx.stroke(); // 머리
+    ctx.restore();
+  }
+  // 남은 폭(room px)에 들어가는 가장 긴 이름표를 고른다 (긴 것 → 짧은 것 순서)
+  const fitLabel = (ctx, list, room, size = 14) => list.find((t) => Lab.measure(ctx, t, {size, w: 600}) <= room) || list[list.length - 1];
+
+  // ════════ 엘리베이터 ════════════════════════════════════
+  const D_EL = 6, FLOOR_M = 3, CAR_W = 1.8, CAR_H = 2.4, HOLD = 0.7, PEND_L = 0.8, SCALE_H = 0.16;
+  let RUN = M.phaseRun('upAcc', S.a, D_EL), TRIP = M.trip(S.a, D_EL);
+  function resetElev() {
+    TRIP = M.trip(S.a, D_EL);
+    RUN = S.ph === 'trip' ? null : M.phaseRun(S.ph, S.a, D_EL);
+    S.et = 0;
+  }
+  function elev() {          // 지금 칸의 높이 y(m), 속도 v, 가속도 ay (위 +), 구간 이름, 구간 시작부터 시각 tl
+    if (S.ph === 'trip') { const q = M.tripAt(TRIP, S.et); return {y: q.y, v: q.v, ay: q.ay, key: q.key, tl: q.t - q.seg.t0, t0: q.seg.t0}; }
+    const t = Math.min(S.et, RUN.T);
+    return {y: RUN.y(t), v: RUN.v(t), ay: RUN.ay, key: S.ph, tl: t, t0: 0, hold: S.et > RUN.T};
+  }
+  function stepElev(dt) {
+    if (S.ph === 'trip') { S.et += dt; if (S.et >= TRIP.T) S.et -= TRIP.T; stepPend(dt, elev().ay); return; }
+    const was = S.et > RUN.T;
+    S.et += dt;
+    if (S.et >= RUN.T + HOLD) S.et = 0;
+    if (!was) stepPend(dt, elev().ay);                 // 끝에서 멈춰 보이는 동안은 진자도 멈춘다
+  }
+  // 진자: 유효 중력 g + ay 로 흔들린다 (안에서 본 운동). 비교용 점선 진자는 정지한 엘리베이터(g)
+  function stepPend(dt, ay) {
+    const ge = G + ay, n = 8, h = dt / n, P = S.pd;
+    for (let i = 0; i < n; i++) {
+      if (ge > 0.05) P.w += -(ge / PEND_L) * Math.sin(P.th) * h; else P.w *= Math.exp(-5 * h);   // 무중력: 끈이 느슨해져 그대로 떠 있다(그림용)
+      P.th += P.w * h;
+      P.gw += -(G / PEND_L) * Math.sin(P.gth) * h; P.gth += P.gw * h;
+    }
+  }
+  function geoElev(W, H) {
+    const nar = W < 520, sx = Math.round(W * (nar ? 0.44 : 0.42)), top = 54, bot = BOT(H);
+    const kO = Math.max(8, Math.min((H - top - bot) / (D_EL + CAR_H + 0.9), (sx - (nar ? 74 : 110)) / (CAR_W + 0.6)));
+    const shX = nar ? sx * 0.55 : sx * 0.47;
+    const kI = Math.max(20, Math.min((H - 52 - bot) / (CAR_H + 0.3), (W - sx - (nar ? 26 : 120)) / (CAR_W + 0.3)));
+    const flY = H - bot - 0.14 * kI, ix = sx + (W - sx) / 2;
+    return {nar, W, H, sx, top, bot, kO, yG: H - bot, shX, kI, flY, ix};
+  }
+  function forceScale(g, N, Wt, Fi) {                // px / N: 무게가 적당한 길이, 가장 긴 쌓음이 칸 안에 들어가게
+    const L0 = Math.min(0.17 * g.H, 0.62 * g.kI), Lmax = 0.36 * g.H;
+    return Math.min(L0 / Math.max(1, Wt), Lmax / Math.max(1, N, Wt + Math.abs(Fi)));
+  }
+  function drawElev(ctx, W, H) {
+    const g = geoElev(W, H), st = elev(), ay = st.ay;
+    const N = M.normal(S.m, ay), Wt = S.m * G, Fi = M.inertial(S.m, ay), kF = forceScale(g, N, Wt, Fi);
+    drawElevOut(ctx, g, st, {N, Wt, Fi, kF});
+    drawElevIn(ctx, g, st, {N, Wt, Fi, kF});
+    Lab.line(ctx, [[g.sx, 0], [g.sx, H]], C.line, 1.5);
+    pill(ctx, g.nar ? '안 · 가속 좌표계' : '안 · 가속 좌표계 (함께 타고 봄)', g.sx + 12, 12);
+  }
+  // 밖: 건물(고정)과 움직이는 칸
+  function drawElevOut(ctx, g, st, F) {
+    const {sx, kO, yG, shX, nar} = g, Y = (m) => yG - m * kO;
+    const roof = D_EL + CAR_H + 0.6, bw = (CAR_W + 0.5) * kO, bx = shX - bw / 2, hw = (CAR_W / 2 + 0.08) * kO;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, sx, g.H); ctx.clip();
+    // 땅
+    ctx.fillStyle = Lab.alpha(C.ink, 0.08); ctx.fillRect(0, yG, sx, g.H - yG);
+    Lab.line(ctx, [[0, yG], [sx, yG]], C.muted, 1.6);
+    // 건물 벽과 승강로
+    ctx.fillStyle = Lab.alpha(C.ink, 0.035); ctx.fillRect(bx, Y(roof), bw, yG - Y(roof));
+    ctx.fillStyle = Lab.alpha(C.ink, 0.06); ctx.fillRect(shX - hw, Y(roof), 2 * hw, yG - Y(roof));
+    Lab.line(ctx, [[bx, yG], [bx, Y(roof)], [bx + bw, Y(roof)], [bx + bw, yG]], C.muted, 1.6);
+    for (let f = 0; f <= 2; f++) {
+      const y = Y(f * FLOOR_M);
+      Lab.line(ctx, [[bx, y], [shX - hw, y]], C.muted, 2.4); Lab.line(ctx, [[shX + hw, y], [bx + bw, y]], C.muted, 2.4);
+      text(ctx, (f + 1) + '층', 8, y - 11, {size: 13, w: 500, color: C.muted, align: 'left'});
+    }
+    // 도르래와 줄
+    const top = Y(st.y + CAR_H), pyY = Y(roof) + 0.32 * kO;
+    Lab.circle(ctx, shX, pyY, 0.22 * kO, {stroke: C.muted, width: 1.6});
+    Lab.line(ctx, [[shX, pyY], [shX, top]], C.muted, 1.4);
+    // 같은 시간 간격(0.25 s)의 칸 위치: 칸 왼쪽에 점
+    if (S.strobe) {
+      const tl = st.tl, cyOf = (y) => Y(y + CAR_H / 2);
+      for (let k = 0, t = 0; t <= tl + 1e-9 && k < 40; k++, t = k * 0.25) {
+        const y = S.ph === 'trip' ? M.tripAt(TRIP, st.t0 + t).y : RUN.y(t);
+        Lab.circle(ctx, shX - hw - 9, cyOf(y), 3.6, {fill: Lab.alpha(C.vel, 0.75)});
+      }
+    }
+    // 칸
+    const cb = Y(st.y), ct = Y(st.y + CAR_H);
+    ctx.save(); Lab.rrect(ctx, shX - CAR_W / 2 * kO, ct, CAR_W * kO, cb - ct, 3); ctx.fillStyle = C.paper; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.ink; ctx.stroke(); ctx.restore();
+    const sw = 0.6 * kO, sh = SCALE_H * kO, feet = cb - sh;
+    ctx.save(); ctx.fillStyle = Lab.alpha(C.copper, 0.35); ctx.fillRect(shX - sw / 2, feet, sw, sh); ctx.restore();
+    person(ctx, shX, feet, kO * 0.98);
+    if (S.ph === 'free') Lab.circle(ctx, shX - 0.55 * kO, Y(st.y + 1.3), Math.max(3, 0.1 * kO), {fill: C.copper});
+    if (S.pend) drawPendulum(ctx, shX - 0.55 * kO, ct + 2, kO, true);
+    // 칸의 속도·가속도 (오른쪽)
+    const ax = shX + CAR_W / 2 * kO + (nar ? 9 : 14), cy = (cb + ct) / 2;
+    if (Math.abs(st.v) > 0.05) {
+      const L = clamp(st.v * kO * 0.3, -0.3 * g.H, 0.3 * g.H);
+      Lab.arrow(ctx, ax, cy, ax, cy - L, C.vel, 2.8, 10);
+      text(ctx, 'v', ax + 8, cy - L * 0.55, {size: 14, w: 600, color: C.vel, align: 'left', halo: true});
+    }
+    if (Math.abs(st.ay) > 1e-9) {
+      const L = clamp(st.ay * kO * 0.45, -0.28 * g.H, 0.28 * g.H), x2 = ax + (nar ? 14 : 22);
+      Lab.arrow(ctx, x2, cy, x2, cy - L, C.acc, 3, 11);
+      text(ctx, 'a', x2 + 8, cy - L * 0.55, {size: 14, w: 600, color: C.acc, align: 'left', halo: true});
+    }
+    // 사람이 받는 합력 (밖에서 본 것: 실제 힘 N 과 mg 의 합 = ma). N·mg 하나하나는 관찰 1 의 장부에
+    if (S.forces) {
+      const yc = feet - 0.95 * kO * 0.98, net = F.N - F.Wt;
+      if (Math.abs(net) * F.kF > 1) farrow(ctx, shX, yc, 0, -net * F.kF, C.acc, nar ? 'ma' : '합력 ma', {align: 'right', lx: -0.3 * kO - 4, at: 0.5, w: 3.2});
+      Lab.circle(ctx, shX, yc, 3.2, {fill: C.ink});
+    }
+    // 눈금 (구리색)
+    Lab.tag(ctx, fmt(F.N, 0) + ' N', shX, cb + (nar ? 12 : 14), {size: 13, color: C.copper, border: C.copper});
+    ctx.restore();
+  }
+  // 안: 칸은 멈춰 있고 승강로 벽이 지나간다
+  function drawElevIn(ctx, g, st, F) {
+    const {sx, kI, flY, ix, nar, W, H} = g;
+    const cl = ix - CAR_W / 2 * kI, cr = ix + CAR_W / 2 * kI, ct = flY - CAR_H * kI;
+    ctx.save(); ctx.beginPath(); ctx.rect(sx, 0, W - sx, H); ctx.clip();
+    // 승강로 벽: 높이 h 인 무늬는 화면 flY − (h − y)·kI. 칸이 올라가면 벽이 아래로 지나간다
+    const yOf = (h) => flY - (h - st.y) * kI, h0 = st.y - (H - flY) / kI - 1, h1 = st.y + flY / kI + 1;
+    ctx.fillStyle = Lab.alpha(C.ink, 0.04); ctx.fillRect(sx, 0, W - sx, H);
+    for (let k = Math.ceil(h0 / 0.5); k * 0.5 <= h1; k++) Lab.line(ctx, [[sx, yOf(k * 0.5)], [W, yOf(k * 0.5)]], Lab.alpha(C.ink, 0.1), 1);
+    for (let f = Math.ceil(h0 / FLOOR_M); f * FLOOR_M <= h1; f++) {
+      const y = yOf(f * FLOOR_M);
+      ctx.fillStyle = Lab.alpha(C.ink, 0.13); ctx.fillRect(sx, y, W - sx, 0.22 * kI);
+      if (f >= 0 && f <= 3 && W - cr > 34) text(ctx, (f + 1) + '층', W - 6, y + 0.11 * kI, {size: 13, w: 500, color: C.muted, align: 'right'});
+    }
+    // 칸: 유리 뒷벽 + 테두리 + 바닥
+    ctx.fillStyle = Lab.alpha(C.paper, 0.78); ctx.fillRect(cl, ct, cr - cl, flY - ct);
+    ctx.fillStyle = Lab.alpha(C.ink, 0.16); ctx.fillRect(cl - 4, flY, cr - cl + 8, 0.14 * kI);
+    ctx.fillStyle = Lab.alpha(C.ink, 0.1); ctx.fillRect(cl - 4, ct - 0.08 * kI, cr - cl + 8, 0.08 * kI);
+    Lab.line(ctx, [[cl, flY], [cl, ct], [cr, ct], [cr, flY]], C.ink, 2.4);
+    Lab.line(ctx, [[cl + 4, flY - 0.95 * kI], [cr - 4, flY - 0.95 * kI]], Lab.alpha(C.muted, 0.6), 2);   // 손잡이 봉
+    // 진자 (켰을 때)
+    const px = S.pend ? ix + (nar ? 0.2 : 0.3) * kI : ix - (nar ? 0.2 : 0.08) * kI;
+    if (S.pend) drawPendulum(ctx, cl + 0.42 * kI, ct, kI, false);
+    // 체중계와 사람
+    const sw = 0.62 * kI, sh = SCALE_H * kI, feet = flY - sh;
+    person(ctx, px, feet, kI * 0.95);
+    ctx.save(); Lab.rrect(ctx, px - sw / 2, feet, sw, sh, 4); ctx.fillStyle = C['copper-soft']; ctx.fill(); ctx.lineWidth = 1.8; ctx.strokeStyle = C.copper; ctx.stroke(); ctx.restore();
+    text(ctx, fmt(F.N, 0) + ' N', px, feet + sh / 2 + 0.5, {size: clamp(sh * 0.85, 13, 17), w: 700, color: C.copper});
+    if (S.ph === 'free') {                                   // 놓은 공: 안에서는 그 자리에 떠 있다
+      const bxp = px - (nar ? 0.48 : 0.6) * kI, byp = flY - 1.15 * kI;
+      Lab.circle(ctx, bxp, byp, Math.max(4.5, 0.09 * kI), {fill: C.copper});
+      text(ctx, nar ? '떠 있음' : '떠 있는 공', bxp, byp + 0.09 * kI + 13, {size: 13, w: 600, color: C.copper, halo: true});
+    }
+    // 이 좌표계의 가속도 (엘리베이터의 가속도) — 왼쪽 위 구석
+    if (Math.abs(st.ay) > 1e-9) {
+      const x = Math.max(sx + 10, cl - (nar ? 13 : 30)), y = ct + 0.75 * kI, L = clamp(st.ay * kI * 0.1, -0.7 * kI, 0.7 * kI);
+      Lab.arrow(ctx, x, y + L / 2, x, y - L / 2, C.acc, 3, 11);
+      text(ctx, 'a', x, y + (L > 0 ? L / 2 + 12 : L / 2 - 12), {size: 14, w: 600, color: C.acc, halo: true});
+    }
+    // 사람에 작용하는 힘: N(위), mg(아래), 관성력(점선, 가속도 반대쪽) — 꼬리에 머리를 이어 붙여 합이 0 임을 보인다
+    if (S.forces) {
+      const yc = feet - 0.95 * kI * 0.95, Lw = F.Wt * F.kF, Ln = F.N * F.kF, Li = F.Fi * F.kF;   // Li > 0 이면 위로
+      const lx = 0.27 * kI + 6, room = W - (px + lx) - 4, sz = nar ? 13 : 14, n0 = (v) => fmt(v, 0);
+      const up = Li > 0.8;                                 // 관성력이 위로 (가벼워지는 쪽): N 끝에 이어 붙인다
+      if (Ln > 0.8) farrow(ctx, px, yc, 0, -Ln, C.force, fitLabel(ctx, ['N = ' + n0(F.N) + ' N', 'N ' + n0(F.N) + ' N', 'N'], room, sz), {lx, ly: up ? 12 : 8, size: sz});
+      farrow(ctx, px, yc, 0, Lw, C.force, fitLabel(ctx, ['mg = ' + n0(F.Wt) + ' N', 'mg ' + n0(F.Wt) + ' N', 'mg'], room, sz), {lx, at: 0.42, size: sz});
+      if (Math.abs(Li) > 0.8) {
+        const y0 = Li < 0 ? yc + Lw : yc - Ln;              // 아래 관성력은 mg 끝에서, 위 관성력은 N 끝에서
+        const lab = fitLabel(ctx, ['관성력 ma = ' + n0(Math.abs(F.Fi)) + ' N', '관성력 ' + n0(Math.abs(F.Fi)) + ' N', '관성력'], room, sz);
+        farrow(ctx, px, y0, 0, -Li, C.force, lab, up ? {dash: true, lx, ly: -6, size: sz} : {dash: true, lx, at: 0.5, ly: 2, size: sz});
+      }
+      Lab.circle(ctx, px, yc, 4.5, {fill: C.ink, stroke: C.paper, width: 1.5});
+    }
+    ctx.restore();
+  }
+  // 천장에 매단 진자: 실선 = 이 엘리베이터, 점선 = 정지한 엘리베이터의 같은 진자(안쪽 그림에서만)
+  function drawPendulum(ctx, x, y, k, small) {
+    const L = PEND_L * k, P = S.pd, r = Math.max(small ? 2.5 : 5, 0.07 * k);
+    if (!small) {
+      const gx = x + L * Math.sin(P.gth), gy = y + L * Math.cos(P.gth);
+      Lab.line(ctx, [[x, y], [gx, gy]], Lab.alpha(C.muted, 0.8), 1.4, [5, 4]);
+      Lab.circle(ctx, gx, gy, r, {stroke: C.muted, width: 1.6});
+    }
+    const bx = x + L * Math.sin(P.th), by = y + L * Math.cos(P.th);
+    Lab.line(ctx, [[x, y], [bx, by]], C.ink, small ? 1.2 : 1.8);
+    Lab.circle(ctx, bx, by, r, {fill: C.copper});
+    Lab.circle(ctx, x, y, small ? 1.5 : 3, {fill: C.ink});
+  }
+
+  // ════════ 버스 ═════════════════════════════════════════
+  // 버스 좌표: u = 뒤끝에서 앞으로(m), h = 길에서 위로(m)
+  const BUS_L = 9, BUS_H = 3.0, FLOOR = 0.62, CEIL = 2.72, D_BUS = 8, BUS_V = 6, HOLD_B = 0.8;
+  const STRAP_U = 5.7, STRAP_L = 1.0, DROP_U = 3.4, DROP_H = 1.8, BALL_R = 0.2, DR = 0.12, REAR_U = 0.5, FRONT_U = BUS_L - 1.45;   // DR = 놓은 공 반지름 (공의 아래 끝이 1.8 m 를 떨어진다)
+  function busRun(ph, a) {   // {T, x(t), v(t), ax(t)}: x = 출발점에서 버스가 간 거리
+    const rest = {T: 2, x: () => 0, v: () => 0, ax: () => 0};
+    if (ph === 'const') return {T: D_BUS / BUS_V, x: (t) => BUS_V * t, v: () => BUS_V, ax: () => 0};
+    if (!(a > 1e-9)) return rest;
+    if (ph === 'start') return {T: Math.sqrt(2 * D_BUS / a), x: (t) => 0.5 * a * t * t, v: (t) => a * t, ax: () => a};
+    if (ph === 'brake') { const v0 = Math.sqrt(2 * a * D_BUS); return {T: v0 / a, x: (t) => v0 * t - 0.5 * a * t * t, v: (t) => v0 - a * t, ax: () => -a}; }
+    // 한 번 운행: 정지 → 가속 → 등속 → 감속 → 정지 (각 D/3)
+    const d = D_BUS / 3, vm = Math.sqrt(2 * a * d), ta = vm / a, tc = d / vm, R0 = 0.5;
+    const segs = [[R0, 0, 0, 0], [ta, 0, 0, a], [tc, d, vm, 0], [ta, 2 * d, vm, -a], [R0, D_BUS, 0, 0]];
+    let t0 = 0; const S2 = segs.map(([dur, x0, v0, ax]) => { const s = {t0, t1: t0 + dur, x0, v0, ax}; t0 += dur; return s; });
+    const seg = (t) => S2.find((s) => t < s.t1) || S2[S2.length - 1];
+    return {T: t0, x: (t) => { const s = seg(t), u = Math.min(t, s.t1) - s.t0; return s.x0 + s.v0 * u + 0.5 * s.ax * u * u; },
+      v: (t) => { const s = seg(t), u = Math.min(t, s.t1) - s.t0; return s.v0 + s.ax * u; }, ax: (t) => seg(t).ax};
+  }
+  let BRUN = busRun(S.bph, S.ba);
+  function busNow() { const t = Math.min(S.bt, BRUN.T); return {t, x: BRUN.x(t), v: BRUN.v(t), ax: BRUN.ax(Math.min(t, BRUN.T - 1e-9)), hold: S.bt > BRUN.T}; }
+  function resetBus() {
+    BRUN = busRun(S.bph, S.ba); S.bt = 0;
+    const v0 = BRUN.v(0);
+    S.strap = {th: 0, w: 0};                             // 출발 전에는 멈춰 있거나 등속 → 손잡이는 연직
+    S.ballU0 = (S.bph === 'brake' ? 0.3 : 0.62) * BUS_L;
+    S.ball = {X: BRUN.x(0) + S.ballU0, V: v0};
+    S.drop = null;
+  }
+  function releaseDrop() {
+    const b = busNow();
+    S.drop = {tr: b.t, X0: b.x + DROP_U, V0: b.v, land: null, pts: []};
+  }
+  function stepBus(dt) {
+    const was = S.bt > BRUN.T;
+    S.bt += dt;
+    if (S.bt >= BRUN.T + HOLD_B) { resetBus(); return; }
+    if (was) return;                                   // 끝에서 멈춰 보이는 동안
+    const b = busNow();
+    // 손잡이: 버스 안에서 보면 g − a 방향(tan θ_eq = a/g)으로 금방 기울어 멈춘다 (흔들림은 빨리 잦아들게 그림)
+    const eq = Math.atan2(b.ax, G), Om = 11, z = 0.62, n = 6, h = dt / n;
+    for (let i = 0; i < n; i++) { S.strap.w += (-Om * Om * (S.strap.th - eq) - 2 * z * Om * S.strap.w) * h; S.strap.th += S.strap.w * h; }
+    // 바닥의 공 (마찰 없음): 땅에서 보면 힘을 받지 않아 그대로. 버스 벽에 닿으면 벽이 밀어 함께 간다
+    const B = S.ball; B.X += B.V * dt;
+    if (B.X - b.x < REAR_U + BALL_R) { B.X = b.x + REAR_U + BALL_R; if (B.V < b.v) B.V = b.v; }
+    if (B.X - b.x > FRONT_U - BALL_R) { B.X = b.x + FRONT_U - BALL_R; if (B.V > b.v) B.V = b.v; }
+    // 놓은 공: 땅에서 보면 놓는 순간의 버스 속도로 수평 등속 + 자유 낙하
+    if (S.autoDrop && !S.drop && b.t >= 0.2) releaseDrop();
+    const d = S.drop;
+    if (d && !d.land) {
+      const s = b.t - d.tr, hgt = DROP_H - 0.5 * G * s * s;
+      if (hgt <= 0) { const sl = Math.sqrt(2 * DROP_H / G); d.land = {s: sl, u: d.X0 + d.V0 * sl - BRUN.x(d.tr + sl)}; }
+    }
+  }
+  function dropAt(d, s) {         // 놓은 뒤 s 초: 땅에서의 X, 버스 바닥에서 높이 hh, 버스 안 위치 u (바닥에 닿은 뒤에는 버스와 함께)
+    if (d.land && s >= d.land.s) return {X: BRUN.x(Math.min(d.tr + s, BRUN.T)) + d.land.u, hh: 0, u: d.land.u};
+    const X = d.X0 + d.V0 * s, hh = Math.max(0, DROP_H - 0.5 * G * s * s);
+    return {X, hh, u: X - BRUN.x(Math.min(d.tr + s, BRUN.T))};
+  }
+  function geoBus(W, H) {
+    const nar = W < 520, bot = BOT(H), side = W / H > 2.3;     // side: 아주 납작한 무대 → 밖 | 안 을 좌우로
+    if (side) {
+      const pw = W / 2, kO = Math.min((pw - 16) / (BUS_L + D_BUS + 1.4), (H - 48 - bot - 14) / (BUS_H + 0.15));
+      const kI = Math.min((pw - 20) / (BUS_L + 0.3), (H - 48 - bot - 8) / (BUS_H + 0.3));
+      return {nar, W, H, side, pw, h2: H, kO, roadO: H - bot - 10, x0O: 8 + 0.5 * kO, kI, roadI: H - bot - 4, xI: pw + pw / 2 - BUS_L / 2 * kI};
+    }
+    const h2 = Math.round(H * 0.42);
+    const kO = Math.min((W - 16) / (BUS_L + D_BUS + 1.4), (h2 - 48 - (nar ? 14 : 20)) / (BUS_H + 0.15));
+    const roadO = h2 - (nar ? 13 : 20), x0O = 8 + 0.5 * kO;
+    const kI = Math.min((W - 20) / (BUS_L + 0.3), (H - h2 - 46 - bot) / (BUS_H + 0.3));
+    const roadI = H - bot - 4, xI = W / 2 - BUS_L / 2 * kI;
+    return {nar, W, H, side, pw: W, h2, kO, roadO, x0O, kI, roadI, xI};
+  }
+  function drawBusScene(ctx, W, H) {
+    const g = geoBus(W, H), b = busNow();
+    // 위(또는 왼쪽) 칸: 밖 (길과 나무는 고정, 버스가 움직인다)
+    const oW = g.side ? g.pw : W;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, oW, g.h2); ctx.clip();
+    const XO = (X) => g.x0O + X * g.kO;
+    scenery(ctx, XO, g.kO, g.roadO, g.h2, oW);
+    if (S.strobe) {                                     // 같은 시간 간격(0.25 s)의 버스 앞끝 위치
+      for (let k = 0, t = 0; t <= b.t + 1e-9 && k < 60; k++, t = k * 0.25) Lab.circle(ctx, XO(BRUN.x(t) + BUS_L), g.roadO + 5, 3.4, {fill: Lab.alpha(C.vel, 0.8)});
+    }
+    drawBus(ctx, (u, h) => [XO(b.x + u), g.roadO - h * g.kO], g.kO, b, 'out', g);
+    ctx.restore();
+    if (g.side) Lab.line(ctx, [[g.pw, 0], [g.pw, H]], C.line, 1.5); else Lab.line(ctx, [[0, g.h2], [W, g.h2]], C.line, 1.5);
+    // 아래(또는 오른쪽) 칸: 안 (버스는 멈춰 있고 길과 나무가 뒤로 지나간다)
+    const ix0 = g.side ? g.pw : 0, iy0 = g.side ? 0 : g.h2;
+    ctx.save(); ctx.beginPath(); ctx.rect(ix0, iy0, W - ix0, H - iy0); ctx.clip();
+    const XI = (X) => g.xI + (X - b.x) * g.kI;
+    ctx.save(); ctx.translate(ix0, 0); scenery(ctx, (X) => XI(X) - ix0, g.kI, g.roadI, H, W - ix0); ctx.restore();
+    drawBus(ctx, (u, h) => [g.xI + u * g.kI, g.roadI - h * g.kI], g.kI, b, 'in', g);
+    ctx.restore();
+    pill(ctx, g.nar || g.side ? '안 · 가속 좌표계' : '안 · 가속 좌표계 (버스와 함께 봄)', ix0 + 12, iy0 + (g.side ? 12 : 10));
+  }
+  // 길·차선·나무: X(땅 위 위치 m) → 화면 x
+  function scenery(ctx, X, k, roadY, yBot, W) {
+    ctx.fillStyle = Lab.alpha(C.ink, 0.1); ctx.fillRect(0, roadY, W, yBot - roadY);
+    Lab.line(ctx, [[0, roadY], [W, roadY]], C.muted, 1.4);
+    const Xa = (0 - X(0)) / k - 2, Xb = (W - X(0)) / k + 2;
+    for (let n = Math.floor(Xa / 3); n * 3 <= Xb; n++) { const x = X(n * 3); Lab.line(ctx, [[x, roadY + 6], [x + 1.4 * k, roadY + 6]], Lab.alpha(C.muted, 0.6), 2.4); }
+    for (let n = Math.floor((Xa - 3) / 7); n * 7 + 3 <= Xb + 3; n++) {
+      const x = X(n * 7 + 3), r = 0.95 * k;
+      ctx.fillStyle = Lab.alpha(C.muted, 0.45); ctx.fillRect(x - 0.08 * k, roadY - 2.2 * k, 0.16 * k, 2.2 * k);
+      Lab.circle(ctx, x, roadY - 2.75 * k, r, {fill: Lab.alpha(C.acc, 0.22), stroke: Lab.alpha(C.acc, 0.45), width: 1.2});
+    }
+  }
+  function drawBus(ctx, P, k, b, view, g) {
+    const big = view === 'in', lab = big || k > 26;
+    const [x0, yT] = P(0, BUS_H), [x1, yB] = P(BUS_L, 0.3);
+    // 차체 (옆면을 걷어 낸 그림)
+    ctx.save(); Lab.rrect(ctx, x0, yT, x1 - x0, yB - yT, 0.38 * k); ctx.fillStyle = Lab.alpha(C.paper, 0.9); ctx.fill(); ctx.lineWidth = 2.2; ctx.strokeStyle = C.ink; ctx.stroke(); ctx.restore();
+    const [wx0, wy0] = P(0.35, 2.58), [wx1, wy1] = P(BUS_L - 1.35, 1.5);
+    ctx.fillStyle = Lab.alpha(C.vel, 0.08); ctx.fillRect(wx0, wy0, wx1 - wx0, wy1 - wy0);
+    for (let u = 0.35; u <= BUS_L - 1.3; u += 1.75) { const [px, py0] = P(u, 2.58), [, py1] = P(u, 1.5); Lab.line(ctx, [[px, py0], [px, py1]], Lab.alpha(C.muted, 0.45), 1.4); }
+    const [fx0, fy0] = P(BUS_L - 1.2, 2.62), [fx1, fy1] = P(BUS_L - 0.12, 1.25);
+    ctx.fillStyle = Lab.alpha(C.vel, 0.12); ctx.fillRect(fx0, fy0, fx1 - fx0, fy1 - fy0);
+    Lab.line(ctx, [P(REAR_U, FLOOR), P(FRONT_U, FLOOR)], C.muted, 2.2);                 // 바닥
+    Lab.line(ctx, [P(REAR_U, CEIL), P(FRONT_U, CEIL)], Lab.alpha(C.muted, 0.7), 1.6);   // 천장 봉
+    Lab.line(ctx, [P(FRONT_U, FLOOR), P(FRONT_U, 2.1)], Lab.alpha(C.muted, 0.7), 1.6);  // 운전석 칸막이
+    // 바퀴 (굴러간 거리만큼 돈다)
+    for (const u of [1.75, BUS_L - 2.05]) {
+      const [cx, cy] = P(u, 0.5), r = 0.5 * k, ang = (b.x + u) / 0.5;
+      Lab.circle(ctx, cx, cy, r, {fill: C.ink});
+      Lab.circle(ctx, cx, cy, r * 0.45, {fill: C.paper});
+      for (let i = 0; i < 3; i++) { const a = ang + i * TAU / 3; Lab.line(ctx, [[cx, cy], [cx + Math.cos(a) * r * 0.42, cy + Math.sin(a) * r * 0.42]], C.ink, 1.4); }
+    }
+    // 유효 중력 방향(g − a): 손잡이 매단 점에서 바닥까지 (안에서만)
+    const [sx, sy] = P(STRAP_U, CEIL), ax = b.ax;
+    const geu = [-ax, -G], gl = Math.hypot(geu[0], geu[1]);
+    if (big && Math.abs(ax) > 1e-9) {
+      const s = (CEIL - FLOOR) / (G / gl);
+      Lab.line(ctx, [P(STRAP_U, CEIL), P(STRAP_U + geu[0] / gl * s, FLOOR)], Lab.alpha(C.violet, 0.75), 1.8, [7, 5]);
+      Lab.line(ctx, [P(STRAP_U, CEIL), P(STRAP_U, FLOOR)], Lab.alpha(C.muted, 0.55), 1.2, [3, 4]);
+    }
+    // 손잡이 (매단 점 → 고리)
+    const th = S.strap.th, bu = STRAP_U - STRAP_L * Math.sin(th), bh = CEIL - STRAP_L * Math.cos(th);
+    const [bx, by] = P(bu, bh), rr = Math.max(3, 0.13 * k);
+    Lab.line(ctx, [[sx, sy], [bx, by]], C.ink, big ? 2.4 : 1.6);
+    Lab.circle(ctx, bx, by + rr * 0.7, rr, {stroke: C.copper, width: big ? 3.2 : 2});
+    Lab.circle(ctx, sx, sy, big ? 3.5 : 2, {fill: C.ink});
+    if (big && Math.abs(th) > 0.02) {
+      const a0 = Math.PI / 2, a1 = Math.PI / 2 + th, R = 0.45 * k;
+      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(sx, sy, R, Math.min(a0, a1), Math.max(a0, a1)); ctx.stroke(); ctx.restore();
+      text(ctx, 'θ', sx - Math.sin(th / 2) * (R + 12), sy + Math.cos(th / 2) * (R + 12), {size: 14, w: 600, color: C.copper, halo: true});
+    }
+    // 손잡이 고리에 작용하는 힘: 밖 = 장력·중력·합력(초록), 안 = 장력·중력·관성력(점선)
+    if (S.forces && Math.abs(ax) <= 10.01) {
+      const L0 = (big ? 0.95 : 0.85) * k, f = M.bobForces(1, ax), c = [bx, by + rr * 0.7];
+      const Tx = f.Tv[0] / G * L0, Ty = f.Tv[1] / G * L0;
+      farrow(ctx, c[0], c[1], Tx, -Ty, C.force, big ? 'T' : '', {lx: 7, ly: -2, at: 0.62, w: big ? 3 : 2.2, head: big ? 11 : 8});
+      farrow(ctx, c[0], c[1], 0, L0, C.force, big ? 'mg' : '', {lx: 7, at: 0.5, w: big ? 3 : 2.2, head: big ? 11 : 8});
+      const Lx = ax / G * L0;
+      if (view === 'out') { if (Math.abs(Lx) > 1) farrow(ctx, c[0], c[1], Lx, 0, C.acc, lab ? (g.nar ? 'ma' : '합력 ma') : '', {lx: Lx > 0 ? 6 : -6, align: Lx > 0 ? 'left' : 'right', w: big ? 3 : 2.4, head: big ? 11 : 8}); }
+      else if (Math.abs(Lx) > 1) farrow(ctx, c[0], c[1], -Lx, 0, C.force, g.nar ? '관성력' : '관성력 ma', {dash: true, lx: Lx > 0 ? -6 : 6, align: Lx > 0 ? 'right' : 'left'});
+    }
+    // 바닥의 공 (마찰 없음)
+    const B = S.ball, [qx, qy] = P(B.X - b.x, FLOOR + BALL_R);
+    Lab.circle(ctx, qx, qy, BALL_R * k, {fill: C.vel, stroke: C.paper, width: 1.2});
+    if (big && !g.nar && Math.abs(B.X - b.x - S.ballU0) < 0.6) text(ctx, '공 (마찰 없음)', qx, qy - BALL_R * k - 12, {size: 13, w: 500, color: C.vel, halo: true});   // 움직이기 전에만
+    // 천장 가까이에서 놓는 공: 놓는 점 표시 + 떨어지는 공 + 같은 시간 간격 위치
+    const [hx, hy] = P(DROP_U, FLOOR + DROP_H + 2 * DR);
+    if (S.autoDrop || S.drop) { Lab.line(ctx, [P(DROP_U, CEIL), [hx, hy - 4]], Lab.alpha(C.muted, 0.8), 1.4); Lab.line(ctx, [[hx - 5, hy - 5], [hx + 5, hy - 5]], C.muted, 2); }
+    const d = S.drop;
+    if (d) {
+      const s = Math.max(0, b.t - d.tr), sEnd = d.land ? Math.min(s, d.land.s) : s;
+      if (S.strobe) {
+        for (let q = 0; q <= sEnd - 0.02; q += 0.1) {
+          const p = dropAt(d, q), pt = view === 'out' ? [P(p.X - b.x, 0)[0], P(0, FLOOR + DR + p.hh)[1]] : P(p.u, FLOOR + DR + p.hh);
+          Lab.circle(ctx, pt[0], pt[1], big ? 4.2 : 3, {fill: Lab.alpha(C.copper, 0.55)});
+        }
+      }
+      const p = dropAt(d, s), pt = view === 'out' ? [P(p.X - b.x, 0)[0], P(0, FLOOR + DR + p.hh)[1]] : P(p.u, FLOOR + DR + p.hh);
+      Lab.circle(ctx, pt[0], pt[1], Math.max(3.5, DR * k), {fill: C.copper, stroke: C.paper, width: 1.2});
+      if (d.land) {                                     // 떨어진 곳: 놓은 점 바로 아래와의 거리
+        const [lx] = P(d.land.u, FLOOR), [ux0] = P(DROP_U, FLOOR), yy = P(0, FLOOR)[1];
+        Lab.line(ctx, [[ux0, yy - 6], [ux0, yy + 6]], C.muted, 1.6);
+        if (big && Math.abs(lx - ux0) > 8) {
+          Lab.bracket(ctx, Math.min(lx, ux0), Math.max(lx, ux0), yy + 0.3 * k, C.copper, fmt(Math.abs(DROP_U - d.land.u), 2) + ' m', false);
+        }
+      }
+    }
+    // 버스의 가속도(초록)·속도(파랑): 지붕 위
+    const [rx, ry] = P(BUS_L * 0.5, BUS_H + 0.45);
+    if (Math.abs(ax) > 1e-9) {
+      const L = clamp(ax * k * 0.16, -2.2 * k, 2.2 * k);
+      Lab.arrow(ctx, rx - L / 2, ry, rx + L / 2, ry, C.acc, 3, 11);
+      if (lab) text(ctx, 'a', rx + L / 2 + (L > 0 ? 9 : -9), ry, {size: 14, w: 600, color: C.acc, halo: true});
+    }
+    if (view === 'out' && Math.abs(b.v) > 0.05) {
+      const [vx, vy] = P(BUS_L * 0.84, BUS_H + 0.45), L = clamp(b.v * k * 0.12, 0, 2.6 * k);
+      Lab.arrow(ctx, vx - L / 2, vy, vx + L / 2, vy, C.vel, 2.8, 10);
+      if (lab) text(ctx, 'v', vx + L / 2 + 9, vy, {size: 14, w: 600, color: C.vel, halo: true});
+    }
+  }
+
+  // ════════ 회전 우주선 ══════════════════════════════════
+  const PERS = 0.28, HAND = 0.8;                      // 사람 키 / 반지름 (크게 과장), 손 높이 / 키
+  const R0 = 1 - HAND * PERS;                         // 공을 놓는 곳의 반지름 (우주선 반지름 = 1)
+  const STARS = (() => { let s = 7; const r = () => (s = (s * 16807) % 2147483647) / 2147483647; return Array.from({length: 70}, () => [r() * 2 - 1, r() * 2 - 1, r()]); })();
+  function geoStn(W, H) {
+    const nar = W < 520, sx = Math.round(W / 2), top = 52, bot = BOT(H);
+    const Ro = Math.max(30, Math.min(sx - 22, H - top - bot - 14) / 2 * 0.9), cyO = top + (H - top - bot) / 2 + 2;
+    const Ri = Math.max(40, Math.min(sx * 0.95, (H - top - bot) * 0.78)), cyI = H - bot - 10 - Ri;
+    return {nar, W, H, sx, Ro, cyO, cxO: sx / 2, Ri, cyI, cxI: sx + sx / 2, bot};
+  }
+  function ring(ctx, cx, cy, R, rot, clipX0, clipX1) {
+    ctx.save(); ctx.beginPath(); ctx.rect(clipX0, 0, clipX1 - clipX0, stage.H); ctx.clip();
+    ctx.lineWidth = Math.max(5, R * 0.07); ctx.strokeStyle = Lab.alpha(C.ink, 0.55);
+    ctx.beginPath(); ctx.arc(cx, cy, R + ctx.lineWidth / 2, 0, TAU); ctx.stroke();
+    for (let i = 0; i < 4; i++) { const a = rot + i * Math.PI / 2; Lab.line(ctx, [[cx + Math.cos(a) * R * 0.13, cy - Math.sin(a) * R * 0.13], [cx + Math.cos(a) * R, cy - Math.sin(a) * R]], Lab.alpha(C.ink, 0.3), Math.max(2, R * 0.025)); }
+    Lab.circle(ctx, cx, cy, R * 0.13, {fill: Lab.alpha(C.ink, 0.12), stroke: Lab.alpha(C.ink, 0.5), width: 1.6});
+    ctx.restore();
+  }
+  function stars(ctx, cx, cy, R, rot, x0, x1, H) {
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, 0, x1 - x0, H); ctx.clip();
+    ctx.fillStyle = Lab.alpha(C.ink, 0.05); ctx.fillRect(x0, 0, x1 - x0, H);
+    const c = Math.cos(rot), s = Math.sin(rot), Rs = Math.hypot(x1 - x0, H);
+    for (const [u, v, b] of STARS) {
+      const x = cx + (u * c - v * s) * Rs, y = cy - (u * s + v * c) * Rs;
+      Lab.circle(ctx, x, y, 1 + b * 1.3, {fill: Lab.alpha(C.muted, 0.35 + 0.4 * b)});
+    }
+    ctx.restore();
+  }
+  function drawStn(ctx, W, H) {
+    const g = geoStn(W, H), w = S.w, t = S.st, gA = M.artificialG(S.R, w);
+    const L0 = Math.min(0.17 * H, 0.42 * g.Ro);      // 인공 중력 10 m/s² 일 때 힘 화살표 길이(밖)
+    // ── 밖: 별은 고정, 우주선이 돈다
+    const ang = w * t, phi = -Math.PI / 2 + ang, O = [g.cxO, g.cyO], Ro = g.Ro;
+    const sc = (p, R, c) => [c[0] + p[0] * R, c[1] - p[1] * R];
+    stars(ctx, O[0], O[1], Ro, 0, 0, g.sx, H);
+    ring(ctx, O[0], O[1], Ro, ang, 0, g.sx);
+    if (S.strobe) for (let k = 1; k <= 7; k++) { const a = phi - k * 0.55 * w; Lab.circle(ctx, O[0] + Math.cos(a) * Ro * 0.96, O[1] - Math.sin(a) * Ro * 0.96, 3, {fill: Lab.alpha(C.vel, 0.75 - k * 0.08)}); }
+    const feetO = sc([Math.cos(phi), Math.sin(phi)], Ro, O), rotO = Math.atan2(-Math.cos(phi), -Math.sin(phi));
+    person(ctx, feetO[0], feetO[1], Ro * PERS / 1.65, {rot: rotO});
+    const cO = sc([Math.cos(phi) * (1 - PERS / 2), Math.sin(phi) * (1 - PERS / 2)], Ro, O);
+    if (S.forces) {
+      const Ln = L0 * gA / G;
+      farrow(ctx, cO[0], cO[1], -Math.cos(phi) * Ln, Math.sin(phi) * Ln, C.force, 'N', {lx: 6, ly: -6});
+      const Lv = Math.min(0.5 * Ro, 18 + w * Ro * 0.9);
+      Lab.arrow(ctx, cO[0], cO[1], cO[0] - Math.sin(phi) * Lv, cO[1] - Math.cos(phi) * Lv, C.vel, 2.6, 10);
+      text(ctx, 'v', cO[0] - Math.sin(phi) * (Lv + 10), cO[1] - Math.cos(phi) * (Lv + 10), {size: 14, w: 600, color: C.vel, halo: true});
+    }
+    // ── 안: 우주선은 멈춰 있고 별이 거꾸로 돈다 (아랫부분을 크게)
+    const I = [g.cxI, g.cyI], Ri = g.Ri;
+    stars(ctx, I[0], I[1], Ri, -ang, g.sx, W, H);
+    ring(ctx, I[0], I[1], Ri, 0, g.sx, W);
+    const feetI = [I[0], I[1] + Ri], kI = Ri * PERS / 1.65;
+    ctx.save(); ctx.beginPath(); ctx.rect(g.sx, 0, W - g.sx, H); ctx.clip();
+    person(ctx, feetI[0], feetI[1], kI);
+    const cI = [feetI[0], feetI[1] - 0.95 * kI];
+    if (S.forces) {
+      const Ln = Math.min(0.2 * H, 0.95 * kI * 1.68) * gA / G;
+      farrow(ctx, cI[0], cI[1], 0, -Ln, C.force, 'N', {lx: 0.3 * kI + 6, ly: 8});
+      farrow(ctx, cI[0], cI[1], 0, Ln, C.force, g.nar ? '원심력' : '원심력 mrω²', {dash: true, lx: 0.3 * kI + 6, at: 0.6});
+      Lab.circle(ctx, cI[0], cI[1], 4, {fill: C.ink, stroke: C.paper, width: 1.5});
+    }
+    // 인공 중력 방향 (보라)
+    const gx = g.cxI - Math.min(0.62 * Ri, (W - g.sx) * 0.36), gy0 = feetI[1] - 1.05 * kI;
+    if (gx > g.sx + 14) {
+      Lab.arrow(ctx, gx, gy0, gx, gy0 + Math.min(0.9 * kI, 50), C.violet, 3, 11);
+      text(ctx, '인공 중력', gx + 8, gy0 + 6, {size: 13, w: 600, color: C.violet, align: 'left', halo: true});
+    }
+    ctx.restore();
+    // ── 놓은 공
+    const d = S.sdrop;
+    if (d) {
+      const s = Math.max(0, t - d.t0), dd = d.calc, sEnd = Math.min(s, dd.t);
+      const phi0 = d.phi0;
+      // 밖: 놓은 순간 사람의 각 phi0 에서 직선. dd 는 phi0 = −90° 기준이므로 phi0 + 90° 만큼 돌려 그린다
+      const rotP = (p, a) => [p[0] * Math.cos(a) - p[1] * Math.sin(a), p[0] * Math.sin(a) + p[1] * Math.cos(a)];
+      const A = phi0 + Math.PI / 2, oPt = (q) => sc(rotP(dd.at(q).out, A), Ro, O), iPt = (q) => sc(dd.at(q).rot, Ri, I);
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, g.sx, H); ctx.clip();
+      const e0 = oPt(0), e1 = oPt(dd.t);
+      Lab.line(ctx, [e0, e1], Lab.alpha(C.copper, 0.6), 1.4, [5, 4]);
+      if (S.strobe) for (let q = 0; q <= sEnd + 1e-9; q += 0.15) { const p = oPt(q); Lab.circle(ctx, p[0], p[1], 2.8, {fill: Lab.alpha(C.copper, 0.55)}); }
+      let po = oPt(sEnd);
+      if (s > dd.t) { const a = (s - dd.t) * w, p = rotP(dd.at(dd.t).out, A); po = sc(rotP(p, a), Ro, O); }   // 바닥에 닿은 뒤에는 바닥과 함께 돈다
+      Lab.circle(ctx, po[0], po[1], 4.2, {fill: C.copper, stroke: C.paper, width: 1.2});
+      ctx.restore();
+      ctx.save(); ctx.beginPath(); ctx.rect(g.sx, 0, W - g.sx, H); ctx.clip();
+      if (S.strobe) for (let q = 0; q <= sEnd + 1e-9; q += 0.15) { const p = iPt(q); Lab.circle(ctx, p[0], p[1], 3.6, {fill: Lab.alpha(C.copper, 0.55)}); }
+      const pi = iPt(sEnd);
+      Lab.circle(ctx, pi[0], pi[1], Math.max(4.5, 0.12 * kI), {fill: C.copper, stroke: C.paper, width: 1.2});
+      if (s >= dd.t) { const pl = iPt(dd.t); Lab.line(ctx, [[feetI[0], feetI[1] - 5], [feetI[0], feetI[1] + 5]], C.muted, 1.6); Lab.line(ctx, [[pl[0] - 5, pl[1] - 5], [pl[0] + 5, pl[1] + 5]], C.copper, 2); Lab.line(ctx, [[pl[0] - 5, pl[1] + 5], [pl[0] + 5, pl[1] - 5]], C.copper, 2); }
+      ctx.restore();
+    }
+    Lab.line(ctx, [[g.sx, 0], [g.sx, H]], C.line, 1.5);
+    pill(ctx, g.nar ? '안 · 회전 좌표계' : '안 · 회전 좌표계 (함께 돌며 봄)', g.sx + 12, 12);
+    if (!g.nar) text(ctx, '(사람 크기는 크게 과장)', g.sx - 10, H - g.bot - 8, {size: 13, w: 500, color: C.muted, align: 'right'});
+  }
+  function dropStn() {
+    const phi0 = -Math.PI / 2 + S.w * S.st;
+    S.sdrop = {t0: S.st, phi0, calc: M.stationDrop(1, R0, S.w)};
+  }
+  function stepStn(dt) {
+    S.st += dt;
+    if (S.sAuto && (!S.sdrop || S.st - S.sdrop.t0 > S.sdrop.calc.t + 2.2)) dropStn();
+    if (!S.sAuto && S.sdrop && S.st - S.sdrop.t0 > S.sdrop.calc.t + 3) S.sdrop = null;
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    if (S.scene === 'elev') drawElev(ctx, W, H);
+    else if (S.scene === 'bus') drawBusScene(ctx, W, H);
+    else drawStn(ctx, W, H);
+  }
+
+  // ── 관찰 1: 두 관찰자의 힘 장부 ────────────────────────
+  const fb = Lab.canvas('fb', drawFB);
+  function elevKey() { return S.ph === 'trip' ? M.tripAt(TRIP, S.et).key : S.ph; }
+  function drawFB() {
+    const {ctx, W, H} = fb; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, ay = M.accelOf(elevKey(), S.a), m = S.m;
+    const v = M.elevatorViews(m, ay), N = v.N, Wt = v.W, Fi = v.Fi, net = N - Wt;
+    const cols = [W * 0.25, W * 0.75], yc = H * 0.5, k = (H * 0.31) / Math.max(N, Wt, Wt + Math.abs(Fi) * (Fi < 0 ? 1 : 0), N + (Fi > 0 ? Fi : 0));
+    Lab.line(ctx, [[W / 2, 8], [W / 2, H - 8]], C.line, 1);
+    text(ctx, '밖 · 실제 힘만', cols[0], 14, {size: 14, w: 600});
+    text(ctx, '안 · 관성력을 더함', cols[1], 14, {size: 14, w: 600});
+    const lab = (s, x, y, col, al) => text(ctx, s, x, y, {size: 13, w: 600, color: col, align: al || 'left', halo: true});
+    const u = (n) => fmt(n, 0) + ' N';
+    // 밖
+    let x = cols[0];
+    if (N > 0) { Lab.arrow(ctx, x, yc, x, yc - N * k, C.force, 3, 10); lab('N ' + u(N), x + 8, yc - N * k + 6, C.force); }
+    Lab.arrow(ctx, x, yc, x, yc + Wt * k, C.force, 3, 10); lab('mg ' + u(Wt), x + 8, yc + Wt * k - 6, C.force);
+    if (Math.abs(net) * k > 1) { Lab.arrow(ctx, x - 22, yc, x - 22, yc - net * k, C.acc, 3.4, 10); lab('합력', x - 30, yc - net * k * 0.5, C.acc, 'right'); }
+    Lab.circle(ctx, x, yc, 5, {fill: C.ink});
+    // 안
+    x = cols[1];
+    if (N > 0) { Lab.arrow(ctx, x, yc, x, yc - N * k, C.force, 3, 10); lab('N ' + u(N), x + 8, yc - N * k + 6, C.force); }
+    Lab.arrow(ctx, x, yc, x, yc + Wt * k, C.force, 3, 10); lab('mg ' + u(Wt), x + 8, yc + Wt * k * 0.45, C.force);
+    if (Math.abs(Fi) * k > 0.8) {
+      const y0 = Fi < 0 ? yc + Wt * k : yc - N * k;
+      darrow(ctx, x, y0, x, y0 - Fi * k, C.force, 2.6, 10);
+      lab((nar ? '관성력 ' : '관성력 ma ') + u(Math.abs(Fi)), x + 8, y0 - Fi * k * 0.5 + (Fi < 0 ? 4 : -4), C.force);
+    }
+    Lab.circle(ctx, x, yc, 5, {fill: C.ink});
+    // 식
+    const yE = H - 30, a = fmt(Math.abs(ay), 2);
+    text(ctx, 'N − mg = ma', cols[0], yE, {size: 14, w: 600, color: C.acc});
+    text(ctx, fmt(N, 0) + ' − ' + fmt(Wt, 0) + ' = ' + fmt(m, 0) + ' × ' + (ay < 0 ? '(−' + a + ')' : a), cols[0], yE + 19, {size: 13, w: 500, color: C.muted});
+    text(ctx, 'N − mg − ma = 0', cols[1], yE, {size: 14, w: 600, color: C.force});
+    text(ctx, fmt(N, 0) + ' − ' + fmt(Wt, 0) + (Fi <= 0 ? ' − ' : ' + ') + fmt(Math.abs(Fi), 0) + ' = 0', cols[1], yE + 19, {size: 13, w: 500, color: C.muted});
+    text(ctx, nar ? '→ 함께 가속' : '→ 엘리베이터와 함께 가속', cols[0], 33, {size: 13, w: 500, color: C.muted});
+    text(ctx, nar ? '→ 정지(평형)' : '→ 멈춰 있다 (평형)', cols[1], 33, {size: 13, w: 500, color: C.muted});
+  }
+
+  // ── 관찰 2: v–t 와 N–t ─────────────────────────────────
+  const vt = Lab.canvas('vt', drawVT);
+  const SHORT = {upAcc: '가속', upConst: '등속', upDec: '감속', downAcc: '가속', downConst: '등속', downDec: '감속', rest: '정지'};
+  function drawVT() {
+    const {ctx, W, H} = vt; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const tr = TRIP, T = tr.T, nar = W < 420;
+    const r1 = {x: 44, y: 52, w: W - 44 - 26, h: H * 0.31}, r2 = {x: 44, y: H * 0.6, w: W - 44 - 26, h: H * 0.29};
+    const vm = Math.max(tr.vm, 0.5), m = S.m, a = S.a;
+    const Nmax = m * (G + a), Nmin = m * (G - a);
+    const A1 = Lab.axes(ctx, r1, {xmin: 0, xmax: T, ymin: -vm * 1.25, ymax: vm * 1.25, yticks: tr.vm > 0 ? [-tr.vm, tr.vm] : [], fmtY: (y) => fmt(y, 1), ylabel: 'v'});
+    const A2 = Lab.axes(ctx, r2, {xmin: 0, xmax: T, ymin: 0, ymax: Math.max(Nmax, m * G) * 1.22, yticks: [m * G], fmtY: (y) => fmt(y, 0), ylabel: 'N', xlabel: 't'});
+    // 가속도 방향 띠 (위 = 빨강, 아래 = 파랑) 와 구간 이름
+    const cur = elevKey();
+    for (const s of tr.segs) {
+      const x0 = A1.X(s.t0), x1 = A1.X(s.t1);
+      if (s.ay !== 0) {
+        ctx.fillStyle = Lab.alpha(s.ay > 0 ? C.force : C.vel, 0.09);
+        ctx.fillRect(x0, r1.y - 4, x1 - x0, r1.h + 8); ctx.fillRect(x0, r2.y - 4, x1 - x0, r2.h + 8);
+      }
+      if (s.key !== 'rest' && x1 - x0 > 26) text(ctx, SHORT[s.key], (x0 + x1) / 2, 14, {size: 13, w: s.key === cur ? 700 : 500, color: s.key === cur ? C.copper : C.muted});
+      if (s.ay !== 0 && x1 - x0 > 22) text(ctx, fmt(M.normal(m, s.ay), 0), (x0 + x1) / 2, A2.Y(M.normal(m, s.ay)) + (s.ay > 0 ? -11 : 12), {size: 13, w: 600, color: C.copper, halo: true});
+    }
+    if (tr.segs.length >= 8) {
+      text(ctx, nar ? '올라감' : '올라가는 동안', (A1.X(tr.segs[1].t0) + A1.X(tr.segs[3].t1)) / 2, A1.Y(-vm * 1.05), {size: 13, w: 500, color: C.muted});
+      text(ctx, nar ? '내려감' : '내려가는 동안', (A1.X(tr.segs[5].t0) + A1.X(tr.segs[7].t1)) / 2, A1.Y(vm * 1.05), {size: 13, w: 500, color: C.muted});
+    } else text(ctx, 'a = 0 → 움직이지 않는다', r1.x + r1.w / 2, A1.Y(vm * 0.6), {size: 13, w: 500, color: C.muted});
+    // 곡선
+    const vAt = (t) => M.tripAt(tr, Math.min(t, T - 1e-9)).v, nAt = (t) => M.normal(m, M.tripAt(tr, Math.min(t, T - 1e-9)).ay);
+    const path = (A, f, col, w) => { const pts = []; for (let i = 0; i <= 300; i++) { const t = T * i / 300; pts.push([A.X(t), A.Y(f(t))]); } Lab.line(ctx, pts, col, w); };
+    Lab.line(ctx, [[A2.X(0), A2.Y(m * G)], [A2.X(T), A2.Y(m * G)]], C.muted, 1.2, [4, 4]);
+    text(ctx, 'mg', A2.X(T) + 4, A2.Y(m * G), {size: 13, w: 500, color: C.muted, align: 'left'});
+    path(A1, vAt, C.vel, 2.8);
+    // N: 구간마다 수평선 (끊어진 계단)
+    for (const s of tr.segs) Lab.line(ctx, [[A2.X(s.t0), A2.Y(M.normal(m, s.ay))], [A2.X(s.t1), A2.Y(M.normal(m, s.ay))]], C.copper, 2.8);
+    // 지금 구간 강조 또는 지금 시각
+    if (S.ph === 'trip') {
+      const t = S.et, x = A1.X(t);
+      Lab.line(ctx, [[x, r1.y - 4], [x, r2.y + r2.h + 4]], C.copper, 1.4, [3, 3]);
+      Lab.circle(ctx, x, A1.Y(vAt(t)), 5, {fill: C.vel, stroke: C.paper, width: 1.5});
+      Lab.circle(ctx, x, A2.Y(nAt(t)), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
+    } else {
+      for (const s of tr.segs) {
+        if (s.key !== S.ph) continue;
+        const x0 = A1.X(s.t0), x1 = A1.X(s.t1);
+        ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]);
+        ctx.strokeRect(x0, r1.y - 4, x1 - x0, r1.h + 8); ctx.strokeRect(x0, r2.y - 4, x1 - x0, r2.h + 8); ctx.restore();
+        Lab.line(ctx, [[x0, A2.Y(M.normal(m, s.ay))], [x1, A2.Y(M.normal(m, s.ay))]], C.copper, 5);
+      }
+      if (S.ph === 'free') text(ctx, '자유 낙하는 운행에 없다: 이때 N = 0', r2.x + r2.w / 2, r2.y + 6, {size: 13, w: 600, color: C.neg, halo: true});
+    }
+  }
+
+  // ── 관찰 3: 손잡이의 힘 삼각형 ─────────────────────────
+  const tri = Lab.canvas('tri', drawTri);
+  function drawTri() {
+    const {ctx, W, H} = tri; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const b = busNow(), ax = S.scene === 'bus' ? b.ax : S.ba, nar = W < 420;
+    const th = Math.atan2(ax, G), L = Math.min(H * 0.5, W * 0.28);
+    // 왼쪽: 손잡이와 θ
+    const P0 = [W * 0.24, 30], bob = [P0[0] - L * Math.sin(th), P0[1] + L * Math.cos(th)];
+    Lab.line(ctx, [[P0[0] - 50, P0[1]], [P0[0] + 50, P0[1]]], C.muted, 2);
+    Lab.line(ctx, [P0, [P0[0], P0[1] + L * 1.15]], C.muted, 1.2, [4, 4]);
+    const ge = M.gEff(ax, 0), gx = ge.v[0] / ge.mag, gy = -ge.v[1] / ge.mag;
+    Lab.line(ctx, [bob, [bob[0] + gx * L * 0.42, bob[1] + gy * L * 0.42]], Lab.alpha(C.violet, 0.9), 1.6, [6, 4]);
+    Lab.arrow(ctx, bob[0], bob[1], bob[0] + gx * L * 0.42, bob[1] + gy * L * 0.42, C.violet, 2.6, 10);
+    const gxL = bob[0] + gx * L * 0.42, gyL = bob[1] + gy * L * 0.42;
+    text(ctx, 'g − a', clamp(gxL + (ax >= 0 ? 8 : -8), 30, W - 30), gyL + 8, {size: 13, w: 600, color: C.violet, align: ax >= 0 ? 'left' : 'right', halo: true});
+    Lab.line(ctx, [P0, bob], C.ink, 2.4);
+    Lab.circle(ctx, bob[0], bob[1], 8, {stroke: C.copper, width: 3.2});
+    if (Math.abs(th) > 0.02) {
+      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(P0[0], P0[1], L * 0.42, Math.PI / 2, Math.PI / 2 + th, th < 0); ctx.stroke(); ctx.restore();
+      text(ctx, 'θ', P0[0] - Math.sin(th / 2) * (L * 0.42 + 13), P0[1] + Math.cos(th / 2) * (L * 0.42 + 13), {size: 14, w: 600, color: C.copper, halo: true});
+    }
+    text(ctx, ax > 0 ? '← 뒤' : ax < 0 ? '뒤 ←' : '', P0[0] - 50, P0[1] - 14, {size: 13, w: 500, color: C.muted, align: 'left'});
+    text(ctx, '앞 →', P0[0] + 50, P0[1] - 14, {size: 13, w: 500, color: C.muted, align: 'right'});
+    // 오른쪽: 힘 삼각형 mg(아래) → 관성력 ma(가속도 반대쪽) → 장력 T 로 닫힌다
+    const k = (H * 0.5) / G, Q0 = [W * (nar ? 0.68 : 0.66), H * 0.16], Q1 = [Q0[0], Q0[1] + G * k], Q2 = [Q1[0] - ax * k, Q1[1]];
+    Lab.line(ctx, [Q0, Q2], Lab.alpha(C.violet, 0.8), 1.6, [6, 4]);
+    Lab.arrow(ctx, Q0[0], Q0[1], Q1[0], Q1[1], C.force, 3, 11);
+    text(ctx, 'mg', Q0[0] + (ax >= 0 ? 10 : -10), (Q0[1] + Q1[1]) / 2, {size: 14, w: 600, color: C.force, align: ax >= 0 ? 'left' : 'right', halo: true});
+    if (Math.abs(ax) > 1e-9) {
+      darrow(ctx, Q1[0], Q1[1], Q2[0], Q2[1], C.force, 2.6, 11);
+      text(ctx, '관성력 ma', (Q1[0] + Q2[0]) / 2, Q1[1] + 16, {size: 13, w: 600, color: C.force, halo: true});
+    }
+    Lab.arrow(ctx, Q2[0], Q2[1], Q0[0], Q0[1], C.force, 3, 11);
+    text(ctx, 'T', (Q2[0] + Q0[0]) / 2 + (ax >= 0 ? -12 : 12), (Q2[1] + Q0[1]) / 2, {size: 14, w: 600, color: C.force, align: ax >= 0 ? 'right' : 'left', halo: true});
+    if (Math.abs(ax) > 0.3) {
+      const a0 = Math.PI / 2, a1 = Math.atan2(Q2[1] - Q0[1], Q2[0] - Q0[0]);
+      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(Q0[0], Q0[1], 26, Math.min(a0, a1), Math.max(a0, a1)); ctx.stroke(); ctx.restore();
+      text(ctx, 'θ', Q0[0] + Math.cos((a0 + a1) / 2) * 38, Q0[1] + Math.sin((a0 + a1) / 2) * 38, {size: 13, w: 600, color: C.copper, halo: true});
+    }
+    const tn = Math.abs(ax) / G;
+    text(ctx, 'tan θ = ma/mg = a/g = ' + fmt(Math.abs(ax), 2) + '/10 = ' + fmt(tn, 3), W / 2, H - 14, {size: 14, w: 600, color: C.copper, halo: true});
+  }
+
+  // ── 지금 값 ─────────────────────────────────────────────
+  const LEG = {
+    elev: '<span><b style="background:var(--force)"></b>실제 힘 (N, mg)</span><span><b class="dash"></b>관성력 (가상의 힘)</span><span><b style="background:var(--acc)"></b>합력 · 가속도</span><span><i style="background:var(--copper)"></i>체중계 눈금</span>',
+    bus: '<span><b style="background:var(--force)"></b>실제 힘 (T, mg)</span><span><b class="dash"></b>관성력</span><span><b style="background:var(--acc)"></b>합력 · 가속도</span><span><b style="background:var(--violet)"></b>g − a 방향</span><span><i style="background:var(--vel)"></i>바닥의 공</span><span><i style="background:var(--copper)"></i>놓은 공</span>',
+    stn: '<span><b style="background:var(--force)"></b>벽이 미는 힘 N</span><span><b class="dash"></b>원심력 (관성력)</span><span><b style="background:var(--vel)"></b>속도</span><span><i style="background:var(--copper)"></i>놓은 공</span>',
+  };
+  let ansKey = '';
+  function ans(big, lines, o) { const key = [big, o.lab, o.ctx, o.f, o.tone].concat(lines).join('|'); if (key === ansKey) return; ansKey = key; Lab.ans(big, lines, o); }
+  function minis(list) { list.forEach(([n, v], i) => { $('mn' + (i + 1)).textContent = n; $('mv' + (i + 1)).textContent = v; }); }
+  const isEx = (ph) => S.scene === 'elev' && S.ph === ph && Math.abs(S.a - EX.a) < 1e-9 && S.m === EX.m;
+  function readouts() {
+    const nar = stage.W && stage.W < 520;
+    $('hudA').textContent = nar ? '밖 · 관성 좌표계' : '밖 · 관성 좌표계 (' + (S.scene === 'stn' ? '우주에 멈춰서 봄' : '땅에서 봄') + ')';
+    if (S.scene === 'elev') {
+      const key = elevKey(), ay = M.accelOf(key, S.a), m = S.m, N = M.normal(m, ay), Wt = m * G, kind = M.apparent(key, S.a);
+      const A = fmt(Math.abs(ay), 2), name = M.PHASES[key].name + (S.ph === 'trip' ? ' (한 번 운행 중)' : '');
+      const tag = isEx('upAcc') ? ' (가)' : isEx('upDec') ? ' (나)' : '';
+      let f, lines;
+      if (kind === 'heavier') { f = '가속도가 위 → 안에서는 관성력 ma 가 아래로 더해진다'; lines = ['N = mg + ma = m(g + a)', '= ' + m + ' × (10 + <em>' + A + '</em>) = <em>' + fmt(N, 0) + ' N</em>']; }
+      else if (kind === 'lighter') { f = '가속도가 아래 → 안에서는 관성력 ma 가 위로 더해진다'; lines = ['N = mg − ma = m(g − a)', '= ' + m + ' × (10 − <em>' + A + '</em>) = <em>' + fmt(N, 0) + ' N</em>']; }
+      else if (kind === 'same') { f = '가속도 0 (정지·등속) → 관성력도 0'; lines = ['N = mg = ' + m + ' × 10 = <em>' + fmt(N, 0) + ' N</em>', '등속으로 움직이는 엘리베이터도 관성 좌표계다']; }
+      else { f = '가속도가 아래로 g → 관성력 mg 가 위로 더해진다'; lines = ['N = m(g − g) = <em>0</em> → 무중력 상태', '놓은 공도 안에서는 그 자리에 떠 있다']; }
+      ans(kind === 'weightless' ? 'N = 0 (무중력)' : 'N = ' + fmt(N, 0) + ' N', lines, {lab: '지금 체중계 눈금', ctx: '엘리베이터 · ' + name + tag, f, tone: kind === 'weightless' ? 'neg' : ''});
+      minis([['무게 mg', fmt(Wt, 0) + ' N'], ['관성력 ma', Math.abs(ay) < 1e-9 ? '0' : fmt(Math.abs(m * ay), 0) + ' N · ' + (ay > 0 ? '아래' : '위')],
+        ['엘리베이터 가속도', Math.abs(ay) < 1e-9 ? '0' : A + ' m/s² · ' + (ay > 0 ? '위' : '아래')],
+        ['눈금 ÷ 무게', fmt(N / Wt, 2) + '배' + (kind === 'heavier' ? ' · 무거워짐' : kind === 'lighter' ? ' · 가벼워짐' : kind === 'same' ? ' · 그대로' : ' · 무중력')]]);
+      if (S.pend) {
+        const ge = G + ay, T = M.period(PEND_L, ge), T0 = M.period(PEND_L, G);
+        minis([['무게 mg', fmt(Wt, 0) + ' N'], ['유효 중력 g + a', fmt(ge, 2) + ' m/s²'], ['진자 주기 2π√(l/g_eff)', isFinite(T) ? fmt(T, 2) + ' s' : '흔들리지 않음'], ['정지 때 주기 (l = 0.8 m)', fmt(T0, 2) + ' s']]);
+      }
+    } else if (S.scene === 'bus') {
+      const b = busNow(), ax = b.ax, A = Math.abs(ax), th = M.tiltDeg(A), ge = M.gEff(ax, 0).mag, dr = M.dropInCar(DROP_H, A);
+      const ph = {start: '급출발', const: '등속', brake: '브레이크', trip: '한 번 운행'}[S.bph] + (S.bph === 'trip' ? ' · 지금 ' + (ax > 0 ? '가속' : ax < 0 ? '감속' : (b.v > 0.05 ? '등속' : '정지')) : '');
+      const side = ax > 0 ? '뒤로' : ax < 0 ? '앞으로' : '';
+      if (A < 1e-9) ans('θ = 0°', ['가속도 0 → 관성력 0 → 손잡이는 연직', b.v > 0.05 ? '등속으로 달리는 버스도 관성 좌표계다' : '멈춘 버스: 공도 그대로 있다'], {lab: '지금 손잡이 기울기', ctx: '버스 · ' + ph, f: '안에서 보면 장력·중력·관성력이 평형 → tan θ = ma/mg'});
+      else ans('θ = ' + fmt(th, 1) + '° ' + side, ['tan θ = a/g = <em>' + fmt(A, 2) + '</em>/10 = ' + fmt(A / G, 3) + ' → <em>θ ≈ ' + fmt(th, 1) + '°</em> (가속도 반대쪽)', 'g_eff = √(g² + a²) = √(10² + ' + fmt(A, 2) + '²) = <em>' + fmt(ge, 2) + ' m/s²</em>'],
+        {lab: '지금 손잡이 기울기', ctx: '버스 · ' + ph, f: '안에서 보면 장력·중력·관성력 ma 가 평형 → tan θ = ma/mg'});
+      minis([['버스 가속도', A < 1e-9 ? '0' : fmt(A, 2) + ' m/s² · ' + (ax > 0 ? '앞' : '뒤')], ['유효 중력 g_eff', fmt(ge, 2) + ' m/s²'],
+        ['1.8 m 에서 놓은 공', fmt(dr.t, 2) + ' s 뒤 · ' + (A < 1e-9 ? '바로 아래' : (ax > 0 ? '뒤로 ' : '앞으로 ') + fmt(dr.back, 2) + ' m')], ['장력 ÷ 무게', fmt(ge / G, 3) + '배']]);
+    } else {
+      const w = S.w, R = S.R, gA = M.artificialG(R, w), m = S.m;
+      ans('rω² = ' + fmt(gA, 2) + ' m/s²', ['rω² = ' + R + ' × <em>' + fmt(w, 2) + '</em>² = <em>' + fmt(gA, 2) + ' m/s²</em> (g 의 ' + fmt(gA / G, 2) + '배)', '밖에서 보면 N = mrω² 이 구심력 → 원운동'],
+        {lab: '지금 인공 중력', ctx: '회전 우주선 · r = ' + R + ' m', f: '안에서 보면 벽이 미는 힘 N 과 원심력 mrω² 이 평형'});
+      minis([['한 바퀴 T = 2π/ω', fmt(M.spinPeriod(w), 1) + ' s'], ['바닥 속력 v = rω', fmt(R * w, 1) + ' m/s'], [m + ' kg 사람이 받는 N', fmt(M.centrifugal(m, R, w), 0) + ' N'], ['rω² = g 인 ω', fmt(M.omegaFor(R), 3) + ' rad/s']]);
+    }
+    const okA = isEx('upAcc'), okB = isEx('upDec');
+    Lab.check('exCheck', okA || okB, okA ? '개념서 예제 (가): 50 kg, 위로 출발하며 2 m/s² 가속 → 눈금 600 N' : '개념서 예제 (나): 50 kg, 위로 가다 2 m/s² 감속 → 눈금 400 N',
+      '예제: 50 kg, (가) 위로 가속 2 m/s² → 600 N, (나) 위로 감속 2 m/s² → 400 N — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function drawAll() { drawStage(); drawFB(); drawVT(); drawTri(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  function setScene(sc) {
+    S.scene = sc;
+    document.querySelectorAll('[data-for]').forEach((el) => { el.hidden = el.dataset.for !== sc; });
+    $('legend').innerHTML = LEG[sc];
+    sceneG.set(sc, true);
+    refresh();
+  }
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => {
+    if (v === 'elev') resetElev(); else if (v === 'bus') resetBus(); else { S.st = 0; S.sdrop = null; }
+    setScene(v);
+  }, S.scene);
+  const phG = Lab.group('[data-ph]', 'ph', (v) => { S.ph = v; resetElev(); if (S.scene !== 'elev') setScene('elev'); else refresh(); }, S.ph);
+  const bphG = Lab.group('[data-bph]', 'bph', (v) => { S.bph = v; resetBus(); if (S.scene !== 'bus') setScene('bus'); else refresh(); }, S.bph);
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  const aE = Lab.slider('aE', {out: 'aEOut', fmt: (v) => fmt(v, 2) + ' m/s²', onInput: (v) => { S.a = v; resetElev(); refresh(); }});
+  const mE = Lab.slider('mE', {out: 'mEOut', fmt: (v) => v + ' kg', onInput: (v) => { S.m = v; refresh(); }});
+  const aB = Lab.slider('aB', {out: 'aBOut', fmt: (v) => fmt(v, 2) + ' m/s²', onInput: (v) => { S.ba = v; resetBus(); refresh(); }});
+  const wS = Lab.slider('wS', {out: 'wSOut', fmt: (v) => fmt(v, 2) + ' rad/s', onInput: (v) => { S.w = v; S.sdrop = null; refresh(); }});
+  const rS = Lab.slider('rS', {out: 'rSOut', fmt: (v) => v + ' m', onInput: (v) => { S.R = v; refresh(); }});
+  const cPend = Lab.toggle('cPend', (on) => { S.pend = on; Object.assign(S.pd, {th: 0.3, w: 0, gth: 0.3, gw: 0}); refresh(); });
+  Lab.toggle('cForce', (on) => { S.forces = on; drawStage(); });
+  Lab.toggle('cStrobe', (on) => { S.strobe = on; drawStage(); });
+  $('dropB').addEventListener('click', () => { if (S.scene !== 'bus') setScene('bus'); S.autoDrop = true; resetBus(); if (!S.playing) playCtl.set(true); refresh(); });
+  $('dropS').addEventListener('click', () => { if (S.scene !== 'stn') setScene('stn'); dropStn(); if (!S.playing) playCtl.set(true); refresh(); });
+  $('again').addEventListener('click', () => { if (S.scene === 'elev') resetElev(); else if (S.scene === 'bus') resetBus(); else { S.st = 0; S.sdrop = null; } refresh(); });
+  $('stepBtn').addEventListener('click', () => { playCtl.set(false); advance(0.1); refresh(); });
+  function sync() {
+    phG.set(S.ph, true); bphG.set(S.bph, true);
+    aE.set(S.a, true); $('aEOut').textContent = fmt(S.a, 2) + ' m/s²' + (Math.abs(S.a - G / 3) < 1e-6 ? ' (= g/3)' : '');
+    mE.set(S.m, true); aB.set(S.ba, true); wS.set(S.w, true); rS.set(S.R, true);
+    cPend.set(S.pend, true);
+  }
+  const elevTry = (o) => () => { Object.assign(S, {pend: false, m: 50, a: 2}, o); if (o.pend) Object.assign(S.pd, {th: 0.3, w: 0, gth: 0.3, gw: 0}); resetElev(); setScene('elev'); playCtl.set(true); };
+  const busTry = (o) => () => { Object.assign(S, {bph: 'start', ba: 7.5, autoDrop: false}, o); resetBus(); setScene('bus'); playCtl.set(true); };
+  const stnTry = (o) => () => { Object.assign(S, {w: 0.5, R: 40, sAuto: false}, o); S.st = 0; S.sdrop = null; setScene('stn'); playCtl.set(true); };
+  const TRY = {
+    ex: elevTry({ph: 'upAcc'}),
+    exB: elevTry({ph: 'upDec'}),
+    trip: elevTry({ph: 'trip'}),
+    q2a: elevTry({ph: 'downDec'}),
+    q2b: elevTry({ph: 'free'}),
+    q2c: elevTry({ph: 'downAcc', a: G / 3, pend: true}),
+    bus: busTry({}),
+    q1: busTry({}),
+    drop: busTry({autoDrop: true}),
+    stn: stnTry({}),
+    stnDrop: stnTry({sAuto: true}),
+  };
+  Lab.tries(TRY, () => { sync(); refresh(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  function advance(d) {
+    if (S.scene === 'elev') stepElev(d);
+    else if (S.scene === 'bus') stepBus(d);
+    else stepStn(d);
+  }
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing) return;
+    const d = dt * S.speed;
+    advance(d);
+    drawStage();
+    roT += dt;
+    if (roT > 0.15) { roT = 0; readouts(); if (S.ph === 'trip' || S.scene === 'elev') drawVT(); if (S.scene === 'bus') drawTri(); if (S.scene === 'elev') drawFB(); }
+  });
+  resetElev(); resetBus();
+  if (Lab.reduceMotion) S.et = 1.4;                        // 움직임 줄이기: 멈춘 첫 화면에 칸이 움직인 자취(같은 시간 간격의 점)가 보이게
+  setScene('elev'); sync();
+  if (narrowMQ.addEventListener) narrowMQ.addEventListener('change', () => { readouts(); drawStage(); });
+})();
+</script>
+</body>
+</html>

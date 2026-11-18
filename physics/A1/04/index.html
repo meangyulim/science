@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>한계 조건과 연결된 강체</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(두 받침점 위 막대 · 물체를 옮기면 받침점의 힘이 바뀌고, 한쪽이 0을 지나면 막대가 넘어간다) | 오른쪽 지금 값 + 관찰 ①~④(N–x 그래프 · 돌림힘 비교 · 무게중심 · 실의 장력) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5;cursor:grab}
+#gN,#gR{aspect-ratio:10/6.6}
+#gT{aspect-ratio:10/3.9}
+@media (max-width:640px){ #gT{aspect-ratio:10/5.6} }
+.stage .legend{left:auto;right:12px;top:12px;bottom:auto}
+.legend em{font-style:normal}
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A1 힘과 운동: 개념 16개 가운데 4번째"><a class="uname" href="../">A1 힘과 운동</a><span class="dots"><a href="../01/" title="A1-01 힘의 합성·분해" aria-label="A1-01 힘의 합성·분해"></a><a href="../02/" title="A1-02 돌림힘과 평형" aria-label="A1-02 돌림힘과 평형"></a><a href="../03/" title="A1-03 무게중심과 안정성" aria-label="A1-03 무게중심과 안정성"></a><a class="cur" href="./" aria-current="page" title="A1-04 한계 조건과 강체" aria-label="A1-04 한계 조건과 강체 (지금)"></a><a href="../05/" title="A1-05 운동의 벡터" aria-label="A1-05 운동의 벡터"></a><a href="../06/" title="A1-06 평면 등가속도 운동" aria-label="A1-06 평면 등가속도 운동"></a><a href="../07/" title="A1-07 중력장의 직선 운동" aria-label="A1-07 중력장의 직선 운동"></a><a href="../08/" title="A1-08 포물선 운동" aria-label="A1-08 포물선 운동"></a><a href="../09/" title="A1-09 상대 운동" aria-label="A1-09 상대 운동"></a><a href="../10/" title="A1-10 등속 원운동" aria-label="A1-10 등속 원운동"></a><a href="../11/" title="A1-11 여러 가지 구심력" aria-label="A1-11 여러 가지 구심력"></a><a href="../12/" title="A1-12 케플러 법칙" aria-label="A1-12 케플러 법칙"></a><a href="../13/" title="A1-13 만유인력과 인공위성" aria-label="A1-13 만유인력과 인공위성"></a><a href="../14/" title="A1-14 단진동과 단진자" aria-label="A1-14 단진동과 단진자"></a><a href="../15/" title="A1-15 관성력" aria-label="A1-15 관성력"></a><a href="../16/" title="A1-16 등가 원리" aria-label="A1-16 등가 원리"></a></span></nav>
+  <div class="pn"><a href="../03/" rel="prev" title="이전 개념: A1-03 무게중심과 안정성">‹ <span>03 무게중심과 안정성</span></a><a href="../05/" rel="next" title="다음 개념: A1-05 운동의 벡터"><span>05 운동의 벡터</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A1-04</span><span>물리학 Ⅱ · 힘과 운동</span></div>
+    <h1>한계 조건과 연결된 강체</h1>
+    <p class="question"><i>Q</i>'넘어지지 않는 최대 위치'는 왜 한쪽 받침점의 힘이 0인 순간일까?</p>
+  </div>
+
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="두 받침점 A, B 위에 놓인 수평 막대와 그 위의 물체. 물체를 옮기면 두 받침점이 미는 힘(위 화살표)이 바뀌고, 한쪽 힘이 0을 지나면 막대가 다른 받침점을 축으로 넘어간다. 물체를 끌어 옮길 수 있다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">x = 3L</span><span class="pill up" id="hud2">평형</span></div>
+        <div class="legend">
+          <span><b style="background:var(--copper)"></b><em>N<sub>A</sub> (A가 미는 힘)</em></span>
+          <span><b style="background:var(--violet)"></b><em>N<sub>B</sub> (B가 미는 힘)</em></span>
+          <span><b style="background:var(--force)"></b>무게 · 장력</span>
+          <span><i style="background:var(--vel)"></i>물체</span>
+        </div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider"><label for="xs"><span class="lg">물체 위치 </span>x</label><input id="xs" type="range" min="0" max="6" step="0.05" value="3"><output id="xOut">3L</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">상황·보기</span><span class="sm">상황</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="상황과 보기">
+          <div class="sheet-head"><b>상황 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="상황">
+              <span class="gl">상황</span>
+              <button type="button" class="btn" data-pr="ex" aria-pressed="true">예제 · 6L 막대</button>
+              <button type="button" class="btn" data-pr="plank" aria-pressed="false">판자 4 m</button>
+              <button type="button" class="btn" data-pr="rope" aria-pressed="false">실로 이은 판자</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="grow">
+              <label class="ctl-label" for="ws">물체 무게 w <output id="wOut">W</output></label>
+              <input id="ws" type="range" min="0.5" max="2" step="0.25" value="1">
+            </div>
+            <button type="button" class="btn" id="toMin">◀ 최소 경계</button>
+            <button type="button" class="btn" id="toMax">최대 경계 ▶</button>
+          </div>
+          <div class="row">
+            <div class="toggles">
+              <label class="chk"><input type="checkbox" id="cArms" checked>돌림힘 팔</label>
+              <label class="chk"><input type="checkbox" id="cCg">전체 무게중심</label>
+              <label class="chk"><input type="checkbox" id="cGhost" checked>계산값(음수) 보기</label>
+            </div>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 받침점의 힘</span><span id="ansCtx">막대 6L · w = W · x = 3L</span></div>
+        <div class="big" id="ansBig"><span class="nw">N<sub>A</sub> = W</span> · <span class="nw">N<sub>B</sub> = W</span></div>
+        <div class="sub">
+          <span class="f" id="ansF">받침점을 축으로 한 돌림힘 평형에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">B 축: N<sub>A</sub> × 2L = W × L + W × (4L − <em>3L</em>) → <em>N<sub>A</sub> = W</em></span><span class="v">A 축: N<sub>B</sub> × 2L = W × L + W × (<em>3L</em> − 2L) → <em>N<sub>B</sub> = W</em></span><span class="v">N<sub>A</sub> = 0 → x = 5L, N<sub>B</sub> = 0 → x = L → <em>L ≤ x ≤ 5L</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span>넘어지지 않는 범위</span><b id="rRange">L ≤ x ≤ 5L</b></div>
+          <div class="mini"><span id="rSumN">N<sub>A</sub> + N<sub>B</sub> (= W + w)</span><b id="rSum">2W</b></div>
+          <div class="mini"><span id="r3n">전체 무게중심 x<sub>cm</sub></span><b id="r3">3L (A–B 사이)</b></div>
+          <div class="mini"><span>판정</span><b id="rState">평형</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 직선으로 바뀌는 힘">
+          <div class="kind">관찰 1</div>
+          <h3>물체를 B 쪽으로 옮길수록 N<sub>A</sub>는 일정하게 줄고 N<sub>B</sub>는 일정하게 는다</h3>
+          <p>받침점은 막대를 <b>밀어 올릴 수만</b> 있다. 물체를 오른쪽으로 옮기면 B가 받치는 몫이 커지고 A의 몫은 줄어든다. 두 힘의 합은 늘 막대와 물체의 무게를 더한 W + w 다. 무대의 물체를 끌거나 x 막대로 옮겨 보자.</p>
+          <canvas class="flat" id="gN" aria-label="물체 위치 x에 따른 두 받침점의 힘 그래프. N_A는 줄어드는 직선, N_B는 늘어나는 직선이고 각각 x = 5L, x = L에서 0이 된다."></canvas>
+          <p class="cap">B를 축으로 잡으면 <span class="eq">N<sub>A</sub> × 2L = W × L + w × (4L − x)</span> 처럼 x의 1차식이라 그래프가 직선이다. 빨간 칸에서는 계산한 힘이 음수(점선)라 그 상태가 있을 수 없다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="sweep">물체를 천천히 옮기기</button>
+            <button type="button" class="btn" data-try="mid">x = 3L에 두기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② N = 0 이 경계">
+          <div class="kind">관찰 2</div>
+          <h3>N<sub>A</sub>가 0이 되는 곳을 지나면 막대는 B를 축으로 넘어간다</h3>
+          <p>x = 5L에서 N<sub>A</sub> = 0이 된다. 더 가면 계산한 N<sub>A</sub>가 음수인데, 받침점은 막대를 끌어당길 수 없으므로 그런 상태는 없다. 실제로는 막대가 A에서 떨어지며 <b>B를 축으로</b> 돈다.</p>
+          <canvas class="flat" id="gT" aria-label="B를 축으로 한 돌림힘 비교. A 쪽을 누르는 돌림힘과 들어 올리는 돌림힘이 같아야 하고, 그 차이를 N_A가 메운다."></canvas>
+          <p class="cap">B를 축으로 보면 막대 무게가 A 쪽을 누르고, 물체가 A 쪽을 들어 올린다. 그 차이를 N<sub>A</sub>가 메운다. 경계에서는 N<sub>A</sub> = 0이므로 돌림힘 식 하나면 된다: <span class="eq">w(x − 4L) = W × L</span> → x = 5L. 들어 올리는 돌림힘이 더 크면(빨간 칸) 메울 힘이 없다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="edge"><span>x = 5L (N<sub>A</sub> = 0)</span></button>
+            <button type="button" class="btn" data-try="over">5.5L로 더 가기</button>
+            <button type="button" class="btn" data-try="edgeL"><span>x = L (N<sub>B</sub> = 0)</span></button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 무게중심 한 줄">
+          <div class="kind">관찰 3</div>
+          <h3>막대와 물체를 합친 무게중심이 A와 B 사이에 있는 동안만 서 있다</h3>
+          <p>전체 무게중심 <span class="eq">x<sub>cm</sub> = (W × 3L + w × x)/(W + w)</span>이 받침점 사이에 있으면 두 수직항력이 모두 0 이상이다. 구리색 점선(무게중심의 연직선)이 B를 넘는 순간이 바로 N<sub>A</sub> = 0인 순간이다.</p>
+          <p class="cap">예제는 2L ≤ (3L + x)/2 ≤ 4L 에서 곧바로 L ≤ x ≤ 5L. 받침대에 폭이 있으면 ‘전체 무게중심이 받침면 위’라는 부등식 한 줄로 최대·최소를 함께 얻는다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="cg">전체 무게중심 보기</button>
+            <button type="button" class="btn" data-do="click:#cCg">무게중심 켜기·끄기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 실의 장력 범위">
+          <div class="kind">관찰 4</div>
+          <h3>실은 당기기만 한다 — 바닥 물체를 매단 실의 장력은 0 ≤ T ≤ Mg</h3>
+          <p>8 m 판자의 왼쪽 끝을 바닥에 놓인 물체(Mg = 150 N)와 실로 이었다. 사람이 오른쪽으로 가면 x = 5.4 m에서 N<sub>A</sub> = 0이 되고, 그다음부터는 실이 판자 끝을 잡아당겨 버틴다. 장력이 Mg에 이르면(바닥이 물체를 미는 힘 0) 물체가 들리며 판자가 넘어간다.</p>
+          <canvas class="flat" id="gR" aria-label="실로 이은 판자에서 사람 위치에 따른 N_A, N_B, 실의 장력 T. 5.4 m부터 N_A = 0이고 T가 늘어 6.9 m에서 Mg가 된다."></canvas>
+          <p class="cap">기우는 방향을 먼저 정하면 실이 Mg인지 0인지가 정해진다. 오른쪽 경계: N<sub>A</sub> = 0, T = Mg → <span class="eq">500(x − 5) = 200 × 1 + 150 × 5</span>, x = 6.9 m. 왼쪽 경계: 실이 느슨해 T = 0, N<sub>B</sub> = 0 → x = 1.2 m.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="rope">실로 이은 판자 위를 걷기</button>
+            <button type="button" class="btn" data-try="rope69">x = 6.9 m (T = Mg)</button>
+            <button type="button" class="btn" data-try="rope12">x = 1.2 m (T = 0)</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>경계는 힘 하나가 0인 순간, 축은 남은 받침점</h3>
+          <ul>
+            <li>받침점·바닥은 밀기만 하고(<span class="eq">N ≥ 0</span>), 바닥 물체를 매단 실은 당기기만 한다(<span class="eq">0 ≤ T ≤ Mg</span>).</li>
+            <li>최대·최소 위치 = 한쪽 힘이 0인 순간. 막대는 남은 받침점(실 연결점)을 축으로 막 돌기 직전이므로 그 점을 축으로 돌림힘 식 하나만 쓴다.</li>
+            <li>한 줄 판정: 막대와 물체를 합친 무게중심이 받침점 사이(받침면 위)에 있어야 한다.</li>
+            <li>막대가 겹치거나 실로 이어지면 위(바깥) 막대부터 푼다. 위 막대의 돌림힘 평형으로 접촉력 N을 구하고, 아래 막대에는 같은 크기·반대 방향의 N′을 옮긴다.</li>
+            <li>자주 하는 실수: 계산한 수직항력·장력이 음수인데 그대로 쓴다. 음수는 그 배치가 불가능(이미 넘어감)하다는 신호다. 답을 낸 뒤 모든 힘이 0 이상인지 검산한다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>길이 6L, 무게 W인 균일한 막대가 왼쪽 끝에서 2L(A), 4L(B)인 받침점에 놓여 있다. 무게 w = W인 물체를 왼쪽 끝에서 x인 곳에 둘 때, 막대가 넘어지지 않는 x의 범위는?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="edgeL">최소 경계 보기</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>최대 x: N<sub>A</sub> = 0이고 B가 축이다. 막대 중심(3L)은 B 왼쪽 L, 물체는 B 오른쪽 (x − 4L)이므로 w(x − 4L) = W × L, w = W에서 x = 5L. 최소 x: N<sub>B</sub> = 0이고 A가 축이다. w(2L − x) = W × L 에서 x = L. 따라서 <b>L ≤ x ≤ 5L</b>. 관찰 1 그래프의 두 직선이 x축과 만나는 점과 같다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>길이 4 m, 질량 20 kg인 균일한 판자가 왼쪽 끝 A와, A에서 3 m인 점 B에서 받쳐져 있다. 질량 40 kg인 사람이 A에서 오른쪽으로 걸어갈 때, 판자가 기울지 않고 갈 수 있는 A로부터의 최대 거리는? (g = 10 m/s²)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="plank">판자 위를 걷기</button><button type="button" class="btn" data-try="plankEnd">끝(4 m)까지 가면?</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>3.5 m</b>. 최대 위치에서는 A의 수직항력이 0이 되고 판자는 B를 축으로 막 돌기 직전이다. B 축 돌림힘 평형 400 × (x − 3) = 200 × (3 − 2) 에서 x = 3.5 m. 판자 끝(4 m)까지 간다고 하고 계산하면 A의 수직항력이 음수(−66.7 N)가 나와 존재할 수 없는 상태다.</p></details>
+          </div>
+          <div class="q">
+            <h3>두 받침점 A, B 위 수평 막대에서 물체의 위치를 바꾸는 상황에 대해 옳은 것만 고르면? ㄱ. 물체를 B 쪽으로 옮길수록 A의 수직항력은 물체 위치에 대한 일차식으로 감소한다. ㄴ. 계산한 A의 수직항력이 음수이면 막대는 이미 B를 축으로 넘어간 상태다. ㄷ. 막대 끝을 바닥에 놓인 물체와 실로 이었다면 실의 장력은 그 물체의 무게보다 커질 수 있다.</h3>
+            <div class="acts"><button type="button" class="btn" data-try="over">ㄱ·ㄴ 물체를 B 너머로</button><button type="button" class="btn" data-try="ropeOver">ㄷ T가 Mg를 넘으려 하면</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄴ</b>. B를 축으로 잡으면 A의 수직항력은 물체 위치의 일차식이고 B 쪽으로 갈수록 줄어든다. 수직항력은 밀기만 하므로 음수는 이미 넘어간 상태를 뜻한다. 바닥 물체를 매단 실의 장력은 0부터 그 물체의 무게까지만 가능하고, 무게와 같아지는 순간 물체가 들리기 직전이다(무대에서 물체가 들리며 판자가 넘어간다).</p></details>
+          </div>
+          <div class="q">
+            <h3>예제에서 물체를 무게 2W인 것으로 바꾸면 막대가 넘어지지 않는 x의 범위는 어떻게 될까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="heavy">w = 2W로 바꾸기</button><button type="button" class="btn" data-try="ex">w = W와 비교</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>1.5L ≤ x ≤ 4.5L</b>로 좁아진다. 최대: 2W(x − 4L) = W × L → x = 4.5L. 최소: 2W(2L − x) = W × L → x = 1.5L. 무거운 물체일수록 같은 돌림힘을 짧은 팔로 내므로 받침점에서 조금만 벗어나도 넘어간다. 반대로 w = 0.5W이면 막대 어디에 두어도 넘어지지 않는다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../03/" rel="prev"><small>← 이전 개념 · A1-03</small><b>무게중심과 안정성</b></a><a href="../05/" rel="next"><small>다음 개념 · A1-05 →</small><b>운동의 벡터</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="A1-04-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_04;
+  const {$, C, text, rich, arrow, fmt} = Lab;
+  const RAD = Math.PI / 180, TILT = 10 * RAD;
+
+  // ── 상황: 예제(길이 L·힘 W 단위) · 개념 체크 판자 · 도전 문제(실로 이은 판자) ──
+  //   wMin~wMax: 물체 무게 막대 범위(힘 눈금을 이 범위에 맞춰 고정), sp: 저절로 옮길 때 빠르기(단위/s), lo~hi: 오가는 범위
+  const PR = {
+    ex: Object.assign({}, M.PRESETS.ex, {L: true, wMin: 0.5, wMax: 2, wStep: 0.25, sp: 0.55, lo: 0.25, hi: 5.75, ctx: '막대 6L · A = 2L · B = 4L'}),
+    plank: Object.assign({}, M.PRESETS.plank, {L: false, wMin: 100, wMax: 500, wStep: 50, sp: 0.42, lo: 0.15, hi: 3.9, ctx: '판자 4 m · 200 N'}),
+    rope: Object.assign({}, M.PRESETS.rope, {L: false, wMin: 300, wMax: 600, wStep: 50, sp: 0.75, lo: 0.4, hi: 7.6, ctx: '판자 8 m · Mg = 150 N'}),
+  };
+  const S = {pr: 'ex', w: 1, x: 3, dir: 1, hold: 0, playing: !Lab.reduceMotion, speed: 1, arms: true, cg: false, ghost: true, tilt: 0, drag: false};
+  const pr = () => PR[S.pr];
+  const P = () => Object.assign({}, pr(), {w: S.w});
+  const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  // ── 글자: 예제는 길이 L·힘 W 를 붙이고, 판자 상황은 m·N ──
+  function Ls(v) {
+    if (!pr().L) return fmt(v, 2) + ' m';
+    if (near(v, 0)) return '0';
+    if (near(Math.abs(v), 1)) return (v < 0 ? Lab.MI : '') + 'L';
+    return fmt(v, 2) + 'L';
+  }
+  function Fs(v) {
+    if (!pr().L) return fmt(v, near(v, Math.round(v), 0.05) ? 0 : 1) + ' N';
+    if (near(v, 0, 1e-6)) return '0';
+    if (near(Math.abs(v), 1, 1e-6)) return (v < 0 ? Lab.MI : '') + 'W';
+    return fmt(v, 2) + 'W';
+  }
+  const eL = (v) => (pr().L ? Ls(v) : fmt(v, 2));           // 식 안의 길이
+  const eF = (v) => (pr().L ? Fs(v) : fmt(v, 1));           // 식 안의 힘
+  const Ts = (v) => (near(v, 0) ? '0' : pr().L ? (near(v, 1) ? 'WL' : fmt(v, 2) + 'WL') : fmt(v, 0) + ' N·m');
+
+  // ── 무대 기하 ───────────────────────────────────────────
+  // 위에서부터: HUD → 받침점의 힘(위 화살표) → 막대 → 무게(아래 화살표)·받침대 → 바닥 → 눈금자 → 지금 단계 표시 자리
+  function geo(W, H, key) {
+    const q = PR[key || S.pr], p = Object.assign({}, q, {w: key && key !== S.pr ? q.w : S.w}), narrow = W < 520;
+    const m = narrow ? 22 : 46, u = (W - 2 * m) / p.Lb;
+    const upMax = (p.W + q.wMax + (p.M || 0)) / p.W, downMax = Math.max(p.W, q.wMax) / p.W;
+    const top = narrow ? 48 : 54, lab = 24, barH = narrow ? 12 : 14, bottom = narrow ? 62 : 64;
+    const avail = H - top - lab - barH - 14 - bottom;
+    const k = Math.max(12, Math.min(narrow ? 60 : 84, avail / (upMax + downMax)));
+    const barTop = top + lab + upMax * k, barBot = barTop + barH;
+    return {narrow, p, q, m, u, k: k / p.W, barTop, barBot, barH, floorY: barBot + downMax * k + 14,
+      objW: narrow ? 30 : 36, objH: q.L ? (narrow ? 24 : 28) : (narrow ? 34 : 40), X: (v) => m + v * u, c: p.Lb / 2};
+  }
+  // 무대 글자 자리 장부: 이미 쓴 글자·치수선과 겹치지 않는 첫 후보 자리에 쓴다
+  let occ = [];
+  const hits = (r) => occ.some((o) => r.x < o.x + o.w && r.x + r.w > o.x && r.y < o.y + o.h && r.y + r.h > o.y);
+  function rectOf(ctx, s, x, y, o) {
+    const w = Lab.measure(ctx, s.replace(/_/g, ''), o) + 4, h = (o.size || 13) + 4, al = o.align || 'center';
+    return {x: al === 'left' ? x - 2 : al === 'right' ? x - w + 2 : x - w / 2, y: y - h / 2, w, h};
+  }
+  function place(ctx, s, cands, o, isRich) {
+    for (let i = 0; i < cands.length; i++) {
+      const [x, y, al] = cands[i], oo = Object.assign({}, o, {align: al}), r = rectOf(ctx, s, x, y, oo);
+      if (i === cands.length - 1 || !hits(r)) { (isRich ? rich : text)(ctx, s, x, y, oo); occ.push(r); return r; }
+    }
+  }
+  const reserve = (x, y, w, h) => occ.push({x, y, w, h});
+  const rot = (pt, o, a) => { const c = Math.cos(a), s = Math.sin(a), dx = pt[0] - o[0], dy = pt[1] - o[1]; return [o[0] + c * dx - s * dy, o[1] + s * dx + c * dy]; };
+  const pivotOf = (g) => (S.tilt >= 0 ? [g.X(g.p.b), g.barBot] : [g.X(g.p.a), g.barBot]);
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    const g = geo(W, H), p = g.p, f = M.forces(p, S.x), piv = pivotOf(g);
+    const R = (pt) => rot(pt, piv, S.tilt), tipped = Math.abs(S.tilt) > 0.3 * RAD;
+    ctx.clearRect(0, 0, W, H);
+    occ = [];
+    Lab.paper(ctx, W, H, 24);
+    drawFloor(ctx, g, W);
+    const showCg = S.cg && !p.M;
+    if (showCg) drawCgBand(ctx, g);
+    drawSupport(ctx, g, p.a); drawSupport(ctx, g, p.b);
+    if (p.M) drawRope(ctx, g, f, R, tipped);
+    supportName(ctx, g, p.a, 'A'); supportName(ctx, g, p.b, 'B');
+    ctx.save(); ctx.translate(piv[0], piv[1]); ctx.rotate(S.tilt); ctx.translate(-piv[0], -piv[1]);
+    drawBar(ctx, g); drawObj(ctx, g);
+    ctx.restore();
+    if (S.arms && !tipped) drawArms(ctx, g, f);
+    drawForces(ctx, g, f, R, tipped);
+    if (showCg) drawCg(ctx, g, R);
+    if (tipped) drawTip(ctx, g, f, R, piv);
+    drawRuler(ctx, g);
+  }
+  function drawFloor(ctx, g, W) {
+    Lab.line(ctx, [[0, g.floorY], [W, g.floorY]], C.ink, 1.6);
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.beginPath();
+    for (let x = 10; x < W + 8; x += 11) { ctx.moveTo(x, g.floorY); ctx.lineTo(x - 7, g.floorY + 7); }
+    ctx.stroke(); ctx.restore();
+  }
+  // 받침대: 받침점(칼날) + 기둥. 이름은 기둥 옆
+  function drawSupport(ctx, g, at) {
+    const X = g.X(at), tw = g.narrow ? 11 : 14, th = g.narrow ? 16 : 19, pw = g.narrow ? 9 : 11, y1 = g.barBot + th;
+    ctx.save();
+    Lab.rrect(ctx, X - pw / 2, y1, pw, g.floorY - y1, 2); ctx.fillStyle = C['line-soft']; ctx.fill(); ctx.lineWidth = 1.2; ctx.strokeStyle = C.muted; ctx.stroke();
+    Lab.rrect(ctx, X - 16, g.floorY - 5, 32, 5, 2); ctx.fillStyle = C.muted; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(X, g.barBot); ctx.lineTo(X + tw, y1); ctx.lineTo(X - tw, y1); ctx.closePath();
+    ctx.fillStyle = C.paper; ctx.fill(); ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.strokeStyle = C.ink; ctx.stroke();
+    ctx.restore();
+  }
+  function supportName(ctx, g, at, name) {
+    const X = g.X(at), pw = g.narrow ? 9 : 11, left = X > 44;
+    place(ctx, name, [[left ? X - pw / 2 - 7 : X + pw / 2 + 7, g.floorY - 16, left ? 'right' : 'left'], [X + pw / 2 + 7, g.floorY - 16, 'left'],
+      [left ? X - pw / 2 - 7 : X + pw / 2 + 7, g.floorY - 16, left ? 'right' : 'left']], {size: 15, w: 600, halo: true});
+  }
+  function drawBar(ctx, g) {
+    const x0 = g.X(0), x1 = g.X(g.p.Lb);
+    ctx.save();
+    Lab.rrect(ctx, x0, g.barTop, x1 - x0, g.barH, 4);
+    ctx.fillStyle = C['copper-soft']; ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = C.muted; ctx.stroke();
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (let i = 1; i < g.p.Lb; i++) { const X = g.X(i); ctx.moveTo(X, g.barTop); ctx.lineTo(X, g.barTop + 4); }
+    ctx.stroke(); ctx.restore();
+  }
+  // 물체: 예제는 상자, 판자 상황은 사람
+  function drawObj(ctx, g) {
+    const X = g.X(S.x), y = g.barTop;
+    ctx.save();
+    if (g.q.L) {
+      Lab.rrect(ctx, X - g.objW / 2, y - g.objH, g.objW, g.objH, 4);
+      ctx.fillStyle = C.paper; ctx.fill(); ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.vel; ctx.stroke();
+      text(ctx, 'w', X, y - g.objH / 2, {size: 15, w: 600, color: C.vel});
+    } else {
+      const bw = g.narrow ? 14 : 16, bh = g.objH - 15, hr = g.narrow ? 6 : 7;
+      Lab.rrect(ctx, X - bw / 2, y - bh, bw, bh, 6);
+      ctx.fillStyle = C.paper; ctx.fill(); ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.vel; ctx.stroke();
+      Lab.circle(ctx, X, y - bh - hr - 1, hr, {fill: C.paper});
+      Lab.circle(ctx, X, y - bh - hr - 1, hr, {fill: C['vel-soft'], stroke: C.vel, width: 2});
+    }
+    ctx.restore();
+  }
+  // 위로 미는 힘(수직항력): 화살표 머리 위에 이름 = 값. 폰에서는 화살표 양쪽에 이름 | 값
+  function upArrow(ctx, P, len, col, name, val, g) {
+    if (len > 3) arrow(ctx, P[0], P[1], P[0], P[1] - len, col, 3.4, 12);
+    const y = P[1] - Math.max(len, 0) - 13, eL0 = P[0] < 70, eR0 = P[0] > stage.W - 70;
+    if (g.narrow && !eL0 && !eR0) {
+      place(ctx, name, [[P[0] - 6, y, 'right']], {size: 14, w: 600, color: col, halo: true}, true);
+      place(ctx, val, [[P[0] + 6, y, 'left']], {size: 13, w: 600, color: col, halo: true});
+    } else {
+      const al = eL0 ? 'left' : eR0 ? 'right' : 'center';
+      place(ctx, name + ' = ' + val, [[P[0] + (eL0 ? -4 : eR0 ? 4 : 0), y, al]], {size: 14, w: 600, color: col, halo: true}, true);
+    }
+  }
+  // 아래로 당기는 힘(무게): 이름은 화살표 옆(돌림힘 팔이 없는 쪽)
+  function downArrow(ctx, P, len, col, label, side) {
+    if (len > 3) arrow(ctx, P[0], P[1], P[0], P[1] + len, col, 3.2, 11);
+    if (!label) return;
+    const L = Math.max(len, 12), a1 = side > 0 ? 'left' : 'right', a2 = side > 0 ? 'right' : 'left';
+    place(ctx, label, [[P[0] + side * 9, P[1] + L * 0.62, a1], [P[0] - side * 9, P[1] + L * 0.62, a2], [P[0] + side * 9, P[1] + L * 0.3, a1],
+      [P[0] - side * 9, P[1] + L * 0.3, a2], [P[0], P[1] + L + 11, 'center'], [P[0] + side * 9, P[1] + L * 0.62, a1]], {size: 14, w: 600, color: col, halo: true});
+  }
+  function labelSide(at, g, f) {
+    if (S.arms && Math.abs(S.tilt) < 0.3 * RAD) return at >= g.p[pivotKey(f)] ? 1 : -1;
+    return at < g.c - 0.01 ? -1 : 1;
+  }
+  function drawForces(ctx, g, f, R, tipped) {
+    const p = g.p, k = g.k;
+    downArrow(ctx, R([g.X(g.c), g.barBot]), p.W * k, C.force, 'W', labelSide(g.c, g, f));
+    downArrow(ctx, R([g.X(S.x), g.barBot]), p.w * k, C.force, 'w', Math.abs(S.x - g.c) < 0.3 ? -labelSide(g.c, g, f) : labelSide(S.x, g, f));
+    if (tipped) return;
+    const A = [g.X(p.a), g.barTop], B = [g.X(p.b), g.barTop];
+    upArrow(ctx, A, f.NA * k, C.copper, 'N_A', Fs(f.NA), g);
+    upArrow(ctx, B, f.NB * k, C.violet, 'N_B', Fs(f.NB), g);
+    if (f.NA < 1e-6) Lab.circle(ctx, A[0], g.barBot + 1, 5, {fill: C.paper, stroke: C.copper, width: 2.4});
+    if (f.NB < 1e-6) Lab.circle(ctx, B[0], g.barBot + 1, 5, {fill: C.paper, stroke: C.violet, width: 2.4});
+  }
+  // 실로 이은 바닥 물체: 실 장력 T(아래로 당김), 판자 끝이 들리면 물체도 함께 들린다
+  function drawRope(ctx, g, f, R, tipped) {
+    const p = g.p, top = R([g.X(p.s), g.barBot]), mw = g.narrow ? 34 : 40, mh = g.narrow ? 22 : 26;
+    const rest = g.floorY - mh, len0 = rest - g.barBot, lift = Math.max(0, g.barBot - top[1]);
+    const mTop = rest - lift, X = g.X(p.s);
+    ctx.save();
+    if (S.tilt < -0.3 * RAD) {                 // 판자 끝이 내려가면 실이 느슨해진다
+      ctx.strokeStyle = C.ink; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(top[0], top[1]);
+      ctx.quadraticCurveTo(X + 16, (top[1] + mTop) / 2 + 8, X, mTop); ctx.stroke();
+    } else Lab.line(ctx, [top, [X, mTop]], C.ink, 1.8);
+    Lab.rrect(ctx, X - mw / 2, mTop, mw, mh, 4);
+    ctx.fillStyle = C.paper; ctx.fill(); ctx.fillStyle = C['vel-soft']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.vel; ctx.stroke();
+    ctx.restore();
+    text(ctx, 'M', X, mTop + mh / 2, {size: 14, w: 600, color: C.vel});
+    const T = f.state === 'tipB' ? p.M : f.T, tx = X + mw / 2 + 6;
+    if (!g.narrow) place(ctx, 'Mg = ' + Fs(p.M), [[tx, mTop - 6, 'left']], {size: 13, w: 500, color: C.muted, halo: true});
+    if (lift > 1) place(ctx, '들림!', [[tx, mTop + mh / 2, 'left']], {size: 13, w: 600, color: C.neg, halo: true});
+    else if (!g.narrow) place(ctx, '바닥이 미는 힘 ' + Fs(Math.max(0, p.M - T)), [[tx, mTop + 11, 'left']], {size: 13, w: 500, color: C.muted, halo: true});
+    if (T > 0.5 || tipped) {
+      const len = Math.min(T * g.k, len0 - 4);
+      if (len > 3) arrow(ctx, top[0], top[1], top[0], top[1] + len, C.force, 3.2, 11);
+      place(ctx, 'T = ' + Fs(T), [[top[0] + 8, top[1] + Math.max(len, 12) * 0.5 + 6, 'left'], [top[0] + 8, top[1] + len + 12, 'left']], {size: 14, w: 600, color: C.force, halo: true});
+    }
+  }
+  // 막대와 물체를 합친 무게중심: 구리색 점 + 연직선, 바닥의 받침 구간
+  function drawCgBand(ctx, g) {
+    const p = g.p, inside = M.standing(p, S.x);
+    ctx.save(); ctx.fillStyle = inside ? Lab.alpha(C.acc, 0.55) : Lab.alpha(C.neg, 0.55);
+    ctx.fillRect(g.X(p.a), g.floorY - 5, g.X(p.b) - g.X(p.a), 5); ctx.restore();
+  }
+  function drawCg(ctx, g, R) {
+    const p = g.p, xc = M.xcm(p, S.x), inside = M.standing(p, S.x), col = inside ? C.copper : C.neg;
+    const P0 = R([g.X(xc), (g.barTop + g.barBot) / 2]);
+    Lab.line(ctx, [P0, [P0[0], g.floorY - 2]], col, 2, [6, 5]);
+    Lab.circle(ctx, P0[0], P0[1], 7, {fill: C.paper, stroke: col, width: 2.4});
+    Lab.line(ctx, [[P0[0] - 5, P0[1]], [P0[0] + 5, P0[1]]], col, 2); Lab.line(ctx, [[P0[0], P0[1] - 5], [P0[0], P0[1] + 5]], col, 2);
+    const s = g.narrow ? '무게중심' : '전체 무게중심', X = P0[0];
+    place(ctx, s, [[X + 7, g.floorY - 22, 'left'], [X - 7, g.floorY - 22, 'right'], [X + 7, g.floorY - 44, 'left'], [X - 7, g.floorY - 44, 'right'],
+      [X + 7, g.floorY - 66, 'left'], [X + 7, g.floorY - 22, 'left']].filter((c) => c[2] === 'right' || c[0] < stage.W - 90), {size: 13, w: 600, color: col, halo: true});
+  }
+  // 돌림힘 팔: 0 이 되려는 힘 반대쪽 받침점(축)에서 각 무게의 작용선까지
+  function pivotKey(f) { return f.state === 'tipB' || (f.state === 'rope' && f.NA < 1e-9) || (f.state === 'ok' && f.NA <= f.NB) ? 'b' : 'a'; }
+  function drawArms(ctx, g, f) {
+    const p = g.p, pv = p[pivotKey(f)], Xp = g.X(pv), th = g.narrow ? 16 : 19, y0 = g.barBot + th + 10;
+    const arms = [[g.c, C.force], [S.x, C.vel]];
+    if (p.M && f.T > 1e-6) arms.push([p.s, C.force]);
+    arms.sort((a, b) => Math.abs(a[0] - pv) - Math.abs(b[0] - pv));      // 짧은 팔이 위
+    const used = {l: 0, r: 0};
+    arms.forEach(([at, col]) => {
+      const d = at - pv; if (Math.abs(d) < 0.02) return;
+      const side = d > 0 ? 'r' : 'l', y = y0 + used[side] * 24, x1 = g.X(at); used[side]++;
+      Lab.line(ctx, [[x1, g.barBot + 2], [x1, y]], Lab.alpha(col, 0.6), 1.2, [3, 3]);   // 작용선
+      Lab.bracket(ctx, Math.min(Xp, x1), Math.max(Xp, x1), y, C.copper, '', true);
+      reserve(Math.min(Xp, x1), y - 5, Math.abs(x1 - Xp), 10);
+      place(ctx, Ls(Math.abs(d)), [[(Xp + x1) / 2, y - 11, 'center']], {size: 13, w: 600, color: col, halo: true});
+    });
+    Lab.circle(ctx, Xp, g.barBot, 5, {fill: C.copper, stroke: C.paper, width: 1.6});
+    const right = S.x < pv - 0.02 ? true : S.x > pv + 0.02 ? false : pv >= g.c, n = Math.max(used.l, used.r);
+    place(ctx, '축', [[Xp + (right ? 12 : -12), y0 + n * 24 + 2, right ? 'left' : 'right'], [Xp + (right ? -12 : 12), y0 + n * 24 + 2, right ? 'right' : 'left'],
+      [Xp + (right ? 12 : -12), y0 + n * 24 + 24, right ? 'left' : 'right']], {size: 13, w: 600, color: C.copper, halo: true});
+  }
+  // 넘어짐: 축 둘레로 도는 화살표, 계산한(음수) 수직항력은 빨간 점선 — 받침점이 당겨야 하는 힘이라 존재할 수 없다
+  function drawTip(ctx, g, f, R, piv) {
+    const cw = S.tilt > 0, r = g.narrow ? 40 : 50, a0 = -140 * RAD, a1 = -40 * RAD;
+    ctx.save(); ctx.strokeStyle = C.neg; ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(piv[0], piv[1], r, cw ? a0 : a1 - 0.0, cw ? a1 : a0, !cw); ctx.stroke(); ctx.restore();
+    const e = cw ? a1 : a0, tx = cw ? -Math.sin(e) : Math.sin(e), ty = cw ? Math.cos(e) : -Math.cos(e);
+    const E = [piv[0] + r * Math.cos(e), piv[1] + r * Math.sin(e)];
+    arrow(ctx, E[0] - tx * 12, E[1] - ty * 12, E[0] + tx * 2, E[1] + ty * 2, C.neg, 2.6, 11);
+    const name = cw ? 'B' : 'A';
+    text(ctx, name + '를 축으로 넘어간다', piv[0], piv[1] - r - 16, {size: g.narrow ? 13 : 14, w: 700, color: C.neg, halo: true});
+    if (!S.ghost) return;
+    const other = cw ? g.p.a : g.p.b, val = cw ? f.NA0 : f.NB0;
+    if (!(val < 0) || (g.p.M && cw)) return;
+    const Q = R([g.X(other), g.barTop]), len = Math.min(-val * g.k, 70);
+    Lab.line(ctx, [[Q[0], Q[1] - len], [Q[0], Q[1] - 10]], C.neg, 2.4, [5, 4]);
+    arrow(ctx, Q[0], Q[1] - 12, Q[0], Q[1], C.neg, 2.4, 10);
+    const s = (cw ? 'N_A' : 'N_B') + ' = ' + Fs(val);
+    const al = Q[0] < 90 ? 'left' : Q[0] > stage.W - 90 ? 'right' : 'center', dx = al === 'left' ? -6 : al === 'right' ? 6 : 0;
+    rich(ctx, (g.narrow ? '' : '계산값 ') + s, Q[0] + dx, Q[1] - len - 24, {size: 13, w: 600, color: C.neg, align: al, halo: true});
+    text(ctx, '→ 불가능', Q[0] + dx, Q[1] - len - 9, {size: 13, w: 600, color: C.neg, align: al, halo: true});
+  }
+  function drawRuler(ctx, g) {
+    const y = g.floorY + 21;
+    for (let i = 0; i <= g.p.Lb; i++) {
+      const s = g.q.L ? (i === 0 ? '0' : i === 1 ? 'L' : i + 'L') : (i === g.p.Lb ? i + ' m' : String(i));
+      text(ctx, s, g.X(i) + (i === g.p.Lb && !g.q.L ? -4 : 0), y, {size: 13, w: 500, color: C.muted});
+    }
+  }
+
+  // ── 그래프: 받침점의 힘(실의 장력) – x ──────────────────
+  const gN = Lab.canvas('gN', (v) => drawForceGraph(v, S.pr, true));
+  const gR = Lab.canvas('gR', (v) => drawForceGraph(v, 'rope', S.pr === 'rope'));
+  function drawForceGraph(v, key, live) {
+    const {ctx, W, H} = v; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const q = PR[key], p = Object.assign({}, q, {w: key === S.pr ? S.w : q.w}), isL = q.L;
+    const lo = Math.max(0, M.xMin(p)), hi = Math.min(p.Lb, M.xMax(p)), x1 = M.xMaxSupport(p);
+    const sup = (x) => M.supports(p, x, p.M && x >= hi - 1e-9 ? p.M : 0);   // 계산값(넘어진 쪽): 실은 Mg 까지만
+    const act = (x) => M.forces(p, x);
+    const vals = [0];
+    for (const x of [0, lo, x1, hi, p.Lb]) { const s = sup(x), a = act(x); vals.push(s.NA, s.NB, a.NA, a.NB, a.T); }
+    let ymin = Math.min(...vals), ymax = Math.max(...vals);
+    const st = isL ? 1 : ymax - ymin > 900 ? 400 : 200;
+    ymin = Math.floor(ymin / st) * st; ymax = Math.ceil(ymax / st + 0.15) * st;
+    const narrow = W < 420, r = {x: narrow ? 46 : 54, y: 26, w: W - (narrow ? 46 : 54) - 26, h: H - 26 - 36};
+    const yt = []; for (let t = ymin; t <= ymax + 1e-9; t += st) yt.push(t);
+    const xt = []; for (let i = 0; i <= p.Lb; i++) xt.push(i);
+    const fx = (i) => (isL ? (i === 0 ? '0' : i === 1 ? 'L' : i + 'L') : String(i));
+    const fy = (t) => (isL ? (t === 0 ? '0' : t === 1 ? 'W' : t === -1 ? Lab.MI + 'W' : fmt(t) + 'W') : fmt(t));
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: p.Lb, ymin, ymax, xticks: xt, yticks: yt, fmtX: fx, fmtY: fy, xlabel: isL ? 'x' : 'x (m)', ylabel: isL ? '힘' : '힘 (N)', grid: true, yAt: 'left'});
+    // 넘어지는 칸(빨강), 실이 버티는 칸(구리)
+    ctx.save();
+    ctx.fillStyle = C['neg-soft'];
+    if (lo > 1e-6) ctx.fillRect(ax.X(0), r.y, ax.X(lo) - ax.X(0), r.h);
+    if (hi < p.Lb - 1e-6) ctx.fillRect(ax.X(hi), r.y, ax.X(p.Lb) - ax.X(hi), r.h);
+    if (p.M && x1 < hi) { ctx.fillStyle = C['copper-soft']; ctx.fillRect(ax.X(x1), r.y, ax.X(hi) - ax.X(x1), r.h); }
+    ctx.restore();
+    const yAt = (fr) => ax.Y(ymin + (ymax - ymin) * fr);
+    const lab = (s, a, b, col, fr) => { if (ax.X(b) - ax.X(a) > 30) text(ctx, s, (ax.X(a) + ax.X(b)) / 2, yAt(fr), {size: 13, w: 600, color: col, halo: true}); };
+    if (lo > 1e-6) lab('넘어짐', 0, lo, C.neg, 0.56);
+    if (hi < p.Lb - 1e-6) lab('넘어짐', hi, p.Lb, C.neg, 0.56);
+    if (p.M && x1 < hi) { lab('A 뜸,', x1, hi, C.copper, 0.57); lab('실이 버팀', x1, hi, C.copper, 0.57 - 18 / r.h); }
+    Lab.line(ctx, [[ax.X(0), ax.Y(0)], [ax.X(p.Lb), ax.Y(0)]], C.muted, 1.2);
+    // 선: 서 있는 범위는 실선(실제 값), 밖은 점선(두 받침점이 다 닿았다고 보고 계산한 값)
+    const plot = (fn, a, b, col, w, dash) => {
+      if (b - a < 1e-6) return;
+      const pts = []; for (let i = 0; i <= 60; i++) { const x = a + (b - a) * i / 60; pts.push([ax.X(x), ax.Y(fn(x))]); }
+      ctx.save(); if (dash) ctx.globalAlpha = 0.75; Lab.line(ctx, pts, col, w, dash); ctx.restore();
+    };
+    for (const [key2, col] of [['NA', C.copper], ['NB', C.violet]]) {
+      plot((x) => sup(x)[key2], 0, lo, col, 2, [6, 5]);
+      plot((x) => act(x)[key2], lo, hi, col, 3.2);
+      plot((x) => sup(x)[key2], hi, p.Lb, col, 2, [6, 5]);
+    }
+    if (p.M) plot((x) => act(x).T, lo, hi, C.force, 3.2);
+    // 이름표
+    const tagAt = (s, x, y, col, al) => rich(ctx, s, x, y, {size: 14, w: 600, color: col, align: al || 'left', halo: true});
+    tagAt('N_A', ax.X(0) + 6, ax.Y(sup(0).NA) - 13, C.copper);
+    tagAt('N_B', ax.X(p.Lb) - 6, ax.Y(sup(p.Lb).NB) + (p.M ? 14 : -13), C.violet, 'right');
+    if (p.M) tagAt('T = Mg', ax.X(hi) - 8, ax.Y(p.M) - 13, C.force, 'right');
+    // 0 이 되는 점
+    const zero = (x, col, s1, s2, toRight) => {
+      if (x < -1e-9 || x > p.Lb + 1e-9) return;
+      Lab.circle(ctx, ax.X(x), ax.Y(0), 5.5, {fill: col, stroke: C.paper, width: 2});
+      const al = toRight ? 'left' : 'right', dx = toRight ? 7 : -7, y = ax.Y(0) + 15;
+      rich(ctx, s1, ax.X(x) + dx, y, {size: 13, w: 600, color: col, align: al, halo: true});
+      if (s2 && !narrow) text(ctx, s2, ax.X(x) + dx, y + 16, {size: 13, w: 500, color: col, align: al, halo: true});
+    };
+    if (p.M) {
+      zero(x1, C.copper, 'N_A = 0', '실이 버티기 시작', false);
+      Lab.circle(ctx, ax.X(hi), ax.Y(p.M), 5.5, {fill: C.force, stroke: C.paper, width: 2});
+      zero(M.xMin(p), C.violet, 'N_B = 0', 'A가 축 (최소 x)', true);
+    } else {
+      zero(M.xMax(p), C.copper, 'N_A = 0', 'B가 축 (최대 x)', false);
+      zero(M.xMin(p), C.violet, 'N_B = 0', 'A가 축 (최소 x)', true);
+    }
+    if (!live) return;
+    // 지금 x
+    const X = ax.X(S.x), f = act(S.x), tip = f.state === 'tipA' || f.state === 'tipB';
+    Lab.line(ctx, [[X, r.y], [X, r.y + r.h]], C.copper, 1.4, [4, 4]);
+    if (!tip) {
+      Lab.circle(ctx, X, ax.Y(f.NA), 5, {fill: C.copper, stroke: C.paper, width: 1.6});
+      Lab.circle(ctx, X, ax.Y(f.NB), 5, {fill: C.violet, stroke: C.paper, width: 1.6});
+      if (p.M) Lab.circle(ctx, X, ax.Y(f.T), 5, {fill: C.force, stroke: C.paper, width: 1.6});
+    } else {
+      const s = sup(S.x);
+      Lab.circle(ctx, X, ax.Y(s.NA), 5, {fill: C.paper, stroke: C.neg, width: 2});
+      Lab.circle(ctx, X, ax.Y(s.NB), 5, {fill: C.paper, stroke: C.neg, width: 2});
+    }
+  }
+
+  // ── 돌림힘 비교: 축 B(또는 A)에서 누르는 쪽 = 들어 올리는 쪽 ──
+  const gT = Lab.canvas('gT', drawTorque);
+  function torqueParts(p, x, f) {
+    const c = p.Lb / 2, s = p.s == null ? 0 : p.s, T = p.M && f.state === 'tipB' ? p.M : f.T;
+    const B = pivotKey(f) === 'b', pv = B ? p.b : p.a;
+    // 축의 '다른 받침점' 쪽(B 축이면 왼쪽)을 누르는 돌림힘과 들어 올리는 돌림힘
+    const side = (at) => (B ? pv - at : at - pv);      // + 이면 다른 받침점 쪽
+    const press = [], lift = [];
+    const put = (name, F, at, col) => { const d = side(at); if (Math.abs(d) < 1e-9 || F < 1e-9) return; (d > 0 ? press : lift).push({name, v: F * Math.abs(d), d: Math.abs(d), F, col}); };
+    put('W', p.W, c, C.force); put('w', p.w, x, C.vel); if (p.M && T > 1e-9) put('T', T, s, C.force);
+    const N = B ? f.NA : f.NB, Nraw = B ? f.NA0 : f.NB0;
+    return {B, press, lift, N, Nraw, arm: p.b - p.a, tip: f.state === 'tipA' || f.state === 'tipB'};
+  }
+  function drawTorque() {
+    const {ctx, W, H} = gT; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const p = P(), f = M.forces(p, S.x), t = torqueParts(p, S.x, f), narrow = W < 420;
+    const other = t.B ? 'A' : 'B', Nn = t.B ? 'N_A' : 'N_B', ncol = t.B ? C.copper : C.violet;
+    // 눈금: 이 상황에서 x 를 끝에서 끝까지 옮길 때의 최대 돌림힘
+    let mx = 0;
+    for (const x of [0, p.Lb]) { const ff = M.forces(p, x), tt = torqueParts(p, x, ff); mx = Math.max(mx, tt.press.reduce((a, b) => a + b.v, 0), tt.lift.reduce((a, b) => a + b.v, 0)); }
+    const x0 = narrow ? 14 : 132, bw = W - x0 - 16, sc = bw / (mx * 1.04), bh = narrow ? 24 : 28;
+    const yT = 16, y1 = narrow ? 56 : 50, y2 = narrow ? 106 : 92;
+    text(ctx, (t.B ? 'B' : 'A') + '를 축으로 한 돌림힘', 14, yT, {size: 14, w: 700, align: 'left'});
+    text(ctx, '(' + other + ' 쪽이 뜨려는지 본다)', narrow ? W - 14 : 14 + 150, yT, {size: 13, w: 500, color: C.muted, align: narrow ? 'right' : 'left'});
+    const rowName = (s, y) => { if (narrow) text(ctx, s, 14, y - bh / 2 - 10, {size: 13, w: 600, color: C.ink, align: 'left'}); else text(ctx, s, x0 - 10, y, {size: 13, w: 600, color: C.ink, align: 'right'}); };
+    rowName(other + ' 쪽을 누름', y1); rowName(other + ' 쪽을 들어 올림', y2);
+    const seg = (x, y, w, col, label, hatch) => {
+      if (w < 0.5) return;
+      ctx.save(); Lab.rrect(ctx, x, y - bh / 2, w, bh, 4); ctx.fillStyle = Lab.alpha(col, hatch ? 0.16 : 0.22); ctx.fill();
+      ctx.lineWidth = 1.6; ctx.strokeStyle = col; if (hatch) ctx.setLineDash([5, 4]); ctx.stroke(); ctx.restore();
+      if (label && w > Lab.measure(ctx, label, {size: 13, w: 600}) + 10) text(ctx, label, x + w / 2, y, {size: 13, w: 600, color: col});
+    };
+    let a = x0;
+    const pressSum = t.press.reduce((s, q) => s + q.v, 0), liftSum = t.lift.reduce((s, q) => s + q.v, 0);
+    t.press.forEach((q) => { seg(a, y1, q.v * sc, q.col, q.name + ' × ' + Ls(q.d)); a += q.v * sc; });
+    a = x0;
+    t.lift.forEach((q) => { seg(a, y2, q.v * sc, q.col, q.name + ' × ' + Ls(q.d)); a += q.v * sc; });
+    const Nv = t.tip ? 0 : t.N * t.arm;
+    if (!t.tip && Nv > 1e-9) {
+      seg(a, y2, Nv * sc, ncol, '');
+      const lw = Lab.measure(ctx, Nn.replace('_', '') + ' × ' + Ls(t.arm), {size: 13, w: 600});
+      if (Nv * sc > lw + 8) rich(ctx, Nn + ' × ' + Ls(t.arm), a + Nv * sc / 2, y2, {size: 13, w: 600, color: ncol});
+      else if (a + Nv * sc + lw + 10 < W) rich(ctx, Nn + ' × ' + Ls(t.arm), a + Nv * sc + 6, y2, {size: 13, w: 600, color: ncol, align: 'left'});
+    }
+    // 넘침: 들어 올리는 돌림힘이 누르는 돌림힘보다 크다 → N 이 음수여야 한다
+    if (liftSum > pressSum + 1e-9) {
+      const xa = x0 + pressSum * sc, xb = x0 + liftSum * sc;
+      ctx.save(); ctx.fillStyle = C['neg-soft']; ctx.fillRect(xa, y1 - bh / 2 - 4, xb - xa, y2 - y1 + bh + 8); ctx.restore();
+      Lab.line(ctx, [[xa, y1 - bh / 2 - 6], [xa, y2 + bh / 2 + 6]], C.neg, 2, [4, 3]);
+    } else Lab.line(ctx, [[x0 + pressSum * sc, y1 - bh / 2 - 6], [x0 + pressSum * sc, y2 + bh / 2 + 6]], C.muted, 1.2, [3, 3]);
+    // 식 두 줄: 지금 N, 그리고 N = 0 인 경계
+    const yE2 = H - 14, yE1 = yE2 - 20, d0 = pressSum - liftSum, al = 'left';
+    if (d0 < -1e-9) rich(ctx, Nn + ' × ' + Ls(t.arm) + ' = ' + Ts(pressSum) + ' − ' + Ts(liftSum) + ' < 0 → 불가능', 14, yE1, {size: 14, w: 600, color: C.neg, align: al});
+    else rich(ctx, Nn + ' × ' + Ls(t.arm) + ' = ' + Ts(pressSum) + ' − ' + Ts(liftSum) + ' = ' + Ts(d0), 14, yE1, {size: 14, w: 600, color: ncol, align: al});
+    let e2;
+    if (t.B && p.M) e2 = 'N_A = 0 → x = ' + Ls(M.xMaxSupport(p)) + ', T = Mg 인 경계 x = ' + Ls(M.xMax(p));
+    else if (t.B) e2 = '경계 N_A = 0 → x = ' + Ls(M.xMax(p)) + (narrow ? '' : ' (누름 = 들어 올림)');
+    else e2 = M.xMin(p) < -1e-9 ? 'N_B는 막대 끝까지 0이 되지 않는다' : '경계 N_B = 0 → x = ' + Ls(M.xMin(p)) + (narrow ? '' : ' (누름 = 들어 올림)');
+    rich(ctx, e2, 14, yE2, {size: 13, w: 500, color: C.muted, align: al});
+  }
+
+  // ── 수치 ────────────────────────────────────────────────
+  function readouts() {
+    const p = P(), q = pr(), f = M.forces(p, S.x), [lo, hi] = M.range(p), c = p.Lb / 2, d = p.b - p.a;
+    const tip = f.state === 'tipA' || f.state === 'tipB';
+    $('xOut').textContent = Ls(S.x);
+    $('wOut').textContent = q.L ? Fs(S.w) : fmt(S.w, 0) + ' N';
+    const rangeS = Ls(lo) + ' ≤ x ≤ ' + Ls(hi), sub = (s) => s.replace(/_([AB])/g, '<sub>$1</sub>');
+    const xs = '<em>' + eL(S.x) + '</em>';
+    const lineB = (NA) => sub(`B 축: N_A × ${eL(d)} = ${eF(p.W)} × ${eL(p.b - c)} + ${eF(p.w)} × (${eL(p.b)} − ${xs})`) + (NA == null ? '' : ' → ' + sub(`<em>N_A = ${Fs(NA)}</em>`));
+    const lineA = (NB) => sub(`A 축: N_B × ${eL(d)} = ${eF(p.W)} × ${eL(c - p.a)} + ${eF(p.w)} × (${xs} − ${eL(p.a)})`) + (NB == null ? '' : ' → ' + sub(`<em>N_B = ${Fs(NB)}</em>`));
+    const xMinS = M.xMin(p) < -1e-9 ? 'N_B는 0이 되지 않는다' : 'N_B = 0 → x = ' + Ls(M.xMin(p));
+    let big, lines, tone = '', lab = '지금 받침점의 힘', F = '받침점을 축으로 한 돌림힘 평형에 지금 값을 넣으면';
+    if (f.state === 'ok') {
+      big = sub(`<span class="nw">N_A = ${Fs(f.NA)}</span> · <span class="nw">N_B = ${Fs(f.NB)}</span>`);
+      const third = p.M ? sub(`실은 느슨(T = 0). N_B = 0 → x = ${Ls(M.xMin(p))} 가 최소, T = Mg → x = ${Ls(M.xMax(p))} 가 최대`)
+        : sub(`N_A = 0 → x = ${Ls(M.xMax(p))}, ${xMinS} → <em>${rangeS}</em>`);
+      lines = [lineB(f.NA), lineA(f.NB), third];
+      if (p.M) lab = '지금 받침점의 힘 (실의 장력 0)';
+    } else if (f.state === 'rope') {
+      lab = '지금 실의 장력'; F = 'A가 떠서 N<sub>A</sub> = 0 이 된 뒤, B를 축으로 한 돌림힘 평형에 지금 값을 넣으면';
+      big = sub(`<span class="nw">N_A = 0</span> · <span class="nw">T = ${Fs(f.T)}</span>`);
+      lines = [`B 축: ${eF(p.w)} × (${xs} − ${eL(p.b)}) = ${eF(p.W)} × ${eL(p.b - c)} + T × ${eL(p.b - p.s)}`,
+        `→ <em>T = ${Fs(f.T)}</em> ≤ Mg = ${Fs(p.M)} 이라 아직 버틴다 (바닥이 미는 힘 ${Fs(p.M - f.T)})`,
+        `T = Mg → x = ${Ls(M.xMax(p))} 가 최대, N<sub>B</sub> = 0 → x = ${Ls(M.xMin(p))} 가 최소`];
+    } else {
+      tone = 'neg'; lab = '지금 판정';
+      const B = f.state === 'tipB';
+      big = (B ? 'B' : 'A') + '를 축으로 넘어간다';
+      if (B && p.M) {
+        F = 'N<sub>A</sub> = 0, 실의 장력이 최대(T = Mg)여도';
+        lines = [`B 축: ${eF(p.w)} × (${xs} − ${eL(p.b)}) = ${Ts(p.w * (S.x - p.b))} &gt; ${eF(p.W)} × ${eL(p.b - c)} + ${eF(p.M)} × ${eL(p.b - p.s)} = ${Ts(p.W * (p.b - c) + p.M * (p.b - p.s))}`,
+          'T가 Mg를 넘어야 하므로 <em>바닥 물체가 들리고</em> 판자가 넘어간다', `넘어지지 않는 범위: <em>${rangeS}</em>`];
+      } else {
+        F = '두 받침점이 다 닿았다고 보고 계산하면';
+        lines = [B ? lineB(null) + ' → ' + sub(`N_A = <em>${Fs(f.NA0)}</em>`) : lineA(null) + ' → ' + sub(`N_B = <em>${Fs(f.NB0)}</em>`),
+          sub(`${B ? 'N_A' : 'N_B'} &lt; 0 은 불가능(받침점은 당기지 못한다) → <em>${B ? 'A' : 'B'}에서 떨어져 ${B ? 'B' : 'A'}를 축으로</em> 돈다`),
+          `넘어지지 않는 범위: <em>${rangeS}</em>`];
+      }
+    }
+    Lab.ans(big, lines, {tone, lab, ctx: q.ctx + ' · w = ' + Fs(p.w) + ' · x = ' + Ls(S.x), f: F, html: true});
+    $('rRange').textContent = rangeS;
+    setH('rSumN', p.M ? 'N<sub>A</sub> + N<sub>B</sub> (= W + w + T)' : 'N<sub>A</sub> + N<sub>B</sub> (= W + w)');
+    $('rSum').textContent = tip ? '–' : Fs(f.NA + f.NB);
+    if (p.M) { $('r3n').textContent = '실의 장력 T (0 ~ Mg)'; $('r3').textContent = tip ? 'Mg 넘음' : Fs(f.T); }
+    else {
+      const xc = M.xcm(p, S.x), ins = M.standing(p, S.x);
+      setH('r3n', '전체 무게중심 x<sub>cm</sub>'); $('r3').textContent = Ls(xc) + (ins ? ' (A–B 사이)' : ' (받침점 밖)');
+    }
+    const stS = f.state === 'ok' ? (f.NA < 1e-6 || f.NB < 1e-6 ? '경계 (힘 하나 0)' : '평형') : f.state === 'rope' ? '평형 (실이 버팀)' : '넘어짐';
+    $('rState').textContent = stS;
+    $('hud1').textContent = 'x = ' + Ls(S.x);
+    const h2 = $('hud2');
+    h2.textContent = tip ? '넘어짐 · ' + (f.state === 'tipB' ? 'B' : 'A') + ' 축' : f.state === 'rope' ? '실이 버팀' : (f.NA < 1e-6 || f.NB < 1e-6) ? '경계: 힘 하나 0' : '평형';
+    h2.className = 'pill ' + (tip ? 'down' : 'up');
+    const ok = S.pr === 'ex' && near(S.w, 1);
+    Lab.check('exCheck', ok, '개념서 예제 (6L 막대, A = 2L, B = 4L, w = W) → B의 힘 0인 x = L, A의 힘 0인 x = 5L: L ≤ x ≤ 5L',
+      '예제: 6L 막대에 w = W인 물체를 둘 때 넘어지지 않는 x의 범위는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function setH(id, h) { const el = $(id); if (el.innerHTML !== h) el.innerHTML = h; }
+  function drawAll() { drawStage(); gN.redraw(); gT.redraw(); gR.redraw(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const xSl = $('xs'), wSl = $('ws');
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; S.hold = 0; });
+  function setX(v) { S.x = clamp(Math.round(v * 100) / 100, 0, pr().Lb); xSl.value = S.x; }
+  function syncCtl() {
+    const q = pr();
+    xSl.max = q.Lb; xSl.value = S.x;
+    wSl.min = q.wMin; wSl.max = q.wMax; wSl.step = q.wStep; wSl.value = S.w;
+    $('cArms').checked = S.arms; $('cCg').checked = S.cg; $('cGhost').checked = S.ghost;
+    prG.set(S.pr, true);
+  }
+  function setPreset(key, w) {
+    S.pr = key; S.w = w == null ? PR[key].w : w; S.tilt = 0; S.hold = 0;
+    if (S.x > PR[key].Lb) S.x = PR[key].Lb / 2;
+    syncCtl();
+  }
+  const settle = () => { const st = M.forces(P(), S.x).state; S.tilt = st === 'tipB' ? TILT : st === 'tipA' ? -TILT : 0; };
+  xSl.addEventListener('input', () => { playCtl.set(false); setX(+xSl.value); if (Lab.reduceMotion) settle(); refresh(); });
+  wSl.addEventListener('input', () => { S.w = +wSl.value; if (Lab.reduceMotion) settle(); refresh(); });
+  const prG = Lab.group('[data-pr]', 'pr', (v) => { setPreset(v); setX(PR[v].Lb / 2 - (v === 'ex' ? 0 : 0.5)); refresh(); }, S.pr);
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  $('cArms').addEventListener('change', (e) => { S.arms = e.target.checked; drawStage(); });
+  $('cCg').addEventListener('change', (e) => { S.cg = e.target.checked; drawStage(); });
+  $('cGhost').addEventListener('change', (e) => { S.ghost = e.target.checked; drawStage(); });
+  $('toMin').addEventListener('click', () => { playCtl.set(false); setX(M.range(P())[0]); settle(); refresh(); });
+  $('toMax').addEventListener('click', () => { playCtl.set(false); setX(M.range(P())[1]); settle(); refresh(); });
+  // 무대에서 물체 끌기
+  const xAt = (px) => { const g = geo(stage.W, stage.H); return (px - g.m) / g.u; };
+  Lab.pointer(stage.el, {
+    down: (x, y) => {
+      const g = geo(stage.W, stage.H);
+      if (y < g.barTop - g.objH - 70 || y > g.floorY + 4 || x < g.m - 20 || x > stage.W - g.m + 20) return;
+      S.drag = true; playCtl.set(false); setX(xAt(x)); refresh();
+    },
+    move: (x) => { if (S.drag) { setX(xAt(x)); refresh(); } },
+    up: () => { S.drag = false; },
+  });
+  // 저절로 옮기기: 경계(힘 하나가 0)를 지날 때 잠깐 멈춘다
+  function marks(p) {
+    const out = [M.xMin(p), M.xMax(p)];
+    if (p.M) out.push(M.xMaxSupport(p));
+    return out.filter((v) => v > 0.05 && v < p.Lb - 0.05);
+  }
+  function stepX(dt) {
+    if (S.hold > 0) { S.hold -= dt; return false; }
+    const q = pr(), p = P(), nx = S.x + S.dir * q.sp * S.speed * dt;
+    for (const b of marks(p)) if ((S.x - b) * (nx - b) < 0 && Math.abs(S.x - b) > 1e-9) { S.x = b; S.hold = 1.1; xSl.value = S.x; return true; }
+    S.x = nx;
+    if (S.x >= q.hi) { S.x = q.hi; S.dir = -1; S.hold = 0.9; } else if (S.x <= q.lo) { S.x = q.lo; S.dir = 1; S.hold = 0.9; }
+    xSl.value = S.x;
+    return true;
+  }
+
+  const TRY = {
+    sweep: () => { setPreset('ex', 1); setX(0.6); S.dir = 1; S.arms = true; playCtl.set(true); },
+    mid: () => { setPreset('ex', S.pr === 'ex' ? S.w : 1); setX(3); playCtl.set(false); },
+    edge: () => { setPreset('ex', 1); setX(5); S.arms = true; playCtl.set(false); },
+    over: () => { setPreset('ex', 1); setX(5.5); S.ghost = true; playCtl.set(false); },
+    edgeL: () => { setPreset('ex', 1); setX(1); S.arms = true; playCtl.set(false); },
+    cg: () => { setPreset('ex', 1); S.cg = true; setX(3.6); S.dir = 1; playCtl.set(true); },
+    rope: () => { setPreset('rope'); setX(3.5); S.dir = 1; playCtl.set(true); },
+    rope69: () => { setPreset('rope'); setX(6.9); S.arms = true; playCtl.set(false); },
+    rope12: () => { setPreset('rope'); setX(1.2); S.arms = true; playCtl.set(false); },
+    ropeOver: () => { setPreset('rope'); setX(7.3); playCtl.set(false); },
+    ex: () => { setPreset('ex', 1); setX(5); S.arms = true; S.ghost = true; playCtl.set(false); },
+    plank: () => { setPreset('plank'); setX(0.4); S.dir = 1; S.arms = true; playCtl.set(true); },
+    plankEnd: () => { setPreset('plank'); setX(4); S.ghost = true; playCtl.set(false); },
+    heavy: () => { setPreset('ex', 2); setX(4.5); S.arms = true; playCtl.set(false); },
+  };
+  Lab.tries(TRY, () => { syncCtl(); if (Lab.reduceMotion) settle(); refresh(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    let changed = false;
+    if (S.playing && !S.drag) changed = stepX(dt);
+    const st = M.forces(P(), S.x).state, tgt = st === 'tipB' ? TILT : st === 'tipA' ? -TILT : 0;
+    if (Math.abs(S.tilt - tgt) > 1e-4) {
+      if (Lab.reduceMotion) S.tilt = tgt; else S.tilt += Math.sign(tgt - S.tilt) * Math.min(Math.abs(tgt - S.tilt), dt * (0.05 + 3 * Math.abs(S.tilt)) * 6);
+      changed = true;
+    }
+    if (changed) refresh();
+  });
+  syncCtl();
+  refresh();
+})();
+</script>
+</body>
+</html>

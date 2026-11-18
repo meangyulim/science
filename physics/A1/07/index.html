@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>중력장에서의 직선 운동</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(공의 연직 운동 기둥 + 같은 높이 축을 쓰는 높이–시간 그래프) | 오른쪽 지금 값 + 관찰 ①~④(v–t·a–t, 넓이, 높이–속도, 1:3:5:7) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5;cursor:ew-resize}
+#va{aspect-ratio:10/7}
+#ar{aspect-ratio:10/6.2}
+#mr{aspect-ratio:10/6.4}
+#dp{aspect-ratio:10/5.4}
+@media (max-width:640px){ #va{aspect-ratio:10/8} #dp{aspect-ratio:10/6.6} }
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="A1 힘과 운동: 개념 16개 가운데 7번째"><a class="uname" href="../">A1 힘과 운동</a><span class="dots"><a href="../01/" title="A1-01 힘의 합성·분해" aria-label="A1-01 힘의 합성·분해"></a><a href="../02/" title="A1-02 돌림힘과 평형" aria-label="A1-02 돌림힘과 평형"></a><a href="../03/" title="A1-03 무게중심과 안정성" aria-label="A1-03 무게중심과 안정성"></a><a href="../04/" title="A1-04 한계 조건과 강체" aria-label="A1-04 한계 조건과 강체"></a><a href="../05/" title="A1-05 운동의 벡터" aria-label="A1-05 운동의 벡터"></a><a href="../06/" title="A1-06 평면 등가속도 운동" aria-label="A1-06 평면 등가속도 운동"></a><a class="cur" href="./" aria-current="page" title="A1-07 중력장의 직선 운동" aria-label="A1-07 중력장의 직선 운동 (지금)"></a><a href="../08/" title="A1-08 포물선 운동" aria-label="A1-08 포물선 운동"></a><a href="../09/" title="A1-09 상대 운동" aria-label="A1-09 상대 운동"></a><a href="../10/" title="A1-10 등속 원운동" aria-label="A1-10 등속 원운동"></a><a href="../11/" title="A1-11 여러 가지 구심력" aria-label="A1-11 여러 가지 구심력"></a><a href="../12/" title="A1-12 케플러 법칙" aria-label="A1-12 케플러 법칙"></a><a href="../13/" title="A1-13 만유인력과 인공위성" aria-label="A1-13 만유인력과 인공위성"></a><a href="../14/" title="A1-14 단진동과 단진자" aria-label="A1-14 단진동과 단진자"></a><a href="../15/" title="A1-15 관성력" aria-label="A1-15 관성력"></a><a href="../16/" title="A1-16 등가 원리" aria-label="A1-16 등가 원리"></a></span></nav>
+  <div class="pn"><a href="../06/" rel="prev" title="이전 개념: A1-06 평면 등가속도 운동">‹ <span>06 평면 등가속도 운동</span></a><a href="../08/" rel="next" title="다음 개념: A1-08 포물선 운동"><span>08 포물선 운동</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">A1-07</span><span>물리학 Ⅱ · 힘과 운동</span></div>
+    <h1>중력장에서의 직선 운동</h1>
+    <p class="question"><i>Q</i>위로 던진 공은 왜 올라간 시간만큼 걸려 내려올까?</p>
+  </div>
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="연직 위로 던진 공(구리색)을 같은 시간 간격으로 찍은 모습. 올라갈 때와 내려올 때를 옆으로 나눠 그렸고, 오른쪽은 같은 높이 축을 쓰는 높이–시간 그래프다. 그래프 위를 끌면 시각이 바뀐다."></canvas>
+        <div class="hud"><span class="pill" id="hudT">t = 0 s</span><span class="pill" id="hudS">올라가는 중</span><span class="pill" id="hudV">느린 화면 ×0.5</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider" id="slUp"><label for="v0"><span class="lg">처음 속도 </span>v₀</label><input id="v0" type="range" min="5" max="30" step="5" value="20"><output id="v0Out">20 m/s</output></div>
+          <div class="slider" id="slDn" hidden><label for="vd"><span class="lg">아래로 던진 속도 </span>v₀</label><input id="vd" type="range" min="0" max="20" step="5" value="0"><output id="vdOut">0 m/s</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·보기</span><span class="sm">장면</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 보기">
+          <div class="sheet-head"><b>장면 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="up" aria-pressed="true">위로 던지기</button>
+              <button type="button" class="btn" data-scene="drop" aria-pressed="false">떨어뜨리기·아래로</button>
+            </div>
+            <button type="button" class="btn" id="back">◀ 0.5 s</button>
+            <button type="button" class="btn" id="step">0.5 s ▶</button>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×0.25</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="true">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="false">×1</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cStrobe" checked>같은 시간 간격으로 찍기</label>
+            <label class="chk"><input type="checkbox" id="cVel" checked>속도 화살표</label>
+            <label class="chk"><input type="checkbox" id="cAcc" checked>가속도 화살표</label>
+            <label class="chk"><input type="checkbox" id="cTwin">질량이 다른 공 같이</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">위로 던진 공</span><span id="ansCtx">v₀ = 20 m/s · t = 0 s</span></div>
+        <div class="big" id="ansBig">t₁ = 2 s, H = 20 m</div>
+        <div class="sub">
+          <span class="f" id="ansF">t₁ = v₀/g, H = v₀²/2g, v = v₀ − gt, y = v₀t − ½gt² 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">t₁ = v₀/g = <em>20</em> ÷ 10 = <em>2 s</em>, H = v₀²/2g = <em>20</em>² ÷ 20 = <em>20 m</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="m1n">올라가는 시간 t₁</span><b id="m1">2 s</b></div>
+          <div class="mini"><span id="m2n">내려오는 시간</span><b id="m2">2 s</b></div>
+          <div class="mini"><span id="m3n">지금 속도 v</span><b id="m3">+20 m/s</b></div>
+          <div class="mini"><span id="m4n">가속도 a (위 +)</span><b id="m4">−10 m/s²</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 가속도는 늘 g">
+          <div class="kind">관찰 1</div>
+          <h3>속도는 1초에 10 m/s씩 똑같이 줄고, 최고점에서도 가속도는 g다</h3>
+          <p>공기 저항이 없으면 공에는 중력만 작용해, 질량과 관계없이 연직 아래로 g = 10 m/s²의 가속도를 갖는다. 구리색 공의 파란 화살표(속도)는 0.5 s마다 5 m/s씩 짧아지다가 최고점에서 0이 되고, 그 뒤 아래로 같은 비율로 길어진다. 초록 화살표(가속도)는 처음부터 끝까지 그대로다.</p>
+          <canvas class="flat" id="va" aria-label="위: 속도-시간 그래프는 기울기 −10인 직선. 아래: 가속도-시간 그래프는 −10에서 움직이지 않는 수평선."></canvas>
+          <p class="cap">위를 (+)로 잡으면 v–t 는 기울기 −g 인 직선이고, a–t 는 −10 m/s² 에서 움직이지 않는다. 최고점(v = 0)에서도 기울기는 그대로라서, 공은 그 순간 멈추지 않고 곧바로 내려오기 시작한다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="top">최고점에서 멈추기</button><button type="button" class="btn" data-do="click:#step">0.5 s씩 ▸</button></div>
+        </li>
+        <li class="card step" data-step="② 위 넓이 = 아래 넓이">
+          <div class="kind">관찰 2</div>
+          <h3>v–t 의 위 넓이와 아래 넓이가 같아서, 올라간 시간만큼 걸려 내려온다</h3>
+          <p>v–t 그래프의 넓이는 변위다. 0 ~ t₁ 동안 위쪽 삼각형(+H)만큼 올라가고, t₁ 뒤에는 아래쪽 삼각형만큼 내려온다. 기울기가 일정한 직선이라 두 삼각형은 t₁ 을 사이에 두고 똑같다. 그래서 넓이 합이 0 이 되는 2t₁ 에 던진 곳으로 돌아온다.</p>
+          <canvas class="flat" id="ar" aria-label="속도-시간 그래프에서 0부터 지금까지 칠한 넓이. 위쪽(+)은 올라간 높이, 아래쪽(−)은 내려온 높이."></canvas>
+          <p class="cap">칠한 넓이의 합 = 지금 높이. v₀ 를 바꿔도 두 삼각형은 늘 같다: 올라가는 시간 t₁ = v₀/g = 내려오는 시간, 최고 높이 H = v₀²/2g.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="full">2t₁ 까지 (제자리)</button>
+            <button type="button" class="btn" data-do="set:#v0=10">v₀ = 10 m/s</button>
+            <button type="button" class="btn" data-do="set:#v0=30">v₀ = 30 m/s</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 같은 높이, 같은 속력">
+          <div class="kind">관찰 3</div>
+          <h3>같은 높이를 지날 때는 속력이 같고 방향만 반대다</h3>
+          <p>무대의 왼쪽 줄은 올라갈 때, 오른쪽 줄은 내려올 때 같은 시간 간격으로 찍은 공이다(겹치지 않게 옆으로 나눠 그렸다). 같은 높이의 두 공은 t₁ 앞뒤로 같은 시간만큼 떨어진 짝(1 s 와 3 s)이고 화살표 길이가 같다. 높이–시간 그래프가 꼭짓점(v = 0)을 중심으로 좌우 대칭인 위로 볼록한 포물선인 것도 같은 까닭이다.</p>
+          <canvas class="flat" id="mr" aria-label="높이-속도 그래프. 올라갈 때 그린 오른쪽 반쪽(+v)을 내려올 때 왼쪽 반쪽(−v)이 거울처럼 따라 그린다."></canvas>
+          <p class="cap">높이마다 속도는 +v, −v 의 짝이다(<span class="eq">v² = v₀² − 2gy</span>). 올라가며 그린 오른쪽 반쪽을, 내려오며 왼쪽 반쪽이 거울처럼 따라 그린다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="pair">1 s ↔ 3 s 견주기</button><button type="button" class="btn" data-do="click:#step">0.5 s씩 ▸</button></div>
+        </li>
+        <li class="card step" data-step="④ 1 : 3 : 5 : 7">
+          <div class="kind">관찰 4</div>
+          <h3>가만히 놓으면 같은 시간 간격의 낙하 거리가 1 : 3 : 5 : 7 로 는다</h3>
+          <p>80 m 높이에서 놓은 공을 1 s마다 찍었다. 속력은 시간에 비례하고(v = gt), 1 s 동안 떨어진 거리는 5, 15, 25, 35 m 로 홀수비, 누적 거리는 시간의 제곱에 비례한다(1 : 4 : 9 : 16). 무거운 공은 중력이 큰 만큼 질량(관성)도 커서 가속도 F/m 가 똑같이 g 다.</p>
+          <canvas class="flat" id="dp" aria-label="1초마다 찍은 낙하하는 공. 구간 거리는 1:3:5:7, 속도 화살표는 시간에 비례해 길어진다."></canvas>
+          <p class="cap">아래로 던지면(v₀ ≠ 0) 홀수비는 깨지지만, 이웃한 구간의 거리 차는 늘 gT² = 10 m 다. ‘무거우면 더 빨리 떨어진다’는 생각은 공기 저항의 효과를 중력과 헷갈린 것이다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="drop">떨어뜨리기</button>
+            <button type="button" class="btn" data-try="twin">무거운 공과 같이</button>
+            <button type="button" class="btn" data-try="down10">아래로 10 m/s</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>가속도는 끝까지 g, 운동은 최고점 기준 대칭</h3>
+          <ul>
+            <li>위로 던짐(위 +): <span class="eq">v = v₀ − gt</span>, <span class="eq">y = v₀t − ½gt²</span>. 최고점 <span class="eq">t₁ = v₀/g</span>, <span class="eq">H = v₀²/2g</span>, 제자리까지 2v₀/g.</li>
+            <li>떨어뜨림(아래 +): v = gt, h = ½gt², v² = 2gh. 아래로 던짐: v = v₀ + gt, h = v₀t + ½gt².</li>
+            <li>v–t 의 기울기 = 가속도(−g), 넓이 = 변위. 처음 속도가 0이면 같은 시간 간격의 낙하 거리는 1 : 3 : 5 : 7.</li>
+            <li>자주 하는 실수: 최고점에서는 속도만 0 이고 가속도는 g 다. 공기 저항이 없으면 무거운 물체도 같은 가속도로 떨어진다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>공을 연직 위로 20 m/s로 던졌다. 최고점 도달 시간, 최고 높이, 던진 뒤 3 s일 때의 속도와 높이는? (g = 10 m/s²)</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>t₁ = v₀/g = 20 ÷ 10 = 2 s, H = v₀²/2g = 400 ÷ 20 = 20 m. 3 s일 때 v = 20 − 10 × 3 = −10 m/s, 곧 <b>아래로 10 m/s</b>이고, 높이는 20 × 3 − 5 × 3² = 15 m 다. 대칭으로 보면 최고점 뒤 1 s 동안 5 m 내려온 자리라서, 올라가던 1 s 때와 높이(15 m)와 속력(10 m/s)이 같다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>가만히 놓은 물체가 처음 1 s 동안 5 m 떨어졌다. 2 s부터 3 s까지 1 s 동안 떨어진 거리는? (공기 저항 무시)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1">3 s까지 떨어뜨려 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>25 m</b>. 처음 속도가 0인 등가속도 운동은 같은 시간 간격의 낙하 거리가 1 : 3 : 5 로 늘어나므로 세 번째 1 s 동안은 5 × 5 = 25 m 다. 45 m 는 3 s 동안 떨어진 누적 거리(9배)로, 구간 거리와 헷갈린 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>연직 위로 던진 공이 6 s 뒤 던진 위치로 돌아왔다. 공의 최고 높이는? (g = 10 m/s²)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q2">v₀ = 30 m/s로 던져 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>올라가는 시간과 내려오는 시간이 같으므로 최고점까지 3 s, 처음 속력은 30 m/s 다. H = v₀²/2g = 900 ÷ 20 = <b>45 m</b>. 최고점에서 3 s 동안 자유 낙하한 거리 ½ × 10 × 3² = 45 m 로도 확인된다. 180 m 는 6 s 전체를 낙하 시간으로 넣은 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>최고점에 이른 순간 공의 속도와 가속도는? 공이 세 배 무거우면 달라질까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q3">최고점에서 두 공 견주기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>속도는 0 이지만 가속도는 여전히 <b>연직 아래로 g</b> 다. 그래서 다음 순간 내려오기 시작한다. 세 배 무거운 공은 중력이 3mg 로 세 배지만 질량도 세 배라 가속도 3mg/3m = g 로 같고, 두 공은 나란히 움직인다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../06/" rel="prev"><small>← 이전 개념 · A1-06</small><b>평면 등가속도 운동</b></a><a href="../08/" rel="next"><small>다음 개념 · A1-08 →</small><b>포물선 운동</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+<script src="../../kit/lab.js"></script>
+<script src="A1-07-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_07;
+  const {$, C, text, arrow, fmt} = Lab;
+  const DROP_H = 80;                 // 떨어뜨리는 탑의 높이 (m)
+  const EPS = 1e-6;
+
+  // ── 상태 ────────────────────────────────────────────────
+  const EX = {v0: 20};
+  const S = {scene: 'up', v0: 20, vd: 0, t: 0, playing: !Lab.reduceMotion, speed: 0.5, linger: 0, hold: 0,
+    strobe: true, vel: true, acc: true, twin: false, drag: false};
+  const isUp = () => S.scene === 'up';
+  const t1 = () => M.topTime(S.v0);
+  const tEnd = () => (isUp() ? M.flightTime(S.v0) : M.fallTime(DROP_H, S.vd));
+  // 같은 시간 간격(스트로보): 위로 던지면 최고점이 늘 찍히게 t₁ 을 나누는 간격, 떨어뜨리면 1 s
+  function dtS() {
+    if (!isUp()) return 1;
+    const a = t1();
+    for (const d of [0.5, 0.25, 0.125]) if (a / d >= 3 - EPS && Math.abs(a / d - Math.round(a / d)) < EPS) return d;
+    return a / 4;
+  }
+  const stamps = () => { const d = dtS(), out = []; for (let k = 0; k * d <= tEnd() + EPS; k++) out.push(k * d); return out; };
+  const yAt = (t) => (isUp() ? M.yUp(S.v0, t) : DROP_H - M.fallDist(S.vd, t));      // 높이 (위 +)
+  const vAt = (t) => (isUp() ? M.vUp(S.v0, t) : -M.vDown(S.vd, t));                 // 속도 (위 +)
+  const r2 = (v) => Math.round(v * 100) / 100;
+  const sgnS = (v, d = 2) => (Math.abs(v) < 0.005 ? '0' : Lab.sg(v, d));
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  const NICE = [2, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 90, 100];
+  const niceMax = (v) => NICE.find((n) => n >= v - 1e-9) || Math.ceil(v / 10) * 10;
+  const stepFor = (span, n) => [0.25, 0.5, 1, 2, 5, 10, 20, 50].find((s) => span / s <= n + 1e-9) || 100;
+  const isMult = (v, s) => Math.abs(v / s - Math.round(v / s)) < 1e-6;
+  function ground(ctx, x0, x1, y) {
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.globalAlpha = 0.55; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (let x = x0 + 8; x < x1 + 4; x += 11) { ctx.moveTo(x, y + 1); ctx.lineTo(x - 8, y + 9); }
+    ctx.stroke(); ctx.restore();
+    Lab.line(ctx, [[x0, y], [x1, y]], C.ink, 2.2);
+  }
+  // 세로 화살표 (공 가장자리에서 시작)
+  function vArrow(ctx, x, y, v, k, col, w, r) {
+    const L = v * k; if (Math.abs(L) < 3) return;
+    const s = L > 0 ? -1 : 1;           // 화면에서 위가 −
+    arrow(ctx, x, y + s * r, x, y + s * r + s * Math.abs(L), col, w, Math.min(10, 4 + Math.abs(L) * 0.25));
+  }
+
+  // ── 무대 기하 ───────────────────────────────────────────
+  // 왼쪽 기둥: 공이 움직이는 줄(xc)과 두 스트로보 줄(xc ∓ dx). 오른쪽: 같은 높이 축을 쓰는 높이–시간 그래프 (gx0 ~ gx1)
+  function geo(W, H) {
+    const narrow = W < 520, up = isUp();
+    const top = narrow ? 64 : 66, gy = H - (narrow ? 60 : 62);
+    const cw = Math.round(W * (narrow ? 0.45 : 0.38));
+    const gx0 = cw + (narrow ? 2 : 8), gx1 = W - (narrow ? 18 : 28);
+    const yTop = up ? M.maxHeight(S.v0) : DROP_H;
+    const ymax = niceMax(yTop * (up ? 1.22 : 1.08));
+    const sy = Math.max(0.2, (gy - top) / ymax);
+    const tmax = Math.max(0.2, tEnd()), st = Math.max(20, gx1 - gx0) / tmax;
+    const xc = Math.round(cw * (up ? 0.5 : 0.56)), dx = narrow ? 36 : Math.min(56, cw * 0.19);
+    const vmax = up ? S.v0 : M.vDown(S.vd, tEnd());
+    const kv = Math.min(sy * dtS() * 0.45, (gy - top) * 0.36 / Math.max(5, vmax));   // 속도 화살표: px per (m/s)
+    return {narrow, up, W, H, top, gy, cw, gx0, gx1, ymax, sy, tmax, st, xc, dx, kv,
+      Y: (y) => gy - y * sy, T: (t) => gx0 + t * st};
+  }
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    const g = geo(W, H);
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    drawGraph(ctx, g);
+    ground(ctx, 0, g.cw - 4, g.gy);
+    if (g.up) drawUp(ctx, g); else drawDrop(ctx, g);
+    drawLink(ctx, g);
+  }
+
+  // 오른쪽: 높이–시간 그래프 (세로축 = 왼쪽 기둥의 높이)
+  function drawGraph(ctx, g) {
+    const {Y, T, gx0, gx1, gy, top, ymax, tmax, narrow} = g;
+    const ys = stepFor(ymax, 5);
+    ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+    for (let y = ys; y <= ymax + 1e-9; y += ys) { ctx.beginPath(); ctx.moveTo(gx0, Y(y)); ctx.lineTo(gx1, Y(y)); ctx.stroke(); }
+    ctx.restore();
+    arrow(ctx, gx0, gy, gx0, top - 16, C.muted, 1.3, 7);
+    arrow(ctx, gx0, gy, gx1 + 14, gy, C.muted, 1.3, 7);
+    for (let y = 0; y <= ymax + 1e-9; y += ys) {
+      const last = y + ys > ymax + 1e-9;
+      text(ctx, fmt(y, 2) + (last ? ' m' : ''), gx0 - 6, Y(y), {size: 13, color: C.muted, align: 'right'});
+    }
+    const tt = tmax <= 1.6 ? 0.25 : tmax <= 4.6 ? 0.5 : 1, tl = tmax <= 1.6 ? 0.5 : (narrow && tmax > 4.6 ? 2 : 1);
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1;
+    let lastLab = 0;
+    for (let t = 0; t <= tmax + 1e-9; t += tt) {
+      const x = T(t), big = isMult(t, tl);
+      ctx.beginPath(); ctx.moveTo(x, gy - (big ? 4 : 2)); ctx.lineTo(x, gy + (big ? 4 : 2)); ctx.stroke();
+      if (big) lastLab = t;
+    }
+    ctx.restore();
+    for (let t = 0; t <= tmax + 1e-9; t += tl) text(ctx, fmt(t, 2) + (Math.abs(t - lastLab) < 1e-9 ? ' s' : ''), T(t), gy + 14, {size: 13, color: C.muted});
+    // 앞으로 갈 길(옅은 점선)과 지나온 길
+    const curve = (a, b, col, w, dash, al = 1) => {
+      if (b <= a) return;
+      const pts = [], n = 120;
+      for (let i = 0; i <= n; i++) { const t = a + (b - a) * i / n; pts.push([T(t), Y(yAt(t))]); }
+      ctx.save(); ctx.globalAlpha = al; Lab.line(ctx, pts, col, w, dash); ctx.restore();
+    };
+    curve(0, tmax, C.muted, 1.6, [4, 5], 0.6);
+    curve(0, Math.min(S.t, tmax), C.vel, 3);
+    if (S.strobe) for (const tk of stamps()) { if (tk > S.t + EPS) break; Lab.circle(ctx, T(tk), Y(yAt(tk)), 3.8, {fill: C.vel}); }
+    if (g.up) {
+      const a = t1(), Hm = M.maxHeight(S.v0);
+      Lab.line(ctx, [[T(a), Y(Hm)], [T(a), gy]], C.muted, 1.2, [3, 4]);
+      Lab.circle(ctx, T(a), Y(Hm), 4.5, {fill: C.acc});
+      text(ctx, narrow ? '꼭짓점 v = 0' : '꼭짓점: t₁ = ' + fmt(a, 2) + ' s, v = 0', T(a), Y(Hm) - 15, {size: 13, w: 600, color: C.acc, halo: true});
+      // 같은 높이의 짝: 내려오는 중 가장 최근에 찍힌 공과 그 짝
+      const pr = pair();
+      if (pr) {
+        const y = Y(M.yUp(S.v0, pr[0]));
+        Lab.line(ctx, [[T(pr[0]), y], [T(pr[1]), y]], C.copper, 1.8, [5, 4]);
+        Lab.circle(ctx, T(pr[0]), y, 5, {stroke: C.copper, width: 2, fill: C.paper});
+        const lab = fmt(pr[0], 2) + ' s ↔ ' + fmt(pr[1], 2) + ' s' + (narrow ? '' : ' · 같은 높이');
+        const below = y + 34 < gy;
+        if (T(pr[1]) - T(pr[0]) > 70) text(ctx, lab, T(a), y + (below ? 15 : -15), {size: 13, w: 600, color: C.copper, halo: true});
+      }
+    }
+    // 지금 점과 접선(기울기 = 속도)
+    const t = Math.min(S.t, tmax), px = T(t), py = Y(yAt(t));
+    const dyp = -vAt(t) * g.sy, dxp = g.st, L = Math.hypot(dxp, dyp), hl = narrow ? 20 : 28;
+    Lab.line(ctx, [[px - dxp / L * hl, py - dyp / L * hl], [px + dxp / L * hl, py + dyp / L * hl]], C.vel, 1.8);
+    Lab.circle(ctx, px, py, 6, {fill: C.copper, stroke: C.paper, width: 2});
+  }
+  // 기둥의 공과 그래프의 지금 점을 잇는 수평선
+  function drawLink(ctx, g) {
+    const t = Math.min(S.t, g.tmax), y = g.Y(yAt(t));
+    ctx.save(); ctx.globalAlpha = 0.7; Lab.line(ctx, [[g.xc + 13, y], [g.T(t) - 8, y]], C.copper, 1.4, [3, 4]); ctx.restore();
+  }
+  // 같은 높이의 짝 [올라갈 때, 내려올 때] — 내려오는 중이고 지금 시각까지 찍힌 것 중 가장 최근
+  function pair() {
+    if (!isUp() || S.t <= t1() + EPS) return null;
+    const d = dtS(), a = t1();
+    const k = Math.floor((S.t + EPS) / d), td = k * d;
+    if (td <= a + EPS) return null;
+    const tu = 2 * a - td;
+    return tu >= -EPS ? [Math.max(0, tu), td] : null;
+  }
+
+  function drawUp(ctx, g) {
+    const {Y, xc, dx, gy, kv, narrow} = g, v0 = S.v0, a = t1(), Hm = M.maxHeight(v0);
+    ctx.save(); ctx.fillStyle = C.ink; Lab.rrect(ctx, xc - 16, gy - 5, 32, 5, 2); ctx.fill(); ctx.restore();
+    text(ctx, '올라감', xc - dx, gy + 16, {size: 13, color: C.muted});
+    text(ctx, '내려옴', xc + dx, gy + 16, {size: 13, color: C.muted});
+    if (!narrow) text(ctx, '(옆으로 나눠 그림)', xc, gy + 36, {size: 13, color: C.muted});
+    const pr = pair();
+    if (S.strobe) {
+      const ks = stamps();
+      // 같은 높이의 짝을 잇는 점선 (내려올 때 찍힌 것만)
+      for (const tk of ks) {
+        if (tk > S.t + EPS || tk <= a + EPS) continue;
+        const y = Y(M.yUp(v0, tk)), hot = pr && Math.abs(tk - pr[1]) < EPS;
+        ctx.save(); ctx.globalAlpha = hot ? 1 : 0.5;
+        Lab.line(ctx, [[xc - dx + 8, y], [xc + dx - 8, y]], hot ? C.copper : C.muted, hot ? 1.8 : 1.1, [3, 4]); ctx.restore();
+      }
+      let lastY = {'-1': 1e9, 1: 1e9};
+      for (const tk of ks) {
+        if (tk > S.t + EPS) break;
+        const y = M.yUp(v0, tk), v = M.vUp(v0, tk), py = Y(y);
+        const side = Math.abs(tk - a) < EPS ? 0 : tk < a ? -1 : 1, x = xc + side * dx;
+        const hot = pr && (Math.abs(tk - pr[0]) < EPS || Math.abs(tk - pr[1]) < EPS);
+        Lab.circle(ctx, x, py, 7, {fill: C.paper, stroke: hot ? C.copper : C.vel, width: hot ? 2.6 : 2});
+        if (S.vel && !(y < 1e-6 && v < 0)) vArrow(ctx, x, py, v, kv, C.vel, 2.4, 7);
+        if (!narrow && side && y > 1e-6 && Math.abs(py - lastY[side]) >= 16) {
+          text(ctx, fmt(tk, 3) + ' s', x + side * 13, py, {size: 13, color: hot ? C.copper : C.muted, align: side < 0 ? 'right' : 'left', w: hot ? 600 : 500});
+          lastY[side] = py;
+        }
+      }
+    }
+    const t = S.t, y = M.yUp(v0, t), v = M.vUp(v0, t), py = Y(y);
+    drawBalls(ctx, g, xc, py, v);
+    const atTop = Math.abs(t - a) < 0.02;
+    if (atTop) Lab.tag(ctx, narrow ? '최고점: v = 0, a = g' : '최고점: v = 0 이지만 a = g', xc, Math.max(g.top - 8, Y(Hm) - (S.twin ? 46 : 30)), {size: 14, w: 700, color: C.acc});
+  }
+
+  // 따라가는 공 (질량이 다른 두 공이면 나란히): 속도(파랑)·가속도(초록)·중력(빨강, 두 공일 때)
+  function drawBalls(ctx, g, x, py, v) {
+    const {kv, narrow} = g, ka = narrow ? 30 : 40, landed = py >= g.gy - 0.5 && v < 0;
+    if (landed && !S.twin) { Lab.circle(ctx, x, py, 9, {fill: C.copper, stroke: C.paper, width: 2}); return; }
+    if (!S.twin) {
+      if (S.vel) vArrow(ctx, x, py, v, kv, C.vel, 3, 9);
+      if (S.vel && Math.abs(v * kv) > 16) text(ctx, 'v', x - 9, py + (v > 0 ? -1 : 1) * (9 + Math.abs(v * kv) / 2), {size: 14, w: 600, color: C.vel, align: 'right', halo: true});
+      if (S.acc) { arrow(ctx, x + 17, py - 4, x + 17, py - 4 + ka, C.acc, 3, 9); text(ctx, 'a', x + 25, py + ka / 2 - 4, {size: 14, w: 600, color: C.acc, align: 'left', halo: true}); }
+      Lab.circle(ctx, x, py, 9, {fill: C.copper, stroke: C.paper, width: 2});
+      return;
+    }
+    // 무거운 공(3m)과 가벼운 공(m): 중력은 3 : 1, 가속도는 같다
+    const fk = narrow ? 11 : 14, o = narrow ? 12 : 18;
+    const balls = [[x - o, narrow ? 9 : 11, 3, '3m', '3mg', x - (narrow ? 24 : 36)], [x + o, narrow ? 6 : 7, 1, 'm', 'mg', x + (narrow ? 22 : 31)]];
+    balls.forEach(([bx, r, m, nm, fn, ax]) => {
+      if (S.acc && !landed) arrow(ctx, ax, py - 2, ax, py - 2 + ka, C.acc, 2.6, 8);
+      if (!landed) {
+        arrow(ctx, bx, py + r, bx, py + r + m * fk, C.force, 2.8, 8);
+        text(ctx, fn, bx, py + r + m * fk + 11, {size: 13, w: 600, color: C.force, halo: true});
+      }
+      Lab.circle(ctx, bx, py, r, {fill: C.copper, stroke: C.paper, width: 2});
+      text(ctx, nm, bx, py - r - 10, {size: 13, w: 600, color: C.copper, halo: true});
+    });
+  }
+
+  function drawDrop(ctx, g) {
+    const {Y, xc, gy, kv, narrow} = g, vd = S.vd, tl = tEnd();
+    // 탑
+    const tx0 = narrow ? 8 : 14, tx1 = xc - (S.twin ? 44 : 24), yT = Y(DROP_H);
+    ctx.save(); ctx.fillStyle = C['line-soft']; ctx.fillRect(tx0, yT, tx1 - tx0, gy - yT);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.4; ctx.strokeRect(tx0, yT, tx1 - tx0, gy - yT);
+    ctx.globalAlpha = 0.6; ctx.lineWidth = 1;
+    for (let y = 10; y < DROP_H; y += 10) { ctx.beginPath(); ctx.moveTo(tx0, Y(y)); ctx.lineTo(tx1, Y(y)); ctx.stroke(); }
+    ctx.restore();
+    Lab.line(ctx, [[tx0 - 2, yT], [xc + 4, yT]], C.ink, 2.4);
+    text(ctx, DROP_H + ' m', (tx0 + tx1) / 2, yT + 15, {size: 13, w: 600, color: C.ink});
+    if (S.strobe) {
+      const ks = stamps().filter((tk) => tk <= tl + EPS), bx = xc + (narrow ? 22 : 30);
+      ks.forEach((tk, i) => {
+        if (tk > S.t + EPS) return;
+        const py = Y(yAt(tk));
+        Lab.circle(ctx, xc, py, 7, {fill: C.paper, stroke: C.vel, width: 2});
+        if (S.vel && !S.twin) vArrow(ctx, xc, py, vAt(tk), kv, C.vel, 2.4, 7);
+        if (i) {
+          const d = M.fallDist(vd, tk) - M.fallDist(vd, ks[i - 1]);
+          const lab = vd === 0 ? (narrow ? fmt(d / 5, 2) : fmt(d, 2) + ' m (' + fmt(d / 5, 2) + ')') : fmt(d, 2) + (narrow ? '' : ' m');
+          Lab.vbracket(ctx, bx, Y(yAt(ks[i - 1])), py, C.acc, lab, true);
+        }
+      });
+    }
+    const t = S.t, py = Y(yAt(t));
+    drawBalls(ctx, g, xc, py, vAt(t));
+    if (t >= tl - EPS) Lab.tag(ctx, '바닥: ' + fmt(tl, 2) + ' s, ' + fmt(M.vDown(vd, tl), 1) + ' m/s', xc + 6, gy - 22, {size: 13, color: C.ink, align: 'left'});
+  }
+
+  // ── 관찰 1: v–t (위) + a–t (아래) ───────────────────────
+  const va = Lab.canvas('va', drawVA);
+  function vtFrame(ctx, r, T2, v0) {
+    const vm = v0 * 1.18, X = (t) => r.x + t / T2 * r.w, VY = (v) => r.y + r.h / 2 - v / vm * r.h / 2;
+    ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+    for (const v of [v0, -v0]) { ctx.beginPath(); ctx.moveTo(r.x, VY(v)); ctx.lineTo(r.x + r.w, VY(v)); ctx.stroke(); }
+    ctx.restore();
+    arrow(ctx, r.x, r.y + r.h, r.x, r.y - 8, C.muted, 1.3, 7);
+    arrow(ctx, r.x, VY(0), r.x + r.w + 10, VY(0), C.muted, 1.3, 7);
+    for (const v of [v0, 0, -v0]) text(ctx, sgnS(v, 0), r.x - 7, VY(v), {size: 13, color: C.muted, align: 'right'});
+    text(ctx, 'v (m/s)', r.x + 7, r.y - 6, {size: 13, w: 600, color: C.muted, align: 'left'});
+    return {X, VY};
+  }
+  function tTicks(ctx, r, T2, X, yLab) {
+    const st = T2 <= 1.6 ? 0.25 : T2 <= 4.6 ? 0.5 : 1, sl = T2 <= 1.6 ? 0.5 : 1;
+    let last = 0;
+    for (let t = 0; t <= T2 + 1e-9; t += st) { Lab.line(ctx, [[X(t), yLab - 17], [X(t), yLab - 11]], C.muted, 1); if (isMult(t, sl)) last = t; }
+    for (let t = 0; t <= T2 + 1e-9; t += sl) text(ctx, fmt(t, 2) + (Math.abs(t - last) < 1e-9 ? ' s' : ''), X(t), yLab, {size: 13, color: C.muted});
+  }
+  function drawVA() {
+    const {ctx, W, H} = va; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const v0 = S.v0, T2 = M.flightTime(v0), a1 = t1(), live = isUp(), t = live ? Math.min(S.t, T2) : null;
+    const rv = {x: 46, y: 26, w: W - 46 - 30, h: Math.round(H * 0.58) - 26};
+    const {X, VY} = vtFrame(ctx, rv, T2, v0);
+    const ra = {x: rv.x, y: rv.y + rv.h + 40, w: rv.w, h: H - (rv.y + rv.h + 40) - 34};
+    if (t != null) { ctx.save(); ctx.globalAlpha = 0.75; Lab.line(ctx, [[X(t), rv.y - 4], [X(t), ra.y + ra.h]], C.copper, 1.4); ctx.restore(); }
+    Lab.line(ctx, [[X(0), VY(v0)], [X(T2), VY(-v0)]], C.vel, 3);
+    // 기울기 삼각형: 1 s 동안 −10 m/s
+    const k = Math.max(0, Math.min(Math.floor(t == null ? 0 : t), Math.floor(T2 - 1 + 1e-9))), k1 = Math.min(k + 1, T2);
+    if (T2 >= 1 - 1e-9) {
+      const A = [X(k), VY(M.vUp(v0, k))], B = [X(k1), VY(M.vUp(v0, k))], Cc = [X(k1), VY(M.vUp(v0, k1))];
+      Lab.line(ctx, [A, B, Cc], C.acc, 2);
+      text(ctx, '1 s', (A[0] + B[0]) / 2, B[1] + (M.vUp(v0, k) > 0 ? -11 : 12), {size: 13, w: 600, color: C.acc, halo: true});
+      text(ctx, '−10 m/s', B[0] + 6, (B[1] + Cc[1]) / 2, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    }
+    Lab.circle(ctx, X(a1), VY(0), 4.5, {fill: C.paper, stroke: C.vel, width: 2});
+    text(ctx, 'v = 0 (최고점)', X(a1) + 8, VY(0) - 13, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
+    // a–t
+    const AY = (a) => ra.y + (3 - a) / 15 * ra.h;
+    arrow(ctx, ra.x, ra.y + ra.h, ra.x, ra.y - 8, C.muted, 1.3, 7);
+    arrow(ctx, ra.x, AY(0), ra.x + ra.w + 10, AY(0), C.muted, 1.3, 7);
+    text(ctx, '0', ra.x - 7, AY(0), {size: 13, color: C.muted, align: 'right'});
+    text(ctx, '−10', ra.x - 7, AY(-10), {size: 13, color: C.muted, align: 'right'});
+    text(ctx, 'a (m/s²)', ra.x + 7, ra.y - 12, {size: 13, w: 600, color: C.muted, align: 'left'});
+    Lab.line(ctx, [[X(0), AY(-10)], [X(T2), AY(-10)]], C.acc, 3.2);
+    text(ctx, W < 380 ? 'a = −g (늘 같다)' : 'a = −g = −10 m/s² (최고점에서도 같다)', ra.x + 10, (AY(0) + AY(-10)) / 2, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    tTicks(ctx, ra, T2, X, H - 12);
+    if (t != null) {
+      Lab.circle(ctx, X(t), VY(M.vUp(v0, t)), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
+      Lab.circle(ctx, X(t), AY(-10), 5, {fill: C.copper, stroke: C.paper, width: 1.5});
+    }
+  }
+
+  // ── 관찰 2: v–t 넓이 = 변위 ─────────────────────────────
+  const ar = Lab.canvas('ar', drawAR);
+  function drawAR() {
+    const {ctx, W, H} = ar; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const v0 = S.v0, T2 = M.flightTime(v0), a1 = t1(), live = isUp(), t = live ? Math.min(S.t, T2) : T2;
+    const r = {x: 46, y: 44, w: W - 46 - 30, h: H - 44 - 34};
+    const {X, VY} = vtFrame(ctx, r, T2, v0);
+    const poly = (pts, col) => { ctx.save(); ctx.fillStyle = col; ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath(); ctx.fill(); ctx.restore(); };
+    // 앞으로 채울 두 삼각형 (테두리만)
+    Lab.line(ctx, [[X(0), VY(0)], [X(0), VY(v0)]], C.muted, 1, [3, 4]);
+    Lab.line(ctx, [[X(T2), VY(0)], [X(T2), VY(-v0)]], C.muted, 1, [3, 4]);
+    const ta = Math.min(t, a1);
+    poly([[X(0), VY(0)], [X(0), VY(v0)], [X(ta), VY(M.vUp(v0, ta))], [X(ta), VY(0)]], C['vel-soft']);
+    if (t > a1) poly([[X(a1), VY(0)], [X(t), VY(M.vUp(v0, t))], [X(t), VY(0)]], C['neg-soft']);
+    Lab.line(ctx, [[X(0), VY(v0)], [X(T2), VY(-v0)]], C.vel, 3);
+    const A = M.areas(v0, t);
+    if (ta > a1 * 0.35) text(ctx, '+' + fmt(A.pos, 2) + ' m', X(ta * 0.36), VY(v0 * 0.3), {size: 14, w: 600, color: C.vel, halo: true});
+    if (t > a1 + (T2 - a1) * 0.35) text(ctx, '−' + fmt(-A.neg, 2) + ' m', X(a1 + (t - a1) * 0.64), VY(M.vUp(v0, t) * 0.3), {size: 14, w: 600, color: C.neg, halo: true});
+    tTicks(ctx, r, T2, X, H - 12);
+    const done = t >= T2 - EPS;
+    const s = done ? '넓이 합 0 → 제자리 (올라간 ' + fmt(a1, 2) + ' s = 내려온 ' + fmt(a1, 2) + ' s)'
+      : '넓이 합 = ' + fmt(A.pos, 2) + (A.neg < -EPS ? ' − ' + fmt(-A.neg, 2) : '') + ' = 지금 높이 ' + fmt(A.net, 2) + ' m';
+    text(ctx, s, 12, 14, {size: W < 380 ? 13 : 14, w: 600, color: C.copper, align: 'left'});
+    if (live && !done) Lab.line(ctx, [[X(t), r.y - 4], [X(t), r.y + r.h]], C.copper, 1.4);
+  }
+
+  // ── 관찰 3: 높이–속도 (+v, −v 짝) ──────────────────────
+  const mr = Lab.canvas('mr', drawMR);
+  function drawMR() {
+    const {ctx, W, H} = mr; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const v0 = S.v0, Hm = M.maxHeight(v0), a1 = t1(), live = isUp(), t = live ? Math.min(S.t, M.flightTime(v0)) : null;
+    const r = {x: 22, y: 50, w: W - 22 - 22, h: H - 50 - 40};
+    const vm = v0 * 1.2, ym = Hm * 1.15, X = (v) => r.x + (v + vm) / (2 * vm) * r.w, Y = (y) => r.y + r.h - y / ym * r.h;
+    ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(r.x, Y(Hm)); ctx.lineTo(r.x + r.w, Y(Hm)); ctx.stroke(); ctx.restore();
+    text(ctx, 'H = ' + fmt(Hm, 2) + ' m', r.x, Y(Hm) - 11, {size: 13, color: C.muted, align: 'left'});
+    arrow(ctx, r.x, Y(0), r.x + r.w + 4, Y(0), C.muted, 1.3, 7);
+    arrow(ctx, X(0), Y(0), X(0), r.y - 14, C.muted, 1.3, 7);
+    text(ctx, '높이 y', X(0) - 8, r.y - 12, {size: 13, w: 600, color: C.muted, align: 'right'});
+    text(ctx, 'v', r.x + r.w + 4, Y(0) - 12, {size: 13, w: 600, color: C.muted, align: 'right'});
+    for (const v of [-v0, v0]) { Lab.line(ctx, [[X(v), Y(0) - 3], [X(v), Y(0) + 3]], C.muted, 1); text(ctx, sgnS(v, 0), X(v), Y(0) + 14, {size: 13, color: C.muted}); }
+    const hv = (v) => (v0 * v0 - v * v) / (2 * M.G);
+    const curve = (a, b, col, w, dash) => { const pts = []; for (let i = 0; i <= 80; i++) { const v = a + (b - a) * i / 80; pts.push([X(v), Y(hv(v))]); } Lab.line(ctx, pts, col, w, dash); };
+    curve(-v0, v0, C.muted, 1.4, [4, 5]);
+    text(ctx, '올라갈 때', X(v0 * 0.8), Y(Hm * 0.16), {size: 13, w: 600, color: C.vel, align: 'right'});
+    text(ctx, '내려올 때', X(-v0 * 0.8), Y(Hm * 0.16), {size: 13, w: 600, color: C.vel, align: 'left'});
+    if (t == null) { curve(-v0, v0, C.vel, 2.8); return; }
+    const v = M.vUp(v0, t), y = M.yUp(v0, t), s = M.speedAtHeight(v0, y);
+    curve(Math.max(v, 0), v0, C.vel, 3);
+    if (v < 0) curve(v, 0, C.vel, 3);
+    if (s > v0 * 0.04) {
+      Lab.line(ctx, [[X(-s), Y(y)], [X(s), Y(y)]], C.copper, 1.6, [5, 4]);
+      Lab.circle(ctx, X(-v), Y(y), 5, {fill: C.paper, stroke: C.copper, width: 2});
+      text(ctx, (v > 0 ? '−' : '+') + fmt(s, 1), X(-v) + (v > 0 ? -9 : 9), Y(y) - 13, {size: 13, w: 600, color: C.copper, align: v > 0 ? 'right' : 'left', halo: true});
+    }
+    Lab.circle(ctx, X(v), Y(y), 6, {fill: C.copper, stroke: C.paper, width: 2});
+    text(ctx, sgnS(v, 1) + ' m/s', X(v) + (v >= 0 ? 9 : -9), Y(y) - 13, {size: 13, w: 600, color: C.copper, align: v >= 0 ? 'left' : 'right', halo: true});
+    text(ctx, '같은 높이 ' + fmt(y, 2) + ' m → 속력 ' + fmt(s, 1) + ' m/s', r.x + r.w, 13, {size: 13, w: 600, color: C.copper, align: 'right'});
+  }
+
+  // ── 관찰 4: 같은 시간 간격의 낙하 거리 ──────────────────
+  const dp = Lab.canvas('dp', drawDP);
+  function drawDP() {
+    const {ctx, W, H} = dp; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const vd = S.vd, tl = M.fallTime(DROP_H, vd), n = Math.floor(tl + 1e-9), live = !isUp();
+    const x0 = 26, x1 = W - 34, X = (d) => x0 + d / DROP_H * (x1 - x0), row = Math.round(Math.max(46, H * 0.26)), ay = row + 88;
+    arrow(ctx, x0, row, x1 + 22, row, C.line, 1.4, 7);
+    let labX = -1e9, labUp = false;
+    const ts = []; for (let k = 0; k <= n; k++) ts.push(k);
+    const ds = ts.map((k) => M.fallDist(vd, k));
+    ts.forEach((k, i) => {
+      const x = X(ds[i]);
+      if (i) {
+        const d = ds[i] - ds[i - 1];
+        Lab.bracket(ctx, X(ds[i - 1]), x, row + 24, C.acc, vd === 0 ? fmt(d / 5, 2) : '', false);
+        text(ctx, fmt(d, 2) + (W < 360 && i > 1 ? '' : ' m'), (X(ds[i - 1]) + x) / 2, row + 60, {size: 13, color: C.ink});
+      }
+      Lab.circle(ctx, x, row, 6, {fill: C.paper, stroke: C.vel, width: 2});
+      labUp = x - labX < 30 && !labUp; labX = x;
+      text(ctx, k + (k ? ' s' : ''), x, row - (labUp ? 33 : 17), {size: 13, color: C.muted});
+      const v = M.vDown(vd, k), L = v * (x1 - x0) / 140;
+      if (L > 3) arrow(ctx, Math.max(4, x - L), ay, x, ay, C.vel, 2.6, 8);
+    });
+    text(ctx, 'v', x0 - 12, ay, {size: 13, w: 600, color: C.vel});
+    const nw = W < 440;
+    const s = vd === 0 ? (nw ? '누적 거리 1 : 4 : 9 : 16 (∝ t²)' : '구간 1 : 3 : 5 : 7 · 누적 5 : 20 : 45 : 80 = 1 : 4 : 9 : 16')
+      : (nw ? '구간 차 = gT² = 10 m 일정' : '구간 차 = gT² = 10 m 로 일정 (홀수비는 처음 속도 0일 때만)');
+    text(ctx, s, W / 2, H - 14, {size: 13, w: 600, color: C.acc});
+    if (live) {
+      const d = M.fallDist(vd, Math.min(S.t, tl));
+      Lab.circle(ctx, X(d), row, 7.5, {fill: C.copper, stroke: C.paper, width: 2});
+    }
+  }
+
+  // ── 수치 ────────────────────────────────────────────────
+  const setText = (id, s) => { const el = $(id); if (el && el.textContent !== s) el.textContent = s; };
+  let ansKey = '';
+  function readouts() {
+    const nar = (stage.W || 999) < 520, t = r2(S.t), tS = fmt(t, 2);
+    let big, lines, o;
+    if (isUp()) {
+      const v0 = S.v0, a1 = t1(), Hm = M.maxHeight(v0), v = r2(v0 - 10 * t), y = r2(v0 * t - 5 * t * t);
+      big = 't₁ = ' + fmt(a1, 2) + ' s, H = ' + fmt(Hm, 2) + ' m';
+      const vS = sgnS(v) + ' m/s' + (v < -0.005 ? ' (아래로 ' + fmt(-v, 2) + ' m/s)' : v > 0.005 ? ' (위로)' : ' (최고점)');
+      const mirror = t >= 2 * a1 - EPS ? ' — 던진 곳으로 돌아옴' : t > a1 + EPS ? ' — 올라가던 ' + fmt(2 * a1 - t, 2) + ' s 때와 같은 높이' : '';
+      lines = ['t₁ = v₀/g = <em>' + v0 + '</em> ÷ 10 = <em>' + fmt(a1, 2) + ' s</em>, H = v₀²/2g = <em>' + v0 + '</em>² ÷ 20 = <em>' + fmt(Hm, 2) + ' m</em>',
+        't = <em>' + tS + ' s</em>: v = ' + v0 + ' − 10 × ' + tS + ' = <em>' + vS + '</em>',
+        'y = ' + v0 + ' × ' + tS + ' − ½ × 10 × ' + tS + '² = <em>' + fmt(y, 2) + ' m</em>' + mirror];
+      o = {lab: '위로 던진 공', ctx: 'v₀ = ' + v0 + ' m/s · t = ' + tS + ' s', f: 't₁ = v₀/g, H = v₀²/2g, v = v₀ − gt, y = v₀t − ½gt² 에 지금 값을 넣으면', tone: ''};
+      setText('m1n', '올라가는 시간 t₁'); setText('m1', fmt(a1, 2) + ' s');
+      setText('m2n', '내려오는 시간'); setText('m2', fmt(a1, 2) + ' s (같다)');
+      setText('m3n', '지금 속도 v'); setText('m3', sgnS(v) + ' m/s');
+      setText('m4n', '가속도 a (위 +)'); setText('m4', '−10 m/s² (늘)');
+    } else {
+      const vd = S.vd, tl = M.fallTime(DROP_H, vd), n = Math.floor(tl + 1e-9), ds = M.intervals(n, 1, vd).map((d) => fmt(d, 2));
+      const tt = Math.min(t, r2(tl)), v = r2(vd + 10 * tt), d = r2(vd * tt + 5 * tt * tt);
+      if (vd === 0) {
+        big = '1 : 3 : 5 : 7';
+        lines = [DROP_H + ' = ½ × 10 × t² → <em>t = ' + fmt(tl, 2) + ' s</em> 에 바닥',
+          '1 s마다 <em>' + ds.join(', ') + ' m</em> = 1 : 3 : 5 : 7 (누적 1 : 4 : 9 : 16)',
+          't = <em>' + fmt(tt, 2) + ' s</em>: v = 10 × ' + fmt(tt, 2) + ' = <em>' + fmt(v, 2) + ' m/s</em>, 떨어진 거리 = ½ × 10 × ' + fmt(tt, 2) + '² = <em>' + fmt(d, 2) + ' m</em>'];
+      } else {
+        big = '구간 차 10 m 일정';
+        lines = [DROP_H + ' = ' + vd + 't + ½ × 10 × t² → <em>t = ' + fmt(tl, 2) + ' s</em> 에 바닥',
+          '1 s마다 <em>' + ds.join(', ') + ' m</em> → 이웃 구간 차 = gT² = <em>10 m</em>',
+          't = <em>' + fmt(tt, 2) + ' s</em>: v = ' + vd + ' + 10 × ' + fmt(tt, 2) + ' = <em>' + fmt(v, 2) + ' m/s</em>, 떨어진 거리 <em>' + fmt(d, 2) + ' m</em>'];
+      }
+      o = {lab: vd === 0 ? '떨어뜨린 공 (아래 +)' : '아래로 던진 공 (아래 +)', ctx: '높이 ' + DROP_H + ' m · v₀ = ' + vd + ' m/s · t = ' + fmt(tt, 2) + ' s',
+        f: vd === 0 ? 'h = ½gt², v = gt 에 지금 값을 넣으면' : 'h = v₀t + ½gt², v = v₀ + gt 에 지금 값을 넣으면', tone: vd === 0 ? 'vel' : 'small'};
+      setText('m1n', '바닥에 닿는 시각'); setText('m1', fmt(tl, 2) + ' s');
+      setText('m2n', '바닥에서 속력'); setText('m2', fmt(M.vDown(vd, tl), 2) + ' m/s');
+      setText('m3n', '지금 속력 v'); setText('m3', fmt(v, 2) + ' m/s');
+      setText('m4n', S.twin ? '무거운 공 a = 3mg ÷ 3m' : '가속도 a (아래 +)'); setText('m4', S.twin ? '10 m/s² (같다)' : '+10 m/s² (늘)');
+    }
+    const key = big + lines.join('|') + o.ctx + o.lab + o.tone;
+    if (key !== ansKey) { ansKey = key; Lab.ans(big, lines, o); }
+    // HUD
+    setText('hudT', 't = ' + fmt(S.t, 2) + ' s');
+    const hs = $('hudS'); let st, cls = '';
+    if (isUp()) {
+      const a1 = t1(), T2 = M.flightTime(S.v0);
+      if (S.t >= T2 - EPS) { st = nar ? '제자리' : '제자리 (2t₁)'; cls = ' up'; }
+      else if (Math.abs(S.t - a1) < 0.02) { st = nar ? '최고점' : '최고점: v = 0, a = g'; cls = ' up'; }
+      else st = S.t < a1 ? (nar ? '올라감' : '올라가는 중') : (nar ? '내려옴' : '내려오는 중');
+    } else st = S.t >= tEnd() - EPS ? (nar ? '바닥' : '바닥에 닿음') : (nar ? '떨어짐' : '떨어지는 중');
+    setText('hudS', st); hs.className = 'pill' + cls;
+    const hv = $('hudV'); hv.hidden = nar; setText('hudV', S.speed < 1 ? '느린 화면 ×' + S.speed : '실제 빠르기');
+    $('v0Out').textContent = S.v0 + ' m/s'; $('vdOut').textContent = S.vd + ' m/s';
+    const ok = isUp() && S.v0 === EX.v0;
+    Lab.check('exCheck', ok, '개념서 예제 (연직 위로 20 m/s) → 최고점 2 s, 20 m · 3 s일 때 아래로 10 m/s, 높이 15 m',
+      '예제: 연직 위로 20 m/s로 던진 공 — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function drawAll() { drawStage(); drawVA(); drawAR(); drawMR(); drawDP(); }
+  function drawLive() { drawStage(); if (isUp()) { drawVA(); drawAR(); drawMR(); } else drawDP(); }
+  const refresh = () => { syncUI(); readouts(); drawAll(); };
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => {
+    S.playing = on;
+    if (on && S.t >= tEnd() - EPS) { S.t = 0; S.hold = 0; refresh(); }
+  });
+  const setPlay = (on) => { playCtl.set(on, true); S.playing = on; };
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => { S.scene = v; S.t = 0; S.hold = 0; S.linger = 0; refresh(); }, S.scene);
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; readouts(); }, S.speed);
+  const v0Sl = $('v0'), vdSl = $('vd');
+  v0Sl.addEventListener('input', () => { if (!isUp()) { S.scene = 'up'; S.t = 0; } S.v0 = +v0Sl.value; S.t = Math.min(S.t, tEnd()); S.hold = 0; S.linger = 0; refresh(); });
+  vdSl.addEventListener('input', () => { if (isUp()) { S.scene = 'drop'; S.t = 0; } S.vd = +vdSl.value; S.t = Math.min(S.t, tEnd()); S.hold = 0; refresh(); });
+  const tog = (id, key) => $(id).addEventListener('change', (e) => { S[key] = e.target.checked; readouts(); drawAll(); });
+  tog('cStrobe', 'strobe'); tog('cVel', 'vel'); tog('cAcc', 'acc'); tog('cTwin', 'twin');
+  function syncUI() {
+    $('slUp').hidden = !isUp(); $('slDn').hidden = isUp();
+    v0Sl.value = S.v0; vdSl.value = S.vd;
+    const d = fmt(dtS(), 3) + ' s';
+    $('back').textContent = '◀ ' + d; $('step').textContent = d + ' ▶';
+    $('cStrobe').checked = S.strobe; $('cVel').checked = S.vel; $('cAcc').checked = S.acc; $('cTwin').checked = S.twin;
+    sceneG.set(S.scene, true); speedG.set(S.speed, true);
+  }
+  // 한 단계: 다음(앞) 스트로보 시각으로
+  function stepBy(dir) {
+    setPlay(false); S.linger = 0; S.hold = 0;
+    const d = dtS(), te = tEnd();
+    if (dir > 0) S.t = S.t >= te - EPS ? 0 : Math.min(te, (Math.floor(S.t / d + EPS) + 1) * d);
+    else S.t = Math.max(0, (Math.ceil(S.t / d - EPS) - 1) * d);
+    readouts(); drawAll();
+  }
+  $('step').addEventListener('click', () => stepBy(1));
+  $('back').addEventListener('click', () => stepBy(-1));
+  // 그래프 위를 끌면 시각이 바뀐다 (스트로보 시각 가까이에서는 그 시각에 붙는다)
+  function scrub(x) {
+    const g = geo(stage.W, stage.H), te = tEnd(), d = dtS();
+    let t = Math.max(0, Math.min(te, (x - g.gx0) / (g.gx1 - g.gx0) * te));
+    const near = Math.round(t / d) * d;
+    t = Math.abs(t - near) < te * 0.015 ? near : Math.round(t * 20) / 20;
+    S.t = Math.max(0, Math.min(te, t)); S.linger = 0; S.hold = 0;
+    setPlay(false); readouts(); drawAll();
+  }
+  Lab.pointer(stage.el, {
+    down: (x) => { const g = geo(stage.W, stage.H); if (x >= g.gx0 - 14) { S.drag = true; scrub(x); } },
+    move: (x) => { if (S.drag) scrub(x); },
+    up: () => { S.drag = false; },
+  });
+
+  const setUp = () => { S.scene = 'up'; S.linger = 0; S.hold = 0; };
+  const setDrop = (vd) => { S.scene = 'drop'; S.vd = vd; S.linger = 0; S.hold = 0; };
+  const TRY = {
+    ex: () => { setUp(); S.v0 = EX.v0; S.twin = false; S.strobe = true; S.vel = true; S.acc = true; S.t = 3; setPlay(false); },
+    top: () => { setUp(); S.twin = false; S.vel = true; S.acc = true; S.t = t1(); setPlay(false); },
+    full: () => { setUp(); S.twin = false; S.t = M.flightTime(S.v0); setPlay(false); },
+    pair: () => { setUp(); S.twin = false; S.strobe = true; const a = t1(); S.t = a >= 1 ? a + 1 : a + dtS(); setPlay(false); },
+    drop: () => { setDrop(0); S.twin = false; S.strobe = true; S.t = 0; setPlay(true); },
+    twin: () => { setDrop(0); S.twin = true; S.acc = true; S.t = 0; setPlay(true); },
+    down10: () => { setDrop(10); S.twin = false; S.strobe = true; S.t = 0; setPlay(true); },
+    q1: () => { setDrop(0); S.twin = false; S.strobe = true; S.t = 3; setPlay(false); },
+    q2: () => { setUp(); S.v0 = 30; S.twin = false; S.strobe = true; S.t = 3; setPlay(false); },
+    q3: () => { setUp(); S.twin = true; S.acc = true; S.t = t1(); setPlay(false); },
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    if (!S.playing || S.drag) return;
+    if (S.linger > 0) { S.linger -= dt; return; }          // 최고점에서 잠깐 머문다
+    const te = tEnd(), t0 = S.t;
+    S.t += dt * S.speed;
+    if (isUp() && t0 < t1() - EPS && S.t >= t1()) { S.t = t1(); S.linger = 1.2; }
+    if (S.t >= te) { S.t = te; S.hold += dt; if (S.hold > 1.6) { S.t = 0; S.hold = 0; } }
+    readouts(); drawLive();
+  });
+  syncUI(); readouts();
+})();
+</script>
+</body>
+</html>
