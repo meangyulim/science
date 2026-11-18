@@ -50,6 +50,7 @@ button{font:inherit;color:inherit}
 .back:hover{color:var(--ink)}
 h1{margin:2px 0 0;font-family:var(--font-display);font-size:clamp(30px,4.2vw,42px);font-weight:400;letter-spacing:-.01em;line-height:1.25;text-wrap:balance}
 .num,.mono{font-family:var(--font-ui);font-variant-numeric:tabular-nums}
+.nw{white-space:nowrap}   /* y-t, y-x 처럼 붙임표에서 줄이 바뀌면 안 되는 말 */
 
 /* ── 개념 실험 페이지 (<body class="cx">) ───────────────── */
 .cx{line-height:1.75;font-variant-numeric:tabular-nums}
@@ -113,6 +114,7 @@ h1{margin:2px 0 0;font-family:var(--font-display);font-size:clamp(30px,4.2vw,42p
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
 .r1{flex-wrap:nowrap}
 .r1 > .grow,.r1 > .slider{flex:1 1 200px}
+.r1 > .sheet-btn{margin-left:auto}
 .sheet{display:grid;gap:10px}
 .dock .sheet-head,.dock .sheet-btn{display:none}
 .sub{display:grid;gap:10px}
@@ -164,9 +166,9 @@ input[type=range]{width:100%;height:28px;margin:0;accent-color:var(--copper)}
 #ansLines{display:contents}
 .minis,.readouts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .mini,.ro{background:var(--bg);border-radius:10px;padding:6px 10px;min-width:0}
-.mini span,.ro span{display:block;font-size:12.5px;color:var(--muted)}
-.mini b,.ro b{display:block;font-size:16.5px;font-weight:600;white-space:normal;overflow-wrap:anywhere}
-.ro.neg b{color:var(--neg)} .ro.ok b,.ro.acc b{color:var(--acc)} .ro.vel b{color:var(--vel)} .ro.cu b{color:var(--copper)}
+.mini > span,.ro > span{display:block;font-size:12.5px;color:var(--muted)}
+.mini > b,.ro > b{display:block;font-size:16.5px;font-weight:600;white-space:normal;overflow-wrap:anywhere}
+.ro.neg > b{color:var(--neg)} .ro.ok > b,.ro.acc > b{color:var(--acc)} .ro.vel > b{color:var(--vel)} .ro.cu > b{color:var(--copper)}
 .check{margin:0;padding:8px 12px;border-radius:12px;border:1px dashed var(--line);font-size:13.5px;color:var(--muted)}
 .check.ok{border-style:solid;border-color:var(--acc);color:var(--acc);background:var(--acc-soft);font-weight:500}
 
