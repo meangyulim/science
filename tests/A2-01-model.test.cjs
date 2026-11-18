@@ -67,3 +67,34 @@ test('A2-01 중력이 한 일은 내려간 높이 × mg, 일률 P = Fv (교과 �
   close(M.gravityWork(2, 3), 60, 1e-12);
   close(M.power(5, 2), 10, 1e-12);
 });
+
+test('A2-01 무대의 상자 운동: 힘이 이동 방향이면 빨라지고 반대면 느려진다 (변하는 힘: 50 kg, 처음 1 m/s, 마찰 없음)', () => {
+  const segs = M.exampleSegs(10, -5), m = 50, v0 = 1;
+  // K = ½mv0² + 넓이: 25 J → 2 m 45 J → 4 m 55 J → 6 m 45 J
+  close(M.kinAt(segs, m, v0, 0), 25, 1e-12); close(M.kinAt(segs, m, v0, 4), 55, 1e-12); close(M.kinAt(segs, m, v0, 6), 45, 1e-12);
+  close(M.speedAt(segs, m, v0, 2), Math.sqrt(1.8), 1e-12);   // 1.34 m/s
+  close(M.speedAt(segs, m, v0, 4), Math.sqrt(2.2), 1e-12);   // 1.48 m/s (가장 빠름)
+  close(M.speedAt(segs, m, v0, 6), Math.sqrt(1.8), 1e-12);   // 4~6 m 에서 다시 느려짐
+  assert.ok(M.speedAt(segs, m, v0, 3) > M.speedAt(segs, m, v0, 1));
+  assert.ok(M.speedAt(segs, m, v0, 5.5) < M.speedAt(segs, m, v0, 4.5));
+  // 0~2 m 는 a = F/m = 0.2 m/s² 인 등가속도: t = (v − v0)/a 와 표가 맞다
+  const mo = M.motion(segs, m, v0, 6);
+  close(M.timeAt(mo, 2), (Math.sqrt(1.8) - 1) / 0.2, 1e-4);
+  close(M.posAt(mo, M.timeAt(mo, 3.3)), 3.3, 1e-9);           // 시각 ↔ 위치 왕복
+  // 슬라이더 범위(F₁ 0~15 N, F₃ −10~5 N) 어디서도 끝(6 m)까지 멈추지 않는다
+  for (const F1 of [0, 15]) for (const F3 of [-10, 5]) assert.ok(M.minKin(M.exampleSegs(F1, F3), m, v0, 6) >= 5 - 1e-9, `${F1}, ${F3}`);
+});
+
+test('A2-01 무대의 상자 운동: 비스듬한 힘 (80 kg, 처음 2 m/s) — θ < 90° 빨라짐, 90° 그대로, > 90° 느려짐', () => {
+  const m = 80, v0 = 2, s = 5;
+  const vEnd = (F, th) => M.speedAt([M.seg(0, s, M.along(F, th), M.along(F, th))], m, v0, s);
+  close(vEnd(20, 90), 2, 1e-9);                                 // 수직이면 속력 그대로
+  close(vEnd(20, 60), Math.sqrt(4 + 2 * 50 / m), 1e-9);         // ½mv² = 160 + 50 J → 2.29 m/s
+  close(vEnd(20, 180), Math.sqrt(4 - 2 * 100 / m), 1e-9);       // 160 − 100 J → 1.22 m/s
+  assert.ok(vEnd(20, 0) > vEnd(20, 60) && vEnd(20, 120) < 2);
+  // 등가속도 운동과 같다: a = F cosθ / m, t = (v − v0)/a
+  const a = M.along(20, 60) / m, mo = M.motion([M.seg(0, s, a * m, a * m)], m, v0, s);
+  close(mo.T, (vEnd(20, 60) - v0) / a, 1e-4);
+  // 슬라이더 범위(F ≤ 25 N, s ≤ 6 m)에서 정반대로 당겨도 끝까지 간다: 160 − 25 × 6 = 10 J > 0
+  close(M.minKin([M.seg(0, 6, -25, -25)], m, v0, 6), 10, 1e-9);
+});
