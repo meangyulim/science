@@ -23,8 +23,8 @@
  *          Lab.toggle(id, onChange) → {get(), set(b, quiet)}   체크 상자
  *          Lab.check(id, ok, okText, idleText)    예제 확인 줄 (.check / .check.ok)
  *          Lab.tries(map, after)   [data-try] 버튼 → map[key]() 실행, after(). 무대가 반도 안 보이면 무대로 스크롤
- *          Lab.ans(big, lines, {tone, ctx, f, html})   「지금 값」 카드: #ansBig 에 큰 결과, #ansLines 에 식 줄(HTML 배열),
- *             tone = 'neg'|'vel'|'cu'|'ink'|'small' (기본 초록), ctx → #ansCtx (오른쪽 위 상황), f → #ansF (식 안내 줄),
+ *          Lab.ans(big, lines, {tone, lab, ctx, f, html})   「지금 값」 카드: #ansBig 에 큰 결과, #ansLines 에 식 줄(HTML 배열),
+ *             tone = 'neg'|'vel'|'cu'|'ink'|'small' (기본 초록), lab → #ansLab (왼쪽 위 제목), ctx → #ansCtx (오른쪽 위 상황), f → #ansF (식 안내 줄),
  *             html: true 면 큰 결과도 HTML (λ<sub>A</sub> 처럼 아래첨자)
  *          Lab.pointer(el, {down(x,y), move(x,y), up()})   마우스·터치 끌기 (세로 스크롤은 페이지가 가짐)
  *  색 섞기 Lab.alpha(color, a) → 'rgba(…)'  토큰 색(#hex·rgb)에 투명도를 입힌다 (그라디언트 멈춤점 등)
@@ -427,6 +427,7 @@
   function ans(big, lines, o = {}) {
     const b = $('ansBig');
     if (b) { if (o.html) b.innerHTML = big; else b.textContent = big; b.className = 'big' + (o.tone ? ' ' + o.tone : ''); }
+    if (o.lab != null && $('ansLab')) $('ansLab').textContent = o.lab;
     if (o.ctx != null && $('ansCtx')) $('ansCtx').textContent = o.ctx;
     if (o.f != null && $('ansF')) $('ansF').innerHTML = o.f;
     const L = $('ansLines');
@@ -454,13 +455,17 @@
     if (sb) sb.addEventListener('click', () => open(!dock.classList.contains('open')));
     if ($('sheetClose')) $('sheetClose').addEventListener('click', () => open(false));
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') open(false); });
-    // 범례: 좁은 화면에서는 무대를 가리지 않게 시트 안으로
-    const legend = bench && bench.querySelector('.stage .legend'), home = legend && legend.parentNode;
+    // 범례: 좁은 화면에서는 무대를 가리지 않게 시트 안으로 (여러 개면 모두, 순서대로)
+    const legends = bench ? [...bench.querySelectorAll('.stage .legend')].map((el) => [el, el.parentNode]) : [];
     const placeLegend = () => {
-      if (!legend || !sheet) return;
+      if (!legends.length || !sheet) return;
       if (narrow.matches) {
-        if (legend.parentNode !== sheet) { const h = sheet.querySelector('.sheet-head'); if (h) h.after(legend); else sheet.prepend(legend); }
-      } else if (legend.parentNode !== home) home.appendChild(legend);
+        let at = sheet.querySelector('.sheet-head');
+        legends.forEach(([el]) => {
+          if (el.parentNode !== sheet) { if (at) at.after(el); else sheet.prepend(el); }
+          at = el;
+        });
+      } else legends.forEach(([el, home]) => { if (el.parentNode !== home) home.appendChild(el); });
     };
     // 지금 읽는 단계: 읽는 줄(보이는 글 영역의 35% 높이)에 걸린 단계
     const steps = [...document.querySelectorAll('.steps > .step')];
