@@ -244,7 +244,7 @@
   }
   function angArc(ctx, O, r, a0, a1, col, label, lr) {
     ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(O[0], O[1], r, a0, a1); ctx.stroke(); ctx.restore();
-    if (label) { const m = (a0 + a1) / 2; text(ctx, label, O[0] + Math.cos(m) * lr, O[1] + Math.sin(m) * lr, {size: 14, w: 700, color: col, halo: true}); }
+    if (label) { const m = (a0 + a1) / 2; text(ctx, label, O[0] + Math.cos(m) * lr, O[1] + Math.sin(m) * lr, {size: 14, w: 600, color: col, halo: true}); }
   }
 
   // ── 무대 기하 ───────────────────────────────────────────
@@ -311,7 +311,7 @@
     if (huy) drawHuygens(ctx, g);
     const Rn = Math.min(g.yB - 40, H - g.yB - 30, g.narrow ? 120 : 170);
     Lab.line(ctx, [[g.Ox, g.yB - Rn], [g.Ox, g.yB + Rn]], C.muted, 1.4, [6, 5]);
-    text(ctx, '법선', g.Ox + 6, g.yB - Rn + 4, {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
+    text(ctx, '법선', g.Ox + 6, g.yB - Rn + 4, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
     if (S.disp) drawDisp(ctx, g, src); else drawRays(ctx, g, src);
     drawSource(ctx, g, src);
     drawLabels(ctx, g);
@@ -356,12 +356,12 @@
     angArc(ctx, A, 24, -g.th1 * RAD, 0, C.ink, 'θ₁', 40);
     angArc(ctx, D, 24, Math.PI - g.th2 * RAD, Math.PI, C.acc, 'θ₂', 40);
     const mid = (P, Q) => [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2];
-    const lb = (s, P, v, k, col) => text(ctx, s, P[0] + v[0] * k, P[1] + v[1] * k, {size: 15, w: 700, color: col, halo: true, mono: true});
+    const lb = (s, P, v, k, col) => text(ctx, s, P[0] + v[0] * k, P[1] + v[1] * k, {size: 15, w: 600, color: col, halo: true, mono: true});
     lb('v₁t', mid(B, D), g.p1, 22, C.acc);
     lb('v₂t', mid(A, E), [-g.p2[0], -g.p2[1]], 22, C.acc);
     for (const [s, P, v] of [['A', A, [-0.7, -0.7]], ['B', B, g.p1], ['D', D, [0.7, -0.7]], ['E', E, g.u2]]) {
       Lab.circle(ctx, P[0], P[1], 4.2, {fill: C.ink});
-      text(ctx, s, P[0] + v[0] * 17, P[1] + v[1] * 17, {size: 15, w: 700, halo: true});
+      text(ctx, s, P[0] + v[0] * 17, P[1] + v[1] * 17, {size: 15, w: 600, halo: true});
     }
   }
   function drawRays(ctx, g, src) {
@@ -377,14 +377,14 @@
   function drawDisp(ctx, g, src) {
     const O = [g.Ox, g.yB], r = g.narrow ? 34 : 44;
     ray(ctx, src, O, C.ink, 3.2);
-    text(ctx, '백색광', src[0] + g.u1[0] * 40 + g.p1[0] * 26, src[1] + g.u1[1] * 40 + g.p1[1] * 26, {size: 14, w: 700, halo: true});
+    text(ctx, '백색광', src[0] + g.u1[0] * 40 + g.p1[0] * 26, src[1] + g.u1[1] * 40 + g.p1[1] * 26, {size: 14, w: 600, halo: true});
     if (g.th1 >= 1) angArc(ctx, O, r, -Math.PI / 2 - g.th1 * RAD, -Math.PI / 2, C.ink, 'θ₁ ' + fmt(g.th1, 1) + '°', r + 30);
     const rays = [[650, -DISP, '빨강'], [410, DISP, '보라']];
     rays.forEach(([nm, dn, lab], i) => {
       const th = M.refract(g.a, g.b + dn, g.th1); if (Number.isNaN(th)) return;
       const u = [M.sinD(th), M.cosD(th)], L = toEdge(O, u, g.W, g.H, 34), col = spec(nm), E = add(O, u, L);
       ray(ctx, O, E, col, 3.2, 0.62);
-      text(ctx, lab + ' ' + fmt(th, 1) + '°', E[0] + (i ? -10 : 10), E[1] + 4, {size: 14, w: 700, color: col, align: i ? 'right' : 'left', halo: true});
+      text(ctx, lab + ' ' + fmt(th, 1) + '°', E[0] + (i ? -10 : 10), E[1] + 4, {size: 14, w: 600, color: col, align: i ? 'right' : 'left', halo: true});
     });
     text(ctx, '(굴절률 차이를 과장해 그림)', g.W - 14, g.yB + 22, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
   }
@@ -395,15 +395,15 @@
     const hp = add(src, g.u1, -5.5);
     Lab.circle(ctx, hp[0], hp[1], 9, {fill: C.copper, stroke: C.paper, width: 2});
     const tp = add(src, g.u1, -30);
-    if (tp[0] > 24 && tp[1] > 50) text(ctx, '끌기', tp[0], tp[1], {size: 13, w: 700, color: C.copper, halo: true});
+    if (tp[0] > 24 && tp[1] > 50) text(ctx, '끌기', tp[0], tp[1], {size: 13, w: 600, color: C.copper, halo: true});
   }
   function drawLabels(ctx, g) {
     const m1 = MED[S.m1], m2 = MED[S.m2], same = Math.abs(g.a - g.b) < 1e-9, slow2 = g.b > g.a;
     const y1 = g.narrow ? 64 : 26, xr = g.W - 14, y2 = g.narrow ? g.H - 42 : g.yB + 22;
     text(ctx, '매질 1 · ' + m1.name, xr, y1, {size: 15, w: 700, align: 'right', halo: true});
-    text(ctx, 'n₁ = ' + m1.tag + (same ? '' : slow2 ? ' · 빠름' : ' · 느림'), xr, y1 + 20, {size: 14, w: 600, align: 'right', color: C.muted, halo: true});
+    text(ctx, 'n₁ = ' + m1.tag + (same ? '' : slow2 ? ' · 빠름' : ' · 느림'), xr, y1 + 20, {size: 14, w: 500, align: 'right', color: C.muted, halo: true});
     text(ctx, '매질 2 · ' + m2.name, 14, y2, {size: 15, w: 700, align: 'left', halo: true});
-    text(ctx, 'n₂ = ' + m2.tag + (same ? '' : slow2 ? ' · 느림' : ' · 빠름'), 14, y2 + 20, {size: 14, w: 600, align: 'left', color: C.muted, halo: true});
+    text(ctx, 'n₂ = ' + m2.tag + (same ? '' : slow2 ? ' · 느림' : ' · 빠름'), 14, y2 + 20, {size: 14, w: 500, align: 'left', color: C.muted, halo: true});
   }
 
   // ── sinθ 작도 (반지름 1인 원) ───────────────────────────
@@ -420,22 +420,22 @@
     Lab.line(ctx, [[0, cy], [W, cy]], C.ink, 1.6);
     Lab.line(ctx, [[cx, cy - R - 16], [cx, cy + R + 16]], C.muted, 1.2, [5, 4]);
     Lab.circle(ctx, cx, cy, R, {stroke: C.muted, width: 1.4});
-    text(ctx, 'n₁ = ' + MED[S.m1].tag, 10, 16, {size: 13, w: 600, color: C.muted, align: 'left'});
-    text(ctx, 'n₂ = ' + MED[S.m2].tag, 10, H - 14, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, 'n₁ = ' + MED[S.m1].tag, 10, 16, {size: 13, w: 500, color: C.muted, align: 'left'});
+    text(ctx, 'n₂ = ' + MED[S.m2].tag, 10, H - 14, {size: 13, w: 500, color: C.muted, align: 'left'});
     const s1 = M.sinD(S.th), c1 = M.cosD(S.th), P1 = [cx - R * s1, cy - R * c1];
     Lab.line(ctx, [P1, [cx, cy]], C.vel, 3);
-    text(ctx, '1', (P1[0] + cx) / 2 + c1 * 12, (P1[1] + cy) / 2 - s1 * 12 + 2, {size: 13, w: 700, color: C.vel, halo: true});
+    text(ctx, '1', (P1[0] + cx) / 2 + c1 * 12, (P1[1] + cy) / 2 - s1 * 12 + 2, {size: 13, w: 600, color: C.vel, halo: true});
     Lab.line(ctx, [P1, [cx, P1[1]]], C.copper, 4.5);
     Lab.circle(ctx, P1[0], P1[1], 4.5, {fill: C.vel});
-    text(ctx, 'sinθ₁ = ' + fmt(s1, 2), Math.min(cx - 50, (P1[0] + cx) / 2), P1[1] - 14, {size: 14, w: 700, color: C.copper, halo: true});
+    text(ctx, 'sinθ₁ = ' + fmt(s1, 2), Math.min(cx - 50, (P1[0] + cx) / 2), P1[1] - 14, {size: 14, w: 600, color: C.copper, halo: true});
     if (!tir) {
       const s2 = M.sinD(th2), c2 = M.cosD(th2), P2 = [cx + R * s2, cy + R * c2];
       Lab.line(ctx, [[cx, cy], P2], C.vel, 3);
       Lab.line(ctx, [[cx, P2[1]], P2], C.copper, 4.5);
       Lab.circle(ctx, P2[0], P2[1], 4.5, {fill: C.vel});
-      text(ctx, 'sinθ₂ = ' + fmt(s2, 2), Math.max(cx + 50, (P2[0] + cx) / 2), P2[1] + 15, {size: 14, w: 700, color: C.copper, halo: true});
-      if (S.th >= 1) text(ctx, 'sinθ₁/sinθ₂ = ' + fmt(s1 / s2, 2) + ' = n₂/n₁', W - 10, 16, {size: 13, w: 700, color: C.copper, align: 'right', halo: true});
-    } else text(ctx, '굴절 광선 없음', cx + 12, cy + R * 0.5, {size: 14, w: 700, color: C.neg, align: 'left'});
+      text(ctx, 'sinθ₂ = ' + fmt(s2, 2), Math.max(cx + 50, (P2[0] + cx) / 2), P2[1] + 15, {size: 14, w: 600, color: C.copper, halo: true});
+      if (S.th >= 1) text(ctx, 'sinθ₁/sinθ₂ = ' + fmt(s1 / s2, 2) + ' = n₂/n₁', W - 10, 16, {size: 13, w: 600, color: C.copper, align: 'right', halo: true});
+    } else text(ctx, '굴절 광선 없음', cx + 12, cy + R * 0.5, {size: 14, w: 600, color: C.neg, align: 'left'});
   }
 
   // ── sinθ₁–sinθ₂ 그래프 ──────────────────────────────────
@@ -458,20 +458,20 @@
     }
     const k = a / n2(), e = end(k);
     Lab.line(ctx, [P(0, 0), P(...e)], C.vel, 3.2);
-    if (e[0] === 1) text(ctx, MED[S.m2].tag, ax.X(1) + 6, ax.Y(e[1]), {size: 14, w: 700, color: C.vel, align: 'left', halo: true});
+    if (e[0] === 1) text(ctx, MED[S.m2].tag, ax.X(1) + 6, ax.Y(e[1]), {size: 14, w: 600, color: C.vel, align: 'left', halo: true});
     else {
       Lab.circle(ctx, ax.X(e[0]), ax.Y(1), 5.5, {fill: C.neg});
-      text(ctx, '끝 = 임계각', ax.X(e[0]) - 8, ax.Y(1) - 13, {size: 13, w: 700, color: C.neg, align: 'right', halo: true});
+      text(ctx, '끝 = 임계각', ax.X(e[0]) - 8, ax.Y(1) - 13, {size: 13, w: 600, color: C.neg, align: 'right', halo: true});
     }
-    text(ctx, '기울기 n₁/n₂ = ' + fmt(k, 3), r.x + 14, r.y + 30, {size: 14, w: 700, color: C.vel, align: 'left', halo: true});
+    text(ctx, '기울기 n₁/n₂ = ' + fmt(k, 3), r.x + 14, r.y + 30, {size: 14, w: 600, color: C.vel, align: 'left', halo: true});
     const x = M.sinD(S.th), y = x * k;
     if (y <= 1 + 1e-9) {
       Lab.line(ctx, [P(x, 0), P(x, y), P(0, y)], C.copper, 1.4, [4, 4]);
       Lab.circle(ctx, ax.X(x), ax.Y(y), 6.5, {fill: C.copper, stroke: C.paper, width: 2});
-      text(ctx, '(' + fmt(x, 2) + ', ' + fmt(y, 2) + ')', ax.X(x) + (x > 0.6 ? -10 : 10), ax.Y(y) - 15, {size: 13, w: 700, color: C.copper, align: x > 0.6 ? 'right' : 'left', halo: true, mono: true});
+      text(ctx, '(' + fmt(x, 2) + ', ' + fmt(y, 2) + ')', ax.X(x) + (x > 0.6 ? -10 : 10), ax.Y(y) - 15, {size: 13, w: 600, color: C.copper, align: x > 0.6 ? 'right' : 'left', halo: true, mono: true});
     } else {
       Lab.circle(ctx, ax.X(x), ax.Y(0), 6, {fill: C.neg});
-      text(ctx, '굴절 없음', ax.X(x), ax.Y(0) - 16, {size: 13, w: 700, color: C.neg, halo: true});
+      text(ctx, '굴절 없음', ax.X(x), ax.Y(0) - 16, {size: 13, w: 600, color: C.neg, halo: true});
     }
   }
 
@@ -485,8 +485,8 @@
       const n = i ? n2() : n1(), m = MED[i ? S.m2 : S.m1], lam = lam0 / n;
       const rowH = H / 2, yc = narrow ? rowH * (i + 0.47) : H * (i ? 0.73 : 0.3);
       const name = (i ? '매질 2 · ' : '매질 1 · ') + m.name + ' (n = ' + m.tag + ')', vs = 'v = ' + Lab.sci(M.speed(n), 2) + ' m/s';
-      if (narrow) { text(ctx, name, 14, rowH * i + 13, {size: 13, w: 700, align: 'left'}); text(ctx, vs, W - 14, rowH * i + 13, {size: 13, w: 600, color: C.vel, align: 'right', mono: true}); }
-      else { text(ctx, name, 14, yc - 10, {size: 14, w: 700, align: 'left'}); text(ctx, vs, 14, yc + 12, {size: 13, w: 600, color: C.vel, align: 'left', mono: true}); }
+      if (narrow) { text(ctx, name, 14, rowH * i + 13, {size: 13, w: 600, align: 'left'}); text(ctx, vs, W - 14, rowH * i + 13, {size: 13, w: 600, color: C.vel, align: 'right', mono: true}); }
+      else { text(ctx, name, 14, yc - 10, {size: 14, w: 600, align: 'left'}); text(ctx, vs, 14, yc + 12, {size: 13, w: 600, color: C.vel, align: 'left', mono: true}); }
       Lab.line(ctx, [[x0, yc], [x1, yc]], C.line, 1);
       const ph = (x) => 2 * Math.PI * (F * S.t - (x - x0) / lam);
       ctx.save(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2.8; ctx.beginPath();
@@ -500,7 +500,7 @@
       if (cs.length) Lab.circle(ctx, cs[0], yc - amp, 5, {fill: C.copper});
       Lab.circle(ctx, x0, yc - amp * Math.sin(ph(x0)), 4.5, {fill: C.ink});
     });
-    if (!narrow) text(ctx, '같은 파원 → 같은 f', x0, H * 0.515, {size: 13, w: 600, color: C.muted, align: 'left'});
+    if (!narrow) text(ctx, '같은 파원 → 같은 f', x0, H * 0.515, {size: 13, w: 500, color: C.muted, align: 'left'});
   }
 
   // ── 수치 ────────────────────────────────────────────────
