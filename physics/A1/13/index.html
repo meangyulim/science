@@ -8,6 +8,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(장면 두 위성: 행성 둘레를 도는 A(r = R)·B(r_B), 뉴턴의 대포: 산꼭대기에서 수평으로 쏜 포탄) | 오른쪽 지금 값 + 관찰 ①~④(g–r, v·T–r, 발사 속력 띠, 에너지–r) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5}
+#gG{aspect-ratio:10/6}
+#gV{aspect-ratio:10/5.2}
+#gS{aspect-ratio:10/2.9}
+#gE{aspect-ratio:10/6.6}
+.answer .big sub{font-size:.62em}
+.answer .big.violet{color:var(--violet)} .answer .big.force{color:var(--force)}
+@media (max-width:640px){ #gV{aspect-ratio:10/8.6} #gS{aspect-ratio:10/4} }
+</style>
 </head>
 <body class="cx">
 <!-- topbar -->
@@ -23,15 +34,666 @@
     <h1>만유인력·중력 가속도·인공위성·탈출 속력</h1>
     <p class="question"><i>Q</i>위성은 왜 떨어지지 않고, 얼마나 빨라야 지구를 영영 떠날 수 있을까?</p>
   </div>
+
   <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="두 위성 장면: 행성 둘레를 지표 가까이 도는 위성 A와 바깥 궤도의 위성 B가 같은 시간 간격의 점을 남기며 돈다. 위성 B를 끌어 궤도 반지름을 바꿀 수 있다. 뉴턴의 대포 장면: 산꼭대기에서 수평으로 쏜 포탄이 속력에 따라 떨어지거나 원·타원 궤도를 돌거나 탈출한다. 대포 앞 속도 화살표 끝을 끌어 발사 속력을 바꿀 수 있다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">r<sub>B</sub> = 4R</span><span class="pill" id="hud2">A 0바퀴 · B 0바퀴</span><span class="pill" id="hud3">약 2000배 빠르게</span></div>
+        <div class="legend col" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider" id="slB"><label for="rB"><span class="lg">B 궤도 반지름 </span>r<sub>B</sub></label><input id="rB" type="range" min="1" max="4" step="0.1" value="4"><output id="rBOut">4R</output></div>
+          <div class="slider" id="slV" hidden><label for="vv"><span class="lg">발사 속력 </span>v</label><input id="vv" type="range" min="1" max="12" step="0.1" value="7.9"><output id="vOut">7.9 km/s</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·보기</span><span class="sm">장면</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 보기">
+          <div class="sheet-head"><b>장면 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="sats" aria-pressed="true">두 위성</button>
+              <button type="button" class="btn" data-scene="cannon" aria-pressed="false">뉴턴의 대포</button>
+            </div>
+            <button type="button" class="btn" id="step">한 칸 ▸</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
+          </div>
+          <div class="toggles" data-for="sats">
+            <label class="chk"><input type="checkbox" id="cMass">B 질량 2배</label>
+            <label class="chk"><input type="checkbox" id="cStrobe" checked>같은 시간 간격 점</label>
+            <label class="chk"><input type="checkbox" id="cArrow" checked>속도·가속도</label>
+            <label class="chk"><input type="checkbox" id="cField" checked>거리별 중력 가속도</label>
+          </div>
+          <div class="row" data-for="cannon" hidden>
+            <div class="group" role="group" aria-label="행성">
+              <span class="gl">행성</span>
+              <button type="button" class="btn" data-planet="earth" aria-pressed="true">지구 (M, R)</button>
+              <button type="button" class="btn" data-planet="big" aria-pressed="false">질량 2M · 반지름 8R</button>
+            </div>
+            <button type="button" class="btn" id="refire">다시 쏘기</button>
+            <button type="button" class="btn" id="clearHist">발사 기록 지우기</button>
+          </div>
+          <div class="toggles" data-for="cannon" hidden>
+            <label class="chk"><input type="checkbox" id="cFall" checked>직진했다면 · 떨어진 거리</label>
+            <label class="chk"><input type="checkbox" id="cForce" checked>속도·중력 화살표</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="notes" aria-label="관찰 노트">
-      <p>(만드는 중)</p>
+      <div class="answer">
+        <div class="lab"><span id="ansLab">A : B 의 비 (같은 행성)</span><span id="ansCtx">A: r = R · B: r = 4R</span></div>
+        <div class="big" id="ansBig">v<sub>A</sub> : v<sub>B</sub> = 2 : 1</div>
+        <div class="sub">
+          <span class="f" id="ansF">v ∝ 1/√r, T ∝ r<sup>3/2</sup>, a ∝ 1/r² 에 r<sub>B</sub>/r<sub>A</sub> = 4 를 넣으면</span>
+          <span id="ansLines"><span class="v">T<sub>A</sub> : T<sub>B</sub> = 1 : 4<sup>3/2</sup> = <em>1 : 8</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">A (지표 가까이) 속력 · 주기</span><b id="mv1">7.9 km/s · 85분</b></div>
+          <div class="mini"><span id="mn2">B 속력 · 주기</span><b id="mv2">4.0 km/s · 11.3시간</b></div>
+          <div class="mini"><span id="mn3">B 가 받는 중력 (A 기준)</span><b id="mv3">F<sub>A</sub>/16</b></div>
+          <div class="mini"><span id="mn4">B 의 가속도 (A 기준)</span><b id="mv4">a<sub>A</sub>/16</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 거리와 중력">
+          <div class="kind">관찰 1</div>
+          <h3>중심에서 2배 멀어지면 중력 가속도는 1/4이 된다</h3>
+          <p>만유인력 <span class="eq">F = GMm/r²</span> 은 거리 제곱에 반비례한다. 그래서 천체 밖의 중력 가속도 <span class="eq">g = GM/r²</span> 도 중심에서 2R이면 1/4, 3R이면 1/9로 줄어든다. 무대의 보랏빛이 옅어지는 정도와 위성의 초록 화살표(가속도) 길이를 견줘 보자.</p>
+          <canvas class="flat" id="gG" aria-label="중심에서 거리에 따른 중력 가속도 그래프. 천체 밖에서 거리 제곱에 반비례하고 R, 2R, 3R에서 g0, g0/4, g0/9."></canvas>
+          <p class="cap">위성이 받는 중력은 위성 질량에 비례하지만, 가속도 GM/r²에는 위성 질량이 없다. ‘B 질량 2배’를 켜면 B가 받는 중력은 2배가 되어도 B의 궤도와 속력은 그대로다. 위성 B는 무대에서 끌어 옮길 수 있다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="b2">B를 2R로</button>
+            <button type="button" class="btn" data-try="b3">B를 3R로</button>
+            <button type="button" class="btn" data-do="click:[data-scene=sats]; check:#cMass">B 질량 2배</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 멀수록 느리다">
+          <div class="kind">관찰 2</div>
+          <h3>바깥 궤도일수록 느리고, 한 바퀴가 훨씬 오래 걸린다</h3>
+          <p>원 궤도에서는 만유인력이 그대로 구심력이다. <span class="eq">GMm/r² = mv²/r</span> 에서 <span class="eq">v = √(GM/r)</span>, <span class="eq">T = 2π√(r³/GM)</span>. 반지름이 4배인 B는 속력이 1/2, 주기는 8배다.</p>
+          <canvas class="flat" id="gV" aria-label="궤도 반지름에 따른 속력과 주기 그래프. 속력은 반지름의 제곱근에 반비례하고 주기는 반지름의 3/2제곱에 비례한다. A와 B의 자리를 점으로 표시."></canvas>
+          <p class="cap">무대의 점은 같은 시간 간격(A 주기의 1/8)마다 찍은 자리다. 같은 시간 동안 A가 간 호가 B의 2배이고, B가 한 바퀴 도는 동안 A는 8바퀴 돈다. 위성 질량은 식에서 약분되므로 속력과 주기는 위성 질량과 무관하다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">r과 4r (예제)</button>
+            <button type="button" class="btn" data-try="b15">B를 1.5R로</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 뉴턴의 대포">
+          <div class="kind">관찰 3</div>
+          <h3>떨어지면서도 땅에 닿지 않는 속력이 있다</h3>
+          <p>산꼭대기에서 수평으로 쏜 포탄은 늘 지구 중심 쪽으로 떨어진다. 느리면 금방 떨어지고, 빠를수록 멀리 가다가 <b>7.9 km/s</b>에서는 떨어지는 만큼 지표가 둥글게 멀어져 높이가 그대로인 원 궤도를 돈다. 이것이 인공위성이다.</p>
+          <canvas class="flat" id="gS" aria-label="발사 속력 띠. 7.9 km/s보다 느리면 낙하, 7.9 km/s면 원 궤도, 11.2 km/s까지는 타원 궤도, 그 이상이면 탈출."></canvas>
+          <p class="cap">무대의 점선은 중력이 없다면 직진했을 길, 빨간 짧은 화살표는 그동안 중심 쪽으로 떨어진 거리다. 원 궤도에서는 떨어진 만큼 지표도 휘어 내려가 높이가 그대로다. v₁ = 7.9 km/s와 v₂ = 11.2 km/s 사이에서는 발사점이 가장 가까운 점인 타원 궤도를 돈다. 산 높이와 포탄은 크게 과장해 그렸다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="v5">5 km/s로 쏘기</button>
+            <button type="button" class="btn" data-try="v79">7.9 km/s (원 궤도)</button>
+            <button type="button" class="btn" data-try="v9">9 km/s (타원)</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 탈출 속력">
+          <div class="kind">관찰 4</div>
+          <h3>역학적 에너지가 0 이상이면 돌아오지 않는다</h3>
+          <p>무한히 먼 곳을 기준으로 중력 퍼텐셜 에너지는 <span class="eq">U = −GMm/r</span> 이다. 원 궤도 위성은 K = GMm/2r, <span class="eq">E = −GMm/2r</span> &lt; 0 이라 중력에 묶여 있다. ½mv² − GMm/R ≥ 0 이 되는 최소 속력이 탈출 속력 <span class="eq">v₂ = √(2GM/R)</span> = √2 v₁ ≈ 11.2 km/s 다.</p>
+          <canvas class="flat" id="gE" aria-label="거리에 따른 원 궤도 위성의 운동 에너지, 퍼텐셜 에너지, 역학적 에너지 곡선. 대포 장면에서는 발사 순간의 운동 에너지 막대와 역학적 에너지 점."></canvas>
+          <p class="cap">곡선은 원 궤도의 K, U, E다(|E| = K, U = 2E). 대포 장면에서는 발사 순간의 운동 에너지(주황 막대)가 퍼텐셜 에너지의 깊이(보라 막대)를 다 메우면 E = 0, 곧 탈출이다. K와 U가 모두 m에 비례하므로 탈출 속력은 발사체 질량·발사 방향과 무관하다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="v112">11.2 km/s로 쏘기</button>
+            <button type="button" class="btn" data-try="v11">11 km/s (아슬아슬)</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>거리 제곱에 반비례하는 힘이 그대로 구심력이 된다</h3>
+          <ul>
+            <li><span class="eq">F = GMm/r²</span>, <span class="eq">g = GM/r²</span>: 2R에서 1/4, 3R에서 1/9. 가속도는 위성 질량과 무관하고 중력은 질량에 비례한다. 밀도가 같으면 g = (4/3)πρGR 이라 큰 천체의 g가 크다.</li>
+            <li>원 궤도: <span class="eq">v = √(GM/r)</span> ∝ 1/√r, <span class="eq">T = 2π√(r³/GM)</span> ∝ r<sup>3/2</sup>, a ∝ 1/r². 지표 근처 7.9 km/s, 정지 궤도 위성은 반지름 약 42000 km의 적도 상공에 있다.</li>
+            <li>에너지: U = −GMm/r, K = GMm/2r, <span class="eq">E = −GMm/2r</span>. 높은 궤도일수록 E는 크고(0에 가깝고) 속력은 작다. 탈출 속력 <span class="eq">√(2GM/R)</span> = √2 × 원 궤도 속력.</li>
+            <li>자주 하는 실수: 중력 비를 그대로 거리 비로 바꾼다. 중력은 위성 질량에도 비례하므로 질량이 다르면 가속도 비로 바꿔 거리 비를 구한다. 높이와 궤도 반지름(중심 거리)도 구분한다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>같은 행성을 도는 질량이 같은 원 궤도 위성 A, B의 궤도 반지름이 r, 4r이다. 속력·주기·가속도의 비(A : B)와 역학적 에너지를 비교하라.</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>속력 ∝ 1/√r 이므로 √4 : 1 = <b>2 : 1</b>, 주기 ∝ r<sup>3/2</sup> 이므로 1 : 4<sup>3/2</sup> = 1 : 8, 가속도 ∝ 1/r² 이므로 16 : 1. E = −GMm/2r 에서 A는 −GMm/2r, B는 −GMm/8r 이라 B의 에너지가 더 크다(0에 가깝다). 무대에서 B가 한 바퀴 도는 동안 A가 8바퀴 도는지 세어 보자.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>지표면의 중력 가속도가 g, 지구 반지름이 R이다. 지표로부터 높이 R인 원 궤도 위성에 대해 옳은 것만 고르면? ㄱ. 가속도 크기는 g/4이다. ㄴ. 질량이 2배인 위성을 같은 궤도에 올려도 공전 주기는 같다. ㄷ. 공전 속력은 지표를 스치며 도는 위성의 1/√2배이다.</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1">높이 R에 질량 2배 위성</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄴ, ㄷ</b>. 궤도 반지름은 중심에서 2R이므로 가속도는 g × (R/2R)² = g/4다. GMm/r² = mv²/r 에서 위성 질량이 약분되어 속력·주기는 질량과 무관하다. 속력 √(GM/r)는 반지름이 2배면 1/√2배다. 높이 R을 궤도 반지름으로 착각하지 않는 것이 핵심이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>질량 M, 반지름 R인 행성 표면의 탈출 속력이 v이다. 질량 2M, 반지름 8R인 행성 표면의 탈출 속력은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q2">2M · 8R 행성에서 쏘기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>v/2</b>. √(2GM/R)는 √(M/R)에 비례하고 M/R이 2/8 = 1/4배이므로 √(1/4) = 1/2배다. v/4는 제곱근을 빼먹은 값이다. 탈출 속력은 발사체의 질량과도 무관하다.</p></details>
+          </div>
+          <div class="q">
+            <h3>지표에서 탈출 속력은 지표를 스치며 도는 원 궤도 속력의 몇 배일까? 더 무거운 포탄은 더 빨리 쏴야 할까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="v79">7.9 km/s로 쏘기</button><button type="button" class="btn" data-try="v112">11.2 km/s로 쏘기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>√2배</b>(7.9 × 1.41 ≈ 11.2 km/s). 원 궤도에서는 K = GMm/2R, E = −GMm/2R 인데 E = 0 이 되려면 K가 GMm/R 로 2배가 되어야 하므로 속력은 √2배다. K와 U가 모두 m에 비례하므로 무거운 포탄도 같은 속력이면 된다.</p></details>
+          </div>
+        </li>
+      </ol>
 <!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../12/" rel="prev"><small>← 이전 개념 · A1-12</small><b>케플러 법칙</b></a><a href="../14/" rel="next"><small>다음 개념 · A1-14 →</small><b>단진동과 단진자</b></a></nav>
 <!-- /nextprev -->
     </section>
   </main>
 </div>
+
 <script src="../../kit/lab.js"></script>
+<script src="A1-13-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_13;
+  const {$, C, text, rich, arrow, fmt} = Lab;
+  const TAU = Math.PI * 2;
+  const GROUND = 0.95;        // 그림의 땅 = 발사점(·위성 A 궤도) 반지름의 0.95 배 (산 높이를 과장해 그림)
+  const PLANETS = {
+    earth: {M: M.M_E, R: M.R_E, name: '지구', tag: 'M, R'},
+    big: {M: 2 * M.M_E, R: 8 * M.R_E, name: '행성', tag: '2M, 8R'},
+  };
+  const V1E = M.vCirc(M.M_E, M.R_E), T1E = M.period(M.M_E, M.R_E);   // 7.9 km/s, 약 85분
+  const PA = 2.4;             // 화면에서 위성 A 한 바퀴 (s, ×1) → 실제(약 85분)보다 약 2000배 빠르게
+  const PC = 6;               // 화면에서 원 궤도 한 바퀴 (s, ×1) — 대포 장면
+  const DTAU = TAU / 12;      // 대포: 같은 시간 간격 = 원 궤도 주기의 1/12
+  const TYPE = {
+    fall: {name: '낙하', tone: 'ink', col: () => C.muted},
+    circle: {name: '원 궤도', tone: '', col: () => C.acc},
+    ellipse: {name: '타원 궤도', tone: 'violet', col: () => C.violet},
+    escape: {name: '탈출', tone: 'force', col: () => C.force},
+  };
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = {
+    scene: 'sats', playing: !Lab.reduceMotion, speed: 1,
+    rB: 4, m2: false, strobe: true, arrows: true, field: true, tS: 0,          // 두 위성: tS = A 주기 단위 시간
+    v: V1E, planet: 'earth', fall: true, force: true, shot: null, hist: [],      // 대포
+    drag: null,
+  };
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  const near = (x, n) => Math.abs(x - Math.round(x)) < 1e-6;
+  const nice = (x, d = 2) => (near(x) ? String(Math.round(x)) : fmt(x, d));
+  const kms = (v) => (v / 1000).toFixed(1);
+  const rStr = (k) => (Math.abs(k - 1) < 1e-9 ? 'R' : nice(k, 1) + 'R');
+  const timeStr = (s) => (s < 5400 ? Math.round(s / 60) + '분' : fmt(s / 3600, 1) + '시간');
+  const planet = () => PLANETS[S.planet];
+  const v1 = () => M.vCirc(planet().M, planet().R);
+  const isNarrow = () => (stage.W ? stage.W < 520 : innerWidth < 560);
+  function satIcon(ctx, x, y, ang, col, sc = 1) {       // 위성: 몸통 + 태양 전지판 (진행 방향으로 펼침)
+    const ux = -Math.sin(ang), uy = Math.cos(ang), L = 11 * sc;
+    ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = C.muted; ctx.lineWidth = 4 * sc;
+    ctx.beginPath(); ctx.moveTo(x - ux * L, y - uy * L); ctx.lineTo(x + ux * L, y + uy * L); ctx.stroke(); ctx.restore();
+    Lab.circle(ctx, x, y, 5.5 * sc, {fill: col, stroke: C.paper, width: 2});
+  }
+  function drawPlanet(ctx, cx, cy, rad, name, sub) {
+    ctx.save();
+    const gr = ctx.createRadialGradient(cx - rad * 0.35, cy - rad * 0.35, rad * 0.1, cx, cy, rad);
+    gr.addColorStop(0, Lab.alpha(C.vel, 0.08)); gr.addColorStop(1, Lab.alpha(C.vel, 0.3));
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(cx, cy, rad, 0, TAU); ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = C.vel; ctx.stroke(); ctx.restore();
+    if (name && rad > 24) text(ctx, name, cx, cy - (sub && rad > 40 ? 9 : 0), {size: rad > 50 ? 16 : 14, w: 600, color: C.vel});
+    if (sub && rad > 40) text(ctx, sub, cx, cy + 11, {size: 13, w: 500, color: C.muted});
+  }
+
+  // ── 두 위성 장면 ────────────────────────────────────────
+  // 위성 A 는 지표 가까이(r = R), B 는 r_B. 둘 다 위쪽에서 같이 출발해 시계 방향으로 돈다.
+  function geoS(W, H) {
+    const narrow = W < 520;
+    const cx = narrow ? W / 2 : W * 0.56, cy = narrow ? H * 0.55 : H / 2;
+    const Rb = Math.max(60, narrow ? Math.min(W / 2 - 10, H - cy - 12, cy - 54) : Math.min(H / 2 - 14, W * 0.44 - 10));
+    return {narrow, cx, cy, R: Rb / 4};
+  }
+  const angA = () => -Math.PI / 2 + TAU * S.tS;
+  const angB = () => -Math.PI / 2 + TAU * S.tS / Math.pow(S.rB, 1.5);
+  function drawSats(ctx, W, H) {
+    const g = geoS(W, H), {cx, cy, R} = g, k = S.rB, rb = k * R;
+    if (S.field) {                                     // 중력 가속도 ∝ 1/r²: 보랏빛이 진할수록 크다
+      ctx.save();
+      const r1 = R * GROUND, r2 = R * 4.3, gr = ctx.createRadialGradient(cx, cy, r1, cx, cy, r2);
+      for (const r of [1, 1.25, 1.5, 2, 2.5, 3, 3.5, 4.3]) gr.addColorStop(Math.min(1, (r * R - r1) / (r2 - r1)), Lab.alpha(C.violet, 0.26 / (r * r)));
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(cx, cy, r2, 0, TAU); ctx.fill(); ctx.restore();
+      const a = -0.62, lab = [[1, 'g₀'], [2, 'g₀/4'], [3, 'g₀/9']];
+      for (const [r, s] of lab) {
+        if (r > 1) { ctx.save(); ctx.setLineDash([4, 5]); Lab.circle(ctx, cx, cy, r * R, {stroke: Lab.alpha(C.violet, 0.55), width: 1.2}); ctx.restore(); }
+        text(ctx, s, cx + Math.cos(a) * r * R + (r > 1 ? 4 : 10), cy + Math.sin(a) * r * R - 10, {size: 13, w: 600, color: C.violet, align: 'left', halo: true});
+      }
+    }
+    Lab.circle(ctx, cx, cy, R, {stroke: Lab.alpha(C.vel, 0.55), width: 1.4});
+    Lab.circle(ctx, cx, cy, rb, {stroke: Lab.alpha(C.copper, 0.7), width: 1.6});
+    drawPlanet(ctx, cx, cy, R * GROUND, '', null);
+    // 궤도 반지름 치수: 왼쪽 아래로
+    const da = 2.55, ex = cx + Math.cos(da) * rb, ey = cy + Math.sin(da) * rb;
+    Lab.line(ctx, [[cx + Math.cos(da) * R * GROUND, cy + Math.sin(da) * R * GROUND], [ex, ey]], C.copper, 1.4, [5, 4]);
+    if (rb - R > 34) rich(ctx, 'r_B = ' + rStr(k), cx + Math.cos(da) * (R + (rb - R) * 0.55) - 6, cy + Math.sin(da) * (R + (rb - R) * 0.55) + 13, {size: 14, w: 600, color: C.copper, halo: true});
+    // 같은 시간 간격(A 주기의 1/8)마다 찍은 자리: 최근 8칸
+    if (S.strobe) {
+      const J = Math.floor(S.tS * 8 + 1e-9);
+      for (let j = Math.max(0, J - 8); j <= J; j++) {
+        const t = j / 8, a = -Math.PI / 2 + TAU * t, b = -Math.PI / 2 + TAU * t / Math.pow(k, 1.5);
+        Lab.circle(ctx, cx + Math.cos(a) * R, cy + Math.sin(a) * R, 3.6, {fill: Lab.alpha(C.vel, 0.75)});
+        Lab.circle(ctx, cx + Math.cos(b) * rb, cy + Math.sin(b) * rb, 3.6, {fill: Lab.alpha(C.copper, 0.85)});
+      }
+    }
+    // 위성 A, B + 속도(∝ 1/√r)·가속도(∝ 1/r²) 화살표
+    const VA = g.narrow ? 34 : 44, AA = g.narrow ? 26 : 34;
+    const sats = [['A', angA(), R, 1, C.vel, 1], ['B', angB(), rb, k, C.copper, S.m2 ? 1.26 : 1]];
+    for (const [nm, a, rr, kk, col, sc] of sats) {
+      const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr, ux = -Math.sin(a), uy = Math.cos(a);
+      if (S.arrows) {
+        const lv = VA / Math.sqrt(kk), la = AA / (kk * kk);
+        arrow(ctx, x, y, x + ux * lv, y + uy * lv, C.vel, 2.8, 10);
+        arrow(ctx, x, y, x - Math.cos(a) * la, y - Math.sin(a) * la, C.acc, 2.8, Math.min(10, Math.max(4, la * 0.6)));
+        if (!g.narrow) {
+          rich(ctx, 'v_' + nm, x + ux * (lv + 13), y + uy * (lv + 13), {size: 14, w: 600, color: C.vel});
+          if (la > 14) rich(ctx, 'a_' + nm, x - Math.cos(a) * la * 0.55 - ux * 13, y - Math.sin(a) * la * 0.55 - uy * 13, {size: 14, w: 600, color: C.acc});
+        }
+      }
+      satIcon(ctx, x, y, a, col, sc);
+      const lr = rr + (nm === 'A' ? 17 : -19);
+      text(ctx, nm === 'B' && S.m2 ? 'B (2m)' : nm, cx + Math.cos(a) * lr, cy + Math.sin(a) * lr, {size: 14, w: 700, color: col, halo: true});
+    }
+    text(ctx, '지구', cx, cy, {size: 13, w: 600, color: C.vel, halo: true});
+  }
+
+  // ── 뉴턴의 대포 장면 ────────────────────────────────────
+  // 계산 단위: 발사점 중심 거리 r₀ = 1(≈ R), GM = 1 → v₁ = 1, 원 궤도 주기 2π. 화면: 발사점이 행성 위쪽, 오른쪽으로 쏜다.
+  function geoC(W, H) {
+    const narrow = W < 520;
+    const cx = narrow ? W * 0.5 : W * 0.4, cy = narrow ? H * 0.43 : H * 0.4;
+    const k = Math.max(30, narrow ? Math.min(H * 0.25, W * 0.3) : Math.min(H * 0.27, W * 0.2));
+    return {narrow, cx, cy, k, kV: narrow ? 30 : 40, X: (x) => cx + x * k, Y: (y) => cy - y * k};
+  }
+  function fire(commit) {
+    const P = planet(), q = M.qOf(S.v, P.M, P.R), prev = S.shot;
+    if (prev && prev.commit && prev.planet === S.planet && Math.abs(prev.v - S.v) > 50) {
+      const pts = prev.traj.pts.filter((p, i) => i % 4 === 0).map((p) => [p.x, p.y]), e = prev.traj.pts[prev.traj.pts.length - 1];
+      pts.push([e.x, e.y]);
+      S.hist.unshift({v: prev.v, type: prev.type, pts, end: prev.traj.end}); if (S.hist.length > 4) S.hist.length = 4;
+    }
+    const traj = M.trajectory(q, {ground: GROUND, rMax: 4.6, tMax: TAU * 8});
+    S.shot = {v: S.v, q, type: M.classify(q, GROUND), traj, tEnd: traj.pts[traj.pts.length - 1].t, tau: 0, hold: 0, commit: !!commit, planet: S.planet};
+  }
+  const shotTime = (sh) => (sh.traj.end === 'orbit' && sh.tau > sh.tEnd ? sh.tEnd : Math.min(sh.tau, sh.tEnd));   // 지금까지 그린 길이
+  const shotPos = (sh) => M.at(sh.traj, sh.traj.end === 'orbit' && sh.tau > sh.tEnd ? sh.tau % sh.tEnd : sh.tau);
+  function stepShot(dt) {
+    const sh = S.shot; if (!sh) return;
+    const d = dt * S.speed * TAU / PC;
+    if (sh.tau < sh.tEnd || sh.traj.end === 'orbit') sh.tau += d;
+    else { sh.hold += dt * S.speed; if (sh.hold > 1.4) { sh.tau = 0; sh.hold = 0; } }
+  }
+  function drawCannon(ctx, W, H) {
+    const g = geoC(W, H), {cx, cy, k, X, Y} = g, sh = S.shot, P = planet();
+    // 이전 발사 기록 (흐리게)
+    S.hist.forEach((h) => {
+      ctx.save(); ctx.globalAlpha = 0.5;
+      Lab.line(ctx, h.pts.map(([x, y]) => [X(x), Y(y)]), C.muted, 1.6); ctx.restore();
+      // 이름표 자리: 땅에 떨어진 것은 떨어진 곳, 한 바퀴 도는 것은 오른쪽 아래(30% 지점), 멀어지는 것은 무대 안의 마지막 점
+      const inV = (p) => X(p[0]) > 24 && X(p[0]) < W - 70 && Y(p[1]) > 56 && Y(p[1]) < H - 20;
+      let e = h.end === 'orbit' ? h.pts[Math.floor(h.pts.length * 0.3)] : h.pts[h.pts.length - 1];
+      if (!inV(e)) e = [...h.pts].reverse().find(inV);
+      if (e) text(ctx, kms(h.v) + ' km/s', X(e[0]) + 7, Y(e[1]) + 12, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
+    });
+    drawPlanet(ctx, cx, cy, k * GROUND, P.name, g.narrow ? null : P.tag);
+    // 산(과장)과 대포
+    const ga = 0.11, gr = k * GROUND;
+    ctx.save(); ctx.fillStyle = Lab.alpha(C.ink, 0.5); ctx.beginPath();
+    ctx.moveTo(cx - Math.sin(ga) * gr, cy - Math.cos(ga) * gr); ctx.lineTo(cx, cy - k + 3); ctx.lineTo(cx + Math.sin(ga) * gr, cy - Math.cos(ga) * gr); ctx.closePath(); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.fillStyle = C.ink; Lab.rrect(ctx, cx - 7, cy - k - 4, 17, 7, 3); ctx.fill(); ctx.restore();
+    if (!sh) return;
+    const shown = shotTime(sh), pts = [];
+    for (const p of sh.traj.pts) { if (p.t > shown) break; pts.push([X(p.x), Y(p.y)]); }
+    const cur = shotPos(sh), done = sh.tau >= sh.tEnd;
+    if (!done) pts.push([X(cur.x), Y(cur.y)]);
+    Lab.line(ctx, pts, Lab.alpha(C.copper, 0.85), 2.6);
+    // 같은 시간 간격 점 + 직진했다면(점선) · 떨어진 거리(빨강)
+    const n = Math.floor(shown / DTAU + 1e-9);
+    for (let j = 0; j <= n; j++) {
+      const p = M.at(sh.traj, j * DTAU);
+      if (S.fall && j < n) {
+        const q = M.at(sh.traj, (j + 1) * DTAU), s = [p.x + p.vx * DTAU, p.y + p.vy * DTAU];
+        const A = [X(p.x), Y(p.y)], B = [X(s[0]), Y(s[1])], Q = [X(q.x), Y(q.y)];
+        Lab.line(ctx, [A, B], Lab.alpha(C.vel, 0.6), 1.5, [5, 4]);
+        if (Math.hypot(Q[0] - B[0], Q[1] - B[1]) > 3) arrow(ctx, B[0], B[1], Q[0], Q[1], C.force, 2, 7);
+      }
+      Lab.circle(ctx, X(p.x), Y(p.y), 4, {fill: C.copper});
+    }
+    // 포탄 + 속도·중력 화살표
+    const px = X(cur.x), py = Y(cur.y), rr = Math.hypot(cur.x, cur.y);
+    if (S.force && px > -20 && px < W + 20 && py > -20 && py < H + 20) {
+      const sp = Math.hypot(cur.vx, cur.vy), lv = sp * g.kV, lf = (g.narrow ? 24 : 32) / (rr * rr);
+      if (lv > 4) arrow(ctx, px, py, px + cur.vx / sp * lv, py - cur.vy / sp * lv, C.vel, 2.8, 10);
+      arrow(ctx, px, py, px - cur.x / rr * lf, py + cur.y / rr * lf, C.force, 2.8, 9);
+    }
+    Lab.circle(ctx, px, py, 5.5, {fill: C.copper, stroke: C.paper, width: 2});
+    // 발사 속도 손잡이 (끌면 v 가 바뀐다)
+    const x0 = cx + 10, y0 = cy - k - 0.5, L = S.v / v1() * g.kV;
+    if (done || sh.tau > 0.25) { ctx.save(); ctx.globalAlpha = 0.55; arrow(ctx, x0, y0, x0 + L, y0, C.vel, 2.6, 9); ctx.restore(); }
+    Lab.circle(ctx, x0 + L, y0, 7.5, {fill: C.copper, stroke: C.paper, width: 2});
+    if (!g.narrow) text(ctx, '끌기', x0 + L, y0 - 16, {size: 13, w: 600, color: C.copper, halo: true});
+    // 궤도 이름
+    const T = TYPE[sh.type], ap = M.apsides(sh.q), farOut = cy + ap.far * k > H - 4;
+    let sub = sh.type === 'fall' ? 'v < v₁ · 땅에 떨어진다' : sh.type === 'circle' ? 'v = v₁ · 높이가 그대로'
+      : sh.type === 'escape' ? 'v ≥ v₂ · 돌아오지 않는다' : (sh.q < 1 ? '땅을 비껴가는 타원' : 'v₁ < v < v₂ · 먼 점 ' + fmt(ap.far, 1) + 'R' + (farOut ? ' (무대 밖)' : ''));
+    if (!g.narrow) {     // 폰에서는 HUD 가 궤도 이름을 보여 준다
+      text(ctx, T.name, W - 16, 28, {size: 19, w: 700, color: T.col(), align: 'right', halo: true});
+      text(ctx, sub, W - 16, 52, {size: 13.5, w: 500, color: C.muted, align: 'right', halo: true});
+    }
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  let lastNar = null;
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    if ((W < 520) !== lastNar) { lastNar = W < 520; ansKey = ''; readouts(); }     // 폰 ↔ 넓은 배치가 바뀌면 HUD 글도 다시
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (S.scene === 'sats') drawSats(ctx, W, H); else drawCannon(ctx, W, H);
+  }
+  function clipRect(ctx, r) { ctx.save(); ctx.beginPath(); ctx.rect(r.x - 2, r.y - 6, r.w + 10, r.h + 8); ctx.clip(); }
+  function curve(ctx, ax, f, x0, x1, col, w = 3) {
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineJoin = 'round'; ctx.beginPath();
+    for (let i = 0; i <= 160; i++) { const x = x0 + (x1 - x0) * i / 160, X = ax.X(x), Y = ax.Y(f(x)); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }
+    ctx.stroke(); ctx.restore();
+  }
+  const fracStr = (v) => { for (const d of [1, 2, 4, 8, 9, 16]) if (Math.abs(v * d - Math.round(v * d)) < 1e-6 && Math.round(v * d) === 1) return d === 1 ? '' : '/' + d; return null; };
+
+  // 관찰 1: g–r (천체 밖에서 1/r²)
+  const gG = Lab.canvas('gG', drawG);
+  function drawG() {
+    const {ctx, W, H} = gG; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, r = {x: 48, y: 26, w: W - 48 - 28, h: H - 26 - 50};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 4.4, ymin: 0, ymax: 1.14, xticks: [1, 2, 3, 4], yticks: [1 / 9, 1 / 4, 1],
+      fmtX: (v) => (v === 1 ? 'R' : v + 'R'), fmtY: (v) => 'g₀' + (fracStr(v) || ''), xlabel: '중심에서 거리 r', xlabelBelow: true, ylabel: 'g', grid: true});
+    ctx.save(); ctx.fillStyle = C['line-soft']; ctx.fillRect(ax.X(0) + 1, r.y, ax.X(1) - ax.X(0) - 1, r.h); ctx.restore();
+    text(ctx, nar ? '내부' : '천체 내부', (ax.X(0) + ax.X(1)) / 2, r.y + r.h * 0.55, {size: 13, w: 500, color: C.muted});
+    curve(ctx, ax, (x) => 1 / (x * x), 1, 4.4, C.acc, 3);
+    [[1, 'g₀'], [2, 'g₀/4'], [3, 'g₀/9']].forEach(([x, s]) => {
+      Lab.circle(ctx, ax.X(x), ax.Y(1 / (x * x)), 4.5, {fill: C.acc});
+      text(ctx, s, ax.X(x) + 8, ax.Y(1 / (x * x)) - 14, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    });
+    if (!nar) text(ctx, 'g = GM/r² (위성 질량과 무관)', r.x + r.w, r.y + 8, {size: 13, w: 600, color: C.acc, align: 'right', halo: true});
+    // 지금: 두 위성(B) 또는 포탄의 거리
+    let x, lab;
+    if (S.scene === 'sats') { x = S.rB; lab = 'B: g₀' + (fracStr(1 / (x * x)) || ' × ' + fmt(1 / (x * x), 3)); }
+    else { const sh = S.shot, p = sh && shotPos(sh); x = p ? Math.hypot(p.x, p.y) : 1; lab = '포탄 r = ' + fmt(x, 2) + 'R'; }
+    if (x <= 4.4) {
+      const X = ax.X(x), Y = ax.Y(1 / (x * x));
+      const low = Y > ax.y0 - r.h * 0.4, ly = low ? ax.y0 - r.h * 0.48 : Y - 16;
+      Lab.line(ctx, [[X, ax.y0], [X, low ? ly + 9 : Y]], C.copper, 1.4, [4, 4]);
+      Lab.circle(ctx, X, Y, 6.5, {fill: C.copper, stroke: C.paper, width: 2});
+      const right = X < r.x + r.w * 0.62;
+      text(ctx, lab, X + (low ? 0 : right ? 12 : -12), ly, {size: 13, w: 600, color: C.copper, align: low ? (X > r.x + r.w * 0.8 ? 'right' : 'center') : right ? 'left' : 'right', halo: true});
+    }
+  }
+
+  // 관찰 2: v–r 와 T–r (A = 1)
+  const gV = Lab.canvas('gV', drawV);
+  function drawV() {
+    const {ctx, W, H} = gV; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const stack = W < 440, k = S.rB;
+    const box = stack ? [{x: 46, y: 24, w: W - 46 - 30, h: H / 2 - 24 - 34}, {x: 46, y: H / 2 + 22, w: W - 46 - 30, h: H / 2 - 22 - 34}]
+      : [{x: 44, y: 26, w: W / 2 - 44 - 26, h: H - 26 - 40}, {x: W / 2 + 40, y: 26, w: W / 2 - 40 - 26, h: H - 26 - 40}];
+    const spec = [
+      {f: (x) => 1 / Math.sqrt(x), ymax: 1.15, yt: [0.5, 1], fy: (v) => (v === 1 ? '1' : '½'), lab: '속력 v (A = 1)', col: C.vel, val: 1 / Math.sqrt(k)},
+      {f: (x) => Math.pow(x, 1.5), ymax: 9, yt: [1, 8], fy: (v) => String(v), lab: '주기 T (A = 1)', col: C.violet, val: Math.pow(k, 1.5)},
+    ];
+    spec.forEach((s, i) => {
+      const r = box[i];
+      const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 4.4, ymin: 0, ymax: s.ymax, xticks: [1, 2, 3, 4], yticks: s.yt, fmtX: (v) => (v === 1 ? 'R' : v + 'R'), fmtY: s.fy, xlabel: 'r', ylabel: s.lab, grid: true});
+      curve(ctx, ax, s.f, 1, 4.4, s.col, 3);
+      const XA = ax.X(1), YA = ax.Y(s.f(1)), XB = ax.X(k), YB = ax.Y(s.val);
+      Lab.circle(ctx, XA, YA, 5.5, {fill: C.vel, stroke: C.paper, width: 2});
+      if (i === 0) text(ctx, 'A', XA - 12, YA + 12, {size: 13, w: 700, color: C.vel, align: 'right', halo: true});
+      else text(ctx, 'A', XA - 10, YA - 13, {size: 13, w: 700, color: C.vel, halo: true});
+      Lab.line(ctx, [[XB, ax.y0], [XB, YB], [ax.x0, YB]], C.copper, 1.3, [4, 4]);
+      Lab.circle(ctx, XB, YB, 6.5, {fill: C.copper, stroke: C.paper, width: 2});
+      const lab = 'B: ' + (i === 0 && Math.abs(s.val - 0.5) < 1e-9 ? '½' : nice(s.val, 2)) + '배';
+      const left = XB > r.x + r.w * 0.6;
+      text(ctx, lab, XB + (left ? -10 : 10), YB + (i === 0 ? 16 : -14), {size: 13, w: 600, color: C.copper, align: left ? 'right' : 'left', halo: true});
+    });
+  }
+
+  // 관찰 3: 발사 속력 띠
+  const gS = Lab.canvas('gS', drawS);
+  function drawS() {
+    const {ctx, W, H} = gS; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const P = planet(), a = M.vCirc(P.M, P.R) / 1000, b = M.vEsc(P.M, P.R) / 1000, VMAX = 12;
+    const x0 = 16, x1 = W - 16, X = (v) => x0 + (x1 - x0) * Math.min(v, VMAX) / VMAX, yb = H * 0.42, bh = Math.max(18, H * 0.19);
+    const seg = (u, w, col, s) => {
+      ctx.save(); ctx.fillStyle = Lab.alpha(col, 0.22); ctx.fillRect(X(u), yb - bh / 2, X(w) - X(u), bh); ctx.restore();
+      if (X(w) - X(u) > 40) text(ctx, s, (X(u) + X(w)) / 2, yb, {size: 13, w: 600, color: col});
+    };
+    seg(0, a, C.muted, '낙하'); seg(a, b, C.violet, '타원'); seg(b, VMAX, C.force, '탈출');
+    Lab.line(ctx, [[X(a), yb - bh / 2 - 4], [X(a), yb + bh / 2 + 4]], C.acc, 3.2);
+    text(ctx, 'v₁ ' + a.toFixed(1) + ' (원)', X(a), yb + bh / 2 + 15, {size: 13, w: 600, color: C.acc, halo: true});
+    Lab.line(ctx, [[X(b), yb - bh / 2], [X(b), yb + bh / 2]], C.force, 1.6);
+    text(ctx, 'v₂ ' + b.toFixed(1), X(b), yb + bh / 2 + 15, {size: 13, w: 600, color: C.force, halo: true});
+    text(ctx, '0', X(0), yb + bh / 2 + 33, {size: 13, w: 500, color: C.muted, align: 'left'});
+    text(ctx, VMAX + ' km/s', X(VMAX), yb + bh / 2 + 33, {size: 13, w: 500, color: C.muted, align: 'right'});
+    S.hist.forEach((h) => Lab.line(ctx, [[X(h.v / 1000), yb - bh / 2], [X(h.v / 1000), yb + bh / 2]], C.muted, 1.4));
+    if (S.scene === 'cannon') {
+      const xv = X(S.v / 1000);
+      Lab.line(ctx, [[xv, yb - bh / 2 - 6], [xv, yb + bh / 2]], C.copper, 2.6);
+      ctx.save(); ctx.fillStyle = C.copper; ctx.beginPath(); ctx.moveTo(xv - 6, yb - bh / 2 - 12); ctx.lineTo(xv + 6, yb - bh / 2 - 12); ctx.lineTo(xv, yb - bh / 2 - 4); ctx.closePath(); ctx.fill(); ctx.restore();
+      const al = xv < W * 0.25 ? 'left' : xv > W * 0.75 ? 'right' : 'center';
+      text(ctx, '지금 ' + kms(S.v) + ' km/s', xv + (al === 'left' ? -6 : al === 'right' ? 6 : 0), yb - bh / 2 - 22, {size: 13, w: 600, color: C.copper, align: al, halo: true});
+    } else text(ctx, '대포 장면에서 발사 속력을 바꿔 보자', W / 2, yb - bh / 2 - 18, {size: 13, w: 500, color: C.muted});
+  }
+
+  // 관찰 4: 에너지–r (원 궤도의 K, U, E) + 대포의 발사 순간 에너지 장부
+  const gE = Lab.canvas('gE', drawE);
+  function drawE() {
+    const {ctx, W, H} = gE; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, r = {x: 46, y: 24, w: W - 46 - 24, h: H - 24 - 36};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 4.4, ymin: -1.15, ymax: 1.25, xticks: [1, 2, 3, 4], yticks: [-1, -0.5, 0.5, 1],
+      fmtX: (v) => (v === 1 ? 'R' : v + 'R'), fmtY: (v) => (Math.abs(v) === 0.5 ? (v < 0 ? '−½' : '½') : fmt(v)), xlabel: 'r', ylabel: '에너지 (GMm/R)', grid: true});
+    clipRect(ctx, r);
+    curve(ctx, ax, (x) => 1 / (2 * x), 0.5, 4.4, C.energy, 3);
+    curve(ctx, ax, (x) => -1 / x, 0.87, 4.4, C.violet, 3);
+    curve(ctx, ax, (x) => -1 / (2 * x), 0.5, 4.4, C.acc, 3);
+    ctx.restore();
+    // 곡선 이름: 오른쪽 위에 모아서
+    const lx = r.x + r.w, names = nar ? [['K', C.energy], ['U', C.violet], ['E', C.acc]] : [['K = GMm/2r', C.energy], ['U = −GMm/r', C.violet], ['E = K + U = −GMm/2r', C.acc]];
+    let hx = lx;
+    (nar ? names.slice().reverse() : names).forEach(([s, c], i) => {           // 넓으면 세로로 셋, 좁으면 한 줄로(오른쪽부터 E·U·K → 읽으면 K·U·E)
+      const w = Lab.measure(ctx, s, {size: 13, w: 600}), y = nar ? r.y + 6 : r.y + 10 + i * 19, x = nar ? hx : lx;
+      Lab.line(ctx, [[x - w - 24, y], [x - w - 7, y]], c, 3);
+      text(ctx, s, x, y, {size: 13, w: 600, color: c, align: 'right'});
+      if (nar) hx -= w + 36;
+    });
+    let status, scol = C.muted;
+    if (S.scene === 'sats') {
+      for (const [nm, x, col] of [['A', 1, C.vel], ['B', S.rB, C.copper]]) {
+        const X = ax.X(x), e = -1 / (2 * x), right = x < 3;
+        Lab.line(ctx, [[X, ax.Y(1 / (2 * x))], [X, ax.Y(-1 / x)]], C.muted, 1.2, [3, 4]);
+        for (const [f, c] of [[1 / (2 * x), C.energy], [-1 / x, C.violet], [e, C.acc]]) Lab.circle(ctx, X, ax.Y(f), 5, {fill: c, stroke: C.paper, width: 1.5});
+        text(ctx, nm, X, ax.Y(1 / (2 * x)) - 14, {size: 14, w: 700, color: col, halo: true});
+        const es = Math.abs(e * 8 - Math.round(e * 8)) < 1e-9 ? '−1/' + Math.round(-1 / e) : fmt(e, 3);
+        if (!nar && (nm === 'A' || (x > 1.35 && x < 2.6))) text(ctx, 'E = ' + es, X + (right ? 9 : -9), ax.Y(e) + 15, {size: 13, w: 600, color: C.acc, align: right ? 'left' : 'right', halo: true});
+      }
+      const eb = -1 / (2 * S.rB), ebs = Math.abs(eb * 8 - Math.round(eb * 8)) < 1e-9 ? '−1/' + Math.round(-1 / eb) : fmt(eb, 3);
+      status = 'E_A = −1/2,  E_B = ' + ebs + (nar ? '' : ' → 둘 다 < 0, B 가 크다');
+    } else {
+      const sh = S.shot, q = sh ? sh.q : 1, K = q / 2, E = K - 1, X = ax.X(1), bw = 13;
+      const Kc = Math.min(K, 1.25);
+      ctx.save(); ctx.fillStyle = Lab.alpha(C.energy, 0.75); ctx.fillRect(X - bw - 2, ax.Y(Kc), bw, ax.y0 - ax.Y(Kc));
+      ctx.fillStyle = Lab.alpha(C.violet, 0.4); ctx.fillRect(X + 2, ax.y0, bw, ax.Y(-1) - ax.y0); ctx.restore();
+      if (K > 1.25) text(ctx, '↑', X - 2 - bw / 2, r.y - 4, {size: 13, w: 700, color: C.energy});
+      for (const [kk, s] of [[0.5, 'v₁'], [1, 'v₂']]) {
+        Lab.line(ctx, [[X - bw - 10, ax.Y(kk)], [X - 2, ax.Y(kk)]], C.ink, 1.4, [3, 2]);
+        text(ctx, s, X - bw - 13, ax.Y(kk), {size: 13, w: 600, color: C.ink, align: 'right', halo: true});
+      }
+      const Ec = Math.max(-1.15, Math.min(1.25, E)), ok = E >= -1e-9;
+      Lab.circle(ctx, X, ax.Y(Ec), 6.5, {fill: C.acc, stroke: C.paper, width: 2});
+      const es = Math.abs(E) < 5e-3 ? '0' : fmt(E, 2);
+      status = (nar ? 'E = ' : '발사 순간 E = K + U = ') + es + (ok ? ' ≥ 0 → 탈출' : ' < 0 → 묶여 있다');
+      scol = ok ? C.force : C.acc;
+    }
+    rich(ctx, status, r.x + r.w, ax.Y(-1.02), {size: 13, w: 600, color: S.scene === 'sats' ? C.acc : scol, align: 'right', halo: true});
+  }
+
+  // ── 수치 (지금 값) ──────────────────────────────────────
+  const LEG = {
+    sats: '<span><i style="background:var(--vel)"></i>위성 A (지표 가까이)</span><span><i style="background:var(--copper)"></i>위성 B · 같은 시간 간격 점</span><span><b style="background:var(--vel)"></b>속도 ∝ 1/√r</span><span><b style="background:var(--acc)"></b>가속도 ∝ 1/r² (보랏빛도)</span>',
+    cannon: '<span><i style="background:var(--copper)"></i>포탄 · 같은 시간 간격 점</span><span><b style="background:var(--vel)"></b>속도 · 직진했다면 (점선)</span><span><b style="background:var(--force)"></b>중력 · 그동안 떨어진 거리</span><span><b style="background:var(--muted)"></b>이전 발사</span><span>산 높이·포탄 크기는 과장</span>',
+  };
+  let ansKey = '';
+  function ans(big, lines, o) {                     // 값이 바뀔 때만 카드를 고친다
+    const key = [big, o.tone, o.lab, o.ctx, o.f].concat(lines).join('|');
+    if (key === ansKey) return;
+    ansKey = key; Lab.ans(big, lines, Object.assign({html: true}, o));
+  }
+  const setMini = (i, name, val) => { const a = $('mn' + i), b = $('mv' + i); if (a.innerHTML !== name) a.innerHTML = name; if (b.innerHTML !== val) b.innerHTML = val; };
+  const part = (v) => { const n = 1 / v; return Math.abs(n - Math.round(n)) < 1e-6 ? (Math.round(n) === 1 ? '' : '/' + Math.round(n)) : ' × ' + fmt(v, 3); };
+  const speedUp = (T) => { const x = T / PC; const d = Math.pow(10, Math.floor(Math.log10(x)) - 1); return '약 ' + Math.round(Math.round(x / d) * d) + '배 빠르게'; };
+  function hudLaps() {
+    const lap = (t) => fmt(t, t < 10 ? 2 : 1), b = S.tS / Math.pow(S.rB, 1.5);
+    $('hud2').textContent = isNarrow() ? 'A ' + lap(S.tS) + ' · B ' + lap(b) + '바퀴' : 'A ' + lap(S.tS) + '바퀴 · B ' + lap(b) + '바퀴';
+  }
+  function readSats() {
+    const k = S.rB, x = M.ratios(1, k), kk = nice(k, 1);
+    ans('v<sub>A</sub> : v<sub>B</sub> = ' + nice(x.v) + ' : 1', [
+      'T<sub>A</sub> : T<sub>B</sub> = 1 : ' + kk + '<sup>3/2</sup> = <em>1 : ' + nice(1 / x.T) + '</em>',
+      'a<sub>A</sub> : a<sub>B</sub> = ' + kk + '² : 1 = <em>' + nice(x.a) + ' : 1</em>',
+      'E = −GMm/2r → E<sub>A</sub> = −GMm/2r, E<sub>B</sub> = −GMm/' + nice(2 * k) + 'r → <em>' + (k > 1 + 1e-9 ? 'B 가 크다' : '같다') + '</em>',
+    ], {tone: '', lab: 'A : B 의 비 (같은 행성)', ctx: 'A: r = R · B: r = ' + rStr(k), f: 'v ∝ 1/√r, T ∝ r<sup>3/2</sup>, a ∝ 1/r² 에 반지름 비 <em>' + kk + '</em> 를 넣으면'});
+    setMini(1, 'A (지표 가까이) 속력 · 주기', kms(V1E) + ' km/s · ' + timeStr(T1E));
+    setMini(2, 'B 속력 · 주기', kms(V1E / Math.sqrt(k)) + ' km/s · ' + timeStr(T1E * Math.pow(k, 1.5)));
+    setMini(3, 'B 가 받는 중력 (A 기준)', 'F<sub>A</sub>' + part((S.m2 ? 2 : 1) / (k * k)) + (S.m2 ? ' (질량 2배)' : ''));
+    setMini(4, 'B 의 가속도 (A 기준)', 'a<sub>A</sub>' + part(1 / (k * k)) + (S.m2 ? ' · 질량과 무관' : ''));
+    $('hud1').innerHTML = 'r<sub>B</sub> = ' + rStr(k);
+    hudLaps();
+    $('hud3').textContent = speedUp(T1E * PC / PA); $('hud3').hidden = !!isNarrow();
+    const ok = Math.abs(k - 4) < 1e-9 && !S.m2;
+    Lab.check('exCheck', ok, '개념서 예제 (r, 4r) → 속력 2 : 1, 주기 1 : 8, 가속도 16 : 1, 역학적 에너지는 B 가 크다',
+      '예제: 궤도 반지름 r, 4r 인 두 위성의 속력·주기·가속도 비와 에너지는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function readCannon() {
+    const P = planet(), a = v1(), b = M.vEsc(P.M, P.R), sh = S.shot, q = sh.q, T = TYPE[sh.type], big = S.planet === 'big';
+    const cmp = sh.type === 'fall' ? 'v &lt; v₁ → <em>떨어진다</em>' : sh.type === 'circle' ? 'v = v₁ → <em>원 궤도</em>'
+      : sh.type === 'escape' ? 'v ≥ v₂ → <em>돌아오지 않는다</em>' : q < 1 ? 'v &lt; v₁ 이지만 <em>땅을 비껴간다</em> (산을 과장)' : 'v₁ &lt; v &lt; v₂ → <em>타원 궤도</em>';
+    ans(T.name, [
+      big ? 'v₁ = √(G × 2M ÷ 8R) = ½ × 7.9 = <em>' + kms(a) + ' km/s</em>' : 'v₁ = √(6.67 × 10⁻¹¹ × 6.0 × 10²⁴ ÷ 6.4 × 10⁶) = <em>' + kms(a) + ' km/s</em>',
+      'v₂ = √2 × v₁ = <em>' + kms(b) + ' km/s</em>',
+      '지금 v = <em>' + kms(S.v) + ' km/s</em>: ' + cmp,
+    ], {tone: T.tone, lab: '지금 궤도', ctx: big ? '질량 2M · 반지름 8R 행성' : '지구 · 지표 가까이 (r ≈ R)', f: '원 궤도 속력 v₁ = √(GM/R), 탈출 속력 v₂ = √(2GM/R) 와 견주면'});
+    const E = q / 2 - 1, ap = M.apsides(q), T1 = M.period(P.M, P.R);
+    setMini(1, '역학적 에너지 ½mv² − GMm/R', (Math.abs(E) < 5e-3 ? '0' : fmt(E, 2)) + ' GMm/R' + (E < -5e-3 ? ' (묶임)' : ' (탈출)'));
+    setMini(2, '가장 먼 거리 (중심에서)', sh.type === 'fall' ? '– (땅에 닿음)' : sh.type === 'escape' ? '∞ (돌아오지 않음)' : sh.type === 'circle' ? 'R (그대로)' : fmt(ap.far, 2) + 'R');
+    setMini(3, '한 바퀴 시간', sh.type === 'circle' || sh.type === 'ellipse' ? timeStr(T1 * (sh.type === 'circle' ? 1 : M.periodRatio(q))) : '–');
+    setMini(4, '포탄 질량을 2배로 하면', '같은 궤도 (질량 무관)');
+    $('hud1').textContent = 'v = ' + kms(S.v) + ' km/s';
+    $('hud2').textContent = isNarrow() ? T.name : 'v₁ ' + kms(a) + ' · v₂ ' + kms(b) + ' km/s';
+    $('hud3').textContent = speedUp(T1); $('hud3').hidden = !!isNarrow();
+    Lab.check('exCheck', false, '', '예제(반지름 r, 4r 인 두 위성)는 ‘두 위성’ 장면에서 본다 — ‘개념서 예제’ 단계의 버튼');
+  }
+  function readouts() {
+    if (S.scene === 'sats') readSats(); else readCannon();
+    $('rBOut').textContent = rStr(S.rB);
+    $('vOut').textContent = kms(S.v) + ' km/s';
+  }
+  function drawAll() { drawStage(); drawG(); drawV(); drawS(); drawE(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => setScene(v), S.scene);
+  const planetG = Lab.group('[data-planet]', 'planet', (v) => { setPlanet(v); fire(true); refresh(); }, S.planet);
+  function setPlanet(p) { if (S.planet !== p) S.hist = []; S.planet = p; planetG.set(p, true); }
+  function setScene(sc) {
+    S.scene = sc;
+    document.querySelectorAll('[data-for]').forEach((el) => { el.hidden = el.dataset.for !== sc; });
+    $('slB').hidden = sc !== 'sats'; $('slV').hidden = sc !== 'cannon';
+    $('legend').innerHTML = LEG[sc];
+    sceneG.set(sc, true);
+    if (sc === 'cannon' && !S.shot) fire(false);
+    refresh();
+  }
+  const rBEl = $('rB'), vEl = $('vv');
+  function setRB(v) { S.rB = Math.max(1, Math.min(4, Math.round(v * 10) / 10)); rBEl.value = S.rB; S.tS = 0; refresh(); }
+  function setV(v) { S.v = Math.max(1000, Math.min(12000, v)); vEl.value = (S.v / 1000).toFixed(1); }
+  function setM2(on) { S.m2 = on; $('cMass').checked = on; }
+  rBEl.addEventListener('input', () => setRB(+rBEl.value));
+  vEl.addEventListener('input', () => { setV(+vEl.value * 1000); fire(false); refresh(); });
+  vEl.addEventListener('change', () => { if (S.shot) S.shot.commit = true; });
+  const tog = (id, key) => $(id).addEventListener('change', (e) => { S[key] = e.target.checked; refresh(); });
+  tog('cMass', 'm2'); tog('cStrobe', 'strobe'); tog('cArrow', 'arrows'); tog('cField', 'field'); tog('cFall', 'fall'); tog('cForce', 'force');
+  $('step').addEventListener('click', () => {
+    playCtl.set(false);
+    if (S.scene === 'sats') S.tS = (Math.floor(S.tS * 8 + 1e-6) + 1) / 8;
+    else if (S.shot) {
+      const sh = S.shot; if (sh.traj.end !== 'orbit' && sh.tau >= sh.tEnd) { sh.tau = 0; sh.hold = 0; }
+      else sh.tau = (Math.floor(sh.tau / DTAU + 1e-6) + 1) * DTAU;
+      if (sh.traj.end !== 'orbit') sh.tau = Math.min(sh.tau, sh.tEnd);
+    }
+    refresh();
+  });
+  $('refire').addEventListener('click', () => { if (S.shot) { S.shot.tau = 0; S.shot.hold = 0; } playCtl.set(true); refresh(); });
+  $('clearHist').addEventListener('click', () => { S.hist = []; refresh(); });
+  // 무대 끌기: 두 위성 → B 의 궤도 반지름, 대포 → 발사 속도 화살표 끝
+  Lab.pointer(stage.el, {
+    down(x, y) {
+      if (S.scene === 'sats') { const g = geoS(stage.W, stage.H); if (Math.hypot(x - g.cx, y - g.cy) > g.R * 1.3) { S.drag = 'b'; this.move(x, y); } }
+      else { const g = geoC(stage.W, stage.H), x0 = g.cx + 10, y0 = g.cy - g.k; if (Math.abs(y - y0) < 36 && x > x0 - 6) { S.drag = 'v'; this.move(x, y); } }
+    },
+    move(x, y) {
+      if (S.drag === 'b') { const g = geoS(stage.W, stage.H); setRB(Math.hypot(x - g.cx, y - g.cy) / g.R); }
+      else if (S.drag === 'v') { const g = geoC(stage.W, stage.H); setV(Math.round((x - g.cx - 10) / g.kV * v1() / 100) * 100); fire(false); refresh(); }
+    },
+    up() { if (S.drag === 'v' && S.shot) S.shot.commit = true; S.drag = null; },
+  });
+
+  // 단계 카드의 버튼: 그 상황으로
+  function shoot(v, pl = 'earth') { setScene('cannon'); setPlanet(pl); setV(v); fire(true); playCtl.set(true); }
+  function sats(k, m2 = false) { setScene('sats'); setM2(m2); setRB(k); playCtl.set(true); }
+  const TRY = {
+    ex: () => { S.strobe = true; S.arrows = true; $('cStrobe').checked = true; $('cArrow').checked = true; sats(4); },
+    b2: () => sats(2, S.m2), b3: () => sats(3, S.m2), b15: () => sats(1.5),
+    q1: () => sats(2, true),
+    v5: () => shoot(5000), v79: () => shoot(V1E), v9: () => shoot(9000), v11: () => shoot(11000), v112: () => shoot(11200),
+    q2: () => shoot(M.vEsc(2 * M.M_E, 8 * M.R_E), 'big'),
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing) return;
+    if (S.scene === 'sats') S.tS += dt * S.speed / PA; else stepShot(dt);
+    drawStage();
+    roT += dt;
+    if (roT > 0.15) {
+      roT = 0;
+      if (S.scene === 'sats') hudLaps();
+      else drawG();
+    }
+  });
+  if (Lab.reduceMotion) S.tS = 1;
+  setScene('sats');
+})();
+</script>
 </body>
 </html>

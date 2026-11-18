@@ -8,6 +8,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(장면 원운동 · 같은 축 · 벨트) | 오른쪽 지금 값 + 관찰 ①~④(속도의 방향, Δv 작도와 속도 원, A·B 비교 막대, 성분 그래프) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.6}
+#hodo{aspect-ratio:10/6.4}
+#cmp{aspect-ratio:10/5.4}
+#comp{aspect-ratio:10/7.2}
+@media (max-width:640px){ #hodo{aspect-ratio:10/9.6} #cmp{aspect-ratio:10/7.4} #comp{aspect-ratio:10/9.6} }
+.stage .legend{left:auto;right:12px;top:12px;bottom:auto}   /* 넓은 무대: 범례는 오른쪽 위 (그림은 가운데) */
+</style>
 </head>
 <body class="cx">
 <!-- topbar -->
@@ -23,15 +32,727 @@
     <h1>등속 원운동의 기술: 주기·각속도·구심 가속도</h1>
     <p class="question"><i>Q</i>속력이 일정한데 왜 가속도가 있을까, 그리고 그 방향은 왜 중심일까?</p>
   </div>
+
   <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="실에 매인 공이 원 궤도를 일정한 속력으로 돈다. 속도 화살표는 접선, 가속도 화살표는 중심을 향한다. 장면을 바꾸면 같은 축에 붙은 두 점, 벨트로 이은 두 바퀴가 돈다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">v = 6.28 m/s</span><span class="pill" id="hud2">a = 19.7 m/s²</span><span class="pill" id="hud3" hidden></span></div>
+        <div class="legend col" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider"><label for="per"><span class="lg">주기 </span>T</label><input id="per" type="range" min="0.3" max="6" step="0.1" value="2"><output id="perOut">2 s</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·보기</span><span class="sm">장면</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 보기">
+          <div class="sheet-head"><b>장면 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="circ" aria-pressed="true">원운동</button>
+              <button type="button" class="btn" data-scene="axis" aria-pressed="false">같은 축</button>
+              <button type="button" class="btn" data-scene="belt" aria-pressed="false">벨트</button>
+            </div>
+            <div class="group" role="group" aria-label="B의 반지름" data-for="axis belt" hidden>
+              <span class="gl">B 반지름</span>
+              <button type="button" class="btn" data-k="2" aria-pressed="true">2r</button>
+              <button type="button" class="btn" data-k="3" aria-pressed="false">3r</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="grow">
+              <label class="ctl-label" for="rad"><span id="radName">반지름 r</span> <output id="radOut">2 m</output></label>
+              <input id="rad" type="range" min="0.1" max="3" step="0.1" value="2">
+            </div>
+            <div class="group" role="group" aria-label="시간 빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×¼</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×½</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+            </div>
+          </div>
+          <div class="row" data-for="circ">
+            <button type="button" class="btn" id="dvStep">Δv 작도 ▸</button>
+            <div class="group" role="group" aria-label="두 순간 사이의 각 Δθ">
+              <span class="gl">Δθ</span>
+              <button type="button" class="btn" data-dth="60" aria-pressed="true">60°</button>
+              <button type="button" class="btn" data-dth="30" aria-pressed="false">30°</button>
+              <button type="button" class="btn" data-dth="10" aria-pressed="false">10°</button>
+            </div>
+            <button type="button" class="btn" id="rel">실 놓기</button>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cTrail" checked>같은 시간 간격 자리</label>
+            <label class="chk"><input type="checkbox" id="cAcc" checked>가속도 a</label>
+            <label class="chk" data-for="circ"><input type="checkbox" id="cShadow">x 성분 (그림자)</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="notes" aria-label="관찰 노트">
-      <p>(만드는 중)</p>
+      <div class="answer">
+        <div class="lab"><span id="ansLab">구심 가속도</span><span id="ansCtx">r = 2 m · T = 2 s</span></div>
+        <div class="big" id="ansBig">a = 2π² ≈ 19.7 m/s²</div>
+        <div class="sub">
+          <span class="f" id="ansF">ω = 2π/T, v = rω, a = rω² 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">ω = 2π ÷ <em>2</em> = <em>π rad/s</em> ≈ 3.14 rad/s</span><span class="v">v = rω = <em>2</em> × π = <em>2π m/s</em> ≈ 6.28 m/s</span><span class="v">a = rω² = 2 × π² = <em>2π² m/s²</em> ≈ 19.7 m/s²</span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="ml1">진동수 f = 1/T</span><b id="mv1">0.5 Hz</b></div>
+          <div class="mini"><span id="ml2">한 바퀴 거리 2πr</span><b id="mv2">4π ≈ 12.6 m</b></div>
+          <div class="mini"><span id="ml3">|Δv| (Δθ = 60°)</span><b id="mv3">6.28 m/s</b></div>
+          <div class="mini"><span id="ml4">|Δv| ÷ Δt (Δθ → 0 이면 a)</span><b id="mv4">18.85 m/s²</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 방향이 바뀐다">
+          <div class="kind">관찰 1</div>
+          <h3>속력은 그대로인데 속도의 방향이 계속 바뀐다</h3>
+          <p>같은 시간 간격으로 찍은 공의 자리(작은 점)가 원 위에 같은 간격으로 놓인다. 속력이 일정하다는 뜻이다. 그런데 속도 화살표는 늘 원의 <b>접선</b> 방향이라 방향이 계속 돈다. 속도가 변하므로 등속 원운동은 가속도 운동이다.</p>
+          <p class="cap">실을 놓으면 공은 그 순간의 속도 방향, 곧 접선 방향으로 곧게 날아간다(놓은 뒤에는 같은 간격의 점이 직선 위에 찍힌다). 반지름과 접선은 수직이므로, 반지름이 연직선과 θ인 곳에서 벗어나면 속도는 수평과 θ를 이룬다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:#rel">실 놓기</button>
+            <button type="button" class="btn" data-try="rel30">연직과 30°인 곳에서 놓기</button>
+            <button type="button" class="btn" data-do='click:[data-speed="0.25"]'>느리게 ×¼</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② Δv 는 중심으로">
+          <div class="kind">관찰 2</div>
+          <h3>짧은 시간의 속도 변화 Δv는 원의 중심을 향한다</h3>
+          <p>Δt 전의 속도 v₁과 지금 속도 v₂를 꼬리를 모아 그리면 Δv = v₂ − v₁이 이등변삼각형의 밑변이 된다. 이 Δv를 두 순간의 가운데 자리로 옮기면 원의 <b>중심</b>을 가리킨다. Δθ를 줄일수록 Δv는 속도에 수직이 되고, 크기는 vΔθ에 가까워진다.</p>
+          <canvas class="flat" id="hodo" aria-label="속도 화살표의 꼬리를 한 점에 모은 그림. 화살표 끝이 반지름 v인 원을 그리고, 두 순간의 속도 차이 Δv가 그 원의 현이다."></canvas>
+          <p class="cap">속도 화살표의 꼬리를 한 점에 모으면 끝이 반지름 v인 원을 그린다. 공이 Δθ 돌 때 속도도 Δθ 돌므로 끝은 1초에 vω씩 움직인다. 그래서 <span class="eq">a = Δv/Δt = vω = v²/r = rω²</span></p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:#dvStep">Δv 작도 한 단계씩 ▸</button>
+            <button type="button" class="btn" data-do='click:[data-dth="60"]'>Δθ 60°</button>
+            <button type="button" class="btn" data-do='click:[data-dth="30"]'>30°</button>
+            <button type="button" class="btn" data-do='click:[data-dth="10"]'>10°</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 같은 축과 벨트">
+          <div class="kind">관찰 3</div>
+          <h3>같은 축이면 ω가, 벨트로 이으면 가장자리 속력이 같다</h3>
+          <p>한 몸으로 도는 원판 위의 두 점 A, B는 한 바퀴 시간이 같아 T와 ω가 같다. 그래서 바깥의 B가 더 빠르다: <span class="eq">v ∝ r, a ∝ r</span>. 미끄러지지 않는 벨트로 이은 두 바퀴는 벨트의 모든 부분이 같은 빠르기라 가장자리 속력이 같다. 그래서 큰 바퀴가 천천히 돈다: <span class="eq">ω ∝ 1/r</span></p>
+          <canvas class="flat" id="cmp" aria-label="두 점(두 바퀴) A, B의 주기, 각속도, 속력, 가속도를 A를 1로 놓고 비교한 막대."></canvas>
+          <p class="cap">A를 1로 놓은 막대. 무엇이 같은지(테두리)부터 정하면 나머지는 v = rω, a = rω² = v²/r로 따라 나온다. 무대의 구리색 표시점으로 회전수를 세어 보자.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="axis">같은 축 (B = 2r)</button>
+            <button type="button" class="btn" data-try="belt">벨트 (B = 2r)</button>
+            <button type="button" class="btn" data-do='click:[data-k="3"]'>B = 3r</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 성분은 사인 곡선">
+          <div class="kind">관찰 4</div>
+          <h3>x 성분만 보면 사인 곡선으로 진동한다</h3>
+          <p>원운동을 x축에 비친 그림자로 보면 −r과 r 사이를 왔다 갔다 한다. 시각 0에 x축 위에서 출발하면 <span class="eq">x = r cos ωt</span>, <span class="eq">vₓ = −rω sin ωt</span>이고, 진폭은 각각 반지름, 속력, 구심 가속도 크기다.</p>
+          <canvas class="flat" id="comp" aria-label="x, vx, ax 성분의 시간 그래프. 모두 주기 T인 사인 곡선이고 x가 최대일 때 vx는 0이다."></canvas>
+          <p class="cap">x가 최대인 곳(그림자가 끝에서 돌아서는 순간)에서 vₓ = 0이고, 그때 x 방향 가속도 성분의 크기가 가장 크다. 이 그림자 운동이 뒤에서 배울 단진동이다(A1-14).</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="shadow">그림자 보기</button>
+            <button type="button" class="btn" data-try="xmax">x가 최대인 순간</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>가속도는 늘 중심 쪽, 크기는 v²/r = rω²</h3>
+          <ul>
+            <li><span class="eq">T = 2πr/v = 2π/ω = 1/f</span>, <span class="eq">ω = 2πf</span>, <span class="eq">v = rω</span> (호의 길이 = 반지름 × 중심각).</li>
+            <li><span class="eq">a = v²/r = rω² = 4π²r/T²</span>, 방향은 늘 원의 중심(구심 가속도). 속도(접선)와 가속도(중심)가 서로 수직이라 속력은 변하지 않는다.</li>
+            <li>같은 축(한 몸으로 회전): T, ω 같음 → v ∝ r, a ∝ r. 벨트·체인·맞물린 톱니: 가장자리 v 같음 → ω ∝ 1/r, a = v²/r ∝ 1/r.</li>
+            <li>궤도를 벗어나는 순간의 속도는 접선 방향이다. 반지름이 연직과 θ이면 속도는 수평과 θ: 이어지는 포물선 운동의 발사각이 된다.</li>
+            <li>자주 하는 실수: 속력이 일정하니 가속도가 0이라고 보기(방향이 바뀌므로 a = v²/r), 벨트로 이은 두 바퀴의 ω가 같다고 보기(같은 것은 가장자리 속력).</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>반지름 2 m인 원 궤도를 주기 2 s로 등속 원운동하는 물체의 각속도, 속력, 구심 가속도는?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>ω = 2π/T = 2π ÷ 2 = <b>π rad/s</b>, v = rω = 2 × π = 2π m/s ≈ 6.3 m/s, a = rω² = 2 × π² = 2π² m/s² ≈ 19.7 m/s². v²/r = (2π)² ÷ 2 = 2π²로 계산해도 같다. 무대의 가속도 화살표는 늘 중심 O를 향한다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>벨트로 연결되어 미끄러지지 않고 도는 두 바퀴의 반지름이 10 cm, 30 cm이다. 작은 바퀴가 1초에 3바퀴 돌 때 큰 바퀴의 회전 주기는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q1">10 cm·30 cm 벨트로</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>1 s</b>. 벨트로 이은 바퀴는 가장자리 속력이 같아 각속도가 반지름에 반비례한다. 큰 바퀴는 작은 바퀴의 1/3 빠르기, 곧 1초에 1바퀴다. 1/3 s는 작은 바퀴의 주기로, 같은 축처럼 ω가 같다고 본 오답이다. 무대에서 작은 바퀴의 구리색 점이 3바퀴 도는 동안 큰 바퀴의 점이 1바퀴 돈다.</p></details>
+          </div>
+          <div class="q">
+            <h3>반지름 0.5 m인 원 궤도를 주기 π s로 등속 원운동하는 물체의 구심 가속도 크기는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q2">r = 0.5 m, T = π s로</button></div>
+            <details class="ans"><summary>답 보기</summary><p>ω = 2π/T = 2 rad/s, v = rω = 1 m/s이므로 a = rω² = 0.5 × 4 = <b>2 m/s²</b>(v²/r = 1 ÷ 0.5로도 같다). 속력이 일정해도 운동 방향이 계속 바뀌므로 가속도는 0이 아니며 늘 중심을 향한다.</p></details>
+          </div>
+          <div class="q">
+            <h3>연직면의 원 궤도를 따라 돌던 물체가 반지름이 연직선과 30°를 이루는 점에서 궤도를 벗어났다. 그 순간 물체의 속도가 수평과 이루는 각은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="rel30">연직과 30°인 곳에서 놓기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>30°</b>. 벗어나는 순간의 속도는 접선 방향이고 접선은 반지름에 수직이다. 반지름을 연직에서 30° 돌리면 접선도 수평에서 30° 돈다. 연직면이라면 이 속도로 시작하는 포물선 운동이 이어지므로 30°가 발사각이 된다.</p></details>
+          </div>
+        </li>
+      </ol>
 <!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../09/" rel="prev"><small>← 이전 개념 · A1-09</small><b>상대 운동</b></a><a href="../11/" rel="next"><small>다음 개념 · A1-11 →</small><b>여러 가지 구심력</b></a></nav>
 <!-- /nextprev -->
     </section>
   </main>
 </div>
+
 <script src="../../kit/lab.js"></script>
+<script src="A1-10-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_10;
+  const {$, C, text, arrow, fmt} = Lab;
+  const PI = Math.PI, TAU = 2 * PI, RAD = PI / 180;
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const ease = (u) => { u = clamp(u, 0, 1); return u * u * (3 - 2 * u); };
+  const mix = (P, Q, u) => [P[0] + (Q[0] - P[0]) * u, P[1] + (Q[1] - P[1]) * u];
+
+  // ── 상태 ────────────────────────────────────────────────
+  // 예제: r = 2 m, T = 2 s → ω = π rad/s, v = 2π m/s, a = 2π² m/s²
+  const EX = {r: 2, T: 2};
+  const S = {scene: 'circ', r: 2, T: 2, Tsym: {c: 2, p: 0}, k: 2, speed: 1, playing: !Lab.reduceMotion,
+    phi: 0.35, thA: 0, thB: 0, th0: 0, belt: 0, trail: true, acc: true, shadow: false,
+    dv: 0, dvT: 9, dth: 60, rel: null};
+  const TV = 0.58 / PI, TA2 = 0.45 / (PI * PI);   // 무대 화살표 축척: 예제(ω = π)에서 v 화살표 = 0.58R, a 화살표 = 0.45R
+  const NS = 16;                                   // 같은 시간 간격 = T/16
+
+  // ── 수 표기: c·πᵖ 꼴이면 '2π²', 'π', '0.6π', 'π/3' (아니면 소수) ─────────
+  function ratOf(c) {
+    for (let d = 1; d <= 12; d++) { const n = Math.round(c * d); if (Math.abs(c * d - n) < 1e-9) return [n, d]; }
+    return null;
+  }
+  const tidy = (c) => Math.abs(c * 100 - Math.round(c * 100)) < 1e-9;
+  function piStr(c, p) {
+    if (!isFinite(c)) return null;
+    const pp = p === 0 ? '' : p === 1 ? 'π' : 'π²';
+    if (p < 0 || p > 2) return null;
+    if (tidy(c)) return p === 0 ? fmt(c, 2) : (Math.abs(c - 1) < 1e-12 ? '' : fmt(c, 2)) + pp;
+    const q = ratOf(c); if (!q) return null;
+    return p === 0 ? q[0] + '/' + q[1] : (q[0] === 1 ? '' : q[0]) + pp + '/' + q[1];
+  }
+  const par = (s) => (/[/ ]/.test(s) ? '(' + s + ')' : s);
+  const sq = (s) => (/^(π|[\d.]+)$/.test(s) ? s + '²' : '(' + s + ')²');
+  // 기호 값 {c, p} 와 실제 값 x → 짧은 글자(정확하면 그대로, 아니면 소수)
+  const short = (sym, x, d = 2) => piStr(sym.c, sym.p) || fmt(x, d);
+  function full(sym, x, unit, d = 2) {
+    const s = piStr(sym.c, sym.p);
+    if (s && sym.p) return `<em>${s} ${unit}</em> ≈ ${fmt(x, d)} ${unit}`;
+    if (s) return `<em>${s} ${unit}</em>`;
+    return `≈ <em>${fmt(x, d)} ${unit}</em>`;
+  }
+  // 지금 값의 기호: T = c·πᵖ, r 는 수
+  function syms() {
+    const Tc = S.Tsym.c, Tp = S.Tsym.p, r = S.r;
+    const w = {c: 2 / Tc, p: 1 - Tp}, v = {c: r * 2 / Tc, p: 1 - Tp}, a = {c: r * 4 / (Tc * Tc), p: 2 - 2 * Tp};
+    return {w, v, a, T: S.Tsym};
+  }
+  const Tstr = () => piStr(S.Tsym.c, S.Tsym.p) || fmt(S.T, 2);
+
+  // ── 캔버스 ──────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage), hodo = Lab.canvas('hodo', drawHodo), cmp = Lab.canvas('cmp', drawCmp), comp = Lab.canvas('comp', drawComp);
+  const stageBox = stage.el.parentNode, legendEl = $('legend');
+  let room = 0;
+  const legendRoom = () => (legendEl && legendEl.parentNode === stageBox && legendEl.offsetHeight ? legendEl.offsetHeight + 14 : 0);
+  const SP = (O, R, phi) => [O[0] + R * Math.cos(phi), O[1] - R * Math.sin(phi)];      // 수학 각(위가 +) → 화면 점
+  const SU = (phi) => [Math.cos(phi), -Math.sin(phi)];                                  // 수학 각 → 화면 단위 벡터
+  const add = (P, u, k) => [P[0] + u[0] * k, P[1] + u[1] * k];
+  function ball(ctx, P, rad, col, ring) {
+    Lab.circle(ctx, P[0], P[1], rad, {fill: col, stroke: ring || C.paper, width: ring ? 2.6 : 1.8});
+    Lab.circle(ctx, P[0] - rad * 0.32, P[1] - rad * 0.32, rad * 0.3, {fill: Lab.isDark() ? Lab.alpha(C.ink, 0.3) : Lab.alpha(C.paper, 0.55)});
+  }
+  function arcArrow(ctx, O, r, a0, a1, col) {   // 수학 각 a0 → a1 (시계 반대 방향)로 도는 작은 호 화살표
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(O[0], O[1], r, -a0, -a1, true); ctx.stroke(); ctx.restore();
+    const E = SP(O, r, a1), u = SU(a1 + PI / 2);
+    arrow(ctx, E[0] - u[0] * 8, E[1] - u[1] * 8, E[0] + u[0] * 2, E[1] + u[1] * 2, col, 1.8, 8);
+  }
+  function spinner(ctx, O, phi) {   // 중심 둘레, 실의 반대쪽에 회전 방향 ω (실과 함께 돈다)
+    arcArrow(ctx, O, 22, phi + 0.78 * PI, phi + 1.22 * PI, C.muted);
+    const wl = SP(O, 38, phi + PI); text(ctx, 'ω', wl[0], wl[1], {size: 15, w: 600, color: C.muted, halo: true});
+  }
+  function lbl(ctx, s, x, y, o = {}) {   // 무대 안으로 끌어들인 이름표
+    const W = o.W || 1e9, H = o.H || 1e9, m = 10;
+    text(ctx, s, clamp(x, m + 12, W - m - 12), clamp(y, 54, H - 14), Object.assign({size: 15, w: 600, halo: true}, o));
+  }
+
+  // ── 장면 1: 원운동 ──────────────────────────────────────
+  function geoCirc(W, H) {
+    const narrow = W < 520, top = 52, bot = H - (narrow ? 42 : Math.max(42, room + 4));
+    const sh = S.shadow ? 36 : 0, avail = Math.max(110, bot - top - sh);
+    const R = Math.max(34, Math.min(avail / 2 - 10, W * (narrow ? 0.3 : 0.25)));
+    return {narrow, W, H, R, O: [W / 2, top + avail / 2], axisY: top + avail / 2 + R + 26, bot};
+  }
+  const arrowLens = (R, w) => {
+    const lv0 = R * w * TV, la0 = R * w * w * TA2;
+    return {lv: Math.min(lv0, R * 1.12), la: Math.min(la0, R * 0.92), cut: lv0 > R * 1.12 || la0 > R * 0.92};
+  };
+  function drawCirc(ctx, W, H) {
+    const g = geoCirc(W, H), {O, R} = g, w = M.omega(S.T), L = arrowLens(R, w);
+    const rel = S.rel, phiB = rel ? rel.phi : S.phi;
+    // x 축 그림자 자리
+    if (S.shadow) {
+      const y = g.axisY;
+      Lab.line(ctx, [[O[0] - R - 22, y], [O[0] + R + 22, y]], C.muted, 1.4);
+      for (const s of [-1, 0, 1]) Lab.line(ctx, [[O[0] + s * R, y - 5], [O[0] + s * R, y + 5]], C.muted, 1.4);
+      text(ctx, '−r', O[0] - R, y + 15, {size: 13, color: C.muted}); text(ctx, 'r', O[0] + R, y + 15, {size: 13, color: C.muted});
+      text(ctx, 'x', O[0] + R + 30, y, {size: 14, w: 600, color: C.muted});
+    }
+    // 궤도
+    ctx.save(); ctx.setLineDash([6, 6]); Lab.circle(ctx, O[0], O[1], R, {stroke: C.muted, width: 1.6}); ctx.restore();
+    // 같은 시간 간격의 자리 (T/16 마다)
+    if (S.trail) {
+      const dphi = TAU / NS, n = Math.floor(phiB / dphi + 1e-9);
+      for (let k = 0; k < 12; k++) {
+        const P = SP(O, R, (n - k) * dphi);
+        Lab.circle(ctx, P[0], P[1], 3.6, {fill: Lab.alpha(C.vel, Math.max(0.12, 0.62 - k * 0.045))});
+      }
+      if (rel) {                                  // 놓은 뒤: 같은 간격의 점이 직선 위에
+        const dt = S.T / NS;
+        for (let t = dt; t <= rel.age + 1e-9; t += dt) {
+          const P = add(rel.P, rel.u, rel.sp * t);
+          Lab.circle(ctx, P[0], P[1], 3.6, {fill: Lab.alpha(C.vel, 0.55)});
+        }
+      }
+    }
+    if (S.dv && !rel) drawDv(ctx, g, L);
+    // 실과 중심
+    const B = rel ? add(rel.P, rel.u, rel.sp * rel.age) : SP(O, R, S.phi);
+    if (!rel) Lab.line(ctx, [O, B], C.ink, 2);
+    else Lab.line(ctx, [O, add(O, SU(rel.phi), 16)], C.ink, 2);
+    Lab.circle(ctx, O[0], O[1], 5, {fill: C.ink});
+    const ol = add(O, SU(S.phi + PI / 2), 16); text(ctx, 'O', ol[0], ol[1], {size: 14, w: 600, halo: true});   // O·a 는 진행 방향 쪽, r 은 반대쪽
+    spinner(ctx, O, S.phi);
+    if (!rel && !S.dv) {
+      const mid = SP(O, R * 0.36, S.phi), n = SU(S.phi + PI / 2);
+      text(ctx, 'r = ' + fmt(S.r, 2) + ' m', mid[0] - n[0] * 16, mid[1] - n[1] * 16, {size: 14, w: 600, color: C.copper, halo: true});
+    }
+    if (rel) drawRelease(ctx, g);
+    // 그림자
+    if (S.shadow && !rel) {
+      const y = g.axisY, X = [B[0], y], s = Math.sin(S.phi), c = Math.cos(S.phi);
+      Lab.line(ctx, [B, X], C.copper, 1.4, [4, 4]);
+      const vx = -s * L.lv, ax = -c * L.la;
+      if (Math.abs(vx) > 3) arrow(ctx, X[0], y - 9, X[0] + vx, y - 9, C.vel, 3, 10);
+      if (S.acc && Math.abs(ax) > 3) arrow(ctx, X[0], y + 9, X[0] + ax, y + 9, C.acc, 3, 10);
+      Lab.circle(ctx, X[0], y, 6.5, {fill: C.copper, stroke: C.paper, width: 1.8});
+    }
+    // 공과 화살표
+    const vu = rel ? rel.u : SU(S.phi + PI / 2), au = SU(S.phi + PI);
+    if (S.dv && !rel) { ball(ctx, B, 10, C.vel); return; }   // 작도 중: 공의 속도는 v₂ 로 그렸다
+    if (S.acc && !rel) {
+      const E = add(B, au, L.la); arrow(ctx, B[0], B[1], E[0], E[1], C.acc, 3.4, 12);
+      lbl(ctx, 'a', E[0] - au[1] * 13 - au[0] * 4, E[1] + au[0] * 13 - au[1] * 4, {color: C.acc, W, H});
+    }
+    const V = add(B, vu, L.lv); arrow(ctx, B[0], B[1], V[0], V[1], C.vel, 3.4, 12);
+    lbl(ctx, rel ? 'v (그대로)' : 'v', V[0] + vu[0] * 14, V[1] + vu[1] * 14, {color: C.vel, W, H});
+    ball(ctx, B, 10, C.vel);
+    if (L.cut) text(ctx, '(화살표를 줄여 그림)', W - 14, g.bot - 2, {size: 13, color: C.muted, align: 'right', halo: true});
+  }
+  // Δv 작도: 1 두 순간 → 2 v₁ 을 P₂ 로 옮겨 꼬리 모으기 → 3 Δv = v₂ − v₁ 을 두 순간의 가운데 자리 M 으로 옮기면 중심 O 를 향한다
+  function drawDv(ctx, g, L) {
+    const {O, R} = g, dth = S.dth * RAD, p2 = S.phi, p1 = p2 - dth, pm = p2 - dth / 2;
+    const A1 = SP(O, R, p1), A2 = SP(O, R, p2), Mp = SP(O, R, pm), u1 = SU(p1 + PI / 2), u2 = SU(p2 + PI / 2), lv = L.lv;
+    // 쓸고 간 각 Δθ
+    ctx.save(); ctx.beginPath(); ctx.moveTo(O[0], O[1]); ctx.arc(O[0], O[1], R, -p1, -p2, true); ctx.closePath();
+    ctx.fillStyle = Lab.alpha(C.copper, 0.1); ctx.fill(); ctx.restore();
+    Lab.line(ctx, [A1, O, A2], C.copper, 1.4, [5, 4]);
+    ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(O[0], O[1], 30, -p1, -p2, true); ctx.stroke(); ctx.restore();
+    const lp = SP(O, 44, S.dth < 20 ? p2 + 0.4 : p1 - 0.32); text(ctx, 'Δθ', lp[0], lp[1], {size: 14, w: 600, color: C.copper, halo: true});
+    // 두 순간의 공 (P₂ = 지금 공)
+    Lab.circle(ctx, A1[0], A1[1], 9, {fill: C.paper, stroke: C.copper, width: 2.4});
+    if (S.dth >= 20) {
+      const o1 = SP(O, R - 22, p1 - 0.1), o2 = SP(O, R - 22, p2 + 0.1);
+      text(ctx, 'P₁', o1[0], o1[1], {size: 14, w: 600, color: C.copper, halo: true});
+      text(ctx, 'P₂', o2[0], o2[1], {size: 14, w: 600, color: C.copper, halo: true});
+    }
+    const st = S.dv, e = st === 2 ? ease(S.dvT / 0.9) : st === 3 ? 1 : 0;
+    const T1 = st >= 2 ? mix(A1, A2, e) : A1, E1 = add(T1, u1, lv), E2 = add(A2, u2, lv);
+    if (st >= 2) {                                   // 옮기기 전 자리 (옅게)
+      ctx.save(); ctx.globalAlpha = 0.22; arrow(ctx, A1[0], A1[1], A1[0] + u1[0] * lv, A1[1] + u1[1] * lv, C.vel, 2.4, 10); ctx.restore();
+    }
+    arrow(ctx, T1[0], T1[1], E1[0], E1[1], Lab.alpha(C.vel, 0.62), 3, 11);
+    arrow(ctx, A2[0], A2[1], E2[0], E2[1], C.vel, 3.2, 12);
+    const sgn = st >= 2 ? 1 : 0, o = {size: 14, color: C.vel, W: g.W, H: g.H};
+    lbl(ctx, 'v₁', E1[0] + u1[0] * 14 + u1[1] * 10 * sgn, E1[1] + u1[1] * 14 - u1[0] * 10 * sgn, o);
+    lbl(ctx, 'v₂', E2[0] + u2[0] * 14 - u2[1] * 10 * sgn, E2[1] + u2[1] * 14 + u2[0] * 10 * sgn, o);
+    if (st >= 2 && e > 0.98) Lab.angle(ctx, A2[0], A2[1], 24, Math.atan2(u1[1], u1[0]), Math.atan2(u2[1], u2[0]), C.vel, '');
+    if (st === 3) {
+      const g1 = ease(S.dvT / 0.5), g2 = ease((S.dvT - 0.7) / 0.8);
+      const len = Math.hypot(E2[0] - E1[0], E2[1] - E1[1]), mag = Math.max(1, Math.round(0.5 * lv / Math.max(len, 1e-6)));   // 작은 Δθ 는 키워 그림
+      const kk = 1 + (mag - 1) * g2;
+      const D0 = mix(E1, Mp, g2), dv = [(E2[0] - E1[0]) * g1 * kk, (E2[1] - E1[1]) * g1 * kk], D1 = [D0[0] + dv[0], D0[1] + dv[1]];
+      if (g2 > 0.95) Lab.line(ctx, [D1, O], C.acc, 1.4, [5, 5]);
+      arrow(ctx, D0[0], D0[1], D1[0], D1[1], C.acc, 3.6, 12);
+      const n = Math.hypot(dv[0], dv[1]) || 1, um = SU(pm + PI / 2);
+      let side = [-dv[1] / n, dv[0] / n];
+      if (side[0] * um[0] + side[1] * um[1] > 0) side = [-side[0], -side[1]];           // 이름표는 P₁ 쪽 (P₂ 쪽에는 실이 있다)
+      const nm = g2 > 0.95 ? (mag > 1 ? 'Δv(×' + mag + ') → O' : 'Δv → O') : 'Δv';
+      const tw = Lab.measure(ctx, nm, {size: 15, w: 700}), off = Math.abs(side[0]) * tw / 2 + Math.abs(side[1]) * 9 + 8;   // 글자가 화살표에 닿지 않게
+      if (g1 > 0.6) text(ctx, nm, (D0[0] + D1[0]) / 2 + side[0] * off, (D0[1] + D1[1]) / 2 + side[1] * off, {size: 15, w: 700, color: C.acc, halo: true});
+      if (g2 > 0.95) { Lab.circle(ctx, Mp[0], Mp[1], 4, {fill: C.acc}); const mq = SP(O, R + 16, pm); text(ctx, 'M', mq[0], mq[1], {size: 13, w: 600, color: C.acc, halo: true}); }
+    }
+  }
+  // 실을 놓은 뒤: 접선 방향 등속 직선. 반지름–연직 각 = 속도–수평 각
+  function drawRelease(ctx, g) {
+    const {O, R} = g, rel = S.rel, P = rel.P;
+    const down = Math.sin(rel.phi) < 0;
+    const th = Math.atan2(Math.abs(Math.cos(rel.phi)), Math.abs(Math.sin(rel.phi)));   // 반지름이 연직과 이루는 각
+    Lab.line(ctx, [[O[0], O[1] + (down ? -8 : 8)], [O[0], O[1] + (down ? R + 18 : -R - 18)]], C.muted, 1.4, [5, 4]);
+    Lab.line(ctx, [O, P], C.copper, 2);
+    const sx = Math.sign(Math.cos(rel.phi)) || 1;
+    if (th > 2 * RAD) {
+      const m1 = Lab.angle(ctx, O[0], O[1], 38, down ? PI / 2 : -PI / 2, -rel.phi, C.copper, '');
+      text(ctx, fmt(th / RAD, 0) + '°', O[0] + 56 * Math.cos(m1), O[1] + 56 * Math.sin(m1), {size: 14, w: 600, color: C.copper, halo: true});
+      const hx = rel.u[0] >= 0 ? 1 : -1;
+      Lab.line(ctx, [P, [P[0] + hx * Math.min(90, R * 0.8), P[1]]], C.muted, 1.4, [5, 4]);
+      const m2 = Lab.angle(ctx, P[0], P[1], 34, hx > 0 ? 0 : PI, Math.atan2(rel.u[1], rel.u[0]), C.copper, '');
+      text(ctx, fmt(th / RAD, 0) + '°', P[0] + 52 * Math.cos(m2), P[1] + 52 * Math.sin(m2), {size: 14, w: 600, color: C.copper, halo: true});
+    }
+    text(ctx, '놓은 점', P[0] + sx * 14, P[1] + (down ? 24 : -24), {size: 13, w: 600, color: C.copper, halo: true, align: sx > 0 ? 'left' : 'right'});
+  }
+
+  // ── 장면 2: 같은 축 (원판 위의 두 점) ───────────────────
+  function geoAxis(W, H) {
+    const narrow = W < 520, top = 52, bot = H - (narrow ? 42 : Math.max(42, room + 4)) - 22;   // 아래 22px 는 바퀴 수 글자
+    const Rd = Math.max(46, Math.min((bot - top) / 2 - 6, W * (narrow ? 0.4 : 0.3)));
+    return {narrow, O: [W / 2, (top + bot) / 2], Rd, Rb: Rd * 0.88, Ra: Rd * 0.88 / S.k, bot};
+  }
+  function drawAxis(ctx, W, H) {
+    const g = geoAxis(W, H), {O, Rd} = g, w = M.omega(S.T), th = S.thA;
+    // 원판 (돌아가는 결이 보이게 옅은 지름선)
+    Lab.circle(ctx, O[0], O[1], Rd, {fill: C['line-soft'], stroke: C.muted, width: 2});
+    for (let i = 0; i < 6; i++) { const u = SU(th + i * PI / 6); Lab.line(ctx, [add(O, u, -Rd), add(O, u, Rd)], Lab.alpha(C.muted, 0.18), 1); }
+    const LBk = arrowLens(g.Rb, w), LAk = {lv: LBk.lv / S.k, la: LBk.la / S.k};
+    // 같은 시간 간격의 자리
+    if (S.trail) {
+      const dphi = TAU / NS, n = Math.floor(th / dphi + 1e-9);
+      for (let k = 1; k < 10; k++) {
+        const al = Math.max(0.12, 0.6 - k * 0.055);
+        const pb = SP(O, g.Rb, (n - k + 1) * dphi), pa = SP(O, g.Ra, (n - k + 1) * dphi);
+        Lab.circle(ctx, pb[0], pb[1], 3.4, {fill: Lab.alpha(C.copper, al)});
+        Lab.circle(ctx, pa[0], pa[1], 3.4, {fill: Lab.alpha(C.vel, al)});
+      }
+    }
+    const A = SP(O, g.Ra, th), B = SP(O, g.Rb, th), u = SU(th);
+    Lab.line(ctx, [O, add(O, u, Rd)], C.ink, 2.2);
+    Lab.circle(ctx, O[0], O[1], 5, {fill: C.ink});
+    spinner(ctx, O, th);
+    const tn = turns(S.thA);
+    text(ctx, '같은 시간에 A, B 모두 ' + tn + '바퀴', O[0], O[1] + Rd + 16, {size: 13, w: 600, color: C.copper, halo: true});
+    const vu = SU(th + PI / 2), au = SU(th + PI);
+    for (const [P, Lk, col, nm] of [[A, LAk, C.vel, 'A'], [B, LBk, C.copper, 'B']]) {
+      if (S.acc) { const E = add(P, au, Lk.la); arrow(ctx, P[0], P[1], E[0], E[1], C.acc, 3, 11); }
+      const V = add(P, vu, Lk.lv); arrow(ctx, P[0], P[1], V[0], V[1], C.vel, 3.2, 12);
+      ball(ctx, P, nm === 'B' ? 9 : 8, col);
+      const o = add(P, u, nm === 'B' ? 20 : -2), side = add(o, vu, -16);
+      lbl(ctx, nm, side[0], side[1], {color: col, W, H, size: 15});
+    }
+    // B 속도 화살표 끝에 v 의 배수
+    const VB = add(B, vu, LBk.lv), VA = add(A, vu, LAk.lv);
+    lbl(ctx, S.k + 'v', VB[0] + vu[0] * 16, VB[1] + vu[1] * 16, {color: C.vel, W, H, size: 14});
+    lbl(ctx, 'v', VA[0] + vu[0] * 13, VA[1] + vu[1] * 13, {color: C.vel, W, H, size: 14});
+  }
+
+  // ── 장면 3: 벨트로 이은 두 바퀴 ─────────────────────────
+  function geoBelt(W, H) {
+    const narrow = W < 520, top = 56, bot = H - (narrow ? 46 : Math.max(46, room + 8)), k = S.k;
+    const hAvail = bot - top, wAvail = W - 28;
+    const rho = Math.max(18, Math.min(hAvail / (2 * k) - 6, (wAvail - 26) / (2 * (1 + k))));
+    const d = (1 + k) * rho + 26 + (wAvail - 2 * (1 + k) * rho - 26) * 0.4;
+    const total = rho + d + k * rho, x0 = (W - total) / 2 + rho, cy = (top + bot) / 2 + 4;
+    return {narrow, rho, k, A: [x0, cy], B: [x0 + d, cy], d};
+  }
+  const turns = (th) => fmt(Math.max(0, th - S.th0) / TAU, 1);   // 장면을 연 뒤 돈 바퀴 수
+  function wheel(ctx, Cn, rad, ang, col) {
+    Lab.circle(ctx, Cn[0], Cn[1], rad, {fill: C['line-soft'], stroke: C.ink, width: 2.4});
+    for (let i = 0; i < 4; i++) { const a = ang + i * PI / 2; Lab.line(ctx, [Cn, [Cn[0] + rad * 0.86 * Math.cos(a), Cn[1] + rad * 0.86 * Math.sin(a)]], Lab.alpha(C.muted, 0.55), 2); }
+    Lab.circle(ctx, Cn[0], Cn[1], Math.max(4, rad * 0.1), {fill: C.paper, stroke: C.ink, width: 2});
+    const m = [Cn[0] + rad * 0.78 * Math.cos(ang), Cn[1] + rad * 0.78 * Math.sin(ang)];
+    Lab.circle(ctx, m[0], m[1], Math.max(5, Math.min(8, rad * 0.14)), {fill: col, stroke: C.paper, width: 1.6});
+  }
+  function drawBelt(ctx, W, H) {
+    const g = geoBelt(W, H), {rho, k, A, B} = g, rB = rho * k;
+    const s = (rB - rho) / (B[0] - A[0]), c = Math.sqrt(1 - s * s);
+    const nT = [-s, -c], nB = [-s, c];                     // 위·아래 공통 접선의 바깥 법선 (화면)
+    const A1 = add(A, nT, rho), B1 = add(B, nT, rB), A2 = add(A, nB, rho), B2 = add(B, nB, rB);
+    const angT = Math.atan2(nT[1], nT[0]), angB = Math.atan2(nB[1], nB[0]);
+    wheel(ctx, A, rho, S.thA, C.copper); wheel(ctx, B, rB, S.thB, C.copper);
+    // 벨트: 위 접선 → B 를 시계 방향으로 → 아래 접선 → A 를 시계 방향으로
+    const path = () => { ctx.beginPath(); ctx.moveTo(A1[0], A1[1]); ctx.lineTo(B1[0], B1[1]); ctx.arc(B[0], B[1], rB, angT, angB, false); ctx.lineTo(A2[0], A2[1]); ctx.arc(A[0], A[1], rho, angB, angT + TAU, false); };
+    ctx.save(); ctx.lineJoin = 'round'; path(); ctx.strokeStyle = C.ink; ctx.lineWidth = 5; ctx.stroke();
+    ctx.setLineDash([10, 12]); ctx.lineDashOffset = -S.belt; path(); ctx.strokeStyle = C.paper; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    // 가장자리 속도 (같은 크기)
+    const tu = [c, -s], lv = Math.max(34, Math.min(70, rho * 1.1));
+    for (const [P, nm] of [[A1, 'A'], [B1, 'B']]) {
+      const Q = add(P, nT, 9), E = add(Q, tu, lv);
+      arrow(ctx, Q[0], Q[1], E[0], E[1], C.vel, 3.4, 12);
+      text(ctx, 'v', E[0] + 6, E[1] - 12, {size: 15, w: 600, color: C.vel, halo: true});
+    }
+    // 이름과 돈 바퀴 수: A 는 바퀴 아래, B 는 바퀴 안 (아래쪽 벨트와 겹치지 않게)
+    const ya = Math.min(H - 64, A[1] + rho + 22), yb = B[1] + rB * 0.42, small = g.narrow;
+    text(ctx, small ? 'A: r' : 'A: 반지름 r', A[0], ya, {size: 14, w: 600, halo: true});
+    text(ctx, small ? 'B: ' + k + 'r' : 'B: 반지름 ' + k + 'r', B[0], yb, {size: 14, w: 600, halo: true});
+    text(ctx, turns(S.thA) + '바퀴', A[0], ya + 18, {size: 13, color: C.copper, w: 600, halo: true});
+    text(ctx, turns(S.thB) + '바퀴', B[0], yb + 18, {size: 13, color: C.copper, w: 600, halo: true});
+  }
+
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    room = legendRoom();
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (S.scene === 'circ') drawCirc(ctx, W, H);
+    else if (S.scene === 'axis') drawAxis(ctx, W, H);
+    else drawBelt(ctx, W, H);
+  }
+
+  // ── 관찰 2: 속도 원 (꼬리를 한 점에 모은 속도) ───────────
+  function drawHodo() {
+    const {ctx, W, H} = hodo; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const narrow = W < 430;
+    const rho = narrow ? Math.max(40, Math.min(W * 0.3, (H - 26 - 36 - 64) / 2)) : Math.min(H * 0.34, W * 0.22);
+    const Cn = narrow ? [W * 0.5, 26 + 18 + rho] : [W * 0.3, H * 0.54];
+    const w = M.omega(S.T), v = M.speed(S.r, S.T), dth = S.dth * RAD, a2 = S.phi + PI / 2, a1 = a2 - dth, am = (a1 + a2) / 2;
+    text(ctx, '속도의 꼬리를 한 점에 모으면', 12, 14, {size: 13, w: 600, color: C.muted, align: 'left'});
+    ctx.save(); ctx.setLineDash([5, 5]); Lab.circle(ctx, Cn[0], Cn[1], rho, {stroke: C.muted, width: 1.4}); ctx.restore();
+    const T1 = SP(Cn, rho, a1), T2 = SP(Cn, rho, a2);
+    // Δθ (꼬리)
+    ctx.save(); ctx.beginPath(); ctx.moveTo(Cn[0], Cn[1]); ctx.arc(Cn[0], Cn[1], rho * 0.3, -a1, -a2, true); ctx.closePath(); ctx.fillStyle = Lab.alpha(C.copper, 0.2); ctx.fill(); ctx.restore();
+    arrow(ctx, Cn[0], Cn[1], T1[0], T1[1], Lab.alpha(C.vel, 0.55), 2.8, 11);
+    arrow(ctx, Cn[0], Cn[1], T2[0], T2[1], C.vel, 3.2, 12);
+    const lq = SP(Cn, rho * 0.3 + 14, am - PI); text(ctx, 'Δθ', lq[0], lq[1], {size: 13, w: 600, color: C.copper, halo: true});
+    // v₁, v₂ 이름: 화살표 가운데에서 서로 바깥쪽으로
+    const p1 = add(SP(Cn, rho * 0.62, a1), SU(a1 - PI / 2), 13), p2 = add(SP(Cn, rho * 0.62, a2), SU(a2 + PI / 2), 13);
+    text(ctx, 'v₁', p1[0], p1[1], {size: 14, w: 600, color: C.vel, halo: true});
+    text(ctx, 'v₂', p2[0], p2[1], {size: 14, w: 600, color: C.vel, halo: true});
+    // Δv = 현 (끝에서 끝으로)
+    arrow(ctx, T1[0], T1[1], T2[0], T2[1], C.acc, 3, 10);
+    const lv = SP(Cn, rho + 17, am); text(ctx, 'Δv', lv[0], lv[1], {size: 14, w: 700, color: C.acc, halo: true});
+    // 끝이 움직이는 방향 = 가속도 (지금 속도에 수직)
+    const au = SU(S.phi + PI), la = Math.min(rho * 0.8, rho * w * 0.2);
+    if (la > 4) {
+      const E = add(T2, au, la); arrow(ctx, T2[0], T2[1], E[0], E[1], C.acc, 2.6, 10);
+      const lp = add(E, au, 13); text(ctx, 'a', lp[0], lp[1], {size: 14, w: 600, color: C.acc, halo: true});
+    }
+    Lab.circle(ctx, Cn[0], Cn[1], 3.5, {fill: C.ink});
+    // 수치
+    const lines = [['|Δv| = ' + fmt(M.chord(v, dth), 2) + ' m/s', C.acc, 500], ['vΔθ = ' + fmt(v * dth, 2) + ' m/s', C.ink, 500],
+      ['a = vω = ' + fmt(v * w, 1) + ' m/s²', C.acc, 600]];
+    if (narrow) lines.forEach(([t, col, wt], i) => text(ctx, t, W / 2, H - 50 + i * 18, {size: 13, w: wt, color: col}));
+    else {
+      const x = Math.max(Cn[0] + rho + 44, W * 0.6);
+      lines.forEach(([t, col, wt], i) => text(ctx, t, x, H * 0.4 + i * 22, {size: 13.5, w: wt, color: col, align: 'left'}));
+      text(ctx, '반지름 = v = ' + fmt(v, 2) + ' m/s', x, H * 0.4 - 30, {size: 13, color: C.muted, align: 'left'});
+    }
+  }
+
+  // ── 관찰 3: A·B 비교 막대 (A = 1) ───────────────────────
+  function drawCmp() {
+    const {ctx, W, H} = cmp; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const k = S.k, bt = S.scene === 'belt';
+    const q = bt ? {T: k, w: 1 / k, v: 1, a: 1 / k} : {T: 1, w: 1, v: k, a: k};
+    const same = bt ? 'v' : 'Tw';
+    text(ctx, (bt ? '벨트로 이은 두 바퀴' : '같은 축의 두 점') + ' · A: r, B: ' + k + 'r', 12, 15, {size: 13, w: 600, color: C.muted, align: 'left'});
+    const items = [['T', '주기 T'], ['w', '각속도 ω'], ['v', '속력 v'], ['a', '가속도 a']];
+    const top = 40, base = H - 34, unit = (base - top - 22) / k, gw = (W - 24) / 4, bw = Math.min(30, gw * 0.24);
+    const rs = (x) => (Math.abs(x - 1) < 1e-9 ? '1' : x > 1 ? fmt(x, 0) : '1/' + fmt(1 / x, 0));
+    Lab.line(ctx, [[12, base], [W - 12, base]], C.muted, 1.2);
+    items.forEach(([key, name], i) => {
+      const x0 = 12 + gw * i + gw / 2, hA = unit, hB = unit * q[key];
+      const isSame = same.includes(key);
+      if (isSame) { ctx.save(); Lab.rrect(ctx, x0 - bw - 12, base - unit - 30, 2 * bw + 24, unit + 30, 8); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]); ctx.stroke(); ctx.restore(); }
+      ctx.fillStyle = C.vel; ctx.fillRect(x0 - bw - 3, base - hA, bw, hA);
+      ctx.fillStyle = C.copper; ctx.fillRect(x0 + 3, base - hB, bw, hB);
+      text(ctx, '1', x0 - bw / 2 - 3, base - hA - 10, {size: 13, w: 600, color: C.vel});
+      text(ctx, rs(q[key]), x0 + bw / 2 + 3, base - hB - 10, {size: 13, w: 600, color: C.copper});
+      text(ctx, name, x0, base + 15, {size: 13, w: isSame ? 600 : 500, color: isSame ? C.copper : C.ink});
+    });
+    text(ctx, 'A', W - 46, 15, {size: 13, w: 600, color: C.vel}); text(ctx, 'B', W - 22, 15, {size: 13, w: 600, color: C.copper});
+  }
+
+  // ── 관찰 4: x, vₓ, aₓ 성분 그래프 ───────────────────────
+  function drawComp() {
+    const {ctx, W, H} = comp; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const T = S.T, w = M.omega(T), r = S.r, v = r * w, a = r * w * w, narrow = W < 430;
+    const x0 = narrow ? 78 : 118, x1 = W - 12, top = 10, bot = H - 26, sh = (bot - top) / 3;
+    const X = (t) => x0 + (x1 - x0) * t / (2 * T);
+    const tc = (((S.phi / w) % (2 * T)) + 2 * T) % (2 * T);
+    const rows = [['x', (t) => Math.cos(w * t), C.vel, '±' + fmt(r, 2) + ' m', 'r', null],
+      ['vₓ', (t) => -Math.sin(w * t), C.vel, '±' + fmt(v, 2) + ' m/s', 'rω', [6, 4]],
+      ['aₓ', (t) => -Math.cos(w * t), C.acc, '±' + fmt(a, 1) + ' m/s²', 'rω²', null]];
+    for (const tt of [T, 2 * T]) Lab.line(ctx, [[X(tt), top], [X(tt), bot]], C.muted, 1, [2, 4]);
+    rows.forEach(([nm, f, col, amp, sym, dash], i) => {
+      const yc = top + sh * (i + 0.5), A = sh * 0.38;
+      Lab.line(ctx, [[x0, yc], [x1, yc]], C.line, 1);
+      const pts = []; for (let px = x0; px <= x1 + 0.5; px += 2) pts.push([px, yc - A * f((px - x0) / (x1 - x0) * 2 * T)]);
+      Lab.line(ctx, pts, col, 2.8, dash || undefined);
+      text(ctx, nm, 10, yc - 10, {size: 15, w: 600, color: col, align: 'left'});
+      text(ctx, narrow ? amp : '진폭 ' + sym, 10, yc + 10, {size: 13, color: C.muted, align: 'left'});
+      if (!narrow) text(ctx, amp, 10, yc + 28, {size: 13, color: C.muted, align: 'left'});
+      Lab.circle(ctx, X(tc), yc - A * f(tc), 5, {fill: C.copper, stroke: C.paper, width: 1.5});
+    });
+    Lab.line(ctx, [[X(tc), top], [X(tc), bot]], C.copper, 1.4);
+    for (const [tt, t] of [[0, '0'], [T / 2, 'T/2'], [T, 'T'], [1.5 * T, '3T/2'], [2 * T, '2T']]) text(ctx, t, clamp(X(tt), x0 + 6, x1 - 10), bot + 13, {size: 13, color: C.muted});
+    if (!narrow) text(ctx, 'x 최대 → vₓ = 0', X(T) + 6, top + sh + 12, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+  }
+
+  // ── 지금 값 ─────────────────────────────────────────────
+  let lastKey = '';
+  function readouts() {
+    const T = S.T, r = S.r, k = S.k, w = M.omega(T), v = r * w, a = r * w * w, sy = syms();
+    const tS = Tstr(), rS = fmt(r, 2);
+    $('perOut').textContent = tS + ' s';
+    $('radOut').textContent = rS + ' m';
+    let big, lines, f, lab, ctx, html = false, tone = '';
+    const ms = [];
+    if (S.scene === 'circ') {
+      const wS = short(sy.w, w), dth = S.dth * RAD, ch = M.chord(v, dth), aS = piStr(sy.a.c, sy.a.p);
+      lab = '구심 가속도'; ctx = 'r = ' + rS + ' m · T = ' + tS + ' s';
+      f = 'ω = 2π/T, v = rω, a = rω² 에 지금 값을 넣으면';
+      big = aS && sy.a.p ? 'a = ' + aS + ' ≈ ' + fmt(a, 1) + ' m/s²' : 'a = ' + (aS || fmt(a, 1)) + ' m/s²';
+      lines = ['ω = 2π ÷ <em>' + par(tS) + '</em> = ' + full(sy.w, w, 'rad/s'),
+        'v = rω = <em>' + rS + '</em> × ' + wS + ' = ' + full(sy.v, v, 'm/s'),
+        'a = rω² = ' + rS + ' × ' + sq(wS) + ' = ' + full(sy.a, a, 'm/s²', 1)];
+      const cS = piStr(2 * r, 1);
+      ms.push(['진동수 f = 1/T', (piStr(1 / S.Tsym.c, -S.Tsym.p) || fmt(1 / T, 2)) + ' Hz'],
+        ['한 바퀴 거리 2πr', (cS ? cS + ' ≈ ' : '') + fmt(TAU * r, 1) + ' m'],
+        ['|Δv| (Δθ = ' + S.dth + '°)', fmt(ch, 2) + ' m/s'],
+        ['|Δv| ÷ Δt (Δθ → 0 이면 a)', fmt(M.avgAccel(r, T, dth), 2) + ' m/s²']);
+    } else if (S.scene === 'axis') {
+      const s = M.sameAxis(r, k * r, T), vA = sy.v, vB = {c: vA.c * k, p: vA.p}, aA = sy.a, aB = {c: aA.c * k, p: aA.p};
+      lab = '같은 축의 두 점 A, B'; ctx = 'A ' + rS + ' m · B ' + fmt(k * r, 2) + ' m'; html = true;
+      f = '같은 축 → T 와 ω 가 같다. v = rω, a = rω² 에 넣으면';
+      big = 'v<sub>B</sub> = ' + k + 'v<sub>A</sub>';
+      lines = ['ω = 2π ÷ <em>' + par(tS) + '</em> = ' + full(sy.w, w, 'rad/s') + ' (A, B 같음)',
+        'v<sub>A</sub> = ' + rS + ' × ' + short(sy.w, w) + ' = ' + short(vA, s.vA) + ', v<sub>B</sub> = ' + fmt(k * r, 2) + ' × ' + short(sy.w, w) + ' = <em>' + short(vB, s.vB) + ' m/s</em> → v ∝ r',
+        'a<sub>A</sub> = ' + short(aA, s.aA) + ', a<sub>B</sub> = <em>' + short(aB, s.aB, 1) + ' m/s²</em> → a ∝ r'];
+      ms.push(['A의 속력', fmt(s.vA, 2) + ' m/s'], ['B의 속력', fmt(s.vB, 2) + ' m/s'], ['A의 가속도', fmt(s.aA, 1) + ' m/s²'], ['B의 가속도', fmt(s.aB, 1) + ' m/s²']);
+    } else {
+      const b = M.belt(r, k * r, T), vS = sy.v, wB = {c: vS.c / (k * r), p: vS.p}, TB = {c: 2 / wB.c, p: 1 - wB.p};
+      lab = '벨트로 이은 두 바퀴 A, B'; ctx = 'A ' + rS + ' m · B ' + fmt(k * r, 2) + ' m'; html = true;
+      f = '미끄러지지 않으면 가장자리 속력이 같다. v = rω 에 넣으면';
+      big = 'T<sub>B</sub> = ' + short(TB, b.TB) + ' s';
+      lines = ['v = r<sub>A</sub>ω<sub>A</sub> = <em>' + rS + '</em> × ' + short(sy.w, w) + ' = ' + full(vS, v, 'm/s') + ' (A, B 같음)',
+        'ω<sub>B</sub> = v ÷ r<sub>B</sub> = ' + short(vS, v) + ' ÷ ' + fmt(k * r, 2) + ' = ' + full(wB, b.wB, 'rad/s') + ' → ω ∝ 1/r',
+        'T<sub>B</sub> = 2π ÷ ω<sub>B</sub> = ' + full(TB, b.TB, 's') + ' = ' + k + 'T<sub>A</sub>'];
+      ms.push(['A의 각속도', fmt(b.wA, 2) + ' rad/s'], ['B의 각속도', fmt(b.wB, 2) + ' rad/s'], ['A의 주기', tS + ' s'], ['B의 주기', fmt(b.TB, 2) + ' s']);
+    }
+    const key = [S.scene, big, lab, ctx, f].concat(lines).join('|');
+    if (key !== lastKey) { lastKey = key; Lab.ans(big, lines, {tone, lab, ctx, f, html}); }
+    ms.forEach(([l, val], i) => { $('ml' + (i + 1)).textContent = l; $('mv' + (i + 1)).textContent = val; });
+    hud();
+    const ok = S.scene === 'circ' && Math.abs(r - EX.r) < 1e-9 && Math.abs(T - EX.T) < 1e-9;
+    Lab.check('exCheck', ok, '개념서 예제 (r = 2 m, T = 2 s) → ω = π rad/s, v = 2π m/s ≈ 6.3 m/s, a = 2π² m/s² ≈ 19.7 m/s²',
+      '예제: 반지름 2 m, 주기 2 s일 때 ω, v, a는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function hud() {
+    const T = S.T, r = S.r, w = M.omega(T), h1 = $('hud1'), h2 = $('hud2'), h3 = $('hud3');
+    if (S.scene === 'circ') {
+      h1.textContent = 'v = ' + fmt(r * w, 2) + ' m/s';
+      h2.textContent = S.rel ? 'a = 0 (실을 놓음)' : 'a = ' + fmt(r * w * w, 1) + ' m/s²';
+    } else if (S.scene === 'axis') { h1.textContent = 'ω 같음'; h2.textContent = 'B의 v = A의 ' + S.k + '배'; }
+    else { h1.textContent = '가장자리 v 같음'; h2.textContent = 'B의 ω = A의 1/' + S.k; }
+    const extra = S.speed < 1 ? '느린 화면 ×' + (S.speed === 0.25 ? '¼' : '½') : S.scene === 'circ' && S.dv ? 'Δθ = ' + S.dth + '°' : '';
+    h3.hidden = !extra; h3.textContent = extra;
+  }
+  const LEG = {
+    circ: '<span><b style="background:var(--vel)"></b>속도 v</span><span><b style="background:var(--acc)"></b>가속도 a · Δv</span><span><i style="background:var(--vel);opacity:.55"></i>같은 시간 간격 자리</span><span><i style="background:var(--copper)"></i>두 순간·놓은 점</span>',
+    axis: '<span><i style="background:var(--vel)"></i>점 A (반지름 r)</span><span><i style="background:var(--copper)"></i>점 B</span><span><b style="background:var(--vel)"></b>속도</span><span><b style="background:var(--acc)"></b>가속도</span>',
+    belt: '<span><i style="background:var(--copper)"></i>회전수를 세는 표시점</span><span><b style="background:var(--vel)"></b>가장자리 속도</span><span><b style="background:var(--ink)"></b>벨트</span>',
+  };
+  function drawAll() { drawStage(); drawHodo(); drawCmp(); drawComp(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const perSl = $('per'), radSl = $('rad');
+  function setT(v, sym) { S.T = v; S.Tsym = sym || {c: v, p: 0}; perSl.value = v; }
+  function setR(v) { S.r = Math.round(v * 10) / 10; radSl.value = S.r; }
+  perSl.addEventListener('input', () => { setT(+perSl.value); refresh(); });
+  radSl.addEventListener('input', () => { setR(+radSl.value); refresh(); });
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; hud(); }, S.speed);
+  const kG = Lab.group('[data-k]', 'k', (v) => { S.k = +v; S.thA = S.thB = S.th0 = -PI / 2; refresh(); }, S.k);
+  const dthG = Lab.group('[data-dth]', 'dth', (v) => {
+    S.dth = +v;
+    if (S.scene !== 'circ') setScene('circ');
+    if (!S.dv) { S.rel = null; S.dv = 3; S.dvT = 9; snap(); playCtl.set(false); }
+    refresh();
+  }, S.dth);
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => setScene(v), S.scene);
+  function setScene(sc) {
+    S.scene = sc; S.rel = null; S.thA = S.thB = S.th0 = -PI / 2;
+    document.querySelectorAll('[data-for]').forEach((el) => { el.hidden = !el.dataset.for.split(' ').includes(sc); });
+    legendEl.innerHTML = LEG[sc];
+    $('radName').textContent = sc === 'circ' ? '반지름 r' : 'A의 반지름 r';
+    sceneG.set(sc, true);
+    refresh();
+  }
+  const cTrail = $('cTrail'), cAcc = $('cAcc'), cShadow = $('cShadow');
+  cTrail.addEventListener('change', () => { S.trail = cTrail.checked; drawStage(); });
+  cAcc.addEventListener('change', () => { S.acc = cAcc.checked; drawStage(); });
+  cShadow.addEventListener('change', () => { S.shadow = cShadow.checked; drawStage(); });
+  const snap = () => { S.phi = TAU * Math.round(S.phi / TAU); };   // 작도를 켤 때 공을 오른쪽(φ = 0)에: 삼각형이 무대 가운데에 보이게
+  $('dvStep').addEventListener('click', () => {
+    if (S.scene !== 'circ') setScene('circ');
+    if (!S.dv) snap();
+    S.rel = null; S.dv = (S.dv + 1) % 4; S.dvT = 0; playCtl.set(false); refresh();
+  });
+  function release() {
+    if (S.scene !== 'circ' || !stage.W) return;
+    const g = geoCirc(stage.W, stage.H);
+    S.dv = 0;
+    S.rel = {phi: S.phi, P: SP(g.O, g.R, S.phi), u: SU(S.phi + PI / 2), sp: g.R * M.omega(S.T), age: 0};
+    refresh();
+  }
+  $('rel').addEventListener('click', () => { if (S.scene !== 'circ') setScene('circ'); release(); if (!S.playing) playCtl.set(true); });
+  function sync() {
+    perSl.value = S.T; radSl.value = S.r; kG.set(S.k, true); dthG.set(S.dth, true); speedG.set(S.speed, true);
+    cTrail.checked = S.trail; cAcc.checked = S.acc; cShadow.checked = S.shadow;
+  }
+  const base = (o) => { Object.assign(S, {dv: 0, rel: null, shadow: false, speed: 1}, o); };
+  const TRY = {
+    ex: () => { base({}); setScene('circ'); setT(2); setR(2); playCtl.set(true); },
+    rel30: () => { base({speed: 0.5}); setScene('circ'); setT(2); setR(2); S.phi = -PI / 2 + 30 * RAD; release(); playCtl.set(false); },
+    axis: () => { base({k: 2}); setT(2); setR(2); setScene('axis'); playCtl.set(true); },
+    belt: () => { base({k: 2}); setT(2); setR(2); setScene('belt'); playCtl.set(true); },
+    q1: () => { base({k: 3, speed: 0.25}); setT(1 / 3, {c: 1 / 3, p: 0}); setR(0.1); setScene('belt'); playCtl.set(true); },
+    q2: () => { base({}); setScene('circ'); setT(PI, {c: 1, p: 1}); setR(0.5); playCtl.set(true); },
+    shadow: () => { base({shadow: true}); setScene('circ'); playCtl.set(true); },
+    xmax: () => { base({shadow: true}); setScene('circ'); S.phi = TAU * Math.ceil(S.phi / TAU); playCtl.set(false); },
+  };
+  Lab.tries(TRY, () => { sync(); refresh(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    let dirty = false;
+    if (S.dv && S.dvT < 2) { S.dvT += dt; dirty = true; }
+    if (S.playing) {
+      const d = dt * S.speed, w = M.omega(S.T);
+      if (S.scene === 'circ') {
+        if (S.rel) {
+          S.rel.age += d;
+          const P = add(S.rel.P, S.rel.u, S.rel.sp * S.rel.age);
+          if (S.rel.age > 4 || P[0] < -30 || P[0] > stage.W + 30 || P[1] < -30 || P[1] > stage.H + 30) { S.phi = S.rel.phi; S.rel = null; hud(); }
+        } else S.phi += w * d;
+      } else if (S.scene === 'axis') S.thA += w * d;
+      else if (stage.W) {
+        const g = geoBelt(stage.W, stage.H);
+        S.thA += w * d; S.thB += w * d / S.k; S.belt += g.rho * w * d;
+      }
+      dirty = true;
+    }
+    if (dirty) { drawStage(); drawHodo(); drawComp(); }
+  });
+  setScene('circ');
+})();
+</script>
 </body>
 </html>

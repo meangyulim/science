@@ -8,6 +8,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(태양을 한 초점으로 하는 타원 궤도, 같은 시간마다 쓸고 간 부채꼴) | 오른쪽 지금 값 + 관찰 ①~③(타원과 초점, 넓이·간 거리 막대, T–a·log 그래프) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.4}
+#areas{aspect-ratio:10/5.6}
+#kep3{aspect-ratio:10/4.8}
+@media (max-width:640px){ #areas{aspect-ratio:10/7.6} #kep3{aspect-ratio:10/12.4} }
+</style>
 </head>
 <body class="cx">
 <!-- topbar -->
@@ -23,15 +30,436 @@
     <h1>케플러 법칙</h1>
     <p class="question"><i>Q</i>행성은 왜 태양 가까이에서 빨라지고, 먼 행성일수록 왜 한 바퀴가 길까?</p>
   </div>
+
   <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="태양을 한 초점으로 하는 타원 궤도를 행성이 돈다. 같은 시간 간격마다 태양과 행성을 잇는 선분이 쓸고 간 부채꼴이 칠해지고, 근일점에서 빠르고 원일점에서 느리다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">t = 0년</span><span class="pill" id="hud2">r = 1 AU</span><span class="pill" id="hud3" hidden></span></div>
+        <div class="legend"><span><b style="background:var(--vel)"></b>궤도·속도</span><span><i style="background:var(--copper)"></i>지금 쓸고 가는 넓이</span><span><b style="background:var(--force)"></b>태양이 당기는 힘</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider"><label for="r2"><span class="lg">원일점 거리 </span>r₂</label><input id="r2" type="range" min="0.5" max="6" step="0.1" value="3"><output id="r2Out">3 AU</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">궤도·보기</span><span class="sm">보기</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="궤도와 보기">
+          <div class="sheet-head"><b>궤도 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="grow">
+              <label class="ctl-label" for="r1"><span>근일점 거리 r₁</span> <output id="r1Out">1 AU</output></label>
+              <input id="r1" type="range" min="0.3" max="4" step="0.1" value="1">
+            </div>
+            <div class="group" role="group" aria-label="한 바퀴를 나눈 같은 시간 간격의 수">
+              <span class="gl">Δt = T/</span>
+              <button type="button" class="btn" data-n="8" aria-pressed="false">8</button>
+              <button type="button" class="btn" data-n="12" aria-pressed="true">12</button>
+              <button type="button" class="btn" data-n="16" aria-pressed="false">16</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="시간 빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×½</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+              <button type="button" class="btn" data-speed="4" aria-pressed="false">×4</button>
+            </div>
+            <button type="button" class="btn" id="reset">근일점에서 다시</button>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cWedge" checked>같은 시간 넓이</label>
+            <label class="chk"><input type="checkbox" id="cString">두 초점까지 거리</label>
+            <label class="chk"><input type="checkbox" id="cForce">태양이 당기는 힘</label>
+            <label class="chk"><input type="checkbox" id="cEarth">지구 궤도</label>
+            <label class="chk"><input type="checkbox" id="cSameA">같은 a 원 궤도</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="notes" aria-label="관찰 노트">
-      <p>(만드는 중)</p>
+      <div class="answer">
+        <div class="lab"><span>공전 주기와 속력 비</span><span id="ansCtx">r₁ = 1 AU · r₂ = 3 AU</span></div>
+        <div class="big" id="ansBig">T ≈ 2.8년 · v₁ = 3v₂</div>
+        <div class="sub">
+          <span class="f" id="ansF">a = (r₁ + r₂)/2, T² = ka³ (지구: 1 AU, 1년), r₁v₁ = r₂v₂ 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">a = (<em>1</em> + <em>3</em>) ÷ 2 = <em>2 AU</em></span><span class="v">T² = 2³ = 8 → <em>T = 2√2 ≈ 2.83년</em></span><span class="v">v₁/v₂ = r₂/r₁ = 3 ÷ 1 = <em>3배</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span>지금 태양까지 거리 r</span><b id="mv1">1 AU</b></div>
+          <div class="mini"><span>지금 속력 ÷ 원일점 속력</span><b id="mv2">3</b></div>
+          <div class="mini"><span>면적 속도 (같은 궤도에서 일정)</span><b id="mv3">3.85 AU²/년</b></div>
+          <div class="mini"><span>가속도 근일점 ÷ 원일점 = (r₂/r₁)²</span><b id="mv4">9배</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 타원과 초점">
+          <div class="kind">관찰 1 · 1법칙</div>
+          <h3>궤도는 타원이고, 태양은 그 한 초점에 있다</h3>
+          <p>타원은 두 초점까지 거리의 합이 일정한 점들의 집합이고, 그 합이 긴지름 2a다. 태양에서 가장 가까운 근일점까지를 r₁, 가장 먼 원일점까지를 r₂라 하면 <span class="eq">r₁ + r₂ = 2a</span>, 긴반지름은 <span class="eq">a = (r₁ + r₂)/2</span>다. 다른 초점 F′에는 아무것도 없다.</p>
+          <p class="cap">압정 두 개(초점)에 고리 모양 실을 걸고 연필로 팽팽하게 당기며 돌리면 타원이 그려진다. 무대에서 두 선분의 길이는 계속 바뀌어도 합은 늘 2a다. 두 거리가 같아지면(r₁ = r₂) 두 초점이 겹쳐 원이 된다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="check:#cString">두 초점까지 거리 보기</button>
+            <button type="button" class="btn" data-try="circ">원 궤도 (r₁ = r₂ = 2 AU)</button>
+            <button type="button" class="btn" data-try="ex">예제 궤도 (1 AU, 3 AU)</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 같은 시간 같은 넓이">
+          <div class="kind">관찰 2 · 2법칙</div>
+          <h3>같은 시간 동안 쓸고 간 넓이가 같다 → 태양 가까이에서 빠르다</h3>
+          <p>태양과 행성을 잇는 선분이 같은 시간 Δt 동안 쓸고 가는 넓이는 늘 같다(면적 속도 일정). 반지름이 짧은 근일점 쪽 부채꼴은 넓이가 같으려면 호가 길어야 하므로 행성이 빠르고, 원일점 쪽은 느리다. 근일점·원일점에서는 속도가 반지름에 수직이라 <span class="eq">r₁v₁ = r₂v₂</span></p>
+          <canvas class="flat" id="areas" aria-label="같은 시간 간격마다 쓸고 간 넓이는 모두 같고, 그동안 간 거리는 근일점에서 가장 길다."></canvas>
+          <p class="cap">위는 Δt마다 쓸고 간 넓이(모두 같다), 아래는 그동안 간 거리(근일점에서 가장 길다). 왜 빨라질까? ‘태양이 당기는 힘’을 켜 보면, 원일점에서 근일점으로 가는 동안 힘의 일부(점선)가 진행 방향을 향해 속력을 키우고, 근일점을 지나면 거꾸로 줄인다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="force">태양이 당기는 힘 보기</button>
+            <button type="button" class="btn" data-do='click:[data-n="8"]'>Δt = T/8</button>
+            <button type="button" class="btn" data-do='click:[data-n="16"]'>Δt = T/16</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ T² ∝ a³">
+          <div class="kind">관찰 3 · 3법칙</div>
+          <h3>긴반지름이 클수록 한 바퀴가 길다: T² ∝ a³</h3>
+          <p>같은 중심 천체를 도는 천체들은 공전 주기의 제곱이 긴반지름의 세제곱에 비례한다(<span class="eq">T² = ka³</span>). 긴반지름이 4배면 주기는 8배다. T–a를 그대로 그리면 곡선이지만, 양변에 로그를 취하면 <span class="eq">log T = (3/2) log a + 상수</span>로 기울기 3/2인 직선이 된다.</p>
+          <canvas class="flat" id="kep3" aria-label="태양계 행성의 긴반지름과 공전 주기. T–a는 곡선이고 log T–log a는 기울기 3/2인 직선이다."></canvas>
+          <p class="cap">점 = 태양계 행성, 구리색 = 지금 궤도. 지구 궤도와 함께 돌리면 지구가 약 2.8바퀴 도는 동안 예제 소행성이 한 바퀴 돈다. 주기는 긴반지름만으로 정해져, 납작한 정도가 달라도 a가 같으면 주기가 같다. 비례 상수 k는 중심 천체의 질량에만 의존하므로 태양을 도는 행성과 지구를 도는 위성은 같은 k로 비교할 수 없다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="earth">지구와 함께 돌리기</button>
+            <button type="button" class="btn" data-try="samea">같은 a 원 궤도와 비교</button>
+            <button type="button" class="btn" data-try="a4">긴반지름 4 AU</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="④ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>타원 · 같은 시간 같은 넓이 · T² ∝ a³</h3>
+          <ul>
+            <li>1법칙: 태양을 한 초점으로 하는 타원 궤도. <span class="eq">a = (r₁ + r₂)/2</span> (근일점 거리 + 원일점 거리의 절반).</li>
+            <li>2법칙: 같은 시간 같은 넓이. 같은 궤도 안에서 넓이 비 = 시간 비, 근일점·원일점에서 <span class="eq">r₁v₁ = r₂v₂</span> (속력 비 = 거리의 역비). 원일점 → 근일점 구간에서 빨라진다.</li>
+            <li>3법칙: <span class="eq">T² = ka³</span>, 주기 비 = 긴반지름 비의 3/2제곱. k는 중심 천체마다 다르다.</li>
+            <li>케플러 법칙은 ‘어떻게’ 움직이는지를 기술할 뿐 ‘왜’는 말하지 않는다. 그 까닭(만유인력)은 다음 개념(A1-13)에서 본다.</li>
+            <li>자주 하는 실수: 3법칙에 원일점이나 근일점 거리를 넣기(긴반지름을 넣는다), 서로 다른 위성의 면적 속도가 같다고 보기(한 궤도 안에서만 일정).</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑤ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>어떤 소행성의 근일점 거리가 1 AU, 원일점 거리가 3 AU이다. 공전 주기와 근일점·원일점 속력 비는?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="earth">지구와 함께</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>긴반지름 a = (1 + 3)/2 = 2 AU. 지구(a = 1 AU, T = 1년)와 견주면 T² = 2³ = 8, T = 2√2 ≈ <b>2.8년</b>. r₁v₁ = r₂v₂이므로 v근/v원 = r₂/r₁ = 3, 곧 근일점 속력이 원일점의 3배다. 무대의 화살표 길이도 3 : 1이다.</p></details>
+        </li>
+        <li class="card step" data-step="⑥ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>같은 별을 도는 두 행성의 궤도 긴반지름 비가 1 : 4이다. 공전 주기의 비는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="a4">긴반지름 4 AU와 지구</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>1 : 8</b>. T² ∝ a³에서 주기는 긴반지름의 3/2제곱에 비례하므로 4의 3/2제곱 = 8배다. 무대에서 지구가 8바퀴 도는 동안 한 바퀴 돈다. 1 : 64는 주기의 제곱 비이고, 1 : 4는 주기가 긴반지름에 비례한다고 본 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>옳은 것만 고르면? ㄱ. 원일점에서 근일점으로 가는 동안 속력이 증가한다. ㄴ. 근일점과 원일점에서 행성의 가속도 크기는 같다. ㄷ. 긴반지름이 같다면 궤도의 납작한 정도가 달라도 공전 주기는 같다.</h3>
+            <div class="acts">
+              <button type="button" class="btn" data-try="force">ㄱ·ㄴ 태양이 당기는 힘</button>
+              <button type="button" class="btn" data-try="samea">ㄷ 같은 a 원 궤도</button>
+            </div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄷ</b>. 같은 시간에 같은 넓이를 쓸려면 태양에 가까울수록 빨라야 하므로 원일점 → 근일점 구간에서 속력이 증가한다. 3법칙에서 주기는 긴반지름만으로 정해진다. 가속도는 태양까지 거리의 제곱에 반비례하므로 근일점에서 더 크다(예제 궤도에서 9배, ㄴ 틀림).</p></details>
+          </div>
+          <div class="q">
+            <h3>같은 행성을 도는 위성 A는 반지름 3r인 원 궤도를, 위성 B는 근지점 r, 원지점 5r인 타원 궤도를 돈다. B의 주기는 A의 몇 배이고, B의 근지점 속력은 원지점 속력의 몇 배인가?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="ch">B(1, 5)와 A(원 3)</button></div>
+            <details class="ans"><summary>답 보기</summary><p>B의 긴반지름은 (r + 5r)/2 = 3r로 A의 궤도 반지름과 같으므로 주기는 <b>1배(같다)</b>. 근지점·원지점에서 r × v근 = 5r × v원이므로 속력은 5배다. 덧붙여 근지점 가속도는 거리 비가 r : 3r이라 A의 9배이고, B가 근지점에서 원지점까지 가는 시간은 타원의 절반을 쓸므로 주기의 절반이다.</p></details>
+          </div>
+        </li>
+      </ol>
 <!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../11/" rel="prev"><small>← 이전 개념 · A1-11</small><b>여러 가지 구심력</b></a><a href="../13/" rel="next"><small>다음 개념 · A1-13 →</small><b>만유인력과 인공위성</b></a></nav>
 <!-- /nextprev -->
     </section>
   </main>
 </div>
+
 <script src="../../kit/lab.js"></script>
+<script src="A1-12-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_12;
+  const {$, C, text, arrow, fmt} = Lab;
+  const PI = Math.PI, TAU = 2 * PI;
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+  // ── 상태 ────────────────────────────────────────────────
+  // 예제: r₁ = 1 AU, r₂ = 3 AU → a = 2 AU, T = 2√2 ≈ 2.8년, v₁/v₂ = 3
+  const EX = {r1: 1, r2: 3};
+  const S = {r1: 1, r2: 3, t: 0, playing: !Lab.reduceMotion, speed: 1, N: 12,
+    wedge: true, string: false, force: false, earth: false, sameA: false, sc: 0};
+  const YPS = 0.5;                                     // ×1 에서 화면 1초 = 0.5년 (1년 = 2초)
+  const orbit = () => { const a = M.semiMajor(S.r1, S.r2); return {a, b: M.semiMinor(S.r1, S.r2), e: M.ecc(S.r1, S.r2), T: M.period(a)}; };
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage), areas = Lab.canvas('areas', drawAreas), kep3 = Lab.canvas('kep3', drawKep3);
+  const stageBox = stage.el.parentNode, legendEl = stageBox.querySelector('.legend');
+  let room = 0;
+  const legendRoom = () => (legendEl && legendEl.parentNode === stageBox && legendEl.offsetHeight ? legendEl.offsetHeight + 14 : 0);
+  function lbl(ctx, s, x, y, o = {}) {
+    const W = stage.W, H = stage.H, w = Lab.measure(ctx, s, {size: o.size || 14, w: o.w || 600}) / 2 + 6;
+    const al = o.align || 'center', xl = al === 'left' ? x + w - 6 : al === 'right' ? x - w + 6 : x;
+    text(ctx, s, x + clamp(xl, w + 4, W - w - 4) - xl, clamp(y, 54, H - 12), Object.assign({size: 14, w: 600, halo: true}, o));
+  }
+  // 보이는 것(궤도, 지구 궤도, 같은 a 원)이 다 들어가는 축척 (px/AU)
+  function target(W, H) {
+    const o = orbit(), narrow = W < 520, top = 54, bot = H - (narrow ? 42 : Math.max(42, room + 8)) - (narrow ? 26 : 48);
+    let x0 = -S.r2, x1 = S.r1, yb = o.b;
+    if (S.earth) { x0 = Math.min(x0, -1); x1 = Math.max(x1, 1); yb = Math.max(yb, 1); }
+    if (S.sameA) { x0 = Math.min(x0, -o.a); x1 = Math.max(x1, o.a); yb = Math.max(yb, o.a); }
+    const padX = narrow ? 34 : 76, padY = 14;
+    const sc = Math.max(4, Math.min((W - 2 * padX) / (x1 - x0), (bot - top - 2 * padY) / (2 * yb)));
+    return {narrow, sc, x0, x1, yb, top, bot};
+  }
+  function geo(W, H) {
+    const t = target(W, H), sc = S.sc || t.sc;
+    const Fx = W / 2 - (t.x0 + t.x1) / 2 * sc, Fy = (t.top + t.bot) / 2;
+    return {...t, sc, F: [Fx, Fy], P: (x, y) => [Fx + x * sc, Fy - y * sc]};
+  }
+  // 같은 시간 Δt = T/N 의 부채꼴: k 번째는 근일점을 가운데 둔 [(k − ½)Δt, (k + ½)Δt]
+  const wedgeT = (k, T, N) => [(k - 0.5) * T / N, (k + 0.5) * T / N];
+  const nowWedge = (T, N) => { const ph = ((S.t / T) % 1 + 1) % 1; return Math.floor(ph * N + 0.5) % N; };
+  function wedgePath(ctx, g, k, T) {
+    const [t1, t2] = wedgeT(k, T, S.N), n = 28;
+    ctx.beginPath(); ctx.moveTo(g.F[0], g.F[1]);
+    for (let i = 0; i <= n; i++) { const p = M.posAt(t1 + (t2 - t1) * i / n, S.r1, S.r2), Q = g.P(p.x, p.y); ctx.lineTo(Q[0], Q[1]); }
+    ctx.closePath();
+  }
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    room = legendRoom();
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    const g = geo(W, H), o = orbit(), {F, sc} = g, N = S.N, kNow = nowWedge(o.T, N);
+    // 같은 a 원 궤도와 그 위를 고르게 도는 행성 (주기가 같다)
+    if (S.sameA) {
+      ctx.save(); ctx.setLineDash([6, 5]); Lab.circle(ctx, F[0], F[1], o.a * sc, {stroke: C.violet, width: 1.8}); ctx.restore();
+      const ang = TAU * S.t / o.T, Q = [F[0] + o.a * sc * Math.cos(ang), F[1] - o.a * sc * Math.sin(ang)];
+      Lab.circle(ctx, Q[0], Q[1], 7, {fill: C.paper, stroke: C.violet, width: 2.6});
+      lbl(ctx, '같은 a 원 궤도', F[0] + o.a * sc * 0.72 + 8, F[1] - o.a * sc * 0.72 - 8, {size: 13, color: C.violet, align: 'left'});
+    }
+    if (S.earth) {
+      ctx.save(); ctx.setLineDash([3, 4]); Lab.circle(ctx, F[0], F[1], sc, {stroke: C.acc, width: 1.6}); ctx.restore();
+      const ang = TAU * S.t, Q = [F[0] + sc * Math.cos(ang), F[1] - sc * Math.sin(ang)];
+      Lab.circle(ctx, Q[0], Q[1], 5.5, {fill: C.acc, stroke: C.paper, width: 1.4});
+      lbl(ctx, '지구', Q[0] + 12, Q[1] - 10, {size: 13, color: C.acc, align: 'left'});
+    }
+    // 같은 시간 넓이
+    if (S.wedge) {
+      for (let k = 0; k < N; k++) {
+        ctx.save(); wedgePath(ctx, g, k, o.T);
+        ctx.fillStyle = k === kNow ? Lab.alpha(C.copper, 0.24) : Lab.alpha(k % 2 ? C.violet : C.acc, 0.1); ctx.fill();
+        ctx.strokeStyle = k === kNow ? C.copper : Lab.alpha(C.muted, 0.35); ctx.lineWidth = k === kNow ? 1.8 : 1; ctx.stroke(); ctx.restore();
+      }
+      // 근일점 쪽과 원일점 쪽 부채꼴에 같은 넓이 S 표시
+      const lab = (k, col, f) => {
+        const [t1, t2] = wedgeT(k, o.T, N), p = M.posAt((t1 + t2) / 2, S.r1, S.r2), Q = g.P(p.x * f, p.y * f);
+        text(ctx, 'S', Q[0], Q[1], {size: 15, w: 700, color: col, halo: true});
+      };
+      lab(0, C.acc, 0.6); if (N % 2 === 0) lab(N / 2, C.violet, 0.42);
+      // 같은 시간 간격의 자리
+      for (let k = 0; k < N; k++) { const p = M.posAt((k + 0.5) * o.T / N, S.r1, S.r2), Q = g.P(p.x, p.y); Lab.circle(ctx, Q[0], Q[1], 3.2, {fill: Lab.alpha(C.vel, 0.55)}); }
+    }
+    // 궤도
+    ctx.save(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2.6; ctx.beginPath();
+    ctx.ellipse(F[0] - o.a * o.e * sc, F[1], o.a * sc, o.b * sc, 0, 0, TAU); ctx.stroke(); ctx.restore();
+    // 긴지름, 두 초점
+    const Ap = g.P(-S.r2, 0), Pe = g.P(S.r1, 0), F2 = g.P(-2 * o.a * o.e, 0);
+    Lab.line(ctx, [Ap, Pe], C.muted, 1.2, [5, 5]);
+    if (o.e > 0.02) { Lab.circle(ctx, F2[0], F2[1], 4.5, {fill: C.paper, stroke: C.muted, width: 2}); lbl(ctx, 'F′', F2[0], F2[1] + 17, {size: 13, color: C.muted}); }
+    const pl = M.posAt(S.t, S.r1, S.r2), B = g.P(pl.x, pl.y);
+    if (S.string) {   // 두 초점까지 거리: PF + PF′ = 2a
+      Lab.line(ctx, [F, B, F2], C.copper, 2.2);
+      const d1 = Math.hypot(pl.x, pl.y), d2 = Math.hypot(pl.x + 2 * o.a * o.e, pl.y);
+      lbl(ctx, fmt(d1, 2) + ' + ' + fmt(d2, 2) + ' = ' + fmt(d1 + d2, 2) + ' AU = 2a', W / 2, g.top + 8, {size: 14, color: C.copper});
+    }
+    // 태양
+    const gl = ctx.createRadialGradient(F[0], F[1], 2, F[0], F[1], 24);
+    gl.addColorStop(0, Lab.alpha(C.energy, 0.55)); gl.addColorStop(1, Lab.alpha(C.energy, 0));
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(F[0], F[1], 24, 0, TAU); ctx.fill();
+    Lab.circle(ctx, F[0], F[1], 10, {fill: C.energy, stroke: C.paper, width: 1.6});
+    lbl(ctx, '태양 F', F[0] + 4, F[1] + 26, {size: 13, color: C.energy});
+    lbl(ctx, '근일점', Pe[0] + 8, Pe[1] - 14, {size: 13, w: 500, color: C.ink, align: 'left'});
+    lbl(ctx, '원일점', Ap[0] - 8, Ap[1] - 14, {size: 13, w: 500, color: C.ink, align: 'right'});
+    // r₁, r₂, 2a 치수 (궤도 아래)
+    const yd = F[1] + g.yb * sc + 14;
+    Lab.line(ctx, [[Ap[0], Ap[1] + 4], [Ap[0], yd + (g.narrow ? 6 : 20)]], Lab.alpha(C.muted, 0.6), 1, [2, 3]);
+    Lab.line(ctx, [[Pe[0], Pe[1] + 4], [Pe[0], yd + (g.narrow ? 6 : 20)]], Lab.alpha(C.muted, 0.6), 1, [2, 3]);
+    Lab.line(ctx, [[F[0], F[1] + 12], [F[0], yd + 6]], Lab.alpha(C.muted, 0.6), 1, [2, 3]);
+    Lab.bracket(ctx, F[0], Pe[0], yd, C.copper, '', false);
+    Lab.bracket(ctx, Ap[0], F[0], yd, C.copper, '', false);
+    text(ctx, 'r₁' + (g.narrow ? '' : ' = ' + fmt(S.r1, 1) + ' AU'), (F[0] + Pe[0]) / 2, yd + 13, {size: 13, w: 600, color: C.copper, halo: true});
+    text(ctx, 'r₂ = ' + fmt(S.r2, 1) + ' AU', (Ap[0] + F[0]) / 2, yd + 13, {size: 13, w: 600, color: C.copper, halo: true});
+    if (!g.narrow) { Lab.bracket(ctx, Ap[0], Pe[0], yd + 30, C.muted, '', false); text(ctx, '2a = ' + fmt(S.r1 + S.r2, 1) + ' AU', (Ap[0] + Pe[0]) / 2, yd + 43, {size: 13, w: 500, color: C.muted, halo: true}); }
+    // 행성: 속도, (켜면) 태양이 당기는 힘과 그 접선 성분
+    const v = M.speedAt(pl.r, o.a), th = Math.atan2(pl.y, pl.x);
+    const dx = -o.a * Math.sin(pl.E), dy = o.b * Math.cos(pl.E), dn = Math.hypot(dx, dy), vu = [dx / dn, -dy / dn];   // 화면 단위 속도 방향
+    const lv = v * sc * 0.11;
+    arrow(ctx, B[0], B[1], B[0] + vu[0] * lv, B[1] + vu[1] * lv, C.vel, 3.2, 12);
+    lbl(ctx, 'v', B[0] + vu[0] * (lv + 14), B[1] + vu[1] * (lv + 14), {size: 14, color: C.vel});
+    if (S.force) {
+      // 길이 ∝ 1/r² (근일점에서 태양까지 거리의 0.8 이하). 먼 곳은 너무 짧아 최소 34 px 로 키워 그린다
+      const acc = TAU * TAU / (pl.r * pl.r), k = 0.8 * S.r1 * sc / (TAU * TAU / (S.r1 * S.r1)), raw = acc * k;
+      const lf = Math.max(44, raw), fu = [-Math.cos(th), Math.sin(th)];
+      if (raw < 44) lbl(ctx, '(먼 곳의 힘은 키워 그림)', W - 14, g.top + 10, {size: 13, w: 500, color: C.muted, align: 'right'});
+      const E = [B[0] + fu[0] * lf, B[1] + fu[1] * lf];
+      arrow(ctx, B[0], B[1], E[0], E[1], C.force, 3.2, 12);
+      // 힘의 접선 성분: 속도 화살표와 겹치지 않게 궤도 바깥쪽으로 비켜서 (점선 화살표)
+      const ct = fu[0] * vu[0] + fu[1] * vu[1], out = [-fu[0], -fu[1]], B2 = [B[0] + out[0] * 11, B[1] + out[1] * 11];
+      const Tt = [B2[0] + vu[0] * lf * ct, B2[1] + vu[1] * lf * ct];
+      if (Math.abs(ct) > 0.06) {
+        Lab.line(ctx, [E, [B[0] + vu[0] * lf * ct, B[1] + vu[1] * lf * ct]], Lab.alpha(C.force, 0.55), 1.2, [3, 3]);
+        ctx.save(); ctx.setLineDash([5, 3]); Lab.line(ctx, [B2, Tt], C.force, 2.2); ctx.restore();
+        arrow(ctx, Tt[0] - vu[0] * Math.sign(ct) * 2, Tt[1] - vu[1] * Math.sign(ct) * 2, Tt[0] + vu[0] * Math.sign(ct) * 3, Tt[1] + vu[1] * Math.sign(ct) * 3, C.force, 2.2, 9);
+        const sg = Math.sign(ct), tw = Lab.measure(ctx, '빨라지게', {size: 13, w: 600}) / 2 + 6;
+        lbl(ctx, ct > 0 ? '빨라지게' : '느려지게', Tt[0] + vu[0] * sg * (tw * Math.abs(vu[0]) + 10) + out[0] * 6, Tt[1] + vu[1] * sg * (10 + 8 * Math.abs(vu[1])) + out[1] * 6, {size: 13, color: C.force});
+      }
+    }
+    Lab.circle(ctx, B[0], B[1], 8, {fill: C.vel, stroke: C.paper, width: 1.8});
+  }
+
+  // ── 관찰 2: 같은 Δt 동안의 넓이와 간 거리 ──────────────
+  function drawAreas() {
+    const {ctx, W, H} = areas; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const o = orbit(), N = S.N, kNow = nowWedge(o.T, N), x0 = 12, x1 = W - 12, gw = (x1 - x0) / N, bw = Math.min(26, gw * 0.62);
+    const area = M.sweptArea(o.T / N, S.r1, S.r2), dist = [];
+    for (let k = 0; k < N; k++) {
+      const [t1, t2] = wedgeT(k, o.T, N); let s = 0, p0 = M.posAt(t1, S.r1, S.r2);
+      for (let i = 1; i <= 40; i++) { const p = M.posAt(t1 + (t2 - t1) * i / 40, S.r1, S.r2); s += Math.hypot(p.x - p0.x, p.y - p0.y); p0 = p; }
+      dist.push(s);
+    }
+    const dmax = Math.max(...dist), top1 = 34, h1 = H * 0.2, top2 = top1 + h1 + 44, h2 = H - top2 - 34;
+    text(ctx, 'Δt = T/' + N + '마다 쓸고 간 넓이 (모두 ' + fmt(area, 2) + ' AU²)', x0, 14, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, '그동안 간 거리 (AU)', x0, top2 - 14, {size: 13, w: 600, color: C.muted, align: 'left'});
+    // 막대 순서: 원일점 → 근일점(가운데) → 원일점
+    for (let j = 0; j < N; j++) {
+      const k = (j + Math.ceil(N / 2)) % N, cx = x0 + gw * (j + 0.5), on = k === kNow;
+      ctx.fillStyle = on ? C.copper : Lab.alpha(k % 2 ? C.violet : C.acc, 0.55); ctx.fillRect(cx - bw / 2, top1, bw, h1);
+      const hh = h2 * dist[k] / dmax;
+      ctx.fillStyle = on ? C.copper : C.vel; ctx.fillRect(cx - bw / 2, top2 + h2 - hh, bw, hh);
+      if (k === 0) text(ctx, '근일점', cx, top2 + h2 + 14, {size: 13, w: 600, color: C.ink});
+      if (N % 2 === 0 && k === N / 2) text(ctx, '원일점', cx, top2 + h2 + 14, {size: 13, w: 600, color: C.ink});
+    }
+    Lab.line(ctx, [[x0, top1 + h1], [x1, top1 + h1]], C.muted, 1);
+    Lab.line(ctx, [[x0, top2 + h2], [x1, top2 + h2]], C.muted, 1);
+    const k0 = 0, j0 = (k0 - Math.ceil(N / 2) + N) % N, kh = N % 2 === 0 ? N / 2 : null;
+    text(ctx, fmt(dist[0], 2), x0 + gw * (j0 + 0.5), top2 + h2 - h2 - 10, {size: 13, w: 600, color: C.vel, halo: true});
+    if (kh !== null) { const jh = (kh - Math.ceil(N / 2) + N) % N; text(ctx, fmt(dist[kh], 2), x0 + gw * (jh + 0.5), top2 + h2 - h2 * dist[kh] / dmax - 10, {size: 13, w: 600, color: C.vel, halo: true}); }
+  }
+
+  // ── 관찰 3: T–a 와 log T–log a ─────────────────────────
+  function drawKep3() {
+    const {ctx, W, H} = kep3; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const narrow = W < 460, o = orbit();
+    const pA = narrow ? {x: 40, y: 30, w: W - 40 - 26, h: H / 2 - 30 - 44} : {x: 40, y: 30, w: W / 2 - 40 - 24, h: H - 30 - 44};
+    const pB = narrow ? {x: 40, y: H / 2 + 30, w: W - 40 - 26, h: H / 2 - 30 - 44} : {x: W / 2 + 34, y: 30, w: W / 2 - 34 - 24, h: H - 30 - 44};
+    // (가) T–a: 그대로 그리면 곡선
+    const A = Lab.axes(ctx, pA, {xmin: 0, xmax: 10, ymin: 0, ymax: 32, xticks: [5, 10], yticks: [10, 20, 30], xlabel: 'a (AU)', ylabel: 'T (년)', xlabelBelow: true});
+    const pts = []; for (let a = 0; a <= 10.01; a += 0.1) pts.push([A.X(a), A.Y(Math.min(32, Math.pow(a, 1.5)))]);
+    ctx.save(); ctx.globalAlpha = 0.6; Lab.line(ctx, pts, C.muted, 1.5, [5, 4]); ctx.restore();
+    for (const [nm, a, T] of M.PLANETS) {
+      Lab.circle(ctx, A.X(a), A.Y(T), 4, {fill: C.vel});
+      if (a > 3) text(ctx, nm, A.X(a) - 8, A.Y(T) - 2, {size: 13, color: C.ink, align: 'right', halo: true});
+    }
+    Lab.line(ctx, [[A.X(1.3), A.Y(2.6)], [A.X(1.9), A.Y(8)]], C.muted, 1);
+    text(ctx, '수성~화성', A.X(1.9), A.Y(8) - 9, {size: 13, color: C.muted, halo: true});
+    if (o.a <= 10) { Lab.circle(ctx, A.X(o.a), A.Y(Math.min(32, o.T)), 6, {fill: C.copper, stroke: C.paper, width: 1.6}); text(ctx, fmt(o.T, 2) + '년', A.X(o.a) + 10, A.Y(o.T) + 1, {size: 13, w: 600, color: C.copper, align: 'left', halo: true}); }
+    text(ctx, '(가) T–a: 곡선', pA.x + pA.w, pA.y - 18, {size: 13, w: 600, color: C.muted, align: 'right'});
+    // (나) log T – log a: 기울기 3/2 직선. 축이 왼쪽 아래에 오게 log a + 0.6, log T + 0.8 로 옮겨 그린다
+    const dx = 0.6, dy = 0.8;
+    const B = Lab.axes(ctx, pB, {xmin: 0, xmax: 1.7, ymin: 0, ymax: 2.4, xticks: [dx, 1 + dx], yticks: [dy, 1 + dy], fmtX: (v) => fmt(v - dx, 0), fmtY: (v) => fmt(v - dy, 0), xlabel: 'log a', ylabel: 'log T', xlabelBelow: true, grid: true});
+    const L = (x) => [B.X(x + dx), B.Y(clamp(1.5 * x + dy, 0, 2.4))];
+    Lab.line(ctx, [L(-0.6), L(1.1)], C.acc, 2.6);
+    for (const [nm, a, T] of M.PLANETS) {
+      const x = Math.log10(a) + dx, y = Math.log10(T) + dy, right = nm === '수성' || nm === '지구' || nm === '목성';
+      Lab.circle(ctx, B.X(x), B.Y(y), 4, {fill: C.vel});
+      text(ctx, nm, B.X(x) + (right ? 8 : -8), B.Y(y) + (right ? 9 : -9), {size: 13, color: C.ink, align: right ? 'left' : 'right', halo: true});
+    }
+    if (o.a > 0.25) { const x = Math.log10(o.a) + dx, y = Math.log10(o.T) + dy; Lab.circle(ctx, B.X(x), B.Y(y), 6, {fill: C.copper, stroke: C.paper, width: 1.6}); }
+    text(ctx, '(나) 기울기 3/2 직선', pB.x + pB.w, pB.y - 18, {size: 13, w: 600, color: C.acc, align: 'right'});
+  }
+
+  // ── 지금 값 ─────────────────────────────────────────────
+  let lastKey = '', roT = 0;
+  function readouts() {
+    const o = orbit(), r1 = S.r1, r2 = S.r2, a = o.a, a3 = a * a * a, rad = M.radical(a3);
+    const r1s = fmt(r1, 1), r2s = fmt(r2, 1), as = fmt(a, 2);
+    const Tex = rad ? (rad.m === 1 ? String(rad.k) : (rad.k === 1 ? '' : rad.k) + '√' + rad.m) : null;
+    const Ts = Tex && rad.m !== 1 ? Tex + ' ≈ ' + fmt(o.T, 2) : fmt(o.T, 2);
+    const ratio = r2 / r1, rS = Math.abs(ratio - Math.round(ratio)) < 1e-9 ? fmt(ratio, 0) : fmt(ratio, 2);
+    const big = (rad && rad.m === 1 ? 'T = ' + rad.k : 'T ≈ ' + fmt(o.T, 1)) + '년 · v₁ = ' + (Math.abs(ratio - 1) < 1e-9 ? '' : rS) + 'v₂';
+    const lines = ['a = (<em>' + r1s + '</em> + <em>' + r2s + '</em>) ÷ 2 = <em>' + as + ' AU</em>',
+      'T² = ' + as + '³ = ' + fmt(a3, 2) + ' → <em>T = ' + Ts + '년</em>',
+      'r₁v₁ = r₂v₂ → v₁/v₂ = r₂/r₁ = ' + r2s + ' ÷ ' + r1s + ' = <em>' + rS + (Math.abs(ratio - 1) < 1e-9 ? ' (원 궤도: 속력 일정)' : '배') + '</em>'];
+    const ctx = 'r₁ = ' + r1s + ' AU · r₂ = ' + r2s + ' AU';
+    const key = [big, ctx].concat(lines).join('|');
+    if (key !== lastKey) { lastKey = key; Lab.ans(big, lines, {ctx, tone: 'small'}); }
+    $('r1Out').textContent = r1s + ' AU'; $('r2Out').textContent = r2s + ' AU';
+    live();
+    $('mv3').textContent = fmt(M.arealRate(r1, r2), 2) + ' AU²/년';
+    $('mv4').textContent = fmt(M.accelRatio(r1, r2), 2) + '배';
+    const ok = Math.abs(r1 - EX.r1) < 1e-9 && Math.abs(r2 - EX.r2) < 1e-9;
+    Lab.check('exCheck', ok, '개념서 예제 (근일점 1 AU, 원일점 3 AU) → a = 2 AU, T = 2√2 ≈ 2.8년, 근일점 속력 = 원일점의 3배',
+      '예제: 근일점 1 AU, 원일점 3 AU인 소행성의 주기와 속력 비는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function live() {   // 움직이는 동안 바뀌는 값
+    const o = orbit(), p = M.posAt(S.t, S.r1, S.r2), v = M.speedAt(p.r, o.a), v2 = M.speedAt(S.r2, o.a);
+    $('mv1').textContent = fmt(p.r, 2) + ' AU'; $('mv2').textContent = fmt(v / v2, 2);
+    $('hud1').textContent = 't = ' + fmt(S.t, 1) + '년'; $('hud2').textContent = 'r = ' + fmt(p.r, 2) + ' AU';
+    const h3 = $('hud3'), x = S.earth ? '지구 ' + fmt(S.t, 1) + ' : ' + fmt(S.t / o.T, 1) + ' 바퀴' : S.speed !== 1 ? '×' + (S.speed === 0.5 ? '½' : S.speed) + ' 빠르기' : '';
+    h3.hidden = !x; h3.textContent = x;
+  }
+  function drawAll() { drawStage(); drawAreas(); drawKep3(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const r1Sl = $('r1'), r2Sl = $('r2');
+  function setR(r1, r2) { S.r1 = Math.round(r1 * 10) / 10; S.r2 = Math.max(S.r1, Math.round(r2 * 10) / 10); r1Sl.value = S.r1; r2Sl.value = S.r2; }
+  r1Sl.addEventListener('input', () => { setR(+r1Sl.value, Math.max(S.r2, +r1Sl.value)); refresh(); });
+  r2Sl.addEventListener('input', () => { setR(Math.min(S.r1, +r2Sl.value), +r2Sl.value); refresh(); });
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; live(); }, S.speed);
+  const nG = Lab.group('[data-n]', 'n', (v) => { S.N = +v; refresh(); }, S.N);
+  const tg = {cWedge: 'wedge', cString: 'string', cForce: 'force', cEarth: 'earth', cSameA: 'sameA'};
+  for (const [id, k] of Object.entries(tg)) $(id).addEventListener('change', (e) => { S[k] = e.target.checked; if (k === 'earth' || k === 'sameA') S.t = 0; refresh(); });
+  $('reset').addEventListener('click', () => { S.t = 0; refresh(); });
+  function sync() {
+    r1Sl.value = S.r1; r2Sl.value = S.r2; speedG.set(S.speed, true); nG.set(S.N, true);
+    for (const [id, k] of Object.entries(tg)) $(id).checked = S[k];
+  }
+  const set = (o) => { Object.assign(S, {wedge: true, string: false, force: false, earth: false, sameA: false, speed: 1, t: 0}, o); };
+  const TRY = {
+    ex: () => { set({}); setR(1, 3); playCtl.set(true); },
+    circ: () => { set({}); setR(2, 2); playCtl.set(true); },
+    force: () => { set({force: true, wedge: false, speed: 0.5}); setR(1, 3); S.t = M.period(2) * 0.62; playCtl.set(true); },
+    earth: () => { set({earth: true, wedge: false}); setR(1, 3); playCtl.set(true); },
+    samea: () => { set({sameA: true, wedge: false}); setR(1, 3); playCtl.set(true); },
+    a4: () => { set({earth: true, wedge: false, speed: 4}); setR(4, 4); playCtl.set(true); },
+    ch: () => { set({sameA: true}); setR(1, 5); playCtl.set(true); },
+  };
+  Lab.tries(TRY, () => { S.sc = 0; sync(); refresh(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    let dirty = false;
+    if (stage.W) {   // 축척을 부드럽게 맞춘다 (보기를 켜고 끌 때 갑자기 튀지 않게)
+      const t = target(stage.W, stage.H).sc;
+      if (!S.sc) S.sc = t;
+      if (Math.abs(S.sc - t) > 0.05) { S.sc += (t - S.sc) * Math.min(1, dt * 6); dirty = true; } else if (S.sc !== t) { S.sc = t; dirty = true; }
+    }
+    if (S.playing) { S.t += dt * S.speed * YPS; dirty = true; }
+    if (dirty) { drawStage(); roT += dt; if (roT > 0.15) { roT = 0; live(); drawAreas(); } }
+  });
+  refresh();
+})();
+</script>
 </body>
 </html>

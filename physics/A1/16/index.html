@@ -8,6 +8,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(장면 ① 두 우주선(등가 원리) ② 빛의 휨: 밖과 안 ③ 중력 렌즈: 옆모습과 하늘 ④ 시계와 블랙홀) | 오른쪽 지금 판정 + 관찰 ①~④ → 정리 → 개념 체크 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/11}
+#ov{aspect-ratio:10/6.4}
+#st{aspect-ratio:10/6.2}
+#esc{aspect-ratio:10/7.6}
+@media (max-width:640px){ #ov{aspect-ratio:10/7.4} #st{aspect-ratio:10/7.4} #esc{aspect-ratio:10/9.6} }
+.answer .big.small2{font-size:30px}
+/* 정리 카드의 증거 표 */
+.ev{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;margin-top:8px}
+.ev th{text-align:left;font-size:13px;font-weight:600;color:var(--muted);padding:2px 6px 6px;border-bottom:1px solid var(--line)}
+.ev td{padding:7px 6px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink-2)}
+.ev .nm{font-weight:600;color:var(--ink);white-space:nowrap}
+</style>
 </head>
 <body class="cx">
 <!-- topbar -->
@@ -23,15 +37,916 @@
     <h1>등가 원리·일반 상대성 이론·블랙홀</h1>
     <p class="question"><i>Q</i>가속하는 우주선 안에서 느끼는 '무게'와 진짜 중력은 구별할 수 있을까?</p>
   </div>
+
   <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="장면에 따라 지표에 정지한 우주선과 빈 우주에서 가속하는 우주선 안에서 공과 빛이 휘는 모습, 가속하는 우주선을 밖과 안에서 본 빛의 길, 중력 렌즈의 옆모습과 관찰자가 본 하늘, 지구와 블랙홀 둘레에서 서로 다르게 가는 시계가 움직인다."></canvas>
+        <div class="hud"><span class="pill" id="hudA">(가) 지표에 정지</span></div>
+        <div class="legend" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="group" role="group" aria-label="장면">
+            <span class="gl lg">장면</span>
+            <button type="button" class="btn" data-scene="eq" aria-pressed="true" aria-label="① 등가 원리">①<span class="lg">등가 원리</span></button>
+            <button type="button" class="btn" data-scene="light" aria-pressed="false" aria-label="② 빛의 휨">②<span class="lg">빛의 휨</span></button>
+            <button type="button" class="btn" data-scene="lens" aria-pressed="false" aria-label="③ 중력 렌즈">③<span class="lg">중력 렌즈</span></button>
+            <button type="button" class="btn" data-scene="bh" aria-pressed="false" aria-label="④ 시계와 블랙홀">④<span class="lg">블랙홀</span></button>
+          </div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">조건·보기</span><span class="sm">조건</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="조건과 보기">
+          <div class="sheet-head"><b>조건 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <!-- ① 등가 원리 -->
+          <div class="row" data-for="eq">
+            <div class="group" role="group" aria-label="견줄 두 우주선">
+              <span class="gl">짝</span>
+              <button type="button" class="btn" data-pair="weight" aria-pressed="true">지표 정지 · 위로 가속</button>
+              <button type="button" class="btn" data-pair="float" aria-pressed="false">자유 낙하 · 떠 있음</button>
+            </div>
+            <label class="chk"><input type="checkbox" id="cCover">바깥 가리기</label>
+          </div>
+          <div class="row" data-for="eq">
+            <div class="grow">
+              <label class="ctl-label" for="aEq">(나) 우주선의 가속도 a (위로) <output id="aEqOut">10 m/s²</output></label>
+              <input id="aEq" type="range" min="0" max="20" step="0.5" value="10">
+            </div>
+          </div>
+          <!-- ② 빛의 휨 -->
+          <div class="row" data-for="light" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="aL">우주선의 가속도 a (위로) <output id="aLOut">10 m/s²</output></label>
+              <input id="aL" type="range" min="0" max="20" step="0.5" value="10">
+            </div>
+          </div>
+          <!-- ③ 중력 렌즈 -->
+          <div class="row" data-for="lens" hidden>
+            <div class="group" role="group" aria-label="렌즈 보기">
+              <span class="gl">보기</span>
+              <button type="button" class="btn" data-lv="galaxy" aria-pressed="true">은하 렌즈</button>
+              <button type="button" class="btn" data-lv="sun" aria-pressed="false">일식 1919</button>
+            </div>
+          </div>
+          <div class="row" data-for="lens" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="lm">렌즈 질량 (처음의 몇 배) <output id="lmOut">× 1</output></label>
+              <input id="lm" type="range" min="0.25" max="4" step="0.25" value="1">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="beta">광원의 어긋남 <output id="betaOut">0 (일직선)</output></label>
+              <input id="beta" type="range" min="-1.5" max="1.5" step="0.05" value="0">
+            </div>
+          </div>
+          <!-- ④ 시계와 블랙홀 -->
+          <div class="row" data-for="bh" hidden>
+            <div class="group" role="group" aria-label="중심 천체">
+              <span class="gl">중심</span>
+              <button type="button" class="btn" data-mode="earth" aria-pressed="false">지구 · 탑 · GPS</button>
+              <button type="button" class="btn" data-mode="star" aria-pressed="true">별의 최후</button>
+            </div>
+            <button type="button" class="btn" id="probeBtn">탐사선 보내기</button>
+            <button type="button" class="btn" id="colBtn">다시 붕괴</button>
+          </div>
+          <div class="row" data-for="bh" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="mc">별 중심부의 질량 <output id="mcOut">10 M☉</output></label>
+              <input id="mc" type="range" min="0.6" max="10" step="0.1" value="10">
+            </div>
+          </div>
+          <!-- 공통 -->
+          <div class="row">
+            <button type="button" class="btn" id="stepBtn">0.05초 앞으로 ▸</button>
+            <button type="button" class="btn" id="again">처음부터</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×0.25</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="true">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="false">×1</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cStrobe" checked>같은 시간 간격의 위치</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="notes" aria-label="관찰 노트">
-      <p>(만드는 중)</p>
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 판정</span><span id="ansCtx">① 등가 원리 · 무게 짝</span></div>
+        <div class="big" id="ansBig">구별할 수 없다</div>
+        <div class="sub">
+          <span class="f" id="ansF">두 우주선 안에서 공과 빛이 아래로 가속되는 정도(유효 중력)를 견주면</span>
+          <span id="ansLines"><span class="v">(가) 지표에 정지: 중력 → 아래로 <em>10 m/s²</em></span><span class="v">(나) 위로 <em>10 m/s²</em> 가속: 관성력 → 아래로 <em>10 m/s²</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">공이 바닥까지 (1.25 m)</span><b id="mv1">–</b></div>
+          <div class="mini"><span id="mn2">빛의 낙차 (과장)</span><b id="mv2">–</b></div>
+          <div class="mini"><span id="mn3">(나)의 빛이 휘는 쪽</span><b id="mv3">–</b></div>
+          <div class="mini"><span id="mn4">근거</span><b id="mv4">관성 질량 = 중력 질량</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 구별할 수 없다">
+          <div class="kind">관찰 1 · 등가 원리</div>
+          <h3>창문 없는 우주선 안에서는 중력과 가속을 구별할 수 없다</h3>
+          <p>두 우주선 안에서 같은 순간에 공을 수평으로 던지고 빛을 수평으로 쏜다. (가)는 지표에 정지해 중력 때문에, (나)는 빈 우주에서 위로 g 만큼 가속해 관성력 때문에 공이 똑같이 가속도 g 로 포물선을 그리고, 빛도 똑같이 휜다. 안에서 하는 어떤 실험으로도 둘을 구별할 수 없다는 것이 <b>등가 원리</b>다.</p>
+          <canvas class="flat" id="ov" aria-label="두 우주선 안의 공과 빛의 길을 한 상자에 겹쳐 그린 그림. 가속도가 g이면 완전히 겹친다."></canvas>
+          <p class="cap">실선은 (가), 점선은 (나)의 길이다. a = g 이면 완전히 겹친다. 뿌리는 <span class="eq">m<sub>관성</sub> = m<sub>중력</sub></span>: F = ma 의 질량과 만유인력의 질량이 같아서 모든 물체가 같은 가속도로 떨어진다. 자유 낙하하는 우주선(무중력)도 빈 우주에 떠 있는 우주선과 구별할 수 없다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">지표 정지 · 위로 g 가속</button>
+            <button type="button" class="btn" data-try="eqCover">바깥 가리기</button>
+            <button type="button" class="btn" data-try="eqA">a 가 g 와 다르면?</button>
+            <button type="button" class="btn" data-try="float">자유 낙하 · 떠 있음</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 빛도 휜다">
+          <div class="kind">관찰 2 · 빛의 휨</div>
+          <h3>가속하는 우주선 안에서 빛은 가속도 반대쪽으로 휘어 보인다</h3>
+          <p>밖(관성 좌표계)에서 보면 빛은 곧게 간다. 그런데 빛이 우주선을 건너는 동안 우주선이 위로 가속하므로, 빛은 반대편 벽의 더 낮은 곳에 닿는다. 안에서는 빛이 <b>아래(관성력 방향)</b>로 휘어 보이고, 가속도가 클수록 많이 휜다. 등가 원리에 따르면 중력장 속에서도 빛은 같은 쪽, 곧 질량 쪽으로 휘어야 한다.</p>
+          <canvas class="flat" id="st" aria-label="질량이 휘게 한 시공간을 고무판처럼 그린 비유 그림. 행성은 휜 시공간을 따라 돌고, 빛도 질량 근처에서 휜다."></canvas>
+          <p class="cap">아인슈타인은 이를 바탕으로 1915년 일반 상대성 이론을 완성해, 중력을 ‘질량이 휘게 한 시공간’으로 설명했다. 행성은 태양이 휘게 한 시공간을 따라 궤도 운동을 한다(그림은 비유).</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="light">빛 쏘기 (a = 10 m/s²)</button>
+            <button type="button" class="btn" data-try="light2">가속도 2배</button>
+            <button type="button" class="btn" data-try="light0">가속도 0</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 중력 렌즈">
+          <div class="kind">관찰 3 · 중력 렌즈</div>
+          <h3>질량이 큰 천체 둘레를 지난 빛이 휘어 상이 여러 개나 고리로 보인다</h3>
+          <p>멀리 있는 광원의 빛이 은하나 은하단 근처를 지나며 휘면, 관찰자는 빛이 들어온 방향을 따라 상을 본다. 광원–렌즈–관찰자가 <b>일직선</b>이면 모든 방향에서 똑같이 휘어 아인슈타인의 고리가 되고, 조금 어긋나면 상이 여러 개(아인슈타인의 십자가)로 보인다. 렌즈 천체의 질량이 클수록 많이 휜다.</p>
+          <p class="cap">1919년 에딩턴은 일식 때 태양 근처 별이 밤하늘에서보다 태양에서 약간 먼 쪽(약 1.75″)에 보임을 확인했다. 빛을 내지 않는 암흑 물질의 분포도 빛이 휜 정도로 추정한다. 무대의 각은 크게 과장했다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="lens">일직선 → 고리</button>
+            <button type="button" class="btn" data-try="lensOff">조금 어긋남 → 상 2개</button>
+            <button type="button" class="btn" data-try="lensBig">더 무거운 렌즈</button>
+            <button type="button" class="btn" data-try="eclipse">일식 1919</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 시계와 블랙홀">
+          <div class="kind">관찰 4 · 중력 시간 지연과 블랙홀</div>
+          <h3>중력이 강한 곳일수록 시간이 느리게 가고, 블랙홀의 지평선에서는 멈춘 듯 보인다</h3>
+          <p>시공간이 많이 휜 곳일수록 시계가 느리다. 그래서 지표보다 중력이 약한 GPS 위성의 시계는 빨리 가고, 이를 보정한다. 핵융합을 마친 별의 중심부는 질량에 따라 백색 왜성(약 1.4 M☉ 이하), 중성자별, <b>블랙홀</b>(약 3 M☉ 초과)이 된다.</p>
+          <canvas class="flat" id="esc" aria-label="위: 별 중심부의 질량에 따른 최후. 아래: 중심에서의 거리에 따른 탈출 속력. 탈출 속력이 빛의 속력과 같아지는 곳이 사건의 지평선."></canvas>
+          <p class="cap">블랙홀은 탈출 속력 <span class="eq">√(2GM/R)</span> 이 빛의 속력보다 큰 영역을 가진다. 탈출 속력이 c 와 같아지는 경계가 <b>사건의 지평선</b>이다. 밖에서 보면 지평선에 다가가는 탐사선의 시계가 점점 느려져 멈춘 것처럼 보인다. 빨려 드는 물질이 가열되며 내는 X선으로 블랙홀을 찾는다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="earth">지구 · 탑 · GPS 시계</button>
+            <button type="button" class="btn" data-try="bh">블랙홀이 되는 별</button>
+            <button type="button" class="btn" data-try="probe">탐사선 보내기</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>가속과 중력은 구별할 수 없다 → 중력은 휜 시공간</h3>
+          <ul>
+            <li>등가 원리: 가속 좌표계의 관성력과 중력은 안에서 구별할 수 없다(<span class="eq">m<sub>관성</sub> = m<sub>중력</sub></span>). 자유 낙하하면 무중력이다.</li>
+            <li>빛은 관성력 방향, 곧 가속도 반대쪽으로 휘어 보이고, 중력장에서는 질량 쪽으로 휜다. 일반 상대성 이론은 중력을 질량이 휘게 한 시공간으로 설명한다.</li>
+            <li>중력 렌즈: 질량이 클수록 많이 휜다. 일직선이면 고리, 어긋나면 상 여러 개. 중력이 강할수록 시간이 느리다(GPS 보정).</li>
+            <li>중심부 약 1.4 M☉ 이하 → 백색 왜성, 그 이상 → 중성자별, 약 3 M☉ 초과 → 블랙홀. 사건의 지평선: 탈출 속력 = c.</li>
+            <li>자주 하는 실수: 빛이 가속도 <em>방향</em>으로 휜다고 생각하기. 가속도의 반대쪽(관성력 방향)이다.</li>
+          </ul>
+          <table class="ev">
+            <thead><tr><th>증거</th><th>현상</th><th>핵심 수치·장치</th></tr></thead>
+            <tbody>
+              <tr><td class="nm">수성 근일점 이동</td><td>뉴턴 역학으로 설명 못 한 근일점 이동 (관측 약 574″, 뉴턴 계산 약 531″)</td><td>100년에 43″ 차이</td></tr>
+              <tr><td class="nm">빛의 휨</td><td>일식 때 별의 겉보기 위치가 태양에서 멀어짐</td><td>에딩턴 1919, 약 1.75″</td></tr>
+              <tr><td class="nm">중력 시간 지연</td><td>중력이 강할수록 시간이 느림</td><td>GPS 위성 시계 보정</td></tr>
+              <tr><td class="nm">중력파</td><td>블랙홀 병합 등으로 생긴 시공간 요동이 파동으로 전파</td><td>LIGO 레이저 간섭계 (팔 4 km)</td></tr>
+            </tbody>
+          </table>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념 체크 예제">
+          <div class="kind">개념 체크 예제</div>
+          <h3>등가 원리와 일반 상대성 이론에 대해 옳은 것만을 고르면?</h3>
+          <p>ㄱ. 빈 우주에서 위로 가속하는 우주선 안에서 수평으로 쏜 빛은 안의 관찰자에게 위쪽으로 휘어 보인다.<br>ㄴ. 멀리 있는 광원의 상이 은하단 주위에 고리 모양으로 보이는 것은 중력 렌즈 현상이다.<br>ㄷ. 중력의 효과만 생각하면, 지표의 시계는 높은 탑 꼭대기에 놓인 시계보다 느리게 간다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">ㄱ 가속하는 우주선의 빛</button>
+            <button type="button" class="btn" data-try="lens">ㄴ 은하단 둘레의 고리</button>
+            <button type="button" class="btn" data-try="earth">ㄷ 지표와 탑 꼭대기 시계</button>
+          </div>
+          <details class="ans"><summary>풀이 보기</summary><p><b>ㄴ, ㄷ</b>. ㄱ: 가속하는 우주선 안에서 빛은 관성력 방향, 즉 가속도 반대쪽(아래)으로 휘어 보인다. ㄴ: 질량이 큰 천체 근처를 지나는 빛이 휘어 상이 여러 개나 고리로 보이는 것이 중력 렌즈다. ㄷ: 중력이 강한 곳일수록 시간이 느리게 가므로 지표의 시계가 더 느리다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>줄이 끊어져 지구로 자유 낙하하는 우주선 안에서 공을 수평으로 던지고 빛을 수평으로 쏘면, 안의 관찰자에게 공과 빛은 어떻게 보일까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="float">자유 낙하 · 떠 있음</button></div>
+            <details class="ans"><summary>답 보기</summary><p>둘 다 <b>곧게</b> 간다. 중력 g 와 관성력(가속도 g 의 반대쪽)이 상쇄되어 유효 중력이 0 인 무중력 상태다. 빈 우주에 떠 있는 우주선 안과 구별할 수 없다.</p></details>
+          </div>
+          <div class="q">
+            <h3>1919년 개기 일식 때 에딩턴이 태양 근처의 별을 찍었다. 그 별은 밤하늘에서 볼 때와 비교해 어디에 보였을까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="eclipse">일식 1919</button></div>
+            <details class="ans"><summary>답 보기</summary><p>태양에서 <b>약간 먼 쪽</b>(약 1.75″)에 보였다. 별빛이 태양 가장자리를 지나며 태양 쪽으로 휘어 들어오므로, 관찰자는 빛이 들어온 방향의 연장선, 곧 태양에서 더 먼 곳에 별이 있다고 본다.</p></details>
+          </div>
+          <div class="q">
+            <h3>핵융합을 마친 별의 중심부 질량이 태양 질량의 2배이면 무엇이 될까? 블랙홀이 되려면 어떠해야 하고, 사건의 지평선이란 무엇일까?</h3>
+            <div class="acts">
+              <button type="button" class="btn" data-try="ns">중심부 2 M☉</button>
+              <button type="button" class="btn" data-try="bh">중심부 10 M☉</button>
+            </div>
+            <details class="ans"><summary>답 보기</summary><p><b>중성자별</b>. 약 1.4 M☉ 보다 크고 약 3 M☉ 이하이기 때문이다. 약 3 M☉(교재에 따라 3~4배)를 넘으면 자체 중력으로 계속 붕괴해 블랙홀이 된다. 사건의 지평선은 탈출 속력 √(2GM/R)이 빛의 속력 c 와 같아지는 경계로, 그 안에서는 빛도 나오지 못한다.</p></details>
+          </div>
+        </li>
+      </ol>
 <!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../15/" rel="prev"><small>← 이전 개념 · A1-15</small><b>관성력</b></a><span></span></nav>
 <!-- /nextprev -->
     </section>
   </main>
 </div>
+
 <script src="../../kit/lab.js"></script>
+<script src="A1-16-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.A1_16;
+  const {$, C, text, fmt} = Lab;
+  const TAU = Math.PI * 2, g0 = M.g;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const ease = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
+  const narrowMQ = window.matchMedia ? matchMedia('(max-width: 999px)') : {matches: false};
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = {
+    scene: 'eq', playing: !Lab.reduceMotion, speed: 0.5, strobe: true,
+    pair: 'weight', aEq: 10, cover: false, te: 0,          // ① 두 우주선
+    aL: 10, tl: 0,                                          // ② 빛의 휨
+    lv: 'galaxy', lm: 1, beta: 0, tlens: 0,                 // ③ 중력 렌즈
+    mode: 'star', mc: 10, col: 1, tb: 0, probe: null,       // ④ 시계와 블랙홀 (col: 붕괴 진행 0 → 1)
+    anim: 0,                                                // 불꽃·카드 그림이 움직이는 시각 (재생할 때만 간다)
+  };
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  const legendOn = () => !narrowMQ.matches;
+  const BOT = (H) => (legendOn() ? 46 : (H < 400 ? 10 : 16));
+  function pill(ctx, s, x, y) {                            // HUD 알약과 같은 모양
+    const w = Lab.measure(ctx, s, {size: 13.5, w: 500}) + 22, h = 31.5;
+    ctx.save(); Lab.rrect(ctx, x, y, w, h, h / 2); ctx.fillStyle = C.glass; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = C.line; ctx.stroke(); ctx.restore();
+    text(ctx, s, x + w / 2, y + h / 2 + 0.5, {size: 13.5, w: 500});
+  }
+  function person(ctx, x, y, k, o = {}) {                   // 서 있는 사람: 발 (x, y), 1 m = k px
+    const col = o.col || C.vel;
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = Lab.alpha(col, 0.14); ctx.strokeStyle = Lab.alpha(col, 0.7); ctx.lineWidth = Math.max(1.1, Math.min(2, k * 0.012));
+    const part = (x0, y0, w, h, r) => { Lab.rrect(ctx, x0 * k, y0 * k, w * k, h * k, r * k); ctx.fill(); ctx.stroke(); };
+    part(-0.16, -0.84, 0.14, 0.84, 0.05); part(0.02, -0.84, 0.14, 0.84, 0.05);
+    part(-0.29, -1.38, 0.1, 0.56, 0.05);
+    ctx.save(); ctx.translate(0.22 * k, -1.33 * k); ctx.rotate(-1.15); Lab.rrect(ctx, -0.05 * k, 0, 0.1 * k, 0.5 * k, 0.05 * k); ctx.fill(); ctx.stroke(); ctx.restore();   // 앞으로 뻗은 팔
+    part(-0.2, -1.42, 0.4, 0.66, 0.11);
+    ctx.beginPath(); ctx.arc(0, -1.55 * k, 0.13 * k, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+  function starShape(ctx, x, y, r, fill, stroke) {          // 별 ★ (fill 없으면 속이 빈 ☆)
+    ctx.save(); ctx.beginPath();
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+    ctx.closePath(); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.lineWidth = 1.6; ctx.strokeStyle = stroke; ctx.stroke(); }
+    ctx.restore();
+  }
+  const STARS = (() => { let s = 11; const r = () => (s = (s * 16807) % 2147483647) / 2147483647; return Array.from({length: 90}, () => [r(), r(), r()]); })();
+  function space(ctx, x0, y0, w, h, shift = 0, streak = 0) {  // 별 배경: shift 만큼 아래로 흐르고 streak 길이의 줄
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();
+    ctx.fillStyle = Lab.alpha(C.ink, 0.05); ctx.fillRect(x0, y0, w, h);
+    for (const [u, v, b] of STARS) {
+      const x = x0 + u * w, y = y0 + (((v * h + shift) % h) + h) % h;
+      if (Math.abs(streak) > 1.5) Lab.line(ctx, [[x, y], [x, y - streak]], Lab.alpha(C.muted, 0.25 + 0.3 * b), 1.2);
+      Lab.circle(ctx, x, y, 0.9 + b * 1.2, {fill: Lab.alpha(C.muted, 0.3 + 0.45 * b)});
+    }
+    ctx.restore();
+  }
+  const isDark = () => Lab.isDark();
+  const dark = () => (isDark() ? C.bg : C.ink);             // 블랙홀·달처럼 ‘검은’ 것: 어두운 테마에서도 바탕보다 어둡게
+
+  // ════════ 우주선 (① · ②) ═══════════════════════════════
+  // 우주선 좌표 (m): 안쪽 바닥 왼쪽 끝이 원점, 오른쪽 x, 위 y. 공은 손에서 수평으로, 빛은 왼쪽 벽 레이저에서 수평으로
+  const SW = 4.6, SH = 4.0, HULL = 0.22, HAND = [1.0, 1.25], U0 = 4, LASER = [0.4, 3.3], CP = 8, BALL_R = 0.12, T_EQ = 1.5;
+  function ballPath(ge) {                                    // 공: 바닥이나 벽에 닿는 시각과 그 자리
+    const tf = ge > 1e-9 ? Math.sqrt(2 * (HAND[1] - BALL_R) / ge) : Infinity, tw = (SW - BALL_R - HAND[0]) / U0, te = Math.min(tf, tw);
+    const at = (t) => { const s = Math.min(t, te); return [HAND[0] + U0 * s, HAND[1] - 0.5 * ge * s * s]; };
+    return {te, at, wall: tw <= tf};
+  }
+  function lightPath(ge) {                                   // 빛(아주 느리게 그림): 오른쪽 벽이나 바닥에 닿는 시각
+    const tw = (SW - LASER[0]) / CP, tf = ge > 1e-9 ? Math.sqrt(2 * LASER[1] / ge) : Infinity, te = Math.min(tw, tf);
+    const at = (t) => { const s = Math.min(t, te); return [LASER[0] + CP * s, LASER[1] - 0.5 * ge * s * s]; };
+    return {te, at};
+  }
+  function shipBody(ctx, P, k, o = {}) {                     // 둥근 상자 우주선 + 아래 분사구 (o.flame: 불꽃 세기 0~1, o.ghost: 점선 윤곽만)
+    const [x0, yT] = P(-HULL, SH + HULL), [x1, yB] = P(SW + HULL, -HULL), r = 0.55 * k;
+    const [nx0, ny0] = P(SW / 2 - 0.55, -HULL), [nx1, ny1] = P(SW / 2 + 0.55, -HULL - 0.5);
+    if (o.flame > 0) {
+      const fl = (0.55 + 0.75 * o.flame) * k * (0.9 + 0.12 * Math.sin(S.anim * 18));
+      ctx.save(); ctx.beginPath(); ctx.moveTo(nx0 + 0.12 * k, ny1); ctx.lineTo((nx0 + nx1) / 2, ny1 + fl); ctx.lineTo(nx1 - 0.12 * k, ny1); ctx.closePath();
+      ctx.fillStyle = Lab.alpha(C.energy, 0.75); ctx.fill(); ctx.restore();
+      ctx.save(); ctx.beginPath(); ctx.moveTo(nx0 + 0.3 * k, ny1); ctx.lineTo((nx0 + nx1) / 2, ny1 + fl * 0.55); ctx.lineTo(nx1 - 0.3 * k, ny1); ctx.closePath();
+      ctx.fillStyle = Lab.alpha(C.copper, 0.85); ctx.fill(); ctx.restore();
+    }
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(nx0, ny0); ctx.lineTo(nx0 + 0.18 * k, ny1); ctx.lineTo(nx1 - 0.18 * k, ny1); ctx.lineTo(nx1, ny0); ctx.closePath();
+    if (o.ghost) { ctx.setLineDash([5, 4]); ctx.strokeStyle = Lab.alpha(C.muted, 0.8); ctx.lineWidth = 1.4; ctx.stroke(); }
+    else { ctx.fillStyle = Lab.alpha(C.ink, 0.25); ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.stroke(); }
+    Lab.rrect(ctx, x0, yT, x1 - x0, yB - yT, r);
+    if (o.ghost) { ctx.stroke(); ctx.restore(); return; }
+    ctx.fillStyle = C.paper; ctx.fill(); ctx.lineWidth = Math.max(3, HULL * k); ctx.strokeStyle = Lab.alpha(C.ink, 0.75); ctx.stroke();
+    ctx.restore();
+    const [fx0, fy] = P(0, 0), [fx1] = P(SW, 0);
+    Lab.line(ctx, [[fx0, fy], [fx1, fy]], C.muted, 2);
+  }
+  // 우주선 안: 사람, 레이저, 공과 빛의 길 (t = 던진 뒤 시각, ge = 유효 중력). o.dash: 길을 점선으로 (겹쳐 그릴 때)
+  function shipInside(ctx, P, k, ge, t, o = {}) {
+    const nar = k < 40;
+    person(ctx, P(0.62, 0)[0], P(0.62, 0)[1], k * 0.98);
+    const [lx0, ly0] = P(0, LASER[1] + 0.16), [lx1, ly1] = P(LASER[0], LASER[1] - 0.16);
+    ctx.save(); Lab.rrect(ctx, lx0, ly0, lx1 - lx0, ly1 - ly0, 3); ctx.fillStyle = C.ink; ctx.fill(); ctx.restore();
+    const [sx0, sy0] = P(SW - 0.1, SH), [sx1, sy1] = P(SW, 0);                      // 오른쪽 벽의 과녁
+    ctx.fillStyle = Lab.alpha(C.copper, 0.16); ctx.fillRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    Lab.line(ctx, [P(LASER[0], LASER[1]), P(SW, LASER[1])], Lab.alpha(C.muted, 0.55), 1.1, [4, 4]);   // 레이저 높이
+    const bp = ballPath(ge), lp = lightPath(ge), dt = 0.06;
+    // 빛: 지나간 길 + 같은 시간 간격의 점 + 지금 자리
+    const tl = Math.min(t, lp.te), pts = [];
+    for (let s = 0; s <= tl + 1e-9; s += 0.01) pts.push(P(...lp.at(s)));
+    pts.push(P(...lp.at(tl)));
+    if (pts.length > 1) Lab.line(ctx, pts, C.energy, 2.8, o.dash ? [7, 5] : null);
+    if (S.strobe && !o.dash) for (let s = dt; s < tl - 1e-9; s += dt) { const q = P(...lp.at(s)); Lab.circle(ctx, q[0], q[1], nar ? 2.4 : 3.2, {fill: Lab.alpha(C.energy, 0.8)}); }
+    const lq = P(...lp.at(tl));
+    if (t >= lp.te) { Lab.circle(ctx, lq[0], lq[1], nar ? 4.5 : 6.5, {fill: Lab.alpha(C.energy, 0.35)}); Lab.circle(ctx, lq[0], lq[1], 3, {fill: C.energy}); }
+    else if (t > 0) Lab.circle(ctx, lq[0], lq[1], nar ? 3.5 : 4.5, {fill: C.energy, stroke: C.paper, width: 1});
+    // 공
+    const tb = Math.min(t, bp.te);
+    const bpts = []; for (let s = 0; s <= tb + 1e-9; s += 0.01) bpts.push(P(...bp.at(s)));
+    if (bpts.length > 1) Lab.line(ctx, bpts, Lab.alpha(C.vel, 0.55), 1.6, o.dash ? [7, 5] : [2, 4]);
+    if (S.strobe && !o.dash) for (let s = 0.1; s < tb - 1e-9; s += 0.1) { const q = P(...bp.at(s)); Lab.circle(ctx, q[0], q[1], Math.max(2.4, BALL_R * k * 0.7), {fill: Lab.alpha(C.vel, 0.35)}); }
+    const bq = P(...bp.at(tb));
+    Lab.circle(ctx, bq[0], bq[1], Math.max(3.5, BALL_R * k), {fill: C.vel, stroke: C.paper, width: 1.2});
+    return {bp, lp};
+  }
+
+  // ── ① 두 우주선 ─────────────────────────────────────────
+  const PAIRS = {weight: ['ground', 'rocket'], float: ['fall', 'float']};
+  function shipsOf() {                                       // (가), (나): 오른쪽 우주선의 가속도는 막대 값
+    const [L, R] = PAIRS[S.pair], A = M.SHIPS[L], B = Object.assign({}, M.SHIPS[R], {aShip: S.aEq});
+    return {A, B, keyA: L, keyB: R, geA: M.gEff(A.gField, A.aShip), geB: M.gEff(B.gField, B.aShip)};
+  }
+  function geoShip(W, H, extra = 0) {                        // 두 칸 나란히. extra = 위로 더 둘 높이(m)
+    const nar = W < 520, pw = W / 2, bot = BOT(H), top = 56;
+    const k = Math.max(12, Math.min((pw - (nar ? 26 : 70)) / (SW + 2 * HULL), (H - top - bot - 22) / (SH + 2 * HULL + 1.5 + extra)));
+    const floorY = H - bot - (HULL + 1.25) * k;
+    return {nar, W, H, pw, bot, top, k, floorY};
+  }
+  function drawEq(ctx, W, H) {
+    const g = geoShip(W, H), sh = shipsOf(), t = S.te;
+    const panels = [[0, sh.A, sh.keyA, sh.geA], [g.pw, sh.B, sh.keyB, sh.geB]];
+    for (const [x0, sp, key, ge] of panels) {
+      const cx = x0 + g.pw / 2, k = g.k, P = (x, y) => [cx + (x - SW / 2) * k, g.floorY - y * k];
+      ctx.save(); ctx.beginPath(); ctx.rect(x0, 0, g.pw, H); ctx.clip();
+      // 바깥: 지구 / 별 (가속하면 별이 아래로 흐른다)
+      const groundY = P(0, -HULL - 0.5)[1] + 2;
+      if (key === 'ground') {
+        space(ctx, x0, 0, g.pw, groundY);
+        ctx.fillStyle = Lab.alpha(C.acc, 0.16); ctx.fillRect(x0, groundY, g.pw, H - groundY);
+        Lab.line(ctx, [[x0, groundY], [x0 + g.pw, groundY]], Lab.alpha(C.acc, 0.7), 2);
+        text(ctx, '지구 (중력 g)', cx, groundY + 15, {size: 13, w: 600, color: C.acc});
+      } else if (key === 'fall') {
+        space(ctx, x0, 0, g.pw, H, -S.te * 60, -10);
+        const gy = H - g.bot - 4 - Math.min(1, S.te / T_EQ) * 0.05 * H;
+        ctx.fillStyle = Lab.alpha(C.acc, 0.16); ctx.fillRect(x0, gy, g.pw, H - gy);
+        text(ctx, '다가오는 지구', cx, gy + 14, {size: 13, w: 600, color: C.acc});
+      } else space(ctx, x0, 0, g.pw, H, sp.aShip > 0 ? S.te * 22 * sp.aShip : 0, sp.aShip > 0 ? 2 + sp.aShip * 0.8 : 0);
+      shipBody(ctx, P, k, {flame: key === 'rocket' || key === 'float' ? clamp(sp.aShip / 20, 0, 1) : 0});
+      if (S.cover) {                                           // 바깥 가리기: 우주선 안만 남긴다
+        const [ax, ay] = P(-HULL - 0.05, SH + HULL + 0.05), [bx, by] = P(SW + HULL + 0.05, -HULL - 0.6);
+        ctx.save(); ctx.fillStyle = C.paper; Lab.rrect(ctx, ax, ay, bx - ax, by - ay, 0.6 * k); ctx.rect(x0, 0, g.pw, H); ctx.fill('evenodd'); ctx.restore();
+      }
+      shipInside(ctx, P, k, ge, t);
+      // 위: 이 우주선의 상황 (중력장 = 보라, 가속도 = 초록)
+      const [tx, ty] = P(SW / 2, SH + HULL + 0.2), aw = Math.min(0.9 * k, 34);
+      if (!S.cover) {
+        if (key === 'ground') { Lab.arrow(ctx, tx, ty - aw - 8, tx, ty - 8, C.violet, 3, 10); text(ctx, '중력 g', tx + 9, ty - aw / 2 - 8, {size: 13, w: 600, color: C.violet, align: 'left', halo: true}); }
+        else if (key === 'fall') { Lab.arrow(ctx, tx, ty - aw - 8, tx, ty - 8, C.acc, 3, 10); text(ctx, 'a = g (아래)', tx + 9, ty - aw / 2 - 8, {size: 13, w: 600, color: C.acc, align: 'left', halo: true}); }
+        else if (sp.aShip > 1e-9) { Lab.arrow(ctx, tx, ty - 8, tx, ty - aw - 8, C.acc, 3, 10); text(ctx, 'a = ' + fmt(sp.aShip, 1) + ' m/s²', tx + 9, ty - aw / 2 - 8, {size: 13, w: 600, color: C.acc, align: 'left', halo: true}); }
+        else text(ctx, 'a = 0', tx, ty - aw / 2 - 8, {size: 13, w: 600, color: C.muted, halo: true});
+      }
+      ctx.restore();
+    }
+    Lab.line(ctx, [[g.pw, 0], [g.pw, H]], C.line, 1.5);
+    const nm = S.pair === 'weight' ? (g.nar ? '(나) 위로 가속' : '(나) 빈 우주에서 위로 가속') : (g.nar ? '(나) 떠 있음' : '(나) 빈 우주에 떠 있음');
+    pill(ctx, nm, g.pw + 12, 12);
+    if (S.cover) text(ctx, '바깥을 가렸다: 두 우주선 안이 똑같아 보이나?', W / 2, H - g.bot - 8, {size: 13, w: 600, color: C.muted, halo: true});
+    else if (!g.nar && !legendOn()) text(ctx, '(빛의 속력을 아주 느리게 그려 휜 정도를 크게 과장)', W / 2, H - g.bot - 6, {size: 13, w: 500, color: C.muted, halo: true});
+  }
+
+  // ── ② 빛의 휨: 밖과 안 ──────────────────────────────────
+  const T_L = 1.25;
+  function drawLight(ctx, W, H) {
+    const a = S.aL, rise = M.shipRise(a, (SW - LASER[0]) / CP), g = geoShip(W, H, Math.max(1.2, M.shipRise(20, (SW - LASER[0]) / CP)));
+    const lp = lightPath(a), t = Math.min(S.tl, lp.te + 0.0001), k = g.k;
+    // 밖: 별은 그대로, 우주선이 ½at² 만큼 올라간다
+    const cxO = g.pw / 2, y0 = g.floorY, Pg = (x, y) => [cxO + (x - SW / 2) * k, y0 - y * k];
+    const up = M.shipRise(a, Math.min(S.tl, lp.te)), Ps = (x, y) => Pg(x, y + up);
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, g.pw, H); ctx.clip();
+    space(ctx, 0, 0, g.pw, H);
+    shipBody(ctx, Pg, k, {ghost: true});
+    shipBody(ctx, Ps, k, {flame: clamp(a / 20, 0, 1)});
+    const [fx0, fy0] = Ps(0, SH), [fx1, fy1] = Ps(SW, 0);
+    ctx.fillStyle = Lab.alpha(C.copper, 0.16); ctx.fillRect(Ps(SW - 0.1, SH)[0], fy0, Ps(SW, 0)[0] - Ps(SW - 0.1, 0)[0], fy1 - fy0);
+    const [lx0, ly0] = Ps(0, LASER[1] + 0.16), [lx1, ly1] = Ps(LASER[0], LASER[1] - 0.16);
+    ctx.save(); Lab.rrect(ctx, lx0, ly0, lx1 - lx0, ly1 - ly0, 3); ctx.fillStyle = C.ink; ctx.fill(); ctx.restore();
+    // 빛 (밖): 처음 높이 그대로 곧게
+    const xNow = LASER[0] + CP * Math.min(S.tl, lp.te);
+    if (S.tl > 0) Lab.line(ctx, [Pg(LASER[0], LASER[1]), Pg(Math.min(xNow, SW), LASER[1])], C.energy, 2.8);
+    if (S.strobe) for (let s = 0.06; s < Math.min(S.tl, lp.te) - 1e-9; s += 0.06) { const q = Pg(LASER[0] + CP * s, LASER[1]); Lab.circle(ctx, q[0], q[1], g.nar ? 2.4 : 3.2, {fill: Lab.alpha(C.energy, 0.8)}); }
+    if (S.tl > 0) { const q = Pg(Math.min(xNow, SW), LASER[1]); Lab.circle(ctx, q[0], q[1], g.nar ? 3.5 : 4.5, {fill: C.energy, stroke: C.paper, width: 1}); }
+    // 우주선이 올라간 만큼 (치수)
+    if (up * k > 6) {
+      const xb = Pg(SW + HULL, 0)[0] + 10, ya = Pg(0, SH + HULL)[1], yb = Ps(0, SH + HULL)[1];
+      Lab.vbracket(ctx, xb, yb, ya, C.acc, g.nar ? '' : '½at²', true);
+    }
+    const [ax, ay] = Pg(SW + HULL, SH * 0.45);
+    if (a > 1e-9 && !g.nar) { Lab.arrow(ctx, ax + 14, ay, ax + 14, ay - Math.min(46, 8 + a * 2), C.acc, 3, 10); text(ctx, 'a', ax + 22, ay - 14, {size: 14, w: 600, color: C.acc, align: 'left', halo: true}); }
+    ctx.restore();
+    // 안: 우주선은 그대로, 빛이 아래로 휜다
+    const cxI = g.pw + g.pw / 2, PI = (x, y) => [cxI + (x - SW / 2) * k, y0 - y * k];
+    ctx.save(); ctx.beginPath(); ctx.rect(g.pw, 0, g.pw, H); ctx.clip();
+    space(ctx, g.pw, 0, g.pw, H, a > 0 ? S.tl * 30 * a : 0, a > 0 ? 2 + a * 0.8 : 0);
+    shipBody(ctx, PI, k, {flame: clamp(a / 20, 0, 1)});
+    const [ix0, iy0] = PI(SW - 0.1, SH), [ix1, iy1] = PI(SW, 0);
+    ctx.fillStyle = Lab.alpha(C.copper, 0.16); ctx.fillRect(ix0, iy0, ix1 - ix0, iy1 - iy0);
+    const [jx0, jy0] = PI(0, LASER[1] + 0.16), [jx1, jy1] = PI(LASER[0], LASER[1] - 0.16);
+    ctx.save(); Lab.rrect(ctx, jx0, jy0, jx1 - jx0, jy1 - jy0, 3); ctx.fillStyle = C.ink; ctx.fill(); ctx.restore();
+    Lab.line(ctx, [PI(LASER[0], LASER[1]), PI(SW, LASER[1])], Lab.alpha(C.muted, 0.55), 1.1, [4, 4]);
+    const tt = Math.min(S.tl, lp.te), pts = [];
+    for (let s = 0; s <= tt + 1e-9; s += 0.01) pts.push(PI(...lp.at(s)));
+    if (pts.length > 1) Lab.line(ctx, pts, C.energy, 2.8);
+    if (S.strobe) for (let s = 0.06; s < tt - 1e-9; s += 0.06) { const q = PI(...lp.at(s)); Lab.circle(ctx, q[0], q[1], g.nar ? 2.4 : 3.2, {fill: Lab.alpha(C.energy, 0.8)}); }
+    if (S.tl > 0) { const q = PI(...lp.at(tt)); Lab.circle(ctx, q[0], q[1], g.nar ? 3.5 : 4.5, {fill: C.energy, stroke: C.paper, width: 1}); }
+    if (S.tl >= lp.te && a > 1e-9) {                         // 낙차 = 밖에서 본 ½at²
+      const yA = PI(0, LASER[1])[1], yB = PI(...lp.at(lp.te))[1], xb = PI(SW + HULL, 0)[0] + 10;
+      Lab.vbracket(ctx, xb, yA, yB, C.copper, g.nar ? '' : fmt(rise, 2) + ' m', true);
+    }
+    if (a > 1e-9) {
+      const q = PI(SW * 0.55, LASER[1] - 0.5 * a * Math.pow((SW * 0.55 - LASER[0]) / CP, 2));
+      text(ctx, g.nar ? '아래로 휜다' : '가속도 반대쪽(아래)으로 휜다', q[0], q[1] + (g.nar ? 18 : 22), {size: 13, w: 600, color: C.energy, halo: true});
+    }
+    ctx.restore();
+    Lab.line(ctx, [[g.pw, 0], [g.pw, H]], C.line, 1.5);
+    pill(ctx, g.nar ? '안 · 우주선과 함께' : '안 · 우주선과 함께 가속하며 봄', g.pw + 12, 12);
+    if (!g.nar && !legendOn()) text(ctx, '(빛을 아주 느리게 그려 크게 과장)', W / 2, H - g.bot - 6, {size: 13, w: 500, color: C.muted, halo: true});
+  }
+
+  // ── ③ 중력 렌즈 ─────────────────────────────────────────
+  const RHO = 0.16, FOV = 2.3, SUN_R = 1.1;                   // 광원 반지름, 하늘 그림 반지름, 태양 원판 반지름 (θ_E0 단위)
+  function lensPars() {
+    if (S.lv === 'sun') return {thE: M.einsteinR(0.5), beta: 1.4, rho: 0.07, sun: true};
+    return {thE: M.einsteinR(S.lm), beta: S.beta, rho: RHO, sun: false};
+  }
+  function geoLens(W, H) {
+    const bot = BOT(H), wide = W >= 520 && W / H > 1.25;
+    if (wide) {
+      const sideW = W * 0.6, R = Math.max(40, Math.min((W - sideW) / 2 - 16, (H - 56 - bot) / 2 - 8));
+      return {wide, bot, side: {x0: 0, x1: sideW, y0: 52, y1: H - bot}, sky: {cx: sideW + (W - sideW) / 2, cy: 56 + (H - 56 - bot) / 2, R}};
+    }
+    const sideH = (H - bot) * 0.5, R = Math.max(40, Math.min(W / 2 - 20, (H - bot - sideH - 14) / 2 - 4));
+    return {wide, bot, side: {x0: 0, x1: W, y0: 50, y1: sideH + 18}, sky: {cx: W / 2, cy: sideH + 18 + (H - bot - sideH - 18) / 2 + 2, R}};
+  }
+  const skyImg = {cv: document.createElement('canvas'), key: ''};
+  function renderSky(R, p) {                                  // 관찰자가 본 하늘: 화소마다 렌즈 방정식을 거꾸로 풀어 광원에서 왔는지 본다
+    const N = Math.max(60, Math.round(R * 1.1)), key = [N, p.thE, p.beta, p.rho, p.sun, C.energy, C.copper].join();
+    if (skyImg.key === key) return skyImg.cv;
+    skyImg.key = key; skyImg.cv.width = N; skyImg.cv.height = N;
+    const cx = skyImg.cv.getContext('2d'), img = cx.createImageData(N, N), d = img.data, [r, gg, b] = Lab.rgb(p.sun ? C.copper : C.energy);
+    const e2 = p.thE * p.thE;
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+      const tx = ((i + 0.5) / N * 2 - 1) * FOV, ty = (1 - (j + 0.5) / N * 2) * FOV, t2 = tx * tx + ty * ty, o = (j * N + i) * 4;
+      if (t2 > FOV * FOV || t2 < 1e-6 || (p.sun && t2 < SUN_R * SUN_R)) { d[o + 3] = 0; continue; }
+      const bx = tx - e2 * tx / t2, by = ty - e2 * ty / t2, dd = Math.hypot(bx, by - p.beta) / p.rho;
+      const I = dd < 1 ? 1 : Math.exp(-(dd - 1) * 3.2);
+      d[o] = r; d[o + 1] = gg; d[o + 2] = b; d[o + 3] = Math.round(255 * clamp(I, 0, 1));
+    }
+    cx.putImageData(img, 0, 0);
+    return skyImg.cv;
+  }
+  function drawLens(ctx, W, H) {
+    const g = geoLens(W, H), p = lensPars(), nar = W < 520;
+    // ── 옆모습: 관찰자 · 렌즈 · 광원, 휘어 들어오는 빛과 보이는 방향
+    const {x0, x1, y0, y1} = g.side, w = x1 - x0, h = y1 - y0;
+    const yA = y0 + h * 0.56, xO = x0 + w * 0.07, xL = x0 + w * 0.47, xS = x0 + w * 0.9, DL = xL - xO, DS = xS - xO;
+    const q = (h * (p.sun ? 0.13 : 0.17)) / DL, Yl = (th) => yA - q * th * DL, Ys = (th) => yA - q * th * DS;
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, y0 - 6, w, h + 6); ctx.clip();
+    space(ctx, x0, 0, w, y1);
+    Lab.line(ctx, [[xO, yA], [xS + 10, yA]], Lab.alpha(C.muted, 0.5), 1, [3, 5]);
+    const im = M.lensImages(p.beta, p.thE), ring = Math.abs(p.beta) < p.rho;
+    const rays = [im.plus, im.minus].filter((th) => !(p.sun && Math.abs(th) < SUN_R));   // 일식: 태양 원판을 지나는 상은 가려진다
+    const src = [xS, Ys(p.beta)];
+    for (const th of rays) {
+      const A = [xO, yA], B = [xL, Yl(th)];
+      Lab.line(ctx, [B, [xS, Ys(th)]], Lab.alpha(C.muted, 0.9), 1.4, [6, 5]);          // 보이는 방향의 연장선
+      starShape(ctx, xS, Ys(th), nar ? 7 : 9, null, C.muted);
+      const d = 0.06 * w, u1 = [(A[0] - B[0]), (A[1] - B[1])], u2 = [(src[0] - B[0]), (src[1] - B[1])];
+      const l1 = Math.hypot(...u1), l2 = Math.hypot(...u2), Q1 = [B[0] + u1[0] / l1 * d, B[1] + u1[1] / l1 * d], Q2 = [B[0] + u2[0] / l2 * d, B[1] + u2[1] / l2 * d];
+      ctx.save(); ctx.strokeStyle = C.energy; ctx.lineWidth = 2.8; ctx.lineCap = 'round'; ctx.beginPath();
+      ctx.moveTo(src[0], src[1]); ctx.lineTo(Q2[0], Q2[1]); ctx.quadraticCurveTo(B[0], B[1], Q1[0], Q1[1]); ctx.lineTo(A[0], A[1]); ctx.stroke(); ctx.restore();
+      for (let n = 0; n < 3; n++) {                           // 광원에서 관찰자로 오는 빛 알갱이
+        const s = ((S.tlens * 0.35 + n / 3) % 1), L1 = Math.hypot(src[0] - B[0], src[1] - B[1]), L2 = Math.hypot(B[0] - A[0], B[1] - A[1]), u = s * (L1 + L2);
+        const pt = u < L1 ? [src[0] + (B[0] - src[0]) * u / L1, src[1] + (B[1] - src[1]) * u / L1] : [B[0] + (A[0] - B[0]) * (u - L1) / L2, B[1] + (A[1] - B[1]) * (u - L1) / L2];
+        Lab.circle(ctx, pt[0], pt[1], 3.2, {fill: C.energy});
+      }
+    }
+    // 렌즈
+    if (p.sun) {
+      const rs = Math.max(10, q * SUN_R * DL);
+      Lab.circle(ctx, xL, yA, rs, {fill: Lab.alpha(C.energy, 0.55), stroke: C.energy, width: 1.6});
+      text(ctx, '태양', xL, yA + rs + 14, {size: 13, w: 600, color: C.energy, halo: true});
+    } else {
+      ctx.save(); ctx.translate(xL, yA); ctx.scale(1, 0.55);
+      const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, 26); gr.addColorStop(0, Lab.alpha(C.violet, 0.85)); gr.addColorStop(1, Lab.alpha(C.violet, 0));
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, 26, 0, TAU); ctx.fill(); ctx.restore();
+      Lab.circle(ctx, xL, yA, 4, {fill: C.violet});
+      text(ctx, nar ? '렌즈 은하' : '렌즈 은하(단)', xL, yA + 26, {size: 13, w: 600, color: C.violet, halo: true});
+    }
+    starShape(ctx, src[0], src[1], nar ? 7 : 9, p.sun ? C.ink : C.copper, null);
+    text(ctx, '광원', src[0], src[1] + (p.beta >= 0 ? -15 : 16), {size: 13, w: 600, color: C.copper, halo: true});
+    Lab.circle(ctx, xO, yA, nar ? 6 : 8, {fill: C.vel});
+    text(ctx, p.sun ? '지구' : '관찰자', xO + 2, yA + 20, {size: 13, w: 600, color: C.vel, halo: true});
+    if (!nar) text(ctx, '☆ 보이는 위치', x1 - 10, y1 - 10, {size: 13, w: 500, color: C.muted, align: 'right'});
+    ctx.restore();
+    // ── 관찰자가 본 하늘
+    const {cx, cy, R} = g.sky;
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.clip();
+    ctx.fillStyle = Lab.alpha(C.ink, p.sun ? 0.16 : 0.08); ctx.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+    for (const [u, v, b] of STARS) Lab.circle(ctx, cx + (u * 2 - 1) * R, cy + (v * 2 - 1) * R, 0.8 + b, {fill: Lab.alpha(C.muted, 0.2 + 0.3 * b)});
+    const s = R / FOV;
+    if (p.sun) {                                              // 일식: 달이 태양을 가리고 코로나가 보인다
+      const gr = ctx.createRadialGradient(cx, cy, SUN_R * s * 0.9, cx, cy, SUN_R * s * 1.9);
+      gr.addColorStop(0, Lab.alpha(C.energy, 0.55)); gr.addColorStop(1, Lab.alpha(C.energy, 0));
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(cx, cy, SUN_R * s * 1.9, 0, TAU); ctx.fill();
+      Lab.circle(ctx, cx, cy, SUN_R * s, {fill: dark()});
+    }
+    ctx.imageSmoothingEnabled = true; ctx.drawImage(renderSky(R, p), cx - R, cy - R, 2 * R, 2 * R);
+    if (!p.sun) {
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.5); ctx.scale(1, 0.6);
+      const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, 0.36 * s); gr.addColorStop(0, Lab.alpha(C.violet, 0.9)); gr.addColorStop(1, Lab.alpha(C.violet, 0));
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, 0.36 * s, 0, TAU); ctx.fill(); ctx.restore();
+    }
+    const ty = cy - p.beta * s;                               // 실제 광원 방향 (렌즈 뒤에 숨어 보이지 않는다)
+    if (p.sun) {
+      starShape(ctx, cx, ty, 8, null, C.muted);
+      starShape(ctx, cx, cy - im.plus * s, 8, C.copper, null);
+      text(ctx, '실제', cx + 12, ty + 2, {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
+      text(ctx, '보이는 곳', cx + 12, cy - im.plus * s - 2, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    } else {
+      Lab.circle(ctx, cx, ty, p.rho * s, {stroke: Lab.alpha(C.muted, 0.9), width: 1.3});
+      ctx.save(); ctx.setLineDash([3, 3]); Lab.circle(ctx, cx, cy, p.thE * s, {stroke: Lab.alpha(C.muted, 0.35), width: 1}); ctx.restore();
+    }
+    ctx.restore();
+    Lab.circle(ctx, cx, cy, R, {stroke: C.line, width: 1.5});
+    if (!p.sun) text(ctx, '○ 실제 광원 방향', cx, cy + R + (g.wide ? 16 : 13), {size: 13, w: 500, color: C.muted});
+    if (g.wide) pill(ctx, '관찰자가 본 하늘', cx - Lab.measure(ctx, '관찰자가 본 하늘', {size: 13.5}) / 2 - 11, 12);
+    else text(ctx, '관찰자가 본 하늘', cx - R - 6, cy - R + 8, {size: 13, w: 600, color: C.muted, align: 'right'});
+    if (g.wide) Lab.line(ctx, [[g.side.x1, 0], [g.side.x1, H]], C.line, 1.5);
+    else Lab.line(ctx, [[0, g.side.y1 + 2], [W, g.side.y1 + 2]], C.line, 1.5);
+  }
+
+  // ── ④ 시계와 블랙홀 ─────────────────────────────────────
+  const T_REV = 4;                                            // 시계 바늘 한 바퀴 (멀리 있는 시계 기준 4 s)
+  function clock(ctx, x, y, r, elapsed, rate, label, o = {}) {
+    const a = elapsed / T_REV * TAU - Math.PI / 2;
+    Lab.circle(ctx, x, y, r, {fill: C.paper, stroke: o.col || C.ink, width: 1.8});
+    for (let i = 0; i < 12; i++) { const b = i / 12 * TAU; Lab.line(ctx, [[x + Math.cos(b) * r * 0.78, y + Math.sin(b) * r * 0.78], [x + Math.cos(b) * r * 0.92, y + Math.sin(b) * r * 0.92]], C.muted, 1); }
+    Lab.line(ctx, [[x, y], [x + Math.cos(a) * r * 0.75, y + Math.sin(a) * r * 0.75]], o.col || C.copper, 2.6);
+    Lab.circle(ctx, x, y, 2.2, {fill: C.ink});
+    if (label) text(ctx, label, x, y + r + 13, {size: 13, w: 600, color: o.lc || C.ink, halo: true});
+    if (o.sub) text(ctx, o.sub, x, y + r + 30, {size: 13, w: 500, color: C.muted, halo: true});
+  }
+  const EARTH_RATES = {ground: 0.7, tower: 0.8, gps: 0.93};    // 크게 과장한 빠르기 (순서만 실제와 같다)
+  function drawEarth(ctx, W, H) {
+    const nar = W < 520, bot = BOT(H), base = H - bot - (nar ? 34 : 44), Re = W * 1.6;
+    space(ctx, 0, 0, W, H);
+    const ecx = W * 0.5, ecy = base + Re;
+    ctx.save(); ctx.beginPath(); ctx.arc(ecx, ecy, Re, 0, TAU); ctx.fillStyle = Lab.alpha(C.acc, 0.16); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = Lab.alpha(C.acc, 0.7); ctx.stroke(); ctx.restore();
+    text(ctx, '지구', W * 0.5, H - bot - (nar ? 12 : 16), {size: 13, w: 600, color: C.acc});
+    // 탑 (높이 과장)
+    const tx = W * (nar ? 0.36 : 0.34), tTop = 52 + (base - 52) * 0.42, tw = nar ? 12 : 16;
+    ctx.save(); ctx.beginPath(); ctx.moveTo(tx - tw, base); ctx.lineTo(tx - tw * 0.35, tTop); ctx.lineTo(tx + tw * 0.35, tTop); ctx.lineTo(tx + tw, base); ctx.closePath();
+    ctx.fillStyle = Lab.alpha(C.muted, 0.3); ctx.fill(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
+    // GPS 위성 (궤도 일부)
+    const orR = Re + (base - (nar ? 74 : 86)), ang0 = -Math.PI / 2 - 0.22 + ((S.tb * 0.012) % 0.44);
+    ctx.save(); ctx.setLineDash([5, 5]); ctx.strokeStyle = Lab.alpha(C.muted, 0.6); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(ecx, ecy, orR, -Math.PI / 2 - 0.3, -Math.PI / 2 + 0.3); ctx.stroke(); ctx.restore();
+    const gx = ecx + Math.cos(ang0) * orR, gy = ecy + Math.sin(ang0) * orR;
+    ctx.save(); ctx.translate(gx, gy); ctx.fillStyle = Lab.alpha(C.vel, 0.35); ctx.fillRect(-16, -3, 12, 6); ctx.fillRect(4, -3, 12, 6); ctx.fillStyle = C.ink; ctx.fillRect(-4, -5, 8, 10); ctx.restore();
+    const r = nar ? 17 : 22, t = S.tb;
+    clock(ctx, tx - (nar ? 34 : 48), base - r - 10, r, t * EARTH_RATES.ground, EARTH_RATES.ground, '지표', {sub: fmt(t * EARTH_RATES.ground, 1) + ' s'});
+    clock(ctx, tx + (nar ? 34 : 48), tTop + r - 4, r, t * EARTH_RATES.tower, EARTH_RATES.tower, nar ? '탑 위' : '탑 꼭대기', {sub: fmt(t * EARTH_RATES.tower, 1) + ' s'});
+    clock(ctx, gx + (nar ? 0 : 52), gy + (nar ? 34 : 4), r, t * EARTH_RATES.gps, EARTH_RATES.gps, 'GPS 위성', {sub: fmt(t * EARTH_RATES.gps, 1) + ' s'});
+    if (!nar) text(ctx, '(시계가 가는 빠르기 차이와 탑 높이는 크게 과장)', W - 10, H - bot - 8, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+  }
+  function geoBH(W, H) {
+    const nar = W < 520, bot = BOT(H), top = 52, cy = top + (H - top - bot) / 2 + (nar ? 4 : 0);
+    const cx = W * (nar ? 0.2 : 0.22), Rh = Math.max(14, Math.min((W - 40 - cx) / 5.4, (H - top - bot) * 0.17));
+    return {nar, bot, top, cx, cy, Rh};
+  }
+  const CLOCK_R = [1.35, 2.6, 5];                              // 시계 자리 (중심에서, 천체 반지름 단위 — 블랙홀이면 r_s 단위)
+  function drawStar(ctx, W, H) {
+    const g = geoBH(W, H), kind = M.remnant(S.mc), u = ease(S.col), nar = g.nar;
+    space(ctx, 0, 0, W, H);
+    // 남은 천체: 그림 반지름(실제 비율 아님)과 표면에서의 시계 빠르기
+    const Rfin = kind === 'wd' ? g.Rh * 0.95 : kind === 'ns' ? g.Rh * 0.5 : g.Rh;
+    const Rcore = g.Rh * 2.1 * (1 - u) + (kind === 'bh' ? 0 : Rfin) * u;   // 붕괴하는 중심부
+    const rsOverR = kind === 'bh' ? 1 : (M.horizonR(S.mc * M.MSUN) / M.remnantRadius(S.mc));
+    const unit = g.Rh;                                          // 시계는 화면에서 Rh 단위 자리에 (빠르기는 실제 반지름 비로 계산)
+    const rate = (n) => M.clockRate(n, rsOverR);
+    // 강착 원반 (블랙홀): 뒤쪽 반
+    const disk = (front) => {
+      ctx.save(); ctx.translate(g.cx, g.cy); ctx.scale(1, 0.26); ctx.lineWidth = g.Rh * 0.55 / 0.26 * 0.26 * 2.2;
+      const gr = ctx.createRadialGradient(0, 0, g.Rh * 1.2, 0, 0, g.Rh * 2.6); gr.addColorStop(0, Lab.alpha(C.energy, 0.95)); gr.addColorStop(1, Lab.alpha(C.energy, 0.1));
+      ctx.strokeStyle = gr; ctx.lineWidth = g.Rh * 1.1; ctx.beginPath(); ctx.arc(0, 0, g.Rh * 1.9, front ? 0 : Math.PI, front ? Math.PI : TAU); ctx.stroke(); ctx.restore();
+    };
+    const isBH = kind === 'bh' && Rcore <= g.Rh;
+    if (isBH) disk(false);
+    if (kind === 'bh' && u > 0) {                              // 사건의 지평선: 중심부가 이 안으로 들어가면 생긴다
+      if (isBH) Lab.circle(ctx, g.cx, g.cy, g.Rh, {fill: dark()});
+      ctx.save(); ctx.setLineDash([6, 5]); Lab.circle(ctx, g.cx, g.cy, g.Rh, {stroke: C.violet, width: 2.2}); ctx.restore();
+    }
+    if (!isBH) {
+      const col = kind === 'wd' && u >= 1 ? C.vel : kind === 'ns' && u >= 1 ? C.violet : C.energy;
+      const gr = ctx.createRadialGradient(g.cx, g.cy, 0, g.cx, g.cy, Math.max(2, Rcore) * 1.6);
+      gr.addColorStop(0, Lab.alpha(col, 0.95)); gr.addColorStop(0.6, Lab.alpha(col, 0.6)); gr.addColorStop(1, Lab.alpha(col, 0));
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(g.cx, g.cy, Math.max(2, Rcore) * 1.6, 0, TAU); ctx.fill();
+      Lab.circle(ctx, g.cx, g.cy, Math.max(2, Rcore), {fill: Lab.alpha(col, 0.85), stroke: C.paper, width: 1});
+    }
+    if (isBH) disk(true);
+    // 이름표
+    const lab = u < 1 ? '붕괴하는 중심부' : M.REMNANT[kind] + (kind === 'wd' ? (nar ? '' : ' (지구만 한 크기)') : kind === 'ns' ? (nar ? '' : ' (지름 약 20 km)') : '');
+    text(ctx, lab, g.cx, g.cy + Math.max(Rcore, g.Rh) * (isBH ? 1.0 : 1.6) + (isBH ? 30 : 16), {size: 14, w: 700, color: isBH ? C.violet : C.ink, halo: true});
+    if (isBH && !nar) text(ctx, '사건의 지평선 (탈출 속력 = c)', g.cx, g.cy - g.Rh - 14, {size: 13, w: 600, color: C.violet, halo: true});
+    if (isBH && !nar) text(ctx, 'X선', g.cx - g.Rh * 2.4, g.cy - 4, {size: 13, w: 600, color: C.energy, align: 'right', halo: true});
+    // 시계: 천체에서 멀어지며 셋
+    const r = nar ? 15 : 20, t = S.tb;
+    CLOCK_R.forEach((n, i) => {
+      const x = g.cx + n * unit, rt = u >= 1 ? rate(n) : 1;
+      clock(ctx, x, g.cy - (i % 2 ? 0 : 0), r, t * rt, rt, nar ? fmt(rt, 2) + '배' : '빠르기 ' + fmt(rt, 2) + '배', {lc: C.muted});
+    });
+    clock(ctx, W - r - 12, 56 + r, r, t, 1, nar ? '먼 곳' : '멀리 있는 시계', {lc: C.muted});
+    // 탐사선 (블랙홀): 멀리서 보면 지평선 앞에서 점점 느려져 멈춘 듯
+    const pr = S.probe;
+    if (pr && isBH) {                                          // 탐사선: 아래 오른쪽에서 블랙홀로 곧게 떨어진다
+      const ph = 0.62, x = g.cx + pr.r * unit * Math.cos(ph), y = g.cy + pr.r * unit * Math.sin(ph), fade = clamp((pr.r - 1) / 0.5, 0, 1);
+      ctx.save(); ctx.setLineDash([3, 5]); Lab.line(ctx, [[g.cx + g.Rh * Math.cos(ph), g.cy + g.Rh * Math.sin(ph)], [g.cx + CLOCK_R[2] * unit * Math.cos(ph), g.cy + CLOCK_R[2] * unit * Math.sin(ph)]], Lab.alpha(C.copper, 0.45), 1.2); ctx.restore();
+      Lab.circle(ctx, x, y, nar ? 5.5 : 7, {fill: Lab.alpha(fade > 0.35 ? C.copper : C.force, 0.3 + 0.7 * fade), stroke: C.paper, width: 1.2});
+      text(ctx, (nar ? '' : '탐사선 시계 ') + fmt(1 - 1 / pr.r, 2) + '배', x + 10, y + 14, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+    }
+    if (!nar) text(ctx, '(크기는 실제 비율이 아님)', W - 10, H - g.bot - 8, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+  }
+  function drawBH(ctx, W, H) { if (S.mode === 'earth') drawEarth(ctx, W, H); else drawStar(ctx, W, H); }
+  function stepBH(dt) {
+    S.tb += dt;
+    if (S.col < 1) S.col = Math.min(1, S.col + dt / 2.2);
+    const pr = S.probe;
+    if (pr) { const v = 1.7 * (1 - 1 / pr.r) / Math.sqrt(pr.r); pr.r = Math.max(1.0005, pr.r - v * dt); pr.age += dt; if (pr.age > 26) S.probe = null; }
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    if (S.scene === 'eq') drawEq(ctx, W, H);
+    else if (S.scene === 'light') drawLight(ctx, W, H);
+    else if (S.scene === 'lens') drawLens(ctx, W, H);
+    else drawBH(ctx, W, H);
+  }
+
+  // ── 관찰 1: 두 우주선의 길 겹쳐 보기 ──────────────────────
+  const ov = Lab.canvas('ov', drawOV);
+  function drawOV() {
+    const {ctx, W, H} = ov; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const sh = shipsOf(), k = Math.min((W - 40) / SW, (H - 50) / SH), P = (x, y) => [W / 2 + (x - SW / 2) * k, H - 30 - y * k];
+    const [a0, b0] = P(0, SH), [a1, b1] = P(SW, 0);
+    ctx.save(); Lab.rrect(ctx, a0, b0, a1 - a0, b1 - b0, 10); ctx.fillStyle = Lab.alpha(C.ink, 0.03); ctx.fill(); ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore();
+    const path = (pp, te, col, dash, w) => { const pts = []; for (let s = 0; s <= te + 1e-9; s += 0.01) pts.push(P(...pp.at(s))); pts.push(P(...pp.at(te))); Lab.line(ctx, pts, col, w, dash); };
+    const LA = lightPath(sh.geA), LB = lightPath(sh.geB), BA = ballPath(sh.geA), BB = ballPath(sh.geB);
+    path(LA, LA.te, C.energy, null, 3.2); path(BA, BA.te, C.vel, null, 3.2);
+    path(LB, LB.te, C.ink, [6, 5], 1.8); path(BB, BB.te, C.ink, [6, 5], 1.8);
+    Lab.circle(ctx, P(...HAND)[0], P(...HAND)[1], 4, {fill: C.vel});
+    Lab.circle(ctx, P(...LASER)[0], P(...LASER)[1], 4, {fill: C.energy});
+    const same = Math.abs(sh.geA - sh.geB) < 1e-9;
+    text(ctx, same ? '두 길이 완전히 겹친다 → 구별할 수 없다' : '두 길이 어긋난다 → 구별된다', W / 2, 14, {size: 14, w: 600, color: same ? C.acc : C.neg});
+    text(ctx, '실선 (가) · 점선 (나)', W / 2, H - 12, {size: 13, w: 500, color: C.muted});
+    text(ctx, '빛 (과장)', P(SW * 0.35, LASER[1])[0], P(0, LASER[1])[1] - 13, {size: 13, w: 600, color: C.energy, halo: true});
+    text(ctx, '공', P(HAND[0] + 0.25, 0)[0], P(0, HAND[1])[1] - 14, {size: 13, w: 600, color: C.vel, halo: true});
+  }
+
+  // ── 관찰 2: 휜 시공간 (비유) ───────────────────────────────
+  const stc = Lab.canvas('st', drawST);
+  function drawST() {
+    const {ctx, W, H} = stc; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const cx = W / 2, cy = H * 0.34, sx = W * 0.46, sy = H * 0.22, D = H * 0.4;
+    const dip = (r) => D * (0.1 / (r + 0.1) - 0.1 / 1.1);
+    const P = (r, a) => [cx + r * Math.cos(a) * sx, cy + r * Math.sin(a) * sy + dip(r)];
+    for (const r of [0.08, 0.14, 0.22, 0.32, 0.45, 0.6, 0.78, 1]) { const pts = []; for (let i = 0; i <= 72; i++) pts.push(P(r, i / 72 * TAU)); Lab.line(ctx, pts, Lab.alpha(C.violet, 0.45), 1.1); }
+    for (let j = 0; j < 16; j++) { const a = j / 16 * TAU, pts = []; for (let i = 0; i <= 30; i++) pts.push(P(0.06 + 0.94 * i / 30, a)); Lab.line(ctx, pts, Lab.alpha(C.violet, 0.3), 1); }
+    const sun = P(0, 0);
+    Lab.circle(ctx, sun[0], sun[1] - 9, Math.max(9, W * 0.025), {fill: C.energy, stroke: C.paper, width: 1.5});
+    const ph = S.anim * 0.6;
+    const orb = []; for (let i = 0; i <= 72; i++) orb.push(P(0.5, i / 72 * TAU)); Lab.line(ctx, orb, Lab.alpha(C.vel, 0.6), 1.6, [5, 4]);
+    const pl = P(0.5, ph); Lab.circle(ctx, pl[0], pl[1] - 5, 6.5, {fill: C.vel, stroke: C.paper, width: 1.2});
+    // 빛: 질량 둘레를 지나며 휜다 (평면에서 휘는 길을 휜 판 위에 그린다)
+    const ray = []; for (let i = 0; i <= 80; i++) { const x = -1 + 2 * i / 80, y = -0.3 + 0.22 * (1 + Math.tanh(x / 0.22)) / 2; const r = Math.hypot(x, y); if (r <= 1) ray.push(P(r, Math.atan2(y, x))); }
+    Lab.line(ctx, ray, C.energy, 2.8);
+    const ri = Math.floor((S.anim * 18) % Math.max(1, ray.length)); if (ray[ri]) Lab.circle(ctx, ray[ri][0], ray[ri][1], 4, {fill: C.energy});
+    text(ctx, '빛', ray[0] ? ray[0][0] + 14 : 20, ray[0] ? ray[0][1] - 12 : 20, {size: 13, w: 600, color: C.energy, halo: true});
+    text(ctx, '행성', pl[0] + 12, pl[1] - 14, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
+    text(ctx, '질량이 휘게 한 시공간 (비유)', W / 2, H - 12, {size: 13, w: 500, color: C.muted});
+  }
+
+  // ── 관찰 4: 별의 최후와 탈출 속력 ────────────────────────
+  const esc = Lab.canvas('esc', drawESC);
+  function drawESC() {
+    const {ctx, W, H} = esc; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 420, Mx = S.mc, kind = M.remnant(Mx);
+    // 위: 중심부 질량 → 최후 (0 ~ 10 M☉)
+    const x0 = 18, x1 = W - 18, y = 40, X = (m) => x0 + (x1 - x0) * m / 10;
+    const zones = [[0, 1.4, C.vel, '백색 왜성'], [1.4, 3, C.violet, '중성자별'], [3, 10, C.ink, '블랙홀']];
+    for (const [a, b, col, nm] of zones) {
+      ctx.fillStyle = Lab.alpha(col, kind === M.remnant((a + b) / 2) ? 0.28 : 0.1); ctx.fillRect(X(a), y - 11, X(b) - X(a), 22);
+      text(ctx, nm, (X(a) + X(b)) / 2, y - 23, {size: 13, w: kind === M.remnant((a + b) / 2) ? 700 : 500, color: kind === M.remnant((a + b) / 2) ? C.ink : C.muted});
+    }
+    for (const m of [1.4, 3]) { Lab.line(ctx, [[X(m), y - 13], [X(m), y + 13]], C.muted, 1.4); text(ctx, fmt(m, 1), X(m), y + 22, {size: 13, w: 500, color: C.muted}); }
+    text(ctx, nar ? 'M☉' : '중심부 질량 (M☉)', x1, y + 22, {size: 13, w: 500, color: C.muted, align: 'right'});
+    ctx.save(); ctx.beginPath(); ctx.moveTo(X(Mx), y + 12); ctx.lineTo(X(Mx) - 7, y + 24); ctx.lineTo(X(Mx) + 7, y + 24); ctx.closePath(); ctx.fillStyle = C.copper; ctx.fill(); ctx.restore();
+    Lab.line(ctx, [[X(Mx), y - 12], [X(Mx), y + 12]], C.copper, 3);
+    // 아래: 탈출 속력 v/c = √(r_s/r) (r 는 r_s 단위). c 와 만나는 곳 = 사건의 지평선
+    const r = {x: 46, y: H * 0.42, w: W - 46 - 24, h: H * 0.44};
+    const A = Lab.axes(ctx, r, {xmin: 0, xmax: 6, ymin: 0, ymax: 1.6, xticks: [1, 2, 3, 4, 5], yticks: [0.5, 1], fmtY: (v) => (v === 1 ? 'c' : fmt(v, 1) + 'c'), xlabel: nar ? 'r / r_s' : '중심에서 거리 (r_s 단위)', ylabel: '탈출 속력', xlabelBelow: true});
+    ctx.fillStyle = Lab.alpha(C.violet, 0.12); ctx.fillRect(A.X(0), r.y, A.X(1) - A.X(0), r.h);
+    text(ctx, nar ? '빛도 못 나옴' : '빛도 못 나온다', (A.X(0) + A.X(1)) / 2, r.y + 12, {size: 13, w: 600, color: C.violet});
+    Lab.line(ctx, [[A.X(0), A.Y(1)], [A.X(6), A.Y(1)]], C.neg, 1.4, [5, 4]);
+    const pts = []; for (let i = 0; i <= 120; i++) { const xx = 0.38 + 5.62 * i / 120; pts.push([A.X(xx), A.Y(Math.min(1.6, 1 / Math.sqrt(xx)))]); }
+    Lab.line(ctx, pts, C.copper, 2.8);
+    Lab.circle(ctx, A.X(1), A.Y(1), 5.5, {fill: C.violet, stroke: C.paper, width: 1.5});
+    text(ctx, nar ? '지평선' : '사건의 지평선', A.X(1) + 8, A.Y(1) - 12, {size: 13, w: 600, color: C.violet, align: 'left', halo: true});
+    if (kind === 'ns') {
+      const R = 1 / (M.horizonR(Mx * M.MSUN) / M.remnantRadius(Mx)), v = 1 / Math.sqrt(R);
+      if (R < 6) { Lab.circle(ctx, A.X(R), A.Y(v), 5.5, {fill: C.copper}); text(ctx, '중성자별 표면 ' + fmt(v, 2) + 'c', A.X(R) + 8, A.Y(v) - 12, {size: 13, w: 600, color: C.copper, align: 'left', halo: true}); }
+    } else if (kind === 'wd') {
+      const R = M.remnantRadius(Mx) / M.horizonR(Mx * M.MSUN);
+      text(ctx, (nar ? '백색 왜성 표면: 약 ' : '백색 왜성 표면은 약 ') + fmt(Math.round(R / 100) * 100, 0) + ' r_s → ' + fmt(1 / Math.sqrt(R), 3) + 'c', r.x + r.w, A.Y(0.3), {size: 13, w: 600, color: C.copper, align: 'right', halo: true});
+    }
+  }
+
+  // ── 지금 판정 ────────────────────────────────────────────
+  const LEG = {
+    eq: '<span><i style="background:var(--vel)"></i>공</span><span><b style="background:var(--energy)"></b>빛 (휜 정도 과장)</span><span><b style="background:var(--violet)"></b>중력</span><span><b style="background:var(--acc)"></b>우주선의 가속도</span>',
+    light: '<span><b style="background:var(--energy)"></b>빛 (과장)</span><span><i style="background:var(--energy)"></i>같은 시간 간격의 빛</span><span><b style="background:var(--muted)"></b>처음 자리 (점선)</span><span><b style="background:var(--acc)"></b>가속도</span>',
+    lens: '<span><b style="background:var(--energy)"></b>휘어 오는 빛</span><span><b style="background:var(--muted)"></b>보이는 방향 (점선)</span><span><i style="background:var(--violet)"></i>렌즈 천체</span><span><i style="background:var(--copper)"></i>광원</span>',
+    bh: '<span><b style="background:var(--copper)"></b>시곗바늘</span><span><b style="background:var(--violet)"></b>사건의 지평선</span><span><i style="background:var(--energy)"></i>강착 원반 · X선</span>',
+  };
+  let ansKey = '';
+  function ans(big, lines, o) { const key = [big, o.lab, o.ctx, o.f, o.tone].concat(lines).join('|'); if (key === ansKey) return; ansKey = key; Lab.ans(big, lines, o); }
+  function minis(list) { list.forEach(([n, v], i) => { $('mn' + (i + 1)).textContent = n; $('mv' + (i + 1)).textContent = v; }); }
+  const sec = (v) => (isFinite(v) ? fmt(v, 2) + ' s' : '닿지 않음');
+  function readouts() {
+    const nar = stage.W && stage.W < 520;
+    let ok = false, okText = '', idle = '';
+    if (S.scene === 'eq') {
+      const sh = shipsOf(), same = Math.abs(sh.geA - sh.geB) < 1e-9, A = fmt(S.aEq, 1);
+      $('hudA').textContent = S.pair === 'weight' ? '(가) 지표에 정지' : (nar ? '(가) 자유 낙하' : '(가) 지구로 자유 낙하');
+      const lines = S.pair === 'weight'
+        ? ['(가) 지표에 정지: 중력 → 아래로 <em>g = 10 m/s²</em>', '(나) 위로 <em>a = ' + A + ' m/s²</em> 가속: 관성력 → 아래로 <em>' + A + ' m/s²</em>',
+          same ? '→ 공과 빛이 똑같이 휜다: 안에서는 구별할 수 없다' : '→ 휘는 정도가 달라 구별된다 (a ≠ g)']
+        : ['(가) 자유 낙하: 중력 g 와 관성력 g 가 상쇄 → <em>0</em> (무중력)', '(나) 빈 우주에서 가속도 <em>' + A + ' m/s²</em> → ' + (S.aEq > 1e-9 ? '아래로 <em>' + A + ' m/s²</em>' : '<em>0</em>'),
+          same ? '→ 둘 다 공과 빛이 곧게 간다: 구별할 수 없다' : '→ (나)에서만 휘어 구별된다'];
+      ans(same ? '구별할 수 없다' : '구별된다', lines, {lab: '지금 판정', ctx: '① 등가 원리 · ' + (S.pair === 'weight' ? '무게 짝' : '무중력 짝'), f: '두 우주선 안에서 공과 빛이 아래로 가속되는 정도(유효 중력)를 견주면', tone: same ? '' : 'neg'});
+      const BA = ballPath(sh.geA), BB = ballPath(sh.geB), LA = lightPath(sh.geA), LB = lightPath(sh.geB), dA = LASER[1] - LA.at(LA.te)[1], dB = LASER[1] - LB.at(LB.te)[1];
+      minis([['공이 바닥에 닿는 시간 (가) · (나)', (BA.wall ? '벽' : sec(BA.te)) + ' · ' + (BB.wall ? '벽' : sec(BB.te))], ['빛의 낙차 (가) · (나), 과장', fmt(dA, 2) + ' m · ' + fmt(dB, 2) + ' m'],
+        ['(나)의 빛이 휘는 쪽', S.aEq > 1e-9 ? '아래 (가속도 반대쪽)' : '휘지 않음'], ['근거', '관성 질량 = 중력 질량']]);
+      ok = S.aEq > 1e-9; okText = 'ㄱ 틀림: 위로 가속하는 우주선 안에서 빛은 아래(가속도 반대쪽)로 휘어 보인다 → 정답 ㄴ, ㄷ';
+      idle = 'ㄱ 확인: (나) 우주선을 위로 가속시켜 빛이 휘는 쪽을 보자';
+    } else if (S.scene === 'light') {
+      const a = S.aL, tC = (SW - LASER[0]) / CP, drop = M.shipRise(a, tC);
+      $('hudA').textContent = nar ? '밖 · 관성 좌표계' : '밖 · 관성 좌표계 (멈춰서 봄)';
+      if (a < 1e-9) ans('곧게 간다', ['우주선이 가속하지 않으면 관성력이 없다', '안에서 보아도 빛은 곧게 간다'], {lab: '지금 판정', ctx: '② 빛의 휨 · a = 0', f: '빛이 우주선을 건너는 동안 우주선이 움직인 만큼', tone: 'ink'});
+      else ans('아래로 휜다', ['밖: 빛은 곧게 가고 우주선이 <em>½at² = ' + fmt(drop, 2) + ' m</em> 올라간다 (그림 값)', '안: 빛이 <em>가속도 반대쪽(아래)</em>으로 ' + fmt(drop, 2) + ' m 휘어 보인다', 'a 가 클수록 많이 휜다 (낙차 ∝ a). 중력장에서는 질량 쪽으로'],
+        {lab: '지금 판정', ctx: '② 빛의 휨 · a = ' + fmt(a, 1) + ' m/s²', f: '빛이 우주선을 건너는 동안 우주선이 ½at² 만큼 올라가면'});
+      minis([['우주선의 가속도', fmt(a, 1) + ' m/s² · 위'], ['건너는 시간 (그림 속 빛)', fmt(tC, 2) + ' s'], ['낙차 (그림 값)', fmt(drop, 2) + ' m'], ['실제 빛 (4.2 m 를 건널 때)', Lab.sci(M.lightDrop(SW - LASER[0], M.c, Math.max(a, 1e-9)), 1) + ' m']]);
+      ok = a > 1e-9; okText = 'ㄱ 틀림: 가속하는 우주선 안의 빛은 가속도 반대쪽(아래)으로 휜다 → 정답 ㄴ, ㄷ';
+      idle = 'ㄱ 확인: 가속도를 주어 빛이 휘는 쪽을 보자';
+    } else if (S.scene === 'lens') {
+      const p = lensPars(), im = M.lensImages(p.beta, p.thE), kind = M.lensKind(p.beta, p.thE, p.rho, p.sun ? SUN_R : 0);
+      $('hudA').textContent = nar ? '옆모습 (각은 과장)' : '옆에서 본 빛의 길 (각은 크게 과장)';
+      if (p.sun) {
+        ans('별이 더 바깥쪽에 보인다', ['태양 가장자리를 지난 별빛이 태양 쪽으로 휘어 들어온다', '관찰자는 들어온 방향의 연장선 → 별이 태양에서 <em>더 먼 쪽</em>에 보인다', '에딩턴 1919: 약 <em>1.75″</em> (그림은 크게 과장)'],
+          {lab: '지금 판정', ctx: '③ 일식 1919 · 태양', f: '별빛이 태양 가장자리를 스쳐 지나면', tone: 'small'});
+        minis([['휜 각 (태양 가장자리)', '약 1.75″'], ['보이는 상', '1개 (다른 상은 태양에 가려짐)'], ['상의 자리', '실제보다 바깥쪽'], ['밝힌 사람', '에딩턴 (1919)']]);
+      } else {
+        const big = kind === 'ring' ? '아인슈타인 고리' : '상 2개';
+        const l1 = kind === 'ring' ? '광원이 렌즈 바로 뒤 (일직선) → 모든 방향에서 똑같이 휘어 <em>고리</em>' : '광원이 조금 어긋남 → 광원 쪽 바깥에 밝은 상, 반대쪽 안에 흐린 상';
+        ans(big, [l1, '렌즈 질량 <em>× ' + fmt(S.lm, 2) + '</em> → ' + (kind === 'ring' ? '고리 반지름 × ' : '두 상의 간격 × ') + fmt(Math.sqrt(S.lm), 2) + ' (질량이 클수록 많이 휜다)'],
+          {lab: '지금 판정', ctx: '③ 중력 렌즈 · 렌즈 질량 × ' + fmt(S.lm, 2), f: '광원–렌즈–관찰자의 배치와 렌즈의 질량에 따라'});
+        minis([['렌즈 질량', '× ' + fmt(S.lm, 2)], ['광원의 어긋남', Math.abs(S.beta) < 1e-9 ? '0 (일직선)' : fmt(S.beta, 2)], ['보이는 상', kind === 'ring' ? '고리' : '2개 (양쪽)'],
+          ['고리 반지름 (처음 = 1)', '× ' + fmt(p.thE, 2)]]);
+      }
+      ok = !p.sun && kind === 'ring'; okText = 'ㄴ 옳음: 광원이 은하(단) 바로 뒤에 있으면 상이 고리로 보인다 — 중력 렌즈';
+      idle = 'ㄴ 확인: ‘은하 렌즈’에서 광원의 어긋남을 0 으로 두면 고리가 된다';
+    } else if (S.mode === 'earth') {
+      $('hudA').textContent = '지구 · 탑 · GPS 위성';
+      const day = (M.earthRate(M.EARTH.R + 2.02e7) - M.earthRate(M.EARTH.R)) * 86400 * 1e6;
+      ans('지표 시계가 가장 느리다', ['중력이 강한(시공간이 많이 휜) 곳일수록 시간이 느리게 간다', '<em>지표 &lt; 탑 꼭대기 &lt; GPS 위성</em> (중력 효과만)', 'GPS 위성 시계는 하루에 약 ' + fmt(day, 0) + ' μs 빨리 가서 보정한다'],
+        {lab: '지금 판정', ctx: '④ 중력 시간 지연 · 지구', f: '높이(중력의 세기)가 다른 곳에 둔 시계를 견주면', tone: 'small'});
+      minis([['지표 시계 (과장)', fmt(EARTH_RATES.ground, 2) + '배'], ['탑 꼭대기 (과장)', fmt(EARTH_RATES.tower, 2) + '배'], ['GPS 위성 (과장)', fmt(EARTH_RATES.gps, 2) + '배'], ['실제 차이 (GPS, 하루)', '약 ' + fmt(day, 0) + ' μs']]);
+      ok = true; okText = 'ㄷ 옳음: 중력이 강한 지표의 시계가 탑 꼭대기의 시계보다 느리게 간다 → 정답 ㄴ, ㄷ';
+    } else {
+      const kind = M.remnant(S.mc), Mkg = S.mc * M.MSUN, rs = M.horizonR(Mkg), R = M.remnantRadius(S.mc), v = Math.min(1, M.escapeSpeed(Mkg, R) / M.c);
+      $('hudA').textContent = (nar ? '별의 최후 · ' : '별의 최후 · 중심부 ') + fmt(S.mc, 1) + ' M☉';
+      const mtxt = fmt(S.mc, 1) + ' M☉';
+      const l1 = kind === 'wd' ? mtxt + ' ≤ 약 1.4 M☉ → <em>백색 왜성</em> (지구만 한 크기)' : kind === 'ns' ? '약 1.4 &lt; ' + mtxt + ' ≤ 약 3 M☉ → <em>중성자별</em> (지름 약 20 km)' : mtxt + ' &gt; 약 3 M☉ → 자체 중력으로 계속 붕괴 → <em>블랙홀</em>';
+      const l2 = kind === 'bh' ? '사건의 지평선: √(2GM/R) = c → R = 2GM/c² ≈ <em>' + fmt(rs / 1000, 1) + ' km</em>' : '표면 탈출 속력 ≈ <em>' + fmt(v, kind === 'wd' ? 3 : 2) + 'c</em> &lt; c → 빛이 나온다';
+      const l3 = kind === 'bh' ? '지평선에 가까운 시계일수록 느리다 → 밖에서 보면 지평선에서 멈춘 듯' : '표면 가까운 시계일수록 느리다';
+      ans(M.REMNANT[kind], [l1, l2, l3], {lab: '지금 판정', ctx: '④ 별의 최후 · 중심부 ' + mtxt, f: '핵융합을 마친 중심부의 질량에 따라 (약 1.4 · 3 M☉ 가 경계)', tone: kind === 'bh' ? 'ink' : ''});
+      minis([['중심부 질량', mtxt], ['남은 천체', M.REMNANT[kind]], ['탈출 속력 = c 인 반지름', fmt(rs / 1000, 1) + ' km'], ['가장 가까운 시계', fmt(M.clockRate(CLOCK_R[0], kind === 'bh' ? 1 : rs / R), 2) + '배']]);
+      idle = 'ㄷ 확인: ‘지구 · 탑 · GPS’에서 지표와 탑 꼭대기의 시계를 견주어 보자';
+    }
+    Lab.check('exCheck', ok, okText, idle || 'ㄱ 확인: 위로 가속하는 우주선의 빛이 휘는 쪽을 보자');
+  }
+  function drawAll() { drawStage(); drawOV(); drawST(); drawESC(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  function setScene(sc) {
+    S.scene = sc;
+    document.querySelectorAll('[data-for]').forEach((el) => { el.hidden = el.dataset.for !== sc; });
+    $('legend').innerHTML = LEG[sc];
+    sceneG.set(sc, true);
+    refresh();
+  }
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => setScene(v), S.scene);
+  const pairG = Lab.group('[data-pair]', 'pair', (v) => { S.pair = v; S.aEq = v === 'weight' ? 10 : 0; aEq.set(S.aEq, true); S.te = 0; refresh(); }, S.pair);
+  const lvG = Lab.group('[data-lv]', 'lv', (v) => { S.lv = v; refresh(); }, S.lv);
+  const modeG = Lab.group('[data-mode]', 'mode', (v) => { S.mode = v; S.tb = 0; refresh(); }, S.mode);
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
+  const aEq = Lab.slider('aEq', {out: 'aEqOut', fmt: (v) => fmt(v, 1) + ' m/s²', onInput: (v) => { S.aEq = v; refresh(); }});
+  const aL = Lab.slider('aL', {out: 'aLOut', fmt: (v) => fmt(v, 1) + ' m/s²', onInput: (v) => { S.aL = v; S.tl = 0; refresh(); }});
+  const lm = Lab.slider('lm', {out: 'lmOut', fmt: (v) => '× ' + fmt(v, 2), onInput: (v) => { S.lm = v; if (S.lv !== 'galaxy') { S.lv = 'galaxy'; lvG.set('galaxy', true); } refresh(); }});
+  const beta = Lab.slider('beta', {out: 'betaOut', fmt: (v) => (Math.abs(v) < 1e-9 ? '0 (일직선)' : fmt(v, 2)), onInput: (v) => { S.beta = v; if (S.lv !== 'galaxy') { S.lv = 'galaxy'; lvG.set('galaxy', true); } refresh(); }});
+  const mc = Lab.slider('mc', {out: 'mcOut', fmt: (v) => fmt(v, 1) + ' M☉', onInput: (v) => { S.mc = v; S.col = 1; S.probe = null; if (S.mode !== 'star') { S.mode = 'star'; modeG.set('star', true); } refresh(); }});
+  const cCover = Lab.toggle('cCover', (on) => { S.cover = on; drawStage(); });
+  Lab.toggle('cStrobe', (on) => { S.strobe = on; drawStage(); });
+  $('probeBtn').addEventListener('click', () => { if (S.mode !== 'star' || M.remnant(S.mc) !== 'bh') { S.mode = 'star'; modeG.set('star', true); S.mc = 10; mc.set(10, true); } S.col = 1; S.probe = {r: CLOCK_R[2], age: 0}; if (!S.playing) playCtl.set(true); refresh(); });
+  $('colBtn').addEventListener('click', () => { if (S.mode !== 'star') { S.mode = 'star'; modeG.set('star', true); } S.col = 0; S.probe = null; if (!S.playing) playCtl.set(true); refresh(); });
+  $('again').addEventListener('click', () => { S.te = 0; S.tl = 0; S.tb = 0; S.col = S.scene === 'bh' && S.mode === 'star' ? 0 : S.col; refresh(); });
+  $('stepBtn').addEventListener('click', () => { playCtl.set(false); advance(0.05); refresh(); });
+  function sync() {
+    pairG.set(S.pair, true); lvG.set(S.lv, true); modeG.set(S.mode, true);
+    aEq.set(S.aEq, true); aL.set(S.aL, true); lm.set(S.lm, true); beta.set(S.beta, true); mc.set(S.mc, true); cCover.set(S.cover, true);
+  }
+  const go = (sc, o) => () => { Object.assign(S, o); setScene(sc); playCtl.set(true); };
+  const TRY = {
+    ex: go('eq', {pair: 'weight', aEq: 10, cover: false, te: 0}),
+    eqCover: go('eq', {pair: 'weight', aEq: 10, cover: true, te: 0}),
+    eqA: go('eq', {pair: 'weight', aEq: 15, cover: true, te: 0}),
+    float: go('eq', {pair: 'float', aEq: 0, cover: false, te: 0}),
+    light: go('light', {aL: 10, tl: 0}),
+    light2: go('light', {aL: 20, tl: 0}),
+    light0: go('light', {aL: 0, tl: 0}),
+    lens: go('lens', {lv: 'galaxy', lm: 1, beta: 0}),
+    lensOff: go('lens', {lv: 'galaxy', lm: 1, beta: 0.6}),
+    lensBig: go('lens', {lv: 'galaxy', lm: 3, beta: 0}),
+    eclipse: go('lens', {lv: 'sun'}),
+    earth: go('bh', {mode: 'earth', tb: 0}),
+    bh: go('bh', {mode: 'star', mc: 10, col: 0, probe: null, tb: 0}),
+    ns: go('bh', {mode: 'star', mc: 2, col: 0, probe: null, tb: 0}),
+    probe: go('bh', {mode: 'star', mc: 10, col: 1, probe: {r: CLOCK_R[2], age: 0}, tb: 0}),
+  };
+  Lab.tries(TRY, () => { sync(); refresh(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  function advance(d) {
+    if (S.scene === 'eq') { S.te += d; if (S.te > T_EQ) S.te = 0; }
+    else if (S.scene === 'light') { S.tl += d; if (S.tl > T_L) S.tl = 0; }
+    else if (S.scene === 'lens') S.tlens += d;
+    else stepBH(d);
+  }
+  const visible = (el) => { const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (!S.playing) return;
+    S.anim += dt;
+    if (visible(stc.el)) drawST();
+    advance(dt * S.speed);
+    drawStage();
+    roT += dt; if (roT > 0.2) { roT = 0; if (S.scene === 'bh') readouts(); }
+  });
+  setScene('eq'); sync();
+  if (narrowMQ.addEventListener) narrowMQ.addEventListener('change', () => { readouts(); drawStage(); });
+})();
+</script>
 </body>
 </html>
