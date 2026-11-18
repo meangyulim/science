@@ -9,31 +9,30 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(줄 = 지금 순간의 y-x 사진, 구슬마다 운동 방향 화살표)와 조작판(판정 연습 포함), 오른쪽 수치·점 P 의 y-t 그래프·판단 다리 */
+/* 관찰 노트: 왼쪽 실험대(줄 = 지금 순간의 y-x 사진, 구슬마다 운동 방향 화살표, 판정 연습 상자) | 오른쪽 지금 값 + 관찰 ①~④(y-t 그래프, 판단 다리) → 정리 → 예제 → 스스로 확인 */
 #stage{aspect-ratio:16/9.4}
 #yt{aspect-ratio:10/6}
 .legend .dash{background:repeating-linear-gradient(90deg,var(--vel) 0 5px,transparent 5px 8px)}
 .pill.cu{color:var(--copper);border-color:currentColor}
-.ro.neg b{color:var(--neg)}
-.ro b.q{color:var(--muted)}
-.judge{display:grid;gap:10px;padding:12px 14px;border-radius:14px;background:var(--copper-soft);border:1px solid var(--line)}
-.judge .jq{margin:0;font-weight:700;font-size:15.5px}
-.judge .jmsg{margin:0;font-size:15px;font-weight:600;color:var(--muted);min-height:1.6em}
+/* 판정 연습: 첫 조작 줄 바로 아래(좁은 화면에서도 무대와 함께 위에 붙어 있다) */
+.judge{display:grid;gap:8px;padding:10px 12px;border-radius:14px;background:var(--copper-soft);border:1px solid var(--line)}
+.judge .jq{margin:0;font-size:15px;font-weight:600;line-height:1.55}
+.judge .jrow{display:flex;flex-wrap:wrap;gap:6px}
+.judge .jrow .btn{flex:1 1 auto}
+.judge .jmsg{margin:0;font-size:14.5px;font-weight:500;line-height:1.6;color:var(--muted)}
+.judge .jmsg:empty{display:none}
 .judge .jmsg.ok{color:var(--acc)} .judge .jmsg.no{color:var(--neg)}
-.btn.big{font-size:15.5px;padding:9px 16px}
-.btn:disabled,.play:disabled{opacity:.42;cursor:not-allowed}
-.chain{display:flex;flex-direction:column;gap:2px}
+/* 판단 다리 */
+.chain{display:flex;flex-direction:column;gap:2px;margin-top:10px}
 .chain.rev{flex-direction:column-reverse}
 .chain .link{background:var(--bg);border-radius:12px;padding:8px 12px}
-.chain .link span{display:block;font-size:13px;color:var(--muted);font-weight:600}
-.chain .link b{font-size:15.5px;font-weight:700}
+.chain .link > span{display:block;font-size:13px;color:var(--muted)}
+.chain .link b{font-size:15.5px;font-weight:600}
 .chain .join{text-align:center;color:var(--muted);font-size:15px;line-height:1.2}
-.chain b.q{color:var(--muted);font-weight:600}
-.up{color:var(--acc)} .down{color:var(--neg)}
+.chain b.q{color:var(--muted);font-weight:500}
+.chain .up,.status.up{color:var(--acc)} .chain .down,.status.down{color:var(--neg)}
 #ytNow{margin-top:8px}
-.quiz .tag{white-space:nowrap}
-.controls .note{margin:0}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.17} .stage.tall #stage{aspect-ratio:1/1.42} .pager a:last-child{margin-left:auto} }
+.nw{white-space:nowrap}   /* y-x·y-t 가 붙임표에서 줄바꿈되지 않게 */
 </style>
 </head>
 <body class="cx">
@@ -45,163 +44,194 @@
 </div></header>
 <!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III1-02</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III1-02</span><span>물리학 Ⅰ · 파동의 성질과 활용</span></div>
     <h1>파동 그래프 두 가지와 진행 방향 판단</h1>
-    <p class="lead">줄 전체를 찍은 <b>y-x 그래프는 한 순간의 사진</b>, 점 P 하나를 지켜본 <b>y-t 그래프는 한 점의 기록</b>이다. 구슬마다 단 화살표를 보면 <b>마루 앞쪽(진행 방향 쪽)은 올라가고 뒤쪽은 내려간다</b>. 파형을 진행 방향으로 살짝 민 점선이 곧 ‘다음 순간’의 모습이다.</p>
-  </header>
+    <p class="question"><i>Q</i>같은 사인 곡선인데 왜 한 그래프에서는 파장이, 다른 그래프에서는 주기가 읽힐까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
         <canvas id="stage" aria-label="오른쪽으로 진행하는 줄의 파동. 구슬마다 지금 순간의 운동 방향 화살표가 있고, 파형을 진행 방향으로 살짝 민 점선이 겹쳐 있다. 점 P를 끌어 옮길 수 있다."></canvas>
-        <div class="hud"><span class="pill num" id="hudT">t = 0.000 s</span><span class="pill" id="hudSlow">느린 화면 ×0.25</span><span class="pill num cu" id="hudTwo" hidden>Δt = 0 s</span><span class="pill cu" id="hudJudge" hidden>판정 연습</span></div>
+        <div class="hud"><span class="pill" id="hudT">t = 0.000 s</span><span class="pill" id="hudSlow">느린 화면 ×0.25</span><span class="pill cu" id="hudTwo" hidden>Δt = 0 s</span><span class="pill cu" id="hudJudge" hidden>판정 연습</span></div>
         <div class="legend">
           <span><i style="background:var(--copper)"></i>점 P (끌어서 옮기기)</span>
           <span><b style="background:var(--acc)"></b>올라가는 중</span>
           <span><b style="background:var(--neg)"></b>내려가는 중</span>
           <span><b class="dash"></b>살짝 민 파형 = 잠시 뒤</span>
         </div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <button type="button" class="btn" id="stepS">살짝 앞으로</button>
-          <button type="button" class="btn" id="stepQ">¼ 주기 앞으로</button>
           <div class="group" role="group" aria-label="보기">
-            <span class="gl">보기</span>
+            <span class="gl lg">보기</span>
             <button type="button" class="btn" data-mode="see" aria-pressed="true">관찰</button>
             <button type="button" class="btn" data-mode="judge" aria-pressed="false">판정 연습</button>
           </div>
-          <div class="group" id="dirG" role="group" aria-label="진행 방향">
-            <span class="gl">진행</span>
-            <button type="button" class="btn" data-dir="1" aria-pressed="true">→</button>
-            <button type="button" class="btn" data-dir="-1" aria-pressed="false">←</button>
-          </div>
+          <span class="spacer"></span>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">파동·보기</span><span class="sm">보기</span></button>
         </div>
         <div class="judge" id="judge" hidden>
           <p class="jq" id="jQ">단서를 보고 파동의 진행 방향을 골라 보세요.</p>
-          <div class="row">
-            <button type="button" class="btn big" data-guess="-1">← 왼쪽 (−x)</button>
-            <button type="button" class="btn big" data-guess="1">오른쪽 (+x) →</button>
-            <span class="spacer"></span>
-            <span class="pill num" id="jScore">맞힘 0 / 0</span>
-            <button type="button" class="btn" id="jNext">새 문제</button>
+          <div class="jrow">
+            <button type="button" class="btn" data-guess="-1">← 왼쪽 (−x)</button>
+            <button type="button" class="btn" data-guess="1">오른쪽 (+x) →</button>
+            <button type="button" class="btn ghost" id="jNext">새 문제</button>
           </div>
           <p class="jmsg" id="jMsg" aria-live="polite"></p>
         </div>
-        <div class="row">
-          <div class="grow">
-            <label class="ctl-label" for="lam">파장 λ (y-x 의 가로 간격) <output id="lamOut">8 cm</output></label>
-            <input id="lam" type="range" min="4" max="16" step="1" value="8">
+        <div class="sheet" id="sheet" role="group" aria-label="파동과 보기">
+          <div class="sheet-head"><b>파동 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <button type="button" class="btn" id="stepS">살짝 앞으로 ▸</button>
+            <button type="button" class="btn" id="stepQ">¼ 주기 앞으로 ▸</button>
+            <div class="group" id="dirG" role="group" aria-label="진행 방향">
+              <span class="gl">진행</span>
+              <button type="button" class="btn" data-dir="1" aria-pressed="true">→</button>
+              <button type="button" class="btn" data-dir="-1" aria-pressed="false">←</button>
+            </div>
+            <div class="group" role="group" aria-label="시간 빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.1" aria-pressed="false">×0.1</button>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="true">×0.25</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="false">×1</button>
+            </div>
           </div>
-          <div class="grow">
-            <label class="ctl-label" for="per">주기 T (y-t 의 가로 간격) <output id="perOut">0.5 s</output></label>
-            <input id="per" type="range" min="0.25" max="1" step="0.05" value="0.5">
+          <div class="row">
+            <div class="grow">
+              <label class="ctl-label" for="lam"><span>파장 λ</span><output id="lamOut">8 cm</output></label>
+              <input id="lam" type="range" min="4" max="16" step="1" value="8">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="per"><span>주기 T</span><output id="perOut">0.5 s</output></label>
+              <input id="per" type="range" min="0.25" max="1" step="0.05" value="0.5">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="pos"><span>점 P 의 위치 x</span><output id="posOut">8 cm</output></label>
+              <input id="pos" type="range" min="0" max="24" step="0.5" value="8">
+            </div>
           </div>
-          <div class="grow">
-            <label class="ctl-label" for="pos">점 P 의 위치 x <output id="posOut">8 cm</output></label>
-            <input id="pos" type="range" min="0" max="24" step="0.5" value="8">
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cArrows" checked>모든 구슬의 운동 방향</label>
+            <label class="chk"><input type="checkbox" id="cZones" checked>올라감·내려감 구간</label>
+            <label class="chk"><input type="checkbox" id="cPush" checked>살짝 민 파형</label>
+            <label class="chk"><input type="checkbox" id="cTwo">두 시점 비교</label>
           </div>
         </div>
-        <div class="row toggles">
-          <label class="chk"><input type="checkbox" id="cArrows" checked>모든 구슬의 운동 방향</label>
-          <label class="chk"><input type="checkbox" id="cZones" checked>올라감·내려감 구간</label>
-          <label class="chk"><input type="checkbox" id="cPush" checked>살짝 민 파형</label>
-          <label class="chk"><input type="checkbox" id="cTwo">두 시점 비교</label>
-          <span class="spacer"></span>
-          <div class="group" role="group" aria-label="시간 빠르기">
-            <span class="gl">빠르기</span>
-            <button type="button" class="btn mono" data-speed="0.1" aria-pressed="false">×0.1</button>
-            <button type="button" class="btn mono" data-speed="0.25" aria-pressed="true">×0.25</button>
-            <button type="button" class="btn mono" data-speed="1" aria-pressed="false">×1</button>
-          </div>
-        </div>
-        <p class="cap note">화살표 길이 = 그 구슬이 T/12 동안 움직일 거리라서 화살표 끝이 점선(λ/12 민 파형) 근처에 놓인다. 진폭은 보기 좋게 키운 것이다.</p>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치</h2>
-        <div class="readouts">
-          <div class="ro cu"><span>파장 λ ← y-x 에서</span><b id="rLam">8 cm</b></div>
-          <div class="ro cu"><span>주기 T ← y-t 에서</span><b id="rT">0.5 s</b></div>
-          <div class="ro vel"><span>속력 v = λ/T</span><b id="rV">16 cm/s</b></div>
-          <div class="ro" id="roP"><span id="rPn">점 P 의 운동</span><b id="rP">아래로</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 점 P 의 운동</span><span id="ansCtx">오른쪽(→) 진행 · P 는 x = 8 cm</span></div>
+        <div class="big neg" id="ansBig">아래로 (−y)</div>
+        <div class="sub">
+          <span class="f" id="ansF">파형을 진행 방향으로 살짝 밀어 보면</span>
+          <span id="ansLines"><span class="v">오른쪽(→)으로 민 점선이 P 자리에서 실선보다 <em>아래</em> → P 는 <em>아래로</em></span><span class="v"><span class="nw">y-t</span> 그래프의 지금 기울기 <em>−</em></span><span class="v">v = λ/T = <em>8 cm</em> ÷ <em>0.5 s</em> = <em>16 cm/s</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span>파장 λ ← y-x 에서</span><b id="rLam">8 cm</b></div>
+          <div class="mini"><span>주기 T ← y-t 에서</span><b id="rT">0.5 s</b></div>
+          <div class="mini"><span>속력 v = λ/T</span><b id="rV">16 cm/s</b></div>
+          <div class="mini"><span>점 P 의 위치</span><b id="rX">x = 8 cm</b></div>
         </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2>y-t 그래프 <small>점 P 하나의 기록</small></h2>
-        <canvas class="flat" id="yt" aria-label="점 P의 변위-시간 그래프. 반복 간격은 주기, 지금 순간의 기울기 부호가 P의 운동 방향."></canvas>
-        <p class="status" id="ytNow"></p>
-        <p class="cap">가로축이 <b>시간</b> → 반복 간격은 <b>주기 T</b>. 지금 점에 그은 접선의 기울기 부호가 곧 P 의 운동 방향(무대의 P 화살표)이다.</p>
-      </section>
-      <section class="panel">
-        <h2>판단 다리 <small>한 점의 운동이 두 그래프를 잇는다</small></h2>
-        <div class="chain" id="chain">
-          <div class="link"><span id="c1h">① y-x 그래프 · 진행 방향</span><b id="c1">→ 로 살짝 밀면 P 자리 값이 내려감</b></div>
-          <div class="join" aria-hidden="true">⇅</div>
-          <div class="link"><span id="c2h">② 점 P 의 운동</span><b id="c2">아래로 (−y)</b></div>
-          <div class="join" aria-hidden="true">⇅</div>
-          <div class="link"><span id="c3h">③ y-t 그래프 · 그 순간의 기울기</span><b id="c3">− (내려가는 중)</b></div>
-        </div>
-        <p class="cap">진행 방향을 알면 ①→②→③, 한 점의 y-t 그래프(또는 운동)를 알면 ③→②→① 로 거꾸로 간다.</p>
-      </section>
-    </aside>
-  </main>
+      </div>
 
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>축부터: 사진과 기록</h3>
-        <p><b>y-x 그래프</b>는 한 시각에 모든 위치의 변위를 찍은 사진이라 가로 간격이 <b>파장 λ</b>다. <b>y-t 그래프</b>는 한 위치의 변위를 계속 적은 기록이라 가로 간격이 <b>주기 T</b>다.</p>
-        <p>모양이 같아도 뜻이 다르니 가로축 이름부터 본다. 두 그래프는 <span class="eq">v = λ/T</span> 로 이어진다.</p>
-      </article>
-      <article class="concept">
-        <h3>파형 밀기로 다음 순간 읽기</h3>
-        <p>파형을 진행 방향으로 살짝 민 점선이 잠시 뒤의 모습이다. 같은 위치에서 점선이 실선보다 위면 그 점은 <b>위로</b>, 아래면 <b>아래로</b> 움직이는 중이다.</p>
-        <p>그래서 <b>마루 앞쪽은 올라가고 뒤쪽은 내려가며</b>, 마루와 골은 그 순간 멈춰 있다. 한 점은 곧 뒤쪽(파원 쪽) 이웃의 지금 높이를 따라간다.</p>
-      </article>
-      <article class="concept">
-        <h3>거꾸로: 운동 방향 → 진행 방향</h3>
-        <p>y-t 그래프에서 그 순간 <b>기울기의 부호</b>가 그 점의 운동 방향이다. 그 운동이 나오도록 파형을 밀어야 하는 쪽이 진행 방향이다.</p>
-        <p>두 시점의 파형이면 같은 마루의 이동 거리 ÷ 시간 간격이 속력이다. 단, 파장의 정수배만큼 더 갔을 수 있어 ‘시간 간격 &lt; 주기’ 같은 조건을 확인한다.</p>
-      </article>
-    </div>
-    <p class="compare">y-x 그래프 = 한 시각·모든 위치(가로 간격 λ), y-t 그래프 = 한 위치·모든 시각(가로 간격 T). 한 점의 운동 방향이 두 그래프를 잇는 다리다.</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>오른쪽으로 진행하는 파동의 y-x 그래프에서 이웃한 마루 사이가 8 cm이고, 한 점의 y-t 그래프에서 주기가 0.5 s이다. 속력은? 또 골과 마루 사이 평형 위치의 점 P(x = 8 cm)는 다음 순간 어느 쪽으로 움직일까?<span class="tag">개념서 예제</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button></div>
-        <details><summary>답 보기</summary><p>v = λ/T = 8 ÷ 0.5 = <b>16 cm/s</b>. P는 y-x 기울기가 양(+)인 곳이라 파형을 오른쪽으로 살짝 밀면 P 자리의 변위가 음(−)이 된다 → <b>아래(−y)</b>. 무대에서 점선이 P 아래를 지나고, ‘살짝 앞으로’를 누르면 실선이 그 점선 자리로 온다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>어느 순간의 y-x 그래프에서 마루 바로 왼쪽의 평형 위치(y = 0)에 있는 점 B가 위(+y)로 움직이고 있다. 이 파동의 진행 방향은?<span class="tag">개념 체크</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="b">B로 판정해 보기</button></div>
-        <details><summary>답 보기</summary><p><b>−x 방향</b>. 파형을 −x로 살짝 밀면 B 자리에 오른쪽 마루 쪽의 높은 부분이 와서 B가 올라간다. +x로 밀면 왼쪽 골 쪽 부분이 와서 B는 내려가야 한다. 진행 방향은 x축 위의 방향이므로 +y는 답이 될 수 없다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>마루(왼쪽)와 골(오른쪽) 사이 평형 위치의 점 P의 y-t 그래프가 t = 0 직후 아래로 내려간다. 진행 방향은? 또 3T/4 뒤 P의 변위는?</p>
-        <div class="acts"><button type="button" class="btn" data-try="yt">y-t 단서로 판정해 보기</button></div>
-        <details><summary>답 보기</summary><p>y-t 기울기가 음(−)이므로 P는 아래로 움직인다. 오른쪽으로 밀면 P 자리에 왼쪽 마루 쪽 값이 와서 올라가야 하므로 맞지 않고, 왼쪽으로 밀면 오른쪽 골 쪽 값이 와서 내려간다 → <b>−x 방향</b>. P의 변위는 0 → −A(T/4) → 0(T/2) → <b>+A(3T/4, 마루)</b>. 판정 뒤 ‘¼ 주기 앞으로’를 세 번 눌러 확인한다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>+x 방향으로 진행하는 파장 12 cm인 파동에서 t = 0에 x = 2 cm에 있던 마루가 t = 0.25 s에 x = 5 cm에 있었다. 0.25 s가 주기보다 짧을 때 주기는?<span class="tag">개념 체크</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="two">두 시점 비교하기</button></div>
-        <details><summary>답 보기</summary><p>시간 간격이 주기보다 짧으므로 마루는 보이는 거리 3 cm만 갔다: v = 3 ÷ 0.25 = 12 cm/s, T = λ/v = 12 ÷ 12 = <b>1 s</b>. 조건이 없으면 3 + 12 = 15 cm, 27 cm …를 갔을 수도 있다. 계속 움직여 t = 1 s(한 주기)가 되면 파형이 처음 모습(회색 점선)과 똑같아진다.</p></details>
-      </li>
-    </ol>
-    <!-- nextprev -->
+      <ol class="steps">
+        <li class="card step" data-step="① 사진과 기록">
+          <div class="kind">관찰 1</div>
+          <h3><span class="nw">y-x</span> 그래프는 한 순간의 사진, <span class="nw">y-t</span> 그래프는 한 점의 기록이다</h3>
+          <p>줄 전체를 찍은 무대가 <b><span class="nw">y-x</span> 그래프</b>다. 한 시각에 모든 위치의 변위를 찍은 사진이라 가로 간격이 파장 λ 다. 아래 그래프는 점 P 하나를 지켜보며 적은 <span class="nw">y-t</span> 그래프다. 한 위치의 변위를 계속 적은 기록이라 가로 간격이 주기 T 다.</p>
+          <canvas class="flat" id="yt" aria-label="점 P의 변위-시간 그래프. 반복 간격은 주기, 지금 순간의 기울기 부호가 P의 운동 방향."></canvas>
+          <p class="status" id="ytNow"></p>
+          <p class="cap">가로축이 시간이라 반복 간격은 주기 T 다. 지금 점에 그은 접선의 기울기 부호가 곧 P 의 운동 방향(무대의 P 화살표)이다. 모양이 같아도 뜻이 다르니 가로축 이름부터 보고, 두 그래프는 <span class="eq">v = λ/T</span> 로 이어진다. 파장을 바꾸면 무대의 간격만, 주기를 바꾸면 이 그래프의 간격만 바뀐다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:#stepQ">¼ 주기씩 앞으로 ▸</button>
+            <button type="button" class="btn" data-do="set:#lam=12">파장 12 cm</button>
+            <button type="button" class="btn" data-do="set:#per=1">주기 1 s</button>
+            <button type="button" class="btn" data-do="set:#lam=8; set:#per=0.5">처음 값으로</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 살짝 밀기">
+          <div class="kind">관찰 2</div>
+          <h3>파형을 진행 방향으로 살짝 민 모양이 곧 다음 순간이다</h3>
+          <p>점선은 파형을 진행 방향으로 λ/12 만큼 민 모습이다. 같은 위치에서 점선이 실선보다 위면 그 점은 <b>위로</b>, 아래면 아래로 움직이는 중이다. P 자리에서 점선과 실선을 견줘 보자.</p>
+          <p class="cap">구슬의 화살표 길이는 그 구슬이 T/12 동안 움직일 거리라서 화살표 끝이 점선 근처에 놓인다. ‘살짝 앞으로’를 누르면 실선이 점선 자리로 온다. 진폭은 보기 좋게 키운 것이다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:#stepS">살짝 앞으로 ▸</button>
+            <button type="button" class="btn" data-do="check:#cPush">점선 켜기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 마루 앞과 뒤">
+          <div class="kind">관찰 3</div>
+          <h3>마루 앞쪽은 올라가고, 뒤쪽은 내려간다</h3>
+          <p>진행 방향 쪽 반 파장(마루 앞쪽)은 올라가고 반대쪽 반 파장(뒤쪽)은 내려가며, <b>마루와 골은 그 순간 멈춰 있다</b>. 한 점은 곧 뒤쪽(파원 쪽) 이웃의 지금 높이를 따라간다.</p>
+          <p class="cap">초록 띠는 올라가는 구간, 빨간 띠는 내려가는 구간이다. 진행 방향을 바꾸면 두 띠가 서로 바뀐다. 무대의 P 를 끌어 여러 자리에서 확인해 보자.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-do="click:[data-mode=see]; click:[data-dir='-1']">← 로 진행</button>
+            <button type="button" class="btn" data-do="click:[data-mode=see]; click:[data-dir='1']">→ 로 진행</button>
+            <button type="button" class="btn" data-do="check:#cZones">구간 띠 켜기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 거꾸로 판단">
+          <div class="kind">관찰 4</div>
+          <h3>한 점의 운동이 두 그래프를 잇는다</h3>
+          <p><span class="nw">y-t</span> 그래프에서 그 순간 <b>기울기의 부호</b>가 그 점의 운동 방향이다. 그 운동이 나오도록 파형을 밀어야 하는 쪽이 진행 방향이다.</p>
+          <div class="chain" id="chain">
+            <div class="link"><span id="c1h">① <span class="nw">y-x</span> 그래프 · 진행 방향</span><b id="c1">→ 로 살짝 밀면 P 자리 값이 내려감</b></div>
+            <div class="join" aria-hidden="true">⇅</div>
+            <div class="link"><span id="c2h">② 점 P 의 운동</span><b id="c2" class="down">아래로 (−y)</b></div>
+            <div class="join" aria-hidden="true">⇅</div>
+            <div class="link"><span id="c3h">③ <span class="nw">y-t</span> 그래프 · 그 순간의 기울기</span><b id="c3" class="down">− (내려가는 중)</b></div>
+          </div>
+          <p class="cap">진행 방향을 알면 ①→②→③, 한 점의 <span class="nw">y-t</span> 그래프(또는 운동)를 알면 ③→②→① 로 거꾸로 간다. 판정 연습에서는 단서만 보고 진행 방향을 골라 본다.</p>
+          <div class="acts"><button type="button" class="btn go" data-do="click:[data-mode=judge]">판정 연습 시작</button></div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>가로축부터 보고, 한 점의 운동으로 잇는다</h3>
+          <ul>
+            <li><span class="nw">y-x</span> 그래프 = 한 시각·모든 위치(가로 간격 λ), <span class="nw">y-t</span> 그래프 = 한 위치·모든 시각(가로 간격 T). 둘은 <span class="eq">v = λ/T</span> 로 이어진다.</li>
+            <li>다음 순간 = 진행 방향으로 살짝 민 파형. 마루 앞쪽은 올라가고 뒤쪽은 내려가며, 마루·골은 순간 정지다.</li>
+            <li><span class="nw">y-t</span> 기울기의 부호가 그 점의 운동 방향이고, 그 운동이 나오게 미는 쪽이 진행 방향이다.</li>
+            <li>두 시점의 파형이면 같은 마루의 이동 거리 ÷ 시간 간격이 속력이다. 단, 파장의 정수배만큼 더 갔을 수 있어 ‘시간 간격 &lt; 주기’ 같은 조건을 확인한다.</li>
+          </ul>
+          <div class="acts"><button type="button" class="btn" data-do="click:[data-mode=see]; check:#cTwo">두 시점 비교하기</button></div>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>오른쪽으로 진행하는 파동의 <span class="nw">y-x</span> 그래프에서 이웃한 마루 사이가 8 cm이고, 한 점의 <span class="nw">y-t</span> 그래프에서 주기가 0.5 s이다. 속력은? 또 골과 마루 사이 평형 위치의 점 P(x = 8 cm)는 다음 순간 어느 쪽으로 움직일까?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p><span class="nw">y-x</span> 그래프에서 λ = 8 cm, <span class="nw">y-t</span> 그래프에서 T = 0.5 s 를 읽어 v = λ/T = 8 ÷ 0.5 = <b>16 cm/s</b>. P 는 <span class="nw">y-x</span> 기울기가 양(+)인 곳이라 파형을 오른쪽으로 살짝 밀면 P 자리의 변위가 음(−)이 된다 → <b>아래(−y)</b>. 무대에서 점선이 P 아래를 지나고, ‘살짝 앞으로’를 누르면 실선이 그 점선 자리로 온다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>어느 순간의 <span class="nw">y-x</span> 그래프에서 마루 바로 왼쪽의 평형 위치(y = 0)에 있는 점 B가 위(+y)로 움직이고 있다. 이 파동의 진행 방향은?<span class="tagx">개념 체크</span></h3>
+            <div class="acts"><button type="button" class="btn" data-try="b">B로 판정해 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>−x 방향</b>. 파형을 −x로 살짝 밀면 B 자리에 오른쪽 마루 쪽의 높은 부분이 와서 B가 올라간다. +x로 밀면 왼쪽 골 쪽 부분이 와서 B는 내려가야 한다. 진행 방향은 x축 위의 방향이므로 +y는 답이 될 수 없다.</p></details>
+          </div>
+          <div class="q">
+            <h3>마루(왼쪽)와 골(오른쪽) 사이 평형 위치의 점 P의 <span class="nw">y-t</span> 그래프가 t = 0 직후 아래로 내려간다. 진행 방향은? 또 3T/4 뒤 P의 변위는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="yt"><span class="nw">y-t</span> 단서로 판정해 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><span class="nw">y-t</span> 기울기가 음(−)이므로 P는 아래로 움직인다. 오른쪽으로 밀면 P 자리에 왼쪽 마루 쪽 값이 와서 올라가야 하므로 맞지 않고, 왼쪽으로 밀면 오른쪽 골 쪽 값이 와서 내려간다 → <b>−x 방향</b>. P의 변위는 0 → −A(T/4) → 0(T/2) → <b>+A(3T/4, 마루)</b>. 판정 뒤 ‘¼ 주기 앞으로’를 세 번 눌러 확인한다.</p></details>
+          </div>
+          <div class="q">
+            <h3>+x 방향으로 진행하는 파장 12 cm인 파동에서 t = 0에 x = 2 cm에 있던 마루가 t = 0.25 s에 x = 5 cm에 있었다. 0.25 s가 주기보다 짧을 때 주기는?<span class="tagx">개념 체크</span></h3>
+            <div class="acts"><button type="button" class="btn" data-try="two">두 시점 비교하기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>시간 간격이 주기보다 짧으므로 마루는 보이는 거리 3 cm만 갔다: v = 3 ÷ 0.25 = 12 cm/s, T = λ/v = 12 ÷ 12 = <b>1 s</b>. 조건이 없으면 3 + 12 = 15 cm, 27 cm …를 갔을 수도 있다. 계속 움직여 t = 1 s(한 주기)가 되면 파형이 처음 모습(회색 점선)과 똑같아진다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../01/" rel="prev"><small>← 이전 개념 · III1-01</small><b>횡파와 종파</b></a><a href="../03/" rel="next"><small>다음 개념 · III1-03 →</small><b>매질이 바뀔 때</b></a></nav>
 <!-- /nextprev -->
-  </section>
+    </section>
+  </main>
 </div>
 
 <script src="../../kit/lab.js"></script>
@@ -224,16 +254,16 @@
   // 화면용 운동 판정: 마루·골 근처(|sin| < 0.04)는 '순간 정지'
   const moveOf = (x, t, w) => { const s = Math.sin(M.phase(x, t, w)) * w.dir; return Math.abs(s) < 0.04 ? 0 : (s > 0 ? 1 : -1); };
   const judging = () => S.mode === 'judge' && !J.done;
+  const ARROW = (d) => (d > 0 ? '오른쪽(→)' : '왼쪽(←)');
 
-  const stage = Lab.canvas('stage', draw), yt = Lab.canvas('yt', draw);
-  const stageBox = document.querySelector('.stage');
+  const stage = Lab.canvas('stage', drawStage), yt = Lab.canvas('yt', drawYT);
   let G = null;                             // 마지막 무대 배치 (끌기에 씀)
 
   // ── 무대 배치 ───────────────────────────────────────────
-  // 세로 배치: 위 = HUD·진행 방향(·판정 단서 상자), 그 아래 λ 자와 구간 이름, 가운데 줄, 아래 위치 자와 범례
-  function insetBox(W, H) {
-    const narrow = W < 520, bw = narrow ? W - 24 : Math.min(300, W * 0.42), bh = narrow ? 118 : 104;
-    return {x: W - bw - 12, y: narrow ? 50 : 44, w: bw, h: bh};
+  // 세로: 위 = HUD·진행 방향(·판정 단서 상자 / 두 시점 설명), 그 아래 λ 자와 구간 이름, 가운데 줄, 아래 위치 자(그 밑은 범례·지금 단계 자리)
+  function insetBox(W) {
+    const narrow = W < 520, bw = narrow ? W - 24 : Math.min(300, W * 0.42), bh = narrow ? 110 : 108;
+    return {x: W - bw - 12, y: narrow ? 50 : 46, w: bw, h: bh};
   }
   function layout(W, H, inset) {
     const narrow = W < 520;
@@ -241,11 +271,11 @@
     const padL = narrow ? 34 : 50, padR = narrow ? 18 : 30;
     const X = (x) => padL + x / XW * (W - padL - padR);
     const inv = (px) => (px - padL) / (W - padL - padR) * XW;
-    const axisY = H - (narrow ? 104 : 64);             // 위치 눈금(자): 범례 위
-    let amp = Math.min(H * (narrow ? 0.19 : 0.205), (W - padL - padR) * (narrow ? 0.235 : 0.2));
-    let yMid = axisY - 34 - amp;
-    const minTop = inset ? inset.y + inset.h + 26 : S.two ? (narrow ? 196 : 180) : (narrow ? 140 : 120);
-    if (yMid - amp < minTop) { amp = Math.max(30, (axisY - 34 - minTop) / 2); yMid = axisY - 34 - amp; }
+    const axisY = H - (narrow ? 60 : 68);
+    const minTop = inset ? inset.y + inset.h + 26 : S.two ? 178 : 124;    // 마루 꼭대기가 내려와야 하는 곳
+    // 진폭(그림): 남는 높이를 채우되 너무 가파르지 않게
+    const amp = Math.max(26, Math.min((axisY - 30 - minTop) / 2, H * 0.24, (W - padL - padR) * (narrow ? 0.235 : 0.2)));
+    const yMid = axisY - 30 - amp;
     return {narrow, XW, padL, padR, X, inv, axisY, amp, yMid, ppc: (W - padL - padR) / XW};
   }
 
@@ -253,7 +283,7 @@
   function drawStage() {
     const {ctx, W, H} = stage; if (!W) return;
     ctx.clearRect(0, 0, W, H);
-    const box = S.mode === 'judge' && J.clue === 'yt' ? insetBox(W, H) : null;
+    const box = S.mode === 'judge' && J.clue === 'yt' ? insetBox(W) : null;
     const L = layout(W, H, box); G = L;
     if (L.XW !== S.XW) syncXW(L.XW);
     const {narrow, XW, X, axisY, amp, yMid} = L;
@@ -263,7 +293,7 @@
     const lamPx = S.lambda * L.ppc;
     const crestTop = yMid - amp;
 
-    // 모눈 (1 cm)
+    // 모눈 (1 cm, 폰은 2 cm)
     ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
     const gs = narrow ? 2 : 1, gp = gs * L.ppc;
     for (let k = 0; k <= XW + 1e-9; k += gs) { ctx.beginPath(); ctx.moveTo(X(k), 0); ctx.lineTo(X(k), axisY); ctx.stroke(); }
@@ -272,7 +302,7 @@
 
     // 올라감·내려감 구간 (마루 앞쪽 반 파장 = 올라감, 뒤쪽 반 파장 = 내려감)
     const cs = M.crests(t, w, -S.lambda, XW + S.lambda);
-    const zoneTop = crestTop - 46, zoneBot = yMid + amp + 14;
+    const zoneTop = crestTop - 44, zoneBot = yMid + amp + 14;
     const showZones = reveal && S.zones && !S.two;
     if (showZones) {
       ctx.save(); ctx.beginPath(); ctx.rect(X(0), zoneTop, X(XW) - X(0), zoneBot - zoneTop); ctx.clip();
@@ -323,16 +353,15 @@
     // 구슬과 운동 방향 화살표 (길이 = T/12 동안 움직일 거리 ≈ 점선까지)
     let n = 16; while (n > 4 && lamPx / n < (narrow ? 13 : 18)) n = n === 16 ? 12 : n === 12 ? 8 : n === 8 ? 6 : 4;
     const ds = S.lambda / n, rB = narrow ? 4 : 4.4;
-    const beads = []; for (let i = 0; i * ds <= XW + 1e-9; i++) beads.push(i * ds);
     const vs = S.T * PUSH * amp;                       // 속도 → 화살표 픽셀
-    for (const x of beads) {
-      const px = X(x), py = Y(M.disp(x, t, w));
+    for (let i = 0; i * ds <= XW + 1e-9; i++) {
+      const x = i * ds, px = X(x), py = Y(M.disp(x, t, w));
       if (reveal && S.arrows && Math.abs(x - S.xP) > ds * 0.45) {
         const dy = M.vel(x, t, w) * vs;
         if (Math.abs(dy) > 3.5) arrow(ctx, px, py - Math.sign(dy) * (rB + 1), px, py - dy, dy > 0 ? C.acc : C.neg, 2.2, 7);
-        else { ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 2.2; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(px - 6, py - rB - 5); ctx.lineTo(px + 6, py - rB - 5); ctx.stroke(); ctx.restore(); }
+        else Lab.line(ctx, [[px - 6, py - rB - 5], [px + 6, py - rB - 5]], C.muted, 2.2);
       }
-      ctx.beginPath(); ctx.arc(px, py, rB, 0, 7); ctx.fillStyle = C.vel; ctx.fill();
+      Lab.circle(ctx, px, py, rB, {fill: C.vel});
     }
 
     // 마루 표시
@@ -340,42 +369,39 @@
     const tr = S.two ? S.two.c0 + S.dir * M.speed(S.lambda, S.T) * (t - S.two.t0) : null;
     for (const c of inView) {
       const isTr = tr !== null && Math.abs(c - tr) < 1e-6;
-      ctx.beginPath(); ctx.moveTo(X(c), crestTop - 6); ctx.lineTo(X(c) - 7, crestTop - 18); ctx.lineTo(X(c) + 7, crestTop - 18); ctx.closePath();
-      ctx.fillStyle = isTr ? C.copper : C.vel; ctx.fill();
+      ctx.save(); ctx.beginPath(); ctx.moveTo(X(c), crestTop - 6); ctx.lineTo(X(c) - 7, crestTop - 18); ctx.lineTo(X(c) + 7, crestTop - 18); ctx.closePath();
+      ctx.fillStyle = isTr ? C.copper : C.vel; ctx.fill(); ctx.restore();
     }
     // 이름표: P 앞쪽(오른쪽)에서 처음 만나는 마루
     if (inView.length && !S.two) {
       const right = inView.filter((c) => c > S.xP + 0.6);
       const cl = right.length ? right[0] : inView[inView.length - 1];
       const roomR = X(XW) - X(cl) > 120;
-      text(ctx, reveal ? '마루 · 순간 정지' : '마루', X(cl) + (roomR ? 11 : -11), crestTop - 13, {size: 13, color: C.vel, w: 700, halo: true, align: roomR ? 'left' : 'right'});
+      text(ctx, reveal ? '마루 · 순간 정지' : '마루', X(cl) + (roomR ? 11 : -11), crestTop - 13, {size: 13, color: C.vel, w: 600, halo: true, align: roomR ? 'left' : 'right'});
     }
 
     // 위쪽 띠: 구간 이름 · λ 자 · 두 시점 이동 거리
-    const zoneY = crestTop - 34, rulerY = crestTop - 62;
+    const zoneY = crestTop - 32, rulerY = crestTop - (S.two ? 66 : 56);
     if (showZones) {
       for (const c of cs) {
         for (const side of [1, -1]) {
-          const a = c, b = c + side * S.dir * S.lambda / 2, mid = (a + b) / 2;
+          const b = c + side * S.dir * S.lambda / 2, mid = (c + b) / 2;
           if (mid < 0.1 * S.lambda || mid > XW - 0.1 * S.lambda) continue;
-          const up = side === 1, wpx = lamPx / 2;
-          const s = wpx > 70 ? (up ? '↑ 올라감' : '↓ 내려감') : (up ? '↑' : '↓');
-          if (box && X(mid) > box.x - 36 && zoneY < box.y + box.h + 10) continue;
-          text(ctx, s, X(mid), zoneY, {size: 13.5, color: up ? C.acc : C.neg, w: 700, halo: true});
+          const up = side === 1, s = lamPx / 2 > 70 ? (up ? '↑ 올라감' : '↓ 내려감') : (up ? '↑' : '↓');
+          text(ctx, s, X(mid), zoneY, {size: 13.5, color: up ? C.acc : C.neg, w: 600, halo: true});
         }
       }
     }
     if (S.two) {
-      const c0 = S.two.c0, dx = tr - c0;
+      const c0 = S.two.c0, dx = tr - c0, dT = S.t - S.two.t0;
       if (Math.abs(dx) > 0.05 && X(tr) >= X(0) - 1 && X(tr) <= X(XW) + 1) bracket(ctx, X(c0), X(tr), rulerY, C.copper, 'Δx = ' + fmt(Math.abs(dx), 1) + ' cm');
       const alt = tr + S.dir * S.lambda;
-      if (S.t - S.two.t0 < S.T - 1e-6 && alt >= 0 && alt <= XW && Math.abs(dx) > 0.05) {
-        ctx.save(); ctx.globalAlpha = 0.75; bracket(ctx, X(c0), X(alt), rulerY + 26, C.muted, null); ctx.restore();
-        text(ctx, '또는 Δx + λ ?', (X(c0) + X(alt)) / 2, rulerY + 40, {size: 13, color: C.muted, w: 600, halo: true});
+      if (dT < S.T - 1e-6 && alt >= 0 && alt <= XW && Math.abs(dx) > 0.05) {
+        ctx.save(); ctx.globalAlpha = 0.75; bracket(ctx, X(c0), X(alt), rulerY + 24, C.muted, null); ctx.restore();
+        text(ctx, '또는 Δx + λ ?', (X(c0) + X(alt)) / 2, rulerY + 38, {size: 13, color: C.muted, w: 500, halo: true});
       }
-      const dT = S.t - S.two.t0;
-      text(ctx, '회색 점선 = Δt 전의 모습', 14, 60, {size: 13, color: C.muted, w: 600, align: 'left'});
-      if (dT > 1e-6) text(ctx, 'v = Δx ÷ Δt = ' + fmt(Math.abs(dx), 2) + ' ÷ ' + fmt(dT, 3) + ' = ' + fmt(Math.abs(dx) / dT, 2) + ' cm/s', 14, 82, {size: 13.5, color: C.copper, w: 700, align: 'left', mono: true});
+      text(ctx, '회색 점선 = Δt 전의 모습', 14, 60, {size: 13, color: C.muted, w: 500, align: 'left'});
+      if (dT > 1e-6) text(ctx, 'v = Δx ÷ Δt = ' + fmt(Math.abs(dx), 2) + ' ÷ ' + fmt(dT, 3) + ' = ' + fmt(Math.abs(dx) / dT, 2) + ' cm/s', 14, 82, {size: 13.5, color: C.copper, w: 600, align: 'left'});
     } else if (inView.length >= 2 && reveal && !box) {
       const k = !narrow && inView.length >= 3 ? 1 : 0;
       bracket(ctx, X(inView[k]), X(inView[k + 1]), rulerY, C.copper, 'λ = ' + fmt(S.lambda, 1) + ' cm');
@@ -387,7 +413,7 @@
     if (showPush) {
       const xu = xP - g * dpx, yu = M.disp(xu, t, w), py2 = Y(yu);
       // 뒤쪽 이웃의 지금 높이가 δ 만큼 옮겨 와 P 자리에 놓인다
-      ctx.beginPath(); ctx.arc(X(xu), py2, 4.2, 0, 7); ctx.fillStyle = C.vel; ctx.fill();
+      Lab.circle(ctx, X(xu), py2, 4.2, {fill: C.vel});
       arrow(ctx, X(xu) + g * 5, py2, pX - g * 7, py2, C.vel, 2, 7);
       const mg = M.sign(yu - M.disp(xP, t, w), 1e-4);
       if (Math.abs(py2 - pY) > 12) arrow(ctx, pX, pY - Math.sign(pY - py2) * 11, pX, py2 + Math.sign(pY - py2) * 7, mg > 0 ? C.acc : C.neg, 3.2, 10);
@@ -400,24 +426,22 @@
     if (S.mode === 'judge' && J.clue === 'arrow') {
       const mv = moveOf(xP, 0, w), gx = pX + 26;
       arrow(ctx, gx, pY - mv * 4, gx, pY - mv * 44, mv > 0 ? C.acc : C.neg, 3.4, 11);
-      text(ctx, '단서: ' + (mv > 0 ? '위로' : '아래로'), gx + 9, pY - mv * 30, {size: 13.5, color: mv > 0 ? C.acc : C.neg, w: 700, align: 'left', halo: true});
+      text(ctx, '단서: ' + (mv > 0 ? '위로' : '아래로'), gx + 9, pY - mv * 30, {size: 13.5, color: mv > 0 ? C.acc : C.neg, w: 600, align: 'left', halo: true});
     }
-    ctx.beginPath(); ctx.arc(pX, pY, 9.5, 0, 7); ctx.fillStyle = C.copper; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.paper; ctx.stroke();
-    text(ctx, S.pName, pX - 15, pY - 13, {size: 15, color: C.copper, w: 800, halo: true});
+    Lab.circle(ctx, pX, pY, 9.5, {fill: C.copper, stroke: C.paper, width: 2});
+    text(ctx, S.pName, pX - 15, pY - 13, {size: 15, color: C.copper, w: 700, halo: true});
     if (reveal && !(S.mode === 'judge' && J.clue === 'arrow')) {
       const lab = mTrue > 0 ? '위로' : mTrue < 0 ? '아래로' : '순간 정지';
       const ly = mTrue === 0 ? pY + 22 : pY + (mTrue > 0 ? 14 : -14);
-      text(ctx, lab, pX + 15, ly, {size: 14, color: mTrue > 0 ? C.acc : mTrue < 0 ? C.neg : C.muted, w: 700, align: 'left', halo: true});
+      text(ctx, lab, pX + 15, ly, {size: 14, color: mTrue > 0 ? C.acc : mTrue < 0 ? C.neg : C.muted, w: 600, align: 'left', halo: true});
     }
 
-    // 진행 방향
+    // 진행 방향 (오른쪽 위)
     const ay = narrow && S.two ? 60 : 26, ax = W - 18;
     if (reveal) {
       arrow(ctx, S.dir > 0 ? ax - 64 : ax, ay, S.dir > 0 ? ax : ax - 64, ay, C.vel, 3, 10);
-      text(ctx, '진행 방향', ax - 74, ay, {size: 13.5, color: C.vel, w: 700, align: 'right'});
-    } else {
-      text(ctx, '진행 방향 ?', ax, ay, {size: 15, color: C.copper, w: 800, align: 'right'});
-    }
+      text(ctx, '진행 방향', ax - 74, ay, {size: 13.5, color: C.vel, w: 600, align: 'right'});
+    } else text(ctx, '진행 방향 ?', ax, ay, {size: 15, color: C.copper, w: 700, align: 'right'});
 
     // 위치 자
     ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1;
@@ -425,7 +449,7 @@
     for (let k = 0; k <= XW; k++) {
       const big = k % 4 === 0;
       ctx.beginPath(); ctx.moveTo(X(k), axisY - (big ? 5 : 2.5)); ctx.lineTo(X(k), axisY + (big ? 5 : 2.5)); ctx.stroke();
-      if (big) text(ctx, String(k), X(k), axisY + 14, {size: 13, color: C.muted, w: 500, mono: true});
+      if (big) text(ctx, String(k), X(k), axisY + 14, {size: 13, color: C.muted, w: 500});
     }
     ctx.restore();
     text(ctx, '위치 (cm)', X(XW) + 2, axisY - 13, {size: 13, color: C.muted, w: 500, align: 'right', halo: true});
@@ -434,12 +458,12 @@
     if (box) {
       const {x: bx, y: by, w: bw, h: bh} = box;
       ctx.save(); Lab.rrect(ctx, bx, by, bw, bh, 12); ctx.fillStyle = C.glass; ctx.fill(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
-      text(ctx, '단서: ' + S.pName + ' 의 y-t 그래프', bx + 12, by + 14, {size: 13, color: C.copper, w: 700, align: 'left'});
-      ytGraph(ctx, {x: bx + 26, y: by + 38, w: bw - 52, h: bh - 62}, {given: true, small: true, span: 1});
+      text(ctx, '단서: ' + S.pName + ' 의 y-t 그래프', bx + 12, by + 14, {size: 13, color: C.copper, w: 600, align: 'left'});
+      ytGraph(ctx, {x: bx + 26, y: by + 32, w: bw - 52, h: bh - 54}, {given: true, small: true, span: 1});
     }
   }
 
-  // ── 점 P 의 y-t 그래프 (패널·단서 상자에서 같이 씀) ─────────
+  // ── 점 P 의 y-t 그래프 (관찰 1 의 그래프·판정 단서 상자에서 같이 씀) ─────────
   function ytGraph(ctx, r, o) {
     const w = wave(), span = o.span || 2;
     const t0 = o.given ? 0 : Math.max(0, S.t - 0.62 * span), t1 = t0 + span;
@@ -459,7 +483,7 @@
     for (let k = Math.ceil(t0 / labStep - 1e-9); k * labStep <= t1 + 1e-9; k++) {
       const x = X(k * labStep);
       if (!o.small && x > r.x + r.w - 30) continue;
-      text(ctx, fmt(k * labStep, 2), x, r.y + r.h + 13, {size: 13, w: 500, color: C.muted, mono: true});
+      text(ctx, fmt(k * labStep, 2), x, r.y + r.h + 13, {size: 13, w: 500, color: C.muted});
     }
     // 곡선: 지난 기록은 실선, 앞으로는 옅은 점선 (주어진 그래프는 모두 실선)
     ctx.save(); ctx.beginPath(); ctx.rect(r.x - 2, r.y - 10, r.w + 4, r.h + 20); ctx.clip();
@@ -490,12 +514,11 @@
     const col = mv > 0 ? C.acc : mv < 0 ? C.neg : C.muted;
     const hb = o.given ? 0 : Math.min(30, (px - r.x) / Math.max(dx, 0.2)), hf = o.small ? 30 : 34;
     if (!judging()) {     // 판정 중에는 기울기를 직접 읽게 접선을 감춘다
-      ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2.6; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(px - dx * hb, py - dy * hb); ctx.lineTo(px + dx * hf, py + dy * hf); ctx.stroke(); ctx.restore();
+      Lab.line(ctx, [[px - dx * hb, py - dy * hb], [px + dx * hf, py + dy * hf]], col, 2.6);
     }
-    if (!o.given) { ctx.save(); ctx.strokeStyle = C.muted; ctx.setLineDash([3, 3]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px, r.y); ctx.lineTo(px, r.y + r.h); ctx.stroke(); ctx.restore(); }
-    ctx.beginPath(); ctx.arc(px, py, o.small ? 4.6 : 5.5, 0, 7); ctx.fillStyle = C.copper; ctx.fill();
-    if (o.given) text(ctx, 't = 0', px + 6, py + (yn > 0.2 ? 15 : -14), {size: 13, color: C.copper, w: 700, align: 'left', halo: true});
+    if (!o.given) Lab.line(ctx, [[px, r.y], [px, r.y + r.h]], C.muted, 1, [3, 3]);
+    Lab.circle(ctx, px, py, o.small ? 4.6 : 5.5, {fill: C.copper});
+    if (o.given) text(ctx, 't = 0', px + 6, py + (yn > 0.2 ? 15 : -14), {size: 13, color: C.copper, w: 600, align: 'left', halo: true});
   }
 
   function drawYT() {
@@ -506,33 +529,70 @@
 
   function draw() { drawStage(); drawYT(); readouts(); }
 
-  // ── 읽기 값·판단 다리·예제 확인 ────────────────────────────
+  // ── 수치·판단 다리·지금 값·예제 확인 ─────────────────────────
   const MV = {1: ['위로 (+y)', 'up'], '-1': ['아래로 (−y)', 'down'], 0: ['순간 정지', '']};
   const setTxt = (id, s, cls) => { const el = $(id); if (el.textContent !== s) el.textContent = s; if (cls !== undefined && el.className !== cls) el.className = cls; };
-  const ARROW = (d) => (d > 0 ? '오른쪽(→)' : '왼쪽(←)');
+  let ansKey = '', lastOk = null;
+  function answer() {
+    const w = wave(), P = S.pName, v = M.speed(S.lambda, S.T);
+    const vLine = 'v = λ/T = <em>' + fmt(S.lambda, 1) + ' cm</em> ÷ <em>' + fmt(S.T, 2) + ' s</em> = <em>' + fmt(v, 2) + ' cm/s</em>';
+    const fJ = '단서 → 한 점의 운동 → 그 운동이 나오게 미는 쪽';
+    let key, lab, big, lines, o;
+    if (S.mode === 'judge') {
+      const m0 = moveOf(S.xP, 0, w), clue = '단서: ' + (J.clue === 'yt' ? P + ' 의 y-t 그래프' : P + ' 의 운동 방향'), mvs = m0 > 0 ? '위로(+y)' : '아래로(−y)';
+      lab = '판정 연습 · 진행 방향';
+      if (J.done) {
+        key = ['jd', S.dir, m0, P, J.clue].join();
+        big = S.dir > 0 ? '+x 방향 (→)' : '−x 방향 (←)';
+        lines = ['단서: ' + P + ' 는 <em>' + mvs + '</em> 움직인다' + (J.clue === 'yt' ? ' (<span class="nw">y-t</span> 기울기 ' + (m0 > 0 ? '+' : '−') + ')' : ''),
+          '<em>' + ARROW(S.dir) + '</em>으로 밀면 ' + P + ' 자리 값이 ' + (m0 > 0 ? '올라감' : '내려감') + ' → 단서와 같다'];
+        o = {tone: 'vel', ctx: clue, f: fJ};
+      } else {
+        key = ['j', J.clue, J.guess, P, m0].join();
+        big = '진행 방향 ?';
+        lines = [J.clue === 'yt' ? '① t = 0 직후 <span class="nw">y-t</span> 그래프가 올라가는지 내려가는지 읽는다' : '① 단서: ' + P + ' 는 <em>' + mvs + '</em> 움직인다',
+          '② 그 운동이 나오도록 파형을 밀어야 하는 쪽이 진행 방향이다'];
+        if (J.guess) { const got = moveOf(S.xP, 0, wave(J.guess)); lines.push(ARROW(J.guess) + '으로 밀면 ' + P + ' 자리 값이 <em>' + (got > 0 ? '올라감' : '내려감') + '</em> — 단서와 다르다'); }
+        o = {tone: 'cu', ctx: clue, f: fJ};
+      }
+    } else if (S.two) {
+      key = ['two', S.lambda, S.T, S.dir].join();
+      lab = '두 시점 비교 · 속력';
+      big = 'v = ' + fmt(v, 2) + ' cm/s';
+      lines = ['같은 마루가 Δt 동안 Δx 만큼 가면 v = Δx ÷ Δt', 'Δt 가 주기 T(' + fmt(S.T, 2) + ' s)보다 짧으면 Δx 는 보이는 거리 그대로다', vLine];
+      o = {tone: 'vel', ctx: ARROW(S.dir) + ' 진행 · λ = ' + fmt(S.lambda, 1) + ' cm', f: '두 시점의 파형에서 같은 마루를 따라가면'};
+    } else {
+      const mv = moveOf(S.xP, S.t, w);
+      key = ['s', mv, S.dir, P, S.xP, S.lambda, S.T].join();
+      lab = '지금 점 ' + P + ' 의 운동';
+      big = MV[mv][0];
+      lines = [mv === 0 ? P + ' 는 마루·골이라 살짝 밀어도 높이가 거의 그대로 → <em>순간 정지</em>'
+        : ARROW(S.dir) + '으로 민 점선이 ' + P + ' 자리에서 실선보다 <em>' + (mv > 0 ? '위' : '아래') + '</em> → ' + P + ' 는 <em>' + (mv > 0 ? '위로' : '아래로') + '</em>',
+      '<span class="nw">y-t</span> 그래프의 지금 기울기 <em>' + (mv > 0 ? '+' : mv < 0 ? '−' : '0') + '</em>', vLine];
+      o = {tone: mv > 0 ? '' : mv < 0 ? 'neg' : 'ink', ctx: ARROW(S.dir) + ' 진행 · ' + P + ' 는 x = ' + fmt(S.xP, 1) + ' cm', f: '파형을 진행 방향으로 살짝 밀어 보면'};
+    }
+    if (key === ansKey) return;
+    ansKey = key; setTxt('ansLab', lab); Lab.ans(big, lines, o);
+  }
   function readouts() {
     setTxt('lamOut', fmt(S.lambda, 1) + ' cm'); setTxt('perOut', fmt(S.T, 2) + ' s'); setTxt('posOut', fmt(S.xP, 1) + ' cm');
     setTxt('rLam', fmt(S.lambda, 1) + ' cm'); setTxt('rT', fmt(S.T, 2) + ' s'); setTxt('rV', fmt(M.speed(S.lambda, S.T), 2) + ' cm/s');
+    setTxt('rX', 'x = ' + fmt(S.xP, 1) + ' cm');
     const w = wave(), t = S.t, P = S.pName;
     const mv = moveOf(S.xP, t, w);
     const chain = $('chain');
     if (judging()) {
       chain.classList.add('rev');
-      const given = J.clue === 'arrow';
-      const m0 = moveOf(S.xP, 0, w);
-      setTxt('rP', given ? MV[m0][0] : '?', given ? MV[m0][1] : 'q');
-      setTxt('rPn', '점 ' + P + ' 의 운동' + (given ? ' (주어짐)' : ''));
+      const given = J.clue === 'arrow', m0 = moveOf(S.xP, 0, w);
       setTxt('c3h', '③ y-t 그래프 · t = 0 직후의 기울기');
       setTxt('c3', given ? '(이번 단서는 운동 방향)' : '부호는? 그래프에서 읽기', 'q');
-      setTxt('c2h', '② 점 ' + P + ' 의 운동');
+      setTxt('c2h', '② 점 ' + P + ' 의 운동' + (given ? ' (주어짐)' : ''));
       setTxt('c2', given ? MV[m0][0] : '기울기 + 면 위로, − 면 아래로', given ? MV[m0][1] : 'q');
       setTxt('c1h', '① y-x 그래프 · 진행 방향');
       setTxt('c1', J.guess ? ARROW(J.guess) + '으로 밀면 ' + P + ' 자리 값이 ' + (moveOf(S.xP, 0, wave(J.guess)) > 0 ? '올라감' : '내려감') : '어느 쪽으로 밀어야 그 운동이 나올까?', J.guess ? '' : 'q');
       setTxt('ytNow', given ? '단서(' + (m0 > 0 ? '위로' : '아래로') + ')를 y-t 로 그리면 t = 0 직후 ' + (m0 > 0 ? '올라가는' : '내려가는') + ' 그래프' : 't = 0 직후 그래프가 올라가는지 내려가는지 보세요.', 'status');
     } else {
       chain.classList.remove('rev');
-      setTxt('rPn', '점 ' + P + ' 의 운동');
-      setTxt('rP', MV[mv][0], MV[mv][1]);
       setTxt('c1h', '① y-x 그래프 · 진행 방향 ' + (S.dir > 0 ? '→' : '←'));
       setTxt('c1', mv === 0 ? ARROW(S.dir) + '으로 밀어도 ' + P + ' 자리 값은 거의 그대로(마루·골)' : ARROW(S.dir) + '으로 살짝 밀면 ' + P + ' 자리 값이 ' + (mv > 0 ? '올라감' : '내려감'), '');
       setTxt('c2h', '② 점 ' + P + ' 의 운동');
@@ -541,29 +601,35 @@
       setTxt('c3', mv > 0 ? '+ (올라가는 중)' : mv < 0 ? '− (내려가는 중)' : '0 (꼭대기 또는 바닥)', MV[mv][1]);
       setTxt('ytNow', '지금 기울기 ' + (mv > 0 ? '+' : mv < 0 ? '−' : '0') + ' → ' + P + ' 는 ' + (mv > 0 ? '위로' : mv < 0 ? '아래로' : '순간 정지'), 'status ' + MV[mv][1]);
     }
-    $('hudT').textContent = 't = ' + S.t.toFixed(3) + ' s';
-    $('hudSlow').textContent = (G && G.narrow ? '' : '느린 화면 ') + '×' + S.slow;
+    setTxt('hudT', 't = ' + S.t.toFixed(3) + ' s');
+    setTxt('hudSlow', (G && G.narrow ? '' : '느린 화면 ') + '×' + S.slow);
     $('hudSlow').hidden = S.mode === 'judge';
     $('hudJudge').hidden = S.mode !== 'judge';
+    setTxt('hudJudge', '판정 연습 · 맞힘 ' + J.score + '/' + J.total);
     for (const id of ['play', 'stepS', 'stepQ']) $(id).disabled = judging();
-    stageBox.classList.toggle('tall', (S.mode === 'judge' && J.clue === 'yt') || !!S.two);
-    const two = $('hudTwo'); two.hidden = !S.two; if (S.two) two.textContent = 'Δt = ' + fmt(S.t - S.two.t0, 3) + ' s';
+    const two = $('hudTwo'); two.hidden = !S.two; if (S.two) setTxt('hudTwo', 'Δt = ' + fmt(S.t - S.two.t0, 3) + ' s');
+    answer();
     const ok = S.mode === 'see' && S.lambda === EX.lambda && Math.abs(S.T - EX.T) < 1e-9 && S.dir === EX.dir;
+    if (ok === lastOk) return;
+    lastOk = ok;
     Lab.check('exCheck', ok, '예제 상황 (λ = 8 cm, T = 0.5 s, 오른쪽 진행) → v = λ/T = 16 cm/s · t = 0 에 P(8 cm)는 아래로(−y)',
-      '예제: λ = 8 cm, T = 0.5 s, 오른쪽 진행일 때 v 와 P 의 운동은? — ‘스스로 확인 1’로 돌아갈 수 있어요');
+      '예제: λ = 8 cm, T = 0.5 s, 오른쪽 진행일 때 v 와 P 의 운동은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
   }
 
   // ── 조작 ────────────────────────────────────────────────
   const lam = $('lam'), per = $('per'), pos = $('pos');
   const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; S.goal = null; });
   const setPlay = (on) => playCtl.set(on);
-  function syncXW(XW) { S.XW = XW; pos.max = XW; if (S.xP > XW) { S.xP = Math.round(XW * 0.5); pos.value = S.xP; } }
+  function syncXW(XW) { S.XW = XW; pos.max = XW; if (S.xP > XW) { S.xP = Math.round(XW * 0.5); pos.value = S.xP; } readouts(); }
   function keepJudgePhase() { if (S.mode === 'judge') S.xc = S.xP - J.ph * S.lambda / TAU; }
   const clearTwo = () => { S.two = null; S.stopAt = null; $('cTwo').checked = false; };
   lam.addEventListener('input', () => { S.lambda = +lam.value; keepJudgePhase(); clearTwo(); draw(); });
   per.addEventListener('input', () => { S.T = +per.value; clearTwo(); draw(); });
   pos.addEventListener('input', () => { if (S.mode !== 'see') { pos.value = S.xP; return; } S.xP = +pos.value; draw(); });
-  const dirG = Lab.group('[data-dir]', 'dir', (v) => { S.dir = +v; clearTwo(); draw(); }, S.dir);
+  const dirG = Lab.group('[data-dir]', 'dir', (v) => {
+    if (S.mode === 'judge') { dirG.set(S.dir, true); return; }      // 판정 중에는 진행 방향이 답이라 바꾸지 않는다
+    S.dir = +v; clearTwo(); draw();
+  }, S.dir);
   const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.slow = +v; draw(); }, S.slow);
   $('cArrows').addEventListener('change', (e) => { S.arrows = e.target.checked; draw(); });
   $('cZones').addEventListener('change', (e) => { S.zones = e.target.checked; draw(); });
@@ -598,7 +664,7 @@
   // ── 판정 연습 ───────────────────────────────────────────
   const modeG = Lab.group('[data-mode]', 'mode', (v) => { if (v === 'judge') newJudge(); else toSee(); }, S.mode);
   function toSee() {
-    S.mode = 'see'; S.pName = 'P'; $('judge').hidden = true; $('dirG').hidden = false; stageBox.classList.remove('tall');
+    S.mode = 'see'; S.pName = 'P'; $('judge').hidden = true; $('dirG').hidden = false;
     stage.el.style.cursor = 'ew-resize'; draw();
   }
   function newJudge(c) {
@@ -620,7 +686,6 @@
     J.ph = c.ph; J.clue = c.clue; J.guess = 0; J.done = false; J.first = true;
     S.xc = S.xP - J.ph * S.lambda / TAU;
     $('judge').hidden = false; $('dirG').hidden = true; stage.el.style.cursor = 'default';
-    stageBox.classList.toggle('tall', J.clue === 'yt');
     const P = S.pName;
     $('jQ').textContent = J.clue === 'yt'
       ? '단서: 무대 위 상자에 있는 ' + P + ' 의 y-t 그래프 (t = 0 부터). 이 파동의 진행 방향은?'
@@ -643,13 +708,12 @@
     } else {
       setMsg('✗ ' + ARROW(gd) + '으로 밀면 ' + P + ' 자리 값이 ' + word(got) + '. 그런데 ' + P + ' 는 ' + (need > 0 ? '위로' : '아래로') + ' 가야 해요. 반대쪽으로 밀어 보세요.', 'no');
     }
-    $('jScore').textContent = '맞힘 ' + J.score + ' / ' + J.total;
     draw();
   }
   document.querySelectorAll('[data-guess]').forEach((b) => b.addEventListener('click', () => guess(+b.dataset.guess)));
   $('jNext').addEventListener('click', () => newJudge());
 
-  // ── 스스로 확인: 그 상황으로 ───────────────────────────────
+  // ── 단계 카드의 상황 ────────────────────────────────────
   function base(o) {
     if (S.mode !== 'see') toSee();
     clearTwo(); S.goal = null;

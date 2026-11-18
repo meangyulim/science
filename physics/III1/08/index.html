@@ -9,12 +9,13 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(위 = 입체 전자기파 또는 속력 비교, 아래 = 스펙트럼 띠)와 조작판, 오른쪽 수치·한 점의 E·B 그래프·파장 크기 비교 */
+/* 관찰 노트: 왼쪽 실험대(위 = 입체 전자기파 또는 속력 비교, 아래 = 스펙트럼 띠) | 오른쪽 지금 값 + 관찰 ①~④ → 정리 → 예제 → 스스로 확인 */
 #stage{aspect-ratio:16/11.2;cursor:grab}
 #ebt{aspect-ratio:10/6.2}
 #size{aspect-ratio:10/5.6}
 .pill i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.46} .ro b{font-size:17px} }
+/* 폰: 입체 그림과 스펙트럼 띠를 한 무대에 담으려고 무대를 조금(약 30px) 높인다 */
+@media (max-width:640px){ .bench{--stage-h:min(calc((100vw - 32px) * 1.08),46vh)} }
 </style>
 </head>
 <body class="cx">
@@ -26,167 +27,193 @@
 </div></header>
 <!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III1-08</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III1-08</span><span>물리학 Ⅰ · 파동의 성질과 활용</span></div>
     <h1>전자기파의 본질과 스펙트럼</h1>
-    <p class="lead">전자기파에서 진동하는 것은 물질이 아니라 <b>전기장 E와 자기장 B</b>다. 둘은 서로 수직이고 진행 방향에도 수직인 채 매질 없이 진공을 c로 나아간다. 파장을 바꾸면 속력 c는 그대로이고 진동수만 달라진다 — <b>c = fλ</b>, 스펙트럼 띠의 구리색 표시를 따라가 보자.</p>
-  </header>
+    <p class="question"><i>Q</i>전자기파는 무엇이 진동하는 파동이고, 종류는 무엇으로 나뉠까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
         <canvas id="stage" aria-label="서로 수직으로 진동하는 전기장과 자기장이 진행 방향에 수직인 채 나아가는 전자기파의 입체 그림과, 아래의 전자기파 스펙트럼 띠. 무대를 끌면 시점이 돌고, 띠를 끌면 파장이 바뀐다."></canvas>
-        <div class="hud"><span class="pill" id="hudReg"><i id="hudDot"></i><span id="hudRegT">가시광선</span></span><span class="pill" id="hudSlow">느린 화면</span></div>
-        <div class="legend" id="leg3d">
-          <span><b style="background:var(--violet)"></b>전기장 E</span>
-          <span><b style="background:var(--acc)"></b>자기장 B</span>
-          <span><b style="background:var(--vel)"></b>진행 방향 (속력 c)</span>
-          <span><i style="background:var(--copper)"></i>점 P · 지금 파장</span>
+        <div class="hud"><span class="pill" id="hudReg"><i id="hudDot"></i><span id="hudRegT">가시광선</span></span><span class="pill" id="hudSlow">느린 화면</span><span class="pill" id="hudScale" hidden>파장은 로그로 줄여 그림</span></div>
+        <div class="legend" id="leg">
+          <span data-for="3d"><b style="background:var(--violet)"></b>전기장 E</span>
+          <span data-for="3d"><b style="background:var(--acc)"></b>자기장 B</span>
+          <span data-for="3d"><b style="background:var(--vel)"></b>진행 방향 (속력 c)</span>
+          <span data-for="3d"><i style="background:var(--copper)"></i>점 P · 지금 파장</span>
+          <span data-for="race" hidden><b style="background:var(--violet)"></b>전자기파의 전기장</span>
+          <span data-for="race" hidden><b style="background:var(--copper)"></b>파면 (맨 앞)</span>
+          <span data-for="race" id="legSound" hidden><i style="background:var(--ink)"></i>소리 (공기 입자)</span>
         </div>
-        <div class="legend" id="legRace" hidden>
-          <span><b style="background:var(--violet)"></b>전자기파의 전기장</span>
-          <span><b style="background:var(--copper)"></b>파면 (맨 앞)</span>
-          <span id="legSound"><i style="background:var(--ink)"></i>소리 (공기 입자)</span>
-          <span id="legScale">그림의 파장: 로그로 줄임</span>
-        </div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <button type="button" class="btn" id="stepQ">¼ 주기 앞으로</button>
-          <div class="group" role="group" aria-label="보기">
-            <span class="gl">보기</span>
-            <button type="button" class="btn" data-mode="3d" aria-pressed="true">입체 모습</button>
-            <button type="button" class="btn" data-mode="race" aria-pressed="false">속력 비교</button>
-          </div>
+          <div class="slider"><label for="lam"><span class="lg">파장 </span>λ</label><input id="lam" type="range" min="-14" max="4" step="0.01" value="-6.22" aria-label="파장 λ (로그 눈금: 한 칸 갈 때마다 10배)"><output id="lamOut">0.6 μm</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">보기·비교</span><span class="sm">보기</span></button>
         </div>
-        <div class="row">
-          <div class="grow">
-            <label class="ctl-label" for="lam">파장 λ (로그 눈금: 한 칸 갈 때마다 10배) <output id="lamOut">0.6 μm</output></label>
-            <input id="lam" type="range" min="-14" max="4" step="0.01" value="-6.22">
+        <div class="sheet" id="sheet" role="group" aria-label="보기와 비교">
+          <div class="sheet-head"><b>보기 · 시점 · 비교 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="보기">
+              <span class="gl">보기</span>
+              <button type="button" class="btn" data-mode="3d" aria-pressed="true">입체 모습</button>
+              <button type="button" class="btn" data-mode="race" aria-pressed="false">속력 비교</button>
+            </div>
+            <div class="group" role="group" aria-label="예제 파장">
+              <span class="gl">예제</span>
+              <button type="button" class="btn" data-ex="1" aria-pressed="true">① 0.6 μm</button>
+              <button type="button" class="btn" data-ex="2" aria-pressed="false">② 3 m</button>
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="group" role="group" aria-label="예제 파장">
-            <span class="gl">예제</span>
-            <button type="button" class="btn" data-ex="1" aria-pressed="true">① 0.6 μm 가시광선</button>
-            <button type="button" class="btn" data-ex="2" aria-pressed="false">② 3 m 라디오파</button>
+          <div class="row">
+            <div class="group" role="group" aria-label="시점" id="gView">
+              <span class="gl">시점</span>
+              <button type="button" class="btn" data-view="obl" aria-pressed="true">비스듬히</button>
+              <button type="button" class="btn" data-view="side" aria-pressed="false">옆에서</button>
+              <button type="button" class="btn" data-view="top" aria-pressed="false">위에서</button>
+              <button type="button" class="btn" data-view="front" aria-pressed="false">진행 방향에서</button>
+            </div>
+            <div class="group" role="group" aria-label="비교할 파동" id="gSet" hidden>
+              <span class="gl">비교</span>
+              <button type="button" class="btn" data-set="mix" aria-pressed="true">세 영역 + 소리</button>
+              <button type="button" class="btn" data-set="xru" aria-pressed="false">X선·라디오파·초음파</button>
+              <button type="button" class="btn" data-set="order" aria-pressed="false">네 영역</button>
+              <button type="button" class="btn" data-set="color" aria-pressed="false">보라·빨강</button>
+            </div>
+            <div class="group" role="group" aria-label="매질" id="gMed" hidden>
+              <span class="gl">매질</span>
+              <button type="button" class="btn" data-med="vacuum" aria-pressed="true">진공</button>
+              <button type="button" class="btn" data-med="air" aria-pressed="false">공기</button>
+            </div>
           </div>
-        </div>
-        <div class="row toggles">
-          <div class="group" role="group" aria-label="시점" id="gView">
-            <span class="gl">시점</span>
-            <button type="button" class="btn" data-view="obl" aria-pressed="true">비스듬히</button>
-            <button type="button" class="btn" data-view="side" aria-pressed="false">옆에서</button>
-            <button type="button" class="btn" data-view="top" aria-pressed="false">위에서</button>
-            <button type="button" class="btn" data-view="front" aria-pressed="false">진행 방향에서</button>
+          <div class="row">
+            <button type="button" class="btn" id="stepQ">¼ 주기 앞으로 ▸</button>
+            <div class="group" role="group" aria-label="시간 빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
           </div>
-          <div class="group" role="group" aria-label="비교할 파동" id="gSet" hidden>
-            <span class="gl">비교</span>
-            <button type="button" class="btn" data-set="mix" aria-pressed="true">세 영역 + 소리</button>
-            <button type="button" class="btn" data-set="xru" aria-pressed="false">X선·라디오파·초음파</button>
-            <button type="button" class="btn" data-set="order" aria-pressed="false">네 영역</button>
-            <button type="button" class="btn" data-set="color" aria-pressed="false">보라·빨강</button>
+          <div class="toggles" id="rowChk">
+            <label class="chk"><input type="checkbox" id="cVec" checked>장 화살표</label>
+            <label class="chk"><input type="checkbox" id="cPlane" checked>진동면</label>
+            <label class="chk"><input type="checkbox" id="cRuler" checked>파장 자·마루</label>
           </div>
-          <div class="group" role="group" aria-label="매질" id="gMed" hidden>
-            <span class="gl">매질</span>
-            <button type="button" class="btn" data-med="vacuum" aria-pressed="true">진공</button>
-            <button type="button" class="btn" data-med="air" aria-pressed="false">공기</button>
-          </div>
-          <span class="spacer"></span>
-          <div class="group" role="group" aria-label="시간 빠르기">
-            <span class="gl">빠르기</span>
-            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="false">×0.5</button>
-            <button type="button" class="btn mono" data-speed="1" aria-pressed="true">×1</button>
-            <button type="button" class="btn mono" data-speed="2" aria-pressed="false">×2</button>
-          </div>
-        </div>
-        <div class="row" id="rowChk">
-          <label class="chk"><input type="checkbox" id="cVec" checked>장 화살표</label>
-          <label class="chk"><input type="checkbox" id="cPlane" checked>진동면</label>
-          <label class="chk"><input type="checkbox" id="cRuler" checked>파장 자·마루</label>
         </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치 <small>진공, c = 3 × 10⁸ m/s</small></h2>
-        <div class="readouts">
-          <div class="ro cu"><span>파장 λ</span><b id="rLam">0.6 μm</b></div>
-          <div class="ro vel"><span>진동수 f = c/λ</span><b id="rF">5 × 10¹⁴ Hz</b></div>
-          <div class="ro"><span>영역</span><b id="rReg">가시광선</b></div>
-          <div class="ro"><span>주기 T = 1/f</span><b id="rT">2 × 10⁻¹⁵ s</b></div>
-          <div class="ro"><span>진공에서 속력</span><b id="rC">3 × 10⁸ m/s</b></div>
-          <div class="ro acc"><span>광자 에너지 E = hf</span><b id="rE">3.3 × 10⁻¹⁹ J</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 진동수</span><span id="ansCtx">진공 · 가시광선 (주황빛)</span></div>
+        <div class="big" id="ansBig">f = 5 × 10¹⁴ Hz</div>
+        <div class="sub">
+          <span class="f" id="ansF">c = fλ 에서 f = c/λ 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">λ = <em>0.6 μm</em> = 6 × 10⁻⁷ m</span><span class="v">f = 3 × 10⁸ ÷ (6 × 10⁻⁷) = <em>5 × 10¹⁴ Hz</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span>영역</span><b id="rReg">가시광선</b></div>
+          <div class="mini"><span>주기 T = 1/f</span><b id="rT">2 × 10⁻¹⁵ s</b></div>
+          <div class="mini"><span>광자 에너지 E = hf</span><b id="rE">3.3 × 10⁻¹⁹ J</b></div>
+          <div class="mini"><span>f × λ (진공에서 늘 같다)</span><b id="rC">3 × 10⁸ m/s</b></div>
         </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2>한 점 P의 E와 B <small>시간에 따른 변화</small></h2>
-        <canvas class="flat" id="ebt" aria-label="점 P에서 전기장과 자기장의 시간 변화. 두 장은 같은 순간에 함께 최대가 된다."></canvas>
-        <p class="cap">E가 최대일 때 B도 최대 — 두 장은 <b>같은 위상</b>으로 진동한다. 한 번 진동하는 동안(T) 파동은 λ만큼 나아가므로 <span class="eq">c = λ/T = fλ</span>.</p>
-      </section>
-      <section class="panel wide">
-        <h2>파장은 얼마나 클까 <small>같은 비율로 그린 물체</small></h2>
-        <canvas class="flat" id="size" aria-label="지금 파장과 비슷한 크기의 물체를 같은 비율로 그린 그림"></canvas>
-        <p class="cap" id="sizeCap"></p>
-      </section>
-    </aside>
-  </main>
+      </div>
 
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>진동하는 것은 전기장과 자기장</h3>
-        <p>줄의 파동은 줄이, 소리는 공기가 진동하지만 전자기파에서 진동하는 것은 <b>전기장 E와 자기장 B</b>다. 둘은 서로 수직이고 진행 방향에도 수직이므로 전자기파는 <b>횡파</b>다.</p>
-        <p>진동하는(가속 운동하는) 전하가 만들고, 매질이 필요 없어 <b>진공에서도</b> 전달된다. 맥스웰이 이론으로 예언(1864)했고 헤르츠가 실험으로 확인했다.</p>
-      </article>
-      <article class="concept">
-        <h3>진공에서는 모두 속력 c</h3>
-        <p>진공에서 모든 전자기파는 진동수와 관계없이 <span class="eq">c = 3 × 10⁸ m/s</span>로 나아간다. <span class="eq">c = fλ</span>이므로 진동수가 클수록 파장이 짧다.</p>
-        <p>진동수 순서: 감마선 &gt; X선 &gt; 자외선 &gt; 가시광선 &gt; 적외선 &gt; 마이크로파 &gt; 라디오파. 파장은 정확히 그 역순이다. 가시광선은 약 400 nm(보라)~700 nm(빨강)의 아주 좁은 구간이다.</p>
-      </article>
-      <article class="concept">
-        <h3>스펙트럼 양쪽 끝의 성질</h3>
-        <p>광자 하나의 에너지 <span class="eq">E = hf</span>는 진동수에 비례한다. 왼쪽의 감마선·X선·자외선은 광자 에너지가 커서 물질을 이온화하거나 생체 분자를 손상시킬 수 있다.</p>
-        <p>오른쪽으로 갈수록 파장이 길어 회절이 잘 되므로 라디오파는 건물이나 산 뒤까지 전달된다. 전자기파는 반사·굴절·간섭·회절을 하고(파동성), 광전 효과 같은 입자성도 보인다.</p>
-      </article>
-    </div>
-    <p class="compare"><b>초음파·소리는 전자기파가 아니다.</b> 매질의 진동인 역학적 파동(종파)이라 진공에서 전달되지 않고, 공기 중 속력(약 340 m/s)도 c보다 훨씬 느리다. ‘진공에서 속력이 같다’는 보기는 전자기파끼리일 때만 참이다.</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>진공에서 파장이 0.6 μm인 가시광선과 파장이 3 m인 라디오파의 진동수를 각각 구하라. (c = 3 × 10⁸ m/s)<span class="tag">개념서 예제</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">① 0.6 μm 가시광선으로</button><button type="button" class="btn" data-try="ex2">② 3 m 라디오파로</button></div>
-        <details><summary>답 보기</summary><p>f = c/λ. 가시광선: 3 × 10⁸ ÷ (0.6 × 10⁻⁶) = <b>5 × 10¹⁴ Hz</b>, 라디오파: 3 × 10⁸ ÷ 3 = <b>1 × 10⁸ Hz</b>. 파장이 500만 배 길면 진동수는 500만 분의 1이다. 띠의 구리색 표시가 오른쪽(파장 김)으로 갈수록 위의 진동수 눈금은 작아진다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>옳은 것만 고르면? ㄱ. 전기장과 자기장이 진행 방향에 수직으로 진동하는 횡파이다. ㄴ. 진공에서 X선은 라디오파보다 빠르다. ㄷ. 초음파는 진동수가 매우 큰 전자기파이다.</p>
-        <div class="acts"><button type="button" class="btn" data-try="front">진행 방향에서 보기</button><button type="button" class="btn" data-try="xru">진공에서 X선·라디오파·초음파</button></div>
-        <details><summary>답 보기</summary><p><b>ㄱ만.</b> 진행 방향에서 보면 E(위아래)와 B(좌우)가 서로 수직이고, 진행 방향(⊙)에도 수직이다. 진공에서 X선과 라디오파의 파면은 늘 나란히 간다(속력 c로 같음). 초음파는 매질이 필요한 음파라 진공에서는 전달되지 않는다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>진동수가 큰 것부터 나열하면? X선, 적외선, 마이크로파, 자외선</p>
-        <div class="acts"><button type="button" class="btn" data-try="order">네 영역 나란히</button></div>
-        <details><summary>답 보기</summary><p><b>X선 &gt; 자외선 &gt; 적외선 &gt; 마이크로파.</b> 속력이 모두 c로 같으므로 파장이 짧을수록(물결이 촘촘할수록) 한 점에서 1초에 더 많이 진동한다. 파장은 정확히 그 역순이다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>보라색 빛(400 nm)과 빨간색 빛(700 nm) 중 진동수와 광자 한 개의 에너지가 더 큰 것은?</p>
-        <div class="acts"><button type="button" class="btn" data-try="color">보라·빨강 나란히</button></div>
-        <details><summary>답 보기</summary><p><b>보라색 빛.</b> f = c/λ에서 보라는 7.5 × 10¹⁴ Hz, 빨강은 약 4.3 × 10¹⁴ Hz이다. 광자 에너지 E = hf도 진동수에 비례하므로 보라가 크다. 파장이 짧은 쪽이 진동수가 크다는 것을 거꾸로 외우지 않도록!</p></details>
-      </li>
-    </ol>
-    <!-- nextprev -->
+      <ol class="steps">
+        <li class="card step" data-step="① 무엇이 진동할까">
+          <div class="kind">관찰 1</div>
+          <h3>진동하는 것은 전기장 E와 자기장 B다</h3>
+          <p>줄의 파동은 줄이, 소리는 공기가 진동한다. 전자기파에서 진동하는 것은 물질이 아니라 <b>전기장 E와 자기장 B</b>다. 진동하는(가속 운동하는) 전하가 만들고, 매질이 필요 없어 진공에서도 전달된다.</p>
+          <p class="cap">진행 방향에서 보면 E(위아래)와 B(좌우)가 서로 수직이고, 둘 다 진행 방향(⊙)에도 수직이다. 그래서 전자기파는 횡파다. 옆이나 위에서 보면 한 장이 화면에 수직(⊙ 나옴, ⊗ 들어감)으로 보인다. 무대를 끌어 돌려 봐도 된다. 맥스웰이 이론으로 예언(1864)했고 헤르츠가 실험으로 확인했다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:[data-mode='3d']; click:[data-view=front]">진행 방향에서 보기</button>
+            <button type="button" class="btn" data-do="click:[data-mode='3d']; click:[data-view=side]">옆에서</button>
+            <button type="button" class="btn" data-do="click:[data-mode='3d']; click:[data-view=top]">위에서</button>
+            <button type="button" class="btn" data-do="click:[data-mode='3d']; click:[data-view=obl]">비스듬히</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② E와 B는 함께">
+          <div class="kind">관찰 2</div>
+          <h3>E가 최대일 때 B도 최대다</h3>
+          <p>점 P에서 두 장을 시간에 따라 그려 보면 E와 B는 <b>같은 위상</b>으로 진동한다. 한 번 진동하는 동안(주기 T) 마루는 정확히 한 파장 λ만큼 나아간다.</p>
+          <canvas class="flat" id="ebt" aria-label="점 P에서 전기장과 자기장의 시간 변화. 두 장은 같은 순간에 함께 최대가 된다."></canvas>
+          <p class="cap">그래서 속력은 <span class="eq">c = λ/T = fλ</span> 다. ¼ 주기씩 넘기면 무대의 ‘마루’ 표시가 λ/4씩 나아가고, 점 P의 E·B 화살표가 함께 커졌다 작아진다.</p>
+          <div class="acts"><button type="button" class="btn go" data-do="click:[data-mode='3d']; click:#stepQ">¼ 주기씩 ▸</button></div>
+        </li>
+        <li class="card step" data-step="③ 모두 속력 c">
+          <div class="kind">관찰 3</div>
+          <h3>진공에서는 파장과 관계없이 모두 c로 간다</h3>
+          <p>같은 출발선에서 동시에 보낸 감마선·라디오파와 지금 파동의 맨 앞 파면이 늘 나란하다. 진공에서 모든 전자기파는 진동수와 관계없이 <span class="eq">c = 3 × 10⁸ m/s</span>로 나아간다. c = fλ 이므로 <b>파장이 짧을수록 진동수가 크다</b>.</p>
+          <p class="cap">소리·초음파는 전자기파가 아니다. 매질의 진동인 역학적 파동(종파)이라 진공에서는 전달되지 않고, 공기 중에서도 약 340 m/s로 c보다 훨씬 느리다. ‘진공에서 속력이 같다’는 보기는 전자기파끼리일 때만 참이다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:[data-mode=race]; click:[data-set=mix]; click:[data-med=vacuum]">진공에서 같이 보내기</button>
+            <button type="button" class="btn" data-do="click:[data-mode=race]; click:[data-set=mix]; click:[data-med=air]">공기에서 소리와 견주기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 스펙트럼">
+          <div class="kind">관찰 4</div>
+          <h3>파장(진동수)에 따라 일곱 영역으로 나눈다</h3>
+          <p>무대 아래 띠의 구리색 표시를 끌거나 λ 막대를 밀어 보자. 띠는 로그 눈금이라 한 칸 갈 때마다 파장이 10배가 된다. 진동수가 큰 순서는 감마선 &gt; X선 &gt; 자외선 &gt; 가시광선 &gt; 적외선 &gt; 마이크로파 &gt; 라디오파이고, 파장은 정확히 그 역순이다. 가시광선은 약 400 nm(보라)~700 nm(빨강)의 아주 좁은 구간이다.</p>
+          <canvas class="flat" id="size" aria-label="지금 파장과 비슷한 크기의 물체를 같은 비율로 그린 그림"></canvas>
+          <p class="cap" id="sizeCap"></p>
+          <p class="cap">왼쪽 끝(감마선·X선·자외선)은 광자 하나의 에너지 <span class="eq">E = hf</span>가 커서 물질을 이온화하거나 생체 분자를 손상시킬 수 있다. 오른쪽으로 갈수록 파장이 길어 회절이 잘 되므로 라디오파는 건물이나 산 뒤까지 전달된다. 전자기파는 반사·굴절·간섭·회절을 하고(파동성), 광전 효과 같은 입자성도 보인다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-do="set:#lam=-12">감마선 1 pm</button>
+            <button type="button" class="btn" data-do="set:#lam=-9">X선 1 nm</button>
+            <button type="button" class="btn" data-do="set:#lam=-7">자외선 100 nm</button>
+            <button type="button" class="btn" data-do="set:#lam=-5">적외선 10 μm</button>
+            <button type="button" class="btn" data-do="set:#lam=-0.92">마이크로파 12 cm</button>
+            <button type="button" class="btn" data-do="set:#lam=0.477">라디오파 3 m</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>속력이 모두 c 이니 파장이 짧을수록 진동수가 크다</h3>
+          <ul>
+            <li>전자기파는 전기장과 자기장이 서로 수직으로, 진행 방향에도 수직으로 진동하는 횡파다. 매질 없이 진공에서도 전달된다.</li>
+            <li><span class="eq">c = fλ</span>, <span class="eq">E = hf = hc/λ</span>. 진공에서는 진동수와 관계없이 모두 c = 3 × 10⁸ m/s.</li>
+            <li>진동수 순서: 감마 &gt; X &gt; 자외 &gt; 가시 &gt; 적외 &gt; 마이크로 &gt; 라디오. 파장은 정확히 그 역순이다.</li>
+            <li>자주 하는 실수: 초음파·소리는 전자기파가 아니다(역학적 파동). 파장이 짧은 쪽이 진동수가 크다는 것을 거꾸로 외우지 않는다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>진공에서 파장이 0.6 μm인 가시광선과 파장이 3 m인 라디오파의 진동수를 각각 구하라. (c = 3 × 10⁸ m/s)</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">① 0.6 μm 가시광선으로</button><button type="button" class="btn" data-try="ex2">② 3 m 라디오파로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>f = c/λ 를 쓴다. 가시광선: 3 × 10⁸ ÷ (0.6 × 10⁻⁶) = <b>5 × 10¹⁴ Hz</b>, 라디오파: 3 × 10⁸ ÷ 3 = <b>1 × 10⁸ Hz</b>. 파장이 500만 배 길면 진동수는 500만 분의 1이다. 띠의 구리색 표시가 오른쪽(파장 김)으로 갈수록 위의 진동수 눈금은 작아진다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>전자기파에 대한 설명으로 옳은 것만 고르면?</h3>
+            <p>ㄱ. 전기장과 자기장이 진행 방향에 수직으로 진동하는 횡파이다.<br>ㄴ. 진공에서 X선은 라디오파보다 빠르다.<br>ㄷ. 초음파는 진동수가 매우 큰 전자기파이다.</p>
+            <div class="acts"><button type="button" class="btn" data-try="front">진행 방향에서 보기</button><button type="button" class="btn" data-try="xru">진공에서 X선·라디오파·초음파</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ만.</b> 진행 방향에서 보면 E(위아래)와 B(좌우)가 서로 수직이고, 진행 방향(⊙)에도 수직이다. 진공에서 X선과 라디오파의 파면은 늘 나란히 간다(속력 c로 같음). 초음파는 매질이 필요한 음파라 진공에서는 전달되지 않는다.</p></details>
+          </div>
+          <div class="q">
+            <h3>진동수가 큰 것부터 나열하면? X선, 적외선, 마이크로파, 자외선</h3>
+            <div class="acts"><button type="button" class="btn" data-try="order">네 영역 나란히</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>X선 &gt; 자외선 &gt; 적외선 &gt; 마이크로파.</b> 속력이 모두 c로 같으므로 파장이 짧을수록(물결이 촘촘할수록) 한 점에서 1초에 더 많이 진동한다. 파장은 정확히 그 역순이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>보라색 빛(400 nm)과 빨간색 빛(700 nm) 중 진동수와 광자 한 개의 에너지가 더 큰 것은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="color">보라·빨강 나란히</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>보라색 빛.</b> f = c/λ에서 보라는 7.5 × 10¹⁴ Hz, 빨강은 약 4.3 × 10¹⁴ Hz이다. 광자 에너지 E = hf도 진동수에 비례하므로 보라가 크다. 파장이 짧은 쪽이 진동수가 크다는 것을 거꾸로 외우지 않도록 하자.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../07/" rel="prev"><small>← 이전 개념 · III1-07</small><b>전반사와 광섬유</b></a><a href="../09/" rel="next"><small>다음 개념 · III1-09 →</small><b>전자기파의 이용</b></a></nav>
 <!-- /nextprev -->
-  </section>
+    </section>
+  </main>
 </div>
-
 <script src="../../kit/lab.js"></script>
 <script src="III1-08-model.js"></script>
 <script>
@@ -240,15 +267,17 @@
   const isNarrow = () => (stage.el.clientWidth || 999) < 520;
   let wasNarrow = null;
 
-  const hudEl = document.querySelector('.stage .hud');
+  const hudEl = document.querySelector('.stage .hud'), legEl = $('leg');
   function geom() {
     const {W, H} = stage, narrow = W < 520;
-    const legEl = S.mode === '3d' ? $('leg3d') : $('legRace');
-    const pad = narrow ? 10 : 16, bandH = 142, legH = (legEl.offsetHeight || 32) + 16, top = 12 + (hudEl.offsetHeight || 30) + 8;
-    const bandY = H - legH - bandH;
+    // 아래쪽 여백: 범례가 무대 안에 있으면(넓은 화면) 범례 높이만큼, 시트로 옮겨졌으면(좁은 화면) 지금 단계 표시(#nowstep) 자리만큼
+    const legIn = !!(legEl.parentNode && legEl.parentNode.classList.contains('stage'));
+    const cb = narrow || H < 430;                            // 띠를 줄여 그린다 (폰, 납작한 무대)
+    const pad = narrow ? 10 : 16, bandH = cb ? 88 : 142, bot = legIn ? (legEl.offsetHeight || 32) + 16 : 36, top = 12 + (hudEl.offsetHeight || 30) + 8;
+    const bandY = H - bot - bandH;
     const gut = narrow ? 16 : 22;
     const R3 = {x: pad, y: top, w: W - 2 * pad, h: bandY - top - 6};
-    const g = {W, H, narrow, pad, R3, band: {x: pad + gut, y: bandY, w: W - 2 * pad - gut - 4, h: bandH}};
+    const g = {W, H, narrow, cb, pad, R3, band: {x: pad + gut, y: bandY, w: W - 2 * pad - gut - 4, h: bandH}};
     g.L = sceneL(narrow);
     g.fit = fit3D(g);
     return g;
@@ -267,7 +296,7 @@
   }
   // 기본 시점에서 장면이 들어가도록 배율과 중심을 정한다 (시점을 돌려도 배율은 그대로)
   function fit3D(g) {
-    const L = g.L, A = AMP, nt = g.narrow ? 36 : 0;           // 좁은 화면은 위쪽 설명 글 자리를 비운다
+    const L = g.L, A = AMP, nt = g.narrow ? 20 : 0;           // 좁은 화면은 위쪽 설명 글(한 줄) 자리를 비운다
     const R = {x: g.R3.x, y: g.R3.y + nt, w: g.R3.w, h: g.R3.h - nt};
     const P = projector(VIEWS.obl[0], VIEWS.obl[1], 1, 0, 0, L);
     const pts = [[0, 0.8, 0], [0, -1.05, 0], [L + 0.55, 0, 0], [L, A + 0.5, 0], [0, A + 0.5, 0], [L, -A, 0], [0, 0, A], [L, 0, A], [0, 0, -A], [L, 0, -A]];
@@ -301,7 +330,7 @@
     const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     arrow(ctx, m[0], m[1], a[0], a[1], col, 1.6, 7); arrow(ctx, m[0], m[1], b[0], b[1], col, 1.6, 7);
     const up = (ny > 0 ? -1 : 1) * (below ? -1 : 1);     // 글자는 화면 위쪽(below 면 아래쪽)으로
-    text(ctx, label, m[0] + nx * lift * up, m[1] + ny * lift * up, {size: 13, color: col, w: 700, mono: true, halo: true});
+    text(ctx, label, m[0] + nx * lift * up, m[1] + ny * lift * up, {size: 13, color: col, w: 600, halo: true});
   }
 
   // ── 입체 전자기파 ───────────────────────────────────────
@@ -386,7 +415,7 @@
     const q = P(0, 0.62 * Math.sin(TAU * S.cyc), 0);
     if (fade > 0) add(q[2] + 0.02, () => {
       ctx.beginPath(); ctx.arc(q[0], q[1], 9, 0, TAU); ctx.fillStyle = C.force; ctx.fill();
-      text(ctx, '+', q[0], q[1] - 0.5, {size: 15, w: 700, color: C.paper});
+      text(ctx, '+', q[0], q[1] - 0.5, {size: 15, w: 600, color: C.paper});
     });
     // 진행 방향 화살표 (c)
     const c0 = P(L, 0, 0), c1 = P(L + 0.55, 0, 0);
@@ -408,7 +437,9 @@
         ctx.beginPath(); ctx.moveTo(t1[0], t1[1] + up * 7); ctx.lineTo(t1[0] - 7, t1[1] + up * 18); ctx.lineTo(t1[0] + 7, t1[1] + up * 18); ctx.closePath();
         ctx.fillStyle = C.vel; ctx.fill();
         const lft = xc > 0.6 * L;                          // 오른쪽에서는 글자를 왼쪽에 (이름표와 겹치지 않게)
-        text(ctx, '마루', t1[0] + (lft ? -10 : 10), t1[1] + up * 16, {size: 13, color: C.vel, w: 700, align: lft ? 'right' : 'left', halo: true});
+        const eR = P(L, A, 0);                             // 폰에서는 '전기장 E' 이름표가 이 끝 위에 있다 → 지나갈 때는 글자를 뺀다
+        if (!(g.narrow && !onTop && Math.abs(t1[0] - eR[0]) < 80 && Math.abs(t1[1] - eR[1]) < 44))
+          text(ctx, '마루', t1[0] + (lft ? -10 : 10), t1[1] + up * 16, {size: 13, color: C.vel, w: 600, align: lft ? 'right' : 'left', halo: true});
       }
       const xa = cr.find((x) => x >= 0.14 * L && x + ls <= L * 0.98);
       if (xa !== undefined) {
@@ -422,16 +453,17 @@
     }
     // 이름표: 평면 모서리 바깥에 둔다 (넓은 화면은 왼쪽 여백, 좁은 화면은 오른쪽 위·아래)
     const R = g.R3, nar = g.narrow;
-    const lab = (p, s, col, align = 'left', dx = 0, dy = 0) => text(ctx, s, p[0] + dx, p[1] + dy, {size: 14, color: col, w: 700, align, halo: true});
+    const lab = (p, s, col, align = 'left', dx = 0, dy = 0) => text(ctx, s, p[0] + dx, p[1] + dy, {size: 14, color: col, w: 600, align, halo: true});
     const eTL = P(0, A, 0), eTR = P(L, A, 0), eBL = P(0, -A, 0), eBR = P(L, -A, 0), bNL = P(0, 0, A), bFL = P(0, 0, -A), bFR = P(L, 0, -A);
-    const room = (pt, s) => pt[0] - R.x > Lab.measure(ctx, s, {size: 14, w: 700}) + 20;
+    const room = (pt, s) => pt[0] - R.x > Lab.measure(ctx, s, {size: 14, w: 600}) + 20;
     if (along > 0.85) {                                   // 진행 방향에서: 점 P 의 E(위아래)·B(좌우)
       lab(P(XP, A, 0), '전기장 E (위아래)', C.violet, 'center', 0, -18);
       lab(P(XP, 0, A), '자기장 B (좌우)', C.acc, 'right', -12, 0);
       lab(P(XP, -A, 0), '진행 방향 ⊙ : 보는 쪽으로 다가온다', C.vel, 'center', 0, 26);
     } else if (Math.abs(vz) < 0.15) {                     // 위에서: E 는 화면에 수직
       if (room(bFL, '자기장 B')) lab(bFL, '자기장 B', C.acc, 'right', -12, 0); else lab(bFR, '자기장 B', C.acc, 'right', 2, -18);
-      lab(bNL, '전기장 E: ⊙ ⊗ (화면에 수직)', C.violet, 'left', 10, 22);
+      if (nar) lab(bFL, '전기장 E: ⊙ ⊗ (화면에 수직)', C.violet, 'left', 0, -18);   // 폰: 아래쪽은 파장 자·마루 자리
+      else lab(bNL, '전기장 E: ⊙ ⊗ (화면에 수직)', C.violet, 'left', 10, 22);
     }
     if (along <= 0.85 && Math.abs(vz) >= 0.15) {
       if (room(eTL, '전기장 E')) lab(eTL, '전기장 E', C.violet, 'right', -12, 2); else lab(eTR, '전기장 E', C.violet, 'right', 2, -18);
@@ -444,12 +476,12 @@
       else lab(c1, '속력 c', C.vel, 'right', 0, -15);
     }
     lab(pP, 'P', C.copper, 'right', -10, 16);
-    if (along < 0.75 && Math.abs(vy) < 0.75) text(ctx, '진동하는 전하', nar ? R.x + 2 : r0[0], r0[1] + 16, {size: 13, color: C.force, w: 700, halo: true, align: nar ? 'left' : 'center'});
-    // 시점 설명
+    if (along < 0.75 && Math.abs(vy) < 0.75) text(ctx, '진동하는 전하', nar ? R.x + 2 : r0[0], r0[1] + 16, {size: 13, color: C.force, w: 600, halo: true, align: nar ? 'left' : 'center'});
+    // 시점 설명 (좁은 화면은 한 줄: 무대 속 이름표가 ⊙ ⊗ 를 설명한다)
     const notes = {obl: '진공에서도 전달 — 매질이 없다', side: '옆에서: B는 화면에 수직 (⊙ 나옴, ⊗ 들어감)', top: '위에서: E는 화면에 수직 (⊙ 나옴, ⊗ 들어감)',
       front: '진행 방향에서: E ⊥ B, 둘 다 진행 방향(⊙)에 수직', free: '끌어서 돌려 보는 중'};
-    text(ctx, g.narrow ? 'E ⊥ B ⊥ 진행 방향' : 'E ⊥ B ⊥ 진행 방향 (횡파)', R.x + R.w - 2, R.y + 6, {size: 14, w: 700, align: 'right', halo: true});
-    text(ctx, notes[S.view], R.x + R.w - 2, R.y + 25, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+    text(ctx, 'E ⊥ B ⊥ 진행 방향 (횡파)', R.x + R.w - 2, R.y + 6, {size: 14, w: 700, align: 'right', halo: true});
+    if (!g.narrow) text(ctx, notes[S.view], R.x + R.w - 2, R.y + 25, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
   }
 
   // ── 속력 비교 (같은 출발선에서 동시에 출발) ─────────────────
@@ -483,20 +515,21 @@
     if (xf > xs && xf <= xe && emN) {
       const yb = R.y + emN * lh - 4;
       ctx.save(); ctx.strokeStyle = C.copper; ctx.setLineDash([5, 4]); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(xf, R.y - 8); ctx.lineTo(xf, yb); ctx.stroke(); ctx.restore();
-      const lbl = g.narrow ? '파면 나란히 = 속력 c' : '파면이 늘 나란히 → 진공에서 속력 c로 같다';
+      const lbl = g.narrow ? '파면 나란히 = 속력 c' : S.medium === 'air' ? '파면이 늘 나란히 → 공기에서도 빛은 모두 거의 c' : '파면이 늘 나란히 → 진공에서 속력 c로 같다';
       const right = xf < (xs + xe) / 2;
       text(ctx, lbl, xf + (right ? 8 : -8), R.y - 9, {size: 13, w: 700, color: C.copper, align: right ? 'left' : 'right', halo: true});
     }
     lanes.forEach((ln, i) => {
-      const y0 = R.y + i * lh, ym = y0 + lh * 0.62, a = Math.min(lh * 0.24, 24);
+      // 이름 줄(y0 + 13) 아래에 물결이 들어가게: 줄이 낮으면 진폭을 줄인다
+      const a = Math.max(4, Math.min(lh * 0.24, 24, (lh - 25) / 2)), y0 = R.y + i * lh, ym = y0 + Math.max(lh * 0.62, 21 + a);
       if (i) { ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(R.x, y0); ctx.lineTo(R.x + R.w, y0); ctx.stroke(); ctx.restore(); }
       if (ln.kind === 'em') {
         const reg = M.region(ln.lam), col = rgbOf(ln.lam) || C.violet, cn = reg.id === 'vis' ? M.colorName(ln.lam * 1e9) : '';
         const name = (ln.cur ? '지금 · ' : '') + reg.name + (cn ? ' (' + cn + ')' : '');
-        text(ctx, name, xs - 6, y0 + 13, {size: 14, w: 700, align: 'left', color: ln.cur ? C.copper : C.ink, halo: true});
-        const nw = Lab.measure(ctx, name, {size: 14, w: 700});
+        text(ctx, name, xs - 6, y0 + 13, {size: 14, w: 600, align: 'left', color: ln.cur ? C.copper : C.ink, halo: true});
+        const nw = Lab.measure(ctx, name, {size: 14, w: 600});
         const info = g.narrow ? 'f = ' + fmtHz(M.freq(ln.lam)) : 'λ = ' + fmtLen(ln.lam) + ' · f = ' + fmtHz(M.freq(ln.lam));
-        text(ctx, info, xs + nw + 4, y0 + 13, {size: 13, w: 500, align: 'left', mono: true, color: C.muted, halo: true});
+        text(ctx, info, xs + nw + 6, y0 + 13, {size: 13, w: 500, align: 'left', color: C.muted, halo: true});
         // 축
         ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(xs, ym); ctx.lineTo(xe, ym); ctx.stroke(); ctx.restore();
         // 파동 (출발점에서 파면까지)
@@ -515,8 +548,8 @@
       } else {
         const ultra = ln.kind === 'ultra';
         const name = ultra ? '초음파 (음파)' : '소리 (음파)';
-        text(ctx, name, xs - 6, y0 + 13, {size: 14, w: 700, align: 'left'});
-        const nw = Lab.measure(ctx, name, {size: 14, w: 700});
+        text(ctx, name, xs - 6, y0 + 13, {size: 14, w: 600, align: 'left'});
+        const nw = Lab.measure(ctx, name, {size: 14, w: 600});
         text(ctx, ultra ? '사람이 못 듣는 높은 진동수의 소리' : (S.medium === 'air' ? '공기 중 약 340 m/s' : '매질이 있어야 전달'), xs + nw + 8, y0 + 13, {size: 13, w: 500, align: 'left', color: C.muted});
         speaker(ctx, xs - 6, ym, Math.min(lh * 0.32, 16), S.t);
         if (S.medium === 'air') {
@@ -525,33 +558,44 @@
             const jig = x < xs + 34 ? 2.2 * Math.sin(TAU * 2.2 * S.t - (x - xs) * 0.2) : 0;
             ctx.beginPath(); ctx.arc(x + jig, ym + (r - 1) * gap, 2.2, 0, TAU); ctx.fillStyle = C.muted; ctx.fill();
           }
-          text(ctx, g.narrow ? '소리 ≪ c: 거의 출발도 못 함' : '소리는 c의 약 88만 분의 1 → 빛이 도착할 때 거의 출발도 못 했다', (xs + xe) / 2 + 10, ym + gap * 2 + 8, {size: 13, w: 600, color: C.neg, halo: true});
+          // 이름 줄 오른쪽 끝에 (줄 아래로 넘치지 않게)
+          text(ctx, g.narrow ? '거의 출발도 못 함' : 'c의 약 88만 분의 1 → 빛이 도착할 때 거의 출발도 못 했다', xe, y0 + 13, {size: 13, w: 600, color: C.neg, align: 'right', halo: true});
         } else {
-          text(ctx, g.narrow ? '진공: 전달 안 됨 ✕' : '진공: 매질이 없어 소리는 전달되지 않는다 ✕', (xs + xe) / 2 + 10, ym, {size: 14, w: 700, color: C.neg, halo: true});
+          text(ctx, g.narrow ? '진공: 전달 안 됨 ✕' : '진공: 매질이 없어 소리는 전달되지 않는다 ✕', (xs + xe) / 2 + 10, ym, {size: 14, w: 600, color: C.neg, halo: true});
         }
       }
     });
-    $('legScale').textContent = prop ? '그림의 파장: 실제 비율' : '그림의 파장: 로그로 줄임 (실제 비율 아님)';
-    $('legSound').hidden = !(SETS[S.set].sound && S.medium === 'air');
+    const sc = prop ? '파장은 실제 비율' : '파장은 로그로 줄여 그림';
+    if (hudScale.textContent !== sc) hudScale.textContent = sc;
+  }
+  const hudScale = $('hudScale');
+  // 범례: 지금 보기(입체/속력 비교)의 항목만
+  function legend() {
+    legEl.querySelectorAll('[data-for]').forEach((s) => { s.hidden = s.dataset.for !== S.mode; });
+    if (S.mode === 'race') $('legSound').hidden = !(SETS[S.set].sound && S.medium === 'air');
+    hudScale.hidden = S.mode !== 'race';
   }
 
   // ── 스펙트럼 띠 ─────────────────────────────────────────
   function pill(ctx, x, y, s, xmin, xmax) {
-    const w = Lab.measure(ctx, s, {size: 13, w: 700, mono: true}) + 14, h = 21;
+    const w = Lab.measure(ctx, s, {size: 13, w: 600}) + 14, h = 21;
     const cx = Math.max(xmin + w / 2, Math.min(xmax - w / 2, x));
     ctx.save(); Lab.rrect(ctx, cx - w / 2, y - h / 2, w, h, 9); ctx.fillStyle = C.copper; ctx.fill(); ctx.restore();
-    text(ctx, s, cx, y, {size: 13, w: 700, mono: true, color: C['on-copper']});
+    text(ctx, s, cx, y, {size: 13, w: 600, color: C['on-copper']});
     return [cx - w / 2, cx + w / 2];
   }
+  // 띠: 넓은 화면 = 방향 글 · 진동수 눈금 · 띠 · 파장 눈금 · 가시광선 확대(아래 글). 좁은 화면은 방향 글을 빼고(눈금이 방향을 보여 준다) 줄 간격을 줄인다
   function drawBand(ctx, g) {
-    const b = g.band, nar = g.narrow, x0 = b.x, x1 = b.x + b.w;
+    const b = g.band, nar = g.cb, x0 = b.x, x1 = b.x + b.w;
     const LX = (l) => x0 + (l - LMIN) / (LMAX - LMIN) * (x1 - x0);
-    const yA = b.y + 9, yF = b.y + 31, yS = b.y + 44, hs = 30, yL = yS + hs + 15, yZ = yL + 15;
+    const yA = b.y + 9, yF = nar ? b.y + 11 : b.y + 31, yS = nar ? b.y + 23 : b.y + 44, hs = nar ? 26 : 30, yL = yS + hs + (nar ? 13 : 15), yZ = yL + (nar ? 13 : 15);
     const cur = M.region(S.lam), lc = Math.log10(S.lam), xm = LX(lc);
     b.yS = yS; b.hs = hs; b.LX = LX;
     // 방향 글
-    text(ctx, nar ? '← 진동수·에너지 큼' : '← 진동수 큼 · 광자 에너지(hf) 큼 · 투과력 큼', x0, yA, {size: 13, color: C.violet, align: 'left', w: 700});
-    text(ctx, nar ? '파장 김 →' : '파장 김 · 회절 잘 됨 →', x1, yA, {size: 13, color: C.energy, align: 'right', w: 700});
+    if (!nar) {
+      text(ctx, '← 진동수 큼 · 광자 에너지(hf) 큼 · 투과력 큼', x0, yA, {size: 13, color: C.violet, align: 'left', w: 600});
+      text(ctx, '파장 김 · 회절 잘 됨 →', x1, yA, {size: 13, color: C.energy, align: 'right', w: 600});
+    }
     // 띠
     const bounds = [];
     for (const r of M.REGIONS) {
@@ -570,8 +614,8 @@
     for (const [r, a, z] of bounds) {
       if (r.id === 'vis') continue;
       const sz = nar ? 13 : 14, on = r === cur;
-      const pick = [r.name, r.short].find((s) => Lab.measure(ctx, s, {size: sz, w: 700}) + 2 <= z - a);
-      if (pick) text(ctx, pick, (a + z) / 2, yS + hs / 2, {size: sz, w: 700, color: on ? C.copper : C.ink});
+      const pick = [r.name, r.short].find((s) => Lab.measure(ctx, s, {size: sz, w: 600}) + 2 <= z - a);
+      if (pick) text(ctx, pick, (a + z) / 2, yS + hs / 2, {size: sz, w: 600, color: on ? C.copper : C.ink});
     }
     // 지금 영역 테두리
     const cb = bounds.find(([r]) => r === cur);
@@ -582,35 +626,40 @@
       const x = LX(Math.log10(M.C) - k); if (x < x0 || x > x1) continue;
       const big = k % 3 === 0;
       ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, yS - (big ? 7 : 3)); ctx.lineTo(x, yS); ctx.stroke(); ctx.restore();
-      if (big && (x < fp[0] - 18 || x > fp[1] + 18)) text(ctx, pow10(k), x, yF - 2, {size: 13, w: 500, color: C.muted, mono: true});
+      if (big && (x < fp[0] - 18 || x > fp[1] + 18)) text(ctx, pow10(k), x, yF - 2, {size: 13, w: 500, color: C.muted});
     }
-    text(ctx, 'f', b.x - 9, yF - 2, {size: 14, w: 700, color: C.muted});
+    text(ctx, 'f', b.x - 9, yF - 2, {size: 14, w: 600, color: C.muted});
     // 파장 눈금 (아래)
     const LBL = {'-12': '1 pm', '-9': '1 nm', '-6': '1 μm', '-3': '1 mm', 0: '1 m', 3: '1 km'};
-    // 가시광선 확대 (선은 눈금 글자보다 먼저)
-    const va = LX(Math.log10(4e-7)), vb = LX(Math.log10(7e-7));
-    const zw = nar ? 132 : 200, zc = Math.max(x0 + zw / 2 + 4, Math.min(x1 - zw / 2 - 4, (va + vb) / 2)), zx0 = zc - zw / 2, zx1 = zc + zw / 2;
+    // 가시광선 확대 (선은 눈금 글자보다 먼저). 좁은 화면은 400·700 글자를 무지개 양옆에 둔다
+    const va = LX(Math.log10(4e-7)), vb = LX(Math.log10(7e-7)), zh = nar ? 10 : 12, side = nar ? 46 : 0;
+    const zw = nar ? 132 : 200, zc = Math.max(x0 + zw / 2 + 4 + side, Math.min(x1 - zw / 2 - 4 - side, (va + vb) / 2)), zx0 = zc - zw / 2, zx1 = zc + zw / 2;
     ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(va, yS + hs); ctx.lineTo(zx0, yZ); ctx.moveTo(vb, yS + hs); ctx.lineTo(zx1, yZ); ctx.stroke(); ctx.restore();
     const lp = pill(ctx, xm, yL, fmtLen(S.lam), x0, x1);
     for (let k = LMIN; k <= LMAX; k++) {
       const x = LX(k), big = LBL[k] !== undefined;
       ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, yS + hs); ctx.lineTo(x, yS + hs + (big ? 7 : 3)); ctx.stroke(); ctx.restore();
-      if (big && (x < lp[0] - 22 || x > lp[1] + 22)) text(ctx, LBL[k], x, yL, {size: 13, w: 500, color: C.muted, mono: true, halo: true});
+      if (big && (x < lp[0] - 22 || x > lp[1] + 22)) text(ctx, LBL[k], x, yL, {size: 13, w: 500, color: C.muted, halo: true});
     }
-    text(ctx, 'λ', b.x - 9, yL, {size: 14, w: 700, color: C.muted});
+    text(ctx, 'λ', b.x - 9, yL, {size: 14, w: 600, color: C.muted});
     // 무지개 (400~700 nm, 실제 색)
     const gz = ctx.createLinearGradient(zx0, 0, zx1, 0);
     for (let nm = 400; nm <= 700; nm += 20) gz.addColorStop((nm - 400) / 300, rgbOf(nm * 1e-9));
-    ctx.fillStyle = gz; ctx.fillRect(zx0, yZ, zw, 12);
-    text(ctx, nar ? '400 nm' : '400 nm 보라', zx0, yZ + 24, {size: 13, w: 500, color: C.muted, align: 'left'});
-    text(ctx, nar ? '700 nm' : '700 nm 빨강', zx1, yZ + 24, {size: 13, w: 500, color: C.muted, align: 'right'});
-    if (!nar) text(ctx, '가시광선: 눈이 감지하는 아주 좁은 구간', zx1 + 10, yZ + 6, {size: 13, w: 500, color: C.muted, align: 'left'});
+    ctx.fillStyle = gz; ctx.fillRect(zx0, yZ, zw, zh);
+    if (nar) {
+      text(ctx, '400', zx0 - 6, yZ + zh / 2, {size: 13, w: 500, color: C.muted, align: 'right'});
+      text(ctx, '700 nm', zx1 + 6, yZ + zh / 2, {size: 13, w: 500, color: C.muted, align: 'left'});
+    } else {
+      text(ctx, '400 nm 보라', zx0, yZ + 24, {size: 13, w: 500, color: C.muted, align: 'left'});
+      text(ctx, '700 nm 빨강', zx1, yZ + 24, {size: 13, w: 500, color: C.muted, align: 'right'});
+      text(ctx, '가시광선: 눈이 감지하는 아주 좁은 구간', zx1 + 10, yZ + 6, {size: 13, w: 500, color: C.muted, align: 'left'});
+    }
     g.zoom = {x0: zx0, x1: zx1, y: yZ};
     const nm = S.lam * 1e9;
     if (nm >= 400 && nm <= 700) {
       const x = zx0 + (nm - 400) / 300 * zw;
-      ctx.beginPath(); ctx.moveTo(x, yZ - 1); ctx.lineTo(x - 6, yZ - 10); ctx.lineTo(x + 6, yZ - 10); ctx.closePath(); ctx.fillStyle = C.copper; ctx.fill();
-      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x, yZ); ctx.lineTo(x, yZ + 12); ctx.stroke(); ctx.restore();
+      if (!nar) { ctx.beginPath(); ctx.moveTo(x, yZ - 1); ctx.lineTo(x - 6, yZ - 10); ctx.lineTo(x + 6, yZ - 10); ctx.closePath(); ctx.fillStyle = C.copper; ctx.fill(); }
+      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = nar ? 3 : 2.5; ctx.beginPath(); ctx.moveTo(x, yZ - (nar ? 3 : 0)); ctx.lineTo(x, yZ + zh + (nar ? 3 : 0)); ctx.stroke(); ctx.restore();
     }
     // 속력 비교의 다른 파동들
     if (S.mode === 'race') {
@@ -654,7 +703,7 @@
     ctx.restore();
     [[yE, C.violet, 'E'], [yB, C.acc, 'B']].forEach(([y0, col, nm]) => {
       ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(r.x, y0); ctx.lineTo(r.x + r.w, y0); ctx.stroke(); ctx.restore();
-      text(ctx, nm, r.x - 14, y0, {size: 15, w: 700, color: col});
+      text(ctx, nm, r.x - 14, y0, {size: 15, w: 600, color: col});
       ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2.8; ctx.lineJoin = 'round'; ctx.beginPath();
       for (let i = 0; i <= 160; i++) { const u = u0 + (u1 - u0) * i / 160, x = X(u), y = y0 - amp * val(u); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
       ctx.stroke(); ctx.restore();
@@ -757,7 +806,7 @@
       const s = o.size / S.lam * lpx, [wr, hr] = SHAPE[o.id];
       const big = Math.max(s * wr, hr ? s * hr : 0);
       if (s * Math.max(wr, hr || 0) >= 4 && s * wr <= availW * 0.62 && (hr ? s * hr : 0) <= availH) {
-        const lw = Math.max(Lab.measure(ctx, o.name, {size: 13, w: 700}), Lab.measure(ctx, fmtLen(o.size), {size: 13, w: 500, mono: true}));
+        const lw = Math.max(Lab.measure(ctx, o.name, {size: 13, w: 600}), Lab.measure(ctx, fmtLen(o.size), {size: 13, w: 500}));
         vis.push({o, s, w: Math.max(s * wr, lw, 8), big});
       }
     }
@@ -768,8 +817,8 @@
     vis.forEach((v) => {
       const cx = x + v.w / 2;
       drawObj(ctx, v.o.id, cx, gy, v.s, availH);
-      text(ctx, v.o.name, cx, gy + 13, {size: 13, w: 700});
-      text(ctx, fmtLen(v.o.size), cx, gy + 28, {size: 13, w: 500, mono: true, color: C.muted});
+      text(ctx, v.o.name, cx, gy + 13, {size: 13, w: 600});
+      text(ctx, fmtLen(v.o.size), cx, gy + 28, {size: 13, w: 500, color: C.muted});
       x += v.w + 22;
     });
     // 너무 작거나 커서 못 그린 가장 가까운 물체
@@ -788,39 +837,62 @@
   function draw() { drawStage(); drawEBT(); drawSize(); }
 
   // ── 읽기 값·예제 확인 ────────────────────────────────────
+  // 영역 이름 (가시광선이면 색까지): '가시광선 (주황빛)'
+  const regName = (lam, short) => {
+    const reg = M.region(lam), cn = reg.id === 'vis' ? M.colorName(lam * 1e9) : '';
+    return reg.name + (cn ? (short ? '(' + cn + ')' : ' (' + cn + '빛)') : '');
+  };
+  // 미터로 쓴 파장: 0.12 → '0.12', 6e-7 → '(6 × 10⁻⁷)' (나눗셈에 넣을 때 괄호)
+  const mIn = (lam) => { const s = Lab.sci(lam, 2); return s.includes('×') ? '(' + s + ')' : s; };
   function readouts() {
     const lam = S.lam, f = M.freq(lam), reg = M.region(lam), nm = lam * 1e9;
-    const u = M.lengthUnit(lam);
-    $('lamOut').textContent = Lab.fmt(u.v, 2) + ' ' + u.u + (nm >= 100 && nm < 1000 ? ' (' + Lab.fmt(nm, 0) + ' nm)' : '');
-    $('rLam').textContent = fmtLen(lam);
-    $('rF').textContent = fmtHz(f);
-    $('rReg').textContent = reg.name;
+    $('lamOut').textContent = fmtLen(lam);
+    $('rReg').textContent = regName(lam);
     $('rT').textContent = Lab.sci(sig(M.period(lam)), 2) + ' s';
-    $('rC').textContent = '3 × 10⁸ m/s';
+    $('rC').textContent = Lab.sci(sig(f * lam), 2) + ' m/s';
     $('rE').textContent = Lab.sci(sig(M.photonEnergy(lam)), 2) + ' J';
+    // 지금 값: c = fλ 에 지금 파장을 넣는다. 속력 비교에서는 줄마다 f = c/λ 를 견준다
+    if (S.mode === 'race') {
+      const st = SETS[S.set], lams = [lam].concat(st.lanes).sort((a, b) => a - b);   // 파장 짧은 것(진동수 큰 것)부터
+      const lines = lams.map((l) => (l === lam ? '지금 · ' : '') + regName(l, true) + ' ' + fmtLen(l) + ' → f = <em>' + fmtHz(M.freq(l)) + '</em>');
+      if (st.sound) {
+        const nmS = st.sound === 'ultra' ? '초음파(음파)' : '소리(음파)';
+        lines.push(S.medium === 'air' ? nmS + ': 공기 중 약 <em>340 m/s</em> — c의 약 88만 분의 1' : nmS + ': 매질이 없어 진공에서는 <em>전달되지 않는다</em>');
+      }
+      $('ansLab').textContent = (S.medium === 'air' ? '공기' : '진공') + '에서 속력';
+      Lab.ans('전자기파는 모두 c', lines, {tone: 'vel', ctx: (S.medium === 'air' ? '공기' : '진공') + ' · 같은 출발선',
+        f: '속력이 같으니 f = c/λ: 파장이 짧을수록 진동수가 크다'});
+    } else {
+      const unitM = M.lengthUnit(lam).u === 'm';
+      $('ansLab').textContent = '지금 진동수';
+      Lab.ans('f = ' + fmtHz(f), ['λ = <em>' + fmtLen(lam) + '</em>' + (unitM ? '' : ' = ' + Lab.sci(lam, 2) + ' m'),
+        'f = 3 × 10⁸ ÷ ' + mIn(lam) + ' = <em>' + fmtHz(f) + '</em>'],
+      {tone: '', ctx: '진공 · ' + regName(lam), f: 'c = fλ 에서 f = c/λ 에 지금 값을 넣으면'});
+    }
     // HUD
     const cn = M.colorName(nm), rgb = rgbOf(lam);
     const narrowNow = isNarrow();
     $('hudRegT').textContent = reg.name + (reg.id === 'vis' && cn ? ' · ' + cn + '빛' + (narrowNow ? '' : ' (' + Lab.fmt(nm, 0) + ' nm)') : '');
     $('hudDot').style.background = rgb || dotVar(reg.id);
+    $('hudReg').hidden = S.mode === 'race' && narrowNow;    // 폰의 속력 비교: 지금 영역은 구리색 줄 이름이 알려 준다
     hud();
     // 크기 비교 설명
     const o = M.nearestObject(lam), r = o.size / lam, on = '<b>' + o.name + '</b>(약 ' + fmtLen(o.size) + ')';
     const rt = (v) => (v < 1000 ? Lab.fmt(sig(v), 0) : pow10(Math.round(Math.log10(v))));
-    $('sizeCap').innerHTML = '지금 파장 <b>λ = ' + fmtLen(lam) + '</b>는 ' + (r > 2 ? '가장 가까운 ' + on + '의 약 1/' + rt(r) + '이다.'
+    $('sizeCap').innerHTML = '지금 파장 λ = ' + fmtLen(lam) + '는 ' + (r > 2 ? '가장 가까운 ' + on + '의 약 1/' + rt(r) + '이다.'
       : r < 0.5 ? '가장 가까운 ' + on + '의 약 ' + rt(1 / r) + '배이다.' : on + ' 크기 정도다.') + ' 파동과 물체는 같은 비율로 그렸다.';
     // 예제 확인
     const e1 = near(lam, EX1), e2 = near(lam, EX2);
     Lab.check('exCheck', e1 || e2,
-      e1 ? '예제 ①: λ = 0.6 μm → f = c/λ = 5 × 10¹⁴ Hz (가시광선)' : '예제 ②: λ = 3 m → f = c/λ = 1 × 10⁸ Hz (라디오파). 파장 500만 배 → 진동수 500만 분의 1',
-      '예제: 진공에서 λ = 0.6 μm 가시광선과 3 m 라디오파의 진동수는? — ‘예제’ 버튼이나 ‘스스로 확인 1’');
+      e1 ? '개념서 예제 ①: λ = 0.6 μm → f = c/λ = 5 × 10¹⁴ Hz (가시광선)' : '개념서 예제 ②: λ = 3 m → f = c/λ = 1 × 10⁸ Hz (라디오파). 파장 500만 배 → 진동수 500만 분의 1',
+      '예제: 진공에서 λ = 0.6 μm 가시광선과 3 m 라디오파의 진동수는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
     exG.set(e1 ? '1' : e2 ? '2' : '', true);
   }
   function hud() {
-    const slow = M.freq(S.lam) / (fS() * S.speed);
+    const slow = M.freq(S.lam) / (fS() * S.speed), nar = isNarrow();
     $('hudSlow').textContent = S.mode === 'race'
-      ? (S.medium === 'air' ? '공기 · 빛은 거의 c, 소리 340 m/s' : '진공 · 전자기파는 모두 c')
-      : (isNarrow() ? '실제보다 ' : '느린 화면: 실제보다 약 ') + Lab.sci(sig(slow), 0) + '배 느림';
+      ? (S.medium === 'air' ? (nar ? '공기 · 소리 340 m/s' : '공기 · 빛은 거의 c, 소리 340 m/s') : (nar ? '진공 · 모두 c' : '진공 · 전자기파는 모두 c'))
+      : (nar ? Lab.sci(sig(slow), 0) + '배 느린 화면' : '느린 화면: 실제보다 약 ' + Lab.sci(sig(slow), 0) + '배 느림');
   }
 
   // ── 조작 ────────────────────────────────────────────────
@@ -842,14 +914,13 @@
     S.mode = m;
     $('gView').hidden = m !== '3d'; $('rowChk').hidden = m !== '3d';
     $('gSet').hidden = m !== 'race'; $('gMed').hidden = m !== 'race';
-    $('leg3d').hidden = m !== '3d'; $('legRace').hidden = m !== 'race';
     if (m === 'race') S.raceT0 = S.t;
-    hud(); draw();
+    legend(); readouts(); draw();
   }
   const modeG = Lab.group('[data-mode]', 'mode', (v) => setMode(v), '3d');
-  function setSet(k) { S.set = k; if (SETS[k].first) setLam(SETS[k].first); S.raceT0 = S.t; draw(); }
+  function setSet(k) { S.set = k; S.raceT0 = S.t; legend(); if (SETS[k].first) setLam(SETS[k].first); else { readouts(); draw(); } }
   const setG = Lab.group('[data-set]', 'set', (v) => setSet(v), 'mix');
-  const medG = Lab.group('[data-med]', 'med', (v) => { S.medium = v; hud(); draw(); }, 'vacuum');
+  const medG = Lab.group('[data-med]', 'med', (v) => { S.medium = v; legend(); readouts(); draw(); }, 'vacuum');
   const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; hud(); }, '1');
   $('cVec').addEventListener('change', (e) => { S.vec = e.target.checked; draw(); });
   $('cPlane').addEventListener('change', (e) => { S.planes = e.target.checked; draw(); });
@@ -889,11 +960,11 @@
     ex: () => { modeG.set('3d', true); setMode('3d'); setLam(EX1); viewG.set('obl', true); setView('obl'); playCtl.set(true); },
     ex2: () => { modeG.set('3d', true); setMode('3d'); setLam(EX2); viewG.set('obl', true); setView('obl'); playCtl.set(true); },
     front: () => { modeG.set('3d', true); setMode('3d'); setLam(EX1); viewG.set('front', true); setView('front'); playCtl.set(true); },
-    xru: () => { modeG.set('race', true); setMode('race'); setG.set('xru', true); setSet('xru'); medG.set('vacuum', true); S.medium = 'vacuum'; playCtl.set(true); },
+    xru: () => { modeG.set('race', true); setMode('race'); setG.set('xru', true); setSet('xru'); medG.set('vacuum'); playCtl.set(true); },
     order: () => { modeG.set('race', true); setMode('race'); setG.set('order', true); setSet('order'); playCtl.set(true); },
     color: () => { modeG.set('race', true); setMode('race'); setG.set('color', true); setSet('color'); playCtl.set(true); },
   };
-  Lab.tries(TRY, () => { speedG.set(S.speed, true); readouts(); draw(); });
+  Lab.tries(TRY, () => { speedG.set(S.speed, true); legend(); readouts(); draw(); });
 
   // ── 돌리기 ──────────────────────────────────────────────
   Lab.loop((dt) => {
@@ -912,6 +983,7 @@
     }
     if (dirty) draw();
   });
+  legend();
   setLam(EX1);
 })();
 </script>

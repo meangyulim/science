@@ -9,25 +9,24 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(이중 슬릿·얇은 막·무반사 코팅·간섭의 이용 장면)와 조작판, 오른쪽 수치·두 빛의 비교·장면별 그래프·이용 분류표 */
+/* 관찰 노트: 왼쪽 실험대(이중 슬릿 · 얇은 막 · 무반사 코팅 · 간섭의 이용 장면) | 오른쪽 지금 값 + 관찰 ①~④ → 정리 → 예제 → 스스로 확인 */
 #stage{aspect-ratio:16/10}
 #pb{aspect-ratio:10/7.4}
-#pc{height:200px}
-.ro.full{grid-column:1/-1}
-.readouts .ro b{white-space:normal;line-height:1.3;display:block}
-.ro.full b{white-space:normal;font-size:18px;line-height:1.4;display:block}
-.ro.neg b{color:var(--neg)}
-.ro b .sw{display:inline-block;width:18px;height:18px;border-radius:50%;vertical-align:-2px;margin-right:6px;border:1px solid var(--line)}
+#pc{height:180px}
+#fb,#cb{aspect-ratio:10/6.4}
+#fc{height:96px}
+#cc{height:200px}
 .legend b.dash{height:0;border-top:3px dashed currentColor;background:none!important;width:18px}
-.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.board .col{border:1px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:8px;align-content:start}
-.board h3{margin:0;font-size:15px}
-.board .col.des h3{color:var(--neg)} .board .col.con h3{color:var(--acc)}
-.board h3 small{display:block;font-size:12.5px;font-weight:500;color:var(--muted)}
-.board .btn{white-space:normal;text-align:left}
-.quiz .tag{white-space:nowrap}
-.quiz .opts{margin:0;font-size:15px;line-height:1.75;color:var(--ink)}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.42} #pc{height:220px} }
+.answer .big .sw{display:inline-block;width:.78em;height:.78em;border-radius:50%;vertical-align:-.06em;margin-right:.3em;border:1px solid var(--line)}
+.opts{margin:6px 0 0;font-size:15px;line-height:1.75;color:var(--ink-2)}
+.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.board .bcol{border:1px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:8px;align-content:start}
+.board h4{margin:0;font-size:15px;font-weight:700;line-height:1.4}
+.board .des h4{color:var(--neg)} .board .con h4{color:var(--acc)}
+.board h4 small{display:block;font-size:12.5px;font-weight:400;color:var(--muted)}
+.board .btn{white-space:normal;text-align:left;justify-content:flex-start}
+.uses{font-size:14px;line-height:1.65}
+.uses li{color:var(--muted)}
 </style>
 </head>
 <body class="cx">
@@ -39,175 +38,211 @@
 </div></header>
 <!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III1-12</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III1-12</span><span>물리학 Ⅰ · 파동의 성질과 활용</span></div>
     <h1>빛의 간섭과 간섭의 이용</h1>
-    <p class="lead">빛도 파동이라 간섭한다. 두 빛이 <b>같은 위상</b>으로 만나면 그 색이 밝게 보이고(보강), <b>반대 위상</b>으로 만나면 그 색이 보이지 않는다(상쇄). 이중 슬릿의 스크린, 비눗방울의 무지갯빛, 코팅 렌즈에서 두 빛의 경로차와 위상을 직접 비교해 보자.</p>
-  </header>
+    <p class="question"><i>Q</i>빛도 간섭한다는 것은 무엇으로 확인하고, 간섭은 어디에 쓰일까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
         <canvas id="stage" aria-label="빛의 간섭 장면. 이중 슬릿, 얇은 막, 무반사 코팅, 간섭의 이용."></canvas>
         <div class="hud"><span class="pill" id="hud1">초록빛 532 nm</span><span class="pill" id="hud2">그림은 파장을 크게 과장</span></div>
         <div class="legend" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
           <div class="group" role="group" aria-label="장면">
-            <span class="gl">장면</span>
-            <button type="button" class="btn" data-scene="slit" aria-pressed="true">이중 슬릿</button>
-            <button type="button" class="btn" data-scene="film" aria-pressed="false">얇은 막의 색</button>
-            <button type="button" class="btn" data-scene="coat" aria-pressed="false">무반사 코팅</button>
-            <button type="button" class="btn" data-scene="use" aria-pressed="false">간섭의 이용</button>
+            <span class="gl lg">장면</span>
+            <button type="button" class="btn" data-scene="slit" aria-pressed="true"><span class="lg">이중</span>슬릿</button>
+            <button type="button" class="btn" data-scene="film" aria-pressed="false"><span class="lg">얇은</span>막</button>
+            <button type="button" class="btn" data-scene="coat" aria-pressed="false"><span class="lg">무반사</span>코팅</button>
+            <button type="button" class="btn" data-scene="use" aria-pressed="false"><span class="lg">간섭의</span>이용</button>
           </div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">빛·두께</span><span class="sm">조작</span></button>
         </div>
-        <div class="row" id="rowSlit">
-          <div class="group" role="group" aria-label="빛의 색">
-            <span class="gl">빛의 색</span>
-            <button type="button" class="btn" data-col="r" aria-pressed="false">빨강 650 nm</button>
-            <button type="button" class="btn" data-col="g" aria-pressed="true">초록 532 nm</button>
-            <button type="button" class="btn" data-col="b" aria-pressed="false">파랑 450 nm</button>
+        <div class="sheet" id="sheet" role="group" aria-label="빛과 막 두께, 간섭의 이용">
+          <div class="sheet-head"><b>빛 · 막 두께 · 이용 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row" id="rowSlit">
+            <div class="group" role="group" aria-label="빛의 색">
+              <span class="gl">빛의 색</span>
+              <button type="button" class="btn" data-col="r" aria-pressed="false">빨강 650 nm</button>
+              <button type="button" class="btn" data-col="g" aria-pressed="true">초록 532 nm</button>
+              <button type="button" class="btn" data-col="b" aria-pressed="false">파랑 450 nm</button>
+            </div>
+            <button type="button" class="btn" id="particle" aria-pressed="false">빛이 입자라면?</button>
           </div>
-          <button type="button" class="btn" id="particle" aria-pressed="false">빛이 입자라면?</button>
-        </div>
-        <div class="row" id="rowFilm" hidden>
-          <div class="group" role="group" aria-label="비추는 빛">
-            <span class="gl">빛</span>
-            <button type="button" class="btn" data-light="w" aria-pressed="true">백색광</button>
-            <button type="button" class="btn" data-light="r" aria-pressed="false">빨강</button>
-            <button type="button" class="btn" data-light="g" aria-pressed="false">초록</button>
-            <button type="button" class="btn" data-light="b" aria-pressed="false">파랑</button>
+          <div class="row" id="rowFilm" hidden>
+            <div class="group" role="group" aria-label="비추는 빛">
+              <span class="gl">빛</span>
+              <button type="button" class="btn" data-light="w" aria-pressed="true">백색광</button>
+              <button type="button" class="btn" data-light="r" aria-pressed="false">빨강</button>
+              <button type="button" class="btn" data-light="g" aria-pressed="false">초록</button>
+              <button type="button" class="btn" data-light="b" aria-pressed="false">파랑</button>
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="thick">P의 막 두께 <output id="thickOut">500 nm</output></label>
+              <input id="thick" type="range" min="20" max="1000" step="10" value="500">
+            </div>
           </div>
-          <div class="grow">
-            <label class="ctl-label" for="thick">P 지점의 막 두께 (막에서 P를 끌어도 됨) <output id="thickOut">500 nm</output></label>
-            <input id="thick" type="range" min="20" max="1000" step="10" value="500">
+          <div class="row" id="rowCoat" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="tc">코팅 막 두께 <output id="tcOut">100 nm</output></label>
+              <input id="tc" type="range" min="0" max="250" step="5" value="100">
+            </div>
           </div>
-        </div>
-        <div class="row" id="rowCoat" hidden>
-          <div class="grow">
-            <label class="ctl-label" for="tc">코팅 막의 두께 <output id="tcOut">100 nm</output></label>
-            <input id="tc" type="range" min="0" max="250" step="5" value="100">
+          <div class="row" id="rowUse" hidden>
+            <div class="group" role="group" aria-label="간섭의 이용">
+              <button type="button" class="btn" data-use="noise" aria-pressed="true">소음 제거 헤드폰</button>
+              <button type="button" class="btn" data-use="inst" aria-pressed="false">악기</button>
+              <button type="button" class="btn" data-use="stone" aria-pressed="false">초음파 결석 파쇄</button>
+              <button type="button" class="btn" data-use="ink" aria-pressed="false">색 변환 잉크</button>
+            </div>
+            <label class="chk" id="ancWrap"><input type="checkbox" id="anc" checked>소음 제거 켜기</label>
+            <div class="grow" id="angWrap" hidden>
+              <label class="ctl-label" for="ang">보는 각도 θ <output id="angOut">40°</output></label>
+              <input id="ang" type="range" min="0" max="60" step="5" value="40">
+            </div>
           </div>
-        </div>
-        <div class="row" id="rowUse" hidden>
-          <div class="group" role="group" aria-label="간섭의 이용">
-            <button type="button" class="btn" data-use="noise" aria-pressed="true">소음 제거 헤드폰</button>
-            <button type="button" class="btn" data-use="inst" aria-pressed="false">악기</button>
-            <button type="button" class="btn" data-use="stone" aria-pressed="false">초음파 결석 파쇄</button>
-            <button type="button" class="btn" data-use="ink" aria-pressed="false">색 변환 잉크</button>
-          </div>
-          <label class="chk" id="ancWrap"><input type="checkbox" id="anc" checked>소음 제거 켜기</label>
-          <div class="grow" id="angWrap" hidden>
-            <label class="ctl-label" for="ang">보는 각도 <output id="angOut">40°</output></label>
-            <input id="ang" type="range" min="0" max="60" step="5" value="40">
-          </div>
-        </div>
-        <div class="row toggles">
-          <span class="spacer"></span>
-          <div class="group" role="group" aria-label="시간 빠르기">
-            <span class="gl">빠르기</span>
-            <button type="button" class="btn mono" data-speed="0.25" aria-pressed="false">×0.25</button>
-            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="true">×0.5</button>
-            <button type="button" class="btn mono" data-speed="1" aria-pressed="false">×1</button>
+          <div class="row">
+            <div class="group" role="group" aria-label="시간 빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×0.25</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="true">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="false">×1</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치 <small id="roNote">점 P</small></h2>
-        <div class="readouts">
-          <div class="ro" id="ro1"><span id="l1"></span><b id="v1"></b></div>
-          <div class="ro" id="ro2"><span id="l2"></span><b id="v2"></b></div>
-          <div class="ro" id="ro3"><span id="l3"></span><b id="v3"></b></div>
-          <div class="ro" id="ro4"><span id="l4"></span><b id="v4"></b></div>
-          <div class="ro full" id="ro5"><span id="l5"></span><b id="v5"></b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansName">점 P의 무늬</span><span id="ansCtx">이중 슬릿 · 초록빛 532 nm</span></div>
+        <div class="big" id="ansBig">밝은 무늬 (보강)</div>
+        <div class="sub">
+          <span class="f" id="ansF">점 P까지 두 빛의 경로차를 파장으로 재면</span>
+          <span id="ansLines"><span class="v">경로차 Δ = |r₂ − r₁| = <em>λ</em> (정수배)</span><span class="v">두 빛이 <em>같은 위상</em>으로 만나 서로 키운다</span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="m1n">빛의 색 · 파장</span><b id="m1">초록 532 nm</b></div>
+          <div class="mini"><span id="m2n">무늬</span><b id="m2">첫 번째 밝은 무늬</b></div>
+          <div class="mini"><span id="m3n">P에서 만나는 두 빛</span><b id="m3">같은 위상</b></div>
+          <div class="mini"><span id="m4n">밝기 (가운데 = 1)</span><b id="m4">1</b></div>
         </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel" id="panB">
-        <h2 id="pbTitle">점 P에 도착한 두 빛 <small>경로차 자 · 진동</small></h2>
-        <canvas class="flat" id="pb" aria-label="두 빛의 위상 비교"></canvas>
-        <p class="cap" id="pbCap"></p>
-      </section>
-      <section class="panel wide" id="panC">
-        <h2 id="pcTitle">색에 따라 다른 무늬 간격</h2>
-        <canvas class="flat" id="pc" aria-label="장면별 그래프"></canvas>
-        <p class="cap" id="pcCap"></p>
-      </section>
-      <section class="panel wide" id="panD" hidden>
-        <h2>간섭의 이용 분류 <small>누르면 무대가 바뀐다</small></h2>
-        <div class="board">
-          <div class="col des"><h3>상쇄 간섭 이용<small>반대 위상으로 만나 약해짐</small></h3>
-            <button type="button" class="btn" data-use="noise" aria-pressed="true">소음 제거 헤드폰</button>
-            <button type="button" class="btn" data-go="coat">무반사 코팅</button>
-          </div>
-          <div class="col con"><h3>보강 간섭 이용<small>같은 위상으로 만나 강해짐</small></h3>
-            <button type="button" class="btn" data-use="inst" aria-pressed="false">악기</button>
-            <button type="button" class="btn" data-use="stone" aria-pressed="false">초음파 결석 파쇄</button>
-            <button type="button" class="btn" data-use="ink" aria-pressed="false">색 변환 잉크</button>
-          </div>
-        </div>
-        <p class="cap">위치마다 보강·상쇄가 갈리는 경우(기름 막·비눗방울의 색, 이중 슬릿 무늬)는 앞의 장면에서 볼 수 있다.</p>
-      </section>
-    </aside>
-  </main>
+      </div>
 
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>이중 슬릿: 빛의 파동성 증거</h3>
-        <p>두 슬릿을 지난 단색광이 겹치면 밝고 어두운 무늬가 번갈아 생긴다. 경로차가 <span class="eq">0, λ, 2λ…</span>인 곳은 같은 위상 → 밝음, <span class="eq">λ/2, 3λ/2…</span>인 곳은 반대 위상 → 어두움. 중앙은 밝다.</p>
-        <p>빛이 입자로만 행동한다면 틈 모양의 두 줄만 생겨야 하므로, 간섭무늬는 빛이 파동이라는 증거다.</p>
-      </article>
-      <article class="concept">
-        <h3>얇은 막의 간섭과 무반사 코팅</h3>
-        <p>윗면에서 반사된 빛 ①과 막 속을 왕복한 뒤 아랫면에서 반사된 빛 ②가 겹친다. 막 두께에 따라 두 빛의 위상 관계가 달라져 색마다 보강·상쇄가 갈린다 → 비눗방울·기름 막의 무지갯빛, 나비 날개의 색.</p>
-        <p>렌즈 위의 얇은 막이 두 반사광을 반대 위상으로 만나게 하면 반사가 줄고 투과가 는다(무반사 코팅).</p>
-      </article>
-      <article class="concept">
-        <h3>간섭의 이용: 보강과 상쇄</h3>
-        <p><b>상쇄</b>: 소음 제거 헤드폰(소음과 반대 위상의 소리), 무반사 코팅(두 반사광이 반대 위상).</p>
-        <p><b>보강</b>: 악기(특정 소리가 크고 선명), 초음파 결석 파쇄(여러 초음파가 결석에서 보강), 색 변환 잉크(보는 각도마다 보강되는 색이 다름).</p>
-      </article>
-    </div>
-    <p class="compare">물결파의 간섭(III1-11)과 같은 규칙이다 — 경로차가 파장의 정수배면 보강, 반정수배면 상쇄. 빛에서는 보강 = 그 색이 밝게 보임, 상쇄 = 그 색이 보이지 않음(두 빛이 모두 오지만 서로 지움).</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>단색광으로 이중 슬릿 실험을 할 때 스크린에 생기는 무늬에 대한 설명으로 옳은 것은?<span class="tag">명세 예제 · 개념 체크</span></p>
-        <p class="opts">① 두 슬릿까지의 경로차가 λ인 곳에 밝은 무늬가 생긴다.<br>② 스크린 중앙에는 어두운 무늬가 생긴다.<br>③ 경로차가 λ/2인 곳에 밝은 무늬가 생긴다.<br>④ 어두운 무늬가 생긴 곳에는 두 빛이 모두 도달하지 않는다.<br>⑤ 빛이 입자로만 행동한다는 증거이다.</p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">이중 슬릿 장면으로</button></div>
-        <details><summary>답 보기</summary><p><b>①</b>. 두 슬릿을 지난 빛은 같은 위상에서 출발하므로 경로차가 0, λ, …인 곳에서 보강되어 밝다(중앙도 밝다). 경로차가 λ/2인 곳은 반대 위상이 만나 어둡고, 두 빛이 모두 도달하지만 상쇄된 것이다. 간섭무늬는 빛의 파동성을 보여 준다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>어두운 무늬가 생긴 곳에는 빛이 오지 않은 것일까? 빛이 입자로만 행동한다면 스크린은 어떻게 보일까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="q2a">어두운 무늬에 P 두기</button><button type="button" class="btn" data-try="q2b">입자라면?</button></div>
-        <details><summary>답 보기</summary><p>어두운 곳(경로차 λ/2)에도 두 슬릿의 빛이 <b>모두 도착</b>한다. 오른쪽 그래프처럼 두 빛이 반대 위상이라 합이 늘 0일 뿐이다. 입자로만 행동한다면 무늬 없이 <b>틈 모양의 두 줄</b>만 생긴다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>비눗방울이나 물 위의 기름 막이 무지갯빛으로 보이는 까닭은?</p>
-        <div class="acts"><button type="button" class="btn" data-try="q3">비누막 장면으로</button></div>
-        <details><summary>답 보기</summary><p>막의 윗면과 아랫면에서 반사된 두 빛이 간섭하는데, <b>막의 두께가 곳곳 달라</b> 위치마다 보강되는 색이 다르기 때문이다. P를 위아래로 끌면 두께에 따라 빨강·초록·파랑의 보강·상쇄가 바뀌는 것이 보인다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>상쇄 간섭을 이용한 예로만 짝지은 것은?</p>
-        <p class="opts">① 초음파 결석 파쇄, 악기 &nbsp; ② 색 변환 잉크, 무반사 코팅<br>③ 소음 제거 헤드폰, 초음파 결석 파쇄 &nbsp; ④ 소음 제거 헤드폰, 무반사 코팅<br>⑤ 악기, 색 변환 잉크</p>
-        <div class="acts"><button type="button" class="btn" data-try="q4a">소음 제거 헤드폰</button><button type="button" class="btn" data-try="q4b">무반사 코팅</button></div>
-        <details><summary>답 보기</summary><p><b>④</b>. 소음 제거 헤드폰은 소음과 반대 위상의 소리로, 무반사 코팅은 두 반사광을 반대 위상으로 만나게 해서 파동을 상쇄시킨다. 초음파 결석 파쇄, 악기, 색 변환 잉크는 모두 보강 간섭을 이용한다.</p></details>
-      </li>
-    </ol>
-    <!-- nextprev -->
+      <ol class="steps">
+        <li class="card step" data-step="① 이중 슬릿 무늬">
+          <div class="kind">관찰 1</div>
+          <h3>밝은 무늬는 두 빛이 같은 위상, 어두운 무늬는 반대 위상으로 만난 곳이다</h3>
+          <p>빛도 파동이라 간섭한다. 두 좁은 틈을 지난 단색광이 스크린에서 겹치면 밝고 어두운 무늬가 번갈아 생긴다. 스크린의 점 P를 끌어 두 슬릿까지의 경로차를 재어 보자. 중앙은 경로차 0이라 밝고, 경로차가 λ/2인 곳은 어둡고, λ인 곳은 다시 밝다.</p>
+          <canvas class="flat" id="pb" aria-label="경로차를 파장 단위로 나타낸 수직선과, 점 P에 도착한 두 빛의 진동과 그 합."></canvas>
+          <p class="cap">위는 경로차 자(▼ 지금 P), 아래는 P에서 두 빛의 진동이다. 두 슬릿에서 온 빛(점선)이 경로차만큼 어긋나 도착한다. 정수배면 같은 위상이라 밝고, 반정수배면 반대 위상이라 어둡다. 어두운 곳에도 두 빛이 <b>모두 도착</b>하지만 합이 0이다.</p>
+          <canvas class="flat" id="pc" aria-label="빨강·초록·파랑 빛의 이중 슬릿 무늬. 파장이 긴 빛일수록 무늬 간격이 넓다."></canvas>
+          <p class="cap">색마다 가운데 밝은 무늬에서 첫 밝은 무늬(경로차 λ)까지를 표시했다. 파장이 긴 빨간빛일수록 간격이 넓다. 빛이 입자로만 행동한다면 무늬 없이 틈 모양의 두 줄만 생겨야 하므로, 간섭무늬는 빛이 파동이라는 증거다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">밝은 무늬에 P</button>
+            <button type="button" class="btn" data-try="q2a">어두운 무늬에 P</button>
+            <button type="button" class="btn" data-try="q2b">빛이 입자라면?</button>
+            <button type="button" class="btn" data-try="red">빨간빛으로</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 얇은 막의 색">
+          <div class="kind">관찰 2</div>
+          <h3>막 두께에 따라 보강되는 색이 달라 무지갯빛이 된다</h3>
+          <p>얇은 막에 빛이 비치면 윗면에서 반사된 빛 ①과, 막 속을 왕복한 뒤 아랫면에서 반사된 빛 ②가 겹친다. ②는 막 두께에 따라 더 먼 길을 오므로 두 빛이 같은 위상으로 만나기도 하고 반대 위상으로 만나기도 한다. 비누막에서 P를 위아래로 끌어 두께를 바꿔 보자(단면의 두께는 과장해 그렸다).</p>
+          <canvas class="flat" id="fb" aria-label="빨강·초록·파랑 빛마다 윗면 반사광과 아랫면 반사광의 위상 비교."></canvas>
+          <p class="cap">색마다 ①(점선 보라)과 ②(점선 파랑), 그 합(검은 실선)이다. 같은 위상이면 그 색이 밝게 보이고, 반대 위상이면 그 색이 보이지 않는다. 두께를 바꾸면 색마다 관계가 바뀐다.</p>
+          <canvas class="flat" id="fc" aria-label="막 두께 0~1000 nm 에 따른 반사색 띠와 지금 P의 두께."></canvas>
+          <p class="cap">막 두께에 따른 반사색이다(▼ 지금 P). 비눗방울이나 물 위 기름 막은 두께가 곳곳 달라 위치마다 보강되는 색이 다르므로 무지갯빛 띠가 생긴다. 나비 날개의 미세 구조가 만드는 색도 같은 원리다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="q3">비누막 · 백색광</button>
+            <button type="button" class="btn" data-do="click:[data-scene=film]; click:[data-light=g]">초록빛만 비추기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 무반사 코팅">
+          <div class="kind">관찰 3</div>
+          <h3>두 반사광이 반대 위상으로 만나면 반사가 줄고 투과가 는다</h3>
+          <p>렌즈 표면에 얇은 막을 입혀 윗면 반사광 ①과 아랫면 반사광 ②가 반대 위상으로 만나게 하면 반사광이 상쇄된다. 반사가 줄어든 만큼 투과가 늘어난다. 이것이 무반사 코팅이다.</p>
+          <canvas class="flat" id="cb" aria-label="코팅 막에서 빨강·초록·파랑 빛의 두 반사광 위상 비교."></canvas>
+          <p class="cap">두께 100 nm 코팅에서는 초록빛 근처의 ①과 ②가 반대 위상이 되어 상쇄되고, 반사가 4%에서 약 1.4%로 줄어든다.</p>
+          <canvas class="flat" id="cc" aria-label="코팅 전후의 파장별 반사율."></canvas>
+          <p class="cap">파장별 반사율이다(점선 = 코팅 없음). 초록이 가장 많이 줄고 빨강·파랑은 덜 줄어, 코팅 렌즈의 반사광은 보랏빛을 띤다. 코팅을 두 배로 두껍게 하면 두 반사광이 다시 같은 위상이 되어 반사가 줄지 않는다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="q4b">코팅 100 nm</button>
+            <button type="button" class="btn" data-do="click:[data-scene=coat]; set:#tc=200">코팅 200 nm</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 간섭의 이용">
+          <div class="kind">관찰 4</div>
+          <h3>상쇄를 이용하는 곳과 보강을 이용하는 곳이 있다</h3>
+          <p>간섭의 이용은 보강과 상쇄로 나누어 정리한다. 버튼을 누르면 무대가 그 장면으로 바뀐다.</p>
+          <div class="board">
+            <div class="bcol des"><h4>상쇄 간섭 이용<small>반대 위상으로 만나 약해짐</small></h4>
+              <button type="button" class="btn" data-use="noise" aria-pressed="false">소음 제거 헤드폰</button>
+              <button type="button" class="btn" id="bCoat" data-try="q4b" aria-pressed="false">무반사 코팅</button>
+            </div>
+            <div class="bcol con"><h4>보강 간섭 이용<small>같은 위상으로 만나 강해짐</small></h4>
+              <button type="button" class="btn" data-use="inst" aria-pressed="false">악기</button>
+              <button type="button" class="btn" data-use="stone" aria-pressed="false">초음파 결석 파쇄</button>
+              <button type="button" class="btn" data-use="ink" aria-pressed="false">색 변환 잉크</button>
+            </div>
+          </div>
+          <ul class="uses">
+            <li>소음 제거 헤드폰: 마이크로 받은 소음과 반대 위상의 소리를 내보내 지운다. 자동차·항공기 소음을 줄이는 기술로 넓어졌다.</li>
+            <li>악기: 줄, 공기 기둥, 울림통에서 특정 소리가 보강되어 크고 선명하다.</li>
+            <li>초음파 결석 파쇄: 여러 방향의 초음파가 결석 위치에서 보강되어 결석만 깨고 다른 조직의 손상은 줄인다.</li>
+            <li>색 변환 잉크: 보는 각도에 따라 보강되는 색이 달라 복사로 흉내 낼 수 없다.</li>
+            <li>위치마다 보강·상쇄가 갈리는 경우(기름 막·비눗방울의 색, 이중 슬릿 무늬)는 관찰 1·2에서 보았다.</li>
+          </ul>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>보강 = 그 색이 밝게, 상쇄 = 그 색이 보이지 않게</h3>
+          <ul>
+            <li>이중 슬릿: 경로차 <span class="eq">0, λ, 2λ …</span> → 밝음(보강), <span class="eq">λ/2, 3λ/2 …</span> → 어두움(상쇄). 중앙은 밝다. 간섭무늬는 빛의 파동성 증거다.</li>
+            <li>얇은 막: 윗면 반사 ①과 아랫면 반사 ②가 겹친다. 두께에 따라 보강되는 색이 달라 비눗방울·기름 막이 무지갯빛으로 보인다.</li>
+            <li>상쇄 이용: 소음 제거 헤드폰, 무반사 코팅. 보강 이용: 악기, 초음파 결석 파쇄, 색 변환 잉크.</li>
+            <li>물결파의 간섭(III1-11)과 같은 규칙이다. 어두운 곳에도 두 빛이 모두 오지만 서로 지운다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제 · 개념 체크</div>
+          <h3>단색광으로 이중 슬릿 실험을 할 때 스크린에 생기는 무늬에 대한 설명으로 옳은 것은?</h3>
+          <p class="opts">① 두 슬릿까지의 경로차가 λ인 곳에 밝은 무늬가 생긴다.<br>② 스크린 중앙에는 어두운 무늬가 생긴다.<br>③ 경로차가 λ/2인 곳에 밝은 무늬가 생긴다.<br>④ 어두운 무늬가 생긴 곳에는 두 빛이 모두 도달하지 않는다.<br>⑤ 빛이 입자로만 행동한다는 증거이다.</p>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p><b>①</b>. 두 슬릿을 지난 빛은 같은 위상에서 출발하므로 경로차가 0, λ, …인 곳에서 보강되어 밝다(중앙도 밝다). 경로차가 λ/2인 곳은 반대 위상이 만나 어둡고, 두 빛이 모두 도달하지만 상쇄된 것이다. 간섭무늬는 빛의 파동성을 보여 준다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>어두운 무늬가 생긴 곳에는 빛이 오지 않은 것일까? 빛이 입자로만 행동한다면 스크린은 어떻게 보일까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q2a">어두운 무늬에 P 두기</button><button type="button" class="btn" data-try="q2b">입자라면?</button></div>
+            <details class="ans"><summary>답 보기</summary><p>어두운 곳(경로차 λ/2)에도 두 슬릿의 빛이 <b>모두 도착</b>한다. 관찰 1의 그래프처럼 두 빛이 반대 위상이라 합이 늘 0일 뿐이다. 빛이 입자로만 행동한다면 무늬 없이 틈 모양의 두 줄만 생긴다.</p></details>
+          </div>
+          <div class="q">
+            <h3>비눗방울이나 물 위의 기름 막이 무지갯빛으로 보이는 까닭은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q3">비누막 장면으로</button></div>
+            <details class="ans"><summary>답 보기</summary><p>막의 윗면과 아랫면에서 반사된 두 빛이 간섭하는데, <b>막의 두께가 곳곳 달라</b> 위치마다 보강되는 색이 다르기 때문이다. P를 위아래로 끌면 두께에 따라 빨강·초록·파랑의 보강·상쇄가 바뀌는 것이 보인다.</p></details>
+          </div>
+          <div class="q">
+            <h3>상쇄 간섭을 이용한 예로만 짝지은 것은?</h3>
+            <p class="opts">① 초음파 결석 파쇄, 악기<br>② 색 변환 잉크, 무반사 코팅<br>③ 소음 제거 헤드폰, 초음파 결석 파쇄<br>④ 소음 제거 헤드폰, 무반사 코팅<br>⑤ 악기, 색 변환 잉크</p>
+            <div class="acts"><button type="button" class="btn" data-try="q4a">소음 제거 헤드폰</button><button type="button" class="btn" data-try="q4b">무반사 코팅</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>④</b>. 소음 제거 헤드폰은 소음과 반대 위상의 소리로, 무반사 코팅은 두 반사광을 반대 위상으로 만나게 해서 파동을 상쇄시킨다. 초음파 결석 파쇄, 악기, 색 변환 잉크는 모두 보강 간섭을 이용한다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../11/" rel="prev"><small>← 이전 개념 · III1-11</small><b>물결파·소리의 간섭</b></a><a href="../../III2/01/" rel="next"><small>다음 개념 · III2-01 →</small><b>빛의 이중성</b></a></nav>
 <!-- /nextprev -->
-  </section>
+    </section>
+  </main>
 </div>
 
 <script src="../../kit/lab.js"></script>
@@ -217,30 +252,20 @@
   'use strict';
   const M = window.III1_12;
   const {$, C, text, arrow, bracket, fmt} = Lab;
-  const reduceMotion = Lab.reduceMotion;
   const PI = Math.PI, TAU = 2 * PI;
 
   // ── 상태 ────────────────────────────────────────────────
-  const NM = {r: 650, g: 532, b: 450}, CN = {r: '빨강', g: '초록', b: '파랑'};
+  const NM = {r: 650, g: 532, b: 450}, CN = {r: '빨강', g: '초록', b: '파랑'}, LN = {r: '빨간빛', g: '초록빛', b: '파란빛'};
   const N_SOAP = 1.33, N_COAT = 1.38, N_GLASS = 1.5, INK_T = 380, N_INK = 1.5, N_INK_SUB = 1.7;
   const S = {scene: 'slit', col: 'g', particle: false, q: 1, light: 'w', thick: 500, tc: 100,
-    use: 'noise', anc: true, angle: 40, tau: 0, t: 0, playing: !reduceMotion, speed: 0.5};
+    use: 'noise', anc: true, angle: 40, tau: 0, t: 0, playing: !Lab.reduceMotion, speed: 0.5};
   const TVIS = 1.0;
 
   // ── 색 도우미 (토큰 색은 RGB 로 풀어 섞고, 빛의 색은 모형의 파장 → RGB 계산) ──
-  function rgbOf(col) {
-    col = (col || '').trim();
-    if (col[0] === '#') {
-      const h = col.length === 4 ? col.slice(1).split('').map((c) => c + c).join('') : col.slice(1, 7);
-      return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
-    }
-    return (col.match(/[\d.]+/g) || [0, 0, 0]).slice(0, 3).map(Number);
-  }
   const css = (c) => 'rgb(' + c.map((v) => Math.round(Math.max(0, Math.min(255, v)))).join(',') + ')';
   const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
-  const isDark = () => { const p = rgbOf(C.paper); return p[0] + p[1] + p[2] < 384; };
-  const roomCol = () => (isDark() ? C.bg : C.ink);          // 암실(빛이 없는 곳)
-  const onRoom = () => (isDark() ? C.ink : C.paper);        // 암실 위의 글자
+  const roomCol = () => (Lab.isDark() ? C.bg : C.ink);          // 암실(빛이 없는 곳)
+  const onRoom = () => (Lab.isDark() ? C.ink : C.paper);        // 암실 위의 글자
   const LCACHE = {}; const lightRGB = (nm) => (LCACHE[nm] || (LCACHE[nm] = M.waveRGB(nm)));
   function colorName([r, g, b]) {
     const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
@@ -250,8 +275,8 @@
     let h;
     if (mx === r) h = ((g - b) / (mx - mn) + 6) % 6; else if (mx === g) h = (b - r) / (mx - mn) + 2; else h = (r - g) / (mx - mn) + 4;
     h *= 60;
-    const t = [[14, '빨강'], [38, '주황'], [66, '노랑'], [95, '연두'], [150, '초록'], [195, '청록'], [240, '파랑'], [270, '남보라'], [305, '보라'], [340, '자주'], [361, '빨강']];
-    return t.find(([m]) => h < m)[1] + '빛';
+    const t = [[14, '빨간빛'], [38, '주황빛'], [66, '노란빛'], [95, '연둣빛'], [150, '초록빛'], [195, '청록빛'], [240, '파란빛'], [270, '남보랏빛'], [305, '보랏빛'], [340, '자줏빛'], [361, '빨간빛']];
+    return t.find(([m]) => h < m)[1];
   }
   function fl(v) {                                   // 파장 단위: 0.5 → λ/2
     const k = Math.round(v * 2);
@@ -273,14 +298,22 @@
   }
   function room(ctx, r) { ctx.save(); ctx.fillStyle = roomCol(); Lab.rrect(ctx, r.x, r.y, r.w, r.h, 14); ctx.fill(); ctx.restore(); }
 
-  // ── 무대 ────────────────────────────────────────────────
-  const stage = Lab.canvas('stage', draw), pb = Lab.canvas('pb', draw), pc = Lab.canvas('pc', draw);
+  // 범례가 무대 위에 있는가(넓은 화면). 가로 999px 이하에서는 lab.js 가 범례를 시트로 옮기므로 무대 아래쪽을 비워 둘 필요가 없다
+  const NARROW_MQ = window.matchMedia ? matchMedia('(max-width: 999px)') : {matches: false};
+  const legendGap = () => (NARROW_MQ.matches ? 16 : 50);
+
+  // ── 캔버스: 무대 + 관찰 카드의 그래프 ───────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  const pb = Lab.canvas('pb', drawPB), pc = Lab.canvas('pc', drawPC);
+  const fb = Lab.canvas('fb', drawFB), fc = Lab.canvas('fc', drawFC);
+  const cb = Lab.canvas('cb', drawCB), cc = Lab.canvas('cc', drawCC);
   const off = document.createElement('canvas'), octx = off.getContext('2d');
 
   /* ① 이중 슬릿 ───────────────────────────────────────── */
+  // 넓은 화면은 16:10, 폰은 거의 정사각형(약 358 × 354): 폰에서는 범례가 시트로 가므로 암실을 아래까지 쓴다(오른쪽 아래 지금 단계 자리만 남김)
   function slitGeo() {
     const {W, H} = stage, narrow = W < 520;
-    const top = narrow ? 58 : 54, bot = H - (narrow ? 66 : 50);
+    const top = narrow ? 48 : 54, bot = H - (narrow ? 34 : legendGap());
     const xs = narrow ? W - 96 : Math.round(W * 0.64);
     const rm = {x: 10, y: top, w: (narrow ? W - 10 : xs + 128) - 10, h: bot - top};
     const xb = narrow ? 64 : Math.round(W * 0.235), yc = (top + bot) / 2;
@@ -307,7 +340,7 @@
     }
     if (off.width !== SF.gw || off.height !== SF.gh) { off.width = SF.gw; off.height = SF.gh; }
     if (!SF.img || SF.img.width !== SF.gw) SF.img = octx.createImageData(SF.gw, SF.gh);
-    const rc = rgbOf(roomCol()), lc = lightRGB(NM[S.col]), s = Math.sin(TAU * S.tau), c = Math.cos(TAU * S.tau), data = SF.img.data;
+    const rc = Lab.rgb(roomCol()), lc = lightRGB(NM[S.col]), s = Math.sin(TAU * S.tau), c = Math.cos(TAU * S.tau), data = SF.img.data;
     for (let i = 0, n = SF.gw * SF.gh; i < n; i++) {
       let b = 0;
       if (SF.kd[i] === 2) { const u = (s * SF.Pc[i] - c * SF.Ps[i]) / 2; b = 0.62 * u * u + 0.3 * SF.Av[i]; }
@@ -322,7 +355,7 @@
   // 입자라면: 슬릿 바로 뒤에 두 줄
   const bandI = (y, g) => Math.exp(-(((y - g.d / 2) / 9) ** 2)) + Math.exp(-(((y + g.d / 2) / 9) ** 2));
   function drawSlit(ctx, g) {
-    const lc = lightRGB(NM[S.col]), L = css(lc), rc = rgbOf(roomCol()), tc = onRoom();
+    const lc = lightRGB(NM[S.col]), L = css(lc), rc = Lab.rgb(roomCol()), tc = onRoom();
     if (S.particle) {
       room(ctx, g.rm);
       // 광원 → 슬릿, 슬릿 → 스크린으로 곧게 가는 알갱이
@@ -340,23 +373,23 @@
     const bx = g.rm.x + (g.narrow ? 6 : 14), bw = g.narrow ? 24 : 50;
     ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.muted; ctx.lineWidth = 1.5; Lab.rrect(ctx, bx, g.yc - 20, bw, 40, 6); ctx.fill(); ctx.stroke(); ctx.restore();
     Lab.circle(ctx, bx + bw - 6, g.yc, 6, {fill: L});
-    if (!g.narrow) text(ctx, '단색광', bx + bw / 2, g.yc + 36, {size: 13.5, w: 700, color: tc});
+    if (!g.narrow) text(ctx, '단색광', bx + bw / 2, g.yc + 36, {size: 13.5, w: 600, color: tc});
     // 이중 슬릿 막
     const gap = 8;
     ctx.save(); ctx.fillStyle = tc; ctx.globalAlpha = 0.85;
     const top = g.rm.y + 28, bot = g.rm.y + g.rm.h - 8, s1 = g.yc - g.d / 2, s2 = g.yc + g.d / 2;
     ctx.fillRect(g.xb - 4, top, 8, s1 - gap / 2 - top); ctx.fillRect(g.xb - 4, s1 + gap / 2, 8, s2 - s1 - gap); ctx.fillRect(g.xb - 4, s2 + gap / 2, 8, bot - s2 - gap / 2);
     ctx.restore();
-    text(ctx, '이중 슬릿', g.xb, g.rm.y + 14, {size: 13.5, w: 700, color: tc});
-    text(ctx, 'S₁', g.xb - 14, s1, {size: 13.5, w: 700, color: tc, align: 'right'});
-    text(ctx, 'S₂', g.xb - 14, s2, {size: 13.5, w: 700, color: tc, align: 'right'});
+    text(ctx, '이중 슬릿', g.xb, g.rm.y + 14, {size: 13.5, w: 600, color: tc});
+    text(ctx, 'S₁', g.xb - 14, s1, {size: 13.5, w: 600, color: tc, align: 'right'});
+    text(ctx, 'S₂', g.xb - 14, s2, {size: 13.5, w: 600, color: tc, align: 'right'});
     // 스크린 무늬와 밝기 곡선
     const cw = g.narrow ? 62 : 96, I = (y) => (S.particle ? bandI(y, g) : M.brightness(M.slitDiff(y, g.d, g.L) / g.lam));
     for (let py = g.rm.y + 28; py < g.rm.y + g.rm.h - 6; py += 2) {
       const v = Math.min(1, I(g.yc - py));
       ctx.fillStyle = css(mix(rc, lc, Math.pow(v, 0.8))); ctx.fillRect(g.xs - 7, py, 14, 2);
     }
-    text(ctx, '스크린', g.xs + 8, g.rm.y + 14, {size: 13.5, w: 700, color: tc, align: 'right'});
+    text(ctx, '스크린', g.xs + 8, g.rm.y + 14, {size: 13.5, w: 600, color: tc, align: 'right'});
     const pts = [];
     for (let py = g.rm.y + 6; py <= g.rm.y + g.rm.h - 6; py += 2) pts.push([g.xs + 16 + Math.min(1, I(g.yc - py)) * cw, py]);
     Lab.line(ctx, [[g.xs + 16, g.rm.y + 6], [g.xs + 16, g.rm.y + g.rm.h - 6]], tc, 1);
@@ -370,7 +403,7 @@
         const con = q % 1 === 0, col = con ? C.acc : C.neg;
         ctx.save(); ctx.strokeStyle = col; ctx.setLineDash([2, 3]); ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(g.xs + 16 + (con ? cw : 4), py); ctx.lineTo(g.rm.x + g.rm.w + 6, py); ctx.stroke(); ctx.restore();
-        text(ctx, (long ? '경로차 ' : '') + fl(q) + (con ? (long ? ' → 밝음' : ' 밝음') : (long ? ' → 어두움' : ' 어두움')), g.rm.x + g.rm.w + 10, py, {size: 13, w: 700, color: col, align: 'left'});
+        text(ctx, (long ? '경로차 ' : '') + fl(q) + (con ? (long ? ' → 밝음' : ' 밝음') : (long ? ' → 어두움' : ' 어두움')), g.rm.x + g.rm.w + 10, py, {size: 13, w: 600, color: col, align: 'left'});
       }
     }
     if (S.particle) {
@@ -379,7 +412,7 @@
     }
     // 점 P 와 두 경로
     const y = pY(g), py = g.yc - y, dl = M.slitDiff(y, g.d, g.L) / g.lam, j = M.judge(dl);
-    [[s1, C.violet, 'r₁'], [s2, C.vel, 'r₂']].forEach(([sy, col]) => {
+    [[s1, C.violet], [s2, C.vel]].forEach(([sy, col]) => {
       ctx.save(); ctx.globalAlpha = 0.7; Lab.line(ctx, [[g.xb, sy], [g.xs, py]], C.paper, 5); ctx.restore();
       Lab.line(ctx, [[g.xb, sy], [g.xs, py]], col, 2.4);
       const Lp = Math.hypot(g.xs - g.xb, py - sy), ux = (g.xs - g.xb) / Lp, uy = (py - sy) / Lp;
@@ -391,7 +424,7 @@
     Lab.circle(ctx, g.xs, py, 10, {stroke: C.copper, width: 3.2}); Lab.circle(ctx, g.xs, py, 3.5, {fill: C.copper});
     const lab = 'Δ = ' + fl(Math.abs(dl)) + ' → ' + ({con: '밝음 (보강)', des: '어두움 (상쇄)', mid: '중간'}[j]);
     tag(ctx, lab, g.xs - 16, py + (py < g.rm.y + 40 ? 26 : -24), {size: 14, w: 700, color: jCol(j), align: 'right', border: jCol(j)});
-    text(ctx, 'P', g.xs + 14, py - 14, {size: 14, w: 700, color: C.copper, halo: true});
+    text(ctx, 'P', g.xs + 14, py - 14, {size: 14, w: 600, color: C.copper, halo: true});
   }
 
   /* ② 얇은 막 ─────────────────────────────────────────── */
@@ -410,13 +443,15 @@
   const baseT = (v) => 8 + 992 * Math.pow(v, 1.8);
   const thickAt = (u, v) => baseT(v) + 28 * u * Math.sin(5.5 * v + 2.2 * u + S.t * 0.7) * Math.sqrt(v);
   const vOfT = (t) => Math.pow(Math.max(0, (t - 8) / 992), 1 / 1.8);
+  // 넓은 화면: 왼쪽 비누막 | 오른쪽 단면. 폰(정사각형): 같은 배치를 좁게 — 왼쪽 세로로 긴 비누막 | 오른쪽 단면
   function filmGeo() {
-    const {W, H} = stage, narrow = W < 520, top = narrow ? 58 : 54, bot = H - (narrow ? 66 : 50);
+    const {W, H} = stage, narrow = W < 520;
     if (narrow) {
-      const rm = {x: 10, y: top, w: W - 20, h: 216};
-      return {W, H, narrow, rm, sec: {x: 10, y: top + 228, w: W - 20, h: bot - top - 228}, cx: W / 2 - 14, cy: rm.y + rm.h / 2 + 10, rx: Math.min(104, rm.w / 2 - 64), ry: rm.h / 2 - 32};
+      const top = 48, bot = H - 10, rm = {x: 8, y: top, w: Math.round(W * 0.42), h: bot - top};
+      return {W, H, narrow, rm, sec: {x: rm.x + rm.w + 8, y: top, w: W - rm.w - 24, h: bot - top},
+        cx: rm.x + rm.w / 2 - 12, cy: rm.y + rm.h / 2 + 8, rx: rm.w / 2 - 34, ry: rm.h / 2 - 42};
     }
-    const rm = {x: 10, y: top, w: Math.round(W * 0.38), h: bot - top};
+    const top = 54, bot = H - legendGap(), rm = {x: 10, y: top, w: Math.round(W * 0.38), h: bot - top};
     return {W, H, narrow, rm, sec: {x: rm.x + rm.w + 18, y: top, w: W - rm.x - rm.w - 30, h: bot - top}, cx: rm.x + (rm.w - 44) / 2 + 6, cy: rm.y + rm.h / 2 + 4, rx: (rm.w - 44) / 2 - 22, ry: rm.h / 2 - 40};
   }
   function drawFilmView(ctx, g) {
@@ -437,35 +472,37 @@
     ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(g.cx, g.cy, g.rx + 2, g.ry + 2, 0, 0, TAU); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(g.cx, g.cy + g.ry + 4); ctx.lineTo(g.cx, Math.min(g.rm.y + g.rm.h - 6, g.cy + g.ry + 22)); ctx.stroke(); ctx.restore();
     const lx = g.rm.x + g.rm.w - 12;
-    text(ctx, '얇음', lx, g.cy - g.ry + 4, {size: 13, w: 600, color: onRoom(), align: 'right'});
-    text(ctx, '두꺼움', lx, g.cy + g.ry - 4, {size: 13, w: 600, color: onRoom(), align: 'right'});
+    text(ctx, '얇음', lx, g.cy - g.ry + 4, {size: 13, w: 500, color: onRoom(), align: 'right'});
+    text(ctx, '두꺼움', lx, g.cy + g.ry - 4, {size: 13, w: 500, color: onRoom(), align: 'right'});
     arrow(ctx, lx - 18, g.cy - g.ry + 20, lx - 18, g.cy + g.ry - 20, onRoom(), 1.6, 7);
-    text(ctx, S.light === 'w' ? '백색광으로 비춘 비누막' : CN[S.light] + '빛으로 비춘 비누막', g.cx, g.rm.y + 14, {size: 13.5, w: 700, color: onRoom()});
+    const lt = S.light === 'w' ? '백색광' : LN[S.light];
+    if (g.narrow) text(ctx, '비누막 · ' + lt, g.rm.x + g.rm.w / 2, g.rm.y + 14, {size: 13.5, w: 600, color: onRoom()});
+    else text(ctx, lt + '으로 비춘 비누막', g.cx, g.rm.y + 14, {size: 13.5, w: 600, color: onRoom()});
     // P
     const py = g.cy - g.ry + 2 * g.ry * vOfT(S.thick);
     Lab.circle(ctx, g.cx, py, 10, {stroke: C.copper, width: 3.2}); Lab.circle(ctx, g.cx, py, 3.2, {fill: C.copper});
-    text(ctx, 'P', g.cx - 16, py, {size: 14, w: 700, color: C.copper, align: 'right', halo: roomCol()});
+    text(ctx, 'P', g.cx - 16, py, {size: 14, w: 600, color: C.copper, align: 'right', halo: roomCol()});
   }
-  // 막의 단면: ① 윗면 반사, ② 아랫면 반사 (막 두께는 과장해 그림)
+  // 막의 단면: ① 윗면 반사, ② 아랫면 반사 (막 두께는 과장해 그림). o.yFrac 막 높이, o.ax 입사점, o.up 빛줄기 높이(폰에서 짧게)
   function drawSection(ctx, box, o) {
     const tpx = o.t > 0 ? (o.small ? 14 : 18) + o.t * (o.small ? 0.05 : 0.075) : 0;
-    const yTop = box.y + Math.round(box.h * (o.small ? 0.5 : 0.48)), yBot = yTop + tpx;
+    const yTop = box.y + Math.round(box.h * (o.yFrac || (o.small ? 0.5 : 0.48))), yBot = yTop + tpx;
     const th = 32 * PI / 180, th2 = Math.asin(Math.sin(th) / (o.n2 || 1)), th3 = Math.asin(Math.sin(th) / o.n3);
     // 층
     if (tpx) { ctx.save(); ctx.fillStyle = C.violet; ctx.globalAlpha = 0.16; ctx.fillRect(box.x, yTop, box.w, tpx); ctx.restore(); }
     if (o.n3 > 1.01) { ctx.save(); ctx.fillStyle = C['vel-soft']; ctx.fillRect(box.x, yBot, box.w, box.y + box.h - yBot); ctx.restore(); }
     ctx.save(); ctx.strokeStyle = C.violet; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(box.x, yTop); ctx.lineTo(box.x + box.w, yTop);
     if (tpx) { ctx.moveTo(box.x, yBot); ctx.lineTo(box.x + box.w, yBot); } ctx.stroke(); ctx.restore();
-    text(ctx, o.names[0], box.x + 8, box.y + 14, {size: 13.5, w: 700, color: C.muted, align: 'left'});
-    if (tpx) text(ctx, o.names[1], box.x + 8, (yTop + yBot) / 2, {size: 13.5, w: 700, color: C.violet, align: 'left', halo: true});
-    text(ctx, o.names[2], box.x + 8, (tpx ? yBot : yTop) + 18, {size: 13.5, w: 700, color: o.n3 > 1.01 ? C.vel : C.muted, align: 'left', halo: true});
+    if (o.names[0]) text(ctx, o.names[0], box.x + 8, box.y + 14, {size: 13.5, w: 600, color: C.muted, align: 'left'});
+    if (tpx) text(ctx, o.names[1], o.nameRight ? box.x + box.w - 8 : box.x + 8, (yTop + yBot) / 2, {size: 13.5, w: 600, color: C.violet, align: o.nameRight ? 'right' : 'left', halo: true});
+    text(ctx, o.names[2], box.x + 8, (tpx ? yBot : yTop) + 18, {size: 13.5, w: 600, color: o.n3 > 1.01 ? C.vel : C.muted, align: 'left', halo: true});
     // 빛줄기
-    const ax = box.x + box.w * (o.ax || (o.small ? 0.36 : 0.34)), up = yTop - box.y - 26, len = up / Math.cos(th);
+    const ax = box.x + box.w * (o.ax || (o.small ? 0.36 : 0.34)), up = o.up || (yTop - box.y - 26), len = up / Math.cos(th);
     const A = [ax, yTop], In0 = [ax - Math.sin(th) * len, yTop - Math.cos(th) * len];
     const ray = o.ray || C.ink;
     ctx.save(); ctx.globalAlpha = 0.25; Lab.line(ctx, [In0, A], ray, 9); ctx.restore();
     Lab.line(ctx, [In0, A], ray, 3); arrow(ctx, (In0[0] + A[0]) / 2 - 1, (In0[1] + A[1]) / 2 - 1, (In0[0] + A[0]) / 2 + Math.sin(th) * 6, (In0[1] + A[1]) / 2 + Math.cos(th) * 6, ray, 3, 11);
-    if (o.inLab) text(ctx, o.inLab, In0[0] + 10, In0[1] - 2, {size: 13.5, w: 700, color: o.ray && o.ray !== C.ink ? o.ray : C.ink, align: 'left', halo: true});
+    if (o.inLab) text(ctx, o.inLab, In0[0] + 10, In0[1] - 2, {size: 13.5, w: 600, color: o.ray && o.ray !== C.ink ? o.ray : C.ink, align: 'left', halo: true});
     const out = (P0, col, w) => { const P1 = [P0[0] + Math.sin(th) * len, P0[1] - Math.cos(th) * len]; Lab.line(ctx, [P0, P1], col, w); arrow(ctx, P0[0] + (P1[0] - P0[0]) * 0.55, P0[1] + (P1[1] - P0[1]) * 0.55, P0[0] + (P1[0] - P0[0]) * 0.6, P0[1] + (P1[1] - P0[1]) * 0.6, col, w, 11); return P1; };
     const E1 = out(A, C.violet, o.w1 || 3);
     let E2 = null;
@@ -476,53 +513,55 @@
       E2 = out(Cc, C.vel, o.w2 || 3);
       const T1 = [B[0] + Math.tan(th3) * (box.y + box.h - yBot - 6), box.y + box.h - 6];
       ctx.save(); ctx.globalAlpha = 0.45; Lab.line(ctx, [B, T1], ray, o.wT || 2.4); ctx.restore();
-      if (!o.small) text(ctx, '②가 더 가는 길 (막 속 왕복)', B[0] + 12, yBot + 16, {size: 13, w: 700, color: C.copper, align: 'left', halo: true});
+      if (!o.small) text(ctx, '②가 더 가는 길 (막 속 왕복)', B[0] + 12, yBot + 16, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
     } else {
       const T1 = [ax + Math.tan(th3) * (box.y + box.h - yTop - 6), box.y + box.h - 6];
       ctx.save(); ctx.globalAlpha = 0.45; Lab.line(ctx, [A, T1], ray, o.wT || 2.4); ctx.restore();
     }
-    text(ctx, o.lab1 || (o.small ? '①' : '① 윗면 반사'), E1[0] - 10, E1[1] + 6, {size: 13.5, w: 700, color: C.violet, align: 'right', halo: true});
-    if (E2) text(ctx, o.lab2 || (o.small ? '②' : '② 아랫면 반사'), E2[0] + 10, E2[1] + 6, {size: 13.5, w: 700, color: C.vel, align: 'left', halo: true});
+    text(ctx, o.lab1 || (o.small ? '①' : '① 윗면 반사'), E1[0] - 10, E1[1] + 6, {size: 13.5, w: 600, color: C.violet, align: 'right', halo: true});
+    if (E2) text(ctx, o.lab2 || (o.small ? '②' : '② 아랫면 반사'), E2[0] + 10, E2[1] + 6, {size: 13.5, w: 600, color: C.vel, align: 'left', halo: true});
     return {E1, E2, yTop, yBot};
   }
   function drawFilm(ctx, g) {
     drawFilmView(ctx, g);
     const sec = g.sec, ray = S.light === 'w' ? C.ink : css(lightRGB(NM[S.light]));
-    const r = drawSection(ctx, sec, {n2: N_SOAP, n3: 1, t: S.thick, names: ['공기', '비누막 ' + S.thick + ' nm', '공기'], ray, small: g.narrow, inLab: S.light === 'w' ? '백색광' : CN[S.light] + '빛'});
-    // 눈에 들어오는 색
-    const c = filmColor(S.thick, S.light), ex = sec.x + sec.w - 34, ey = r.yTop - (g.narrow ? 46 : 70);
-    {
-      ctx.save(); ctx.fillStyle = roomCol(); ctx.beginPath(); ctx.arc(ex, ey, 19, 0, TAU); ctx.fill(); ctx.restore();
-      Lab.circle(ctx, ex, ey, 14, {fill: css(c)});
-      text(ctx, '보이는 색', ex, ey + 32, {size: 13, w: 700, color: C.ink, halo: true});
-    }
+    const r = drawSection(ctx, sec, {n2: N_SOAP, n3: 1, t: S.thick, names: ['공기', (g.narrow ? '' : '비누막 ') + S.thick + ' nm', '공기'], ray, small: g.narrow, nameRight: g.narrow,
+      inLab: S.light === 'w' ? '백색광' : LN[S.light], yFrac: g.narrow ? 0.62 : 0, ax: g.narrow ? 0.3 : 0, up: g.narrow ? 70 : 0});
+    // 눈에 들어오는 색 (폰은 단면 오른쪽 위 구석)
+    const c = filmColor(S.thick, S.light), ex = sec.x + sec.w - (g.narrow ? 26 : 34), ey = g.narrow ? sec.y + 28 : r.yTop - 70;
+    ctx.save(); ctx.fillStyle = roomCol(); ctx.beginPath(); ctx.arc(ex, ey, 19, 0, TAU); ctx.fill(); ctx.restore();
+    Lab.circle(ctx, ex, ey, 14, {fill: css(c)});
+    text(ctx, '보이는 색', ex - (g.narrow ? 4 : 0), ey + 32, {size: 13, w: 600, color: C.ink, halo: true});
   }
 
   /* ③ 무반사 코팅 ─────────────────────────────────────── */
   const coatR = (t, l) => M.reflectance(t, l, 1, N_COAT, N_GLASS);
-  function drawCoat(ctx, g0) {
-    const {W, H} = stage, narrow = W < 520, top = narrow ? 58 : 54, bot = H - (narrow ? 66 : 50);
-    const boxes = narrow ? [{x: 10, y: top, w: W - 20, h: (bot - top) / 2 - 8}, {x: 10, y: top + (bot - top) / 2 + 8, w: W - 20, h: (bot - top) / 2 - 8}]
+  // 넓은 화면은 두 상자를 좌우로, 폰(정사각형)도 좌우로 놓되 제목·반사율을 상자 위쪽에 쓴다(오른쪽 아래는 지금 단계 자리)
+  function drawCoat(ctx) {
+    const {W, H} = stage, narrow = W < 520, top = narrow ? 48 : 54, bot = H - (narrow ? 10 : legendGap());
+    const boxes = narrow ? [{x: 8, y: top, w: W / 2 - 12, h: bot - top}, {x: W / 2 + 4, y: top, w: W / 2 - 12, h: bot - top}]
       : [{x: 10, y: top + 22, w: W / 2 - 22, h: bot - top - 22}, {x: W / 2 + 12, y: top + 22, w: W / 2 - 22, h: bot - top - 22}];
     const R0 = coatR(0, 550), R1 = coatR(S.tc, 550);
     [[boxes[0], 0, '코팅 없음'], [boxes[1], S.tc, '코팅 있음']].forEach(([b, t, nm], i) => {
       ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1.2; Lab.rrect(ctx, b.x, b.y, b.w, b.h, 12); ctx.stroke(); ctx.restore();
       ctx.save(); Lab.rrect(ctx, b.x, b.y, b.w, b.h, 12); ctx.clip();
       const R = i ? R1 : R0, wR = 1.5 + R / 0.04 * 5;
-      const r = drawSection(ctx, b, {n2: N_COAT, n3: N_GLASS, t, names: ['공기', i ? '코팅 막 ' + t + ' nm' : '', '렌즈 유리'], small: true, ax: narrow ? 0.58 : 0.36,
+      drawSection(ctx, b, {n2: N_COAT, n3: N_GLASS, t, names: [narrow ? '' : '공기', i ? (narrow ? '' : '코팅 막 ') + t + ' nm' : '', '렌즈 유리'], small: true, nameRight: narrow,
+        ax: narrow ? 0.42 : 0.36, yFrac: narrow ? 0.6 : 0, up: narrow ? 64 : 0,
         w1: i ? 3 : wR, w2: 3, wT: 2.4 + (1 - R) * 2, lab1: i ? '①' : '반사광', lab2: '②'});
       ctx.restore();
       // 제목과 반사율
-      text(ctx, nm, b.x + 10, b.y + b.h - 34, {size: 14.5, w: 700, color: i ? C.acc : C.ink, align: 'left', halo: true});
-      text(ctx, '반사 ' + fmt(R * 100, 1) + '% · 투과 ' + fmt((1 - R) * 100, 1) + '%', b.x + 10, b.y + b.h - 14, {size: 13, w: 700, color: C.ink, align: 'left', mono: true, halo: true});
+      const ty = narrow ? b.y + 16 : b.y + b.h - 34;
+      text(ctx, nm, b.x + 10, ty, {size: 14.5, w: 600, color: i ? C.acc : C.ink, align: 'left', halo: true});
+      text(ctx, '반사 ' + fmt(R * 100, 1) + '% · 투과 ' + fmt((1 - R) * 100, 1) + '%', b.x + 10, ty + 20, {size: 13, w: 700, color: C.ink, align: 'left', halo: true});
       // 반사되어 보이는 빛 (백색광을 비출 때)
       let mx = 0; for (let l = 400; l <= 700; l += 10) mx = Math.max(mx, coatR(t, l));
-      const rc = M.spectrumRGB((l) => coatR(t, l) / mx), ex = b.x + b.w - 34, ey = b.y + (narrow ? 40 : 58);
+      const rc = M.spectrumRGB((l) => coatR(t, l) / mx), ex = b.x + b.w - (narrow ? 28 : 34), ey = b.y + (narrow ? 66 : 58);
       ctx.save(); ctx.fillStyle = roomCol(); ctx.beginPath(); ctx.arc(ex, ey, 18, 0, TAU); ctx.fill(); ctx.restore();
       Lab.circle(ctx, ex, ey, 13, {fill: css(rc)});
-      text(ctx, '반사광 색', ex, ey + 30, {size: 13, w: 600, color: C.ink, halo: true});
+      text(ctx, '반사광 색', ex - (narrow ? 4 : 0), ey + 30, {size: 13, w: 500, color: C.ink, halo: true});
     });
-    if (!narrow) text(ctx, '초록빛(550 nm) 기준', W / 2, top + 6, {size: 13, w: 600, color: C.muted});
+    if (!narrow) text(ctx, '초록빛(550 nm) 기준', W / 2, top + 6, {size: 13, w: 500, color: C.muted});
   }
 
   /* ④ 간섭의 이용 ─────────────────────────────────────── */
@@ -531,37 +570,38 @@
     Lab.line(ctx, pts, col, w, dash);
   }
   function drawNoise(ctx, g) {
-    const {W, H, narrow} = g, top = narrow ? 60 : 56, bot = H - 16;
+    const {W, H, narrow} = g, top = narrow ? 50 : 56, bot = H - (narrow ? 30 : 16);
     // 이어컵 단면: 바깥 소음 → 마이크, 컵 안 스피커가 반대 위상 소리 → 귀
-    const hx = narrow ? W / 2 - 26 : 112, hy = narrow ? top + 66 : (top + bot) / 2 - 16;
+    const hx = narrow ? W / 2 - 30 : 112, hy = narrow ? top + 58 : (top + bot) / 2 - 16;
     arrow(ctx, hx - (narrow ? 92 : 96), hy - 28, hx - 36, hy - 28, C.vel, 3, 10);
-    text(ctx, '바깥 소음', hx - (narrow ? 66 : 68), hy - 10, {size: 13.5, w: 700, color: C.vel});
+    text(ctx, '바깥 소음', hx - (narrow ? 66 : 68), hy - 10, {size: 13.5, w: 600, color: C.vel});
     ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 2.4; Lab.rrect(ctx, hx - 28, hy - 54, 52, 108, 14); ctx.fill(); ctx.stroke(); ctx.restore();
     Lab.circle(ctx, hx - 28, hy - 28, 6.5, {fill: C.vel, stroke: C.paper, width: 1.5});
-    text(ctx, '마이크', hx - 36, hy - 50, {size: 13, w: 700, color: C.vel, align: 'right'});
+    text(ctx, '마이크', hx - 36, hy - 50, {size: 13, w: 600, color: C.vel, align: 'right'});
     ctx.save(); ctx.fillStyle = C.violet; ctx.beginPath(); ctx.moveTo(hx + 10, hy - 10); ctx.lineTo(hx + 22, hy - 20); ctx.lineTo(hx + 22, hy + 20); ctx.lineTo(hx + 10, hy + 10); ctx.closePath(); ctx.fill(); ctx.restore();
-    text(ctx, '스피커', hx - 2, hy + 70, {size: 13, w: 700, color: C.violet});
+    if (narrow) text(ctx, '스피커', hx - 36, hy + 36, {size: 13, w: 600, color: C.violet, align: 'right'});
+    else text(ctx, '스피커', hx - 2, hy + 70, {size: 13, w: 600, color: C.violet});
     ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(hx + 52, hy, 20, -PI * 0.55, PI * 0.55); ctx.stroke();
     ctx.beginPath(); ctx.arc(hx + 52, hy + 2, 9, -PI * 0.4, PI * 0.5); ctx.stroke(); ctx.restore();
-    text(ctx, '귀', hx + 80, hy, {size: 13.5, w: 700, color: C.ink, align: 'left'});
-    if (!narrow) text(ctx, S.anc ? '소음 제거 켜짐' : '소음 제거 꺼짐', hx, hy + 96, {size: 14, w: 700, color: S.anc ? C.acc : C.muted});
+    text(ctx, '귀', hx + 80, hy, {size: 13.5, w: 600, color: C.ink, align: 'left'});
+    if (!narrow) text(ctx, S.anc ? '소음 제거 켜짐' : '소음 제거 꺼짐', hx, hy + 96, {size: 14, w: 600, color: S.anc ? C.acc : C.muted});
     // 세 줄: 소음, 반대 위상 소리, 귀에 들리는 합
-    const x0 = narrow ? 18 : 236, x1 = W - 20, y0 = narrow ? top + 150 : top + 8, rh = (bot - y0) / 3, amp = rh * 0.24, sh = S.t * 0.6;
+    const x0 = narrow ? 18 : 236, x1 = W - 20, y0 = narrow ? hy + 70 : top + 8, rh = (bot - y0) / 3, amp = rh * 0.24, sh = S.t * 0.6;
     const rows = [['바깥 소음 (마이크가 받음)', C.vel, (u) => M.noise(u * 2.2 + sh), [7, 5]],
       ['스피커가 내는 소리: 반대 위상', C.violet, S.anc ? (u) => M.antiNoise(u * 2.2 + sh) : null, [7, 5]],
       ['귀에 들리는 소리 = 두 소리의 합', C.ink, (u) => M.noise(u * 2.2 + sh) + (S.anc ? M.antiNoise(u * 2.2 + sh) : 0), null]];
     rows.forEach(([nm, col, f, dash], k) => {
-      const yb = y0 + rh * k + rh * 0.58;
-      text(ctx, nm, x0, y0 + rh * k + 12, {size: 13.5, w: 700, color: col, align: 'left'});
+      const yb = y0 + rh * k + rh * 0.62;
+      text(ctx, nm, x0, y0 + rh * k + 12, {size: 13.5, w: 600, color: col, align: 'left'});
       Lab.line(ctx, [[x0, yb], [x1, yb]], C.line, 1);
       if (f) wavePlot(ctx, x0, x1, yb, amp, f, col, k === 2 ? 3.4 : 2.6, dash);
-      else text(ctx, '(꺼짐)', (x0 + x1) / 2, yb, {size: 13, w: 600, color: C.muted});
+      else text(ctx, '(꺼짐)', (x0 + x1) / 2, yb, {size: 13, w: 500, color: C.muted});
     });
     tag(ctx, S.anc ? '상쇄 → 조용해짐' : '소음이 그대로 들림', x1, y0 + rh * 2 + 12, {size: 13.5, w: 700, color: S.anc ? C.neg : C.muted, align: 'right', border: S.anc ? C.neg : C.line});
   }
   function drawInst(ctx, g) {
-    const {W, H, narrow} = g, top = narrow ? 64 : 60;
-    const x0 = narrow ? 30 : 70, x1 = W - (narrow ? 30 : 70), ys = top + (narrow ? 96 : 100), A = narrow ? 18 : 24, Ls = x1 - x0;
+    const {W, H, narrow} = g, top = narrow ? 50 : 60;
+    const x0 = narrow ? 24 : 70, x1 = W - (narrow ? 24 : 70), ys = top + (narrow ? 84 : Math.min(100, H * 0.22)), A = narrow ? 16 : 24, Ls = x1 - x0;
     // 줄: 양 끝에서 반사된 두 파동(점선)이 겹쳐 제자리에서 크게 진동(실선)
     const k = PI / Ls, w = TAU * S.tau;
     ctx.save(); ctx.fillStyle = C['acc-soft']; ctx.beginPath();
@@ -573,33 +613,36 @@
     ctx.save(); ctx.lineDashOffset = 6; wavePlot(ctx, x0, x1, ys, A, f2, C.vel, 2.6, [6, 6]); ctx.restore();
     wavePlot(ctx, x0, x1, ys, A, (u) => f1(u) + f2(u), C.ink, 3.4);
     [x0, x1].forEach((x) => { ctx.save(); ctx.fillStyle = C.ink; ctx.fillRect(x - 4, ys - 26, 8, 52); ctx.restore(); });
-    text(ctx, '줄', x0 + 14, ys + 2 * A + 16, {size: 13.5, w: 700, color: C.ink, align: 'left'});
-    text(ctx, '양 끝에서 반사된 두 파동이 겹쳐', (x0 + x1) / 2, ys - 2 * A - 34, {size: 14, w: 700, color: C.ink, halo: true});
+    text(ctx, '줄', x0 + 14, ys + 2 * A + 16, {size: 13.5, w: 600, color: C.ink, align: 'left'});
+    text(ctx, '양 끝에서 반사된 두 파동이 겹쳐', (x0 + x1) / 2, ys - 2 * A - 34, {size: 14, w: 600, color: C.ink, halo: true});
     text(ctx, '특정 진동수만 크게 진동 (보강)', (x0 + x1) / 2, ys - 2 * A - 14, {size: 14, w: 700, color: C.acc, halo: true});
     // 울림통(기타 몸통)과 아래로 퍼지는 소리
-    const bx = narrow ? W * 0.42 : W * 0.4, by = ys + (narrow ? 132 : 128), rx = narrow ? 74 : 96, ry = narrow ? 48 : 58;
+    const bx = narrow ? W * 0.34 : W * 0.4, by = ys + (narrow ? 104 : Math.min(128, H * 0.29)), rx = narrow ? 62 : 96, ry = narrow ? 38 : 58;
     ctx.save(); ctx.fillStyle = C['copper-soft']; ctx.strokeStyle = C.copper; ctx.lineWidth = 2;
     Lab.rrect(ctx, bx + rx - 10, by - 9, narrow ? 70 : 150, 18, 4); ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.ellipse(bx, by, rx, ry, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
     Lab.circle(ctx, bx + rx * 0.3, by, narrow ? 14 : 17, {fill: roomCol()});
-    text(ctx, '울림통', bx - rx * 0.42, by, {size: 13.5, w: 700, color: C.copper});
-    const reach = narrow ? 56 : 70;
+    text(ctx, '울림통', bx - rx * 0.42, by, {size: 13.5, w: 600, color: C.copper});
+    const reach = narrow ? 40 : Math.max(30, Math.min(70, H - (by + ry + 8) - 34));
     for (let n = 0; n < 3; n++) {
       const rr = ry + 8 + ((S.t * 0.5 + n / 3) % 1) * reach;
       ctx.save(); ctx.strokeStyle = C.acc; ctx.globalAlpha = 1 - (rr - ry - 8) / reach; ctx.lineWidth = 2.6;
       ctx.beginPath(); ctx.arc(bx + rx * 0.3, by, rr, PI * 0.32, PI * 0.68); ctx.stroke(); ctx.restore();
     }
-    text(ctx, '울림통에서 더 크게 → 크고 선명한 소리', bx + rx * 0.3, by + ry + reach + 22, {size: 13.5, w: 700, color: C.acc, halo: true});
+    if (narrow) {
+      text(ctx, '울림통에서 더 크게', W - 14, by + 34, {size: 13.5, w: 600, color: C.acc, align: 'right', halo: true});
+      text(ctx, '→ 크고 선명한 소리', W - 14, by + 54, {size: 13.5, w: 600, color: C.acc, align: 'right', halo: true});
+    } else text(ctx, '울림통에서 더 크게 → 크고 선명한 소리', bx + rx * 0.3, by + ry + reach + 22, {size: 13.5, w: 600, color: C.acc, halo: true});
   }
   function drawStone(ctx, g) {
-    const {W, H, narrow} = g, top = narrow ? 60 : 56;
-    const fx = W / 2, fy = top + (narrow ? 104 : 92), R = narrow ? 160 : 210, spread = narrow ? 0.42 : 0.36;
+    const {W, H, narrow} = g, top = narrow ? 50 : 56;
+    const fx = W / 2, fy = top + (narrow ? 66 : 92), R = narrow ? 128 : Math.min(210, H - top - 92 - 70), spread = narrow ? 0.42 : 0.36;
     // 몸(살갗)과 콩팥, 결석 — 발생 장치는 살갗에 붙어 결석에서 같은 거리
     ctx.save(); ctx.fillStyle = C['copper-soft']; ctx.strokeStyle = C.copper; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.ellipse(fx, fy + R * 0.32, narrow ? W / 2 - 12 : R * 1.45, R * 0.68, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
-    text(ctx, '몸 속', fx - (narrow ? W / 2 - 52 : R * 1.12), fy + R * 0.12, {size: 13.5, w: 700, color: C.copper});
+    text(ctx, '몸 속', fx - (narrow ? W / 2 - 52 : R * 1.12), fy + R * 0.12, {size: 13.5, w: 600, color: C.copper});
     ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.ellipse(fx, fy, 50, 32, 0.2, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
-    text(ctx, '콩팥', fx + 58, fy - 18, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, '콩팥', fx + 58, fy - 18, {size: 13, w: 500, color: C.muted, align: 'left'});
     const srcs = []; for (let k = -2; k <= 2; k++) { const a = PI / 2 + k * spread; srcs.push([fx + R * Math.cos(a), fy + R * Math.sin(a)]); }
     const cyc = (S.t * 0.4) % 1, rr = cyc * R * 1.2, hit = Math.abs(rr - R) < R * 0.06;
     srcs.forEach(([sx, sy]) => {
@@ -612,41 +655,43 @@
     ctx.closePath(); ctx.fill(); ctx.restore();
     if (hit) for (let i = 0; i < 10; i++) { const a = i / 10 * TAU; Lab.line(ctx, [[fx + 16 * Math.cos(a), fy + 16 * Math.sin(a)], [fx + 34 * Math.cos(a), fy + 34 * Math.sin(a)]], C.energy, 3.4); }
     tag(ctx, hit ? '다섯 펄스가 결석에 동시에 도착 → 보강' : '결석까지 거리가 모두 같다', fx, top + 12, {size: 13.5, w: 700, color: hit ? C.acc : C.ink, align: 'center', border: hit ? C.acc : C.line});
-    const ly = fy + R + (narrow ? 30 : 26);
-    text(ctx, '초음파 발생 장치', fx, ly, {size: 13.5, w: 700, color: C.ink, halo: true});
-    text(ctx, '다른 곳은 펄스가 따로따로 지나가 약함', fx, ly + 20, {size: 13, w: 600, color: C.muted, halo: true});
+    const ly = fy + R + 26;
+    text(ctx, '초음파 발생 장치', fx, ly, {size: 13.5, w: 600, color: C.ink, halo: true});
+    text(ctx, '다른 곳은 펄스가 따로따로 지나가 약함', fx, ly + 20, {size: 13, w: 500, color: C.muted, halo: true});
   }
   const inkColor = (deg) => M.spectrumRGB((l) => M.twoBeam(M.filmDelta(INK_T, l, 1, N_INK, N_INK_SUB, deg * PI / 180)));
   function drawInk(ctx, g) {
-    const {W, H, narrow} = g, top = narrow ? 62 : 58;
-    const nx = narrow ? 18 : 30, nw = narrow ? W - 36 : W * 0.58, ny = top + (narrow ? 196 : 176), nh = narrow ? 112 : 132;
+    const {W, H, narrow} = g, top = narrow ? 50 : 58;
+    const nh = narrow ? 92 : 132, nx = narrow ? 12 : 30, nw = narrow ? W - 24 : W * 0.58, ny = narrow ? H - 12 - nh : Math.min(top + 176, H - nh - 66);
     ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.muted; ctx.lineWidth = 2; Lab.rrect(ctx, nx, ny, nw, nh, 10); ctx.fill(); ctx.stroke(); ctx.restore();
     ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; for (let i = 1; i < 6; i++) { ctx.beginPath(); ctx.moveTo(nx + 10, ny + nh * i / 6); ctx.lineTo(nx + nw * 0.36, ny + nh * i / 6); ctx.stroke(); } ctx.restore();
     const c0 = inkColor(0), c1 = inkColor(S.angle), cx = nx + nw * 0.68, cy = ny + nh / 2, pw = narrow ? 128 : 160;
     ctx.save(); ctx.fillStyle = roomCol(); Lab.rrect(ctx, cx - pw / 2, cy - 32, pw, 64, 10); ctx.fill(); ctx.restore();
-    text(ctx, '50000', cx, cy, {size: narrow ? 30 : 38, w: 800, color: css(c1), mono: true});
+    text(ctx, '50000', cx, cy, {size: narrow ? 30 : 38, w: 700, color: css(c1)});
     // 보는 눈: 수직선(정면)에서 θ 기울어진 방향
-    const L = narrow ? 150 : 150, a = S.angle * PI / 180, ox = cx, oy = cy - 32, ex = ox - L * Math.sin(a), ey = oy - L * Math.cos(a);
+    const L = narrow ? 112 : 150, a = S.angle * PI / 180, ox = cx, oy = cy - 32, ex = ox - L * Math.sin(a), ey = oy - L * Math.cos(a);
     ctx.save(); ctx.strokeStyle = C.muted; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox, oy - L - 10); ctx.stroke(); ctx.restore();
-    text(ctx, '정면 (0°)', ox + 8, oy - L - 4, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, '정면 (0°)', ox + 8, oy - L - 4, {size: 13, w: 500, color: C.muted, align: 'left'});
     Lab.line(ctx, [[ox, oy], [ex, ey + 8]], C.ink, 1.6, [5, 4]);
     if (S.angle > 2) {
       ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ox, oy, 46, -PI / 2 - a, -PI / 2); ctx.stroke(); ctx.restore();
-      text(ctx, 'θ', ox - 60 * Math.sin(a / 2), oy - 60 * Math.cos(a / 2), {size: 14, w: 700, color: C.copper, halo: true});
+      text(ctx, 'θ', ox - 60 * Math.sin(a / 2), oy - 60 * Math.cos(a / 2), {size: 14, w: 600, color: C.copper, halo: true});
     }
     ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(ex, ey, 17, 10, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
     Lab.circle(ctx, ex, ey, 4.8, {fill: C.ink});
-    text(ctx, '보는 눈', ex - 24, ey, {size: 13.5, w: 700, color: C.ink, align: 'right', halo: true});
+    text(ctx, '보는 눈', ex - 24, ey, {size: 13.5, w: 600, color: C.ink, align: 'right', halo: true});
     // 견본: 정면과 지금 각도
     const bx = narrow ? 18 : nx + nw + 26, by = narrow ? top + 8 : top + 40;
     const sw = (y, col, s) => {
       ctx.save(); ctx.fillStyle = roomCol(); Lab.rrect(ctx, bx, y - 15, 30, 30, 7); ctx.fill(); ctx.restore();
       Lab.circle(ctx, bx + 15, y, 10, {fill: css(col)});
-      text(ctx, s + ' ' + colorName(col), bx + 40, y, {size: 13.5, w: 700, color: C.ink, align: 'left'});
+      text(ctx, s + ' ' + colorName(col), bx + 40, y, {size: 13.5, w: 600, color: C.ink, align: 'left'});
     };
     sw(by, c0, '0°에서'); sw(by + 38, c1, S.angle + '°에서');
-    text(ctx, '보는 각도가 바뀌면 보강되는 색이 달라진다', W / 2, ny + nh + 26, {size: 14, w: 700, color: C.acc, halo: true});
-    text(ctx, '→ 복사기로 흉내 낼 수 없다', W / 2, ny + nh + 48, {size: 13.5, w: 600, color: C.muted, halo: true});
+    if (!narrow) {
+      text(ctx, '보는 각도가 바뀌면 보강되는 색이 달라진다', W / 2, ny + nh + 26, {size: 14, w: 700, color: C.acc, halo: true});
+      text(ctx, '→ 복사기로 흉내 낼 수 없다', W / 2, ny + nh + 48, {size: 13.5, w: 500, color: C.muted, halo: true});
+    }
   }
 
   function drawStage() {
@@ -655,167 +700,205 @@
     const g = {W, H, narrow: W < 520};
     if (S.scene === 'slit') drawSlit(ctx, slitGeo());
     else if (S.scene === 'film') drawFilm(ctx, filmGeo());
-    else if (S.scene === 'coat') drawCoat(ctx, g);
+    else if (S.scene === 'coat') drawCoat(ctx);
     else ({noise: drawNoise, inst: drawInst, stone: drawStone, ink: drawInk})[S.use](ctx, g);
   }
 
-  // ── 패널 B: 두 빛의 비교 ─────────────────────────────────
-  function drawRulerYT(ctx, W, H) {
+  // ── 관찰 1: 점 P에 도착한 두 빛 (경로차 자 · 진동) ───────
+  function drawPB() {
+    const {ctx, W, H} = pb; if (!W || !stage.W) return;
+    ctx.clearRect(0, 0, W, H);
     const g = slitGeo(), y = pY(g), [a, b] = M.slitR(y, g.d, g.L), dl = (b - a) / g.lam, j = M.judge(dl), adl = Math.abs(dl);
     const maxL = Math.min(3, Math.max(2, Math.ceil(adl * 2 + 1) / 2)), rx = 22, rw = W - 44, ry = 44, Xr = (v) => rx + v / maxL * rw;
-    text(ctx, '경로차 Δ', rx - 4, 12, {size: 13.5, w: 700, align: 'left', color: C.muted});
-    text(ctx, 'Δ = ' + fl(adl) + ' → ' + {con: '밝음', des: '어두움', mid: '중간'}[j], W - 4, 12, {size: 14, w: 700, align: 'right', color: jCol(j)});
+    text(ctx, '경로차 Δ', rx - 4, 12, {size: 13.5, w: 600, align: 'left', color: C.muted});
+    if (S.particle) text(ctx, '입자라면: 무늬 없음', W - 4, 12, {size: 14, w: 700, align: 'right', color: C.ink});
+    else text(ctx, 'Δ = ' + fl(adl) + ' → ' + {con: '밝음', des: '어두움', mid: '중간'}[j], W - 4, 12, {size: 14, w: 700, align: 'right', color: jCol(j)});
     Lab.line(ctx, [[Xr(0), ry], [Xr(maxL), ry]], C.muted, 1.6);
     for (let k = 0; k <= maxL * 2 + 1e-9; k++) {
       const v = k / 2, kind = k % 2 === 0 ? 'con' : 'des';
       mark(ctx, Xr(v), ry, kind, 5.5);
-      text(ctx, fl(v), Xr(v), ry + 19, {size: 13, w: 600, color: kind === 'con' ? C.acc : C.neg});
+      text(ctx, fl(v), Xr(v), ry + 19, {size: 13, w: 500, color: kind === 'con' ? C.acc : C.neg});
     }
     const mx = Xr(Math.min(adl, maxL));
     ctx.beginPath(); ctx.moveTo(mx, ry - 7); ctx.lineTo(mx - 7, ry - 19); ctx.lineTo(mx + 7, ry - 19); ctx.closePath(); ctx.fillStyle = C.copper; ctx.fill();
     const r = {x: 40, y: ry + 58, w: W - 56, h: 0}; r.h = H - r.y - 24;
     const T = (t) => r.x + t / 2 * r.w, Y = (v) => r.y + r.h / 2 - v / 2.3 * (r.h / 2);
-    text(ctx, 'P에서 두 빛의 진동', r.x - 30, r.y - 16, {size: 13.5, w: 700, align: 'left', color: C.muted});
+    text(ctx, 'P에서 두 빛의 진동', r.x - 30, r.y - 16, {size: 13.5, w: 600, align: 'left', color: C.muted});
     Lab.line(ctx, [[r.x, Y(0)], [r.x + r.w, Y(0)]], C.muted, 1.2);
     arrow(ctx, r.x, r.y + r.h, r.x, r.y - 6, C.muted, 1.3, 7);
     [2, -2].forEach((v) => {
       ctx.save(); ctx.globalAlpha = 0.55; Lab.line(ctx, [[r.x, Y(v)], [r.x + r.w, Y(v)]], C.acc, 1.2, [3, 4]); ctx.restore();
-      text(ctx, (v > 0 ? '+' : '−') + '2A', r.x - 6, Y(v), {size: 13, w: 600, color: C.acc, align: 'right'});
+      text(ctx, (v > 0 ? '+' : '−') + '2A', r.x - 6, Y(v), {size: 13, w: 500, color: C.acc, align: 'right'});
     });
-    ['0', 'T', '2T'].forEach((s, k) => text(ctx, s, T(k), r.y + r.h + 13, {size: 13, w: 500, color: C.muted, mono: true}));
+    ['0', 'T', '2T'].forEach((s, k) => text(ctx, s, T(k), r.y + r.h + 13, {size: 13, w: 500, color: C.muted}));
+    if (S.particle) { text(ctx, '입자라면 두 빛이 겹쳐 간섭하지 않는다', r.x + r.w / 2, r.y + r.h / 2 - 22, {size: 13.5, w: 600, color: C.muted, halo: true}); return; }
     const f1 = (t) => M.wave(a, g.lam, t), f2 = (t) => M.wave(b, g.lam, t), fs = (t) => f1(t) + f2(t);
     const plot = (f, col, w, dash) => { const pts = []; for (let i = 0; i <= 240; i++) { const t = 2 * i / 240; pts.push([T(t), Y(f(t))]); } Lab.line(ctx, pts, col, w, dash); };
     plot(f1, C.violet, 2.6, [6, 6]); ctx.save(); ctx.lineDashOffset = 6; plot(f2, C.vel, 2.6, [6, 6]); ctx.restore(); plot(fs, C.ink, 3);
     [S.tau, S.tau + 1].forEach((t, i) => { ctx.save(); ctx.globalAlpha = i ? 0.4 : 1; Lab.line(ctx, [[T(t), r.y - 4], [T(t), r.y + r.h]], C.copper, 1.6); ctx.restore(); });
     Lab.circle(ctx, T(S.tau), Y(fs(S.tau)), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
   }
-  // 색마다 ① 과 ② 의 위상 비교
-  function drawCompare(ctx, W, H, rows, delta) {
+  // 관찰 1: 색마다 무늬 — 가운데 밝은 무늬에서 첫 밝은 무늬(경로차 λ)까지
+  function drawPC() {
+    const {ctx, W, H} = pc; if (!W || !stage.W) return;
+    ctx.clearRect(0, 0, W, H);
+    const g = slitGeo(), span = g.narrow ? 150 : 190, lw = 56, X = (y) => lw + (y + span) / (2 * span) * (W - lw - 8), rh = (H - 20) / 3, rc = Lab.rgb(roomCol());
+    ['r', 'g', 'b'].forEach((key, k) => {
+      const lam = g.lam * NM[key] / NM[S.col], lc = lightRGB(NM[key]), y0 = 4 + rh * k, hh = rh - 26;
+      text(ctx, CN[key], 4, y0 + hh / 2, {size: 14, w: 600, align: 'left', color: key === S.col ? C.copper : C.ink});
+      for (let x = lw; x < W - 8; x += 2) { const y = (x - lw) / (W - lw - 8) * 2 * span - span; ctx.fillStyle = css(mix(rc, lc, Math.pow(M.brightness(M.slitDiff(y, g.d, g.L) / lam), 0.8))); ctx.fillRect(x, y0, 2, hh); }
+      if (key === S.col) { ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.5; ctx.strokeRect(lw - 2, y0 - 2, W - lw - 6, hh + 4); ctx.restore(); }
+      const y1 = M.yOfDiff(lam, g.d, g.L);
+      bracket(ctx, X(0), X(y1), y0 + hh + 9, C.copper, '', false);
+    });
+    text(ctx, '← 스크린 위치 →', W / 2, H - 6, {size: 13, w: 500, color: C.muted});
+  }
+
+  // ── 관찰 2·3: 색마다 ① 과 ② 의 위상 비교 ──────────────────
+  function drawCompare(ctx, W, H, rows, delta, coat) {
     const n = rows.length, rh = H / n, lw = 88;
     rows.forEach((key, k) => {
-      const nm = NM[key], y0 = rh * k, dlt = delta(nm), pj = M.phaseJudge(dlt), amp = Math.min(rh * 0.16, 30), yb = y0 + rh * 0.6;
+      const nm = NM[key], y0 = rh * k, dlt = delta(nm), pj = M.phaseJudge(dlt), amp = Math.min(rh * 0.15, 30), yb = y0 + rh * 0.64;
       Lab.circle(ctx, 14, y0 + rh * 0.42, 8, {fill: css(lightRGB(nm))});
-      text(ctx, CN[key], 28, y0 + rh * 0.42 - 8, {size: 14, w: 700, align: 'left'});
-      text(ctx, nm + ' nm', 28, y0 + rh * 0.42 + 10, {size: 13, w: 500, align: 'left', color: C.muted, mono: true});
+      text(ctx, CN[key], 28, y0 + rh * 0.42 - 8, {size: 14, w: 600, align: 'left'});
+      text(ctx, nm + ' nm', 28, y0 + rh * 0.42 + 10, {size: 13, w: 500, align: 'left', color: C.muted});
       const x0 = lw, x1 = W - 6, per = (x1 - x0) / 2.5;
       Lab.line(ctx, [[x0, yb], [x1, yb]], C.line, 1);
       const f1 = (x) => Math.sin(TAU * ((x - x0) / per - S.tau)), f2 = (x) => Math.sin(TAU * ((x - x0) / per - S.tau) - dlt);
       const pl = (f, col, w, dash) => { const pts = []; for (let i = 0; i <= 200; i++) { const x = x0 + (x1 - x0) * i / 200; pts.push([x, yb - amp * f(x)]); } Lab.line(ctx, pts, col, w, dash); };
       pl(f1, C.violet, 2.6, [6, 6]); ctx.save(); ctx.lineDashOffset = 6; pl(f2, C.vel, 2.6, [6, 6]); ctx.restore();
       pl((x) => f1(x) + f2(x), C.ink, 2.8);
-      const say = S.scene === 'coat' ? {con: '같은 위상 → 반사 강해짐', des: '반대 위상 → 상쇄, 반사 줄어듦', mid: '어긋남 → 반사 조금 줄어듦'} : {con: '같은 위상 → 보강 (밝게)', des: '반대 위상 → 상쇄 (안 보임)', mid: '어긋남 → 조금 약해짐'};
-      text(ctx, say[pj], x1, y0 + 12, {size: 13.5, w: 700, color: jCol(pj), align: 'right'});
+      const say = coat ? {con: '같은 위상 → 반사가 줄지 않음', des: '반대 위상 → 반사 줄어듦', mid: '어긋남 → 조금 줄어듦'} : {con: '같은 위상 → 밝게', des: '반대 위상 → 안 보임', mid: '어긋남 → 조금 약함'};
+      text(ctx, say[pj], x1, y0 + 12, {size: 13.5, w: 600, color: jCol(pj), align: 'right'});
       if (k < n - 1) Lab.line(ctx, [[0, y0 + rh], [W, y0 + rh]], C['line-soft'], 1);
     });
   }
-  function drawPB() {
-    const {ctx, W, H} = pb; if (!W) return;
+  function drawFB() {
+    const {ctx, W, H} = fb; if (!W) return;
     ctx.clearRect(0, 0, W, H);
-    if (S.scene === 'slit') drawRulerYT(ctx, W, H);
-    else if (S.scene === 'film') drawCompare(ctx, W, H, S.light === 'w' ? ['r', 'g', 'b'] : [S.light], (nm) => M.filmDelta(S.thick, nm, 1, N_SOAP, 1));
-    else if (S.scene === 'coat') drawCompare(ctx, W, H, ['r', 'g', 'b'], (nm) => M.filmDelta(S.tc, nm, 1, N_COAT, N_GLASS));
+    drawCompare(ctx, W, H, S.light === 'w' ? ['r', 'g', 'b'] : [S.light], (nm) => M.filmDelta(S.thick, nm, 1, N_SOAP, 1), false);
+  }
+  function drawCB() {
+    const {ctx, W, H} = cb; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    drawCompare(ctx, W, H, ['r', 'g', 'b'], (nm) => M.filmDelta(S.tc, nm, 1, N_COAT, N_GLASS), true);
+  }
+  // 관찰 2: 두께에 따른 반사색 띠
+  function drawFC() {
+    const {ctx, W, H} = fc; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const lw = 8, X = (t) => lw + t / 1000 * (W - 2 * lw), y0 = 20, hh = H - 52;
+    for (let x = X(0); x < X(1000); x += 2) { ctx.fillStyle = css(filmColor((x - lw) / (W - 2 * lw) * 1000, S.light)); ctx.fillRect(x, y0, 2, hh); }
+    for (let t = 0; t <= 1000; t += 100) { Lab.line(ctx, [[X(t), y0 + hh], [X(t), y0 + hh + 5]], C.muted, 1); if (t % 200 === 0 && !(t === 800 && W < 420)) text(ctx, t === 1000 ? '1000 nm' : String(t), X(t), y0 + hh + 16, {size: 13, w: 500, color: C.muted, align: t === 0 ? 'left' : t === 1000 ? 'right' : 'center'}); }
+    const px = X(S.thick);
+    ctx.beginPath(); ctx.moveTo(px, y0 - 2); ctx.lineTo(px - 7, y0 - 13); ctx.lineTo(px + 7, y0 - 13); ctx.closePath(); ctx.fillStyle = C.copper; ctx.fill();
+    ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.5; ctx.strokeRect(px - 3, y0 - 1, 6, hh + 2); ctx.restore();
+    text(ctx, 'P ' + S.thick + ' nm', px + (px > W - 90 ? -10 : 10), y0 - 8, {size: 13.5, w: 600, color: C.copper, align: px > W - 90 ? 'right' : 'left'});
+  }
+  // 관찰 3: 파장별 반사율 (코팅 전후)
+  function drawCC() {
+    const {ctx, W, H} = cc; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const r = {x: 44, y: 22, w: W - 60, h: H - 22 - 44}, X = (l) => r.x + (l - 400) / 300 * r.w, Y = (v) => r.y + r.h - v / 0.05 * r.h;
+    for (let l = 400; l < 700; l += 2) { ctx.fillStyle = css(lightRGB(l)); ctx.fillRect(X(l), r.y + r.h + 4, Math.ceil(X(l + 2) - X(l)) + 0.5, 8); }
+    [0, 0.02, 0.04].forEach((v) => { Lab.line(ctx, [[r.x, Y(v)], [r.x + r.w, Y(v)]], C.grid, 1); text(ctx, fmt(v * 100) + '%', r.x - 6, Y(v), {size: 13, w: 500, color: C.muted, align: 'right'}); });
+    [450, 550, 650].forEach((l) => text(ctx, String(l), X(l), r.y + r.h + 24, {size: 13, w: 500, color: C.muted}));
+    text(ctx, 'nm', r.x + r.w, r.y + r.h + 24, {size: 13, w: 500, color: C.muted, align: 'right'});
+    text(ctx, '반사율', r.x - 34, 10, {size: 13.5, w: 600, align: 'left', color: C.muted});
+    Lab.line(ctx, [[X(400), Y(coatR(0, 500))], [X(700), Y(coatR(0, 500))]], C.muted, 2.2, [6, 5]);
+    text(ctx, '코팅 없음', X(700), Y(0.04) - 10, {size: 13, w: 600, color: C.muted, align: 'right'});
+    const pts = []; for (let l = 400; l <= 700; l += 3) pts.push([X(l), Y(coatR(S.tc, l))]);
+    Lab.line(ctx, pts, C.violet, 3);
+    let mn = 400, mv = 1; for (let l = 400; l <= 700; l += 2) { const v = coatR(S.tc, l); if (v < mv) { mv = v; mn = l; } }
+    if (S.tc > 0 && mn > 401 && mn < 699) { Lab.circle(ctx, X(mn), Y(mv), 5, {fill: C.neg}); text(ctx, '가장 많이 줄어든 색', X(mn), Y(mv) - 16, {size: 13, w: 600, color: C.neg, halo: true}); }
+    text(ctx, '코팅 ' + S.tc + ' nm', r.x + 6, Y(coatR(S.tc, 410)) - 12, {size: 13, w: 600, color: C.violet, align: 'left', halo: true});
   }
 
-  // ── 패널 C: 장면별 그래프 ────────────────────────────────
-  function drawPC() {
-    const {ctx, W, H} = pc; if (!W) return;
-    ctx.clearRect(0, 0, W, H);
-    if (S.scene === 'slit') {
-      // 색마다 무늬: 가운데 밝은 무늬에서 첫 밝은 무늬(경로차 λ)까지
-      const g = slitGeo(), span = g.narrow ? 150 : 190, lw = 56, X = (y) => lw + (y + span) / (2 * span) * (W - lw - 8), rh = (H - 20) / 3, rc = rgbOf(roomCol());
-      ['r', 'g', 'b'].forEach((key, k) => {
-        const lam = g.lam * NM[key] / NM[S.col], lc = lightRGB(NM[key]), y0 = 4 + rh * k, hh = rh - 26;
-        text(ctx, CN[key], 4, y0 + hh / 2, {size: 14, w: 700, align: 'left', color: key === S.col ? C.copper : C.ink});
-        for (let x = lw; x < W - 8; x += 2) { const y = (x - lw) / (W - lw - 8) * 2 * span - span; ctx.fillStyle = css(mix(rc, lc, Math.pow(M.brightness(M.slitDiff(y, g.d, g.L) / lam), 0.8))); ctx.fillRect(x, y0, 2, hh); }
-        if (key === S.col) { ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.5; ctx.strokeRect(lw - 2, y0 - 2, W - lw - 6, hh + 4); ctx.restore(); }
-        const y1 = M.yOfDiff(lam, g.d, g.L);
-        bracket(ctx, X(0), X(y1), y0 + hh + 9, C.copper, '', false);
-      });
-      text(ctx, '← 스크린 위치 →', W / 2, H - 6, {size: 13, w: 500, color: C.muted});
-    } else if (S.scene === 'film') {
-      const lw = 8, X = (t) => lw + t / 1000 * (W - 2 * lw), y0 = 20, hh = H - 52;
-      for (let x = X(0); x < X(1000); x += 2) { ctx.fillStyle = css(filmColor((x - lw) / (W - 2 * lw) * 1000, S.light)); ctx.fillRect(x, y0, 2, hh); }
-      for (let t = 0; t <= 1000; t += 100) { Lab.line(ctx, [[X(t), y0 + hh], [X(t), y0 + hh + 5]], C.muted, 1); if (t % 200 === 0) text(ctx, t === 1000 ? '1000 nm' : String(t), X(t), y0 + hh + 16, {size: 13, w: 500, color: C.muted, mono: true, align: t === 0 ? 'left' : t === 1000 ? 'right' : 'center'}); }
-      const px = X(S.thick);
-      ctx.beginPath(); ctx.moveTo(px, y0 - 2); ctx.lineTo(px - 7, y0 - 13); ctx.lineTo(px + 7, y0 - 13); ctx.closePath(); ctx.fillStyle = C.copper; ctx.fill();
-      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.5; ctx.strokeRect(px - 3, y0 - 1, 6, hh + 2); ctx.restore();
-      text(ctx, 'P', px + 10, y0 - 8, {size: 13.5, w: 700, color: C.copper, align: 'left'});
-    } else if (S.scene === 'coat') {
-      const r = {x: 44, y: 22, w: W - 60, h: H - 22 - 44}, X = (l) => r.x + (l - 400) / 300 * r.w, Y = (v) => r.y + r.h - v / 0.05 * r.h;
-      for (let l = 400; l < 700; l += 2) { ctx.fillStyle = css(lightRGB(l)); ctx.fillRect(X(l), r.y + r.h + 4, Math.ceil(X(l + 2) - X(l)) + 0.5, 8); }
-      [0, 0.02, 0.04].forEach((v) => { Lab.line(ctx, [[r.x, Y(v)], [r.x + r.w, Y(v)]], C.grid, 1); text(ctx, fmt(v * 100) + '%', r.x - 6, Y(v), {size: 13, w: 500, color: C.muted, align: 'right', mono: true}); });
-      [450, 550, 650].forEach((l) => text(ctx, String(l), X(l), r.y + r.h + 24, {size: 13, w: 500, color: C.muted, mono: true}));
-      text(ctx, '반사율', r.x - 34, 10, {size: 13.5, w: 700, align: 'left', color: C.muted});
-      Lab.line(ctx, [[X(400), Y(coatR(0, 500))], [X(700), Y(coatR(0, 500))]], C.muted, 2.2, [6, 5]);
-      text(ctx, '코팅 없음', X(700), Y(0.04) - 10, {size: 13, w: 700, color: C.muted, align: 'right'});
-      const pts = []; for (let l = 400; l <= 700; l += 3) pts.push([X(l), Y(coatR(S.tc, l))]);
-      Lab.line(ctx, pts, C.violet, 3);
-      let mn = 400, mv = 1; for (let l = 400; l <= 700; l += 2) { const v = coatR(S.tc, l); if (v < mv) { mv = v; mn = l; } }
-      if (S.tc > 0 && mn > 401 && mn < 699) { Lab.circle(ctx, X(mn), Y(mv), 5, {fill: C.neg}); text(ctx, '가장 많이 줄어든 색', X(mn), Y(mv) - 16, {size: 13, w: 700, color: C.neg, halo: true}); }
-      text(ctx, '코팅 있음', r.x + 6, Y(coatR(S.tc, 410)) - 12, {size: 13, w: 700, color: C.violet, align: 'left', halo: true});
-    }
-  }
+  // 매 프레임: 무대와 시간에 따라 움직이는 그래프. 값이 바뀔 때: 나머지까지
+  const drawAnim = () => { drawStage(); drawPB(); drawFB(); drawCB(); };
+  const drawAll = () => { drawAnim(); drawPC(); drawFC(); drawCC(); };
 
-  function draw() { drawStage(); drawPB(); drawPC(); }
-
-  // ── 글자·수치 ───────────────────────────────────────────
+  // ── 지금 값 ─────────────────────────────────────────────
   const legends = {
     slit: '<span><b style="background:var(--violet)"></b>S₁에서 온 빛 r₁</span><span><b style="background:var(--vel)"></b>S₂에서 온 빛 r₂</span><span><i style="background:var(--copper)"></i>P (스크린에서 끌기)</span>',
     film: '<span><b style="background:var(--violet)"></b>① 윗면 반사</span><span><b style="background:var(--vel)"></b>② 아랫면 반사</span><span><b class="dash" style="color:var(--copper)"></b>②가 더 가는 길</span><span><i style="background:var(--copper)"></i>P (막에서 끌기)</span>',
     coat: '<span><b style="background:var(--violet)"></b>① 윗면 반사</span><span><b style="background:var(--vel)"></b>② 아랫면 반사</span><span><b class="dash" style="color:var(--copper)"></b>막 속 왕복</span>',
     use: ''};
-  const titles = {
-    slit: ['점 P에 도착한 두 빛 <small>경로차 자 · 진동</small>', '두 슬릿에서 온 빛(점선)이 경로차만큼 어긋나 도착한다. <b>정수배</b>면 같은 위상 → 밝음, <b>반정수배</b>면 반대 위상 → 어두움(두 빛 모두 오지만 합이 0).',
-      '색에 따라 다른 무늬 간격 <small>구리색 = 지금 빛</small>', '가운데 밝은 무늬에서 첫 밝은 무늬(경로차 λ)까지. 파장이 긴 빨간빛일수록 간격이 넓다.'],
-    film: ['두 반사광의 위상 비교 <small>색마다</small>', '①(점선 보라)과 ②(점선 파랑)가 같은 위상이면 그 색이 밝게, 반대 위상이면 그 색이 사라진다. 막 두께를 바꾸면 색마다 관계가 바뀐다.',
-      '두께에 따른 반사색 <small>개념서 그림 ①</small>', '막 두께가 곳곳 다르면 위치마다 보강되는 색이 달라 무지갯빛 띠가 생긴다.'],
-    coat: ['두 반사광의 위상 비교 <small>색마다</small>', '초록빛 근처에서 ①과 ②가 반대 위상 → 상쇄되어 반사가 줄고, 줄어든 만큼 투과가 늘어난다.',
-      '파장별 반사율 <small>코팅 전후</small>', '초록이 가장 많이 줄고 빨강·파랑은 덜 줄어, 코팅 렌즈의 반사광은 보랏빛을 띤다.']};
-
-  function setRo(i, label, value, cls) { $('l' + i).textContent = label; $('v' + i).textContent = value; $('ro' + i).className = 'ro' + (cls ? ' ' + cls : '') + (i === 5 ? ' full' : ''); }
+  const mini = (i, label, value) => { $('m' + i + 'n').textContent = label; $('m' + i).textContent = value; };
+  const nth = (k) => (['', '첫', '두', '세', '네', '다섯'][k] || k) + ' 번째';
   function readouts() {
-    const h1 = $('hud1'), h2 = $('hud2');
-    $('roNote').textContent = S.scene === 'use' ? '' : (S.scene === 'coat' ? '초록빛 550 nm' : '점 P');
-    if (S.scene === 'slit') {
-      const g = slitGeo(), y = pY(g), dl = M.slitDiff(y, g.d, g.L) / g.lam, j = S.particle ? 'mid' : M.judge(dl), m = Math.round(Math.abs(dl) * 2) / 2;
-      setRo(1, '빛의 색 · 파장', CN[S.col] + ' ' + NM[S.col] + ' nm', 'cu');
-      setRo(2, '경로차 Δ = |r₂ − r₁|', fl(Math.abs(dl)), '');
-      setRo(3, '판정', S.particle ? '–' : {con: '밝음 (보강)', des: '어두움 (상쇄)', mid: '중간'}[j], j === 'con' ? 'acc' : j === 'des' ? 'neg' : '');
-      const nth = (k) => (['', '첫', '두', '세', '네', '다섯'][k] || k) + ' 번째';
-      setRo(4, '무늬', S.particle ? '두 줄' : (j === 'con' ? (m === 0 ? '가운데 밝은 무늬' : nth(m) + ' 밝은 무늬') : j === 'des' ? nth(Math.ceil(m)) + ' 어두운 무늬' : '경계'), '');
-      setRo(5, '두 빛이 P에서 만나는 위상', S.particle ? '입자라면 간섭이 없다' : {con: '같은 위상 → 서로 키움', des: '반대 위상 → 둘 다 왔지만 합 0', mid: '조금 어긋남'}[j], '');
-      h1.textContent = CN[S.col] + '빛 ' + NM[S.col] + ' nm'; h2.textContent = '그림은 파장을 크게 과장';
-    } else if (S.scene === 'film') {
+    const h1 = $('hud1'), h2 = $('hud2'), sc = S.scene;
+    if (sc === 'slit') {
+      const g = slitGeo(), y = pY(g), dl = M.slitDiff(y, g.d, g.L) / g.lam, adl = Math.abs(dl), j = M.judge(dl), m = Math.round(adl * 2) / 2;
+      $('ansName').textContent = '점 P의 무늬';
+      if (S.particle) {
+        Lab.ans('틈 모양의 두 줄', ['빛이 입자로만 행동하면 알갱이가 두 틈을 지나 <em>곧게</em> 간다', '→ 무늬가 없다. 실제로 생기는 간섭무늬는 <em>파동성</em>의 증거'],
+          {tone: 'ink', ctx: '이중 슬릿 · 빛이 입자라면?', f: '두 슬릿을 지난 빛을 알갱이로만 생각하면'});
+      } else {
+        const kind = {con: '정수배', des: '반정수배', mid: '정수배도 반정수배도 아님'}[j];
+        Lab.ans({con: '밝은 무늬 (보강)', des: '어두운 무늬 (상쇄)', mid: '중간 밝기'}[j], [
+          '경로차 Δ = |r₂ − r₁| = <em>' + fl(adl) + '</em> (' + kind + ')',
+          {con: '두 빛이 <em>같은 위상</em>으로 만나 서로 키운다', des: '두 빛이 모두 오지만 <em>반대 위상</em>이라 합이 0', mid: '두 빛이 조금 어긋나 만난다'}[j]],
+        {tone: j === 'des' ? 'neg' : j === 'mid' ? 'ink' : '', ctx: '이중 슬릿 · ' + LN[S.col] + ' ' + NM[S.col] + ' nm', f: '점 P까지 두 빛의 경로차를 파장으로 재면'});
+      }
+      mini(1, '빛의 색 · 파장', CN[S.col] + ' ' + NM[S.col] + ' nm');
+      mini(2, '무늬', S.particle ? '두 줄 (무늬 없음)' : j === 'con' ? (m === 0 ? '가운데 밝은 무늬' : nth(m) + ' 밝은 무늬') : j === 'des' ? nth(Math.ceil(m)) + ' 어두운 무늬' : '밝고 어두운 무늬 사이');
+      mini(3, 'P에서 만나는 두 빛', S.particle ? '간섭 없음' : {con: '같은 위상', des: '반대 위상', mid: '조금 어긋남'}[j]);
+      mini(4, '밝기 (가운데 = 1)', S.particle ? '–' : fmt(M.brightness(dl), 2));
+      h1.textContent = LN[S.col] + ' ' + NM[S.col] + ' nm'; h2.textContent = '그림은 파장을 크게 과장';
+    } else if (sc === 'film') {
       const js = ['r', 'g', 'b'].map((k) => [k, M.phaseJudge(M.filmDelta(S.thick, NM[k], 1, N_SOAP, 1))]);
-      const con = js.filter(([, j]) => j === 'con').map(([k]) => CN[k]), des = js.filter(([, j]) => j === 'des').map(([k]) => CN[k]);
-      const c = filmColor(S.thick, S.light);
-      setRo(1, 'P의 막 두께', S.thick + ' nm', 'cu');
-      setRo(2, '보강되는 색 (빨·초·파 중)', con.length ? con.join(', ') : '없음', 'acc');
-      setRo(3, '상쇄되는 색', des.length ? des.join(', ') : '없음', 'neg');
-      setRo(4, '빛', S.light === 'w' ? '백색광' : CN[S.light] + '빛', '');
-      setRo(5, 'P에서 보이는 색', '', '');
-      $('v5').innerHTML = '<i class="sw" style="background:' + css(c) + '"></i>' + (S.light === 'w' ? colorName(c) : (M.twoBeam(M.filmDelta(S.thick, NM[S.light], 1, N_SOAP, 1)) > 0.5 ? '밝은 ' : '어두운 ') + CN[S.light]);
-      h1.textContent = S.light === 'w' ? '백색광' : CN[S.light] + '빛 ' + NM[S.light] + ' nm'; h2.textContent = '단면의 막 두께는 과장해 그림';
-    } else if (S.scene === 'coat') {
+      const con = js.filter(([, jj]) => jj === 'con').map(([k]) => CN[k]), des = js.filter(([, jj]) => jj === 'des').map(([k]) => CN[k]);
+      const c = filmColor(S.thick, S.light), lt = S.light === 'w' ? '백색광' : LN[S.light];
+      let big, l2;
+      if (S.light === 'w') { big = colorName(c); l2 = '보강: <em>' + (con.length ? con.join(', ') : '없음') + '</em> · 상쇄: ' + (des.length ? des.join(', ') : '없음'); }
+      else {
+        const pj = M.phaseJudge(M.filmDelta(S.thick, NM[S.light], 1, N_SOAP, 1)), bright = M.twoBeam(M.filmDelta(S.thick, NM[S.light], 1, N_SOAP, 1)) > 0.5;
+        big = (bright ? '밝은 ' : '어두운 ') + CN[S.light];
+        l2 = LN[S.light] + '의 ①과 ②: <em>' + {con: '같은 위상 → 보강', des: '반대 위상 → 상쇄', mid: '조금 어긋남'}[pj] + '</em>';
+      }
+      $('ansName').textContent = 'P에서 보이는 색';
+      Lab.ans('<i class="sw" style="background:' + css(c) + '"></i>' + big, ['막 두께 <em>' + S.thick + ' nm</em>: ②가 막 속을 왕복한 만큼 ①보다 더 간다', l2],
+        {tone: 'ink', html: true, ctx: '비누막 n = 1.33 · ' + lt, f: '두 반사광 ①·②의 위상을 색마다 견주면'});
+      mini(1, 'P의 막 두께', S.thick + ' nm');
+      mini(2, '보강되는 색 (빨·초·파 중)', con.length ? con.join(', ') : '없음');
+      mini(3, '상쇄되는 색', des.length ? des.join(', ') : '없음');
+      mini(4, '비추는 빛', lt);
+      h1.textContent = S.light === 'w' ? '백색광' : LN[S.light] + ' ' + NM[S.light] + ' nm'; h2.textContent = '단면의 막 두께는 과장해 그림';
+    } else if (sc === 'coat') {
       const R0 = coatR(0, 550), R1 = coatR(S.tc, 550), pj = M.phaseJudge(M.filmDelta(S.tc, 550, 1, N_COAT, N_GLASS));
-      setRo(1, '코팅 막 두께', S.tc + ' nm', 'cu');
-      setRo(2, '반사 (코팅 없음)', fmt(R0 * 100, 1) + '%', '');
-      setRo(3, '반사 (코팅 있음)', fmt(R1 * 100, 1) + '%', R1 < R0 - 1e-4 ? 'acc' : '');
-      setRo(4, '투과 (있음)', fmt((1 - R1) * 100, 1) + '%', '');
-      setRo(5, '두 반사광의 위상 (초록)', {con: '같은 위상 → 반사가 강해짐', des: '반대 위상 → 상쇄: 반사 ↓ 투과 ↑', mid: '어긋남 → 반사가 조금 줄어듦'}[pj], pj === 'des' ? 'acc' : '');
+      $('ansName').textContent = '초록빛(550 nm)의 반사';
+      const l1 = S.tc ? '코팅 막 n = 1.38, 두께 <em>' + S.tc + ' nm</em> → 두 반사광이 <em>' + {con: '같은 위상', des: '반대 위상', mid: '조금 어긋난 위상'}[pj] + '</em>'
+        : '코팅이 없으면 반사광이 하나뿐이라 간섭이 없다';
+      const l2 = R1 < R0 - 1e-4 ? '반사가 줄어든 만큼 투과가 늘어난다: ' + fmt((1 - R0) * 100, 1) + '% → <em>' + fmt((1 - R1) * 100, 1) + '%</em>'
+        : R1 > R0 + 1e-4 ? '반사가 오히려 늘어난다: ' + fmt(R0 * 100, 1) + '% → <em>' + fmt(R1 * 100, 1) + '%</em>' : '반사가 줄지 않는다: 투과 ' + fmt((1 - R1) * 100, 1) + '%';
+      Lab.ans('반사 ' + fmt(R0 * 100, 1) + '% → ' + fmt(R1 * 100, 1) + '%', [l1, l2],
+        {tone: R1 < R0 - 1e-4 ? '' : 'ink', ctx: '무반사 코팅 · 렌즈 유리 n = 1.5', f: '코팅 막의 두 반사광 ①·②를 견주면'});
+      mini(1, '코팅 막 두께', S.tc + ' nm');
+      mini(2, '반사 (코팅 없음)', fmt(R0 * 100, 1) + '%');
+      mini(3, '반사 (코팅 있음)', fmt(R1 * 100, 1) + '%');
+      mini(4, '투과 (코팅 있음)', fmt((1 - R1) * 100, 1) + '%');
       h1.textContent = '백색광을 비춤'; h2.textContent = '막 두께는 과장해 그림';
     } else {
       const u = M.USES.find((x) => x.id === S.use), con = u.kind === 'con';
-      setRo(1, '이용', u.name, 'cu');
-      setRo(2, '간섭', con ? '보강 간섭' : '상쇄 간섭', con ? 'acc' : 'neg');
-      setRo(3, '만나는 위상', con ? '같은 위상' : '반대 위상', '');
-      setRo(4, '결과', {noise: S.anc ? '소음이 줄어듦' : '소음 그대로', inst: '크고 선명한 소리', stone: '결석만 깨짐', ink: '각도마다 다른 색'}[S.use], '');
-      setRo(5, '분류', '상쇄: 헤드폰·무반사 코팅 / 보강: 악기·결석 파쇄·색 변환 잉크', '');
+      const ink0 = colorName(inkColor(0)), ink1 = colorName(inkColor(S.angle));
+      const L = {
+        noise: [S.anc ? '마이크로 받은 소음과 <em>반대 위상</em>의 소리를 스피커로 낸다' : '소음 제거를 끄면 반대 위상 소리가 없다',
+          S.anc ? '소음 + 반대 위상 소리 = 0 → <em>조용해진다</em>' : '→ 소음이 그대로 귀에 들린다'],
+        inst: ['줄의 양 끝에서 반사된 두 파동이 <em>같은 위상</em>으로 겹친다', '특정 진동수만 크게 진동하고 울림통에서 더 커진다 → 크고 선명한 소리'],
+        stone: ['여러 방향의 초음파 펄스가 결석에 <em>동시에</em> 도착한다', '결석에서만 보강 → 결석만 깨고 다른 조직은 덜 다친다'],
+        ink: ['보는 각도마다 얇은 막의 두 반사광이 보강되는 색이 다르다', '정면 0°에서 ' + ink0 + ', <em>' + S.angle + '°</em>에서 ' + ink1 + ' → 복사로 흉내 낼 수 없다']}[S.use];
+      $('ansName').textContent = '간섭의 이용';
+      Lab.ans(con ? '보강 간섭 이용' : '상쇄 간섭 이용', L, {tone: con ? '' : 'neg', ctx: u.name, f: '두 파동이 만나는 위상으로 나누면'});
+      mini(1, '이용', u.name);
+      mini(2, '만나는 위상', con ? '같은 위상' : '반대 위상');
+      mini(3, '결과', {noise: S.anc ? '소음이 줄어듦' : '소음 그대로', inst: '크고 선명한 소리', stone: '결석만 깨짐', ink: '각도마다 다른 색'}[S.use]);
+      mini(4, con ? '보강 이용의 다른 예' : '상쇄 이용의 다른 예', con ? M.USES.filter((x) => x.kind === 'con' && x.id !== S.use).map((x) => x.name).join(', ') : '무반사 코팅');
       h1.textContent = u.name; h2.textContent = con ? '보강 간섭' : '상쇄 간섭';
     }
-    const ok = S.scene === 'slit' && !S.particle && (() => { const g = slitGeo(), dl = Math.abs(M.slitDiff(pY(g), g.d, g.L) / g.lam); return Math.abs(dl - 1) < 0.04; })();
+    const ok = sc === 'slit' && !S.particle && (() => { const g = slitGeo(), dl = Math.abs(M.slitDiff(pY(g), g.d, g.L) / g.lam); return Math.abs(dl - 1) < 0.04; })();
     Lab.check('exCheck', ok, '예제(개념 체크): 두 슬릿까지의 경로차가 λ인 곳 → 밝은 무늬(보강) — 보기 ①',
-      '예제: 이중 슬릿에서 경로차가 λ인 곳은 밝을까? — ‘스스로 확인 1’로 돌아갈 수 있어요');
+      '예제: 이중 슬릿에서 경로차가 λ인 곳은 밝을까? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
     $('thickOut').textContent = S.thick + ' nm'; $('tcOut').textContent = S.tc + ' nm'; $('angOut').textContent = S.angle + '°';
   }
 
@@ -824,29 +907,27 @@
     const sc = S.scene;
     $('rowSlit').hidden = sc !== 'slit'; $('rowFilm').hidden = sc !== 'film'; $('rowCoat').hidden = sc !== 'coat'; $('rowUse').hidden = sc !== 'use';
     $('ancWrap').hidden = S.use !== 'noise'; $('angWrap').hidden = S.use !== 'ink';
-    $('panB').hidden = sc === 'use'; $('panC').hidden = sc === 'use'; $('panD').hidden = sc !== 'use';
     const lg = $('legend'); lg.innerHTML = legends[sc]; lg.hidden = !legends[sc];
-    if (titles[sc]) { $('pbTitle').innerHTML = titles[sc][0]; $('pbCap').innerHTML = titles[sc][1]; $('pcTitle').innerHTML = titles[sc][2]; $('pcCap').innerHTML = titles[sc][3]; }
-    if (sc === 'film') $('pcTitle').innerHTML = '두께에 따른 반사색 <small>' + (S.light === 'w' ? '백색광' : CN[S.light] + '빛: 밝고 어두운 띠') + '</small>';
     $('particle').setAttribute('aria-pressed', String(S.particle));
+    $('bCoat').setAttribute('aria-pressed', String(sc === 'coat'));
     $('thick').value = S.thick; $('tc').value = S.tc; $('ang').value = S.angle; $('anc').checked = S.anc;
-    sceneG.set(sc, true); colG.set(S.col, true); lightG.set(S.light, true); useG.set(S.use, true); speedG.set(S.speed, true);
+    sceneG.set(sc, true); colG.set(S.col, true); lightG.set(S.light, true); useG.set(sc === 'use' ? S.use : '', true); speedG.set(S.speed, true);
     readouts();
   }
-  const refresh = () => { syncUI(); draw(); };
+  const refresh = () => { syncUI(); drawAll(); };
   const sceneG = Lab.group('[data-scene]', 'scene', (v) => { S.scene = v; refresh(); }, S.scene);
   const colG = Lab.group('[data-col]', 'col', (v) => { S.col = v; refresh(); }, S.col);
   const lightG = Lab.group('[data-light]', 'light', (v) => { S.light = v; refresh(); }, S.light);
-  const useG = Lab.group('[data-use]', 'use', (v) => { S.use = v; refresh(); }, S.use);
+  // 간섭의 이용: 시트의 묶음과 관찰 4의 분류판이 같은 data-use 를 쓴다. 분류판에서 누르면 그 장면으로 간다
+  const useG = Lab.group('[data-use]', 'use', (v) => { S.use = v; S.scene = 'use'; refresh(); }, '');
   const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
-  document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { S.scene = b.dataset.go; refresh(); document.querySelector('.stage').scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block: 'center'}); }));
   const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
   const setPlay = (on) => { playCtl.set(on, true); S.playing = on; };
   $('particle').addEventListener('click', () => { S.particle = !S.particle; refresh(); });
-  $('thick').addEventListener('input', (e) => { S.thick = +e.target.value; readouts(); draw(); });
-  $('tc').addEventListener('input', (e) => { S.tc = +e.target.value; readouts(); draw(); });
-  $('ang').addEventListener('input', (e) => { S.angle = +e.target.value; readouts(); draw(); });
-  $('anc').addEventListener('change', (e) => { S.anc = e.target.checked; readouts(); draw(); });
+  $('thick').addEventListener('input', (e) => { S.thick = +e.target.value; readouts(); drawAll(); });
+  $('tc').addEventListener('input', (e) => { S.tc = +e.target.value; readouts(); drawAll(); });
+  $('ang').addEventListener('input', (e) => { S.angle = +e.target.value; readouts(); drawStage(); });
+  $('anc').addEventListener('change', (e) => { S.anc = e.target.checked; readouts(); drawStage(); });
 
   // 무대 끌기: 이중 슬릿은 스크린 위의 P, 얇은 막은 막 위의 P (경로차·두께가 깔끔한 값 가까이면 붙인다)
   const drag = (px, py) => {
@@ -856,17 +937,18 @@
       S.q = q;
     } else if (S.scene === 'film') {
       const g = filmGeo(), v = Math.min(1, Math.max(0, (py - (g.cy - g.ry)) / (2 * g.ry)));
-      S.thick = Math.min(1000, Math.max(20, Math.round(baseT(v) / 10) * 10));
+      S.thick = Math.min(1000, Math.max(20, Math.round(baseT(v) / 10) * 10)); $('thick').value = S.thick;
     } else return;
-    readouts(); draw();
+    readouts(); drawAll();
   };
   Lab.pointer(stage.el, {down: drag, move: drag});
 
-  // 스스로 확인
+  // 단계 카드·스스로 확인의 상황
   const TRY = {
     ex: () => { Object.assign(S, {scene: 'slit', col: 'g', particle: false, q: 1}); setPlay(false); },
     q2a: () => { Object.assign(S, {scene: 'slit', col: 'g', particle: false, q: 0.5, speed: 0.25}); setPlay(true); },
     q2b: () => { Object.assign(S, {scene: 'slit', col: 'g', particle: true}); setPlay(true); },
+    red: () => { Object.assign(S, {scene: 'slit', col: 'r', particle: false, q: 1}); },
     q3: () => { Object.assign(S, {scene: 'film', light: 'w', thick: 500, speed: 0.5}); setPlay(true); },
     q4a: () => { Object.assign(S, {scene: 'use', use: 'noise', anc: true, speed: 0.5}); setPlay(true); },
     q4b: () => { Object.assign(S, {scene: 'coat', tc: 100}); setPlay(true); },
@@ -874,7 +956,7 @@
   Lab.tries(TRY, () => refresh());
 
   // ── 돌리기 ──────────────────────────────────────────────
-  Lab.loop((dt) => { if (S.playing) { S.tau = (S.tau + dt * S.speed / TVIS) % 1; S.t += dt * S.speed * 2; draw(); } });
+  Lab.loop((dt) => { if (S.playing) { S.tau = (S.tau + dt * S.speed / TVIS) % 1; S.t += dt * S.speed * 2; drawAnim(); } });
   syncUI();
 })();
 </script>

@@ -9,13 +9,20 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(위 = 영역별 이용 장면, 아래 = 누를 수 있는 스펙트럼 띠)와 조작판, 오른쪽 영역 카드·7영역 지도·짝 맞히기 */
+/* 관찰 노트: 왼쪽 실험대(위 = 영역별 이용 장면, 아래 = 누를 수 있는 스펙트럼 띠) | 오른쪽 지금 값 + 관찰 ①~④ → 정리 → 예제 → 스스로 확인(짝 맞히기) */
 #stage{aspect-ratio:16/11}
 #map{aspect-ratio:10/7.4}
 .pill i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
-#mUse{margin:0 0 10px;font-size:21px;font-weight:800;line-height:1.35}
-@media (max-width:980px){ #map{aspect-ratio:10/10.4} }
-@media (max-width:640px){ #stage{aspect-ratio:1/1.48} .ro b{font-size:17px} }
+/* 첫 조작 줄의 장면 넘기기: ◀ 지금 영역·장면 ▶ (영역 버튼 7개는 시트에) */
+.stepper{flex:1 1 200px;min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;height:40px;padding:0 3px;background:var(--paper);border:1px solid var(--line);border-radius:12px}
+.stepper .btn{min-height:32px;padding:0 10px;border:0;background:transparent}
+.stepper .btn svg{width:14px;height:14px}
+.stepper .now{display:grid;justify-items:center;line-height:1.25;min-width:0}
+.stepper .now b,.stepper .now small{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stepper .now b{font-size:15px}
+.stepper .now small{font-size:12.5px;color:var(--muted)}
+#mFb{margin-top:8px}
+@media (max-width:640px){ #map{aspect-ratio:10/10.4} .bench{--stage-h:min(calc((100vw - 32px) * 1.08),46vh)} }
 </style>
 </head>
 <body class="cx">
@@ -27,15 +34,14 @@
 </div></header>
 <!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III1-09</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III1-09</span><span>물리학 Ⅰ · 파동의 성질과 활용</span></div>
     <h1>전자기파의 이용</h1>
-    <p class="lead">무대 아래 스펙트럼 띠에서 영역을 누르면 그 전자기파가 쓰이는 장면이 움직인다. 용도를 외우기보다 <b>성질 → 용도</b>로 이어 보자: 투과력(감마선·X선), DNA 변형·형광(자외선), 열작용(적외선), 물 분자 흔들기(마이크로파), 회절(라디오파).</p>
-  </header>
+    <p class="question"><i>Q</i>각 전자기파는 어떤 성질 때문에 그 용도에 쓰일까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
         <canvas id="stage" aria-label="선택한 영역의 전자기파가 쓰이는 장면 애니메이션과, 아래의 누를 수 있는 전자기파 스펙트럼 띠"></canvas>
         <div class="hud"><span class="pill" id="hudReg"><i id="hudDot"></i><span id="hudRegT">X선</span></span><span class="pill" id="hudProp">성질</span></div>
@@ -44,116 +50,161 @@
           <span><i style="background:var(--copper)"></i>지켜볼 것</span>
           <span id="legHint"></span>
         </div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <div class="group" role="group" aria-label="영역">
-            <span class="gl">영역</span>
-            <button type="button" class="btn" data-reg="gamma" aria-pressed="false">감마선</button>
-            <button type="button" class="btn" data-reg="xray" aria-pressed="true">X선</button>
-            <button type="button" class="btn" data-reg="uv" aria-pressed="false">자외선</button>
-            <button type="button" class="btn" data-reg="vis" aria-pressed="false">가시광선</button>
-            <button type="button" class="btn" data-reg="ir" aria-pressed="false">적외선</button>
-            <button type="button" class="btn" data-reg="mw" aria-pressed="false">마이크로파</button>
-            <button type="button" class="btn" data-reg="radio" aria-pressed="false">라디오파</button>
+          <div class="stepper" role="group" aria-label="장면 넘기기 (진동수 큰 쪽 → 파장 긴 쪽)">
+            <button type="button" class="btn" id="scPrev" aria-label="이전 장면 (진동수 큰 쪽)"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M9 2L4 7l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="now" aria-live="polite"><b id="nowReg">X선</b><small id="nowScene">공항 수하물 검색</small></div>
+            <button type="button" class="btn" id="scNext" aria-label="다음 장면 (파장 긴 쪽)"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">영역·장면</span><span class="sm">영역</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="영역과 장면">
+          <div class="sheet-head"><b>영역 · 장면 고르기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="영역 (진동수 큰 순서)">
+              <span class="gl">영역</span>
+              <button type="button" class="btn" data-reg="gamma" aria-pressed="false">감마선</button>
+              <button type="button" class="btn" data-reg="xray" aria-pressed="true">X선</button>
+              <button type="button" class="btn" data-reg="uv" aria-pressed="false">자외선</button>
+              <button type="button" class="btn" data-reg="vis" aria-pressed="false">가시광선</button>
+              <button type="button" class="btn" data-reg="ir" aria-pressed="false">적외선</button>
+              <button type="button" class="btn" data-reg="mw" aria-pressed="false">마이크로파</button>
+              <button type="button" class="btn" data-reg="radio" aria-pressed="false">라디오파</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="group" role="group" aria-label="이용 장면" id="gCase"></div>
+            <button type="button" class="btn" data-reg="us" aria-pressed="false">비교: 초음파 검사</button>
           </div>
         </div>
-        <div class="row toggles">
-          <div class="group" role="group" aria-label="이용 장면" id="gCase"></div>
-          <span class="spacer"></span>
-          <button type="button" class="btn" data-reg="us" aria-pressed="false">비교: 초음파 검사</button>
-        </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2><span id="cName">X선</span> <small id="cRank">진동수 2번째로 큼</small></h2>
-        <div class="readouts">
-          <div class="ro cu"><span id="rLamL">대표 파장</span><b id="rLam">0.1 nm</b></div>
-          <div class="ro vel"><span id="rFL">대표 진동수 f = c/λ</span><b id="rF">3 × 10¹⁸ Hz</b></div>
-          <div class="ro"><span id="rEL">광자 에너지 E = hf</span><b id="rE">2 × 10⁻¹⁵ J</b></div>
-          <div class="ro"><span id="rCL">진공에서 속력</span><b id="rC">3 × 10⁸ m/s</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span>지금 장면 · 성질 → 용도</span><span id="ansCtx">X선 · 진동수 2번째로 큼</span></div>
+        <div class="big small" id="ansBig">공항 수하물 검색</div>
+        <div class="sub">
+          <span class="f" id="ansF">왜 이 용도에 쓸까? 성질 → 까닭</span>
+          <span id="ansLines"><span class="v">성질: <em>투과력이 강함</em></span><span class="v">→ X선은 투과력이 강해 가방 속 물체의 그림자를 찍는다.</span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="rLamL">대표 파장</span><b id="rLam">0.1 nm</b></div>
+          <div class="mini"><span id="rFL">대표 진동수 f = c/λ</span><b id="rF">3 × 10¹⁸ Hz</b></div>
+          <div class="mini"><span id="rEL">광자 에너지 E = hf</span><b id="rE">2 × 10⁻¹⁵ J</b></div>
+          <div class="mini"><span id="rCL">진공에서 속력</span><b id="rC">3 × 10⁸ m/s</b></div>
         </div>
         <p class="cap" id="cText"></p>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2>7영역 지도 <small>누르면 그 장면으로</small></h2>
-        <canvas class="flat" id="map" aria-label="진동수가 큰 순서로 늘어놓은 7영역의 파장 범위와 성질"></canvas>
-        <p class="cap">위에서 아래로 진동수가 작아지고 파장은 길어진다. 진공에서 속력은 모두 c로 같다. <b>마이크로파 + 라디오파 = 전파</b>.</p>
-      </section>
-      <section class="panel wide">
-        <h2>짝 맞히기 <small id="mScore">맞힌 수 0 / 0</small></h2>
-        <p id="mUse">공항 수하물 검색</p>
-        <div class="group" role="group" aria-label="고를 영역" id="mOpts">
-          <button type="button" class="btn" data-pick="gamma">감마선</button>
-          <button type="button" class="btn" data-pick="xray">X선</button>
-          <button type="button" class="btn" data-pick="uv">자외선</button>
-          <button type="button" class="btn" data-pick="vis">가시광선</button>
-          <button type="button" class="btn" data-pick="ir">적외선</button>
-          <button type="button" class="btn" data-pick="mw">마이크로파</button>
-          <button type="button" class="btn" data-pick="radio">라디오파</button>
-          <button type="button" class="btn" data-pick="none">전자기파 아님</button>
-        </div>
-        <p class="check" id="mFb">이 이용에 쓰는 것을 고르세요.</p>
-        <div class="row" style="margin-top:10px"><button type="button" class="btn" id="mNext">다음 문제</button></div>
-      </section>
-    </aside>
-  </main>
+      </div>
 
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>에너지가 큰 쪽: 감마선·X선·자외선</h3>
-        <p><b>감마선</b>은 원자핵의 변화(방사성 붕괴·핵반응)에서 나오고 에너지·투과력이 가장 크다 → 암 치료, 식품·의료 기구 멸균, 비파괴 검사. <b>X선</b>은 투과력이 강하다 → X선 사진·CT, 공항 수하물 검색.</p>
-        <p><b>자외선</b>은 세균의 DNA·RNA를 변형시킨다 → 살균 소독기. 형광 물질에 흡수되면 가시광선을 낸다 → 위조지폐 감별. 비타민 D 합성을 돕지만 지나치면 피부 노화.</p>
-      </article>
-      <article class="concept">
-        <h3>가운데: 가시광선·적외선</h3>
-        <p><b>가시광선</b>은 눈이 감지하는 빛이다 → 조명, 광학 기기(카메라·현미경), 광통신.</p>
-        <p><b>적외선</b>은 빨간빛보다 파장이 길고 열작용이 강해 열선이라고도 한다 → 열화상 카메라, 적외선(비접촉) 체온계, 야간 투시경, 적외선 센서, 리모컨, 물리 치료기.</p>
-      </article>
-      <article class="concept">
-        <h3>파장이 긴 쪽: 마이크로파·라디오파 (전파)</h3>
-        <p><b>마이크로파</b>: 전자레인지는 약 2.45 GHz(파장 약 12 cm)의 전기장으로 물 분자를 흔들어 데운다. 휴대 전화, 와이파이·블루투스(EBS 분류), 레이더, 위성 통신.</p>
-        <p><b>라디오파</b>는 파장이 가장 길어 회절이 잘 된다 → 라디오·TV 방송, 무선 통신. 마이크로파와 라디오파를 묶어 <b>전파</b>라고도 한다.</p>
-      </article>
-    </div>
-    <p class="compare"><b>헷갈리는 짝</b> — 감마선(원자핵에서, 에너지·투과력 최대) vs X선(투과 촬영) · 자외선(가시광선보다 진동수 큼: 살균·형광) vs 적외선(진동수 작음: 열) · 마이크로파(전자레인지·와이파이) vs 라디오파(방송) · 초음파는 매질이 필요한 음파라 전자기파가 아니다.</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>전자기파의 이용과 그 영역을 바르게 짝지은 것은? ① 전자레인지 – 적외선 ② 공항 수하물 검색 – X선 ③ 열화상 카메라 – 자외선 ④ 살균 소독기 – 마이크로파 ⑤ 라디오 방송 – 감마선<span class="tag">개념 체크 예제</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">수하물 검색 장면으로</button></div>
-        <details><summary>답 보기</summary><p><b>② 공항 수하물 검색 – X선.</b> X선은 투과력이 강해 가방 속을 찍는다(금속은 많이 흡수해 진하게 보인다). 전자레인지는 마이크로파, 열화상 카메라는 적외선, 살균 소독기는 자외선, 라디오 방송은 회절이 잘 되는 라디오파를 쓴다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>전자레인지는 어떤 전자기파로 어떻게 음식을 데울까? 와이파이·블루투스는 어느 영역일까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="mw">전자레인지 속 물 분자 보기</button></div>
-        <details><summary>답 보기</summary><p><b>마이크로파.</b> 약 2.45 GHz(파장 약 12 cm) 마이크로파의 전기장이 극성 분자인 물 분자를 흔들어 회전시키고, 물 분자가 이웃 분자와 부딪히며 음식이 데워진다. 와이파이·블루투스도 EBS 기준 <b>마이크로파</b>다(라디오파와 묶어 전파).</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>살균 소독기와 열화상 카메라에 쓰는 전자기파는 각각 무엇이고, 어느 쪽의 진동수가 더 클까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="uv">살균 소독기</button><button type="button" class="btn" data-try="ir">열화상 카메라</button></div>
-        <details><summary>답 보기</summary><p>살균 소독기는 <b>자외선</b>(세균의 DNA 변형), 열화상 카메라는 <b>적외선</b>(물체가 온도에 따라 내는 열선)을 쓴다. 자외선은 가시광선보다, 적외선은 가시광선보다 진동수가 작은 쪽이므로 <b>자외선의 진동수가 더 크다</b>.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>산 너머 마을에서도 라디오 방송을 들을 수 있는 까닭은? 같은 자리에 빛은 왜 닿지 않을까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="radio">산 너머 방송 보기</button></div>
-        <details><summary>답 보기</summary><p>라디오파는 파장이 길어(수 m ~ 수 km) <b>회절이 잘 되므로</b> 산 꼭대기를 지나 산 뒤쪽으로 휘어 들어간다. 빛은 파장이 아주 짧아 거의 직진하므로 산 뒤에 그림자가 생긴다.</p></details>
-      </li>
-    </ol>
-    <!-- nextprev -->
+      <ol class="steps">
+        <li class="card step" data-step="① 성질의 순서">
+          <div class="kind">관찰 1</div>
+          <h3>스펙트럼의 순서가 곧 성질의 순서다</h3>
+          <p>무대 아래 띠에서 영역을 누르거나 조작 줄의 ‹ › 로 장면을 넘기면 그 전자기파가 쓰이는 장면이 움직인다. 용도를 외우기보다 <b>성질 → 용도</b>로 이어 보자. 진동수가 큰 쪽(광자 에너지 큼)은 투과력과 화학 작용이, 파장이 긴 쪽은 회절이 두드러진다.</p>
+          <canvas class="flat" id="map" aria-label="진동수가 큰 순서로 늘어놓은 7영역의 파장 범위와 성질. 누르면 그 영역의 장면으로 바뀐다."></canvas>
+          <p class="cap">위에서 아래로 진동수가 작아지고 파장은 길어진다. 진공에서 속력은 모두 c로 같다. 마이크로파와 라디오파를 묶어 전파라고 한다. 지도의 줄을 누르면 그 장면으로 간다.</p>
+        </li>
+        <li class="card step" data-step="② 감마선·X선·자외선">
+          <div class="kind">관찰 2</div>
+          <h3>에너지가 큰 쪽은 뚫고 지나가거나 분자를 바꾼다</h3>
+          <p>감마선은 원자핵의 변화(방사성 붕괴·핵반응)에서 나오고 에너지·투과력이 가장 크다 → 암 치료, 식품·의료 기구 멸균, 비파괴 검사. X선은 투과력이 강하다 → X선 사진·CT, 공항 수하물 검색.</p>
+          <p class="cap">수하물 검색에서는 금속처럼 X선을 많이 흡수하는 물체가 진하게, 옷·물병은 옅게 찍힌다. 자외선은 세균의 DNA·RNA를 변형시킨다 → 살균 소독기. 형광 물질에 흡수되면 가시광선을 낸다 → 위조지폐 감별. 비타민 D 합성을 돕지만 지나치면 피부 노화를 일으킨다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="therapy">감마선 · 암 치료</button>
+            <button type="button" class="btn" data-try="ex">X선 · 수하물 검색</button>
+            <button type="button" class="btn" data-try="hand">X선 · 뼈 사진</button>
+            <button type="button" class="btn" data-try="uv">자외선 · 살균</button>
+            <button type="button" class="btn" data-try="fluor">자외선 · 위조지폐</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 가시광선·적외선">
+          <div class="kind">관찰 3</div>
+          <h3>가운데: 눈에 보이는 빛과 열을 나르는 빛</h3>
+          <p>가시광선은 눈이 감지하는 빛이다 → 조명, 광학 기기(카메라·현미경), 광통신. 적외선은 빨간빛보다 파장이 길고 열작용이 강해 <b>열선</b>이라고도 한다 → 열화상 카메라, 적외선(비접촉) 체온계, 야간 투시경, 적외선 센서, 리모컨, 물리 치료기.</p>
+          <p class="cap">열화상 카메라 장면에서 뜨거운 컵일수록 나오는 적외선 물결이 촘촘하다. 모든 물체는 온도에 따라 적외선을 낸다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-try="prism">가시광선 · 조명·광학 기기</button>
+            <button type="button" class="btn go" data-try="ir">적외선 · 열화상 카메라</button>
+            <button type="button" class="btn" data-try="remote">적외선 · 리모컨</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 전파">
+          <div class="kind">관찰 4</div>
+          <h3>파장이 긴 전파는 물 분자를 흔들고 산 뒤로 휘어 들어간다</h3>
+          <p>마이크로파: 전자레인지는 약 2.45 GHz(파장 약 12 cm)의 전기장으로 물 분자를 흔들어 데운다. 휴대 전화, 와이파이·블루투스(EBS 분류), 레이더, 위성 통신에도 쓴다. 라디오파는 파장이 가장 길어 <b>회절이 잘 된다</b> → 라디오·TV 방송, 무선 통신.</p>
+          <p class="cap">레이더는 마이크로파 펄스가 되돌아온 시간으로 거리를 잰다(거리 = c × 왕복 시간 ÷ 2). 마이크로파와 라디오파를 묶어 전파라고도 한다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-try="mw">마이크로파 · 전자레인지</button>
+            <button type="button" class="btn" data-try="radar">마이크로파 · 레이더·통신</button>
+            <button type="button" class="btn go" data-try="radio">라디오파 · 산 너머 방송</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>성질 → 용도</h3>
+          <ul>
+            <li>감마선(원자핵에서, 에너지·투과력 최대) → 암 치료·멸균. X선(투과력) → X선 사진·CT, 공항 수하물 검색.</li>
+            <li>자외선(DNA 변형·형광) → 살균 소독기, 위조지폐 감별. 가시광선 → 조명·광학 기기. 적외선(열작용) → 열화상 카메라·체온계·리모컨.</li>
+            <li>마이크로파(물 분자 흔들기·통신) → 전자레인지, 휴대 전화·와이파이·레이더. 라디오파(회절) → 방송. 전파 = 마이크로파 + 라디오파.</li>
+            <li>헷갈리는 짝: 감마선(원자핵에서) vs X선 · 자외선(가시광선보다 진동수 큼) vs 적외선(작음) · 마이크로파(전자레인지·와이파이) vs 라디오파(방송). 초음파는 매질이 필요한 음파라 전자기파가 아니다.</li>
+          </ul>
+          <div class="acts"><button type="button" class="btn" data-try="ultra">비교: 초음파 검사</button></div>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제 (개념 체크)</div>
+          <h3>전자기파의 이용과 그 영역을 바르게 짝지은 것은?</h3>
+          <p>① 전자레인지 – 적외선<br>② 공항 수하물 검색 – X선<br>③ 열화상 카메라 – 자외선<br>④ 살균 소독기 – 마이크로파<br>⑤ 라디오 방송 – 감마선</p>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">수하물 검색 장면으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p><b>② 공항 수하물 검색 – X선.</b> X선은 투과력이 강해 가방 속을 찍는다(금속은 많이 흡수해 진하게 보인다). 전자레인지는 마이크로파, 열화상 카메라는 적외선, 살균 소독기는 자외선, 라디오 방송은 회절이 잘 되는 라디오파를 쓴다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>전자레인지는 어떤 전자기파로 어떻게 음식을 데울까? 와이파이·블루투스는 어느 영역일까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="mw">전자레인지 속 물 분자 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>마이크로파.</b> 약 2.45 GHz(파장 약 12 cm) 마이크로파의 전기장이 극성 분자인 물 분자를 흔들어 회전시키고, 물 분자가 이웃 분자와 부딪히며 음식이 데워진다. 와이파이·블루투스도 EBS 기준 마이크로파다(라디오파와 묶어 전파).</p></details>
+          </div>
+          <div class="q">
+            <h3>살균 소독기와 열화상 카메라에 쓰는 전자기파는 각각 무엇이고, 어느 쪽의 진동수가 더 클까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="uv">살균 소독기</button><button type="button" class="btn" data-try="ir">열화상 카메라</button></div>
+            <details class="ans"><summary>답 보기</summary><p>살균 소독기는 자외선(세균의 DNA 변형), 열화상 카메라는 적외선(물체가 온도에 따라 내는 열선)을 쓴다. 자외선은 가시광선보다 진동수가 크고 적외선은 가시광선보다 진동수가 작으므로 <b>자외선의 진동수가 더 크다</b>.</p></details>
+          </div>
+          <div class="q">
+            <h3>산 너머 마을에서도 라디오 방송을 들을 수 있는 까닭은? 같은 자리에 빛은 왜 닿지 않을까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="radio">산 너머 방송 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>라디오파는 파장이 길어(수 m ~ 수 km) <b>회절이 잘 되므로</b> 산 꼭대기를 지나 산 뒤쪽으로 휘어 들어간다. 빛은 파장이 아주 짧아 거의 직진하므로 산 뒤에 그림자가 생긴다.</p></details>
+          </div>
+          <div class="q">
+            <h3>짝 맞히기: ‘<span id="mUse">공항 수하물 검색</span>’에 쓰는 것은? <span class="tagx" id="mScore">맞힌 수 0 / 0</span></h3>
+            <div class="acts">
+              <div class="group" role="group" aria-label="고를 영역" id="mOpts">
+                <button type="button" class="btn" data-pick="gamma">감마선</button>
+                <button type="button" class="btn" data-pick="xray">X선</button>
+                <button type="button" class="btn" data-pick="uv">자외선</button>
+                <button type="button" class="btn" data-pick="vis">가시광선</button>
+                <button type="button" class="btn" data-pick="ir">적외선</button>
+                <button type="button" class="btn" data-pick="mw">마이크로파</button>
+                <button type="button" class="btn" data-pick="radio">라디오파</button>
+                <button type="button" class="btn" data-pick="none">전자기파 아님</button>
+              </div>
+            </div>
+            <p class="check" id="mFb">이 이용에 쓰는 것을 고르세요.</p>
+            <div class="acts"><button type="button" class="btn" id="mNext">다음 문제</button></div>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../08/" rel="prev"><small>← 이전 개념 · III1-08</small><b>전자기파와 스펙트럼</b></a><a href="../10/" rel="next"><small>다음 개념 · III1-10 →</small><b>중첩 원리</b></a></nav>
 <!-- /nextprev -->
-  </section>
+    </section>
+  </main>
 </div>
-
 <script src="../../kit/lab.js"></script>
 <script src="III1-09-model.js"></script>
 <script>
@@ -227,7 +278,7 @@
     if (fill) { ctx.fillStyle = fill; ctx.fill(); }
     if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
   }
-  const lbl = (ctx, s, x, y, o = {}) => text(ctx, s, x, y, Object.assign({size: 13, w: 700, halo: true}, o));
+  const lbl = (ctx, s, x, y, o = {}) => text(ctx, s, x, y, Object.assign({size: 13, w: 600, halo: true}, o));   // 이름표 600, 설명(흐린 글) 500, 장면의 핵심 한 줄만 700
   // 파동 묶음(광자처럼 그림): 중심 (x,y), 진행 방향 (ux,uy)
   function packet(ctx, x, y, ux, uy, len, lp, a, col, w = 2.6) {
     const nx = -uy, ny = ux, n = Math.max(12, Math.round(len / 2));
@@ -287,13 +338,13 @@
     const s0 = src[0], s6 = src[N - 1];
     if (!nar) { lbl(ctx, '원자핵에서 나오는', s0.sx - 16, s0.sy - 9, {align: 'right', color: C.violet, size: 14}); lbl(ctx, '감마선 (⁶⁰Co 등)', s0.sx - 16, s0.sy + 10, {align: 'right', color: C.violet, size: 14}); }
     lbl(ctx, '암세포', fx + rt + 8, fy + rh * 0.36, {align: 'left', color: C.copper, size: 14});
-    lbl(ctx, '몸을 뚫고 나간다 (투과력 최대)', cx, Math.min(R.y + R.h - 8, cy + rh * 1.12 + 16), {w: 600, color: C.muted});
+    lbl(ctx, '몸을 뚫고 나간다 (투과력 최대)', cx, Math.min(R.y + R.h - 8, cy + rh * 1.12 + 16), {w: 500, color: C.muted});
     // 쪼인 양 비교
     const ratio = M.focusDoseRatio(N);
     const bx = nar ? R.x + 4 : s6.sx + 30, by = nar ? R.y + 10 : R.y + R.h * 0.28, bw = nar ? R.w * 0.42 : R.x + R.w - 12 - bx;
     if (!nar) {
       lbl(ctx, '쪼이는 양 비교', bx, by, {align: 'left', size: 14});
-      const bar = (y, k, s, col) => { rr(ctx, bx, y, Math.max(4, bw * 0.62 * k), 12, 4, col); lbl(ctx, s, bx, y - 9, {align: 'left', w: 600, color: C.muted}); };
+      const bar = (y, k, s, col) => { rr(ctx, bx, y, Math.max(4, bw * 0.62 * k), 12, 4, col); lbl(ctx, s, bx, y - 9, {align: 'left', w: 500, color: C.muted}); };
       bar(by + 34, 1 / ratio, '빔 하나만 지나는 곳', AL(C.violet, 0.5));
       bar(by + 76, 1, '빔 ' + N + '개가 모인 곳(암세포): ' + ratio + '배', C.violet);
       lbl(ctx, '→ 암세포만 집중해서 파괴', bx, by + 112, {align: 'left', color: C.copper});
@@ -370,9 +421,9 @@
       bagItem(ctx, BAG[3], ix, iy, iw, ih, C.copper, 2);                 // 지켜볼 것: 가위
       ctx.restore();
       if (umin > 0) { ctx.save(); ctx.strokeStyle = C.violet; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ix + umin * iw, my0 + 4); ctx.lineTo(ix + umin * iw, my0 + mh - 4); ctx.stroke(); ctx.restore(); }
-    } else lbl(ctx, '가방이 지나가면 찍힌다', mx0 + mw / 2, my0 + mh / 2, {w: 600, color: C.muted});
+    } else lbl(ctx, '가방이 지나가면 찍힌다', mx0 + mw / 2, my0 + mh / 2, {w: 500, color: C.muted});
     if (nar) lbl(ctx, '진함 = 금속(많이 흡수) · 옅음 = 옷', mx0 + mw / 2, my0 + mh + 20, {w: 600});
-    else { const ly = my0 + mh + 44; lbl(ctx, '진함: 금속이 X선을 많이 흡수', mx0 + mw / 2, ly, {w: 600}); lbl(ctx, '옅음: 옷·물병은 잘 통과', mx0 + mw / 2, ly + 19, {w: 600, color: C.muted}); }
+    else { const ly = my0 + mh + 44; lbl(ctx, '진함: 금속이 X선을 많이 흡수', mx0 + mw / 2, ly, {w: 600}); lbl(ctx, '옅음: 옷·물병은 잘 통과', mx0 + mw / 2, ly + 19, {w: 500, color: C.muted}); }
   }
 
   // ── 장면: X선 · 뼈 사진 ──────────────────────────────────
@@ -413,7 +464,7 @@
     ctx.save(); ctx.fillStyle = AL(C.violet, 0.1); ctx.beginPath(); ctx.moveTo(R.x + lw / 2, tubeY + 16); ctx.lineTo(hx - s * 0.15, plateY); ctx.lineTo(hx + s * 1.15, plateY); ctx.closePath(); ctx.fill(); ctx.restore();
     for (let i = 0; i < 5; i++) { const xx = lerp(hx - s * 0.05, hx + s * 1.05, i / 4); flow(ctx, R.x + lw / 2 + (xx - R.x - lw / 2) * 0.08, tubeY + 18, xx, plateY - 4, t + i * 0.17, {col: C.violet, lp: 6, amp: 3, len: 18, gap: 48, speed: 110, w: 2.6}); }
     lbl(ctx, 'X선', R.x + lw / 2 + 30, tubeY + 8, {align: 'left', color: C.violet, size: 14});
-    if (!nar) lbl(ctx, '검출판 (필름)', hx + s * 0.5, plateY + 16, {w: 600, color: C.muted});
+    if (!nar) lbl(ctx, '검출판 (필름)', hx + s * 0.5, plateY + 16, {w: 500, color: C.muted});
     // 필름
     let fx, fy, fw, fh;
     fx = R.x + R.w * 0.55; fw = R.x + R.w - (nar ? 4 : 10) - fx; fy = R.y + 6; fh = R.h * (nar ? 0.7 : 0.78);
@@ -425,7 +476,7 @@
     ctx.restore();
     const ly = fy + fh + 18;
     lbl(ctx, nar ? '뼈: 흡수 → 하얗게' : '뼈: X선을 많이 흡수 → 하얗게', fx + fw / 2, ly, {w: 600});
-    lbl(ctx, nar ? '살: 통과 → 검게' : '살: 잘 통과 → 필름이 검게', fx + fw / 2, ly + 19, {w: 600, color: C.muted});
+    lbl(ctx, nar ? '살: 통과 → 검게' : '살: 잘 통과 → 필름이 검게', fx + fw / 2, ly + 19, {w: 500, color: C.muted});
   }
 
   // ── 장면: 자외선 · 살균 소독기 ───────────────────────────
@@ -499,7 +550,7 @@
     ctx.restore();
     lbl(ctx, nar ? 'DNA (확대)' : '세균의 DNA (확대)', bcx, bcy - rb - 14, {size: 14, color: C.copper});
     lbl(ctx, dead ? (nar ? 'DNA 변형!' : 'DNA가 변형 → 번식 못 함') : (nar ? '자외선 흡수' : '자외선이 DNA에 흡수된다'), bcx, bcy + rb + 16, {color: dead ? C.neg : C.violet, size: 14});
-    if (!nar) lbl(ctx, '자외선은 세균의 DNA·RNA를 변형시킨다 → 살균', bcx, bcy + rb + 36, {w: 600, color: C.muted});
+    if (!nar) lbl(ctx, '자외선은 세균의 DNA·RNA를 변형시킨다 → 살균', bcx, bcy + rb + 36, {w: 500, color: C.muted});
   }
 
   // ── 장면: 자외선 · 위조지폐 감별 ─────────────────────────
@@ -509,7 +560,7 @@
     for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(x + w * 0.08, y + h * i / 4); ctx.lineTo(x + w * 0.5, y + h * i / 4); ctx.stroke(); }
     ctx.restore();
     circ(ctx, x + w * 0.73, y + h * 0.5, h * 0.24, null, AL(filmFg(), 0.4), 1.4);
-    text(ctx, '50000', x + w * 0.27, y + h * 0.82, {size: 13, w: 700, mono: true, color: AL(filmFg(), 0.6)});
+    text(ctx, '50000', x + w * 0.27, y + h * 0.82, {size: 13, w: 600, color: AL(filmFg(), 0.6)});
     if (real && glow > 0) {
       const g = visRGB(520, 0.95 * glow);
       ctx.save(); ctx.shadowColor = visRGB(520, 0.9 * glow); ctx.shadowBlur = 14;
@@ -583,7 +634,7 @@
     circ(ctx, ex + 3, ey, 6.5, C.vel); circ(ctx, ex + 3, ey, 2.6, C.ink);
     ctx.save(); ctx.strokeStyle = AL(C.copper, 0.6); ctx.setLineDash([3, 4]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(ex + 18, ey - 6); ctx.lineTo(sx - 4, (sy0 + sy1) / 2 + 30); ctx.stroke(); ctx.restore();
     lbl(ctx, nar ? '눈: 400~700 nm만 감지' : '눈이 감지하는 빛 = 가시광선 (약 400~700 nm)', ex - 26, ey, {align: 'right', w: 700});
-    if (!nar) lbl(ctx, '조명, 카메라·현미경 같은 광학 기기, 광통신에 쓰인다', R.x + R.w * 0.3, R.y + 12, {w: 600, color: C.muted});
+    if (!nar) lbl(ctx, '조명, 카메라·현미경 같은 광학 기기, 광통신에 쓰인다', R.x + R.w * 0.3, R.y + 12, {w: 500, color: C.muted});
   }
 
   // ── 장면: 적외선 · 열화상 카메라 ─────────────────────────
@@ -638,7 +689,7 @@
     [C.vel, C.violet, C.force, C.energy].forEach((c, i) => gb.addColorStop(i / 3, c));
     const yb = dy + dh + 14;
     ctx.fillStyle = gb; ctx.fillRect(dx, yb, dw, 9);
-    lbl(ctx, '낮음', dx, yb + 20, {align: 'left', w: 600, color: C.muted}); lbl(ctx, '온도', dx + dw / 2, yb + 20, {w: 600, color: C.muted}); lbl(ctx, '높음', dx + dw, yb + 20, {align: 'right', w: 600, color: C.muted});
+    lbl(ctx, '낮음', dx, yb + 20, {align: 'left', w: 500, color: C.muted}); lbl(ctx, '온도', dx + dw / 2, yb + 20, {w: 500, color: C.muted}); lbl(ctx, '높음', dx + dw, yb + 20, {align: 'right', w: 600, color: C.muted});
     if (!nar) lbl(ctx, '모든 물체는 온도에 따라 적외선을 낸다 — 뜨거울수록 많이', R.x + aw * 0.42, R.y + 12, {w: 600, color: C.neg});
     else lbl(ctx, '뜨거울수록 적외선을 많이 낸다', R.x + 4, R.y + 10, {align: 'left', w: 600, color: C.neg});
   }
@@ -671,21 +722,21 @@
       packet(ctx, led.x + ux * s, led.y + uy * s, ux, uy, 22, 9, 4, C.neg, 2.6);
     });
     const arrived = cyc > (Ld + 3 * gap) / v ? 1 : 0, ch = 7 + ((n + arrived) % 3);
-    text(ctx, String(ch), (tvx0 + tvx1) / 2, (tvy0 + tvy1) / 2 - 8, {size: nar ? 30 : 44, w: 700, mono: true, color: C.ink});
+    text(ctx, String(ch), (tvx0 + tvx1) / 2, (tvy0 + tvy1) / 2 - 8, {size: nar ? 30 : 44, w: 600, color: C.ink});
     text(ctx, '채널', (tvx0 + tvx1) / 2, tvy0 + 24, {size: 13, w: 600, color: C.muted});
     lbl(ctx, '적외선 센서', sen.x, tvy1 + 30, {color: C.copper, align: 'left'});
     lbl(ctx, nar ? '신호 1 0 1 1' : '적외선 신호 1 0 1 1 (켜짐·꺼짐)', (led.x + sen.x) / 2, (led.y + sen.y) / 2 - 26, {color: C.neg});
     lbl(ctx, '리모컨', rx, ry + 82, {size: 14});
-    lbl(ctx, nar ? '눈에는 보이지 않는다' : '적외선은 눈에 보이지 않는다 (스마트폰 카메라에는 보인다)', R.x + R.w / 2, R.y + R.h - 10, {w: 600, color: C.muted});
+    lbl(ctx, nar ? '눈에는 보이지 않는다' : '적외선은 눈에 보이지 않는다 (스마트폰 카메라에는 보인다)', R.x + R.w / 2, R.y + R.h - 10, {w: 500, color: C.muted});
   }
 
   // ── 장면: 마이크로파 · 전자레인지 ─────────────────────────
   const MOL = (() => { const r = rng(11); const a = []; for (let i = 0; i < 9; i++) a.push({x: (i % 3 + 0.5) / 3 + (r() - 0.5) * 0.08, y: (Math.floor(i / 3) + 0.5) / 3 + (r() - 0.5) * 0.08, b: (r() - 0.5) * 1.2, ph: r() * TAU}); return a; })();
   function water(ctx, x, y, ang, s, hl) {
     const hx = (k) => x + Math.cos(ang + k) * s * 1.25, hy = (k) => y + Math.sin(ang + k) * s * 1.25;
-    [0.9, -0.9].forEach((k) => { circ(ctx, hx(k), hy(k), s * 0.6, AL(C.force, 0.3), C.force, 1.4); text(ctx, '+', hx(k), hy(k), {size: 13, w: 700, color: C.force}); });
+    [0.9, -0.9].forEach((k) => { circ(ctx, hx(k), hy(k), s * 0.6, AL(C.force, 0.3), C.force, 1.4); text(ctx, '+', hx(k), hy(k), {size: 13, w: 600, color: C.force}); });
     circ(ctx, x, y, s, AL(C.vel, 0.3), hl ? C.copper : C.vel, hl ? 2.8 : 1.6);
-    text(ctx, '−', x, y, {size: 13, w: 700, color: C.vel});
+    text(ctx, '−', x, y, {size: 13, w: 600, color: C.vel});
   }
   function sOven(ctx, R, t, nar) {
     const ow = R.w * (nar ? 0.6 : 0.56), oh = nar ? R.h * 0.66 : R.h - 16, ox = R.x + 4, oy = R.y + (nar ? 4 : 8);
@@ -696,13 +747,13 @@
     // 조작판
     const px = cx0 + cw + 10, pw = ox + ow - 10 - px;
     rr(ctx, px, cy0 + 4, pw, 30, 5, C.ink);
-    text(ctx, Math.round(temp) + (nar ? '°' : ' °C'), px + pw / 2, cy0 + 19, {size: nar ? 13 : 14, w: 700, mono: true, color: C.energy});
+    text(ctx, Math.round(temp) + (nar ? '°' : ' °C'), px + pw / 2, cy0 + 19, {size: nar ? 13 : 14, w: 600, color: C.energy});
     // 마그네트론(옆 칸)과 도파관 → 공동으로 마이크로파
     const mgy = cy0 + Math.min(chh * 0.32, 60), mgx = px + pw / 2 - (nar ? 13 : 16);
     ctx.save(); ctx.fillStyle = AL(C.energy, 0.3); ctx.fillRect(cx0 + cw - 2, mgy + 4, mgx - cx0 - cw + 4, 16); ctx.restore();
     rr(ctx, mgx, mgy, nar ? 26 : 32, 24, 4, C.energy);
-    if (!nar) text(ctx, '마그네트론', px + pw / 2, mgy + 40, {size: 13, w: 700, color: C.energy});
-    if (!nar) text(ctx, '2.45 GHz', px + pw / 2, mgy + 57, {size: 13, w: 600, color: C.energy, mono: true});
+    if (!nar) text(ctx, '마그네트론', px + pw / 2, mgy + 40, {size: 13, w: 600, color: C.energy});
+    if (!nar) text(ctx, '2.45 GHz', px + pw / 2, mgy + 57, {size: 13, w: 600, color: C.energy});
     [0.25, 0.5, 0.75].forEach((k, i) => flow(ctx, cx0 + cw - 4, mgy + 12, cx0 + 14, cy0 + chh * k, t + i * 0.4, {col: C.energy, lp: 26, amp: 6, len: 52, gap: 120, speed: 90, w: 2.6}));
     // 공동 안의 전기장 (방향이 계속 바뀜)
     for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) {
@@ -778,7 +829,7 @@
     circ(ctx, scx + br * Math.cos(ba), scy + br * Math.sin(ba), 5, C.copper);
     if (nar) lbl(ctx, '거리 = c × 왕복 시간 ÷ 2', R.x + 4, R.y + 29, {w: 700, align: 'left'});
     else lbl(ctx, '거리 = c × 왕복 시간 ÷ 2', scx, scy + sr + 16, {w: 700});
-    if (!nar) lbl(ctx, '예: 왕복 2 × 10⁻⁴ s → ' + Lab.fmt(M.radarDistance(2e-4) / 1000, 0) + ' km', scx, scy + sr + 35, {w: 600, color: C.muted, mono: true});
+    if (!nar) lbl(ctx, '예: 왕복 2 × 10⁻⁴ s → ' + Lab.fmt(M.radarDistance(2e-4) / 1000, 0) + ' km', scx, scy + sr + 35, {w: 500, color: C.muted});
     lbl(ctx, nar ? '휴대 전화·와이파이도 마이크로파' : '휴대 전화·와이파이·블루투스·위성 통신도 마이크로파', R.x + 4, R.y + 10, {align: 'left', w: 600, color: C.energy});
   }
 
@@ -825,9 +876,9 @@
     rr(ctx, hx - hw / 2, hy, hw, hw * 0.7, 3, C.paper, C.copper, 2.4);
     ctx.save(); ctx.beginPath(); ctx.moveTo(hx - hw * 0.62, hy); ctx.lineTo(hx, hy - hw * 0.45); ctx.lineTo(hx + hw * 0.62, hy); ctx.closePath(); ctx.fillStyle = C.copper; ctx.fill(); ctx.restore();
     ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(hx + hw * 0.2, hy - hw * 0.25); ctx.lineTo(hx + hw * 0.2, hy - hw * 0.75); ctx.moveTo(hx + hw * 0.05, hy - hw * 0.65); ctx.lineTo(hx + hw * 0.35, hy - hw * 0.65); ctx.stroke(); ctx.restore();
-    for (let i = 0; i < 2; i++) { const s0 = (t * 14 + i * 13) % 26; ctx.save(); ctx.globalAlpha = 1 - s0 / 26; text(ctx, '♪', hx - hw * 0.15 - i * 10, hy - hw * 0.5 - s0, {size: 15, w: 700, color: C.copper}); ctx.restore(); }
+    for (let i = 0; i < 2; i++) { const s0 = (t * 14 + i * 13) % 26; ctx.save(); ctx.globalAlpha = 1 - s0 / 26; text(ctx, '♪', hx - hw * 0.15 - i * 10, hy - hw * 0.5 - s0, {size: 15, w: 500, color: C.copper}); ctx.restore(); }
     lbl(ctx, '산 뒤의 집', hx, gy + 14, {size: 14, color: C.copper});
-    lbl(ctx, nar ? '빛: 직진 → 그림자' : '빛이라면: 파장이 짧아 직진 → 산 뒤는 그림자', K.x + (nar ? 20 : 30), K.y + (nar ? 64 : 58), {align: 'left', w: 600, color: C.muted});
+    lbl(ctx, nar ? '빛: 직진 → 그림자' : '빛이라면: 파장이 짧아 직진 → 산 뒤는 그림자', K.x + (nar ? 20 : 30), K.y + (nar ? 64 : 58), {align: 'left', w: 500, color: C.muted});
     lbl(ctx, nar ? '라디오파: 회절 → 산 뒤까지' : '라디오파: 파장이 길어 회절이 잘 된다 → 산 뒤까지 전달', R.x + R.w / 2, R.y + 12, {color: C.energy, size: 14});
   }
 
@@ -867,10 +918,10 @@
     }
     if (nar) {
       lbl(ctx, '초음파: 몸(매질)을 진동시키는 음파', R.x + 4, R.y + 10, {align: 'left', size: 14, color: C.neg});
-      lbl(ctx, '→ 전자기파가 아니다 · 진공에서 전달 안 됨', R.x + 4, R.y + 29, {align: 'left', w: 600, color: C.muted});
+      lbl(ctx, '→ 전자기파가 아니다 · 진공에서 전달 안 됨', R.x + 4, R.y + 29, {align: 'left', w: 500, color: C.muted});
     } else {
       lbl(ctx, '초음파: 몸(매질)을 진동시키는 음파 — 전자기파가 아니다', R.x + 8, R.y + 12, {align: 'left', size: 14, color: C.neg});
-      lbl(ctx, '매질이 없는 진공에서는 전달되지 않는다 · 몸속 약 1500 m/s (빛 3 × 10⁸ m/s)', R.x + 8, R.y + 32, {align: 'left', w: 600, color: C.muted});
+      lbl(ctx, '매질이 없는 진공에서는 전달되지 않는다 · 몸속 약 1500 m/s (빛 3 × 10⁸ m/s)', R.x + 8, R.y + 32, {align: 'left', w: 500, color: C.muted});
     }
   }
 
@@ -879,21 +930,26 @@
   // ── 무대 ────────────────────────────────────────────────
   const stage = Lab.canvas('stage', draw), map = Lab.canvas('map', draw);
   const hudEl = document.querySelector('.stage .hud'), legEl = document.querySelector('.stage .legend');
-  let G = null;
+  let G = null, wasNarrow = null;
+  // 무대: 위 = 장면(R), 아래 = 띠. 아래쪽 여백은 범례가 무대 안에 있으면(넓은 화면) 범례 높이만큼, 시트로 옮겨졌으면(좁은 화면) 지금 단계 표시(#nowstep) 자리만큼
   function geom() {
     const {W, H} = stage, narrow = W < 520, pad = narrow ? 8 : 14;
-    const legH = (legEl.offsetHeight || 32) + 16, top = 12 + (hudEl.offsetHeight || 30) + 10;
-    const hs = narrow ? 36 : 46, bandH = 22 + hs + 4, bandY = H - legH - bandH;
-    return {W, H, narrow, R: {x: pad, y: top, w: W - 2 * pad, h: bandY - top - 10}, band: {x: pad, y: bandY, w: W - 2 * pad, h: bandH, hs}};
+    const legIn = !!(legEl.parentNode && legEl.parentNode.classList.contains('stage'));
+    const bot = legIn ? (legEl.offsetHeight || 32) + 16 : 36, top = 12 + (hudEl.offsetHeight || 30) + 10;
+    const cb = narrow || H < 400;                          // 띠를 얇게 (방향 글 없이)
+    const hs = cb ? 30 : 46, bandH = (cb ? 0 : 22) + hs + 4, bandY = H - bot - bandH;
+    return {W, H, narrow, cb, R: {x: pad, y: top, w: W - 2 * pad, h: bandY - top - 10}, band: {x: pad, y: bandY, w: W - 2 * pad, h: bandH, hs}};
   }
   function drawBand(ctx, g) {
     const b = g.band, sz = g.narrow ? 13 : 14, ids = M.REGIONS.map((r) => r.id);
-    const need = ids.map((id) => Lab.measure(ctx, M.byId(id).name, {size: sz, w: 700}) + (g.narrow ? 6 : 18));
+    const need = ids.map((id) => Lab.measure(ctx, M.byId(id).name, {size: sz, w: 600}) + (g.narrow ? 6 : 18));
     const tot = need.reduce((a, v) => a + v, 0);
     const ws = need.some((v) => v > b.w / 7) ? need.map((v) => v * b.w / tot) : ids.map(() => b.w / 7);
-    text(ctx, g.narrow ? '← 진동수·에너지 큼' : '← 진동수 큼 · 광자 에너지 큼 (파장 짧음)', b.x, b.y + 8, {size: 13, w: 700, color: C.violet, align: 'left'});
-    text(ctx, g.narrow ? '파장 김 →' : '파장 김 · 회절 잘 됨 →', b.x + b.w, b.y + 8, {size: 13, w: 700, color: C.energy, align: 'right'});
-    const yS = b.y + 20, hs = b.hs;
+    if (!g.cb) {
+      text(ctx, '← 진동수 큼 · 광자 에너지 큼 (파장 짧음)', b.x, b.y + 8, {size: 13, w: 600, color: C.violet, align: 'left'});
+      text(ctx, '파장 김 · 회절 잘 됨 →', b.x + b.w, b.y + 8, {size: 13, w: 600, color: C.energy, align: 'right'});
+    }
+    const yS = b.y + (g.cb ? 0 : 20), hs = b.hs;
     g.segs = [];
     let x = b.x;
     ids.forEach((id, i) => {
@@ -903,8 +959,8 @@
       ctx.fillRect(x, yS, w, hs);
       if (i) { ctx.save(); ctx.strokeStyle = C.paper; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, yS); ctx.lineTo(x, yS + hs); ctx.stroke(); ctx.restore(); }
       const nm = M.byId(id).name;
-      text(ctx, nm, x + w / 2, yS + (g.narrow ? hs / 2 : 15), {size: sz, w: 700, color: on ? C.copper : C.ink, halo: id === 'vis'});
-      if (!g.narrow) text(ctx, '~' + fmtLen(M.byId(id).rep), x + w / 2, yS + 33, {size: 13, w: 500, mono: true, color: C.muted, halo: id === 'vis'});
+      text(ctx, nm, x + w / 2, yS + (g.cb ? hs / 2 : 15), {size: sz, w: 600, color: on ? C.copper : C.ink, halo: id === 'vis'});
+      if (!g.cb) text(ctx, '~' + fmtLen(M.byId(id).rep), x + w / 2, yS + 33, {size: 13, w: 500, color: C.muted, halo: id === 'vis'});
       g.segs.push({id, x0: x, x1: x + w});
       x += w;
     });
@@ -919,6 +975,7 @@
     const {ctx, W, H} = stage; if (!W) return;
     ctx.clearRect(0, 0, W, H);
     G = geom();
+    if (wasNarrow !== G.narrow) { wasNarrow = G.narrow; card(); G = geom(); }   // 폰 ↔ 넓은 화면: HUD 글을 다시 (HUD 높이가 바뀔 수 있다)
     ctx.save(); ctx.beginPath(); ctx.rect(0, G.R.y - 6, W, G.R.h + 12); ctx.clip();
     DRAW[S.cs](ctx, G.R, S.t, G.narrow);
     ctx.restore();
@@ -932,42 +989,53 @@
     ctx.clearRect(0, 0, W, H);
     const nar = W < 400, top = 34, rh = (H - top - 4) / 7, nameW = nar ? 72 : 84, bx0 = 8 + nameW, bx1 = nar ? W - 10 : W * 0.6, kx = nar ? bx0 : bx1 + 12;
     const LX = (l) => bx0 + (l + 14) / 18 * (bx1 - bx0);
-    text(ctx, '진동수 큰 순서 ↓', 6, 11, {size: 13, w: 700, color: C.muted, align: 'left'});
-    if (!nar) text(ctx, '성질', kx, 11, {size: 13, w: 700, color: C.muted, align: 'left'});
-    else text(ctx, '파장 (로그)', W - 8, 11, {size: 13, w: 700, color: C.muted, align: 'right'});
+    text(ctx, '진동수 큰 순서 ↓', 6, 11, {size: 13, w: 600, color: C.muted, align: 'left'});
+    if (!nar) text(ctx, '성질', kx, 11, {size: 13, w: 600, color: C.muted, align: 'left'});
+    else text(ctx, '파장 (로그)', W - 8, 11, {size: 13, w: 600, color: C.muted, align: 'right'});
     [-12, -9, -6, -3, 0, 3].forEach((l) => {
       const x = LX(l);
       ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, top - 4); ctx.lineTo(x, H - 4); ctx.stroke(); ctx.restore();
-      const s = (nar ? {'-12': '1 pm', '-9': '1 nm', '-6': '1 μm', '-3': '1 mm', 0: '1 m', 3: '1 km'} : {'-12': '1 pm', '-6': '1 μm', 0: '1 m'})[l];
-      if (s) text(ctx, s, x, 27, {size: 13, w: 500, color: C.muted, mono: true});
+      // 눈금 글자: 축이 넉넉하면 1000배마다, 좁으면 100만 배마다 (글자끼리 붙지 않게)
+      const s = (nar && bx1 - bx0 > 260 ? {'-12': '1 pm', '-9': '1 nm', '-6': '1 μm', '-3': '1 mm', 0: '1 m', 3: '1 km'} : {'-12': '1 pm', '-6': '1 μm', 0: '1 m'})[l];
+      if (s) text(ctx, s, x, 27, {size: 13, w: 500, color: C.muted});
     });
     MG = {top, rh};
     M.REGIONS.forEach((r, i) => {
       const y = top + i * rh, on = r.id === S.reg, cy = nar ? y + rh * 0.34 : y + rh / 2;
       if (on) rr(ctx, 1, y + 1, W - 2, rh - 2, 8, C['copper-soft']);
-      text(ctx, r.name, 8, cy, {size: 14, w: 700, align: 'left', color: on ? C.copper : C.ink});
+      text(ctx, r.name, 8, cy, {size: 14, w: 600, align: 'left', color: on ? C.copper : C.ink});
       const a = LX(Math.max(-14, r.lam[0] > 0 ? Math.log10(r.lam[0]) : -14)), z = LX(Math.min(4, isFinite(r.lam[1]) ? Math.log10(r.lam[1]) : 4));
       if (r.id === 'vis') { const gr = ctx.createLinearGradient(a, 0, z, 0); RAINBOW().forEach((c, k, arr) => gr.addColorStop(k / (arr.length - 1), c)); ctx.fillStyle = gr; }
       else ctx.fillStyle = tint(r.id, 1.6);
       ctx.fillRect(a, cy - 7, Math.max(3, z - a), 14);
       circ(ctx, LX(Math.log10(r.rep)), cy, 4, on ? C.copper : C.ink);
-      text(ctx, KEY[r.id], kx, nar ? y + rh * 0.74 : cy, {size: 13, w: on ? 700 : 500, align: 'left', color: on ? C.ink : C.muted});
+      text(ctx, KEY[r.id], kx, nar ? y + rh * 0.74 : cy, {size: 13, w: on ? 600 : 500, align: 'left', color: on ? C.ink : C.muted});
     });
   }
 
   function draw() { drawStage(); drawMap(); }
 
-  // ── 영역 카드·HUD·예제 확인 ──────────────────────────────
+  // ── 지금 값·HUD·장면 넘기기·예제 확인 ────────────────────
+  // 장면 → 그 장면이 보여 주는 이용 (모형 M.USES 의 이름)
+  const USE_OF = {therapy: '암 치료', bag: '공항 수하물 검색', hand: '뼈 사진·CT', steril: '살균 소독기', fluor: '위조지폐 감별', prism: '조명·광학 기기',
+    thermal: '열화상 카메라', remote: '리모컨', oven: '전자레인지', radar: '레이더', tv: '라디오·TV 방송', ultra: '초음파 검사'};
+  // 장면 차례 (◀ ▶): 진동수 큰 쪽 → 파장 긴 쪽, 마지막은 비교(초음파)
+  const SEQ = [];
+  ['gamma', 'xray', 'uv', 'vis', 'ir', 'mw', 'radio', 'us'].forEach((id) => SCENES[id].forEach((s) => SEQ.push([id, s.id])));
+  const seqAt = () => SEQ.findIndex(([r, c]) => r === S.reg && c === S.cs);
   function card() {
-    const id = S.reg, sc = scene(), us = id === 'us';
-    $('cName').textContent = us ? '초음파 (비교)' : M.byId(id).name;
-    $('cRank').textContent = us ? '전자기파가 아님' : '진동수 ' + (M.REGIONS.findIndex((r) => r.id === id) + 1) + '번째로 큼';
+    const id = S.reg, sc = scene(), us = id === 'us', rn = us ? '초음파' : M.byId(id).name;
+    const rank = us ? '전자기파가 아님' : '진동수 ' + (M.REGIONS.findIndex((r) => r.id === id) + 1) + '번째로 큼';
+    // 지금 값: 판정(이 장면의 이용)을 크게, 근거(성질 → 까닭)를 식 줄에
+    const u = M.findUse(USE_OF[S.cs]);
+    Lab.ans(us ? '초음파 검사: 전자기파 아님' : sc.name, [(us ? '초음파의 정체: ' : rn + '의 성질: ') + '<em>' + PROP[id] + '</em>', '→ ' + u.why],
+      {tone: us ? 'small neg' : 'small', ctx: rn + ' · ' + rank, f: us ? '전자기파일까? 정체부터 보자' : '왜 이 용도에 쓸까? 성질 → 까닭'});
     if (us) {
       $('rLamL').textContent = '몸속 파장 (5 MHz)'; $('rLam').textContent = fmtLen(1500 / 5e6);
       $('rFL').textContent = '진동수 (음파)'; $('rF').textContent = fmtHz(5e6);
       $('rEL').textContent = '몸속 속력'; $('rE').textContent = '1500 m/s';
       $('rCL').textContent = '진공에서'; $('rC').textContent = '전달 안 됨';
-      $('cText').innerHTML = '<b>성질</b> 매질(몸·젤)을 진동시키는 음파(종파)다. 진공에서는 전달되지 않고 속력도 빛보다 훨씬 느리다.<br><b>헷갈리는 짝</b> ' + PAIR.us;
+      $('cText').innerHTML = '매질(몸·젤)을 진동시키는 음파(종파)다. 진공에서는 전달되지 않고 속력도 빛보다 훨씬 느리다.<br>헷갈리는 짝: ' + PAIR.us;
     } else {
       const r = M.byId(id), lam = r.rep, f = M.freq(lam);
       $('rLamL').textContent = '대표 파장'; $('rLam').textContent = fmtLen(lam);
@@ -977,18 +1045,22 @@
       const lo = r.lam[0], hi = r.lam[1];
       const lr = lo === 0 ? fmtLen(hi) + ' 이하' : !isFinite(hi) ? fmtLen(lo) + ' 이상' : fmtLen(lo) + ' ~ ' + fmtLen(hi);
       const fr = lo === 0 ? fmtHz(M.freq(hi)) + ' 이상' : !isFinite(hi) ? fmtHz(M.freq(lo)) + ' 이하' : fmtHz(M.freq(hi)) + ' ~ ' + fmtHz(M.freq(lo));
-      const uses = r.uses.map((u) => (sc.uses.includes(u) ? '<b>' + u + '</b>' : u)).join(', ');
-      $('cText').innerHTML = '<b>범위</b> 파장 ' + lr + ' · 진동수 ' + fr + '<br><b>성질</b> ' + r.prop + '<br><b>이용</b> ' + uses + '<br><b>헷갈리는 짝</b> ' + PAIR[id];
+      const uses = r.uses.map((x) => (sc.uses.includes(x) ? '<b>' + x + '</b>' : x)).join(', ');
+      $('cText').innerHTML = '범위: 파장 ' + lr + ' · 진동수 ' + fr + '<br>이용: ' + uses + '<br>헷갈리는 짝: ' + PAIR[id];
     }
+    // 장면 넘기기 (첫 조작 줄)
+    $('nowReg').textContent = rn; $('nowScene').textContent = sc.name;
+    const k = seqAt();
+    $('scPrev').disabled = k <= 0; $('scNext').disabled = k >= SEQ.length - 1;
     // HUD·범례
-    $('hudRegT').textContent = (us ? '초음파' : M.byId(id).name) + ' · ' + sc.name;
+    $('hudRegT').textContent = rn;
     $('hudDot').style.background = id === 'vis' ? 'linear-gradient(90deg,' + RAINBOW().join(',') + ')' : cssVar(id);
-    $('hudProp').textContent = '성질: ' + PROP[id];
+    $('hudProp').textContent = '성질: ' + ((stage.W || 999) < 520 && KEY[id] ? KEY[id] : PROP[id]);   // 폰은 짧은 말로 (HUD 한 줄)
     $('legBeam').style.background = id === 'vis' ? 'linear-gradient(90deg,' + RAINBOW().join(',') + ')' : cssVar(id);
     $('legBeamT').textContent = us ? '초음파 (음파)' : M.byId(id).name + (id === 'vis' ? ' (실제 색)' : ' (눈에 안 보임, 색은 표시용)');
     $('legHint').textContent = sc.hint;
     const ok = id === 'xray' && S.cs === 'bag';
-    Lab.check('exCheck', ok, '개념 체크 예제: 공항 수하물 검색 – X선 (투과력이 강해 가방 속이 찍힌다)', '예제: 전자기파의 이용과 그 영역을 바르게 짝지은 것은? — ‘스스로 확인 1’');
+    Lab.check('exCheck', ok, '개념서 예제(개념 체크): 공항 수하물 검색 – X선 (투과력이 강해 가방 속이 찍힌다)', '예제: 전자기파의 이용과 그 영역을 바르게 짝지은 것은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
     // 장면 버튼
     const gc = $('gCase');
     gc.innerHTML = '<span class="gl">장면</span>' + SCENES[id].map((s) => '<button type="button" class="btn" data-case="' + s.id + '" aria-pressed="' + (s.id === S.cs) + '">' + s.name + '</button>').join('');
@@ -1003,6 +1075,9 @@
   // ── 조작 ────────────────────────────────────────────────
   const regG = Lab.group('[data-reg]', 'reg', (v) => setScene(v), S.reg);
   const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  const stepSc = (d) => { const n = SEQ[Math.max(0, Math.min(SEQ.length - 1, seqAt() + d))]; setScene(n[0], n[1]); };
+  $('scPrev').addEventListener('click', () => stepSc(-1));
+  $('scNext').addEventListener('click', () => stepSc(1));
   Lab.pointer(stage.el, {
     down(x, y) {
       if (!G || !G.segs || y < G.yS - 12 || y > G.yS + G.band.hs + 8) return;
@@ -1043,6 +1118,9 @@
   const TRY = {
     ex: () => setScene('xray', 'bag'), mw: () => setScene('mw', 'oven'), uv: () => setScene('uv', 'steril'),
     ir: () => setScene('ir', 'thermal'), radio: () => setScene('radio', 'tv'),
+    // 관찰 카드의 장면 버튼
+    therapy: () => setScene('gamma', 'therapy'), hand: () => setScene('xray', 'hand'), fluor: () => setScene('uv', 'fluor'),
+    prism: () => setScene('vis', 'prism'), remote: () => setScene('ir', 'remote'), radar: () => setScene('mw', 'radar'), ultra: () => setScene('us', 'ultra'),
   };
   Lab.tries(TRY, () => { playCtl.set(true); });
 

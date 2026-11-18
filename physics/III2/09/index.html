@@ -9,18 +9,23 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* 왼쪽 무대: 현미경 단면(광원·렌즈·시료·스크린)과 그 상, 오른쪽: λ–V 그래프와 파장 자, 두 점의 밝기 그래프, 세 현미경 비교표 */
+/* 관찰 노트: 왼쪽 실험대(현미경 단면과 그 상) | 오른쪽 지금 값(λ = h/√(2meV) 와 분해 판정) + 관찰 ①~④ → 정리 → 예제 → 스스로 확인 */
 #stage{aspect-ratio:16/11.5}
-#gB{aspect-ratio:10/7.4}
 #gC{aspect-ratio:10/5.4}
-.cmp{width:100%;border-collapse:collapse;font-size:13.5px;line-height:1.45;table-layout:fixed}
-.cmp th,.cmp td{padding:6px 5px;border-bottom:1px solid var(--line-soft);vertical-align:top;text-align:left}
-.cmp thead th{font-size:13.5px;border-bottom:1px solid var(--line);cursor:pointer}
+#gB{aspect-ratio:10/5.6}
+#gR{aspect-ratio:10/3}
+#gS{aspect-ratio:10/5}
+.answer .sub .ok{color:var(--acc);font-weight:600}
+.answer .sub .no{color:var(--neg);font-weight:600}
+/* 관찰 ④ 세 현미경 비교표: 열 제목을 누르면 그 현미경으로 */
+.cmp{width:100%;border-collapse:collapse;font-size:13.5px;line-height:1.45;table-layout:fixed;margin-top:10px}
+.cmp th,.cmp td{padding:6px 5px;border-bottom:1px solid var(--line-soft);vertical-align:top;text-align:left;color:var(--ink-2)}
+.cmp thead th{font-weight:600;color:var(--ink);border-bottom:1px solid var(--line);cursor:pointer}
 .cmp tbody th{font-weight:600;color:var(--muted);width:23%}
 .cmp .on{background:var(--copper-soft)}
-.cmp thead .on{color:var(--copper)}
-.quiz .tag{white-space:nowrap}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.8} }
+.cmp thead .on{color:var(--copper-ink)}
+/* 아주 좁은 폰(360px 미만): 첫 줄의 V 막대 자리를 지키려고 시트 버튼은 아이콘만 */
+@media (max-width:359px){ .r1 .sheet-btn .sm{display:none} }
 </style>
 </head>
 <body class="cx">
@@ -32,149 +37,173 @@
 </div></header>
 <!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III2-09</span><span class="kicker">물리학 Ⅰ · 빛과 물질의 이중성</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III2-09</span><span>물리학 Ⅰ · 빛과 물질의 이중성</span></div>
     <h1>전자 현미경</h1>
-    <p class="lead">가속 전압 V를 높이면 전자의 운동 에너지 eV가 커지고 물질파 파장 <b>λ = h/√(2meV)</b>가 짧아진다. 파장이 짧을수록 가까운 두 점의 번짐이 작아져 따로 보인다 — <b>분해능</b>이 좋아진다. 오른쪽 상에서 두 점이 겹쳤다가 갈라지는 순간을 찾아보자.</p>
-  </header>
+    <p class="question"><i>Q</i>전자 현미경은 왜 광학 현미경보다 훨씬 작은 구조를 볼 수 있을까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
-        <canvas id="stage" aria-label="현미경 단면에서 빛 또는 전자가 렌즈를 지나 시료의 상을 만든다. 오른쪽에는 그 상(두 점)이 보인다."></canvas>
-        <div class="hud"><span class="pill num" id="hudA">TEM · 100 V</span><span class="pill" id="hudB">하나로 번져 보임</span></div>
+        <canvas id="stage" aria-label="현미경 단면에서 빛 또는 전자가 렌즈를 지나 시료의 상을 만든다. 옆에는 그 상(가까운 두 점, 또는 주사 전자 현미경의 입체 영상)이 보인다."></canvas>
+        <div class="hud"><span class="pill" id="hudA">TEM · 100 V</span><span class="pill down" id="hudB">하나로 번져 보임</span></div>
         <div class="legend" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <div class="group" role="group" aria-label="현미경 종류">
-            <span class="gl">현미경</span>
-            <button type="button" class="btn" data-mode="light" aria-pressed="false">광학 현미경</button>
-            <button type="button" class="btn" data-mode="tem" aria-pressed="true">투과 전자 (TEM)</button>
-            <button type="button" class="btn" data-mode="sem" aria-pressed="false">주사 전자 (SEM)</button>
-          </div>
+          <div class="slider" data-for="tem sem"><label for="volt"><span class="lg">가속 전압 </span>V</label><input id="volt" type="range" min="10" max="1000" step="10" value="100"><output id="voltOut">100 V</output></div>
+          <div class="slider" data-for="light" hidden><label for="wl"><span class="lg">빛의 파장 </span>λ</label><input id="wl" type="range" min="400" max="700" step="10" value="550"><output id="wlOut">550 nm</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet" aria-label="현미경·시료 바꾸기"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">현미경·시료</span><span class="sm">현미경</span></button>
         </div>
-        <div class="row" data-for="tem sem">
-          <div class="grow">
-            <label class="ctl-label" for="volt">가속 전압 V <output id="voltOut">100 V</output></label>
-            <input id="volt" type="range" min="10" max="1000" step="10" value="100">
+        <div class="sheet" id="sheet" role="group" aria-label="현미경과 시료">
+          <div class="sheet-head"><b>현미경 · 시료 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="현미경 종류">
+              <span class="gl">현미경</span>
+              <button type="button" class="btn" data-mode="light" aria-pressed="false">광학</button>
+              <button type="button" class="btn" data-mode="tem" aria-pressed="true">투과 전자 (TEM)</button>
+              <button type="button" class="btn" data-mode="sem" aria-pressed="false">주사 전자 (SEM)</button>
+            </div>
           </div>
-        </div>
-        <div class="row" data-for="light" hidden>
-          <div class="grow">
-            <label class="ctl-label" for="wl">빛의 파장 λ (가시광선) <output id="wlOut">550 nm</output></label>
-            <input id="wl" type="range" min="400" max="700" step="10" value="550">
+          <div class="row" data-for="light tem">
+            <div class="grow">
+              <label class="ctl-label" for="sep">두 점 사이 거리 s <output id="sepOut">0.1 nm</output></label>
+              <input id="sep" type="range" min="-1.7" max="3" step="0.01" value="-1">
+            </div>
           </div>
-        </div>
-        <div class="row" data-for="light tem">
-          <div class="grow">
-            <label class="ctl-label" for="sep">시료에서 두 점 사이 거리 s <output id="sepOut">0.1 nm</output></label>
-            <input id="sep" type="range" min="-1.7" max="3" step="0.01" value="-1">
+          <div class="toggles" data-for="tem">
+            <label class="chk"><input type="checkbox" id="cThick">두꺼운 시료 (그림은 과장)</label>
           </div>
-        </div>
-        <div class="row toggles" data-for="tem">
-          <label class="chk"><input type="checkbox" id="cThick">시료가 두꺼우면? (전자가 느려짐 · 그림은 과장)</label>
         </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치 <small id="modeTag">투과 전자 현미경</small></h2>
-        <div class="readouts">
-          <div class="ro" id="ro1"><span id="l1">가속 전압 V</span><b id="r1">100 V</b></div>
-          <div class="ro" id="ro2"><span id="l2">운동 에너지</span><b id="r2">–</b></div>
-          <div class="ro" id="ro3"><span id="l3">물질파 파장</span><b id="r3">–</b></div>
-          <div class="ro" id="ro4"><span id="l4">100 V일 때와 비교</span><b id="r4">–</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 물질파 파장</span><span id="ansCtx">투과 전자 현미경 · 100 V</span></div>
+        <div class="big" id="ansBig">λ = 0.122 nm</div>
+        <div class="sub">
+          <span class="f" id="ansF">λ = h/√(2meV) 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">λ = 6.6 × 10⁻³⁴ / √(2 × 9.1 × 10⁻³¹ × 1.6 × 10⁻¹⁹ × <em>100</em>)</span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">운동 에너지 E<sub>k</sub> = eV</span><b id="mv1">100 eV</b></div>
+          <div class="mini"><span id="mn2">100 V일 때와 비교</span><b id="mv2">λ × 1</b></div>
+          <div class="mini"><span id="mn3">두 점 사이 거리 s</span><b id="mv3">0.1 nm</b></div>
+          <div class="mini"><span id="mn4">가시광선 550 nm 보다</span><b id="mv4">약 4500배 짧다</b></div>
         </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2>물질파 파장 <small>λ = h/√(2meV)</small></h2>
-        <canvas class="flat" id="gB" aria-label="가속 전압에 따른 전자의 물질파 파장 그래프와 가시광선과 비교한 파장 자"></canvas>
-        <p class="cap">위: 전압이 4배가 되면 파장은 1/2. 아래(눈금 한 칸 = 10배): 파장(▼)이 두 점 사이 거리 s보다 짧으면 두 점이 구별된다.</p>
-      </section>
-      <section class="panel">
-        <h2 id="tC">상의 밝기 <small>두 점을 지나는 선을 따라</small></h2>
-        <canvas class="flat" id="gC" aria-label="두 점의 상의 밝기 그래프"></canvas>
-        <p class="cap" id="cC"></p>
-      </section>
-      <section class="panel wide">
-        <h2>세 현미경 비교 <small>열 제목을 누르면 그 현미경으로</small></h2>
-        <table class="cmp">
-          <thead><tr><th></th><th data-col="light">광학</th><th data-col="tem">TEM</th><th data-col="sem">SEM</th></tr></thead>
-          <tbody>
-            <tr><th>쓰는 파동</th><td data-col="light">가시광선</td><td data-col="tem">전자의 물질파</td><td data-col="sem">전자의 물질파</td></tr>
-            <tr><th>렌즈</th><td data-col="light">유리 렌즈</td><td data-col="tem">자기렌즈</td><td data-col="sem">자기렌즈</td></tr>
-            <tr><th>상을 보는 곳</th><td data-col="light">눈</td><td data-col="tem">형광 스크린</td><td data-col="sem">검출기 → 모니터</td></tr>
-            <tr><th>얻는 영상</th><td data-col="light">시료의 확대 상</td><td data-col="tem">얇은 시료 내부의 평면 상</td><td data-col="sem">표면의 입체 상</td></tr>
-            <tr><th>특징</th><td data-col="light">살아 있는 시료 가능, 배율 한계 약 2000배</td><td data-col="tem">진공, 시료를 아주 얇게, 배율 가장 높음</td><td data-col="sem">진공, 도체 코팅, 배율은 TEM보다 낮음</td></tr>
-          </tbody>
-        </table>
-      </section>
-    </aside>
-  </main>
+      </div>
 
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>분해능: 파장이 짧을수록 좋다</h3>
-        <p>아주 가까운 두 점의 상은 점이 아니라 <b>파장 정도의 폭</b>으로 번진다. 파장이 길면 두 번짐이 겹쳐 하나로, 짧으면 따로 보인다. 떨어진 두 점을 구별하는 능력이 <b>분해능</b>이다.</p>
-        <p>그래서 파란빛이 빨간빛보다 유리하고, 가시광선(400~700 nm)을 쓰는 광학 현미경은 배율 약 2000배에서 한계에 이른다.</p>
-      </article>
-      <article class="concept">
-        <h3>가속 전압과 물질파 파장</h3>
-        <p>정지한 전자를 전압 V로 가속하면 전기력이 한 일만큼 <span class="eq">E_k = eV</span>를 얻는다. <span class="eq">p = √(2meV)</span>이므로 <span class="eq">λ = h/√(2meV)</span>.</p>
-        <p>전압이 클수록 파장이 짧다(전압 4배 → 파장 1/2). 1 nm 이하의 파장을 쉽게 얻어 수십만~수백만 배의 배율과 훨씬 좋은 분해능을 낸다.</p>
-      </article>
-      <article class="concept">
-        <h3>구조: TEM과 SEM</h3>
-        <p>광원 → <b>전자총</b>, 유리 렌즈 → <b>자기렌즈</b>(코일 전자석의 자기장이 전자의 경로를 휘게 함), 눈 → 형광 스크린·검출기. 전자가 공기 분자와 부딪치지 않게 <b>진공</b>이 필요하고, 영상은 흑백이다.</p>
-        <p><b>TEM</b>: 아주 얇은 시료를 투과한 전자로 내부의 평면 상(두꺼우면 전자가 느려져 흐려짐). <b>SEM</b>: 가는 전자선으로 표면을 훑어 튀어나온 전자를 검출 → 입체 상, 도체 코팅 필요.</p>
-      </article>
-    </div>
-    <p class="compare">광학 현미경(가시광선·유리 렌즈·눈) ↔ TEM(전자·자기렌즈·형광 스크린, 얇은 시료의 평면 상) ↔ SEM(전자·자기렌즈·검출기 → 모니터, 표면의 입체 상). 분해능을 정하는 것은 파장이다 — 파장이 길수록 좋다는 진술은 틀렸다.</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>전자 현미경의 가속 전압을 100 V에서 400 V로 높였다. 전자의 물질파 파장과 분해능은 어떻게 변할까?<span class="tag">개념서 예제</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로 (100 V → 400 V)</button></div>
-        <details><summary>답 보기</summary><p><span class="eq">E_k = eV</span>이므로 운동 에너지가 4배. <span class="eq">λ = h/√(2meV) ∝ 1/√V</span>이므로 파장은 <b>1/2배</b>(0.122 nm → 0.061 nm). 파장이 짧아지면 더 가까운 두 점을 구별하므로 <b>분해능이 좋아진다</b> — 무대에서 0.1 nm 떨어진 두 점이 400 V에서 따로 보인다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>전자 현미경이 광학 현미경보다 분해능이 좋은 까닭으로 가장 적절한 것은? (전자가 빛보다 밝아서? 자기렌즈가 더 투명해서?)</p>
-        <div class="acts">
-          <button type="button" class="btn" data-try="light">같은 두 점을 빛으로 보기</button>
-          <button type="button" class="btn" data-try="light600">빛으로 구별되는 거리</button>
-        </div>
-        <details><summary>답 보기</summary><p>전자의 <b>물질파 파장이 가시광선의 파장보다 훨씬 짧기</b> 때문이다. 100 V 전자의 파장은 약 0.12 nm로 400~700 nm인 가시광선보다 수천 배 짧다. 0.1 nm 떨어진 두 점은 빛으로는 한 덩어리로 번지고, 빛으로 구별하려면 두 점이 수백 nm쯤 떨어져 있어야 한다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>옳은 것만 고르면? ㄱ. TEM은 매우 얇은 시료를 투과한 전자로 상을 만든다. ㄴ. SEM으로 생물 시료를 볼 때는 금 같은 도체로 얇게 코팅한다. ㄷ. 전자 현미경은 자기장으로 전자의 경로를 휘게 하는 자기렌즈를 쓴다.</p>
-        <div class="acts">
-          <button type="button" class="btn" data-try="tem">TEM 보기</button>
-          <button type="button" class="btn" data-try="sem">SEM 보기</button>
-        </div>
-        <details><summary>답 보기</summary><p><b>ㄱ, ㄴ, ㄷ</b> 모두 옳다. TEM은 얇은 시료를 통과한 전자로 내부의 평면 상을 만든다. SEM은 표면에서 튀어나오는 전자를 검출하므로 시료가 전기가 잘 통해야 해서 생물 시료는 금·백금으로 코팅한다. 두 현미경 모두 코일로 만든 자기렌즈로 초점을 맞춘다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>500 nm 떨어진 두 점을 광학 현미경으로 본다. 빨간빛(650 nm)과 파란빛(450 nm) 중 두 점을 따로 볼 수 있는 쪽은?</p>
-        <div class="acts">
-          <button type="button" class="btn" data-try="red">빨간빛 650 nm</button>
-          <button type="button" class="btn" data-try="blue">파란빛 450 nm</button>
-        </div>
-        <details><summary>답 보기</summary><p><b>파란빛</b>. 파장이 짧을수록 한 점의 번짐이 작아 가까운 두 점이 갈라져 보인다. ‘분해능은 파장이 길수록 좋다’는 진술은 틀렸다.</p></details>
-      </li>
-    </ol>
-    <!-- nextprev -->
+      <ol class="steps">
+        <li class="card step" data-step="① 두 점의 번짐">
+          <div class="kind">관찰 1</div>
+          <h3>상은 파장 정도로 번진다 — 파장이 짧아야 두 점이 갈라진다</h3>
+          <p>아주 가까운 두 점을 보면 상은 점이 아니라 <b>파장 정도의 폭</b>으로 번진다. 파장이 길면 두 번짐이 겹쳐 하나로 보이고, 짧으면 가운데가 꺼져 따로 보인다. 떨어진 두 점을 구별하는 능력이 분해능이다. 지금 무대는 0.1 nm 떨어진 두 점을 100 V로 가속한 전자(파장 0.122 nm)로 본다.</p>
+          <canvas class="flat" id="gC" aria-label="두 점을 지나는 선을 따라 잰 상의 밝기. 점선은 각 점의 번짐, 굵은 선은 두 번짐의 합."></canvas>
+          <p class="cap">점선은 각 점의 번짐(폭 ≈ 파장), 굵은 선은 두 번짐의 합이다. 가운데가 충분히 꺼지면 두 점으로 구별된다. 전압을 바꾸면 보라 점선(100 V일 때)과 견줄 수 있다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="v100">100 V: 하나로 번짐</button>
+            <button type="button" class="btn" data-try="tem">400 V: 따로 보임</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 전압과 파장">
+          <div class="kind">관찰 2</div>
+          <h3>가속 전압을 4배로 올리면 파장은 1/2</h3>
+          <p>정지한 전자(질량 m, 전하량 e)를 전압 V로 가속하면 전기력이 한 일만큼 운동 에너지 <span class="eq">E<sub>k</sub> = eV</span> 를 얻는다. 운동량은 <span class="eq">p = √(2meV)</span> 이므로 물질파 파장은 <span class="eq">λ = h/√(2meV)</span> 다. 전압이 클수록 파장이 짧아 1 nm 이하의 파장을 쉽게 얻는다.</p>
+          <canvas class="flat" id="gB" aria-label="가속 전압에 따른 전자의 물질파 파장 그래프. 100 V에서 0.122 nm, 400 V에서 0.061 nm."></canvas>
+          <p class="cap">곡선은 λ ∝ 1/√V 다. 100 V(0.122 nm)에서 400 V로 올리면 0.061 nm, 곧 1/2배가 된다. 가속 전압은 첫 줄의 V 막대로 바꾼다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">100 V → 400 V로 올리기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 빛과 전자의 파장">
+          <div class="kind">관찰 3</div>
+          <h3>전자의 파장은 가시광선보다 수천 배 짧다</h3>
+          <p>광학 현미경은 파장이 400~700 nm인 가시광선을 쓴다. 0.1 nm 떨어진 두 점은 빛으로는 한 덩어리로 번지고, 빛으로 구별하려면 두 점이 수백 nm쯤 떨어져 있어야 한다. 그래서 파란빛이 빨간빛보다 조금 유리하고, 광학 현미경은 배율 약 2000배에서 한계에 이른다. 전자 현미경은 수십만~수백만 배의 배율과 훨씬 좋은 분해능을 낸다.</p>
+          <canvas class="flat" id="gR" aria-label="파장 자(로그 눈금): 전자의 파장, 가시광선의 파장, 두 점 사이 거리 s를 한 줄에 표시"></canvas>
+          <p class="cap">파장 자는 단위가 nm 이고 눈금 한 칸이 10배다. 파장(▼)이 두 점 사이 거리 s(점선)보다 왼쪽, 곧 짧은 쪽에 있으면 두 점이 구별된다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="light">같은 두 점을 빛으로 보기</button>
+            <button type="button" class="btn" data-try="light600">빛으로 구별되는 거리</button>
+            <button type="button" class="btn" data-try="tem">다시 전자 400 V로</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ TEM 과 SEM">
+          <div class="kind">관찰 4</div>
+          <h3>TEM 은 투과한 전자로 평면 상을, SEM 은 표면을 훑어 입체 상을 만든다</h3>
+          <p>구조는 광학 현미경과 대응된다. 광원 대신 전자총, 유리 렌즈 대신 <b>자기렌즈</b>(코일 전자석의 자기장이 전자의 경로를 휘게 해 초점을 맞춘다), 눈 대신 형광 스크린이나 검출기를 쓴다. 전자가 공기 분자와 부딪치지 않게 내부를 진공으로 하고, 영상은 흑백이다. 무대의 광학 현미경은 맞대어 보려고 위아래를 뒤집어 그렸다.</p>
+          <table class="cmp">
+            <thead><tr><th></th><th data-col="light" tabindex="0">광학</th><th data-col="tem" tabindex="0">TEM</th><th data-col="sem" tabindex="0">SEM</th></tr></thead>
+            <tbody>
+              <tr><th>쓰는 파동</th><td data-col="light">가시광선</td><td data-col="tem">전자의 물질파</td><td data-col="sem">전자의 물질파</td></tr>
+              <tr><th>렌즈</th><td data-col="light">유리 렌즈</td><td data-col="tem">자기렌즈</td><td data-col="sem">자기렌즈</td></tr>
+              <tr><th>상을 보는 곳</th><td data-col="light">눈</td><td data-col="tem">형광 스크린</td><td data-col="sem">검출기 → 모니터</td></tr>
+              <tr><th>얻는 영상</th><td data-col="light">시료의 확대 상</td><td data-col="tem">얇은 시료 내부의 평면 상</td><td data-col="sem">표면의 입체 상</td></tr>
+              <tr><th>특징</th><td data-col="light">살아 있는 시료 가능, 배율 한계 약 2000배</td><td data-col="tem">진공, 시료를 아주 얇게, 배율 가장 높음</td><td data-col="sem">진공, 도체 코팅, 배율은 TEM보다 낮음</td></tr>
+            </tbody>
+          </table>
+          <p class="cap">열 제목을 누르면 무대가 그 현미경으로 바뀐다.</p>
+          <p>TEM은 아주 얇은 시료를 투과한 전자로 내부의 평면 상을 만든다. 시료가 두꺼우면 지나는 동안 전자가 느려져 파장이 길어지므로 상이 흐려진다. SEM은 가는 전자선으로 표면을 차례로 훑으며(주사) 튀어나온 전자를 검출기로 세어 입체 상을 만든다. 시료가 전기가 잘 통해야 해서 생물 시료는 금·백금 같은 도체로 얇게 코팅한다.</p>
+          <canvas class="flat" id="gS" aria-label="주사 전자 현미경 검출기 신호: 전자선이 훑는 한 줄을 따라 튀어나온 전자 수"></canvas>
+          <p class="cap">SEM 검출기 신호다. 기울어진 면·가장자리에서 전자가 많이 튀어나와 밝고, 이 신호를 한 줄씩 모니터에 옮겨 입체 상을 만든다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="sem">SEM 보기</button>
+            <button type="button" class="btn" data-try="tem">TEM 보기</button>
+            <button type="button" class="btn" data-try="thick">두꺼운 시료</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>파장이 짧을수록 분해능이 좋다</h3>
+          <ul>
+            <li><span class="eq">E<sub>k</sub> = eV ⇒ λ = h/√(2meV)</span>. 가속 전압↑ → 운동 에너지↑ → 파장↓ → 분해능↑ (전압 4배 → 파장 1/2).</li>
+            <li>전자 현미경 = 전자총 · 자기렌즈 · 형광 스크린(검출기), 내부는 진공. TEM은 얇은 시료를 투과한 전자로 내부의 평면 상(배율 가장 높음), SEM은 표면을 훑어 튀어나온 전자로 입체 상(도체 코팅).</li>
+            <li>자주 하는 실수: 분해능을 정하는 것은 파장이다. ‘파장이 길수록 분해능이 좋다’는 진술은 틀렸다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>전자 현미경의 가속 전압을 100 V에서 400 V로 높였다. 전자의 물질파 파장과 분해능은 어떻게 변할까?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로 (100 V → 400 V)</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p><span class="eq">E<sub>k</sub> = eV</span> 이므로 운동 에너지가 4배가 된다. <span class="eq">λ = h/√(2meV) ∝ 1/√V</span> 이므로 파장은 <b>1/2배</b>(0.122 nm → 0.061 nm)가 된다. 파장이 짧아지면 더 가까운 두 점을 구별하므로 분해능이 좋아진다. 무대에서 0.1 nm 떨어진 두 점이 400 V에서 따로 보인다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>전자 현미경이 광학 현미경보다 분해능이 좋은 까닭으로 가장 적절한 것은? (전자가 빛보다 밝아서? 자기렌즈가 더 투명해서?)</h3>
+            <div class="acts">
+              <button type="button" class="btn" data-try="light">같은 두 점을 빛으로 보기</button>
+              <button type="button" class="btn" data-try="light600">빛으로 구별되는 거리</button>
+            </div>
+            <details class="ans"><summary>답 보기</summary><p>전자의 <b>물질파 파장이 가시광선의 파장보다 훨씬 짧기</b> 때문이다. 100 V 전자의 파장은 약 0.12 nm로 400~700 nm인 가시광선보다 수천 배 짧다. 0.1 nm 떨어진 두 점은 빛으로는 한 덩어리로 번지고, 빛으로 구별하려면 두 점이 수백 nm쯤 떨어져 있어야 한다. 전자는 공기 분자와 부딪치므로 전자 현미경 내부는 진공이어야 한다.</p></details>
+          </div>
+          <div class="q">
+            <h3>옳은 것만 고르면? ㄱ. TEM은 매우 얇은 시료를 투과한 전자로 상을 만든다. ㄴ. SEM으로 생물 시료를 볼 때는 금 같은 도체로 얇게 코팅한다. ㄷ. 전자 현미경은 자기장으로 전자의 경로를 휘게 하는 자기렌즈를 쓴다.</h3>
+            <div class="acts">
+              <button type="button" class="btn" data-try="tem">TEM 보기</button>
+              <button type="button" class="btn" data-try="sem">SEM 보기</button>
+            </div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄴ, ㄷ</b> 모두 옳다. TEM은 얇은 시료를 통과한 전자로 내부의 평면 상을 만든다. SEM은 표면에서 튀어나오는 전자를 검출하므로 시료가 전기가 잘 통해야 해서 생물 시료는 금·백금으로 코팅한다. 두 현미경 모두 코일로 만든 자기렌즈로 초점을 맞춘다.</p></details>
+          </div>
+          <div class="q">
+            <h3>500 nm 떨어진 두 점을 광학 현미경으로 본다. 빨간빛(650 nm)과 파란빛(450 nm) 중 두 점을 따로 볼 수 있는 쪽은?</h3>
+            <div class="acts">
+              <button type="button" class="btn" data-try="red">빨간빛 650 nm</button>
+              <button type="button" class="btn" data-try="blue">파란빛 450 nm</button>
+            </div>
+            <details class="ans"><summary>답 보기</summary><p><b>파란빛</b>. 파장이 짧을수록 한 점의 번짐이 작아 가까운 두 점이 갈라져 보인다. ‘분해능은 파장이 길수록 좋다’는 진술은 틀렸다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../08/" rel="prev"><small>← 이전 개념 · III2-08</small><b>입자의 파동성 증거</b></a><span></span></nav>
 <!-- /nextprev -->
-  </section>
+    </section>
+  </main>
 </div>
 
 <script src="../../kit/lab.js"></script>
@@ -187,25 +216,13 @@
   const fmt = Lab.fmt, TAU = 2 * Math.PI, reduceMotion = Lab.reduceMotion;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const off = () => document.createElement('canvas');
-  // 토큰 색 → [r, g, b] (ImageData 로 픽셀을 칠할 때)
-  const rgbOf = (col) => {
-    col = (col || '').trim();
-    if (col[0] === '#') { let h = col.slice(1); if (h.length === 3) h = h.split('').map((c) => c + c).join(''); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); }
-    return (col.match(/[\d.]+/g) || [0, 0, 0]).slice(0, 3).map(Number);
-  };
+  const rgbOf = Lab.rgb;                               // 토큰 색 → [r, g, b] (ImageData 로 픽셀을 칠할 때)
   const lum = (col) => { const [r, g, b] = rgbOf(col); return 0.3 * r + 0.59 * g + 0.11 * b; };
   const darkTok = () => (lum(C.ink) < lum(C.paper) ? C.ink : C.paper);
   const lightTok = () => (lum(C.ink) < lum(C.paper) ? C.paper : C.ink);
-  // 빛의 색: 파장(nm) → RGB (물리적으로 정해진 색이라 계산해서 쓴다)
-  function wl2rgb(nm) {
-    let r = 0, g = 0, b = 0;
-    if (nm < 440) { r = (440 - nm) / 60; b = 1; } else if (nm < 490) { g = (nm - 440) / 50; b = 1; } else if (nm < 510) { g = 1; b = (510 - nm) / 20; }
-    else if (nm < 580) { r = (nm - 510) / 70; g = 1; } else if (nm < 645) { r = 1; g = (645 - nm) / 65; } else r = 1;
-    const f = nm < 420 ? 0.3 + 0.7 * (nm - 380) / 40 : nm > 700 ? 0.3 + 0.7 * (780 - nm) / 80 : 1;
-    return [r, g, b].map((c) => Math.round(255 * Math.pow(c * f, 0.8)));
-  }
+  const wl2rgb = Lab.wavelengthRGB;                    // 빛의 색: 파장(nm) → RGB (물리적으로 정해진 색)
   const rgba = (a, al) => `rgba(${a[0]},${a[1]},${a[2]},${al})`;
-  const PHOSPHOR = wl2rgb(530);                       // 형광 스크린의 초록빛
+  const PHOSPHOR = wl2rgb(530);                        // 형광 스크린의 초록빛
   const nmStr = (m) => { const nm = m * 1e9; return nm >= 1000 ? fmt(nm / 1000, nm >= 10000 ? 0 : 2) + ' µm' : nm >= 10 ? fmt(nm, 0) + ' nm' : fmt(nm, nm >= 1 ? 2 : nm >= 0.1 ? 3 : 4) + ' nm'; };
 
   // ── 상태 ────────────────────────────────────────────────
@@ -216,17 +233,21 @@
   const lamImg = () => (S.mode === 'light' ? S.lamL : M.lambdaInSample(S.V, S.mode === 'tem' && S.thick));
   const resolvedNow = () => M.resolved(S.s, lamImg());
 
-  const stage = Lab.canvas('stage', draw), gB = Lab.canvas('gB', draw), gC = Lab.canvas('gC', draw);
+  // 무대 + 관찰 카드의 그래프 (① 상의 밝기 ② λ–V ③ 파장 자 ④ SEM 신호)
+  const stage = Lab.canvas('stage', () => drawStage());
+  const gC = Lab.canvas('gC', drawProfile), gB = Lab.canvas('gB', drawLambda), gR = Lab.canvas('gR', drawRuler), gS = Lab.canvas('gS', drawScanSignal);
 
   // ── 무대 배치 ───────────────────────────────────────────
+  // 넓은 화면: 왼쪽 현미경 단면, 오른쪽 상. 폰(정사각형에 가까운 무대): 왼쪽 단면(이름은 짧게), 오른쪽 상
   function geo() {
     const {W, H} = stage, narrow = W < 520;
     if (!narrow) {
-      const y0 = 68, y1 = H - 70, size = Math.min(W * 0.39, H - 200);
-      return {W, H, narrow, y0, y1, xc: W * 0.34, size, ix: W * 0.78 - size / 2, iy: 104, k: 1};
+      // 납작한 무대(가로로 든 폰, 999px 창 등): 부품 이름만 쓰고 단면과 상을 높이에 맞춘다
+      const flat = H < 420, k = 1, vac = 64 * k + 30, xc = W * 0.34, size = Math.min(W * 0.39, H - (flat ? 150 : 214));
+      return {W, H, narrow, flat, k, vac, y0: flat ? 56 : 68, y1: H - (flat ? 34 : 70), xc, lx: xc - vac - 10, size, ix: W * 0.78 - size / 2, iy: flat ? Math.max(56, (H - size) / 2 - 18) : 104};
     }
-    const y0 = 70, y1 = H * 0.45, iy = y1 + 46, size = Math.min(W - 120, H - iy - 134);
-    return {W, H, narrow, y0, y1, xc: W * 0.6, size, ix: (W - size) / 2 + 14, iy, k: 0.78};
+    const k = 0.62, vac = 58 * k + 14, xc = Math.max(132, W * 0.37), ix0 = xc + vac + 12, size = Math.min(W - 12 - ix0, H - 150);
+    return {W, H, narrow, k, vac, y0: 58, y1: H - 24, xc, lx: xc - vac - 6, size, ix: W - 12 - size, iy: Math.max(74, (H - size) / 2 - 22)};
   }
   const Yf = (g, f) => g.y0 + f * (g.y1 - g.y0);
   // 부품 높이(무대 위→아래 비율). 광학 현미경은 전자 현미경과 맞대어 보려고 위아래를 뒤집어 그린다.
@@ -247,11 +268,11 @@
   const vPx = () => clamp(95 * Math.sqrt(S.V / 100), 30, 300);     // 전자 알갱이 빠르기 (그림용)
 
   // ── 부품 그리기 ─────────────────────────────────────────
+  // 폰에서는 짧은 이름만 (단면 왼쪽 자리가 좁다)
   function label(ctx, g, s, y, sub, col) {
-    const x = g.xc - 64 * g.k - 40;                 // 진공 경계(점선) 바깥 왼쪽
-    if (g.narrow) sub = null;                       // 폰: 한 줄 이름만
-    text(ctx, s, x, y - (sub ? 8 : 0), {size: g.narrow ? 13 : 14, w: 700, align: 'right', color: col || C.ink, halo: true});
-    if (sub) text(ctx, sub, x, y + 9, {size: 13, w: 500, align: 'right', color: C.muted, halo: true});
+    if (g.narrow || g.flat) sub = null;
+    text(ctx, s, g.lx, y - (sub ? 8 : 0), {size: g.narrow ? 13 : 14, w: 600, align: 'right', color: col || C.ink, halo: true});
+    if (sub) text(ctx, sub, g.lx, y + 9, {size: 13, w: 500, align: 'right', color: C.muted, halo: true});
   }
   function magLens(ctx, g, y, name) {
     const gap = 30 * g.k + 4, bw = 28 * g.k, bh = 26 * g.k;
@@ -282,8 +303,8 @@
     ctx.fillRect(xc - 30 * k, y + 15, 22 * k, 6); ctx.fillRect(xc + 8 * k, y + 15, 22 * k, 6);           // 웨넬트
     ctx.fillRect(xc - 38 * k, yA - 3, 32 * k, 6); ctx.fillRect(xc + 6 * k, yA - 3, 32 * k, 6);           // 양극
     ctx.restore();
-    text(ctx, '−', xc - 18 * k, y + 4, {size: 15, w: 700, color: C.vel});
-    text(ctx, '+', xc + 46 * k, yA, {size: 15, w: 700, color: C.force});
+    text(ctx, '−', xc - 18 * k, y + 4, {size: 15, w: 600, color: C.vel});
+    text(ctx, '+', xc + 46 * k, yA, {size: 15, w: 600, color: C.force});
     Lab.vbracket(ctx, xc + 34 * k + 14, y + 6, yA - 6, C.copper, 'V', true);
     label(ctx, g, '전자총', (y + yA) / 2, '가속 전압 V');
   }
@@ -355,11 +376,11 @@
     const bx = sg.x0 + (sg.x1 - sg.x0) * sp.x, by = surfY(sg, bx, xc);
     Lab.line(ctx, [[xc, ys + 8], [bx, by]], C.vel, 2.6);
     Lab.circle(ctx, bx, by, 4.2, {fill: C.vel, stroke: C.paper, width: 1.2});
-    // 검출기
-    const dx = xc + 66 * g.k + 8, dy = Yf(g, F.det);
+    // 검출기 (진공 안)
+    const dx = xc + g.vac - (g.narrow ? 18 : 20), dy = Yf(g, F.det);
     ctx.save(); Lab.rrect(ctx, dx - 15, dy - 12, 30, 24, 5); ctx.fillStyle = C['copper-soft']; ctx.fill(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
     Lab.line(ctx, [[dx - 15, dy - 4], [dx - 15, dy + 4]], C.copper, 3);
-    text(ctx, '검출기', dx, dy - 23, {size: 13.5, w: 700, color: C.copper, halo: true});
+    text(ctx, '검출기', dx - 6, dy - 23, {size: 13.5, w: 600, color: C.copper, halo: true});
     // 튀어나온 전자 → 검출기
     for (const e of S.se) {
       const q = e.age / 0.55, x = e.x + (dx - 14 - e.x) * q, y = e.y + (dy - e.y) * q - 26 * Math.sin(Math.PI * q);
@@ -369,14 +390,20 @@
   }
 
   // ── 무대 ────────────────────────────────────────────────
+  let measured = false;
   function drawStage() {
+    if (!stage.W) return;
+    if (!measured) { measured = true; readouts(); }          // 무대 크기를 안 뒤 (폰/넓은 화면 문구)
     const {ctx} = stage, g = geo(), xc = g.xc, light = S.mode === 'light', sem = S.mode === 'sem';
+    ctx.clearRect(0, 0, g.W, g.H);
     const lcol = wl2rgb(S.lamL * 1e9);
     // 진공 경계
     if (!light) {
-      ctx.save(); ctx.strokeStyle = C.muted; ctx.setLineDash([6, 5]); ctx.lineWidth = 1.4; Lab.rrect(ctx, xc - 64 * g.k - 30, g.y0 - 14, 128 * g.k + 60, g.y1 - g.y0 + 30, 14); ctx.stroke(); ctx.restore();
-      text(ctx, '진공', xc + 64 * g.k + 24, g.y0 - 1, {size: 13, w: 700, color: C.muted, align: 'right'});
-    } else text(ctx, g.narrow ? '(위아래를 뒤집어 그림)' : '광학 현미경은 위아래를 뒤집어 그림 (전자 현미경과 맞대어 보기)', g.W - 14, g.narrow ? 58 : 24, {size: 13, w: 500, color: C.muted, align: 'right'});
+      ctx.save(); ctx.strokeStyle = C.muted; ctx.setLineDash([6, 5]); ctx.lineWidth = 1.4; Lab.rrect(ctx, xc - g.vac, g.y0 - 14, 2 * g.vac, g.y1 - g.y0 + 30, 14); ctx.stroke(); ctx.restore();
+      if (g.narrow) text(ctx, '진공', xc - g.vac + 6, g.y1 + 7, {size: 13, w: 600, color: C.muted, align: 'left'});     // 폰: 전자총의 −, V 표시와 겹치지 않게 왼쪽 아래
+      else text(ctx, '진공', xc + g.vac - 6, g.y0 - 1, {size: 13, w: 600, color: C.muted, align: 'right'});
+    } else if (g.narrow) text(ctx, '(위아래를 뒤집어 그림)', g.W - 14, g.iy + g.size + 66, {size: 13, w: 500, color: C.muted, align: 'right'});
+    else text(ctx, '광학 현미경은 위아래를 뒤집어 그림', g.W - 14, 24, {size: 13, w: 500, color: C.muted, align: 'right'});
     // 빔 (빛 또는 전자): 띠 + 마루
     const pts = sem ? ENV_SEM : ENV, fA = light ? 0.06 : 0.1, fB = sem ? F.scan : F.end - 0.01;
     ctx.save(); ctx.beginPath();
@@ -412,7 +439,7 @@
     drawView(ctx, g, det);
   }
 
-  // ── 상 (오른쪽 또는 아래) ───────────────────────────────
+  // ── 상 (오른쪽) ─────────────────────────────────────────
   const img2 = {cv: off(), key: ''};
   function buildTwoPoint() {
     const N = 120, lam = lamImg(), col = S.mode === 'light' ? wl2rgb(S.lamL * 1e9) : PHOSPHOR, bg = rgbOf(darkTok());
@@ -476,9 +503,9 @@
     c.putImageData(im, 0, 0);
   }
   function drawView(ctx, g, det) {
-    const {ix, iy, size} = g, sem = S.mode === 'sem', light = S.mode === 'light';
-    const title = light ? '눈에 보이는 상' : sem ? '모니터 (입체 상)' : '형광 스크린의 상 (확대)';
-    text(ctx, title, ix + size / 2, iy - 16, {size: 14, w: 700});
+    const {ix, iy, size, narrow} = g, sem = S.mode === 'sem', light = S.mode === 'light';
+    const title = light ? '눈에 보이는 상' : sem ? '모니터 (입체 상)' : narrow ? '형광 스크린의 상' : '형광 스크린의 상 (확대)';
+    text(ctx, title, ix + size / 2, iy - (narrow ? 14 : 16), {size: narrow ? 13 : 14, w: 600});
     ctx.save(); Lab.rrect(ctx, ix, iy, size, size, 10); ctx.fillStyle = darkTok(); ctx.fill(); ctx.clip(); ctx.imageSmoothingEnabled = true;
     if (!sem) { buildTwoPoint(); ctx.drawImage(img2.cv, ix, iy, size, size); }
     else {
@@ -496,21 +523,24 @@
       text(ctx, ok ? '두 점이 따로 보인다' : '하나로 번져 보인다', ix + size / 2, iy + size + 44, {size: 15, w: 700, color: ok ? C.acc : C.neg});
     } else {
       Lab.bracket(ctx, ix + size * 0.06, ix + size * 0.31, iy + size + 15, C.copper, '10 µm', false);
-      text(ctx, '한 줄씩 훑어 만든 영상', ix + size / 2, iy + size + 44, {size: 14, w: 700, color: C.muted});
+      text(ctx, '한 줄씩 훑어 만든 영상', ix + size / 2, iy + size + 44, {size: 14, w: 600, color: C.muted});
     }
-    // 장치 → 상 연결
+    if (narrow) return;
+    // 장치 → 상 연결 (넓은 화면)
     const fromX = sem ? det.dx + 16 : g.xc + (light ? 30 : 70 * g.k + 8), fromY = sem ? det.dy : Yf(g, F.end) - (light ? 0 : 3);
-    if (!g.narrow) arrow(ctx, fromX + 8, fromY, ix - 10, sem ? iy + size * 0.5 : iy + size * 0.82, C.muted, 1.8, 9);
-    else arrow(ctx, fromX + 6, fromY + 6, Math.min(ix + size - 10, fromX + 30), iy - 26, C.muted, 1.8, 9);
-    if (!g.narrow) text(ctx, sem ? '신호' : '확대', (fromX + ix) / 2, (fromY + (sem ? iy + size * 0.5 : iy + size * 0.82)) / 2 - 12, {size: 13, w: 600, color: C.muted, halo: true});
+    const toY = sem ? iy + size * 0.5 : iy + size * 0.82;
+    arrow(ctx, fromX + 8, fromY, ix - 10, toY, C.muted, 1.8, 9);
+    text(ctx, sem ? '신호' : '확대', (fromX + ix) / 2, (fromY + toY) / 2 - 12, {size: 13, w: 500, color: C.muted, halo: true});
   }
 
-  // ── 오른쪽 그래프 ───────────────────────────────────────
+  // ── 관찰 카드의 그래프 ──────────────────────────────────
   function frame(v) { const {ctx, W, H} = v; ctx.clearRect(0, 0, W, H); return {ctx, W, H}; }
-  function drawLambda() {
-    const {ctx, W, H} = frame(gB);
-    const gh = H * 0.6, r = {x: 50, y: 26, w: W - 72, h: gh - 62};
-    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 1000, ymin: 0, ymax: 0.4, xticks: [0, 400, 1000], yticks: [0.1, 0.2, 0.3], fmtX: (v) => fmt(v, 0), fmtY: (v) => fmt(v, 1), grid: true, ylabel: 'λ (nm)'});
+  const overlap = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+  // ② 가속 전압 – 물질파 파장
+  function drawLambda(v) {
+    const {ctx, W, H} = frame(v);
+    const r = {x: 50, y: 26, w: W - 72, h: H - 62};
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 1000, ymin: 0, ymax: 0.4, xticks: [0, 100, 400, 1000], yticks: [0.1, 0.2, 0.3], fmtX: (x) => fmt(x, 0), fmtY: (y) => fmt(y, 1), grid: true, ylabel: 'λ (nm)'});
     text(ctx, '가속 전압 V (V)', r.x + r.w + 8, ax.y0 + 30, {size: 13, w: 600, color: C.muted, align: 'right'});
     const pts = []; for (let V = 10; V <= 1000; V += 5) pts.push([ax.X(V), ax.Y(M.lambdaV(V) * 1e9)]);
     ctx.save(); ctx.beginPath(); ctx.rect(r.x, r.y - 4, r.w + 4, r.h + 4); ctx.clip(); Lab.line(ctx, pts, C.vel, 2.8); ctx.restore();
@@ -518,40 +548,52 @@
     // 기준점 100 V
     Lab.line(ctx, [[ax.X(0), ax.Y(l0)], [ax.X(100), ax.Y(l0)]], C.muted, 1.2, [3, 3]);
     Lab.circle(ctx, ax.X(100), ax.Y(l0), 5, {fill: C.paper, stroke: C.muted, width: 2});
-    text(ctx, '100 V: ' + fmt(l0, 3) + ' nm', ax.X(100) + 9, ax.Y(l0) - 11, {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
+    const s0 = '100 V: ' + (l0).toFixed(3) + ' nm', o0 = {size: 13, w: 500, color: C.muted, align: 'left', halo: true};
+    const b0 = {x0: ax.X(100) + 9, x1: ax.X(100) + 9 + Lab.measure(ctx, s0, o0), y0: ax.Y(l0) - 19, y1: ax.Y(l0) - 3};
+    text(ctx, s0, b0.x0, ax.Y(l0) - 11, o0);
     // 지금 전압
     Lab.line(ctx, [[ax.X(S.V), ax.y0], [ax.X(S.V), ax.Y(l1)], [ax.X(0), ax.Y(l1)]], C.copper, 1.4, [3, 3]);
     Lab.circle(ctx, ax.X(S.V), ax.Y(l1), 5.5, {fill: C.copper, stroke: C.paper, width: 2});
     if (S.V !== 100) {
-      const right = ax.X(S.V) + 120 < W;
-      text(ctx, 'λ = ' + fmt(l1, 3) + ' nm', ax.X(S.V) + (right ? 10 : -10), ax.Y(l1) - 12, {size: 13, w: 700, color: C.copper, align: right ? 'left' : 'right', halo: true});
+      const s1 = 'λ = ' + (l1).toFixed(3) + ' nm', o1 = {size: 13, w: 600, color: C.copper, halo: true};
+      const w1 = Lab.measure(ctx, s1, o1), px = ax.X(S.V), right = px + 10 + w1 < W - 4;
+      const y = ax.Y(l1) - 12, b1 = {x0: right ? px + 10 : px - 10 - w1, x1: right ? px + 10 + w1 : px - 10, y0: y - 8, y1: y + 8};
+      if (!overlap(b0, b1)) text(ctx, s1, right ? px + 10 : px - 10, y, Object.assign(o1, {align: right ? 'left' : 'right'}));   // 100 V 가까이면 100 V 이름표로 충분
     }
     if (S.V === 400) text(ctx, '전압 4배 → 파장 1/2', r.x + r.w, r.y + 6, {size: 13.5, w: 700, color: C.acc, align: 'right', halo: true});
-    // 파장 자 (로그 눈금): 0.01 nm ~ 1000 nm
-    const y = gh + 54, x0 = 18, x1 = W - 18, LX = (nm) => x0 + (Math.log10(nm) + 2) / 6 * (x1 - x0);
-    text(ctx, '파장 자 (단위 nm, 눈금 한 칸 = 10배)', x0, gh + 6, {size: 13, w: 700, color: C.ink, align: 'left'});
+  }
+  // ③ 파장 자 (로그 눈금, nm): 전자 · 가시광선 · 두 점 사이 거리 s
+  function drawRuler(v) {
+    const {ctx, W, H} = frame(v);
+    const y = Math.round(H * 0.5), x0 = 26, x1 = W - 34, LX = (nm) => x0 + (Math.log10(clamp(nm, 0.01, 10000)) + 2) / 6 * (x1 - x0);
     Lab.line(ctx, [[x0, y], [x1, y]], C.muted, 1.4);
-    [0.01, 0.1, 1, 10, 100, 1000, 10000].forEach((v, i) => { Lab.line(ctx, [[LX(v), y - 4], [LX(v), y + 4]], C.muted, 1.2); text(ctx, i === 6 ? '10⁴' : String(v), LX(v), y + 15, {size: 13, w: 500, color: C.muted, mono: true, align: i === 6 ? 'right' : i === 0 ? 'left' : 'center'}); });
+    [0.01, 0.1, 1, 10, 100, 1000, 10000].forEach((t, i) => {
+      Lab.line(ctx, [[LX(t), y - 4], [LX(t), y + 4]], C.muted, 1.2);
+      text(ctx, i === 6 ? '10⁴' : String(t), LX(t), y + 15, {size: 13, w: 500, color: C.muted});
+    });
+    text(ctx, 'nm', x1 + 14, y + 15, {size: 13, w: 500, color: C.muted, align: 'left'});
     for (let nm = 400; nm < 700; nm += 3) { ctx.fillStyle = rgba(wl2rgb(nm), 1); ctx.fillRect(LX(nm), y - 13, LX(nm + 3) - LX(nm) + 0.6, 10); }
-    text(ctx, '가시광선', LX(700) + 6, y - 8, {size: 13, w: 700, color: C.muted, align: 'left'});
+    text(ctx, '가시광선', LX(700) + 6, y - 8, {size: 13, w: 600, color: C.muted, align: 'left'});
     // 두 점 사이 거리 s (SEM 장면에서는 쓰지 않음)
     if (S.mode !== 'sem') {
-      const sx = LX(clamp(S.s * 1e9, 0.01, 10000)), ok = resolvedNow(), lft = S.s * 1e9 > 30;
+      const sx = LX(S.s * 1e9), ok = resolvedNow(), lft = S.s * 1e9 > 30;
       Lab.line(ctx, [[sx, y - 34], [sx, y + 4]], ok ? C.acc : C.neg, 2, [4, 3]);
-      text(ctx, '두 점 거리 s', sx + (lft ? -6 : 6), y - 32, {size: 13, w: 700, color: ok ? C.acc : C.neg, align: lft ? 'right' : 'left', halo: true});
+      text(ctx, '두 점 거리 s', sx + (lft ? -6 : 6), y - 32, {size: 13, w: 600, color: ok ? C.acc : C.neg, align: lft ? 'right' : 'left', halo: true});
     }
-    // 파장 표시 ▼
-    const mark = (nm, col, lb) => {
-      const x = LX(clamp(nm, 0.01, 10000));
-      ctx.save(); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x, y - 15); ctx.lineTo(x - 7, y - 27); ctx.lineTo(x + 7, y - 27); ctx.closePath(); ctx.fill(); ctx.restore();
-      Lab.line(ctx, [[x, y - 15], [x, y]], col, 1.6);
-      text(ctx, lb, x, y + 31, {size: 13, w: 700, color: col, halo: true});
+    // 파장 ▼: 지금 쓰는 파동은 진하게, 다른 쪽은 옅게
+    const mark = (nm, col, lb, main) => {
+      const x = LX(nm);
+      ctx.save(); ctx.globalAlpha = main ? 1 : 0.5; ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x, y - 15); ctx.lineTo(x - 7, y - 27); ctx.lineTo(x + 7, y - 27); ctx.closePath(); ctx.fill(); ctx.restore();
+      Lab.line(ctx, [[x, y - 15], [x, y]], col, main ? 1.8 : 1.2);
+      text(ctx, lb, x, y + 31, {size: 13, w: main ? 600 : 500, color: main ? col : C.muted, halo: true});
     };
-    if (S.mode === 'light') mark(S.lamL * 1e9, C.energy, '빛');
-    else mark(lamImg() * 1e9, C.copper, '전자');
+    const light = S.mode === 'light', le = (light ? lamE() : lamImg()) * 1e9;   // 전자: 상을 번지게 하는 파장 (두꺼운 시료면 시료 속 파장)
+    mark(le, C.copper, '전자 ' + (le).toFixed(3) + ' nm', !light);
+    mark(S.lamL * 1e9, C.energy, '빛 ' + fmt(S.lamL * 1e9, 0) + ' nm', light);
   }
-  function drawProfile() {
-    const {ctx, W, H} = frame(gC);
+  // ① 상의 밝기 (두 점을 지나는 선을 따라)
+  function drawProfile(v) {
+    const {ctx, W, H} = frame(v);
     const r = {x: 40, y: 28, w: W - 60, h: H - 64}, lam = lamImg(), ok = resolvedNow();
     const a0 = Lab.axes(ctx, r, {xmin: 0, xmax: 4, ymin: 0, ymax: 1.18, ylabel: '상의 밝기'});
     const ax = {X: (x) => a0.X(x + 2), Y: a0.Y, y0: a0.y0};
@@ -564,85 +606,100 @@
     if (S.mode === 'tem' && (S.V !== 100 || S.thick)) {
       const L1 = M.lambdaV(100), n1 = norm(L1);
       Lab.line(ctx, curve((x) => M.twoPoint(x * S.s, S.s, L1) / n1), C.violet, 1.8, [6, 4]);
-      text(ctx, '100 V', ax.X(1.55), ax.Y(M.twoPoint(1.55 * S.s, S.s, L1) / n1) - 12, {size: 13, w: 700, color: C.violet, halo: true});
+      text(ctx, '100 V', ax.X(1.55), ax.Y(M.twoPoint(1.55 * S.s, S.s, L1) / n1) - 12, {size: 13, w: 600, color: C.violet, halo: true});
     }
     Lab.line(ctx, curve((x) => M.twoPoint(x * S.s, S.s, lam) / n0), ok ? C.acc : C.neg, 3);
     for (const sgn of [-1, 1]) Lab.circle(ctx, ax.X(sgn * 0.5), ax.y0, 4.5, {fill: C.copper});
-    text(ctx, '두 점', ax.X(0), ax.y0 + 14, {size: 13, w: 700, color: C.copper});
-    text(ctx, ok ? '가운데가 꺼짐 → 둘로 보임' : '가운데가 안 꺼짐 → 하나로 보임', r.x + r.w, r.y - 8, {size: 13.5, w: 700, color: ok ? C.acc : C.neg, align: 'right'});
+    text(ctx, '두 점', ax.X(0), ax.y0 + 14, {size: 13, w: 600, color: C.copper});
+    const o = {size: 13.5, w: 600}, full = ok ? '가운데가 꺼짐 → 둘로 보임' : '가운데가 안 꺼짐 → 하나로 보임';
+    const ylEnd = a0.x0 + 8 + Lab.measure(ctx, '상의 밝기', {size: 13, w: 600});
+    const msg = r.x + r.w - Lab.measure(ctx, full, o) > ylEnd + 10 ? full : ok ? '둘로 보임' : '하나로 보임';
+    text(ctx, msg, r.x + r.w, r.y - 8, Object.assign(o, {color: ok ? C.acc : C.neg, align: 'right'}));
   }
-  function drawScanSignal() {
-    const {ctx, W, H} = frame(gC);
+  // ④ SEM 검출기 신호: SEM 장면에서는 지금 훑는 줄, 다른 장면에서는 가운데 줄 전체
+  function drawScanSignal(v) {
+    const {ctx, W, H} = frame(v);
     const r = {x: 40, y: 28, w: W - 60, h: H - 64};
     const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 1, ymin: 0, ymax: 1.1, ylabel: '검출기 신호'});
     text(ctx, '주사 위치 (한 줄)', r.x + r.w + 8, ax.y0 + 16, {size: 13, w: 600, color: C.muted, align: 'right'});
     buildSEM();
-    const sp = scanPos(), N = semImg.N, j = Math.min(N - 1, Math.floor((sp.row + 0.5) / ROWS * N));
+    const live = S.mode === 'sem', sp = live ? scanPos() : {row: ROWS / 2 - 1, frame: 0, x: 1};
+    const N = semImg.N, j = Math.min(N - 1, Math.floor((sp.row + 0.5) / ROWS * N));
     const row = (i) => semImg.I[j * N + i];
     const done = [], ahead = [];
     for (let i = 0; i < N; i++) { const x = (i + 0.5) / N, p = [ax.X(x), ax.Y(row(i))]; (x <= sp.x ? done : ahead).push(p); }
     if (sp.frame > 0) Lab.line(ctx, ahead, C.muted, 1.4, [3, 3]);
     if (done.length) { Lab.line(ctx, done, C.vel, 2.6); const p = done[done.length - 1]; Lab.circle(ctx, p[0], p[1], 4.5, {fill: C.copper}); }
-    text(ctx, '주사선 ' + (sp.row + 1) + ' / ' + ROWS, r.x + r.w, r.y - 8, {size: 13, w: 700, color: C.copper, align: 'right', mono: true});
+    const o = {size: 13, w: 600, color: C.copper, align: 'right'}, s = live ? '주사선 ' + (sp.row + 1) + ' / ' + ROWS : '가운데 주사선 (SEM에서 움직인다)';
+    const ylEnd = ax.x0 + 8 + Lab.measure(ctx, '검출기 신호', {size: 13, w: 600});
+    text(ctx, r.x + r.w - Lab.measure(ctx, s, o) > ylEnd + 10 ? s : live ? (sp.row + 1) + ' / ' + ROWS : '가운데 주사선', r.x + r.w, r.y - 8, o);
   }
+  function drawPanels() { gC.redraw(); gB.redraw(); gR.redraw(); gS.redraw(); }
+  function drawAll() { drawStage(); drawPanels(); }
 
-  let measured = false;
-  function draw() {
-    if (!stage.W) return;
-    if (!measured) { measured = true; readouts(); }          // 무대 크기를 안 뒤 (폰/넓은 화면 문구)
-    stage.ctx.clearRect(0, 0, stage.W, stage.H);
-    drawStage();
-    if (gB.W) drawLambda();
-    if (gC.W) (S.mode === 'sem' ? drawScanSignal : drawProfile)();
-  }
-
-  // ── 읽기 값·예제 확인 ────────────────────────────────────
+  // ── 지금 값·읽기 값·예제 확인 ────────────────────────────
   const LEG = {
     tem: '<span><i style="background:var(--vel)"></i>전자</span><span><b style="background:var(--vel)"></b>물질파 마루 (간격 = 파장, 과장)</span><span><b style="background:var(--copper)"></b>자기렌즈</span>',
     sem: '<span><i style="background:var(--vel)"></i>전자선</span><span><i style="background:var(--acc)"></i>튀어나온 전자</span><span><b style="background:var(--violet)"></b>주사 코일</span>',
     light: '<span><b style="background:var(--vel)"></b>유리 렌즈</span><span><i style="background:var(--copper)"></i>시료의 두 점</span><span>마루 간격 = 빛의 파장 (과장)</span>',
   };
-  function setRO(i, l, v, cls) { $('l' + i).textContent = l; $('r' + i).textContent = v; $('ro' + i).className = 'ro' + (cls ? ' ' + cls : ''); }
+  const NAME = {light: '광학 현미경', tem: '투과 전자 현미경', sem: '주사 전자 현미경'};
+  let ansKey = '';
+  function ans(lab, big, lines, o) {                  // 값이 바뀔 때만 카드를 고친다
+    const key = [lab, big, o.tone, o.ctx, o.f].concat(lines).join('|');
+    if (key === ansKey) return;
+    ansKey = key; $('ansLab').textContent = lab; Lab.ans(big, lines, o);
+  }
+  function minis(list) { list.forEach(([name, val], i) => { $('mn' + (i + 1)).innerHTML = name; $('mv' + (i + 1)).textContent = val; }); }
+  // 두 점 사이 거리 s 와 상의 파장 λ 를 견준 판정 (모형의 판정 M.resolved 를 따른다)
+  function judgeLine(lam, withS, lamName) {
+    const ok = M.resolved(S.s, lam), q = S.s / lam, cmp = q > 1.05 ? '>' : q < 0.95 ? '<' : '≈';
+    return 's' + (withS ? ' = ' + nmStr(S.s) : '') + ' ' + cmp + ' ' + (lamName || 'λ') + ' → ' + (ok ? '<span class="ok">두 점이 따로 보인다</span>' : '<span class="no">하나로 번져 보인다</span>');
+  }
+  const about = (x) => { const p = Math.pow(10, Math.floor(Math.log10(x)) - 1); return fmt(Math.round(x / p) * p, 0); };   // 두 자리로 어림
   function readouts() {
-    const ok = resolvedNow();
+    const ok = resolvedNow(), nar = stage.W && stage.W < 520;
     $('voltOut').textContent = S.V + ' V';
     $('wlOut').textContent = fmt(S.lamL * 1e9, 0) + ' nm';
     $('sepOut').textContent = nmStr(S.s);
     if (isE()) {
-      const ratio = M.lambdaRatio(100, S.V);
-      setRO(1, '가속 전압 V', S.V + ' V', 'cu');
-      setRO(2, '운동 에너지 E_k = eV', S.V + ' eV');
-      setRO(3, '물질파 파장 λ', fmt(lamE() * 1e9, 3) + ' nm', 'vel');
-      if (S.mode === 'tem' && S.thick) setRO(4, '두꺼운 시료 속 파장 (느려짐)', fmt(lamImg() * 1e9, 3) + ' nm');
-      else setRO(4, '100 V일 때와 비교', Math.abs(ratio - 0.5) < 1e-9 ? 'λ × 1/2' : 'λ × ' + fmt(ratio, 2), S.V === 400 ? 'acc' : '');
-      $('hudA').textContent = (S.mode === 'tem' ? 'TEM' : 'SEM') + ' · ' + S.V + ' V' + (stage.W < 520 ? '' : ' · λ = ' + fmt(lamE() * 1e9, 3) + ' nm');
+      const lam = lamE(), ratio = M.lambdaRatio(100, S.V), thick = S.mode === 'tem' && S.thick;
+      const rStr = Math.abs(ratio - 0.5) < 1e-9 ? '1/2' : Math.abs(ratio - 1) < 1e-9 ? '1' : fmt(ratio, 2);
+      const lines = [
+        'λ = 6.6&nbsp;×&nbsp;10⁻³⁴ / √(2 × 9.1&nbsp;×&nbsp;10⁻³¹ × 1.6&nbsp;×&nbsp;10⁻¹⁹ × <em>' + S.V + '</em>)',
+        '= ' + Lab.sci(lam, 2).replace(/ /g, '&nbsp;') + ' m ≈ <em>' + (lam * 1e9).toFixed(3) + ' nm</em>' + (thick ? ', 두꺼운 시료 속에서는 느려져 <em>' + (lamImg() * 1e9).toFixed(3) + ' nm</em>' : ''),
+        S.mode === 'sem' ? '가는 전자선으로 표면을 한 줄씩 훑어 입체 상을 만든다' : judgeLine(lamImg(), true, thick ? '시료 속 λ' : '')];
+      ans('지금 물질파 파장', 'λ = ' + (lam * 1e9).toFixed(3) + ' nm', lines, {ctx: NAME[S.mode] + ' · ' + S.V + ' V', f: 'λ = h/√(2meV) 에 지금 값을 넣으면'});
+      minis([
+        ['운동 에너지 E<sub>k</sub> = eV', S.V + ' eV'],
+        thick ? ['두꺼운 시료 속 파장 (느려짐)', (lamImg() * 1e9).toFixed(3) + ' nm'] : ['100 V일 때와 비교', 'λ × ' + rStr],
+        S.mode === 'sem' ? ['주사선', (scanPos().row + 1) + ' / ' + ROWS] : ['두 점 사이 거리 s', nmStr(S.s)],
+        ['가시광선 550 nm 보다', '약 ' + about(M.timesShorter(550e-9, S.V)) + '배 짧다']]);
+      $('hudA').textContent = (S.mode === 'tem' ? 'TEM' : 'SEM') + ' · ' + S.V + ' V' + (nar ? '' : ' · λ = ' + (lam * 1e9).toFixed(3) + ' nm');
     } else {
-      setRO(1, '빛의 파장 λ', fmt(S.lamL * 1e9, 0) + ' nm', 'cu');
-      setRO(2, '두 점 사이 거리 s', nmStr(S.s));
-      setRO(3, '두 점', ok ? '따로 보임' : '하나로 번짐', ok ? 'acc' : '');
-      setRO(4, '100 V 전자 파장의', '약 ' + fmt(Math.round(M.timesShorter(S.lamL, 100) / 100) * 100, 0) + '배');
+      ans('지금 빛의 파장', 'λ = ' + fmt(S.lamL * 1e9, 0) + ' nm', [
+        '두 점 사이 s = <em>' + nmStr(S.s) + '</em>, 빛의 파장 λ = <em>' + fmt(S.lamL * 1e9, 0) + ' nm</em>',
+        judgeLine(S.lamL, false),
+        '100 V 전자의 파장(' + (M.lambdaV(100) * 1e9).toFixed(3) + ' nm)보다 약 ' + about(M.timesShorter(S.lamL, 100)) + '배 길다'],
+      {ctx: '광학 현미경 · 가시광선', f: '상의 번짐 폭 ≈ 파장 → 두 점 사이 s 와 λ 를 견주면'});
+      minis([['빛의 파장 λ', fmt(S.lamL * 1e9, 0) + ' nm'], ['두 점 사이 거리 s', nmStr(S.s)], ['구별되는 가장 가까운 거리 ≈ λ', '약 ' + nmStr(M.minDistance(S.lamL))], ['100 V 전자 파장의', '약 ' + about(M.timesShorter(S.lamL, 100)) + '배']]);
       $('hudA').textContent = '광학 · λ = ' + fmt(S.lamL * 1e9, 0) + ' nm';
     }
-    const nar = stage.W < 520;
     $('hudB').textContent = S.mode === 'sem' ? (nar ? '한 줄씩 훑는 중' : '표면을 한 줄씩 훑는 중') : (ok ? (nar ? '따로 보임' : '두 점이 따로 보임') : (nar ? '번져 보임' : '하나로 번져 보임'));
-    $('hudB').className = 'pill ' + (S.mode === 'sem' ? '' : ok ? 'up' : 'down');
+    $('hudB').className = 'pill' + (S.mode === 'sem' ? '' : ok ? ' up' : ' down');
     const exOK = isE() && S.V === EX.V1 && !(S.mode === 'tem' && S.thick);
     Lab.check('exCheck', exOK, '예제: 100 V → 400 V이면 E_k 4배, λ = 0.122 nm → 0.061 nm (1/2배) → 더 가까운 두 점까지 구별: 분해능 향상',
-      isE() ? '예제: 가속 전압 100 V → 400 V이면 파장·분해능은? — 가속 전압을 400 V로 (스스로 확인 1)' : '예제는 전자 현미경에서: 가속 전압 100 V → 400 V (스스로 확인 1)');
-    $('modeTag').textContent = {light: '광학 현미경', tem: '투과 전자 현미경', sem: '주사 전자 현미경'}[S.mode];
+      isE() ? '예제: 가속 전압 100 V → 400 V이면 파장·분해능은? — 가속 전압을 400 V로 올려 보자' : '예제는 전자 현미경에서: 가속 전압 100 V → 400 V (‘개념서 예제’ 단계의 버튼)');
   }
   function setMode(m) {
     S.mode = m;
     document.querySelectorAll('[data-for]').forEach((el) => { el.hidden = !el.dataset.for.split(' ').includes(m); });
     document.querySelectorAll('.cmp [data-col]').forEach((el) => el.classList.toggle('on', el.dataset.col === m));
     $('legend').innerHTML = LEG[m];
-    $('tC').innerHTML = m === 'sem' ? '검출기 신호 <small>지금 훑는 한 줄</small>' : '상의 밝기 <small>두 점을 지나는 선을 따라</small>';
-    $('cC').textContent = m === 'sem' ? '가는 전자선이 표면의 한 점씩 차례로 훑으며, 튀어나온 전자 수(신호)를 한 줄씩 모니터에 옮겨 입체 상을 만든다. 기울어진 면·가장자리에서 전자가 많이 튀어나와 밝다.'
-      : '점선 = 각 점의 번짐(폭 ≈ 파장), 굵은 선 = 두 번짐의 합. 가운데가 충분히 꺼지면 두 점으로 구별된다.' + (m === 'tem' ? ' 전압을 바꾸면 보라 점선(100 V일 때)과 비교된다.' : '');
     if (m === 'sem') { S.scanT = 0; S.se = []; semImg.key = ''; }
     S.dots = [];
     modeG.set(m, true);
-    readouts(); draw();
+    readouts(); drawAll();
   }
 
   // ── 조작 ────────────────────────────────────────────────
@@ -651,23 +708,29 @@
   const setV = (v) => { S.V = clamp(Math.round(v / 10) * 10, 10, 1000); $('volt').value = S.V; };
   const setS = (m) => { S.s = m; $('sep').value = Math.log10(m * 1e9); };
   const setL = (m) => { S.lamL = m; $('wl').value = Math.round(m * 1e9); };
-  $('volt').addEventListener('input', (e) => { S.anim = null; setV(+e.target.value); readouts(); draw(); });
-  $('wl').addEventListener('input', (e) => { S.lamL = +e.target.value * 1e-9; readouts(); draw(); });
-  $('sep').addEventListener('input', (e) => { S.s = Math.pow(10, +e.target.value) * 1e-9; readouts(); draw(); });
-  $('cThick').addEventListener('change', (e) => { S.thick = e.target.checked; readouts(); draw(); });
-  document.querySelectorAll('.cmp thead [data-col]').forEach((th) => th.addEventListener('click', () => setMode(th.dataset.col)));
   const setThick = (on) => { S.thick = on; $('cThick').checked = on; };
+  $('volt').addEventListener('input', (e) => { S.anim = null; setV(+e.target.value); readouts(); drawAll(); });
+  $('wl').addEventListener('input', (e) => { S.lamL = +e.target.value * 1e-9; readouts(); drawAll(); });
+  $('sep').addEventListener('input', (e) => { S.s = Math.pow(10, +e.target.value) * 1e-9; readouts(); drawAll(); });
+  $('cThick').addEventListener('change', (e) => { S.thick = e.target.checked; readouts(); drawAll(); });
+  document.querySelectorAll('.cmp thead [data-col]').forEach((th) => {
+    th.addEventListener('click', () => setMode(th.dataset.col));
+    th.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMode(th.dataset.col); } });
+  });
 
+  // 단계 카드의 버튼: 그 상황으로 바꾸기
   const TRY = {
     ex: () => { setMode('tem'); setThick(false); setS(EX.s); setV(EX.V0); S.anim = {from: EX.V0, to: EX.V1, t: -0.5, dur: 1.6}; playCtl.set(true); },
-    light: () => { setMode('light'); setL(550e-9); setS(EX.s); },
-    light600: () => { setMode('light'); setL(550e-9); setS(600e-9); },
-    tem: () => { setMode('tem'); setThick(false); setS(EX.s); setV(400); playCtl.set(true); },
-    sem: () => { setMode('sem'); setV(400); playCtl.set(true); },
-    red: () => { setMode('light'); setS(500e-9); setL(650e-9); },
-    blue: () => { setMode('light'); setS(500e-9); setL(450e-9); },
+    v100: () => { S.anim = null; setMode('tem'); setThick(false); setS(EX.s); setV(EX.V0); },
+    tem: () => { S.anim = null; setMode('tem'); setThick(false); setS(EX.s); setV(EX.V1); playCtl.set(true); },
+    thick: () => { S.anim = null; setMode('tem'); setThick(true); setS(EX.s); setV(EX.V1); playCtl.set(true); },
+    sem: () => { S.anim = null; setMode('sem'); setV(EX.V1); playCtl.set(true); },
+    light: () => { S.anim = null; setMode('light'); setL(550e-9); setS(EX.s); },
+    light600: () => { S.anim = null; setMode('light'); setL(550e-9); setS(600e-9); },
+    red: () => { S.anim = null; setMode('light'); setS(500e-9); setL(650e-9); },
+    blue: () => { S.anim = null; setMode('light'); setS(500e-9); setL(450e-9); },
   };
-  Lab.tries(TRY, () => { readouts(); draw(); });
+  Lab.tries(TRY, () => { readouts(); drawAll(); });
 
   // ── 돌리기 ──────────────────────────────────────────────
   let roT = 0;
@@ -700,7 +763,11 @@
       changed = true;
     }
     roT += dt;
-    if (changed) { draw(); if (S.anim || animEnd || roT > 0.15) { roT = 0; readouts(); } }
+    if (changed) {
+      drawStage();
+      if (S.anim || animEnd) drawPanels(); else if (S.mode === 'sem') gS.redraw();
+      if (S.anim || animEnd || roT > 0.15) { roT = 0; readouts(); }
+    }
   });
   setMode('tem');
 })();

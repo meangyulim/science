@@ -9,20 +9,20 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* 왼쪽 무대: 장면 ①~④ (데이비슨·거머, 전자 이중 슬릿, 톰슨, 바람개비), 오른쪽: 장면에 따라 바뀌는 그래프·도식과 증거 분류표 */
+/* 관찰 노트: 왼쪽 실험대(장면 ① 데이비슨·거머 ② 톰슨 ③ 전자 이중 슬릿 ④ 바람개비) | 오른쪽 지금 판정 + 관찰 ①~④(장면마다 그래프 둘) → 정리(증거 분류표) → 예제 → 스스로 확인 */
 #stage{aspect-ratio:16/10.5}
-#gB{aspect-ratio:10/5.9}
-#gC{aspect-ratio:10/5.4}
-.ev{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5}
+#gB,#gT1,#gS1,#gW1{aspect-ratio:10/5.9}
+#gC,#gT2,#gS2,#gW2{aspect-ratio:10/5.4}
+.answer .big.force{color:var(--force)}
+/* 정리 카드의 증거 분류표: 줄을 누르면 그 장면으로 */
+.ev{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;margin-top:8px}
 .ev th{text-align:left;font-size:13px;font-weight:600;color:var(--muted);padding:2px 6px 6px;border-bottom:1px solid var(--line)}
-.ev td{padding:7px 6px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.ev td{padding:7px 6px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink-2)}
 .ev tbody tr{cursor:pointer}
 .ev tr.on td{background:var(--copper-soft)}
 .ev tr.on td:first-child{box-shadow:inset 3px 0 0 var(--copper)}
-.ev .nat{font-weight:700;white-space:nowrap}
+.ev .nat{font-weight:600;white-space:nowrap}
 .ev .w{color:var(--acc)} .ev .p{color:var(--force)}
-.quiz .tag{white-space:nowrap}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.22} }
 </style>
 </head>
 <body class="cx">
@@ -34,197 +34,239 @@
 </div></header>
 <!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III2-08</span><span class="kicker">물리학 Ⅰ · 빛과 물질의 이중성</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III2-08</span><span>물리학 Ⅰ · 빛과 물질의 이중성</span></div>
     <h1>입자의 파동성 증거</h1>
-    <p class="lead">전자가 정말 파동이라면 <b>간섭과 회절</b>이 보여야 한다. ①~③에서 전자가 특정 각도로만 몰려 튀어나오고, 하나씩 쌓여 줄무늬를 만들고, X선과 같은 고리를 그리는 모습을 보자. ④에서는 바람개비를 미는 전자 — 입자성의 증거 — 와 비교해 보자.</p>
-  </header>
+    <p class="question"><i>Q</i>전자가 정말 파동이라면 어떤 실험에서 그 증거가 보일까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
-        <canvas id="stage" aria-label="장면에 따라 데이비슨·거머 실험, 전자 이중 슬릿, 톰슨의 금속박 회절, 진공 속 바람개비가 움직인다."></canvas>
-        <div class="hud"><span class="pill" id="hudA">54 V 전자선</span><span class="pill num" id="hudB">θ = 20°</span></div>
+        <canvas id="stage" aria-label="장면에 따라 데이비슨·거머 실험(니켈 결정에서 튀어나온 전자), 톰슨의 금속박 회절, 전자 이중 슬릿, 진공 속 바람개비가 움직인다. 데이비슨·거머 장면에서는 검출기를 끌어 돌릴 수 있다."></canvas>
+        <div class="hud"><span class="pill" id="hudA">54 V 전자선 · λ = 0.166 nm</span><span class="pill" id="hudB">θ = 20°</span></div>
         <div class="legend" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <button type="button" class="btn" id="reset">처음부터</button>
           <div class="group" role="group" aria-label="장면">
-            <span class="gl">장면</span>
-            <button type="button" class="btn" data-scene="dg" aria-pressed="true">① 데이비슨·거머</button>
-            <button type="button" class="btn" data-scene="slit" aria-pressed="false">② 전자 이중 슬릿</button>
-            <button type="button" class="btn" data-scene="thomson" aria-pressed="false">③ 톰슨 (금속박)</button>
-            <button type="button" class="btn" data-scene="wheel" aria-pressed="false">④ 바람개비</button>
+            <span class="gl lg">장면</span>
+            <button type="button" class="btn" data-scene="dg" aria-pressed="true" aria-label="① 데이비슨·거머">①<span class="lg">데이비슨·거머</span></button>
+            <button type="button" class="btn" data-scene="thomson" aria-pressed="false" aria-label="② 톰슨">②<span class="lg">톰슨</span></button>
+            <button type="button" class="btn" data-scene="slit" aria-pressed="false" aria-label="③ 전자 이중 슬릿">③<span class="lg">이중 슬릿</span></button>
+            <button type="button" class="btn" data-scene="wheel" aria-pressed="false" aria-label="④ 바람개비">④<span class="lg">바람개비</span></button>
           </div>
-        </div>
-        <!-- ① 데이비슨·거머 -->
-        <div class="row" data-for="dg">
-          <div class="grow">
-            <label class="ctl-label" for="theta">검출기 각도 θ (입사 전자선과 이루는 각) <output id="thetaOut">20°</output></label>
-            <input id="theta" type="range" min="5" max="85" step="1" value="20">
-          </div>
-          <label class="chk"><input type="checkbox" id="cSweep" checked>검출기 저절로 돌리기</label>
-        </div>
-        <div class="row" data-for="dg">
-          <label class="chk"><input type="checkbox" id="cWave" checked>물질파 보기</label>
-          <label class="chk"><input type="checkbox" id="cDots" checked>전자 알갱이 보기</label>
-        </div>
-        <!-- ② 전자 이중 슬릿 -->
-        <div class="row" data-for="slit" hidden>
-          <button type="button" class="btn" id="one">전자 하나 보내기</button>
-          <div class="group" role="group" aria-label="바로 쌓기">
-            <span class="gl">바로 쌓기</span>
-            <button type="button" class="btn mono" data-fill="20">20개</button>
-            <button type="button" class="btn mono" data-fill="300">300개</button>
-            <button type="button" class="btn mono" data-fill="5000">5000개</button>
-          </div>
-        </div>
-        <div class="row" data-for="slit" hidden>
-          <div class="grow">
-            <label class="ctl-label" for="rate">빛의 세기 (1초에 나오는 광전자 수) <output id="rateOut">2 개/s</output></label>
-            <input id="rate" type="range" min="0.5" max="40" step="0.5" value="2">
-          </div>
-          <div class="group" role="group" aria-label="가속 전압">
-            <span class="gl">가속 전압</span>
-            <button type="button" class="btn mono" data-vk="1" aria-pressed="true">V₀</button>
-            <button type="button" class="btn mono" data-vk="2" aria-pressed="false">2V₀</button>
-            <button type="button" class="btn mono" data-vk="4" aria-pressed="false">4V₀</button>
-          </div>
-        </div>
-        <div class="row" data-for="slit" hidden>
-          <label class="chk"><input type="checkbox" id="cPart">입자로만 행동한다면? (가상 실험)</label>
-        </div>
-        <!-- ③ 톰슨 -->
-        <div class="row" data-for="thomson" hidden>
-          <div class="group" role="group" aria-label="바로 쌓기">
-            <span class="gl">바로 쌓기</span>
-            <button type="button" class="btn mono" data-tfill="20">20개</button>
-            <button type="button" class="btn mono" data-tfill="300">300개</button>
-            <button type="button" class="btn mono" data-tfill="5000">5000개</button>
-          </div>
-          <label class="chk"><input type="checkbox" id="cOver">X선 고리를 전자선 화면에 겹쳐 보기</label>
-        </div>
-        <!-- ④ 바람개비 -->
-        <div class="row" data-for="wheel" hidden>
-          <label class="chk"><input type="checkbox" id="cBeam" checked>전자선 쏘기</label>
-          <div class="grow">
-            <label class="ctl-label" for="beamRate">전자선 세기 (1초에 맞는 전자 수, 그림용) <output id="beamOut">12 개/s</output></label>
-            <input id="beamRate" type="range" min="2" max="30" step="1" value="12">
-          </div>
-        </div>
-        <div class="row toggles">
           <span class="spacer"></span>
-          <div class="group" role="group" aria-label="시간 빠르기">
-            <span class="gl">빠르기</span>
-            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="false">×0.5</button>
-            <button type="button" class="btn mono" data-speed="1" aria-pressed="true">×1</button>
-            <button type="button" class="btn mono" data-speed="3" aria-pressed="false">×3</button>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">실험 조작</span><span class="sm">조작</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="실험 조작과 보기">
+          <div class="sheet-head"><b>실험 조작 · 보기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <!-- ① 데이비슨·거머 -->
+          <div class="row" data-for="dg">
+            <div class="grow">
+              <label class="ctl-label" for="theta">검출기 각도 θ <output id="thetaOut">20°</output></label>
+              <input id="theta" type="range" min="5" max="85" step="1" value="20">
+            </div>
+          </div>
+          <div class="toggles" data-for="dg">
+            <label class="chk"><input type="checkbox" id="cSweep" checked>검출기 저절로 돌리기</label>
+            <label class="chk"><input type="checkbox" id="cWave" checked>물질파</label>
+            <label class="chk"><input type="checkbox" id="cDots" checked>전자 알갱이</label>
+          </div>
+          <!-- ② 톰슨 -->
+          <div class="row" data-for="thomson" hidden>
+            <div class="group" role="group" aria-label="전자 바로 쌓기">
+              <span class="gl">바로 쌓기</span>
+              <button type="button" class="btn" data-tfill="20">20개</button>
+              <button type="button" class="btn" data-tfill="300">300개</button>
+              <button type="button" class="btn" data-tfill="5000">5000개</button>
+            </div>
+            <label class="chk"><input type="checkbox" id="cOver">X선 고리 겹쳐 보기</label>
+          </div>
+          <!-- ③ 전자 이중 슬릿 -->
+          <div class="row" data-for="slit" hidden>
+            <button type="button" class="btn" id="one">전자 하나 보내기</button>
+            <div class="group" role="group" aria-label="전자 바로 쌓기">
+              <span class="gl">바로 쌓기</span>
+              <button type="button" class="btn" data-fill="20">20개</button>
+              <button type="button" class="btn" data-fill="300">300개</button>
+              <button type="button" class="btn" data-fill="5000">5000개</button>
+            </div>
+          </div>
+          <div class="row" data-for="slit" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="rate">빛의 세기 (광전자 수) <output id="rateOut">2 개/s</output></label>
+              <input id="rate" type="range" min="0.5" max="40" step="0.5" value="2">
+            </div>
+            <div class="group" role="group" aria-label="가속 전압">
+              <span class="gl">가속 전압</span>
+              <button type="button" class="btn" data-vk="1" aria-pressed="true">V₀</button>
+              <button type="button" class="btn" data-vk="2" aria-pressed="false">2V₀</button>
+              <button type="button" class="btn" data-vk="4" aria-pressed="false">4V₀</button>
+            </div>
+          </div>
+          <div class="toggles" data-for="slit" hidden>
+            <label class="chk"><input type="checkbox" id="cPart">입자로만 행동한다면? (가상 실험)</label>
+          </div>
+          <!-- ④ 바람개비 -->
+          <div class="row" data-for="wheel" hidden>
+            <label class="chk"><input type="checkbox" id="cBeam" checked>전자선 쏘기</label>
+            <div class="grow">
+              <label class="ctl-label" for="beamRate">전자선 세기 <output id="beamOut">12 개/s</output></label>
+              <input id="beamRate" type="range" min="2" max="30" step="1" value="12">
+            </div>
+          </div>
+          <!-- 공통 -->
+          <div class="row">
+            <button type="button" class="btn" id="reset">이 장면 처음부터</button>
+            <div class="group" role="group" aria-label="시간 빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="3" aria-pressed="false">×3</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치 <small id="natTag">파동성의 증거</small></h2>
-        <div class="readouts">
-          <div class="ro" id="ro1"><span id="l1">가속 전압</span><b id="r1">54 V</b></div>
-          <div class="ro" id="ro2"><span id="l2">물질파 파장</span><b id="r2">–</b></div>
-          <div class="ro" id="ro3"><span id="l3">검출기 각도</span><b id="r3">–</b></div>
-          <div class="ro" id="ro4"><span id="l4">경로차</span><b id="r4">–</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span>지금 판정</span><span id="ansCtx">① 데이비슨·거머 · 니켈 결정</span></div>
+        <div class="big ink" id="ansBig">어긋남</div>
+        <div class="sub">
+          <span class="f" id="ansF">이웃한 두 원자의 경로차 d sin θ 를 파장 λ 와 견주면</span>
+          <span id="ansLines"><span class="v">54 V 전자: λ = h/√(2meV) = <em>0.166 nm</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">가속 전압 V</span><b id="mv1">54 V</b></div>
+          <div class="mini"><span id="mn2">물질파 파장 λ</span><b id="mv2">0.166 nm</b></div>
+          <div class="mini"><span id="mn3">검출기 각도 θ</span><b id="mv3">20°</b></div>
+          <div class="mini"><span id="mn4">전자 수 (50°일 때 = 100)</span><b id="mv4">–</b></div>
         </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2 id="tB">튀어나온 전자 수 <small>검출기 각도에 따라</small></h2>
-        <canvas class="flat" id="gB" aria-label="장면에 따라 바뀌는 그래프"></canvas>
-        <p class="cap" id="cB"></p>
-      </section>
-      <section class="panel">
-        <h2 id="tC">왜 50°일까? <small>이웃한 두 원자</small></h2>
-        <canvas class="flat" id="gC" aria-label="장면에 따라 바뀌는 도식"></canvas>
-        <p class="cap" id="cC"></p>
-      </section>
-      <section class="panel wide">
-        <h2>무엇의 증거일까? <small>줄을 누르면 그 장면으로</small></h2>
-        <table class="ev">
-          <thead><tr><th>실험</th><th>관찰</th><th>성질</th></tr></thead>
-          <tbody>
-            <tr data-row="dg" tabindex="0"><td>① 데이비슨·거머</td><td>니켈 결정, 54 V 전자 → 약 50°에서 전자 수 최대</td><td><span class="nat w">파동성</span><br>보강 간섭</td></tr>
-            <tr data-row="slit" tabindex="0"><td>② 전자 이중 슬릿</td><td>하나씩 보내도 쌓이면 간섭무늬</td><td><span class="nat w">파동성</span><br>간섭</td></tr>
-            <tr data-row="thomson" tabindex="0"><td>③ 톰슨</td><td>금속박을 지난 전자선 → X선과 같은 동심원 무늬</td><td><span class="nat w">파동성</span><br>회절</td></tr>
-            <tr data-row="wheel" tabindex="0"><td>④ 바람개비</td><td>전자선을 맞은 바람개비가 회전</td><td><span class="nat p">입자성</span><br>운동량</td></tr>
-          </tbody>
-        </table>
-      </section>
-    </aside>
-  </main>
+      </div>
 
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>파동의 증거: 특정 각도의 보강 간섭</h3>
-        <p><b>데이비슨·거머</b>: 니켈 결정에 54 V로 가속한 전자선을 쏘고 검출기 각도를 바꾸며 전자 수를 셌더니 약 <b>50°</b>에서 뚜렷하게 최대가 되었다.</p>
-        <p>규칙적으로 늘어선 원자에서 튀어나온 물질파의 경로차가 파장의 정수배인 방향에서만 보강 간섭한 것 — X선 회절과 같은 해석이다. 이 조건으로 구한 파장이 <span class="eq">λ = h/p</span>와 일치했다.</p>
-      </article>
-      <article class="concept">
-        <h3>회절 고리, 하나씩 쌓이는 간섭무늬</h3>
-        <p><b>톰슨</b>(1928): 얇은 금속박을 지난 전자선이 형광판에 <b>동심원 회절 무늬</b>를 만들었고, X선을 비춘 무늬와 같은 모양이었다.</p>
-        <p><b>전자 이중 슬릿</b>: 입자라면 슬릿 뒤 두 줄만 생겨야 하지만 보강·상쇄 줄무늬가 번갈아 생긴다. 전자를 하나씩 보내도 쌓이면 같은 무늬 → 전자 하나하나가 파동성을 가진다.</p>
-      </article>
-      <article class="concept">
-        <h3>그래도 입자다: 바람개비</h3>
-        <p>진공 속 바람개비에 전자선을 쏘면 바람개비가 돈다. 운동량을 가진 입자가 부딪친 결과이므로 <b>입자성</b>의 증거다. 전자도 빛처럼 이중성을 가진다.</p>
-        <p>광전자를 가속해 이중 슬릿에 보내면: 빛의 세기↓ → 광전자 수↓(밝은 무늬가 어두워짐), 가속 전압↑ → 운동량↑ → 파장↓(무늬 간격↓).</p>
-      </article>
-    </div>
-    <p class="compare">간섭·회절 무늬는 파동성, 충돌로 운동량을 주고 한 점에 하나씩 검출되는 것은 입자성이다. 빛의 광전 효과(입자성)와 전자선 회절(파동성)을 거꾸로 분류하지 않도록 주의하자.</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>입자의 파동성과 입자성에 대한 설명으로 옳은 것만을 고르면? ㄱ. 데이비슨·거머 실험에서 전자선은 니켈 결정에 의해 특정 각도에서 보강 간섭했다. ㄴ. 톰슨 실험에서 금속박을 지난 전자선은 X선과 같은 모양의 동심원 회절 무늬를 만들었다. ㄷ. 진공 속 바람개비가 전자선을 맞고 회전하는 것은 전자의 파동성을 보여 준다.<span class="tag">개념 체크 예제</span></p>
-        <div class="acts">
-          <button type="button" class="btn" data-try="ex">ㄱ 데이비슨·거머</button>
-          <button type="button" class="btn" data-try="thomson">ㄴ 톰슨</button>
-          <button type="button" class="btn" data-try="wheel">ㄷ 바람개비</button>
-        </div>
-        <details><summary>답 보기</summary><p><b>ㄱ, ㄴ</b>. ㄱ·ㄴ은 전자선이 X선처럼 보강 간섭·회절한다는 것을 보여 주는 파동성의 증거다. ㄷ의 바람개비는 운동량을 가진 전자가 날개에 부딪쳐 밀어낸 결과이므로 파동성이 아니라 <b>입자성</b>의 증거다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>데이비슨·거머 실험에서 검출기를 30°에 두면 50°일 때보다 전자가 훨씬 적게 들어온다. 왜 50°에서만 많을까?</p>
-        <div class="acts">
-          <button type="button" class="btn" data-try="dg30">θ = 30°에 두기</button>
-          <button type="button" class="btn" data-try="dg50">θ = 50°에 두기</button>
-        </div>
-        <details><summary>답 보기</summary><p>이웃한 니켈 원자에서 튀어나온 물질파의 경로차가 50° 방향에서 꼭 <b>한 파장</b>이 되어 마루와 마루가 겹치는 보강 간섭이 일어나기 때문이다. 30°에서는 경로차가 약 0.65파장이라 서로 어긋난다. X선 회절과 같은 방식이다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>전자를 하나씩 보내면 형광판에는 무엇이 보일까? 전자가 입자로만 행동한다면 어떤 무늬가 생겨야 할까?</p>
-        <div class="acts">
-          <button type="button" class="btn" data-try="one">하나씩 보내기</button>
-          <button type="button" class="btn" data-try="part">입자라면? (가상)</button>
-        </div>
-        <details><summary>답 보기</summary><p>전자 하나는 형광판의 <b>한 점</b>에 도착한다. 하지만 오래 쌓으면 많이 오는 곳(보강)과 거의 오지 않는 곳(상쇄)이 번갈아 생긴다 — 전자 하나하나가 두 슬릿을 함께 지나는 파동처럼 행동한다. 입자로만 행동한다면 슬릿 뒤에 <b>두 줄</b>만 생겨야 한다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>광전 효과로 나온 광전자를 전압 V로 가속해 이중 슬릿에 보냈더니 간섭무늬가 생겼다. 가속 전압을 높이면 어떻게 될까?</p>
-        <div class="acts">
-          <button type="button" class="btn" data-try="v4">가속 전압 4V₀</button>
-          <button type="button" class="btn" data-try="v1">V₀와 비교</button>
-        </div>
-        <details><summary>답 보기</summary><p>운동 에너지와 운동량이 커져 물질파 파장 <span class="eq">λ = h/p</span>가 <b>짧아진다</b>(전압 4배 → 1/2배). 그래서 무늬 간격도 좁아진다. 간섭무늬는 사라지지 않고, 방출되는 광전자 수는 가속 전압이 아니라 빛의 세기가 정한다.</p></details>
-      </li>
-    </ol>
-    <!-- nextprev -->
+      <ol class="steps">
+        <li class="card step" data-step="① 50°에서만 많다">
+          <div class="kind">관찰 1 · 데이비슨·거머</div>
+          <h3>54 V 전자는 약 50° 방향으로만 많이 튀어나온다</h3>
+          <p>전자가 정말 파동이라면 간섭과 회절이 보여야 한다. 데이비슨과 거머는 니켈 결정에 54 V로 가속한 전자선을 쏘고, 검출기 각도 θ(입사 전자선과 이루는 각)를 바꾸며 튀어나온 전자 수를 셌다. 전자 수는 약 <b>50°</b>에서 뚜렷하게 최대가 되었다.</p>
+          <canvas class="flat" id="gB" aria-label="검출기 각도에 따라 튀어나온 전자 수 그래프. 50° 근처에서 뚜렷하게 최대."></canvas>
+          <p class="cap">검출기가 지나간 각도는 실선으로 그려진다. 검출기는 무대에서 끌거나 θ 막대로 돌려도 된다.</p>
+          <canvas class="flat" id="gC" aria-label="이웃한 두 니켈 원자 A, B에서 θ 방향으로 튀어나온 두 물질파와 그 경로차"></canvas>
+          <p class="cap">이웃한 두 원자 A, B에서 튀어나온 물질파의 경로차(굵은 선)가 꼭 한 파장(λ 자)이 되는 방향에서 마루와 마루가 겹친다. 규칙적으로 늘어선 원자가 X선을 특정 각도에서만 보강 간섭시키는 X선 회절과 같은 해석이고, 이 조건으로 구한 파장이 드브로이 파장 <span class="eq">λ = h/p</span> 와 일치했다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="dg">검출기 처음부터 돌리기</button>
+            <button type="button" class="btn" data-try="dg50">θ = 50°에 두기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② X선과 같은 고리">
+          <div class="kind">관찰 2 · 톰슨</div>
+          <h3>금속박을 지난 전자선도 X선과 같은 고리를 그린다</h3>
+          <p>톰슨(1928)은 얇은 금속박에 전자선을 쏘아 형광판에 <b>동심원 회절 무늬</b>를 얻었다. 파장이 짧은 X선을 같은 금속박에 비춘 무늬와 같은 모양이어서 전자가 파동성을 가짐을 확인했다. 무대 위 줄은 X선, 아래 줄은 하나씩 도착해 쌓이는 전자선이다.</p>
+          <canvas class="flat" id="gT1" aria-label="중심에서 거리별로 도착한 전자 수(막대)와 X선 무늬의 밝기(곡선)"></canvas>
+          <p class="cap">전자선 막대가 쌓일수록 X선 곡선과 같은 자리에 봉우리가 생긴다 → 같은 모양의 동심원 회절 무늬.</p>
+          <canvas class="flat" id="gT2" aria-label="금속박의 작은 결정들에서 보강되는 방향이 원뿔을 이루고, 원뿔이 화면과 만나는 곳이 고리"></canvas>
+          <p class="cap">금속박은 방향이 제각각인 작은 결정의 모임이라 보강 방향이 빙 둘러 원뿔을 이룬다. 원뿔이 화면과 만나는 곳이 고리다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:[data-scene=thomson]">톰슨 실험 보기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=thomson]; click:[data-tfill='300']">전자 300개 바로 쌓기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=thomson]; check:#cOver">X선 고리 겹쳐 보기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 하나씩 쌓이는 무늬">
+          <div class="kind">관찰 3 · 전자 이중 슬릿</div>
+          <h3>전자를 하나씩 보내도 쌓이면 간섭무늬가 된다</h3>
+          <p>빛을 금속판에 비추어 튀어나온 광전자를 가속해 이중 슬릿으로 보낸다. 전자 하나는 형광판의 <b>한 점</b>에 도착하지만, 오래 쌓으면 전자가 많이 오는 곳(보강)과 거의 오지 않는 곳(상쇄)이 번갈아 생긴다. 하나씩 보내도 같은 무늬가 생기므로 전자 하나하나가 파동성을 가진다.</p>
+          <canvas class="flat" id="gS1" aria-label="화면 위치별로 도착한 전자 수(막대), 파동으로 예상한 무늬(초록 곡선), 입자라면 생길 두 줄(점선)"></canvas>
+          <p class="cap">막대는 실제로 쌓인 수, 초록 곡선은 파동으로 예상한 무늬다. 입자로만 행동한다면 점선처럼 슬릿 뒤에 두 줄만 생겨야 한다.</p>
+          <canvas class="flat" id="gS2" aria-label="전자가 20개, 300개, 5000개 쌓였을 때의 형광판"></canvas>
+          <p class="cap">처음 20개는 아무렇게나 찍힌 점 같지만, 300개·5000개로 쌓일수록 밝은 줄과 어두운 줄이 드러난다. 빛의 세기를 줄이면 1초에 나오는 광전자 수가 줄어 무늬가 늦게(어둡게) 쌓이고, 가속 전압을 높이면 운동량이 커져 파장과 무늬 간격이 줄어든다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="one">전자 하나씩 보내기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=slit]; click:[data-fill='5000']">5000개 바로 쌓기</button>
+            <button type="button" class="btn" data-try="part">입자라면? (가상)</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 바람개비는 입자성">
+          <div class="kind">관찰 4 · 바람개비</div>
+          <h3>그래도 입자다 — 전자선이 바람개비를 돌린다</h3>
+          <p>진공 속 바람개비에 전자선을 쏘면 바람개비가 돈다. 운동량을 가진 알갱이(전자)가 날개에 부딪쳐 운동량을 넘겨 준 결과이므로 <b>입자성</b>의 증거다. 전자도 빛처럼 파동성과 입자성을 함께 가진다.</p>
+          <canvas class="flat" id="gW1" aria-label="최근 15초 동안 바람개비의 회전 속도. 전자선을 쏜 동안은 파란 띠."></canvas>
+          <p class="cap">전자선을 쏘는 동안(파란 띠) 빨라지고, 끄면 마찰로 서서히 느려진다. 전자선 세기(1초에 맞는 전자 수)는 그림용 값이다.</p>
+          <canvas class="flat" id="gW2" aria-label="운동량 p를 가진 전자가 날개에 부딪친 뒤 날개가 운동량을 받아 밀려난다."></canvas>
+          <p class="cap">간섭·회절이 아니라 충돌로 운동량을 주고받는 것은 입자의 성질이다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="wheel">바람개비에 전자선 쏘기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=wheel]; click:#cBeam">전자선 끄기·켜기</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>간섭·회절은 파동성, 충돌은 입자성</h3>
+          <table class="ev">
+            <thead><tr><th>실험</th><th>관찰</th><th>성질</th></tr></thead>
+            <tbody>
+              <tr data-row="dg" tabindex="0"><td>① 데이비슨·거머</td><td>니켈 결정, 54 V 전자 → 약 50°에서 전자 수 최대</td><td><span class="nat w">파동성</span><br>보강 간섭</td></tr>
+              <tr data-row="thomson" tabindex="0"><td>② 톰슨</td><td>금속박을 지난 전자선 → X선과 같은 동심원 무늬</td><td><span class="nat w">파동성</span><br>회절</td></tr>
+              <tr data-row="slit" tabindex="0"><td>③ 전자 이중 슬릿</td><td>하나씩 보내도 쌓이면 간섭무늬</td><td><span class="nat w">파동성</span><br>간섭</td></tr>
+              <tr data-row="wheel" tabindex="0"><td>④ 바람개비</td><td>전자선을 맞은 바람개비가 회전</td><td><span class="nat p">입자성</span><br>운동량</td></tr>
+            </tbody>
+          </table>
+          <p class="cap">표의 줄을 누르면 무대가 그 장면으로 바뀐다.</p>
+          <ul>
+            <li>데이비슨·거머(니켈 결정, 54 V, 약 50°)·톰슨(금속박 회절)·전자 이중 슬릿 → 물질(전자)의 <b>파동성</b>. 보강 조건으로 구한 파장이 <span class="eq">λ = h/p</span> 와 같다.</li>
+            <li>바람개비 회전 → 전자의 입자성(운동량). 같은 전자가 두 성질을 모두 보인다(이중성).</li>
+            <li>간섭·회절 무늬는 파동성, 충돌로 운동량을 주고 한 점에 하나씩 검출되는 것은 입자성이다. 빛의 광전 효과(입자성)와 전자선 회절(파동성)을 거꾸로 분류하지 않도록 주의한다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념 체크 예제">
+          <div class="kind">개념 체크 예제</div>
+          <h3>입자의 파동성과 입자성에 대한 설명으로 옳은 것만을 고르면?</h3>
+          <p>ㄱ. 데이비슨·거머 실험에서 전자선은 니켈 결정에 의해 특정 각도에서 보강 간섭했다.<br>ㄴ. 톰슨 실험에서 금속박을 지난 전자선은 X선과 같은 모양의 동심원 회절 무늬를 만들었다.<br>ㄷ. 진공 속 바람개비가 전자선을 맞고 회전하는 것은 전자의 파동성을 보여 준다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">ㄱ 데이비슨·거머</button>
+            <button type="button" class="btn" data-try="thomson">ㄴ 톰슨</button>
+            <button type="button" class="btn" data-try="wheel">ㄷ 바람개비</button>
+          </div>
+          <details class="ans"><summary>풀이 보기</summary><p><b>ㄱ, ㄴ</b>. ㄱ·ㄴ은 전자선이 X선처럼 보강 간섭·회절한다는 것을 보여 주는 파동성의 증거다(54 V 전자의 파장 0.166 nm, 50° 방향의 경로차 = 1.00λ). ㄷ의 바람개비는 운동량을 가진 전자가 날개에 부딪쳐 밀어낸 결과이므로 파동성이 아니라 입자성의 증거다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>데이비슨·거머 실험에서 검출기를 30°에 두면 50°일 때보다 전자가 훨씬 적게 들어온다. 왜 50°에서만 많을까?</h3>
+            <div class="acts">
+              <button type="button" class="btn" data-try="dg30">θ = 30°에 두기</button>
+              <button type="button" class="btn" data-try="dg50">θ = 50°에 두기</button>
+            </div>
+            <details class="ans"><summary>답 보기</summary><p>이웃한 니켈 원자에서 튀어나온 물질파의 경로차가 50° 방향에서 꼭 <b>한 파장</b>이 되어 마루와 마루가 겹치는 보강 간섭이 일어나기 때문이다. 30°에서는 경로차가 약 0.65파장이라 서로 어긋난다. X선 회절과 같은 방식이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>전자를 하나씩 보내면 형광판에는 무엇이 보일까? 전자가 입자로만 행동한다면 어떤 무늬가 생겨야 할까?</h3>
+            <div class="acts">
+              <button type="button" class="btn" data-try="one">하나씩 보내기</button>
+              <button type="button" class="btn" data-try="part">입자라면? (가상)</button>
+            </div>
+            <details class="ans"><summary>답 보기</summary><p>전자 하나는 형광판의 <b>한 점</b>에 도착한다. 하지만 오래 쌓으면 많이 오는 곳(보강)과 거의 오지 않는 곳(상쇄)이 번갈아 생긴다. 전자 하나하나가 두 슬릿을 함께 지나는 파동처럼 행동하는 것이다. 입자로만 행동한다면 슬릿 뒤에 두 줄만 생겨야 한다.</p></details>
+          </div>
+          <div class="q">
+            <h3>광전 효과로 나온 광전자를 전압 V로 가속해 이중 슬릿에 보냈더니 간섭무늬가 생겼다. 가속 전압을 높이면 어떻게 될까?</h3>
+            <div class="acts">
+              <button type="button" class="btn" data-try="v4">가속 전압 4V₀</button>
+              <button type="button" class="btn" data-try="v1">V₀와 비교</button>
+            </div>
+            <details class="ans"><summary>답 보기</summary><p>운동 에너지와 운동량이 커져 물질파 파장 <span class="eq">λ = h/p</span> 가 <b>짧아진다</b>(전압 4배 → 1/2배). 그래서 무늬 간격도 좁아진다. 간섭무늬는 사라지지 않고, 방출되는 광전자 수는 가속 전압이 아니라 빛의 세기가 정한다. 빛의 세기를 줄이면 도달하는 전자가 줄어 밝은 무늬가 어두워진다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../07/" rel="prev"><small>← 이전 개념 · III2-07</small><b>물질파 그래프·표 해석</b></a><a href="../09/" rel="next"><small>다음 개념 · III2-09 →</small><b>전자 현미경</b></a></nav>
 <!-- /nextprev -->
-  </section>
+    </section>
+  </main>
 </div>
 
 <script src="../../kit/lab.js"></script>
@@ -240,45 +282,49 @@
   let seed = 20261117;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const off = () => document.createElement('canvas');
+  const rgbOf = Lab.rgb;                                 // 토큰 색 → [r, g, b] (ImageData 로 픽셀을 칠할 때)
   const lum = (col) => { const [r, g, b] = rgbOf(col); return 0.3 * r + 0.59 * g + 0.11 * b; };
-  // 토큰 색 → [r, g, b] (ImageData 로 픽셀을 칠할 때)
-  const rgbOf = (col) => {
-    col = (col || '').trim();
-    if (col[0] === '#') { let h = col.slice(1); if (h.length === 3) h = h.split('').map((c) => c + c).join(''); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); }
-    return (col.match(/[\d.]+/g) || [0, 0, 0]).slice(0, 3).map(Number);
-  };
 
   // 캔버스 위 작은 이름표 (바탕이 있는 글자): 복잡한 그림 위에서도 읽히게
   function tag(ctx, s, x, y, col) {
-    const w = Lab.measure(ctx, s, {size: 14, w: 700, mono: true}) + 14;
+    const w = Lab.measure(ctx, s, {size: 14, w: 600}) + 14;
     ctx.save(); Lab.rrect(ctx, x - w / 2, y - 12, w, 24, 12); ctx.fillStyle = C.glass; ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
-    text(ctx, s, x, y + 0.5, {size: 14, w: 700, mono: true, color: col});
+    text(ctx, s, x, y + 0.5, {size: 14, w: 600, color: col});
   }
 
   // ── 상태 ────────────────────────────────────────────────
   const S = {
-    scene: 'dg', playing: !reduceMotion, speed: 1, t: 0,
+    scene: 'dg', playing: !reduceMotion, speed: 1, t: 0, drag: false,
     // ① 데이비슨·거머
     theta: reduceMotion ? 50 : 20, sweep: !reduceMotion, sdir: 1, wave: true, dots: true, trace: new Uint8Array(91), parts: [], pAcc: 0, flash: 0, nDet: 0,
-    // ② 전자 이중 슬릿
-    vk: 1, rate: 2, particle: false, hits: [], flights: [], sAcc: 0, manual: false, last: null,
-    // ③ 톰슨
+    // ③ 전자 이중 슬릿
+    vk: 1, rate: 2, particle: false, hits: [], flights: [], sAcc: 0, manual: false, last: null, sGen: 0,
+    // ② 톰슨
     tHits: [], tFlights: [], tAcc: 0, overlay: false, tLast: null,
     // ④ 바람개비
     beam: true, beamRate: 12, omega: 0, ang: 0, wHits: 0, wParts: [], wAcc: 0, wHist: [], wFx: [], wHistT: 0,
   };
   if (reduceMotion) S.trace.fill(1);
 
-  const stage = Lab.canvas('stage', draw), gB = Lab.canvas('gB', draw), gC = Lab.canvas('gC', draw);
+  // 무대 + 관찰 카드마다 그래프 두 개 (장면이 바뀌어도 그 장면의 그래프는 자기 카드에 남는다)
+  const stage = Lab.canvas('stage', () => drawStage());
+  const PANELS = {dg: ['gB', 'gC'], thomson: ['gT1', 'gT2'], slit: ['gS1', 'gS2'], wheel: ['gW1', 'gW2']};
+  const PAN = {
+    gB: Lab.canvas('gB', drawAngleGraph), gC: Lab.canvas('gC', drawPathDiagram),
+    gT1: Lab.canvas('gT1', drawRadial), gT2: Lab.canvas('gT2', drawCone),
+    gS1: Lab.canvas('gS1', drawHist), gS2: Lab.canvas('gS2', drawSnaps),
+    gW1: Lab.canvas('gW1', drawOmega), gW2: Lab.canvas('gW2', drawCollision),
+  };
 
   // ════════ ① 데이비슨·거머 ════════════════════════════════
   const WAVE_V = 85, DOT_V = 170;            // 물질파 마루가 퍼지는 빠르기, 전자 알갱이 빠르기 (px/s, 그림용)
   function geoDG() {
     const {W, H} = stage, narrow = W < 520;
-    const top = narrow ? 64 : 50, bot = narrow ? 50 : 52;
-    const R = Math.max(80, Math.min(W * (narrow ? 0.43 : 0.36), (H - top - bot - 34 - 52) / 1.27));
+    const top = narrow ? 46 : 50, bot = narrow ? 44 : 52, gunY = top + 34;
+    // 결정 3층 + 이름표 높이 ≈ 0.29R + 24 → 전자총 아래 끝부터 바닥 여백까지 들어가게
+    const R = Math.max(70, Math.min((H - bot - gunY - 24) / 1.29, narrow ? W / 2 - 26 : W * 0.36));
     const dpx = clamp(R * 0.135, 16, 40), cpx = dpx * M.DG_C / M.DG_D;
-    return {W, H, narrow, top, bot, R, dpx, cpx, cx: W / 2, surfY: top + 34 + R, lamPx: dpx * M.lambdaV(M.DG_V) / M.DG_D};
+    return {W, H, narrow, top, bot, R, dpx, cpx, cx: W / 2, surfY: gunY + R, lamPx: dpx * M.lambdaV(M.DG_V) / M.DG_D};
   }
   // 튀어나온 물질파: 비추어진 원자(9개 × 3층)마다 둥근 파동을 내보낸 합. 복소 진폭을 한 번 계산해 두고 매 순간 위상만 돌린다.
   const field = {cv: off(), key: ''};
@@ -399,10 +445,10 @@
       gr.addColorStop(0, hi); gr.addColorStop(1, C.muted);
       ctx.save(); ctx.globalAlpha = j ? 0.65 : 1; ctx.beginPath(); ctx.arc(x, y, ar, 0, TAU); ctx.fillStyle = gr; ctx.fill(); ctx.restore();
     }
-    text(ctx, narrow ? '니켈 결정' : '니켈 결정 (원자가 규칙적으로 배열)', cx, surfY + 2 * cpx + ar + 15, {size: 14, w: 700, halo: true});
+    text(ctx, narrow ? '니켈 결정' : '니켈 결정 (원자가 규칙적으로 배열)', cx, surfY + 2 * cpx + ar + 15, {size: 14, w: 600, halo: true});
     // 전자총
     ctx.save(); ctx.fillStyle = C.ink; Lab.rrect(ctx, cx - 17, gunY - 34, 34, 28, 5); ctx.fill(); ctx.fillRect(cx - 6, gunY - 8, 12, 8); ctx.restore();
-    text(ctx, '전자총', cx - 28, gunY - 27, {size: 14, w: 700, align: 'right', halo: true});
+    text(ctx, '전자총', cx - 28, gunY - 27, {size: 14, w: 600, align: 'right', halo: true});
     text(ctx, '54 V로 가속', cx - 28, gunY - 10, {size: 13, w: 500, align: 'right', color: C.muted, halo: true});
     // 검출기 방향과 각 θ
     Lab.line(ctx, [[cx, surfY - 6], [cx + sx * (R - 22), surfY + sy * (R - 22)]], lc, 2, [7, 5]);
@@ -411,7 +457,7 @@
     // 50° 눈금 (원고 값)
     const t50 = M.DG_PEAK * DEG;
     Lab.line(ctx, [[cx + Math.sin(t50) * (R - 7), surfY - Math.cos(t50) * (R - 7)], [cx + Math.sin(t50) * (R + 7), surfY - Math.cos(t50) * (R + 7)]], C.acc, 2.4);
-    if (Math.abs(S.theta - 50) > 7) text(ctx, '50°', cx + Math.sin(t50) * (R + 22), surfY - Math.cos(t50) * (R + 22), {size: 13, w: 700, color: C.acc, halo: true});
+    if (Math.abs(S.theta - 50) > (narrow ? 12 : 7)) text(ctx, '50°', cx + Math.sin(t50) * (R + 22), surfY - Math.cos(t50) * (R + 22), {size: 13, w: 600, color: C.acc, halo: true});
     // 전자 알갱이
     if (S.dots) {
       ctx.save(); ctx.fillStyle = C.vel;
@@ -441,37 +487,17 @@
       let lr = R + (near ? 60 : 46); lx = cx + sx * lr; ly = surfY + sy * lr;
       if (lx > W - 40 || ly < 30) { lr = R - 50; lx = cx + sx * lr; ly = surfY + sy * lr; }
     }
-    text(ctx, '검출기', lx, ly - (near ? 9 : 0), {size: 14, w: 700, color: C.copper, halo: true, align: al});
+    text(ctx, '검출기', lx, ly - (near ? 9 : 0), {size: 14, w: 600, color: C.copper, halo: true, align: al});
     if (near) text(ctx, '보강 간섭!', lx, ly + 10, {size: 14, w: 700, color: C.acc, halo: true, align: al});
-    // 폰: 오른쪽 그래프가 멀리 있으므로 무대 아래에 작은 '전자 수–각도' 그래프
-    if (narrow) {
-      const y0 = surfY + 2 * cpx + ar + 30, y1 = g.H - g.bot - 4;
-      if (y1 - y0 > 44) miniGraph(ctx, 24, y0, W - 48, y1 - y0 - 18);
-    }
   }
-  function miniGraph(ctx, x, y, w, h) {
-    const X = (a) => x + a / 90 * w, Y = (v) => y + h - v / 1.12 * h;
-    Lab.line(ctx, [[x, y + h], [x + w, y + h]], C.muted, 1.2);
-    Lab.line(ctx, [[X(50), y + h], [X(50), y + 2]], C.acc, 1.2, [3, 3]);
-    const all = []; for (let a = 0; a <= 90; a += 1) all.push([X(a), Y(M.dgCount(a))]);
-    Lab.line(ctx, all, C.muted, 1.2, [2, 3]);
-    ctx.save(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2.6; ctx.beginPath();
-    let on = false;
-    for (let a = 0; a <= 90; a += 1) { if (S.trace[a]) { on ? ctx.lineTo(X(a), Y(M.dgCount(a))) : ctx.moveTo(X(a), Y(M.dgCount(a))); on = true; } else on = false; }
-    ctx.stroke(); ctx.restore();
-    Lab.circle(ctx, X(S.theta), Y(M.dgCount(S.theta)), 4.5, {fill: C.copper});
-    text(ctx, '전자 수', x, y - 2, {size: 13, w: 600, color: C.muted, align: 'left'});
-    text(ctx, '0°', x, y + h + 10, {size: 13, w: 500, color: C.muted, mono: true});
-    text(ctx, '50°', X(50), y + h + 10, {size: 13, w: 700, color: C.acc, mono: true});
-    text(ctx, '90°', x + w, y + h + 10, {size: 13, w: 500, color: C.muted, mono: true});
-  }
+  function restartDG() { S.parts = []; S.trace.fill(0); setTheta(20); S.trace.fill(0); S.trace[20] = 1; S.sdir = 1; setSweep(true); }
 
-  // ════════ ② 전자 이중 슬릿 ═══════════════════════════════
+  // ════════ ③ 전자 이중 슬릿 ═══════════════════════════════
   function geoSlit() {
     const {W, H} = stage, narrow = W < 520;
-    const top = narrow ? 60 : 48, bot = narrow ? 74 : 50;
+    const top = narrow ? 50 : 48, bot = narrow ? 40 : 50;
     const xc = W / 2;
-    const plateY = top + 26, gridY = plateY + (narrow ? 42 : 52), slitY = gridY + (narrow ? 40 : 50);
+    const plateY = top + 26, gridY = plateY + (narrow ? 42 : Math.min(52, H * 0.11)), slitY = gridY + (narrow ? 40 : Math.min(50, H * 0.105));   // 납작한 무대에서는 형광판 자리를 남긴다
     const frontY = H - bot - 10, depth = narrow ? 54 : Math.min(96, (frontY - slitY) * 0.38), backY = frontY - depth;
     const skew = narrow ? 22 : 44, half = Math.min(W / 2 - 16 - skew / 2, 360);
     const U = narrow ? 5.5 : 7, ux = half / U, midY = frontY - depth / 2;
@@ -506,7 +532,7 @@
     }
     return {u: M.sample((x) => M.slitWave(x, S.vk), -7, 7, rnd), z: 0.07 + 0.86 * rnd()};
   }
-  function resetSlit() { S.hits = []; S.flights = []; S.last = null; accL.key = ''; }
+  function resetSlit() { S.hits = []; S.flights = []; S.last = null; accL.key = ''; S.sGen++; }
   function fillSlit(n) { resetSlit(); for (let i = 0; i < n; i++) S.hits.push(newHit()); }
   function launch() { S.flights.push(Object.assign(newHit(), {t: 0, x0: (rnd() - 0.5) * 10, lx: (rnd() - 0.5) * 30})); }
   function slitTimes(g) {
@@ -561,7 +587,7 @@
     sField.cv.getContext('2d').putImageData(img, 0, 0);
   }
   function drawSlit() {
-    const g = geoSlit(), {ctx} = stage, {xc, plateY, gridY, slitY, frontY, depth, half, ux, U, dS, wS, narrow} = g;
+    const g = geoSlit(), {ctx} = stage, {W, xc, plateY, gridY, slitY, half, U, dS, wS, narrow} = g;
     const T = slitTimes(g);
     // 형광판 (비스듬히 본 모습)
     const P = [scrPt(g, -U, 0), scrPt(g, U, 0), scrPt(g, U, 1), scrPt(g, -U, 1)];
@@ -569,15 +595,13 @@
     ctx.fillStyle = Lab.alpha(C.ink, 0.07); ctx.fill(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6; ctx.stroke(); ctx.restore();
     syncAcc(g);
     ctx.drawImage(accL.cv, 0, 0, g.W, g.H);
-    if (narrow) text(ctx, '형광판', P[2][0] - 4, g.backY - 10, {size: 13.5, w: 700, align: 'right', color: C.muted});
-    else text(ctx, '형광판', P[1][0] - 2, frontY + 15, {size: 13.5, w: 700, align: 'right', color: C.muted});
     // 빛 → 금속판 (광전 효과) → 가속 → 이중 슬릿
-    const lampX = xc + (narrow ? 96 : 150), lampY = plateY - 34;
+    const lampX = narrow ? W - 52 : xc + 150, lampY = plateY - 34;
     ctx.save(); ctx.beginPath(); ctx.arc(lampX, lampY, 9, 0, TAU); ctx.fillStyle = C.energy; ctx.fill(); ctx.restore();
     for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; Lab.line(ctx, [[lampX + 12 * Math.cos(a), lampY + 12 * Math.sin(a)], [lampX + 17 * Math.cos(a), lampY + 17 * Math.sin(a)]], C.energy, 2); }
-    text(ctx, '빛', lampX + 26, lampY, {size: 14, w: 700, color: C.energy, align: 'left', halo: true});
+    text(ctx, '빛', lampX + 24, lampY, {size: 14, w: 600, color: C.energy, align: 'left', halo: true});
     ctx.save(); ctx.fillStyle = C.muted; ctx.fillRect(xc - 46, plateY - 6, 92, 7); ctx.restore();
-    text(ctx, narrow ? '금속판' : '금속판 (광전 효과)', xc - 54, plateY - 2, {size: 13.5, w: 700, align: 'right', halo: true});
+    text(ctx, narrow ? '금속판' : '금속판 (광전 효과)', xc - 54, plateY - 2, {size: 13.5, w: 600, align: 'right', halo: true});
     Lab.line(ctx, [[xc - 46, gridY], [xc + 46, gridY]], C.muted, 2, [4, 3]);
     Lab.vbracket(ctx, xc + 58, plateY, gridY, C.copper, '가속 전압 ' + (S.vk === 1 ? 'V₀' : S.vk + 'V₀'), true);
     // 이중 슬릿 판
@@ -586,8 +610,7 @@
     ctx.save(); ctx.fillStyle = C.muted;
     ctx.fillRect(xL, slitY - 4, s1 - wS / 2 - xL, 8); ctx.fillRect(s1 + wS / 2, slitY - 4, s2 - s1 - wS, 8); ctx.fillRect(s2 + wS / 2, slitY - 4, xR - s2 - wS / 2, 8);
     ctx.restore();
-    text(ctx, '이중 슬릿', xL, slitY - 16, {size: 13.5, w: 700, align: 'left', halo: true});
-    // 날아가는 광전자와 그 물질파
+    text(ctx, '이중 슬릿', xL, slitY - 16, {size: 13.5, w: 600, align: 'left', halo: true});
     // 두 슬릿에서 함께 퍼져 나가는 물질파 묶음 (전자 하나 = 파동 묶음 하나)
     if (!S.particle) {
       const rhos = S.flights.filter((f) => f.t >= T.t2 && f.t < T.t3).map((f) => (f.t - T.t2) * T.v);
@@ -596,6 +619,7 @@
         ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(sField.cv, sField.x0, sField.y0, sField.w * sField.sc, sField.h * sField.sc); ctx.restore();
       }
     }
+    // 날아가는 광자·광전자
     for (const f of S.flights) {
       const t = f.t;
       if (t < T.tPh) {                                           // 광자
@@ -616,7 +640,7 @@
         if (S.particle) {                                         // 가상: 한쪽 슬릿을 지나 곧게
           const sx0 = f.side < 0 ? s1 : s2, [tx, ty] = scrPt(g, f.u, f.z);
           x = sx0 + (tx - sx0) * q; y = slitY + (ty - slitY) * q;
-        } else show = false;                                       // 두 슬릿을 함께 지나는 물질파 (아래에서 한꺼번에 그림)
+        } else show = false;                                       // 두 슬릿을 함께 지나는 물질파 (위에서 한꺼번에 그림)
       }
       if (show) { ctx.save(); ctx.beginPath(); ctx.arc(x, y, 4.2, 0, TAU); ctx.fillStyle = C.vel; ctx.fill(); ctx.restore(); }
     }
@@ -626,18 +650,19 @@
       Lab.circle(ctx, x, y, 5 + 12 * a, {stroke: C.copper, width: 2.4 * (1 - a) + 0.4});
       Lab.circle(ctx, x, y, 3.6, {fill: C.copper});
     }
-    if (S.particle) text(ctx, '가상 실험: 입자로만 행동한다면', g.W - 14, g.top - 22, {size: 13.5, w: 700, color: C.neg, align: 'right', halo: true});
+    text(ctx, '형광판', P[2][0] - 4, g.backY - 10, {size: 13.5, w: 600, align: 'right', color: C.muted, halo: true});
+    if (S.particle) text(ctx, narrow ? '가상: 입자로만 행동한다면' : '가상 실험: 입자로만 행동한다면', W - 14, slitY - 16, {size: 13.5, w: 600, color: C.neg, align: 'right', halo: true});
   }
 
-  // ════════ ③ 톰슨 (금속박 회절) ════════════════════════════
+  // ════════ ② 톰슨 (금속박 회절) ════════════════════════════
   function geoT() {
     const {W, H} = stage, narrow = W < 520;
-    const top = narrow ? 58 : 46, bot = narrow ? 74 : 50;
+    const top = 46, bot = narrow ? 40 : 50;
     const rh = (H - top - bot) / 2;
-    const sq = Math.min(rh - 18, W * (narrow ? 0.4 : 0.3));
+    const sq = Math.min(rh - 26, W * (narrow ? 0.34 : 0.3));
     const sx = W - 12 - sq, xs = sx - (narrow ? 16 : 36), xf = W * (narrow ? 0.33 : 0.36);
-    const y1 = top + rh / 2, y2 = top + rh * 1.5, rMax = 3.8;
-    return {W, H, narrow, top, bot, rh, sq, sx, xs, xf, y1, y2, rMax, kF: (sq / 2 - 4) / rMax, kS: (rh * 0.4) / rMax, srcW: narrow ? 40 : 66};
+    const y1 = top + rh / 2 + 6, y2 = top + rh * 1.5 + 6, rMax = 3.8;
+    return {W, H, narrow, top, bot, rh, sq, sx, xs, xf, y1, y2, rMax, kF: (sq / 2 - 4) / rMax, kS: (rh * 0.4) / rMax, srcW: narrow ? 46 : 66};
   }
   const xRing = {cv: off(), key: ''};
   function syncXRing() {
@@ -691,7 +716,7 @@
       // 원천: X선관 / 전자총
       ctx.save(); ctx.fillStyle = row.x ? C.energy : C.ink; ctx.globalAlpha = row.x ? 0.85 : 1;
       Lab.rrect(ctx, 14, y - 15, srcW, 30, 6); ctx.fill(); ctx.restore();
-      text(ctx, row.x ? 'X선관' : '전자총', 14 + srcW / 2, y, {size: narrow ? 13 : 14, w: 700, color: C.paper});
+      text(ctx, row.x ? 'X선관' : '전자총', 14 + srcW / 2, y, {size: 13, w: 600, color: C.paper});
       // 들어가는 빔
       if (row.x) {
         const pts = []; const o = S.t * 260;
@@ -724,9 +749,9 @@
         }
       }
       ctx.restore();
-      text(ctx, row.x ? 'X선 무늬 (파동)' : '전자선 무늬', x0 + sq / 2, y0 - 10, {size: 13.5, w: 700, color: row.x ? C.energy : C.vel, halo: true});
+      text(ctx, row.x ? 'X선 무늬 (파동)' : '전자선 무늬', x0 + sq / 2, y0 - 10, {size: 13.5, w: 600, color: row.x ? C.energy : C.vel, halo: true});
     }
-    text(ctx, narrow ? '금속박' : '얇은 금속박', xf, (g.y1 + g.y2) / 2, {size: 13.5, w: 700, halo: true});
+    text(ctx, narrow ? '금속박' : '얇은 금속박', xf, (g.y1 + g.y2) / 2, {size: 13.5, w: 600, halo: true});
     // 날아가는 전자
     const L1 = xf - (14 + srcW);
     ctx.save(); ctx.fillStyle = C.vel;
@@ -745,7 +770,7 @@
   // ════════ ④ 바람개비 ═════════════════════════════════════
   function geoW() {
     const {W, H} = stage, narrow = W < 520;
-    const top = narrow ? 58 : 46, bot = narrow ? 76 : 52;
+    const top = 46, bot = narrow ? 40 : 52;
     const ty0 = top + 6, ty1 = H - bot - 6, th = ty1 - ty0;
     const Rw = Math.min(th * 0.3, W * (narrow ? 0.19 : 0.15)), cx = W * (narrow ? 0.52 : 0.58), cy = ty0 + th * 0.54;
     return {W, H, narrow, top, bot, ty0, ty1, th, Rw, cx, cy, beamY: cy - Rw * 0.62, cathX: narrow ? 44 : 64, anodeX: W - (narrow ? 38 : 54)};
@@ -771,11 +796,11 @@
     // 진공 유리관
     ctx.save(); Lab.rrect(ctx, 10, ty0, W - 20, th, th / 2.2);
     ctx.fillStyle = Lab.alpha(C.vel, 0.04); ctx.fill(); ctx.strokeStyle = C.muted; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
-    text(ctx, '진공 유리관', W / 2 - (narrow ? 0 : 60), ty0 + 16, {size: 13, w: 600, color: C.muted});
+    text(ctx, '진공 유리관', W / 2 - (narrow ? 0 : 60), ty0 + 16, {size: 13, w: 500, color: C.muted});
     // 음극·양극
     ctx.save(); ctx.fillStyle = C.ink; ctx.fillRect(cathX - 4, beamY - th * 0.2, 7, th * 0.4); ctx.fillRect(anodeX - 3, beamY - th * 0.2, 7, th * 0.4); ctx.restore();
-    text(ctx, '음극 (−)', cathX + (narrow ? 4 : 0), beamY + th * 0.2 + 14, {size: 13.5, w: 700});
-    text(ctx, '양극 (+)', anodeX - (narrow ? 4 : 0), beamY + th * 0.2 + 14, {size: 13.5, w: 700});
+    text(ctx, '음극 (−)', cathX + (narrow ? 4 : 0), beamY + th * 0.2 + 14, {size: 13.5, w: 600});
+    text(ctx, '양극 (+)', anodeX - (narrow ? 4 : 0), beamY + th * 0.2 + 14, {size: 13.5, w: 600});
     // 전자선 (음극선)
     if (S.beam) Lab.line(ctx, [[cathX + 4, beamY], [hitX, beamY]], C['vel-soft'], 10);
     // 받침
@@ -792,16 +817,17 @@
       ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(cx, cy, Rw + 16, -0.15 * Math.PI, 0.3 * Math.PI); ctx.stroke(); ctx.restore();
       const a = 0.3 * Math.PI, ex = cx + (Rw + 16) * Math.cos(a), ey = cy + (Rw + 16) * Math.sin(a);
       arrow(ctx, ex + 8 * Math.sin(a), ey - 8 * Math.cos(a), ex, ey, C.copper, 2.4, 10);
-      text(ctx, '회전', cx + (Rw + 26) * Math.cos(-0.05 * Math.PI), cy + (Rw + 26) * Math.sin(-0.05 * Math.PI) - 6, {size: 14, w: 700, color: C.copper, align: 'left', halo: true});
+      text(ctx, '회전', cx + (Rw + 26) * Math.cos(-0.05 * Math.PI), cy + (Rw + 26) * Math.sin(-0.05 * Math.PI) - 6, {size: 14, w: 600, color: C.copper, align: 'left', halo: true});
     }
-    text(ctx, '바람개비', cx, cy + Rw + (narrow ? 18 : 22), {size: 14, w: 700, color: C.copper, halo: true});
+    if (cy + Rw + 34 < ty1 - 12) text(ctx, '바람개비', cx, cy + Rw + (narrow ? 18 : 22), {size: 14, w: 600, color: C.copper, halo: true});
+    else text(ctx, '바람개비', cx + Rw + 14, cy + Rw * 0.75, {size: 14, w: 600, color: C.copper, halo: true, align: 'left'});   // 납작한 무대: 받침과 겹치지 않게 오른쪽에
     // 날아가는 전자 + 운동량 화살표
     for (const p of S.wParts) {
       Lab.circle(ctx, p.x, beamY, narrow ? 3.2 : 4, {fill: C.vel});
       if (p.k % 4 === 0 && p.x + 30 < hitX) arrow(ctx, p.x + 7, beamY - 11, p.x + 30, beamY - 11, C.vel, 2.2, 7);
     }
     const lead = S.wParts.find((p) => p.k % 4 === 0 && p.x + 30 < hitX && p.x > cathX + 40);
-    if (lead) text(ctx, '운동량 p', lead.x + 18, beamY - 24, {size: 13.5, w: 700, color: C.vel, halo: true});
+    if (lead) text(ctx, '운동량 p', lead.x + 18, beamY - 24, {size: 13.5, w: 600, color: C.vel, halo: true});
     // 날개가 받은 충격
     for (const f of S.wFx) {
       const a = 1 - f.age / 0.35;
@@ -811,12 +837,13 @@
     if (S.wFx.length) text(ctx, narrow ? '충돌!' : '충돌 → 운동량 전달', hitX - 6, beamY + 24, {size: 13.5, w: 700, color: C.force, halo: true, align: 'right'});
   }
 
-  // ════════ 오른쪽 그래프·도식 ═════════════════════════════
+  // ════════ 관찰 카드의 그래프 ═════════════════════════════
   function frame(v) { const {ctx, W, H} = v; ctx.clearRect(0, 0, W, H); return {ctx, W, H}; }
-  function drawAngleGraph() {
-    const {ctx, W, H} = frame(gB);
+  // ① 검출기 각도에 따른 전자 수
+  function drawAngleGraph(v) {
+    const {ctx, W, H} = frame(v);
     const r = {x: 34, y: 30, w: W - 56, h: H - 74};
-    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 90, ymin: 0, ymax: 1.15, xticks: [0, 30, 50, 70, 90], fmtX: (v) => v + '°', ylabel: '튀어나온 전자 수', grid: true});
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: 90, ymin: 0, ymax: 1.15, xticks: [0, 30, 50, 70, 90], fmtX: (x) => x + '°', ylabel: '튀어나온 전자 수', grid: true});
     text(ctx, '검출기 각도 θ', r.x + r.w + 8, ax.y0 + 31, {size: 13, w: 600, color: C.muted, align: 'right'});
     Lab.line(ctx, [[ax.X(50), r.y + r.h], [ax.X(50), r.y + 6]], C.acc, 1.4, [4, 4]);
     // 아직 재지 않은 곳: 점선, 잰 곳: 실선
@@ -838,8 +865,9 @@
     Lab.line(ctx, [[tx, ax.y0], [tx, ty]], C.copper, 1.6, [3, 3]);
     Lab.circle(ctx, tx, ty, 5.5, {fill: C.copper, stroke: C.paper, width: 2});
   }
-  function drawPathDiagram() {
-    const {ctx, W, H} = frame(gC);
+  // ① 이웃한 두 원자에서 나간 물질파의 경로차
+  function drawPathDiagram(v) {
+    const {ctx, W, H} = frame(v);
     const th = S.theta * DEG, ratio = M.pathRatio(S.theta), good = Math.abs(ratio - 1) < 0.04;
     const D = Math.min(W * 0.22, H * 0.4), lam = D * M.lambdaV(M.DG_V) / M.DG_D;
     const ay = H - 26, axx = W * 0.44, bxx = axx + D;
@@ -860,16 +888,17 @@
     Lab.line(ctx, [[bxx + m[0] * 14, ay + m[1] * 14], [F[0] - m[0] * 14, F[1] - m[1] * 14]], C.muted, 1.4, [4, 4]);
     ctx.save(); ctx.strokeStyle = good ? C.acc : C.copper; ctx.lineWidth = 6; ctx.globalAlpha = 0.75; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(axx, ay); ctx.lineTo(F[0], F[1]); ctx.stroke(); ctx.restore();
-    for (const [x, lb] of [[axx, 'A'], [bxx, 'B']]) { Lab.circle(ctx, x, ay, 9, {fill: C.muted}); text(ctx, lb, x + 15, ay + 1, {size: 13, w: 700, color: C.muted}); }
+    for (const [x, lb] of [[axx, 'A'], [bxx, 'B']]) { Lab.circle(ctx, x, ay, 9, {fill: C.muted}); text(ctx, lb, x + 15, ay + 1, {size: 13, w: 600, color: C.muted}); }
     // 읽기: 경로차와 같은 축척의 λ 자
-    text(ctx, '경로차 = ' + fmt(ratio, 2) + 'λ', 10, 15, {size: 14, w: 700, mono: true, color: good ? C.acc : C.copper, align: 'left'});
-    text(ctx, good ? '→ 마루끼리 겹쳐 보강' : '→ 어긋남', 10, 35, {size: 13, w: 700, color: good ? C.acc : C.muted, align: 'left'});
+    text(ctx, '경로차 = ' + ratio.toFixed(2) + 'λ', 10, 15, {size: 14, w: 700, color: good ? C.acc : C.copper, align: 'left'});
+    text(ctx, good ? '→ 마루끼리 겹쳐 보강' : '→ 어긋남', 10, 35, {size: 13, w: 600, color: good ? C.acc : C.muted, align: 'left'});
     Lab.bracket(ctx, 12, 12 + lam, 58, C.violet, 'λ', false);
   }
+  // ③ 도착한 위치별 전자 수
   function slitNorm(f) { let z = 0; for (let u = -7; u <= 7; u += 0.01) z += f(u) * 0.01; return z; }
   const zCache = {};
-  function drawHist() {
-    const {ctx, W, H} = frame(gB);
+  function drawHist(v) {
+    const {ctx, W, H} = frame(v);
     const r = {x: 30, y: 30, w: W - 50, h: H - 62}, N = S.hits.length, nb = 70, U = 7, bw = 2 * U / nb;
     const cnt = new Array(nb).fill(0);
     for (const h of S.hits) { const b = Math.floor((h.u + U) / bw); if (b >= 0 && b < nb) cnt[b]++; }
@@ -887,15 +916,16 @@
     for (let u = -U; u <= U; u += 0.05) { cw.push([ax.X(u), ax.Y(eW(u))]); cp.push([ax.X(u), ax.Y(eP(u))]); }
     Lab.line(ctx, cp, C.muted, 2, [5, 4]);
     Lab.line(ctx, cw, C.acc, S.particle ? 1.8 : 2.6);
-    text(ctx, '파동으로 예상', W - 10, r.y - 6, {size: 13, w: 700, color: C.acc, align: 'right'});
-    text(ctx, '입자라면 (점선)', W - 10, r.y + 12, {size: 13, w: 600, color: C.muted, align: 'right'});
-    text(ctx, 'N = ' + N, r.x + 10, r.y + 12, {size: 13, w: 700, mono: true, color: C.vel, align: 'left'});
+    text(ctx, '파동으로 예상', W - 10, r.y - 6, {size: 13, w: 600, color: C.acc, align: 'right'});
+    text(ctx, '입자라면 (점선)', W - 10, r.y + 12, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+    text(ctx, 'N = ' + N, r.x + 10, r.y + 12, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
   }
+  // ③ 처음 20개 · 300개 · 5000개
   const snapC = {key: ''};
-  function drawSnaps() {
-    const key = [gC.W, gC.H, S.hits.length, S.vk, S.particle, C.vel, C.ink].join();
+  function drawSnaps(v) {
+    const key = [v.W, v.H, S.sGen, Math.min(S.hits.length, 5001), S.vk, S.particle, C.vel, C.ink, C.muted].join();
     if (snapC.key === key) return; snapC.key = key;
-    const {ctx, W, H} = frame(gC);
+    const {ctx, W, H} = frame(v);
     const gap = 10, s = (W - 2 * gap - 8) / 3, sh = H - 32, y0 = 26;
     [20, 300, 5000].forEach((n, i) => {
       const x0 = 4 + i * (s + gap), have = Math.min(n, S.hits.length);
@@ -903,12 +933,13 @@
       ctx.fillStyle = C.vel; const rd = n === 5000 ? 0.85 : n === 300 ? 1.5 : 2.6;
       for (let k = 0; k < have; k++) { const h = S.hits[k]; const x = x0 + s / 2 + h.u / 6 * (s / 2), y = y0 + h.z * sh; ctx.beginPath(); ctx.arc(x, y, rd, 0, TAU); ctx.fill(); }
       ctx.restore();
-      text(ctx, '전자 ' + n + '개', x0 + s / 2, 12, {size: 13, w: 700, color: S.hits.length >= n ? C.ink : C.muted});
-      if (S.hits.length < n) text(ctx, '지금 ' + S.hits.length + '개', x0 + s / 2, y0 + sh / 2, {size: 13, w: 600, color: C.muted, halo: true});
+      text(ctx, '전자 ' + n + '개', x0 + s / 2, 12, {size: 13, w: 600, color: S.hits.length >= n ? C.ink : C.muted});
+      if (S.hits.length < n) text(ctx, '지금 ' + S.hits.length + '개', x0 + s / 2, y0 + sh / 2, {size: 13, w: 500, color: C.muted, halo: true});
     });
   }
-  function drawRadial() {
-    const {ctx, W, H} = frame(gB);
+  // ② 중심에서 거리별 도착 수 (X선 곡선과 비교)
+  function drawRadial(v) {
+    const {ctx, W, H} = frame(v);
     const r = {x: 30, y: 30, w: W - 50, h: H - 62}, N = S.tHits.length, nb = 60, R = 3.8, bw = R / nb;
     const cnt = new Array(nb).fill(0);
     for (const h of S.tHits) { const b = Math.floor(h.r / bw); if (b >= 0 && b < nb) cnt[b]++; }
@@ -923,13 +954,14 @@
     ctx.restore();
     const pts = []; for (let x = 0; x <= R; x += 0.01) pts.push([ax.X(x), ax.Y(eX(x))]);
     Lab.line(ctx, pts, C.energy, 2.6);
-    text(ctx, 'X선 (곡선)', W - 10, r.y - 6, {size: 13, w: 700, color: C.energy, align: 'right'});
-    text(ctx, '전자선 (막대)', W - 10, r.y + 12, {size: 13, w: 700, color: C.vel, align: 'right'});
-    text(ctx, 'N = ' + N, r.x + 10, r.y + 12, {size: 13, w: 700, mono: true, color: C.vel, align: 'left'});
+    text(ctx, 'X선 (곡선)', W - 10, r.y - 6, {size: 13, w: 600, color: C.energy, align: 'right'});
+    text(ctx, '전자선 (막대)', W - 10, r.y + 12, {size: 13, w: 600, color: C.vel, align: 'right', halo: true});
+    text(ctx, 'N = ' + N, r.x + 10, r.y + 12, {size: 13, w: 600, color: C.vel, align: 'left', halo: true});
   }
-  function drawCone() {
-    const {ctx, W, H} = frame(gC);
-    const fx = W * 0.3, cy = H * 0.52, scx = W * 0.82, ry = H * 0.36, rx = ry * 0.32;
+  // ② 왜 동심원일까: 작은 결정들의 보강 방향 = 원뿔
+  function drawCone(v) {
+    const {ctx, W, H} = frame(v);
+    const fx = W * 0.3, cy = H * 0.52, ry = H * 0.36, rx = ry * 0.32, scx = Math.min(W * 0.82, W - 44 - rx);
     // 들어오는 빔
     arrow(ctx, 10, cy, fx - 8, cy, C.vel, 2.6, 9);
     // 금속박: 방향이 제각각인 작은 결정
@@ -945,15 +977,16 @@
     Lab.line(ctx, [[fx, cy], [scx, cy]], C.muted, 1.4, [4, 4]);
     ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(scx - rx * 1.4, cy - ry - 14); ctx.lineTo(scx + rx * 1.4, cy - ry - 22); ctx.lineTo(scx + rx * 1.4, cy + ry + 6); ctx.lineTo(scx - rx * 1.4, cy + ry + 14); ctx.closePath(); ctx.stroke(); ctx.restore();
     ctx.save(); ctx.strokeStyle = C.acc; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(scx, cy, rx, ry, 0, 0, TAU); ctx.stroke(); ctx.restore();
-    text(ctx, '금속박', fx, cy + H * 0.32 + 12, {size: 13, w: 700});
-    text(ctx, '보강 방향 = 원뿔', (fx + scx) / 2 - 10, cy - ry - 8, {size: 13, w: 700, color: C.acc, halo: true});
-    text(ctx, '고리', scx + rx + 8, cy, {size: 13.5, w: 700, color: C.acc, align: 'left', halo: true});
+    text(ctx, '금속박', fx, cy + H * 0.32 + 12, {size: 13, w: 600});
+    text(ctx, '보강 방향 = 원뿔', (fx + scx) / 2 - 10, cy - ry - 8, {size: 13, w: 600, color: C.acc, halo: true});
+    text(ctx, '고리', scx + rx + 8, cy, {size: 13.5, w: 600, color: C.acc, align: 'left', halo: true});
   }
-  function drawOmega() {
-    const {ctx, W, H} = frame(gB);
+  // ④ 바람개비 회전 속도 (최근 15초)
+  function drawOmega(v) {
+    const {ctx, W, H} = frame(v);
     const r = {x: 34, y: 30, w: W - 56, h: H - 62}, span = 15, tNow = S.t;
-    const wmax = Math.max(1, ...S.wHist.map((p) => p[1])) * 1.15;
-    const ax = Lab.axes(ctx, r, {xmin: -span, xmax: 0, ymin: 0, ymax: wmax, xticks: [-15, -10, -5, 0], fmtX: (v) => (v ? fmt(v, 0) : '지금'), xlabel: '', ylabel: '회전 속도 (바퀴/s)', yticks: [0, Math.floor(wmax * 2) / 2 || 0.5], fmtY: (v) => fmt(v, 1)});
+    const wmax = Math.max(1, ...S.wHist.map((p) => p[1])) * 1.15, yl = '회전 속도 (바퀴/s)';
+    const ax = Lab.axes(ctx, r, {xmin: -span, xmax: 0, ymin: 0, ymax: wmax, xticks: [-15, -10, -5, 0], fmtX: (x) => (x ? fmt(x, 0) : '지금'), ylabel: yl, yticks: [0, Math.floor(wmax * 2) / 2 || 0.5], fmtY: (y) => fmt(y, 1)});
     // 전자선 켠 구간
     ctx.save(); ctx.fillStyle = C['vel-soft'];
     let st = null;
@@ -963,38 +996,36 @@
     ctx.restore();
     const pts = S.wHist.filter((p) => p[0] - tNow >= -span).map((p) => [ax.X(p[0] - tNow), ax.Y(p[1])]);
     Lab.line(ctx, pts, C.copper, 2.8);
-    text(ctx, '파란 띠 = 전자선을 쏜 동안', W - 10, r.y - 6, {size: 13, w: 600, color: C.vel, align: 'right'});
+    const o = {size: 13, w: 600}, ylEnd = ax.x0 + 8 + Lab.measure(ctx, yl, o), full = '파란 띠 = 전자선을 쏜 동안';
+    text(ctx, W - 10 - Lab.measure(ctx, full, o) > ylEnd + 12 ? full : '파란 띠 = 쏜 동안', W - 10, r.y - 6, {size: 13, w: 600, color: C.vel, align: 'right'});
   }
-  function drawCollision() {
-    const {ctx, W, H} = frame(gC);
+  // ④ 충돌로 운동량 전달
+  function drawCollision(v) {
+    const {ctx, W, H} = frame(v);
     const cyc = (S.t % 2.4) / 2.4, half = W / 2, vy = H * 0.56, vh = Math.min(96, H * 0.5);
-    text(ctx, '충돌 전', half / 2, 14, {size: 13.5, w: 700, color: C.muted});
-    text(ctx, '충돌 후', half * 1.5, 14, {size: 13.5, w: 700, color: C.muted});
+    text(ctx, '충돌 전', half / 2, 14, {size: 13.5, w: 600, color: C.muted});
+    text(ctx, '충돌 후', half * 1.5, 14, {size: 13.5, w: 600, color: C.muted});
     Lab.line(ctx, [[half, 28], [half, H - 8]], C.line, 1.4, [4, 4]);
     // 왼쪽: 운동량 p 를 가진 전자가 날개로 다가간다
     const vxL = half - 40, ex = 20 + (vxL - 88) * Math.min(1, cyc * 1.4);
     ctx.save(); ctx.fillStyle = C['copper-soft']; ctx.strokeStyle = C.copper; ctx.lineWidth = 2.2; ctx.fillRect(vxL, vy - vh / 2, 12, vh); ctx.strokeRect(vxL, vy - vh / 2, 12, vh); ctx.restore();
     Lab.circle(ctx, ex, vy, 8, {fill: C.vel});
     arrow(ctx, ex + 12, vy, ex + 58, vy, C.vel, 3, 11);
-    text(ctx, 'p = mv', ex + 34, vy - 20, {size: 14, w: 700, color: C.vel, mono: true, halo: true});
+    text(ctx, 'p = mv', ex + 34, vy - 20, {size: 14, w: 600, color: C.vel, halo: true});
     // 오른쪽: 전자는 멈추고 날개가 운동량을 받아 밀려난다
     const push = clamp((cyc - 0.5) * 2.5, 0, 1), vxR = half + 46;
     ctx.save(); ctx.translate(vxR + 6, vy + vh / 2); ctx.rotate(push * 0.22);
     ctx.fillStyle = C['copper-soft']; ctx.strokeStyle = C.copper; ctx.lineWidth = 2.2; ctx.fillRect(-6, -vh, 12, vh); ctx.strokeRect(-6, -vh, 12, vh); ctx.restore();
     Lab.circle(ctx, vxR - 14, vy, 7, {fill: C.vel});
-    text(ctx, '전자는 멈춤', vxR - 14, vy + 24, {size: 13, w: 600, color: C.vel, halo: true});
+    text(ctx, '전자는 멈춤', vxR - 14, vy + 24, {size: 13, w: 500, color: C.vel, halo: true});
     arrow(ctx, vxR + 18, vy - vh * 0.25, vxR + 64 + 14 * push, vy - vh * 0.25, C.force, 3.2, 12);
-    text(ctx, '날개가 받은', W - 8, vy - vh * 0.25 - 30, {size: 13, w: 700, color: C.force, align: 'right', halo: true});
-    text(ctx, '운동량', W - 8, vy - vh * 0.25 - 14, {size: 13, w: 700, color: C.force, align: 'right', halo: true});
+    text(ctx, '날개가 받은', W - 8, vy - vh * 0.25 - 30, {size: 13, w: 600, color: C.force, align: 'right', halo: true});
+    text(ctx, '운동량', W - 8, vy - vh * 0.25 - 14, {size: 13, w: 600, color: C.force, align: 'right', halo: true});
   }
-  function drawPanels() {
-    if (S.scene === 'dg') { drawAngleGraph(); drawPathDiagram(); }
-    else if (S.scene === 'slit') { drawHist(); drawSnaps(); }
-    else if (S.scene === 'thomson') { drawRadial(); drawCone(); }
-    else { drawOmega(); drawCollision(); }
-  }
+
+  // ── 그리기 ──────────────────────────────────────────────
   let measured = false;
-  function draw() {
+  function drawStage() {
     if (!stage.W) return;
     if (!measured) { measured = true; readouts(); }          // 무대 크기를 안 뒤 (폰/넓은 화면 문구)
     stage.ctx.clearRect(0, 0, stage.W, stage.H);
@@ -1002,72 +1033,82 @@
     else if (S.scene === 'slit') drawSlit();
     else if (S.scene === 'thomson') drawThomson();
     else drawWheel();
-    if (gB.W && gC.W) { snapC.key = S.scene === 'slit' ? snapC.key : ''; drawPanels(); }
   }
+  function drawPanels(sc) { PANELS[sc].forEach((id) => PAN[id].redraw()); }
+  function drawAll() { drawStage(); Object.keys(PANELS).forEach(drawPanels); }
 
-  // ── 읽기 값·예제 확인 ────────────────────────────────────
-  const SC = {
-    dg: {legend: '<span><i style="background:var(--vel)"></i>전자 (알갱이)</span><span><b style="background:var(--violet)"></b>물질파의 마루</span><span><i style="background:var(--copper)"></i>검출기</span>',
-      tB: '튀어나온 전자 수 <small>검출기 각도에 따라</small>', cB: '검출기가 지나간 각도는 실선으로 그려진다. 54 V 전자선은 50° 근처에서만 뚜렷하게 많아진다 → 보강 간섭.',
-      tC: '왜 50°일까? <small>이웃한 두 원자 A, B</small>', cC: '두 원자에서 튀어나온 물질파의 경로차(굵은 선)가 꼭 한 파장(λ 자)이 되는 방향에서 마루와 마루가 겹친다. X선 회절과 같은 원리다.'},
-    slit: {legend: '<span><i style="background:var(--vel)"></i>광전자 · 도착한 점</span><span><b style="background:var(--violet)"></b>전자의 물질파 (파장 크게 과장)</span><span><b style="background:var(--energy)"></b>빛(광자)</span>',
-      tB: '도착한 위치별 전자 수 <small>막대 = 실제로 쌓인 수</small>', cB: '전자가 많아질수록 막대가 초록 곡선(파동으로 예상한 무늬)을 따라간다. 입자로만 행동한다면 점선처럼 두 줄만 생겨야 한다.',
-      tC: '쌓이는 순서 <small>처음 20개 · 300개 · 5000개</small>', cC: '처음 몇 개는 아무렇게나 찍힌 점 같지만, 쌓일수록 밝은 줄과 어두운 줄이 드러난다.'},
-    thomson: {legend: '<span><b style="background:var(--energy)"></b>X선</span><span><i style="background:var(--vel)"></i>전자</span><span><b style="background:var(--muted)"></b>금속박</span>',
-      tB: '중심에서 거리별 도착 수 <small>X선 vs 전자선</small>', cB: '전자선 막대가 쌓일수록 X선 곡선과 같은 자리에 봉우리가 생긴다 → 같은 모양의 동심원 회절 무늬.',
-      tC: '왜 동심원일까? <small>금속박 = 작은 결정들</small>', cC: '금속박은 방향이 제각각인 작은 결정의 모임이라 보강 방향이 빙 둘러 원뿔을 이룬다. 원뿔이 화면과 만나는 곳이 고리다.'},
-    wheel: {legend: '<span><i style="background:var(--vel)"></i>전자</span><span><b style="background:var(--force)"></b>날개가 받은 충격</span><span><b style="background:var(--copper)"></b>바람개비</span>',
-      tB: '바람개비 회전 속도 <small>최근 15초</small>', cB: '전자선을 쏘는 동안 빨라지고, 끄면 마찰로 서서히 느려진다.',
-      tC: '충돌로 운동량 전달 <small>입자성</small>', cC: '운동량을 가진 알갱이(전자)가 날개에 부딪쳐 운동량을 넘겨 준다. 간섭·회절이 아니라 입자의 성질이다.'},
+  // ── 지금 판정·읽기 값·예제 확인 ──────────────────────────
+  const LEG = {
+    dg: '<span><i style="background:var(--vel)"></i>전자 (알갱이)</span><span><b style="background:var(--violet)"></b>물질파의 마루</span><span><i style="background:var(--copper)"></i>검출기</span>',
+    slit: '<span><i style="background:var(--vel)"></i>광전자 · 도착한 점</span><span><b style="background:var(--violet)"></b>전자의 물질파 (파장 크게 과장)</span><span><b style="background:var(--energy)"></b>빛(광자)</span>',
+    thomson: '<span><b style="background:var(--energy)"></b>X선</span><span><i style="background:var(--vel)"></i>전자</span><span><b style="background:var(--muted)"></b>금속박</span>',
+    wheel: '<span><i style="background:var(--vel)"></i>전자</span><span><b style="background:var(--force)"></b>날개가 받은 충격</span><span><b style="background:var(--copper)"></b>바람개비</span>',
   };
-  function setRO(i, label, val, cls) { $('l' + i).textContent = label; $('r' + i).textContent = val; $('ro' + i).className = 'ro' + (cls ? ' ' + cls : ''); }
+  let ansKey = '';
+  function ans(big, lines, o) {                     // 값이 바뀔 때만 카드를 고친다
+    const key = [big, o.tone, o.ctx, o.f].concat(lines).join('|');
+    if (key === ansKey) return;
+    ansKey = key; Lab.ans(big, lines, o);
+  }
+  function minis(list) { list.forEach(([name, val], i) => { $('mn' + (i + 1)).innerHTML = name; $('mv' + (i + 1)).textContent = val; }); }
   function readouts() {
-    const sc = S.scene;
+    const sc = S.scene, nar = stage.W && stage.W < 520;
     if (sc === 'dg') {
+      const th = Math.round(S.theta), lam = M.lambdaV(M.DG_V) * 1e9, d = M.DG_D * 1e9, rs = M.pathRatio(th).toFixed(2);
       const near = Math.abs(S.theta - M.DG_PEAK) <= 2.5;
-      setRO(1, '가속 전압 V', M.DG_V + ' V');
-      setRO(2, '물질파 파장 λ = h/√(2meV)', fmt(M.lambdaV(M.DG_V) * 1e9, 3) + ' nm', 'vel');
-      setRO(3, '검출기 각도 θ', Math.round(S.theta) + '°', 'cu');
-      setRO(4, '전자 수 (50°일 때 = 100)', fmt(M.dgCount(S.theta) * 100, 0), near ? 'acc' : '');
-      $('hudA').textContent = (stage.W < 520 ? '54 V' : '54 V 전자선') + ' · λ = ' + fmt(M.lambdaV(M.DG_V) * 1e9, 3) + ' nm';
-      $('hudB').textContent = 'θ = ' + Math.round(S.theta) + '°';
-      Lab.check('exCheck', near, 'ㄱ 옳음: 54 V 전자선이 θ = 50°에서 보강 간섭 → 전자 수 최대 (파동성)', 'ㄱ 확인: 검출기를 50° 근처로 돌려 보세요 — 전자 수가 가장 많은 각도');
-    } else if (sc === 'slit') {
-      setRO(1, '도착한 전자', S.hits.length + '개', 'vel');
-      setRO(2, '가속 전압', S.vk === 1 ? 'V₀' : S.vk + 'V₀', 'cu');
-      setRO(3, '물질파 파장 (λ₀ 기준)', '× ' + fmt(M.fringeScale(S.vk), 2));
-      setRO(4, '무늬 간격', S.particle ? '무늬 없음' : '× ' + fmt(M.fringeScale(S.vk), 2), S.particle ? '' : 'acc');
-      $('hudA').textContent = '도착한 전자 N = ' + S.hits.length;
-      $('hudB').textContent = S.particle ? '가상: 입자라면' : '가속 전압 ' + (S.vk === 1 ? 'V₀' : S.vk + 'V₀');
-      Lab.check('exCheck', S.hits.length >= 300 && !S.particle, '하나씩 와도 쌓이면 간섭무늬 → 전자 하나하나가 파동성 (줄무늬 = 보강·상쇄)', S.particle ? '가상 실험: 입자로만 행동하면 두 줄뿐 — 실제 실험과 비교해 보세요' : '전자가 300개 넘게 쌓이면 무늬가 드러납니다 (‘300개’ 버튼)');
+      ans(near ? '보강 간섭' : '어긋남', [
+        '54 V 전자: λ = h/√(2meV) = <em>' + fmt(lam, 3) + ' nm</em>',
+        'd sin θ = ' + d.toFixed(3) + ' nm × sin <em>' + th + '°</em> = ' + (d * Math.sin(th * DEG)).toFixed(3) + ' nm',
+        near ? '= <em>' + rs + 'λ</em> ≈ 1 × λ (정수배) → 마루끼리 겹쳐 보강'
+          : '= <em>' + rs + 'λ</em> → 정수배가 아니라 어긋나 약해진다'],
+      {tone: near ? '' : 'ink', ctx: '① 데이비슨·거머 · 니켈 결정', f: '이웃한 두 원자의 경로차 d sin θ 를 파장 λ 와 견주면'});
+      minis([['가속 전압 V', M.DG_V + ' V'], ['물질파 파장 λ', fmt(lam, 3) + ' nm'], ['검출기 각도 θ', th + '°'], ['전자 수 (50°일 때 = 100)', fmt(M.dgCount(S.theta) * 100, 0)]]);
+      $('hudA').textContent = (nar ? '54 V' : '54 V 전자선') + ' · λ = ' + fmt(lam, 3) + ' nm';
+      $('hudB').textContent = 'θ = ' + th + '°';
+      Lab.check('exCheck', near, 'ㄱ 옳음: 54 V 전자선이 θ = 50°에서 보강 간섭 → 전자 수 최대 (파동성)', 'ㄱ 확인: 검출기가 50° 근처에 오면 전자 수가 가장 많다 — 검출기를 돌려 보자');
     } else if (sc === 'thomson') {
-      setRO(1, '도착한 전자', S.tHits.length + '개', 'vel');
-      setRO(2, '전자선 무늬', S.tHits.length >= 300 ? '동심원 4개' : '쌓는 중', S.tHits.length >= 300 ? 'acc' : '');
-      setRO(3, 'X선 무늬', '동심원 4개');
-      setRO(4, '고리 반지름 (X선 = 1)', '1.00', 'cu');
-      $('hudA').textContent = '도착한 전자 N = ' + S.tHits.length;
+      const n = S.tHits.length, ok = n >= 300;
+      ans(ok ? 'X선과 같은 고리' : '쌓는 중 · N = ' + n, [
+        'X선 무늬: 동심원 고리 4개 (X선은 파동 → 회절)',
+        '전자선 무늬: 도착한 전자 N = <em>' + n + '</em>개 → ' + (ok ? '<em>같은 자리에 고리 4개</em>' : '아직 점이 흩어져 있다'),
+        ok ? '같은 모양의 회절 무늬 → 전자도 <em>파동</em>처럼 회절한다' : '300개쯤 쌓이면 고리가 드러난다'],
+      {tone: ok ? '' : 'ink', ctx: '② 톰슨 · 얇은 금속박', f: '같은 금속박을 지난 X선과 전자선의 무늬를 견주면'});
+      minis([['도착한 전자', n + '개'], ['전자선 무늬', ok ? '동심원 4개' : '쌓는 중'], ['X선 무늬', '동심원 4개'], ['고리 반지름 (X선 = 1)', '1.00']]);
+      $('hudA').textContent = '도착한 전자 N = ' + n;
       $('hudB').textContent = '같은 금속박';
-      Lab.check('exCheck', S.tHits.length >= 300, 'ㄴ 옳음: 금속박을 지난 전자선도 X선과 같은 동심원 회절 무늬 (파동성)', 'ㄴ 확인: 전자가 300개 넘게 쌓이면 고리가 보입니다');
+      Lab.check('exCheck', ok, 'ㄴ 옳음: 금속박을 지난 전자선도 X선과 같은 동심원 회절 무늬 (파동성)', 'ㄴ 확인: 전자가 300개 넘게 쌓이면 고리가 보인다');
+    } else if (sc === 'slit') {
+      const n = S.hits.length, ok = n >= 300 && !S.particle, k = S.vk, vs = k === 1 ? 'V₀' : k + 'V₀';
+      const ratio = k === 1 ? '1' : k === 4 ? '1/2' : fmt(M.fringeScale(k), 2);
+      ans(S.particle ? '두 줄뿐 (가상)' : ok ? '간섭무늬' : '점이 쌓이는 중', [
+        '전자 하나 → 형광판의 한 점. 지금 N = <em>' + n + '</em>개',
+        S.particle ? '입자로만 행동한다면 → 슬릿 뒤에 <em>두 줄</em>만 (실제 실험과 다르다)'
+          : ok ? '많이 오는 곳(보강)과 거의 안 오는 곳(상쇄)이 번갈아 → <em>간섭</em>' : '아직 무늬가 흐리다 (300개쯤 쌓이면 줄무늬)',
+        '가속 전압 <em>' + vs + '</em>: λ = h/√(2meV) ∝ 1/√V → 파장·무늬 간격 <em>× ' + ratio + '</em>'],
+      {tone: S.particle ? 'neg' : ok ? '' : 'ink', ctx: '③ 전자 이중 슬릿 · ' + (S.particle ? '가상 실험' : '광전자'), f: '전자가 하나씩 도착해 쌓이면'});
+      minis([['도착한 전자', n + '개'], ['가속 전압', vs], ['물질파 파장 (λ₀ 기준)', '× ' + ratio], ['무늬 간격', S.particle ? '무늬 없음' : '× ' + ratio]]);
+      $('hudA').textContent = '도착한 전자 N = ' + n;
+      $('hudB').textContent = S.particle ? '가상: 입자라면' : '가속 전압 ' + vs;
+      Lab.check('exCheck', ok, '하나씩 와도 쌓이면 간섭무늬 → 전자 하나하나가 파동성 (줄무늬 = 보강·상쇄)', S.particle ? '가상 실험: 입자로만 행동하면 두 줄뿐 — 실제 실험과 견줘 보자' : '전자가 300개 넘게 쌓이면 무늬가 드러난다 (‘300개’ 바로 쌓기)');
     } else {
-      setRO(1, '날개에 맞은 전자', S.wHits + '개', 'vel');
-      setRO(2, '회전 속도', fmt(S.omega, 2) + ' 바퀴/s', 'cu');
-      setRO(3, '전자선', S.beam ? '쏘는 중' : '끔');
-      setRO(4, '보여 주는 성질', '입자성');
+      ans('입자성 (운동량)', [
+        '날개에 맞은 전자 <em>' + S.wHits + '</em>개 → 회전 <em>' + fmt(S.omega, 2) + ' 바퀴/s</em>',
+        S.beam ? '쏘는 동안 부딪칠 때마다 운동량을 받아 빨라진다' : '전자선을 끄면 마찰로 서서히 느려진다',
+        '간섭·회절이 아니라 충돌 → 운동량을 가진 <em>입자</em>'],
+      {tone: 'force', ctx: '④ 진공 속 바람개비', f: '운동량을 가진 전자가 날개에 부딪치면'});
+      minis([['날개에 맞은 전자', S.wHits + '개'], ['회전 속도', fmt(S.omega, 2) + ' 바퀴/s'], ['전자선', S.beam ? '쏘는 중' : '끔'], ['보여 주는 성질', '입자성']]);
       $('hudA').textContent = '맞은 전자 ' + S.wHits + '개';
       $('hudB').textContent = '회전 ' + fmt(S.omega, 2) + ' 바퀴/s';
-      Lab.check('exCheck', S.wHits >= 10, 'ㄷ 틀림: 바람개비 회전은 운동량을 가진 입자의 충돌 = 입자성 → 정답 ㄱ, ㄴ', 'ㄷ 확인: 전자선을 쏘아 바람개비가 도는지 보세요');
+      Lab.check('exCheck', S.wHits >= 10, 'ㄷ 틀림: 바람개비 회전은 운동량을 가진 입자의 충돌 = 입자성 → 정답 ㄱ, ㄴ', 'ㄷ 확인: 전자선을 쏘아 바람개비가 도는지 보자');
     }
-    const wave = sc !== 'wheel', tag = $('natTag');
-    tag.textContent = wave ? '파동성의 증거' : '입자성의 증거'; tag.style.color = wave ? 'var(--acc)' : 'var(--force)';
   }
   function setScene(sc) {
     S.scene = sc;
     document.querySelectorAll('[data-for]').forEach((el) => { el.hidden = el.dataset.for !== sc; });
-    const d = SC[sc];
-    $('legend').innerHTML = d.legend; $('tB').innerHTML = d.tB; $('cB').textContent = d.cB; $('tC').innerHTML = d.tC; $('cC').textContent = d.cC;
+    $('legend').innerHTML = LEG[sc];
     document.querySelectorAll('.ev tbody tr').forEach((tr) => tr.classList.toggle('on', tr.dataset.row === sc));
-    sceneG.set(sc, true); snapC.key = '';
-    readouts(); draw();
+    sceneG.set(sc, true);
+    readouts(); drawAll();
   }
 
   // ── 조작 ────────────────────────────────────────────────
@@ -1075,10 +1116,10 @@
   const sceneG = Lab.group('[data-scene]', 'scene', (v) => setScene(v), S.scene);
   Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
   const setSweep = (on) => { S.sweep = on; $('cSweep').checked = on; };
-  $('theta').addEventListener('input', (e) => { setSweep(false); setTheta(+e.target.value); readouts(); draw(); });
+  $('theta').addEventListener('input', (e) => { setSweep(false); setTheta(+e.target.value); readouts(); drawAll(); });
   $('cSweep').addEventListener('change', (e) => { S.sweep = e.target.checked; if (S.sweep && !S.playing) playCtl.set(true); });
-  $('cWave').addEventListener('change', (e) => { S.wave = e.target.checked; draw(); });
-  $('cDots').addEventListener('change', (e) => { S.dots = e.target.checked; draw(); });
+  $('cWave').addEventListener('change', (e) => { S.wave = e.target.checked; drawStage(); });
+  $('cDots').addEventListener('change', (e) => { S.dots = e.target.checked; drawStage(); });
   Lab.pointer(stage.el, {
     down(x, y) {
       if (S.scene !== 'dg') return;
@@ -1089,27 +1130,28 @@
     move(x, y) {
       if (!S.drag) return;
       const g = geoDG();
-      setSweep(false); setTheta(Math.atan2(x - g.cx, g.surfY - y) / DEG); readouts(); draw();
+      setSweep(false); setTheta(Math.atan2(x - g.cx, g.surfY - y) / DEG); readouts(); drawStage(); drawPanels('dg');
     },
     up() { S.drag = false; },
   });
   const vkG = Lab.group('[data-vk]', 'vk', (v) => { setVk(+v); }, S.vk);
-  function setVk(k) { S.vk = k; vkG.set(k, true); resetSlit(); readouts(); draw(); }
-  function setParticle(on) { S.particle = on; $('cPart').checked = on; resetSlit(); readouts(); draw(); }
+  function setVk(k) { S.vk = k; vkG.set(k, true); resetSlit(); readouts(); drawStage(); drawPanels('slit'); }
+  function setParticle(on) { S.particle = on; $('cPart').checked = on; resetSlit(); readouts(); drawStage(); drawPanels('slit'); }
+  function setRate(r) { S.rate = r; $('rate').value = r; $('rateOut').textContent = fmt(r, 1) + ' 개/s'; }
   $('cPart').addEventListener('change', (e) => setParticle(e.target.checked));
-  $('rate').addEventListener('input', (e) => { S.rate = +e.target.value; $('rateOut').textContent = fmt(S.rate, 1) + ' 개/s'; });
-  document.querySelectorAll('[data-fill]').forEach((b) => b.addEventListener('click', () => { fillSlit(+b.dataset.fill); readouts(); draw(); }));
+  $('rate').addEventListener('input', (e) => setRate(+e.target.value));
+  document.querySelectorAll('[data-fill]').forEach((b) => b.addEventListener('click', () => { fillSlit(+b.dataset.fill); readouts(); drawStage(); drawPanels('slit'); }));
   $('one').addEventListener('click', () => { launch(); if (!S.playing) { S.manual = true; playCtl.set(true); S.manual = true; } });
-  document.querySelectorAll('[data-tfill]').forEach((b) => b.addEventListener('click', () => { fillT(+b.dataset.tfill); readouts(); draw(); }));
-  $('cOver').addEventListener('change', (e) => { S.overlay = e.target.checked; draw(); });
+  document.querySelectorAll('[data-tfill]').forEach((b) => b.addEventListener('click', () => { fillT(+b.dataset.tfill); readouts(); drawStage(); drawPanels('thomson'); }));
+  $('cOver').addEventListener('change', (e) => { S.overlay = e.target.checked; drawStage(); });
   $('cBeam').addEventListener('change', (e) => { S.beam = e.target.checked; if (S.beam && !S.playing) playCtl.set(true); readouts(); });
   $('beamRate').addEventListener('input', (e) => { S.beamRate = +e.target.value; $('beamOut').textContent = S.beamRate + ' 개/s'; });
   $('reset').addEventListener('click', () => {
-    if (S.scene === 'dg') { S.trace.fill(0); S.parts = []; setTheta(20); S.trace.fill(0); S.trace[20] = 1; setSweep(true); S.sdir = 1; playCtl.set(true); }
+    if (S.scene === 'dg') { restartDG(); playCtl.set(true); }
     else if (S.scene === 'slit') resetSlit();
     else if (S.scene === 'thomson') resetT();
     else { S.omega = 0; S.ang = 0; S.wHits = 0; S.wParts = []; S.wHist = []; }
-    readouts(); draw();
+    readouts(); drawAll();
   });
   document.querySelectorAll('.ev tbody tr').forEach((tr) => {
     const go = () => setScene(tr.dataset.row);
@@ -1117,19 +1159,20 @@
     tr.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
   });
 
-  // 스스로 확인: 그 상황으로 바꾸기
+  // 단계 카드의 버튼: 그 상황으로 바꾸기
   const TRY = {
+    dg: () => { setScene('dg'); restartDG(); playCtl.set(true); },
     ex: () => { setScene('dg'); setSweep(false); setTheta(50); S.trace.fill(1); playCtl.set(true); },
     dg30: () => { setScene('dg'); setSweep(false); setTheta(30); playCtl.set(true); },
     dg50: () => { setScene('dg'); setSweep(false); setTheta(50); playCtl.set(true); },
     thomson: () => { setScene('thomson'); fillT(800); playCtl.set(true); },
     wheel: () => { setScene('wheel'); S.beam = true; $('cBeam').checked = true; playCtl.set(true); },
-    one: () => { setScene('slit'); setParticle(false); setVk(1); S.rate = 1; $('rate').value = 1; $('rateOut').textContent = '1 개/s'; resetSlit(); launch(); playCtl.set(true); },
+    one: () => { setScene('slit'); setParticle(false); setVk(1); setRate(1); resetSlit(); launch(); playCtl.set(true); },
     part: () => { setScene('slit'); setParticle(true); fillSlit(1500); playCtl.set(true); },
     v4: () => { setScene('slit'); setParticle(false); setVk(4); fillSlit(3000); playCtl.set(true); },
     v1: () => { setScene('slit'); setParticle(false); setVk(1); fillSlit(3000); playCtl.set(true); },
   };
-  Lab.tries(TRY, () => { readouts(); draw(); });
+  Lab.tries(TRY, () => { readouts(); drawAll(); });
 
   // ── 돌리기 ──────────────────────────────────────────────
   let roT = 0;
@@ -1141,7 +1184,7 @@
     else if (S.scene === 'slit') stepSlit(d);
     else if (S.scene === 'thomson') stepT(d);
     else stepWheel(d);
-    draw();
+    drawStage(); drawPanels(S.scene);
     roT += dt; if (roT > 0.12) { roT = 0; readouts(); }
   });
   setTheta(S.theta);

@@ -9,15 +9,13 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(줄 위의 두 파동·합성파·더하기 막대)와 조작판, 오른쪽 수치·점 P의 변위-시간·시각별 스냅샷 */
+/* 관찰 노트: 왼쪽 실험대(줄 위의 두 파동·합성파·더하기 막대) | 오른쪽 지금 값 + 관찰 ①~④(펄스 스냅샷·P의 시간표·정상파 스냅샷·P의 진동) → 정리 → 예제 → 스스로 확인 */
 #stage{aspect-ratio:16/9.8}
-#pt{aspect-ratio:10/7.4}
-#strobe{aspect-ratio:10/6.2}
-.ro.full{grid-column:1/-1}
+#pt,#ptw{aspect-ratio:10/7.4}
+#strobe,#stw{aspect-ratio:10/6.2}
 .legend b.dash{height:0;border-top:3px dashed currentColor;background:none!important;width:18px}
 .legend i.ring{background:none!important;border:2.5px solid var(--neg);width:11px;height:11px}
-.quiz .tag{white-space:nowrap}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.34} #strobe{aspect-ratio:10/10.5} }
+@media (max-width:640px){ #strobe,#stw{aspect-ratio:10/10.5} }
 </style>
 </head>
 <body class="cx">
@@ -29,163 +27,195 @@
 </div></header>
 <!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III1-10</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III1-10</span><span>물리학 Ⅰ · 파동의 성질과 활용</span></div>
     <h1>중첩 원리와 마주 진행하는 두 파동</h1>
-    <p class="lead">점선은 <b>각 파동만 있을 때</b>의 모양, 굵은 실선은 <b>실제 줄의 모양</b>이다. 위치마다 두 변위(보라·파랑 막대)를 쌓으면 실선이 된다. 시간을 앞뒤로 넘겨 보면 겹쳤던 두 펄스가 지나간 뒤 <b>원래 모양 그대로</b> 진행한다.</p>
-  </header>
+    <p class="question"><i>Q</i>두 파동이 만나면 어떻게 합쳐지고, 지나간 뒤에는 어떻게 될까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
         <canvas id="stage" aria-label="줄 위를 마주 진행하는 두 파동(점선)과 위치마다 두 변위를 더한 합성파(굵은 실선). 점 P를 끌어 옮길 수 있다."></canvas>
-        <div class="hud"><span class="pill num" id="hudT">t = 0.0 s</span><span class="pill" id="hudState">다가오는 중</span><span class="pill" id="hudScale" hidden></span></div>
+        <div class="hud"><span class="pill" id="hudT">t = 0 s</span><span class="pill" id="hudState">다가오는 중</span><span class="pill" id="hudScale" hidden></span></div>
         <div class="legend" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <button type="button" class="btn mono" id="back">◀ 1 s</button>
-          <button type="button" class="btn mono" id="fwd">1 s ▶</button>
-          <div class="group" role="group" aria-label="장면">
-            <span class="gl">장면</span>
-            <button type="button" class="btn" data-scene="pulse" aria-pressed="true">두 펄스</button>
-            <button type="button" class="btn" data-scene="wave" aria-pressed="false">두 사인파 → 정상파</button>
-          </div>
+          <div class="slider"><label for="tS"><span class="lg">시각 </span>t</label><input id="tS" type="range" min="0" max="10" step="0.1" value="0"><output id="tOut">0 s</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·조건</span><span class="sm">장면</span></button>
         </div>
-        <div class="row">
-          <div class="grow">
-            <label class="ctl-label" for="tS"><span id="tLab">시각 t (앞뒤로 넘기기)</span> <output id="tOut">0 s</output></label>
-            <input id="tS" type="range" min="0" max="10" step="0.1" value="0">
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 조건">
+          <div class="sheet-head"><b>장면 · 조건 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="pulse" aria-pressed="true">두 펄스</button>
+              <button type="button" class="btn" data-scene="wave" aria-pressed="false">두 사인파 → 정상파</button>
+            </div>
+            <button type="button" class="btn" id="back">◀ 1 s</button>
+            <button type="button" class="btn" id="fwd">1 s ▶</button>
           </div>
-        </div>
-        <div class="row" id="rowPulse1">
-          <div class="grow">
-            <label class="ctl-label" for="hA">A 높이 (마루) <output id="hAOut">3 cm</output></label>
-            <input id="hA" type="range" min="0.5" max="3" step="0.5" value="3">
+          <div class="row" id="rowPulse1">
+            <div class="grow">
+              <label class="ctl-label" for="hA">A 높이 (마루) <output id="hAOut">3 cm</output></label>
+              <input id="hA" type="range" min="0.5" max="3" step="0.5" value="3">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="hB">B 높이 (크기) <output id="hBOut">1 cm</output></label>
+              <input id="hB" type="range" min="0.5" max="3" step="0.5" value="1">
+            </div>
+            <div class="group" role="group" aria-label="B 펄스의 모양">
+              <span class="gl">B는</span>
+              <button type="button" class="btn" data-sign="1" aria-pressed="true">마루 ↑</button>
+              <button type="button" class="btn" data-sign="-1" aria-pressed="false">골 ↓</button>
+            </div>
           </div>
-          <div class="grow">
-            <label class="ctl-label" for="hB">B 높이 (크기) <output id="hBOut">1 cm</output></label>
-            <input id="hB" type="range" min="0.5" max="3" step="0.5" value="1">
+          <div class="row" id="rowPulse2">
+            <div class="grow">
+              <label class="ctl-label" for="vel">속력 v (두 펄스 같음) <output id="velOut">1 cm/s</output></label>
+              <input id="vel" type="range" min="0.5" max="2" step="0.5" value="1">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="dist">처음 두 중심 사이 거리 <output id="distOut">10 cm</output></label>
+              <input id="dist" type="range" min="6" max="14" step="1" value="10">
+            </div>
           </div>
-          <div class="group" role="group" aria-label="B 펄스의 모양">
-            <span class="gl">B는</span>
-            <button type="button" class="btn" data-sign="1" aria-pressed="true">마루 ↑</button>
-            <button type="button" class="btn" data-sign="-1" aria-pressed="false">골 ↓</button>
+          <div class="row" id="rowWave" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="lam">파장 λ (두 파동 같음) <output id="lamOut">8 cm</output></label>
+              <input id="lam" type="range" min="4" max="16" step="2" value="8">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="amp">진폭 A (두 파동 같음) <output id="ampOut">1 cm</output></label>
+              <input id="amp" type="range" min="0.5" max="2" step="0.25" value="1">
+            </div>
           </div>
-        </div>
-        <div class="row" id="rowPulse2">
-          <div class="grow">
-            <label class="ctl-label" for="vel">속력 v (두 펄스 같음) <output id="velOut">1 cm/s</output></label>
-            <input id="vel" type="range" min="0.5" max="2" step="0.5" value="1">
-          </div>
-          <div class="grow">
-            <label class="ctl-label" for="dist">처음 두 중심 사이 거리 <output id="distOut">10 cm</output></label>
-            <input id="dist" type="range" min="6" max="14" step="1" value="10">
-          </div>
-        </div>
-        <div class="row" id="rowWave" hidden>
-          <div class="grow">
-            <label class="ctl-label" for="lam">파장 λ (두 파동 같음) <output id="lamOut">8 cm</output></label>
-            <input id="lam" type="range" min="4" max="16" step="2" value="8">
-          </div>
-          <div class="grow">
-            <label class="ctl-label" for="amp">진폭 A (두 파동 같음) <output id="ampOut">1 cm</output></label>
-            <input id="amp" type="range" min="0.5" max="2" step="0.25" value="1">
-          </div>
-        </div>
-        <div class="row toggles">
-          <label class="chk"><input type="checkbox" id="cBars" checked>더하기 막대</label>
-          <label class="chk"><input type="checkbox" id="cComps" checked>각 파동 (점선)</label>
-          <label class="chk" id="envWrap" hidden><input type="checkbox" id="cEnv" checked>진동 범위</label>
-          <span class="spacer"></span>
-          <div class="group" role="group" aria-label="시간 빠르기">
-            <span class="gl">빠르기</span>
-            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="false">×0.5</button>
-            <button type="button" class="btn mono" data-speed="1" aria-pressed="true">×1</button>
-            <button type="button" class="btn mono" data-speed="2" aria-pressed="false">×2</button>
+          <div class="row">
+            <div class="toggles">
+              <label class="chk"><input type="checkbox" id="cBars" checked>더하기 막대</label>
+              <label class="chk"><input type="checkbox" id="cComps" checked>각 파동 (점선)</label>
+              <label class="chk" id="envWrap" hidden><input type="checkbox" id="cEnv" checked>진동 범위</label>
+            </div>
+            <div class="group" role="group" aria-label="시간 빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치</h2>
-        <div class="readouts">
-          <div class="ro cu"><span id="r1l">시각 t</span><b id="r1">0 s</b></div>
-          <div class="ro"><span id="r2l">두 중심 사이 거리</span><b id="r2">10 cm</b></div>
-          <div class="ro acc"><span id="r3l">합성파의 가장 높은 곳</span><b id="r3">+3 cm</b></div>
-          <div class="ro"><span id="r4l">합성파의 가장 낮은 곳</span><b id="r4">0 cm</b></div>
-          <div class="ro full"><span id="r5l">점 P의 변위 = y<sub>A</sub> + y<sub>B</sub></span><b id="r5">0</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">점 P (x = 10 cm)의 변위</span><span id="ansCtx">t = 0 s · 다가오는 중</span></div>
+        <div class="big" id="ansBig">y = 0</div>
+        <div class="sub">
+          <span class="f" id="ansF">중첩 원리 y = y<sub>A</sub> + y<sub>B</sub> 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">y<sub>A</sub> + y<sub>B</sub> = (0) + (0) = <em>0</em></span><span class="v">완전히 겹치는 시각 = 10 ÷ (1 + 1) = <em>5 s</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="r1l">시각 t</span><b id="r1">0 s</b></div>
+          <div class="mini"><span id="r2l">두 중심 사이 거리</span><b id="r2">10 cm</b></div>
+          <div class="mini"><span id="r3l">합성파의 가장 높은 곳</span><b id="r3">+3 cm</b></div>
+          <div class="mini"><span id="r4l">합성파의 가장 낮은 곳</span><b id="r4">0 cm</b></div>
         </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2 id="ptTitle">점 P의 변위-시간 <small>도착·떠남 시간표</small></h2>
-        <canvas class="flat" id="pt" aria-label="점 P의 변위-시간 그래프. 두 파동이 P에 머무는 시간표와 각 파동의 변위, 그 합."></canvas>
-        <p class="cap" id="ptCap"></p>
-      </section>
-      <section class="panel wide">
-        <h2 id="stTitle">시각별로 옮겨 그린 뒤 더하기 <small>개념서 그림 ①</small></h2>
-        <canvas class="flat" id="strobe" aria-label="여러 시각의 모습. 각 파동을 따로 옮긴 뒤 위치마다 더한 합성파."></canvas>
-        <p class="cap" id="stCap"></p>
-      </section>
-    </aside>
-  </main>
+      </div>
 
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>중첩 원리: 변위의 대수 합</h3>
-        <p>두 파동이 같은 곳에 오면 그 점의 변위는 각 파동 변위의 <b>합</b>이다. 마루+마루는 커지고(3 + 1 = 4), 마루+골은 작아진다(2 + (−3) = −1).</p>
-        <p>부호까지 더하는 합이라서, 크기가 같은 마루와 골이 겹치면 그 순간 0이 될 수도 있다.</p>
-      </article>
-      <article class="concept">
-        <h3>독립성: 지나간 뒤에는 원래대로</h3>
-        <p>겹쳤다 지나간 두 파동은 서로 아무 영향도 받지 않은 것처럼 <b>원래 모양과 속력</b>으로 계속 진행한다.</p>
-        <p>그래서 풀 때는 묻는 시각마다 두 파형을 <b>따로 v·t만큼 옮겨</b> 그린 뒤 위치마다 더한다. 한 점의 변위-시간은 도착·떠남 시간표를 만들어 겹치는 구간만 더한다.</p>
-      </article>
-      <article class="concept">
-        <h3>마디와 배</h3>
-        <p>진폭·파장이 같은 두 파동이 반대 방향으로 진행하면, 변위가 늘 0인 <b>마디</b>와 −2A~+2A 사이를 크게 진동하는 <b>배</b>가 제자리에 번갈아 생긴다.</p>
-        <p>이웃한 마디 사이 = <span class="eq">λ/2</span>, 배와 이웃한 마디 사이 = <span class="eq">λ/4</span>. 배도 진동하는 동안 변위 0을 지난다.</p>
-      </article>
-    </div>
-    <p class="compare">겹친 순간 작아지거나 0이 되어도 파동이 사라진 것이 아니다. 그 순간 그 자리에서 두 변위가 더해졌을 뿐이고, 지나가면 각자 원래 모양으로 진행한다.</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>모양(폭)이 같고 높이가 +3 cm, +1 cm인 두 펄스가 각각 1 cm/s로 마주 진행한다. 처음 두 중심 사이가 10 cm일 때, 완전히 겹치는 시각과 그때의 최대 변위는? 지나간 뒤 각 펄스의 높이는?<span class="tag">개념서 예제</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button></div>
-        <details><summary>답 보기</summary><p>다가가는 속력이 1 + 1 = 2 cm/s이므로 10 ÷ 2 = <b>5 s</b>에 완전히 겹친다. 그때 최대 변위는 3 + 1 = <b>4 cm</b>. 지나간 뒤에는 독립성에 따라 <b>3 cm, 1 cm</b> 그대로 진행한다. 무대는 5 s에 멈춰 있으니 ‘움직이기’로 그 뒤를 확인해 보자.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>높이 +2 cm인 펄스 A와 −3 cm인 펄스 B가 같은 폭으로 마주 진행한다. 완전히 겹친 순간 겹친 곳의 변위와, 지나간 뒤 B의 모양은?</p>
-        <div class="acts"><button type="button" class="btn" data-try="q2">+2 cm와 −3 cm로</button></div>
-        <details><summary>답 보기</summary><p>(+2) + (−3) = <b>−1 cm</b>. 지나간 뒤 B는 <b>원래 모양(−3 cm)</b> 그대로 진행한다. 겹쳐서 작아진 모양이 그대로 남는다고 생각하면 틀린다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>예제의 두 펄스에서, 만나는 곳(x = 10 cm)에서 왼쪽으로 2 cm 떨어진 점 P(x = 8 cm)의 변위는 시간에 따라 어떻게 변할까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="q3">P를 x = 8 cm에 두기</button></div>
-        <details><summary>답 보기</summary><p>A가 1~5 s 동안 지나가며 3 cm까지 올랐다 내려오고, B가 5~9 s 동안 1 cm까지 올랐다 내려온다. 이 점에는 두 펄스가 함께 머무는 시간이 없어(5 s에 맞닿을 뿐) 더해지는 구간이 없다. 시간표를 먼저 만들면 바로 보인다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>진폭 A, 파장 λ인 두 파동이 반대 방향으로 진행해 마디와 배가 생겼다. 배에서는 변위가 항상 2A일까? 이웃한 두 마디 사이 거리는?</p>
-        <div class="acts"><button type="button" class="btn" data-try="q4">정상파의 배에 P 두기</button></div>
-        <details><summary>답 보기</summary><p>아니다. 배는 −2A와 +2A 사이를 진동하므로 <b>변위가 0인 순간</b>도 지난다(T/4마다 줄 전체가 평평). 변위가 늘 0인 곳은 마디이고, 이웃한 마디 사이는 <b>λ/2</b>, 배와 이웃한 마디 사이는 λ/4다.</p></details>
-      </li>
-    </ol>
-    <!-- nextprev -->
+      <ol class="steps">
+        <li class="card step" data-step="① 겹치면 더한다">
+          <div class="kind">관찰 1</div>
+          <h3>겹친 곳의 변위는 두 변위의 합이다</h3>
+          <p>점선은 각 파동만 있을 때의 모양, 굵은 실선은 실제 줄의 모양이다. 위치마다 두 변위(보라·파랑 막대)를 쌓으면 실선이 된다. 마루와 마루가 만나면 커지고(3 + 1 = 4), 마루와 골이 만나면 작아진다(2 + (−3) = −1).</p>
+          <p class="cap">부호까지 더하는 합(대수 합)이라서, 크기가 같은 마루와 골이 겹치면 그 순간 0이 될 수도 있다. 무대의 점 P를 끌어 다른 자리의 두 막대도 더해 보자.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="meet">완전히 겹친 순간으로</button>
+            <button type="button" class="btn" data-do="click:[data-sign='-1']">B를 골로</button>
+            <button type="button" class="btn" data-do="click:[data-sign='1']">B를 마루로</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 지나간 뒤">
+          <div class="kind">관찰 2</div>
+          <h3>지나간 뒤에는 원래 모양 그대로 간다</h3>
+          <p>겹쳤다 지나간 두 파동은 서로 아무 영향도 받지 않은 것처럼 <b>원래 모양과 속력</b>으로 계속 진행한다(독립성). 그래서 풀 때는 묻는 시각마다 두 파형을 따로 v·t만큼 옮겨 그린 뒤 위치마다 더한다.</p>
+          <canvas class="flat" id="strobe" aria-label="여러 시각의 모습. 각 펄스를 따로 옮긴 뒤 위치마다 더한 합성파."></canvas>
+          <p class="cap">개념서 그림 ①처럼 시각별로 옮겨 그린 뒤 더했다. 겹친 순간 작아지거나 0이 되어도 파동이 사라진 것이 아니다. 그 순간 그 자리에서 두 변위가 더해졌을 뿐이다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="fwd1">1 s ▶</button>
+            <button type="button" class="btn" data-try="after">지나간 뒤로</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 한 점의 시간표">
+          <div class="kind">관찰 3</div>
+          <h3>한 점에서는 두 파동이 함께 있는 동안만 더해진다</h3>
+          <p>점 P의 변위를 시간에 따라 그리려면 A·B가 P에 도착하고 떠나는 시각부터 적는다(시간표). 두 파동이 함께 있는 구간에서만 두 변위가 더해진다.</p>
+          <canvas class="flat" id="pt" aria-label="점 P의 변위-시간 그래프. 두 펄스가 P에 머무는 시간표와 각 펄스의 변위, 그 합."></canvas>
+          <p class="cap">점선 = 각 파동, 실선 = 합. 예제에서 만나는 곳(x = 10 cm)에는 두 펄스가 3~7 s 동안 함께 있지만, 2 cm 왼쪽(x = 8 cm)에는 A가 1~5 s, B가 5~9 s에 지나가 함께 머무는 시간이 없다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="p10">P를 가운데(x = 10 cm)에</button>
+            <button type="button" class="btn" data-try="q3">P를 x = 8 cm에</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 마디와 배">
+          <div class="kind">관찰 4</div>
+          <h3>마주 오는 두 사인파는 제자리에서 진동하는 모양을 만든다</h3>
+          <p>진폭·파장이 같은 두 파동이 반대 방향으로 진행하면, 변위가 늘 0인 <b>마디</b>와 −2A ~ +2A 사이를 크게 진동하는 배가 제자리에 번갈아 생긴다. 이웃한 마디 사이는 λ/2, 배와 이웃한 마디 사이는 λ/4다.</p>
+          <canvas class="flat" id="stw" aria-label="⅛ 주기마다 찍은 두 사인파와 합성파. 마디는 늘 제자리 0이다."></canvas>
+          <p class="cap">개념서 그림 ②처럼 ⅛ 주기마다 찍었다. 두 파동이 같은 쪽으로 겹치면 배가 ±2A가 되고, T/4에는 모든 곳에서 두 변위가 반대라 줄 전체가 평평하다. 빨간 고리(마디)는 늘 제자리 0이다.</p>
+          <canvas class="flat" id="ptw" aria-label="정상파에서 점 P의 변위-시간 그래프. 배는 −2A와 +2A 사이를 오가며 변위 0도 지난다."></canvas>
+          <p class="cap">점 P의 변위-시간: 배는 −2A ~ +2A 사이를 오가며 변위 0도 지난다(○). 마디는 늘 0이다. 무대에서 P를 끌어 견줘 보자.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="wave">정상파 보기</button>
+            <button type="button" class="btn" data-try="node">P를 마디에</button>
+            <button type="button" class="btn" data-try="q4">P를 배에</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>변위는 더하고, 지나가면 그대로</h3>
+          <ul>
+            <li>중첩 원리: <span class="eq">y = y<sub>A</sub> + y<sub>B</sub></span> (부호까지 더하는 대수 합). 마루 + 마루 3 + 1 = 4, 마루 + 골 2 + (−3) = −1.</li>
+            <li>독립성: 지나간 뒤에는 원래 모양과 속력 그대로. 시각마다 두 파형을 따로 v·t 옮겨 그린 뒤 더하고, 한 점은 도착·떠남 시간표로 본다.</li>
+            <li>마주 오는 두 펄스가 만나는 시각 = 거리 ÷ (v₁ + v₂). 정상파: 마디 사이 <span class="eq">λ/2</span>, 배–마디 <span class="eq">λ/4</span>, 배는 −2A ~ +2A.</li>
+            <li>자주 하는 실수: 겹친 순간 작아지거나 0이 되어도 파동이 사라진 것이 아니다. 배라고 변위가 늘 2A인 것도 아니다(0도 지난다).</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>모양(폭)이 같고 높이가 +3 cm, +1 cm인 두 펄스가 각각 1 cm/s로 마주 진행한다. 처음 두 중심 사이가 10 cm일 때, 완전히 겹치는 시각과 그때의 최대 변위는? 지나간 뒤 각 펄스의 높이는?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>다가가는 속력이 1 + 1 = 2 cm/s이므로 10 ÷ 2 = <b>5 s</b>에 완전히 겹친다. 그때 최대 변위는 3 + 1 = <b>4 cm</b>. 지나간 뒤에는 독립성에 따라 <b>3 cm, 1 cm</b> 그대로 진행한다. 무대는 5 s에 멈춰 있으니 ‘움직이기’로 그 뒤를 확인해 보자.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>높이 +2 cm인 펄스 A와 −3 cm인 펄스 B가 같은 폭으로 마주 진행한다. 완전히 겹친 순간 겹친 곳의 변위와, 지나간 뒤 B의 모양은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q2">+2 cm와 −3 cm로</button></div>
+            <details class="ans"><summary>답 보기</summary><p>(+2) + (−3) = <b>−1 cm</b>. 지나간 뒤 B는 원래 모양(−3 cm) 그대로 진행한다. 겹쳐서 작아진 모양이 그대로 남는다고 생각하면 틀린다.</p></details>
+          </div>
+          <div class="q">
+            <h3>예제의 두 펄스에서, 만나는 곳(x = 10 cm)에서 왼쪽으로 2 cm 떨어진 점 P(x = 8 cm)의 변위는 시간에 따라 어떻게 변할까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q3">P를 x = 8 cm에 두기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>A가 1~5 s 동안 지나가며 3 cm까지 올랐다 내려오고, B가 5~9 s 동안 1 cm까지 올랐다 내려온다. 이 점에는 두 펄스가 함께 머무는 시간이 없어(5 s에 맞닿을 뿐) <b>더해지는 구간이 없다</b>. 시간표를 먼저 만들면 바로 보인다.</p></details>
+          </div>
+          <div class="q">
+            <h3>진폭 A, 파장 λ인 두 파동이 반대 방향으로 진행해 마디와 배가 생겼다. 배에서는 변위가 항상 2A일까? 이웃한 두 마디 사이 거리는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q4">정상파의 배에 P 두기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>아니다. 배는 −2A와 +2A 사이를 진동하므로 <b>변위가 0인 순간</b>도 지난다(T/4마다 줄 전체가 평평). 변위가 늘 0인 곳은 마디이고, 이웃한 마디 사이는 λ/2, 배와 이웃한 마디 사이는 λ/4다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><a href="../09/" rel="prev"><small>← 이전 개념 · III1-09</small><b>전자기파의 이용</b></a><a href="../11/" rel="next"><small>다음 개념 · III1-11 →</small><b>물결파·소리의 간섭</b></a></nav>
 <!-- /nextprev -->
-  </section>
+    </section>
+  </main>
 </div>
-
 <script src="../../kit/lab.js"></script>
 <script src="III1-10-model.js"></script>
 <script>
@@ -213,6 +243,8 @@
     const s = wav(); return [M.waveR(S.xP, S.tau, s), M.waveL(S.xP, S.tau, s)];
   }
   const sgn = (v, d = 1) => (Math.abs(v) < 0.05 ? '0' : sg(v, d));
+  // 보여 주는 자릿수로 반올림한 두 변위의 합 (식 줄의 더하기가 화면 숫자 그대로 맞게)
+  const rd = (v, d) => Math.round(v * 10 ** d) / 10 ** d, shownSum = (a, b, d = 1) => rd(rd(a, d) + rd(b, d), d);
   function fracT(tau) {                                 // 0.375 → 3T/8
     const k = Math.round(tau * 16);
     if (Math.abs(tau * 16 - k) > 1e-6) return fmt(tau, 2) + 'T';
@@ -222,14 +254,19 @@
   }
 
   // ── 무대 ────────────────────────────────────────────────
-  const stage = Lab.canvas('stage', draw), pt = Lab.canvas('pt', draw), strobe = Lab.canvas('strobe', draw);
+  // 그래프는 맡은 관찰이 정해져 있다: pt·strobe = 두 펄스(관찰 ②·③), ptw·stw = 정상파(관찰 ④). 무대 장면과 상관없이 늘 그 그림
+  const stage = Lab.canvas('stage', draw), pt = Lab.canvas('pt', draw), strobe = Lab.canvas('strobe', draw),
+    ptw = Lab.canvas('ptw', draw), stw = Lab.canvas('stw', draw);
+  const legEl = $('legend');
 
   function geo() {
     const {W, H} = stage, narrow = W < 520, pulse = isPulse();
     const padL = narrow ? 34 : 50, padR = narrow ? 14 : 22;
     const x0 = narrow && pulse ? 1 : 0, x1 = narrow && pulse ? L - 1 : L;
     const sx = (W - padL - padR) / (x1 - x0);
-    const top = narrow ? 84 : 54, axisY = H - (narrow ? 112 : 72), bot = axisY - 18;
+    // 위: HUD(한 줄) 아래. 아래: 범례가 무대 안에 있으면(넓은 화면) 범례 높이, 시트로 옮겨졌으면 지금 단계 표시(#nowstep) 자리, 그리고 x 눈금 글자
+    const legIn = !!(legEl.parentNode && legEl.parentNode.classList.contains('stage'));
+    const top = narrow ? 52 : 54, axisY = H - (legIn ? (legEl.offsetHeight || 34) + 16 : 34) - 24, bot = axisY - 18;
     const need = pulse ? 6 : 8;                          // 가장 큰 경우의 세로 범위(cm): 3+3, ±2A(A=2)
     const room = pulse ? 78 : 50;                        // 위쪽 이름표 자리(px)
     const sy = Math.min(sx * (narrow ? 2.6 : 1), (bot - top - room) / need);
@@ -250,7 +287,7 @@
     ctx.restore();
     for (let k = -kBot; k <= kTop; k++) {
       if (g.sy < 22 && k % 2) continue;
-      text(ctx, k === 0 ? '0' : sg(k, 0), X(x0) - 8, Y(k), {size: 13, w: 500, color: C.muted, mono: true, align: 'right'});
+      text(ctx, k === 0 ? '0' : sg(k, 0), X(x0) - 8, Y(k), {size: 13, w: 500, color: C.muted, align: 'right'});
     }
     text(ctx, 'cm', X(x0) - 8, Y(kTop) - 15, {size: 13, w: 500, color: C.muted, align: 'right'});
     // 평형 위치
@@ -262,12 +299,13 @@
     for (let x = Math.ceil(x0); x <= x1 + 1e-9; x++) {
       const big = x % 2 === 0;
       ctx.beginPath(); ctx.moveTo(X(x), axisY - (big ? 4 : 2)); ctx.lineTo(X(x), axisY + (big ? 4 : 2)); ctx.stroke();
-      if (big && (!narrow || x % 4 === 0)) text(ctx, String(x), X(x), axisY + 14, {size: 13, w: 500, color: C.muted, mono: true});
+      if (big && (!narrow || x % 4 === 0)) text(ctx, String(x), X(x), axisY + 14, {size: 13, w: 500, color: C.muted});
     }
     ctx.restore();
     text(ctx, 'x (cm)', X(x1), axisY - 14, {size: 13, w: 500, color: C.muted, align: 'right'});
     const sc = $('hudScale'), big = g.sy > g.sx * 1.15;
-    sc.hidden = !big; if (big) sc.textContent = '세로 ' + fmt(g.sy / g.sx, 1) + '배 확대';
+    const scT = big ? '세로 ' + fmt(g.sy / g.sx, 1) + (narrow ? '배' : '배 확대') : '';
+    sc.hidden = !big; if (sc.textContent !== scT) sc.textContent = scT;
   }
 
   // 바탕 상자를 깐 글자 (선이 글자 사이로 비치지 않게)
@@ -297,14 +335,14 @@
     if (S.bars) {
       ctx.fillStyle = C.violet; ctx.fillRect(px - bw - 1, Math.min(Y(0), Y(ya)), bw, Math.abs(Y(ya) - Y(0)));
       ctx.fillStyle = C.vel; ctx.fillRect(px + 1, Math.min(Y(ya), Y(y)), bw, Math.abs(Y(y) - Y(ya)));
-      if (both && Math.abs(ya) * g.sy >= 24) text(ctx, 'A ' + sg(ya, 1), px - bw - 6, (Y(0) + Y(ya)) / 2, {size: 13.5, color: C.violet, w: 700, align: 'right', halo: true, mono: true});
-      if (both && Math.abs(yb) * g.sy >= 28) text(ctx, 'B ' + sg(yb, 1), px + bw + 6, (Y(ya) + Y(y)) / 2 + (yb > 0 ? 3 : -3), {size: 13.5, color: C.vel, w: 700, align: 'left', halo: true, mono: true});
+      if (both && Math.abs(ya) * g.sy >= 24) text(ctx, 'A ' + sg(ya, 1), px - bw - 6, (Y(0) + Y(ya)) / 2, {size: 13.5, color: C.violet, w: 600, align: 'right', halo: true});
+      if (both && Math.abs(yb) * g.sy >= 28) text(ctx, 'B ' + sg(yb, 1), px + bw + 6, (Y(ya) + Y(y)) / 2 + (yb > 0 ? 3 : -3), {size: 13.5, color: C.vel, w: 600, align: 'left', halo: true});
     }
     Lab.circle(ctx, px, Y(y), 6.5, {fill: C.copper, stroke: C.paper, width: 2});
-    tag(ctx, '= ' + sgn(y), px + bw + 6, Y(y) - (yb >= 0 ? 7 : -7) * (both ? 1 : 0), {size: 14.5, color: C.ink, w: 700, mono: true});
+    tag(ctx, '= ' + sgn(shownSum(ya, yb)), px + bw + 6, Y(y) - (yb >= 0 ? 7 : -7) * (both ? 1 : 0), {size: 14.5, color: C.ink, w: 700});
     // 손잡이
     Lab.circle(ctx, px, axisY, 9, {fill: C.copper, stroke: C.paper, width: 2});
-    text(ctx, 'P', px, axisY + 0.5, {size: 13, color: C['on-copper'], w: 700});
+    text(ctx, 'P', px, axisY + 0.5, {size: 13, color: C['on-copper'], w: 600});
   }
 
   function drawPulses(ctx, g) {
@@ -333,7 +371,7 @@
     const yTop = Y(g.hi);
     ps.forEach((p, i) => {
       const c = M.center(p, t); if (c < x0 - 2 || c > x1 + 2) return;
-      const lab = (i ? 'B ' : 'A ') + sg(p.h, 1) + ' cm', o = {size: 14, color: cols[i], w: 700, align: p.dir > 0 ? 'right' : 'left', halo: true};
+      const lab = (i ? 'B ' : 'A ') + sg(p.h, 1) + ' cm', o = {size: 14, color: cols[i], w: 600, align: p.dir > 0 ? 'right' : 'left', halo: true};
       const lw = Lab.measure(ctx, lab, o), s = p.dir, ry = yTop - (i ? 40 : 64);
       // 이름표(화살표 뒤쪽)와 화살표가 무대 안에 들어오게
       const lo = s > 0 ? X(x0) + 36 + lw : X(x0) + 26, hi = s > 0 ? X(x1) - 26 : X(x1) - 36 - lw;
@@ -345,7 +383,7 @@
     if (Math.abs(t - tMeet()) < 1e-6) {
       const e = M.extremes(t, ps, x0, x1, 1200), up = e.big.y >= 0;
       if (Math.abs(S.xP - e.big.x) > 1.6) {
-        text(ctx, '(' + sg(S.hA, 1) + ') + (' + sg(S.sB * S.hB, 1) + ') = ' + sgn(e.big.y), X(e.big.x) + 16, Y(e.big.y) + (up ? 4 : -4), {size: 14.5, color: C.acc, w: 700, align: 'left', halo: true, mono: true});
+        text(ctx, '(' + sg(S.hA, 1) + ') + (' + sg(S.sB * S.hB, 1) + ') = ' + sgn(e.big.y), X(e.big.x) + 16, Y(e.big.y) + (up ? 4 : -4), {size: 14.5, color: C.acc, w: 700, align: 'left', halo: true});
       }
     }
     const [ya, yb] = atP();
@@ -374,10 +412,10 @@
     const far = (arr, pref) => arr.filter((x) => Math.abs(x - S.xP) > s.lambda / 4 + 0.1 && x > x0 + 0.5 && x < x1 - 0.5)
       .sort((a, b) => Math.abs(a - pref) - Math.abs(b - pref))[0];
     const nx = far(ns, (x0 + x1) * 0.3), ax = far(an, (x0 + x1) * 0.62);
-    if (nx !== undefined) text(ctx, '마디 (늘 0)', X(nx), Y(0) + 24, {size: 13.5, color: C.neg, w: 700, halo: true});
+    if (nx !== undefined) text(ctx, '마디 (늘 0)', X(nx), Y(0) + 24, {size: 13.5, color: C.neg, w: 600, halo: true});
     if (ax !== undefined) {
       arrow(ctx, X(ax), Y(0), X(ax), Y(2 * A) + 1, C.acc, 2.2, 8); arrow(ctx, X(ax), Y(0), X(ax), Y(-2 * A) - 1, C.acc, 2.2, 8);
-      text(ctx, '배: −2A ~ +2A', X(ax), Y(2 * A) - 14, {size: 13.5, color: C.acc, w: 700, halo: true});
+      text(ctx, '배: −2A ~ +2A', X(ax), Y(2 * A) - 14, {size: 13.5, color: C.acc, w: 600, halo: true});
     }
     const i0 = ns.findIndex((x) => x > x0 + 0.1 && x + s.lambda / 2 < x1 - 0.1 && Math.abs(x + s.lambda / 4 - S.xP) > s.lambda / 4 + 0.2 && (ax === undefined || Math.abs(x + s.lambda / 4 - ax) > 0.1));
     if (i0 >= 0) bracket(ctx, X(ns[i0]), X(ns[i0 + 1]), Y(-2 * A) + 22, C.copper, 'λ/2 = ' + fmt(s.lambda / 2) + ' cm', false);
@@ -385,9 +423,9 @@
     const ry = Y(2 * A) - 36;
     arrow(ctx, X(x0) + 18, ry, X(x0) + 18 + (narrow ? 34 : 44), ry, C.violet, 3, 10);
     const ah = narrow ? 34 : 44;
-    text(ctx, narrow ? '오른쪽 진행' : '오른쪽으로 진행', X(x0) + ah + 26, ry, {size: 14, color: C.violet, w: 700, align: 'left', halo: true});
+    text(ctx, narrow ? '오른쪽 진행' : '오른쪽으로 진행', X(x0) + ah + 26, ry, {size: 14, color: C.violet, w: 600, align: 'left', halo: true});
     arrow(ctx, X(x1) - 18, ry, X(x1) - 18 - (narrow ? 34 : 44), ry, C.vel, 3, 10);
-    text(ctx, narrow ? '왼쪽 진행' : '왼쪽으로 진행', X(x1) - ah - 26, ry, {size: 14, color: C.vel, w: 700, align: 'right', halo: true});
+    text(ctx, narrow ? '왼쪽 진행' : '왼쪽으로 진행', X(x1) - ah - 26, ry, {size: 14, color: C.vel, w: 600, align: 'right', halo: true});
     const [ya, yb] = atP();
     drawProbe(ctx, g, ya, yb, M.ampAt(S.xP, s));
   }
@@ -401,10 +439,10 @@
   }
 
   // ── 점 P 의 변위-시간 ───────────────────────────────────
-  function drawPT() {
-    const {ctx, W, H} = pt; if (!W) return;
+  function drawPTv(view, pulse) {             // pulse: 두 펄스의 시간표(관찰 ③), 아니면 정상파의 마디·배(관찰 ④)
+    const {ctx, W, H} = view; if (!W) return;
     ctx.clearRect(0, 0, W, H);
-    const r = {x: 44, y: isPulse() ? 76 : 40, w: W - 60, h: 0};
+    const r = {x: 44, y: pulse ? 76 : 40, w: W - 60, h: 0};
     r.h = H - r.y - 30;
     const yAxis = (lo, hi) => {
       const Y = (y) => r.y + (hi - y) / (hi - lo) * r.h;
@@ -414,7 +452,7 @@
       arrow(ctx, r.x, r.y + r.h, r.x, r.y - 8, C.muted, 1.3, 7);
       ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(r.x, Y(0)); ctx.lineTo(r.x + r.w, Y(0)); ctx.stroke(); ctx.restore();
       const stp = hi - lo > 6 ? 2 : 1;
-      for (let k = Math.ceil(lo / stp) * stp; k <= hi; k += stp) text(ctx, k === 0 ? '0' : sg(k, 0), r.x - 7, Y(k), {size: 13, w: 500, color: C.muted, mono: true, align: 'right'});
+      for (let k = Math.ceil(lo / stp) * stp; k <= hi; k += stp) text(ctx, k === 0 ? '0' : sg(k, 0), r.x - 7, Y(k), {size: 13, w: 500, color: C.muted, align: 'right'});
       text(ctx, 'y (cm)', r.x + 6, r.y - 6, {size: 13, w: 600, color: C.muted, align: 'left'});
       return Y;
     };
@@ -423,7 +461,7 @@
       for (let i = 0; i <= 240; i++) { const tt = a + (b - a) * i / 240; pts.push([T(tt), Y(f(tt))]); }
       Lab.line(ctx, pts, col, w, dash); ctx.restore();
     };
-    if (isPulse()) {
+    if (pulse) {
       const ps = pulses(), te = tEnd(), b = S.sB * S.hB;
       const hi = Math.max(0.5, S.hA, b, S.hA + b) + 0.6, lo = Math.min(-0.5, S.hA, b, S.hA + b) - 0.6;
       const T = (t) => r.x + t / te * r.w;
@@ -434,20 +472,20 @@
         ctx.fillRect(T(Math.max(0, ov[0])), 6, T(Math.min(te, ov[1])) - T(Math.max(0, ov[0])), r.y + r.h - 6); ctx.restore();
       }
       [[ia, C.violet, 'A', 18], [ib, C.vel, 'B', 44]].forEach(([iv, col, nm, yy]) => {
-        text(ctx, nm, r.x - 10, yy, {size: 14, color: col, w: 700, align: 'right'});
+        text(ctx, nm, r.x - 10, yy, {size: 14, color: col, w: 600, align: 'right'});
         ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(r.x, yy); ctx.lineTo(r.x + r.w, yy); ctx.stroke(); ctx.restore();
         const a = Math.max(0, iv[0]), bb = Math.min(te, iv[1]);
         if (bb > a + 1e-9) {
           ctx.fillStyle = col; Lab.rrect(ctx, T(a), yy - 9, T(bb) - T(a), 18, 6); ctx.fill();
-          if (T(bb) - T(a) > 56) text(ctx, fmt(a, 1) + '~' + fmt(bb, 1) + ' s', (T(a) + T(bb)) / 2, yy, {size: 13, color: C.paper, w: 700, mono: true});
+          if (T(bb) - T(a) > 56) text(ctx, fmt(a, 1) + '~' + fmt(bb, 1) + ' s', (T(a) + T(bb)) / 2, yy, {size: 13, color: C.paper, w: 600});
         }
       });
-      text(ctx, ov ? '함께 있는 동안만 더함' : '함께 머무는 시간 없음', r.x + r.w, 62, {size: 13, color: ov ? C.acc : C.muted, w: 700, align: 'right'});
+      text(ctx, ov ? '함께 있는 동안만 더함' : '함께 머무는 시간 없음', r.x + r.w, 62, {size: 13, color: ov ? C.acc : C.muted, w: 600, align: 'right'});
       const Y = yAxis(lo, hi);
       const stp = te > 8 ? 2 : 1;
       for (let k = 0; k <= te + 1e-9; k += stp) {
         ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(T(k), r.y + r.h - 3); ctx.lineTo(T(k), r.y + r.h + 3); ctx.stroke(); ctx.restore();
-        text(ctx, fmt(k, 1), T(k), r.y + r.h + 15, {size: 13, w: 500, color: C.muted, mono: true});
+        text(ctx, fmt(k, 1), T(k), r.y + r.h + 15, {size: 13, w: 500, color: C.muted});
       }
       text(ctx, 't (s)', r.x + r.w, r.y + r.h - 12, {size: 13, w: 600, color: C.muted, align: 'right'});
       const fa = (tt) => M.pulseY(S.xP, tt, ps[0]), fb = (tt) => M.pulseY(S.xP, tt, ps[1]), fs = (tt) => fa(tt) + fb(tt);
@@ -462,10 +500,10 @@
       [2 * A, -2 * A].forEach((v) => {
         ctx.save(); ctx.strokeStyle = C.acc; ctx.globalAlpha = 0.6; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(r.x, Y(v)); ctx.lineTo(r.x + r.w, Y(v)); ctx.stroke(); ctx.restore();
-        text(ctx, (v > 0 ? '+' : '−') + '2A', r.x + r.w, Y(v) + (v > 0 ? -10 : 10), {size: 13, w: 700, color: C.acc, align: 'right'});
+        text(ctx, (v > 0 ? '+' : '−') + '2A', r.x + r.w, Y(v) + (v > 0 ? -10 : 10), {size: 13, w: 600, color: C.acc, align: 'right'});
       });
       for (let k = 0; k <= 2; k++) {
-        text(ctx, k ? (k === 1 ? 'T' : '2T') : '0', T(k), r.y + r.h + 15, {size: 13, w: 500, color: C.muted, mono: true});
+        text(ctx, k ? (k === 1 ? 'T' : '2T') : '0', T(k), r.y + r.h + 15, {size: 13, w: 500, color: C.muted});
       }
       text(ctx, 't', r.x + r.w + 4, Y(0) + 14, {size: 13, w: 600, color: C.muted, align: 'right'});
       const fa = (tt) => M.waveR(S.xP, tt, s), fb = (tt) => M.waveL(S.xP, tt, s), fs = (tt) => fa(tt) + fb(tt);
@@ -479,17 +517,17 @@
       });
       Lab.circle(ctx, T(S.tau), Y(fs(S.tau)), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
       const msg = kd === 'node' ? 'P는 마디: 늘 0' : kd === 'antinode' ? 'P는 배: 진폭 2A, ○ = 변위 0인 순간' : 'P의 진폭 ' + fmt(amp, 2) + ' cm';
-      text(ctx, msg, r.x + 6, 12, {size: 13.5, w: 700, color: kd === 'node' ? C.neg : C.acc, align: 'left'});
+      text(ctx, msg, r.x + 6, 12, {size: 13.5, w: 600, color: kd === 'node' ? C.neg : C.acc, align: 'left'});
     }
   }
 
   // ── 시각별 스냅샷 ───────────────────────────────────────
-  function drawStrobe() {
-    const {ctx, W, H} = strobe; if (!W) return;
+  function drawStrobeV(view, pulse) {          // pulse: 시각별 펄스(관찰 ②, 개념서 그림 ①), 아니면 ⅛ 주기마다 정상파(관찰 ④, 그림 ②)
+    const {ctx, W, H} = view; if (!W) return;
     ctx.clearRect(0, 0, W, H);
     const narrow = W < 420, lw = narrow ? 84 : 104, n = 5, rh = (H - 4) / n;
     const X = (x) => lw + x / L * (W - lw - 12);
-    if (isPulse()) {
+    if (pulse) {
       const ps = pulses(), tm = tMeet(), dt = 1 / S.v, te = tEnd(), b = S.sB * S.hB;
       const hi = Math.max(0, S.hA, b, S.hA + b), lo = Math.min(0, S.hA, b, S.hA + b);
       const rows = [[0, '처음'], [tm - dt, '반쯤 겹침'], [tm, '완전히 겹침'], [tm + dt, '반쯤 겹침'], [te, '지나간 뒤']];
@@ -497,7 +535,7 @@
         const y0 = 2 + rh * k, a = (rh - 28) / Math.max(hi - lo, 1), yb = y0 + 19 + hi * a, Y = (y) => yb - y * a;
         const on = Math.abs(S.t - tt) < 0.3;
         if (on) { ctx.fillStyle = C['copper-soft']; Lab.rrect(ctx, 0, y0 + 1, W, rh - 2, 8); ctx.fill(); }
-        text(ctx, 't = ' + fmt(tt, 1) + ' s', 8, y0 + rh / 2 - 9, {size: 13.5, w: 700, mono: true, align: 'left', color: on ? C.copper : C.ink});
+        text(ctx, 't = ' + fmt(tt, 1) + ' s', 8, y0 + rh / 2 - 9, {size: 13.5, w: 600, align: 'left', color: on ? C.copper : C.ink});
         text(ctx, note, 8, y0 + rh / 2 + 10, {size: 13, w: 500, align: 'left', color: C.muted});
         ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(0), yb); ctx.lineTo(X(L), yb); ctx.stroke(); ctx.restore();
         ps.forEach((p, i) => {
@@ -509,10 +547,10 @@
         Lab.line(ctx, pts, C.ink, 2.8);
         const rel = M.relation(tt, ps[0], ps[1]);
         if (rel === 'approach' || rel === 'apart') {
-          ps.forEach((p, i) => { const c = M.center(p, tt); text(ctx, sg(p.h, 1), X(c), Y(p.h) + (p.h >= 0 ? -10 : 11), {size: 13, w: 700, mono: true, color: i ? C.vel : C.violet, halo: true}); });
+          ps.forEach((p, i) => { const c = M.center(p, tt); text(ctx, sg(p.h, 1), X(c), Y(p.h) + (p.h >= 0 ? -10 : 11), {size: 13, w: 600, color: i ? C.vel : C.violet, halo: true}); });
         } else {
           const e = M.extremes(tt, ps, 0, L, 600);
-          text(ctx, (rel === 'full' ? '합 ' : '') + sgn(e.big.y), X(e.big.x) + 14, Y(e.big.y), {size: 13, w: 700, mono: true, color: rel === 'full' ? C.acc : C.ink, halo: true, align: 'left'});
+          text(ctx, (rel === 'full' ? '합 ' : '') + sgn(e.big.y), X(e.big.x) + 14, Y(e.big.y), {size: 13, w: 600, color: rel === 'full' ? C.acc : C.ink, halo: true, align: 'left'});
         }
       });
     } else {
@@ -522,7 +560,7 @@
         const y0 = 2 + rh * k, a = (rh - 12) / (4 * A + 0.4), yb = y0 + rh / 2, Y = (y) => yb - y * a;
         const on = Math.abs(((S.tau - tt) % 1 + 1) % 1) < 1 / 16 || Math.abs(((S.tau - tt) % 1 + 1) % 1 - 1) < 1 / 16;
         if (on) { ctx.fillStyle = C['copper-soft']; Lab.rrect(ctx, 0, y0 + 1, W, rh - 2, 8); ctx.fill(); }
-        text(ctx, 't = ' + fracT(tt), 8, y0 + rh / 2 - (note ? 9 : 0), {size: 13.5, w: 700, mono: true, align: 'left', color: on ? C.copper : C.ink});
+        text(ctx, 't = ' + fracT(tt), 8, y0 + rh / 2 - (note ? 9 : 0), {size: 13.5, w: 600, align: 'left', color: on ? C.copper : C.ink});
         if (note) text(ctx, note, 8, y0 + rh / 2 + 10, {size: 13, w: 500, align: 'left', color: C.muted});
         ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(0), yb); ctx.lineTo(X(L), yb); ctx.stroke(); ctx.restore();
         const ln = (f, col, w, dash) => { const pts = []; for (let j = 0; j <= 200; j++) { const x = L * j / 200; pts.push([X(x), Y(f(x))]); } Lab.line(ctx, pts, col, w, dash); };
@@ -533,49 +571,66 @@
     }
   }
 
-  function draw() { drawStage(); drawPT(); drawStrobe(); }
+  const drawPT = () => drawPTv(pt, true), drawPTW = () => drawPTv(ptw, false);
+  const drawStrobe = () => drawStrobeV(strobe, true), drawStrobeW = () => drawStrobeV(stw, false);
+  function draw() { drawStage(); drawPT(); drawStrobe(); drawPTW(); drawStrobeW(); }
+  // 움직이는 동안: 무대와 지금 장면의 그래프만 다시 그린다
+  function drawLive() { drawStage(); if (isPulse()) { drawPT(); drawStrobe(); } else { drawPTW(); drawStrobeW(); } }
 
   // ── 글자 (수치·HUD·패널 제목) ─────────────────────────────
   const legendHTML = {
     pulse: '<span><b class="dash" style="color:var(--violet)"></b>A만 있을 때</span><span><b class="dash" style="color:var(--vel)"></b>B만 있을 때</span>' +
-      '<span><b style="background:var(--ink);height:4px"></b>합성파 = 실제 줄</span><span><i style="background:var(--copper)"></i>점 P (끌어 옮기기)</span>',
+      '<span><b style="background:var(--ink);height:4px"></b>합성파 = 실제 줄</span><span><i style="background:var(--copper)"></i>점 P (끌기)</span>',
     wave: '<span><b class="dash" style="color:var(--violet)"></b>→ 파동</span><span><b class="dash" style="color:var(--vel)"></b>← 파동</span>' +
       '<span><b style="background:var(--ink);height:4px"></b>합성파</span><span><i class="ring"></i>마디</span><span><b style="background:var(--acc-soft);height:10px"></b>진동 범위</span>'};
-  const panelText = {
-    pulse: {pt: '점 P의 변위-시간 <small>도착·떠남 시간표</small>', ptCap: 'A·B가 P에 머무는 시간을 먼저 적고, <b>둘이 함께 있는 동안만</b> 더한다. 점선 = 각 파동, 실선 = 합.',
-      st: '시각별로 옮겨 그린 뒤 더하기 <small>개념서 그림 ①</small>', stCap: '각 펄스를 v·t만큼 따로 옮긴 뒤 위치마다 더한다. 지나간 뒤에는 <b>원래 모양 그대로</b>.'},
-    wave: {pt: '점 P의 변위-시간 <small>마디·배 비교</small>', ptCap: '배는 <b>−2A ~ +2A</b> 사이를 오가며 변위 0도 지난다. 마디는 늘 0. 무대에서 P를 끌어 비교해 보자.',
-      st: '⅛ 주기마다 찍은 모습 <small>개념서 그림 ②</small>', stCap: '두 파동이 같은 쪽으로 겹치면 배가 ±2A, T/4에는 모든 곳에서 반대쪽이라 합이 0이다. 빨간 고리(마디)는 늘 제자리 0.'}};
   const relText = {approach: '다가오는 중', overlap: '겹치는 중 — 위치마다 더함', full: '완전히 겹침', apart: '지나간 뒤 — 원래 모양 그대로'};
+  const relShort = {approach: '다가오는 중', overlap: '겹치는 중', full: '완전히 겹침', apart: '지나간 뒤'};   // 폰 HUD (한 줄)
+  const setText = (id, s) => { const el = $(id); if (el.textContent !== s) el.textContent = s; };
+  let ansKey = '';
 
   function readouts() {
-    const [ya, yb] = atP(), y = ya + yb;
-    $('r5').textContent = '(' + sgn(ya) + ') + (' + sgn(yb) + ') = ' + sgn(y) + ' cm';
-    $('r5l').innerHTML = '점 P (x = ' + fmt(S.xP, 1) + ' cm)의 변위 = y<sub>A</sub> + y<sub>B</sub>';
+    const [ya, yb] = atP(), nar = (stage.W || 999) < 520, xp = 'x = ' + fmt(S.xP, 1) + ' cm';
+    let big, lines, o;
     if (isPulse()) {
       const ps = pulses(), e = M.extremes(S.t, ps, 0, L, 1200), gap = Math.abs(M.center(ps[1], S.t) - M.center(ps[0], S.t));
-      $('r1').textContent = fmt(S.t, 1) + ' s';
-      $('r2').textContent = fmt(gap, 1) + ' cm';
-      $('r3').textContent = sgn(e.max) + ' cm';
-      $('r4').textContent = sgn(e.min) + ' cm';
-      const rel = M.relation(S.t, ps[0], ps[1]);
-      $('hudT').textContent = 't = ' + fmt(S.t, 1) + ' s';
-      const st = $('hudState'); st.textContent = relText[rel]; st.className = 'pill' + (rel === 'full' ? ' up' : '');
+      const rel = M.relation(S.t, ps[0], ps[1]), b = S.sB * S.hB;
+      setText('r1', fmt(S.t, 1) + ' s'); setText('r2', fmt(gap, 1) + ' cm'); setText('r3', sgn(e.max) + ' cm'); setText('r4', sgn(e.min) + ' cm');
+      setText('hudT', 't = ' + fmt(S.t, 1) + ' s');
+      const st = $('hudState'); setText('hudState', (nar ? relShort : relText)[rel]); st.className = 'pill' + (rel === 'full' ? ' up' : '');
+      // 지금 값: 중첩 원리 y = yA + yB 에 점 P 의 두 변위를 넣는다. 둘째 줄은 만나는 시각, 셋째 줄은 겹친 순간·지나간 뒤
+      const ys = shownSum(ya, yb), yS = sgn(ys) + (Math.abs(ys) < 0.05 ? '' : ' cm');
+      big = 'y = ' + yS;
+      lines = ['y<sub>A</sub> + y<sub>B</sub> = (<em>' + sgn(ya) + '</em>) + (<em>' + sgn(yb) + '</em>) = <em>' + yS + '</em>',
+        '완전히 겹치는 시각 = ' + fmt(S.d) + ' ÷ (' + fmt(S.v, 1) + ' + ' + fmt(S.v, 1) + ') = <em>' + fmt(tMeet(), 2) + ' s</em>'];
+      if (rel === 'full') lines.push('겹친 곳: (' + sg(S.hA, 1) + ') + (' + sg(b, 1) + ') = <em>' + sgn(e.big.y) + ' cm</em>');
+      else if (rel === 'apart') lines.push('지나간 뒤: A <em>' + sg(S.hA, 1) + ' cm</em>, B <em>' + sg(b, 1) + ' cm</em> 그대로 (독립성)');
+      o = {tone: Math.abs(ys) < 0.05 ? 'ink' : ys < 0 ? 'neg' : '', ctx: 't = ' + fmt(S.t, 1) + ' s · ' + relShort[rel],
+        f: '중첩 원리 y = y<sub>A</sub> + y<sub>B</sub> 에 지금 값을 넣으면'};
+      setText('ansLab', '점 P (' + xp + ')의 변위');
     } else {
-      const s = wav(), kd = M.kind(S.xP, s);
-      $('r1').textContent = fmt(S.lam) + ' cm';
-      $('r2').textContent = fmt(S.lam / 2) + ' cm';
-      $('r3').textContent = fmt(2 * S.amp) + ' cm';
-      $('r4').textContent = kd === 'node' ? '0 (마디)' : fmt(M.ampAt(S.xP, s), 2) + ' cm' + (kd === 'antinode' ? ' (배)' : '');
-      $('hudT').textContent = 't = ' + fracT(S.tau);
+      const s = wav(), kd = M.kind(S.xP, s), amp = M.ampAt(S.xP, s);
+      setText('r1', fmt(S.lam) + ' cm'); setText('r2', fmt(S.lam / 2) + ' cm'); setText('r3', fmt(2 * S.amp) + ' cm');
+      setText('r4', kd === 'node' ? '0 (마디)' : fmt(amp, 2) + ' cm' + (kd === 'antinode' ? ' (배)' : ''));
+      setText('hudT', 't = ' + fracT(S.tau));
       const c = Math.cos(2 * Math.PI * S.tau), st = $('hudState');
-      st.textContent = Math.abs(c) < 0.03 ? '두 파동이 모든 곳에서 반대 → 줄 전체 평평' : (Math.abs(c) > 0.995 ? '두 파동이 꼭 겹침 → 배가 ±2A' : '마디는 제자리 0');
+      setText('hudState', Math.abs(c) < 0.03 ? (nar ? '줄 전체 평평' : '두 파동이 모든 곳에서 반대 → 줄 전체 평평')
+        : Math.abs(c) > 0.995 ? (nar ? '배가 ±2A' : '두 파동이 꼭 겹침 → 배가 ±2A') : (nar ? '마디는 늘 0' : '마디는 제자리 0'));
       st.className = 'pill' + (Math.abs(c) < 0.03 ? ' down' : '');
+      // 지금 값: 점 P 가 마디인지 배인지(판정)를 크게, 지금 두 변위의 합과 마디 간격을 식 줄에
+      big = kd === 'node' ? 'P는 마디: 늘 0' : kd === 'antinode' ? 'P는 배: −2A ~ +2A' : 'P의 진폭 ' + fmt(amp, 2) + ' cm';
+      const ys = shownSum(ya, yb, 2);
+      lines = ['y<sub>→</sub> + y<sub>←</sub> = (<em>' + sgn(ya, 2) + '</em>) + (<em>' + sgn(yb, 2) + '</em>) = <em>' + sgn(ys, 2) + (Math.abs(ys) < 0.05 ? '' : ' cm') + '</em>',
+        '마디 사이 λ/2 = ' + fmt(S.lam) + ' ÷ 2 = <em>' + fmt(S.lam / 2) + ' cm</em> · 배–마디 λ/4 = <em>' + fmt(S.lam / 4) + ' cm</em>'];
+      o = {tone: kd === 'node' ? 'small neg' : kd === 'antinode' ? 'small' : 'small ink', ctx: 't = ' + fracT(S.tau) + ' · λ = ' + fmt(S.lam) + ' cm, A = ' + fmt(S.amp, 2) + ' cm',
+        f: '두 파동의 합 y = y<sub>→</sub> + y<sub>←</sub> 와 마디·배'};
+      setText('ansLab', '점 P (' + xp + ')');
     }
-    $('tOut').textContent = isPulse() ? fmt(S.t, 1) + ' s' : fracT(S.tau);
+    const key = big + lines.join('|') + o.ctx + o.f + o.tone;
+    if (key !== ansKey) { ansKey = key; Lab.ans(big, lines, o); }
+    setText('tOut', isPulse() ? fmt(S.t, 1) + ' s' : fracT(S.tau));
     const ok = isPulse() && S.hA === EX.hA && S.hB === EX.hB && S.sB === EX.sB && S.v === EX.v && S.d === EX.d;
     Lab.check('exCheck', ok, '개념서 예제 (+3 cm·+1 cm, 1 cm/s, 10 cm) → 5 s에 완전히 겹침, 최대 변위 4 cm · 지나간 뒤 3 cm, 1 cm',
-      '예제: +3 cm·+1 cm 펄스가 1 cm/s로 마주 진행, 중심 사이 10 cm — ‘스스로 확인 1’로 돌아갈 수 있어요');
+      '예제: +3 cm·+1 cm 펄스가 1 cm/s로 마주 진행, 중심 사이 10 cm — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
   }
 
   // ── 조작 ────────────────────────────────────────────────
@@ -583,11 +638,8 @@
   function syncUI() {
     const pulse = isPulse();
     $('rowPulse1').hidden = !pulse; $('rowPulse2').hidden = !pulse; $('rowWave').hidden = pulse; $('envWrap').hidden = pulse;
-    $('legend').innerHTML = legendHTML[S.scene];
-    const P = panelText[S.scene];
-    $('ptTitle').innerHTML = P.pt; $('ptCap').innerHTML = P.ptCap; $('stTitle').innerHTML = P.st; $('stCap').innerHTML = P.stCap;
+    if (legEl.dataset.scene !== S.scene) { legEl.innerHTML = legendHTML[S.scene]; legEl.dataset.scene = S.scene; }
     $('back').textContent = pulse ? '◀ 1 s' : '◀ T/8'; $('fwd').textContent = pulse ? '1 s ▶' : 'T/8 ▶';
-    $('tLab').textContent = pulse ? '시각 t (앞뒤로 넘기기)' : '시각 t (주기 T 단위)';
     if (pulse) { tS.min = 0; tS.max = tEnd(); tS.step = 0.1; tS.value = S.t; }
     else { tS.min = 0; tS.max = 1; tS.step = 1 / 16; tS.value = S.tau; }
     [['r1l', '시각 t', '파장 λ'], ['r2l', '두 중심 사이 거리', '마디 사이 λ/2'], ['r3l', '합성파의 가장 높은 곳', '배의 진폭 2A'], ['r4l', '합성파의 가장 낮은 곳', 'P의 진폭']]
@@ -622,14 +674,14 @@
     setPlay(false);
     if (isPulse()) S.t = +tS.value; else S.tau = +tS.value;
     S.linger = 0; S.hold = 0;
-    readouts(); draw();
+    readouts(); drawLive();
   });
   const step = (dir) => {
     setPlay(false); S.linger = 0; S.hold = 0;
     const nxt = (v) => (dir > 0 ? Math.floor(v + 1e-6) + 1 : Math.ceil(v - 1e-6) - 1);
     if (isPulse()) { S.t = nxt(S.t); clampT(); tS.value = S.t; }
     else { S.tau = (nxt(S.tau * 8) / 8 % 1 + 1) % 1; tS.value = S.tau; }
-    readouts(); draw();
+    readouts(); drawLive();
   };
   $('back').addEventListener('click', () => step(-1));
   $('fwd').addEventListener('click', () => step(1));
@@ -649,13 +701,24 @@
   };
   Lab.pointer(stage.el, {down: (x) => setP(x), move: (x) => setP(x)});
 
-  // 스스로 확인: 그 상황으로 바꾸기
+  // 관찰 카드·예제·스스로 확인: 그 상황으로 바꾸기
   const setPulse = (o) => { Object.assign(S, o); S.scene = 'pulse'; };
+  const ensurePulse = () => { if (!isPulse()) { S.scene = 'pulse'; S.xP = XC; } };
   const TRY = {
     ex: () => { setPulse(EX); S.t = tMeet(); S.xP = XC; S.bars = true; S.comps = true; S.speed = 1; setPlay(false); },
     q2: () => { setPulse({hA: 2, hB: 3, sB: -1, v: 1, d: 10}); S.t = 5; S.xP = XC; S.bars = true; S.comps = true; setPlay(false); },
     q3: () => { setPulse(EX); S.t = 0; S.hold = 0; S.xP = XC - 2; S.speed = 1; setPlay(true); },
     q4: () => { S.scene = 'wave'; S.lam = 8; S.amp = 1; S.xP = XC; S.tau = 0; S.speed = 0.5; S.env = true; setPlay(true); },
+    // 관찰 ① 완전히 겹친 순간(P 는 만나는 곳), ② 1 s 씩·지나간 뒤, ③ 예제 펄스에서 P 를 가운데에, ④ 정상파·마디
+    meet: () => { ensurePulse(); S.t = tMeet(); S.xP = XC; setPlay(false); },
+    fwd1: () => { ensurePulse(); setPlay(false); S.hold = 0; S.t = Math.min(tEnd(), Math.floor(S.t + 1e-6) + 1); },
+    after: () => { ensurePulse(); setPlay(false); S.hold = 0; S.t = tEnd(); },
+    p10: () => { setPulse(EX); S.t = 0; S.hold = 0; S.xP = XC; S.speed = 1; setPlay(true); },
+    wave: () => { S.scene = 'wave'; S.xP = XC; S.tau = 0; S.env = true; setPlay(true); },
+    node: () => {
+      S.scene = 'wave'; S.tau = 0; setPlay(true);
+      S.xP = M.nodes(wav(), 1, L - 1).reduce((a, b) => (Math.abs(b - XC) < Math.abs(a - XC) ? b : a));   // 가운데에서 가장 가까운 마디
+    },
   };
   Lab.tries(TRY, () => { S.linger = 0; refresh(); });
 
@@ -673,7 +736,7 @@
       S.tau = (S.tau + dt * S.speed / TVIS) % 1;
       tS.value = S.tau;
     }
-    readouts(); draw();
+    readouts(); drawLive();
   });
   syncUI();
 })();
