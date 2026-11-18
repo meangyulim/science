@@ -564,32 +564,40 @@
     return {X, hh, u: X - BRUN.x(Math.min(d.tr + s, BRUN.T))};
   }
   function geoBus(W, H) {
-    const nar = W < 520, h2 = Math.round(H * 0.42), bot = BOT(H);
+    const nar = W < 520, bot = BOT(H), side = W / H > 2.3;     // side: 아주 납작한 무대 → 밖 | 안 을 좌우로
+    if (side) {
+      const pw = W / 2, kO = Math.min((pw - 16) / (BUS_L + D_BUS + 1.4), (H - 48 - bot - 14) / (BUS_H + 0.15));
+      const kI = Math.min((pw - 20) / (BUS_L + 0.3), (H - 48 - bot - 8) / (BUS_H + 0.3));
+      return {nar, W, H, side, pw, h2: H, kO, roadO: H - bot - 10, x0O: 8 + 0.5 * kO, kI, roadI: H - bot - 4, xI: pw + pw / 2 - BUS_L / 2 * kI};
+    }
+    const h2 = Math.round(H * 0.42);
     const kO = Math.min((W - 16) / (BUS_L + D_BUS + 1.4), (h2 - 48 - (nar ? 14 : 20)) / (BUS_H + 0.15));
     const roadO = h2 - (nar ? 13 : 20), x0O = 8 + 0.5 * kO;
     const kI = Math.min((W - 20) / (BUS_L + 0.3), (H - h2 - 46 - bot) / (BUS_H + 0.3));
     const roadI = H - bot - 4, xI = W / 2 - BUS_L / 2 * kI;
-    return {nar, W, H, h2, kO, roadO, x0O, kI, roadI, xI};
+    return {nar, W, H, side, pw: W, h2, kO, roadO, x0O, kI, roadI, xI};
   }
   function drawBusScene(ctx, W, H) {
     const g = geoBus(W, H), b = busNow();
-    // 위 칸: 밖 (길과 나무는 고정, 버스가 움직인다)
-    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, g.h2); ctx.clip();
+    // 위(또는 왼쪽) 칸: 밖 (길과 나무는 고정, 버스가 움직인다)
+    const oW = g.side ? g.pw : W;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, oW, g.h2); ctx.clip();
     const XO = (X) => g.x0O + X * g.kO;
-    scenery(ctx, XO, g.kO, g.roadO, g.h2, W);
+    scenery(ctx, XO, g.kO, g.roadO, g.h2, oW);
     if (S.strobe) {                                     // 같은 시간 간격(0.25 s)의 버스 앞끝 위치
       for (let k = 0, t = 0; t <= b.t + 1e-9 && k < 60; k++, t = k * 0.25) Lab.circle(ctx, XO(BRUN.x(t) + BUS_L), g.roadO + 5, 3.4, {fill: Lab.alpha(C.vel, 0.8)});
     }
     drawBus(ctx, (u, h) => [XO(b.x + u), g.roadO - h * g.kO], g.kO, b, 'out', g);
     ctx.restore();
-    Lab.line(ctx, [[0, g.h2], [W, g.h2]], C.line, 1.5);
-    // 아래 칸: 안 (버스는 멈춰 있고 길과 나무가 뒤로 지나간다)
-    ctx.save(); ctx.beginPath(); ctx.rect(0, g.h2, W, H - g.h2); ctx.clip();
+    if (g.side) Lab.line(ctx, [[g.pw, 0], [g.pw, H]], C.line, 1.5); else Lab.line(ctx, [[0, g.h2], [W, g.h2]], C.line, 1.5);
+    // 아래(또는 오른쪽) 칸: 안 (버스는 멈춰 있고 길과 나무가 뒤로 지나간다)
+    const ix0 = g.side ? g.pw : 0, iy0 = g.side ? 0 : g.h2;
+    ctx.save(); ctx.beginPath(); ctx.rect(ix0, iy0, W - ix0, H - iy0); ctx.clip();
     const XI = (X) => g.xI + (X - b.x) * g.kI;
-    scenery(ctx, XI, g.kI, g.roadI, H, W);
+    ctx.save(); ctx.translate(ix0, 0); scenery(ctx, (X) => XI(X) - ix0, g.kI, g.roadI, H, W - ix0); ctx.restore();
     drawBus(ctx, (u, h) => [g.xI + u * g.kI, g.roadI - h * g.kI], g.kI, b, 'in', g);
     ctx.restore();
-    pill(ctx, g.nar ? '안 · 가속 좌표계' : '안 · 가속 좌표계 (버스와 함께 봄)', 12, g.h2 + 10);
+    pill(ctx, g.nar || g.side ? '안 · 가속 좌표계' : '안 · 가속 좌표계 (버스와 함께 봄)', ix0 + 12, iy0 + (g.side ? 12 : 10));
   }
   // 길·차선·나무: X(땅 위 위치 m) → 화면 x
   function scenery(ctx, X, k, roadY, yBot, W) {
@@ -1064,6 +1072,7 @@
     if (roT > 0.15) { roT = 0; readouts(); if (S.ph === 'trip' || S.scene === 'elev') drawVT(); if (S.scene === 'bus') drawTri(); if (S.scene === 'elev') drawFB(); }
   });
   resetElev(); resetBus();
+  if (Lab.reduceMotion) S.et = 1.4;                        // 움직임 줄이기: 멈춘 첫 화면에 칸이 움직인 자취(같은 시간 간격의 점)가 보이게
   setScene('elev'); sync();
   if (narrowMQ.addEventListener) narrowMQ.addEventListener('change', () => { readouts(); drawStage(); });
 })();

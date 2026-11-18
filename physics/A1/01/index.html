@@ -171,7 +171,7 @@
           <div class="kind">관찰 4 · 빗면</div>
           <h3>빗면에서는 중력을 빗면 방향과 빗면 수직 방향으로 나눈다</h3>
           <p>빗면 위 물체의 중력 mg 는 빗면 방향 <span class="eq">mg sin θ</span> 와 빗면 수직 방향 <span class="eq">mg cos θ</span> 로 나뉜다. 수직 방향은 수직항력과 평형(N = mg cos θ)이고, 마찰이 없으면 빗면 방향 mg sin θ 가 남아 물체가 미끄러진다. 힘을 이어도 닫히지 않고, 빈 곳을 메우는 화살표가 알짜힘이다.</p>
-          <p class="cap">수평력 F 로 붙잡으면 mg, F, N 이 닫힌 직각삼각형이 된다. N 이 빗변이라 셋 중 가장 크다. 무대에서 빗면을 끌어 경사각을 바꿀 수 있다.</p>
+          <p class="cap">수평력 F 로 붙잡으면 mg, F, N 이 닫힌 직각삼각형이 된다. N 이 빗변이라 셋 중 가장 크다. 무대에서 빗면을 끌어 경사각을 바꿀 수 있다. (미끄러지는 움직임은 느린 화면이고, 이 장면의 화살표는 mg 길이에 맞춰 그렸다.)</p>
           <div class="acts">
             <button type="button" class="btn go" data-try="slope">빗면에 놓기</button>
             <button type="button" class="btn" data-do="click:[data-scene=slope]; check:#cComp">중력 나누기</button>
@@ -353,7 +353,7 @@
       box: {x: px0, y: yC, w: px1 - px0, h: yF - yC}};
   }
   function drawHang(ctx, W, H) {
-    const g = geoHang(W, H), h = hangNow(), s = g.s, O = g.O, nar = g.nar;
+    const g = geoHang(W, H), h = hangNow(), s = g.s, O = g.O, nar = g.nar || H < 380;   // 납작한 무대도 짧은 이름표
     hatch(ctx, [g.xL, g.yC], [g.xR, g.yC], [0, -1]);
     hatch(ctx, [g.xL, g.yC], [g.xL, g.yF], [-1, 0]);
     hatch(ctx, [g.xR, g.yC], [g.xR, g.yF], [1, 0]);
@@ -409,7 +409,7 @@
     }
     // 끌 수 있는 실의 끝
     for (const A of [g.A1, g.A2]) { Lab.circle(ctx, A[0], A[1], 7, {fill: C.copper, stroke: C.paper, width: 2}); }
-    if (S.hint) lbl(ctx, '끌기', g.A1[0] + (g.A1[1] <= g.yC + 1 ? 0 : 26), g.A1[1] + (g.A1[1] <= g.yC + 1 ? 18 : 0), C.copper, {size: 13});
+    if (S.hint && H >= 380) lbl(ctx, '끌기', g.A1[0] + (g.A1[1] <= g.yC + 1 ? 0 : 26), g.A1[1] + (g.A1[1] <= g.yC + 1 ? 18 : 0), C.copper, {size: 13});
     // 오른쪽 칸: 세 힘을 꼬리–머리로 + 아래에 숫자 합과 화살표 합 견주기
     const b = g.box, barH = nar ? 66 : 74;
     panelBox(ctx, b.x, b.y, b.w, b.h, nar ? '꼬리–머리로' : '세 힘을 꼬리–머리로 이으면');

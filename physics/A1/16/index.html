@@ -136,7 +136,7 @@
 
     <section class="notes" aria-label="관찰 노트">
       <div class="answer">
-        <div class="lab"><span id="ansLab">지금 판정</span><span id="ansCtx">① 등가 원리 · 무게 짝</span></div>
+        <div class="lab"><span id="ansLab">지금 판정</span><span id="ansCtx">등가 원리 · 무게 짝</span></div>
         <div class="big" id="ansBig">구별할 수 없다</div>
         <div class="sub">
           <span class="f" id="ansF">두 우주선 안에서 공과 빛이 아래로 가속되는 정도(유효 중력)를 견주면</span>
@@ -424,11 +424,15 @@
       }
       shipInside(ctx, P, k, ge, t);
       // 위: 이 우주선의 상황 (중력장 = 보라, 가속도 = 초록)
-      const [tx, ty] = P(SW / 2, SH + HULL + 0.2), aw = Math.min(0.9 * k, 34);
+      let [tx, ty] = P(SW / 2, SH + HULL + 0.2), aw = Math.min(0.9 * k, 34);
+      if (ty - aw - 16 < 50) {                                 // 위가 좁으면 (납작한 무대) 우주선 왼쪽 위 바깥에
+        aw = Math.min(aw, 28); tx = Math.max(x0 + 14, P(-HULL, 0)[0] - 16); ty = P(0, SH * 0.62)[1] + aw / 2 + 8;
+      }
       if (!S.cover) {
-        if (key === 'ground') { Lab.arrow(ctx, tx, ty - aw - 8, tx, ty - 8, C.violet, 3, 10); text(ctx, '중력 g', tx + 9, ty - aw / 2 - 8, {size: 13, w: 600, color: C.violet, align: 'left', halo: true}); }
-        else if (key === 'fall') { Lab.arrow(ctx, tx, ty - aw - 8, tx, ty - 8, C.acc, 3, 10); text(ctx, 'a = g (아래)', tx + 9, ty - aw / 2 - 8, {size: 13, w: 600, color: C.acc, align: 'left', halo: true}); }
-        else if (sp.aShip > 1e-9) { Lab.arrow(ctx, tx, ty - 8, tx, ty - aw - 8, C.acc, 3, 10); text(ctx, 'a = ' + fmt(sp.aShip, 1) + ' m/s²', tx + 9, ty - aw / 2 - 8, {size: 13, w: 600, color: C.acc, align: 'left', halo: true}); }
+        const lab = (s2, col) => text(ctx, s2, tx + 9, ty - aw / 2 - 8, {size: 13, w: 600, color: col, align: 'left', halo: true});
+        if (key === 'ground') { Lab.arrow(ctx, tx, ty - aw - 8, tx, ty - 8, C.violet, 3, 10); lab('중력 g', C.violet); }
+        else if (key === 'fall') { Lab.arrow(ctx, tx, ty - aw - 8, tx, ty - 8, C.acc, 3, 10); lab('a = g (아래)', C.acc); }
+        else if (sp.aShip > 1e-9) { Lab.arrow(ctx, tx, ty - 8, tx, ty - aw - 8, C.acc, 3, 10); lab('a = ' + fmt(sp.aShip, 1) + ' m/s²', C.acc); }
         else text(ctx, 'a = 0', tx, ty - aw / 2 - 8, {size: 13, w: 600, color: C.muted, halo: true});
       }
       ctx.restore();
@@ -604,7 +608,7 @@
     }
     ctx.restore();
     Lab.circle(ctx, cx, cy, R, {stroke: C.line, width: 1.5});
-    if (!p.sun) { if (g.wide) text(ctx, '○ 실제 광원 방향', cx, cy + R + 16, {size: 13, w: 500, color: C.muted}); else text(ctx, '○ 실제 광원 방향', 12, H - g.bot - 8, {size: 13, w: 500, color: C.muted, align: 'left'}); }
+    if (!p.sun) { if (g.wide) text(ctx, '○ 실제 광원 방향', cx, cy + R + 16 <= H - 6 ? cy + R + 16 : cy + R - 12, {size: 13, w: 500, color: C.muted, halo: true}); else text(ctx, '○ 실제 광원 방향', 12, H - g.bot - 8, {size: 13, w: 500, color: C.muted, align: 'left'}); }
     if (g.wide) pill(ctx, '관찰자가 본 하늘', cx - Lab.measure(ctx, '관찰자가 본 하늘', {size: 13.5}) / 2 - 11, 12);
     else text(ctx, '관찰자가 본 하늘', cx - R - 6, cy - R + 8, {size: 13, w: 600, color: C.muted, align: 'right'});
     if (g.wide) Lab.line(ctx, [[g.side.x1, 0], [g.side.x1, H]], C.line, 1.5);
@@ -646,7 +650,8 @@
   function geoBH(W, H) {
     const nar = W < 520, bot = BOT(H), top = 52, cy = top + (H - top - bot) / 2 + (nar ? 4 : 0);
     let Rh = Math.max(14, Math.min((W - 40 - W * 0.22) / 5.4, (H - top - bot) * 0.17)); const cx = Math.max(W * 0.22, 2.1 * Rh + 8); Rh = Math.min(Rh, (W - 34 - cx) / 5);
-    return {nar, bot, top, cx, cy, Rh};
+    const sx = Math.max(1, (W * 0.64 - cx) / (5 * Rh));       // 시계 자리를 가로로 벌리는 배율 (납작하고 넓은 무대)
+    return {nar, bot, top, cx, cy, Rh, sx};
   }
   const CLOCK_R = [1.35, 2.6, 5];                              // 시계 자리 (중심에서, 천체 반지름 단위 — 블랙홀이면 r_s 단위)
   function drawStar(ctx, W, H) {
@@ -687,17 +692,18 @@
     const r = nar ? 15 : 20, t = S.tb;
     if (u >= 1) {
       ctx.save(); ctx.globalAlpha = clamp((S.tb - S.colEnd) / 0.6, 0, 1);
-      CLOCK_R.forEach((n) => { const rt = rate(n); clock(ctx, g.cx + n * unit, g.cy, r, t * rt, rt, fmt(rt, 2) + '배', {lc: C.copper}); });
+      CLOCK_R.forEach((n) => { const rt = rate(n); clock(ctx, g.cx + n * unit * g.sx, g.cy, r, t * rt, rt, fmt(rt, 2) + '배', {lc: C.copper}); });
       const fl = nar ? '먼 곳 1배' : '멀리 있는 시계 1배', fx = W - Math.max(r + 12, Lab.measure(ctx, fl, {size: 13, w: 600}) / 2 + 8);
       clock(ctx, fx, 56 + r, r, t, 1, fl, {lc: C.muted});
-      if (!nar) text(ctx, '시계가 가는 빠르기', g.cx + CLOCK_R[0] * unit - r, g.cy - r - 14, {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
+      if (!nar) text(ctx, '시계가 가는 빠르기', g.cx + CLOCK_R[0] * unit * g.sx - r, g.cy - r - 14, {size: 13, w: 600, color: C.muted, align: 'left', halo: true});
       ctx.restore();
     }
     // 탐사선 (블랙홀): 멀리서 보면 지평선 앞에서 점점 느려져 멈춘 듯
     const pr = S.probe;
     if (pr && isBH) {                                          // 탐사선: 아래 오른쪽에서 블랙홀로 곧게 떨어진다
-      const ph = 0.62, x = g.cx + pr.r * unit * Math.cos(ph), y = g.cy + pr.r * unit * Math.sin(ph), fade = clamp((pr.r - 1) / 0.5, 0, 1);
-      ctx.save(); ctx.setLineDash([3, 5]); Lab.line(ctx, [[g.cx + g.Rh * Math.cos(ph), g.cy + g.Rh * Math.sin(ph)], [g.cx + CLOCK_R[2] * unit * Math.cos(ph), g.cy + CLOCK_R[2] * unit * Math.sin(ph)]], Lab.alpha(C.copper, 0.45), 1.2); ctx.restore();
+      const ph = 0.62, px = (rr) => g.cx + (g.Rh + (rr - 1) * unit * g.sx) * Math.cos(ph), py = (rr) => g.cy + rr * unit * Math.sin(ph);
+      const x = px(pr.r), y = py(pr.r), fade = clamp((pr.r - 1) / 0.5, 0, 1);
+      ctx.save(); ctx.setLineDash([3, 5]); Lab.line(ctx, [[px(1), py(1)], [px(CLOCK_R[2]), py(CLOCK_R[2])]], Lab.alpha(C.copper, 0.45), 1.2); ctx.restore();
       Lab.circle(ctx, x, y, nar ? 5.5 : 7, {fill: Lab.alpha(fade > 0.35 ? C.copper : C.force, 0.3 + 0.7 * fade), stroke: C.paper, width: 1.2});
       text(ctx, (nar ? '' : '탐사선 시계 ') + fmt(1 - 1 / pr.r, 2) + '배', x + 10, y + 14, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
     }
@@ -826,7 +832,7 @@
           same ? '→ 공과 빛이 똑같이 휜다: 안에서는 구별할 수 없다' : '→ 휘는 정도가 달라 구별된다 (a ≠ g)']
         : ['(가) 자유 낙하: 중력 g 와 관성력 g 가 상쇄 → <em>0</em> (무중력)', '(나) 빈 우주에서 가속도 <em>' + A + ' m/s²</em> → ' + (S.aEq > 1e-9 ? '아래로 <em>' + A + ' m/s²</em>' : '<em>0</em>'),
           same ? '→ 둘 다 공과 빛이 곧게 간다: 구별할 수 없다' : '→ (나)에서만 휘어 구별된다'];
-      ans(same ? '구별할 수 없다' : '구별된다', lines, {lab: '지금 판정', ctx: '① 등가 원리 · ' + (S.pair === 'weight' ? '무게 짝' : '무중력 짝'), f: '두 우주선 안에서 공과 빛이 아래로 가속되는 정도(유효 중력)를 견주면', tone: same ? '' : 'neg'});
+      ans(same ? '구별할 수 없다' : '구별된다', lines, {lab: '지금 판정', ctx: '등가 원리 · ' + (S.pair === 'weight' ? '무게 짝' : '무중력 짝'), f: '두 우주선 안에서 공과 빛이 아래로 가속되는 정도(유효 중력)를 견주면', tone: same ? '' : 'neg'});
       const BA = ballPath(sh.geA), BB = ballPath(sh.geB), LA = lightPath(sh.geA), LB = lightPath(sh.geB), dA = LASER[1] - LA.at(LA.te)[1], dB = LASER[1] - LB.at(LB.te)[1];
       minis([['공이 바닥까지 (가)·(나)', (BA.wall ? '벽' : sec(BA.te)) + ' · ' + (BB.wall ? '벽' : sec(BB.te))], ['빛의 낙차 (가)·(나), 과장', fmt(dA, 2) + ' m · ' + fmt(dB, 2) + ' m'],
         ['(나)의 빛이 휘는 쪽', S.aEq > 1e-9 ? '아래 (가속도 반대쪽)' : '휘지 않음'], ['근거', '관성 질량 = 중력 질량']]);
@@ -835,9 +841,9 @@
     } else if (S.scene === 'light') {
       const a = S.aL, tC = (SW - LASER[0]) / CP, drop = M.shipRise(a, tC);
       $('hudA').textContent = nar ? '밖 · 관성 좌표계' : '밖 · 관성 좌표계 (멈춰서 봄)';
-      if (a < 1e-9) ans('곧게 간다', ['우주선이 가속하지 않으면 관성력이 없다', '안에서 보아도 빛은 곧게 간다'], {lab: '지금 판정', ctx: '② 빛의 휨 · a = 0', f: '빛이 우주선을 건너는 동안 우주선이 움직인 만큼', tone: 'ink'});
+      if (a < 1e-9) ans('곧게 간다', ['우주선이 가속하지 않으면 관성력이 없다', '안에서 보아도 빛은 곧게 간다'], {lab: '지금 판정', ctx: '빛의 휨 · a = 0', f: '빛이 우주선을 건너는 동안 우주선이 움직인 만큼', tone: 'ink'});
       else ans('아래로 휜다', ['밖: 빛은 곧게 가고 우주선이 <em>½at² = ' + fmt(drop, 2) + ' m</em> 올라간다 (그림 값)', '안: 빛이 <em>가속도 반대쪽(아래)</em>으로 ' + fmt(drop, 2) + ' m 휘어 보인다', 'a 가 클수록 많이 휜다 (낙차 ∝ a). 중력장에서는 질량 쪽으로'],
-        {lab: '지금 판정', ctx: '② 빛의 휨 · a = ' + fmt(a, 1) + ' m/s²', f: '빛이 우주선을 건너는 동안 우주선이 ½at² 만큼 올라가면'});
+        {lab: '지금 판정', ctx: '빛의 휨 · a = ' + fmt(a, 1) + ' m/s²', f: '빛이 우주선을 건너는 동안 우주선이 ½at² 만큼 올라가면'});
       minis([['우주선의 가속도', fmt(a, 1) + ' m/s² · 위'], ['건너는 시간 (그림 속 빛)', fmt(tC, 2) + ' s'], ['낙차 (그림 값)', fmt(drop, 2) + ' m'], ['실제 빛 (4.2 m 를 건널 때)', Lab.sci(M.lightDrop(SW - LASER[0], M.c, Math.max(a, 1e-9)), 1) + ' m']]);
       ok = a > 1e-9; okText = 'ㄱ 틀림: 가속하는 우주선 안의 빛은 가속도 반대쪽(아래)으로 휜다 → 정답 ㄴ, ㄷ';
       idle = 'ㄱ 확인: 가속도를 주어 빛이 휘는 쪽을 보자';
@@ -846,13 +852,13 @@
       $('hudA').textContent = nar ? '옆모습 (각은 과장)' : '옆에서 본 빛의 길 (각은 크게 과장)';
       if (p.sun) {
         ans('별이 더 바깥쪽에 보인다', ['태양 가장자리를 지난 별빛이 태양 쪽으로 휘어 들어온다', '관찰자는 들어온 방향의 연장선 → 별이 태양에서 <em>더 먼 쪽</em>에 보인다', '에딩턴 1919: 약 <em>1.75″</em> (그림은 크게 과장)'],
-          {lab: '지금 판정', ctx: '③ 일식 1919 · 태양', f: '별빛이 태양 가장자리를 스쳐 지나면', tone: 'small'});
+          {lab: '지금 판정', ctx: '일식 1919 · 태양', f: '별빛이 태양 가장자리를 스쳐 지나면', tone: 'small'});
         minis([['휜 각 (태양 가장자리)', '약 1.75″'], ['보이는 상', '1개 (다른 상은 태양에 가려짐)'], ['상의 자리', '실제보다 바깥쪽'], ['밝힌 사람', '에딩턴 (1919)']]);
       } else {
         const big = kind === 'ring' ? '아인슈타인 고리' : '상 2개';
         const l1 = kind === 'ring' ? '광원이 렌즈 바로 뒤 (일직선) → 모든 방향에서 똑같이 휘어 <em>고리</em>' : '광원이 조금 어긋남 → 광원 쪽 바깥에 밝은 상, 반대쪽 안에 흐린 상';
         ans(big, [l1, '렌즈 질량 <em>× ' + fmt(S.lm, 2) + '</em> → ' + (kind === 'ring' ? '고리 반지름 × ' : '두 상의 간격 × ') + fmt(Math.sqrt(S.lm), 2) + ' (질량이 클수록 많이 휜다)'],
-          {lab: '지금 판정', ctx: '③ 중력 렌즈 · 렌즈 질량 × ' + fmt(S.lm, 2), f: '광원–렌즈–관찰자의 배치와 렌즈의 질량에 따라'});
+          {lab: '지금 판정', ctx: '중력 렌즈 · 렌즈 질량 × ' + fmt(S.lm, 2), f: '광원–렌즈–관찰자의 배치와 렌즈의 질량에 따라'});
         minis([['렌즈 질량', '× ' + fmt(S.lm, 2)], ['광원의 어긋남', Math.abs(S.beta) < 1e-9 ? '0 (일직선)' : fmt(S.beta, 2)], ['보이는 상', kind === 'ring' ? '고리' : '2개 (양쪽)'],
           ['고리 반지름 (처음 = 1)', '× ' + fmt(p.thE, 2)]]);
       }
@@ -860,10 +866,9 @@
       idle = 'ㄴ 확인: ‘은하 렌즈’에서 광원의 어긋남을 0 으로 두면 고리가 된다';
     } else if (S.mode === 'earth') {
       $('hudA').textContent = '지구 · 탑 · GPS 위성';
-      const day = (M.earthRate(M.EARTH.R + 2.02e7) - M.earthRate(M.EARTH.R)) * 86400 * 1e6;
-      ans('지표 시계가 가장 느리다', ['중력이 강한(시공간이 많이 휜) 곳일수록 시간이 느리게 간다', '<em>지표 &lt; 탑 꼭대기 &lt; GPS 위성</em> (중력 효과만)', 'GPS 위성 시계는 하루에 약 ' + fmt(day, 0) + ' μs 빨리 가서 보정한다'],
-        {lab: '지금 판정', ctx: '④ 중력 시간 지연 · 지구', f: '높이(중력의 세기)가 다른 곳에 둔 시계를 견주면', tone: 'small'});
-      minis([['지표 시계 (과장)', fmt(EARTH_RATES.ground, 2) + '배'], ['탑 꼭대기 (과장)', fmt(EARTH_RATES.tower, 2) + '배'], ['GPS 위성 (과장)', fmt(EARTH_RATES.gps, 2) + '배'], ['실제 차이 (GPS, 하루)', '약 ' + fmt(day, 0) + ' μs']]);
+      ans('지표 시계가 가장 느리다', ['중력이 강한(시공간이 많이 휜) 곳일수록 시간이 느리게 간다', '<em>지표 &lt; 탑 꼭대기 &lt; GPS 위성</em> (중력 효과만)', 'GPS 위성 시계는 (중력 효과만으로) 하루에 약 45 μs 빨리 가서 보정한다'],
+        {lab: '지금 판정', ctx: '중력 시간 지연 · 지구', f: '높이(중력의 세기)가 다른 곳에 둔 시계를 견주면', tone: 'small'});
+      minis([['지표 시계 (과장)', fmt(EARTH_RATES.ground, 2) + '배'], ['탑 꼭대기 (과장)', fmt(EARTH_RATES.tower, 2) + '배'], ['GPS 위성 (과장)', fmt(EARTH_RATES.gps, 2) + '배'], ['실제 차이 (GPS, 하루)', '약 45 μs']]);
       ok = true; okText = 'ㄷ 옳음: 중력이 강한 지표의 시계가 탑 꼭대기의 시계보다 느리게 간다 → 정답 ㄴ, ㄷ';
     } else {
       const kind = M.remnant(S.mc), Mkg = S.mc * M.MSUN, rs = M.horizonR(Mkg), R = M.remnantRadius(S.mc), v = Math.min(1, M.escapeSpeed(Mkg, R) / M.c);
@@ -872,7 +877,7 @@
       const l1 = kind === 'wd' ? mtxt + ' ≤ 약 1.4 M☉ → <em>백색 왜성</em> (지구만 한 크기)' : kind === 'ns' ? '약 1.4 &lt; ' + mtxt + ' ≤ 약 3 M☉ → <em>중성자별</em> (지름 약 20 km)' : mtxt + ' &gt; 약 3 M☉ → 자체 중력으로 계속 붕괴 → <em>블랙홀</em>';
       const l2 = kind === 'bh' ? '사건의 지평선: √(2GM/R) = c → R = 2GM/c² ≈ <em>' + fmt(rs / 1000, 1) + ' km</em>' : '표면 탈출 속력 ≈ <em>' + fmt(v, kind === 'wd' ? 3 : 2) + 'c</em> &lt; c → 빛이 나온다';
       const l3 = kind === 'bh' ? '지평선에 가까운 시계일수록 느리다 → 밖에서 보면 지평선에서 멈춘 듯' : '표면 가까운 시계일수록 느리다';
-      ans(M.REMNANT[kind], [l1, l2, l3], {lab: '지금 판정', ctx: '④ 별의 최후 · 중심부 ' + mtxt, f: '핵융합을 마친 중심부의 질량에 따라 (약 1.4 · 3 M☉ 가 경계)', tone: kind === 'bh' ? 'ink' : ''});
+      ans(M.REMNANT[kind], [l1, l2, l3], {lab: '지금 판정', ctx: '별의 최후 · 중심부 ' + mtxt, f: '핵융합을 마친 중심부의 질량에 따라 (약 1.4 · 3 M☉ 가 경계)', tone: kind === 'bh' ? 'ink' : ''});
       minis([['중심부 질량', mtxt], ['남은 천체', M.REMNANT[kind]], ['탈출 속력 = c 인 반지름', fmt(rs / 1000, 1) + ' km'], ['가장 가까운 시계', fmt(M.clockRate(CLOCK_R[0], kind === 'bh' ? 1 : rs / R), 2) + '배']]);
       idle = 'ㄷ 확인: ‘지구 · 탑 · GPS’에서 지표와 탑 꼭대기의 시계를 견주어 보자';
     }
@@ -910,7 +915,11 @@
     pairG.set(S.pair, true); lvG.set(S.lv, true); modeG.set(S.mode, true);
     aEq.set(S.aEq, true); aL.set(S.aL, true); lm.set(S.lm, true); beta.set(S.beta, true); mc.set(S.mc, true); cCover.set(S.cover, true);
   }
-  const go = (sc, o) => () => { Object.assign(S, o); setScene(sc); playCtl.set(true); };
+  const go = (sc, o) => () => {
+    Object.assign(S, o);
+    if (Lab.reduceMotion) { if ('te' in o) S.te = 0.9; if ('tl' in o) S.tl = 0.9; if ('col' in o) S.col = 1; }
+    setScene(sc); playCtl.set(!Lab.reduceMotion || S.playing);
+  };
   const TRY = {
     ex: go('eq', {pair: 'weight', aEq: 10, cover: false, te: 0}),
     eqCover: go('eq', {pair: 'weight', aEq: 10, cover: true, te: 0}),
@@ -947,6 +956,7 @@
     drawStage();
     roT += dt; if (roT > 0.2) { roT = 0; if (S.scene === 'bh') readouts(); }
   });
+  if (Lab.reduceMotion) { S.te = 0.9; S.tl = 0.9; }        // 움직임 줄이기: 멈춘 첫 화면에 공과 빛의 길이 다 보이게
   setScene('eq'); sync();
   if (narrowMQ.addEventListener) narrowMQ.addEventListener('change', () => { readouts(); drawStage(); });
 })();
