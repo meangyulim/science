@@ -327,7 +327,7 @@
     } else if (x > 1e-6 && x < s.L - 1e-6) Lab.tag(ctx, '멈춤', Q[0] + 22, Q[1] - 22, {size: 13, color: C.neg, align: 'left'});
     if (isEven() && !n) text(ctx, '등속: 마찰력 = mg sin θ', T[0] + 10, topY - 14, {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
     // 에너지 막대
-    const bx = n ? W * 0.62 : W * 0.66, bw = n ? 26 : 44, gap = n ? 14 : 34, top = n ? 72 : 76, bot = base, E0 = e.E0;
+    const bx = n ? W * 0.62 : W * 0.66, bw = n ? 26 : 44, gap = n ? 14 : 34, top = n ? 72 : 76, bot = n ? base - 30 : base, E0 = e.E0;   // 좁은 무대: 오른쪽 아래 단계 표시 자리를 비운다
     const Y = (v2) => bot - v2 / (E0 * 1.08) * (bot - top);
     text(ctx, '에너지 (J)', bx, top - (n ? 16 : 20), {size: 13, w: 600, color: C.muted, align: 'left'});
     stack(ctx, bx, bw, Y, [[e.U0, C.violet, false, 'U'], [e.K0, C.energy, false, 'K']], !n);
@@ -363,7 +363,7 @@
       if (!g.n) { const m = p.pts[Math.floor(p.pts.length * (i === 0 ? 0.2 : i === 1 ? 0.45 : 0.62))]; text(ctx, String(i + 1), g.X(m[0]) + (i === 0 ? -12 : 12), g.Y(m[1]) + (i === 1 ? -12 : 4), {size: 14, w: 600, color: cols[i], halo: true}); }
     });
     // 오른쪽: 경로마다 중력의 일 (막대)
-    const bw = g.n ? 22 : 34, gap = g.n ? 12 : 22, top = g.top + 24, bot = g.bot - 4, Wmax = PM * G * (HA + 1.6), Yb = (w) => bot - w / Wmax * (bot - top);
+    const bw = g.n ? 22 : 34, gap = g.n ? 12 : 22, top = g.top + 24, bot = g.bot - (g.n ? 32 : 4), Wmax = PM * G * (HA + 1.6), Yb = (w) => bot - w / Wmax * (bot - top);   // 좁은 무대: 단계 표시 자리를 비운다
     text(ctx, g.n ? '중력의 일' : '중력이 한 일 (J)', g.bx, g.top + 2, {size: 13, w: 600, color: C.muted, align: 'left'});
     Lab.line(ctx, [[g.bx - 6, Yb(50)], [g.bx + 3 * bw + 2 * gap + 6, Yb(50)]], C.copper, 1.6, [5, 4]);
     text(ctx, 'mgh = 50 J', g.bx - 4, Yb(50) - 11, {size: 13, w: 600, color: C.copper, align: 'left'});
@@ -594,9 +594,9 @@
         '경로 1, 2, 3 모두: mgh = 1 × 10 × 5 = <em>50 J</em>',
         '경로 길이 ' + P.map((p) => fmt(p.L, 1) + ' m').join(' · ') + ' → 길이가 달라도 같은 일',
         deep > 0.05 ? '곡선은 B보다 ' + fmt(deep, 2) + ' m 아래까지 가서 ' + fmt(PM * G * (HA + deep), 0) + ' J → 올라오며 B에서 <em>50 J</em>' : '세 공 모두 B에서 같은 속력 ≈ ' + fmt(Math.sqrt(VS * VS + 2 * G * HA), 1) + ' m/s'],
-      {tone: '', lab: '세 경로에서 중력이 한 일', ctx: '1 kg · A → B 높이차 5 m · 마찰 없음', f: 'W<sub>중력</sub> = mg × (높이 감소) 에 지금 값을 넣으면'});
+      {tone: '', lab: '세 경로에서 중력이 한 일', ctx: '1 kg · A → B 높이차 5 m · 마찰 없음 · A에서 0.5 m/s로 살짝 밀어 출발', f: 'W<sub>중력</sub> = mg × (높이 감소) 에 지금 값을 넣으면'});
       P.forEach((p, i) => setMini(i + 1, '경로 ' + (i + 1) + ' 지금까지 중력의 일', fmt(M.along(p.pts, pathS(p, t), PM).Wg, 1) + ' J'));
-      setMini(4, 'B에서 속력 (세 경로 같다)', fmt(Math.sqrt(VS * VS + 2 * G * HA), 1) + ' m/s');
+      setMini(4, 'B에서 속력 (세 경로 같다, √(0.5² + 2gh))', fmt(Math.sqrt(VS * VS + 2 * G * HA), 1) + ' m/s');
       hud('t = ' + fmt(t, 2) + ' s', P.every((p) => pathS(p, t) >= p.L - 1e-6) ? '셋 다 50 J' : '굴러가는 중', '');
     } else if (S.scene === 'pathF') {
       const R = routeLen(), t = Math.min(S.t, tEnd());

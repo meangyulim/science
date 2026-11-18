@@ -224,9 +224,9 @@
   function geoP(W, H) {
     const n = W < 520, bw = n ? 40 : 58, bh = n ? 30 : 42, room = n ? 50 : 86;
     const x0 = (n ? 26 : 48) + bw / 2, x1 = W - (n ? 10 : 22) - room - bw / 2;
-    const yF = Math.round(H * (n ? 0.31 : 0.33));
-    return {n, bw, bh, x0, x1, yF, X: (s) => x0 + s / S.sE * (x1 - x0), sOf: (x) => (x - x0) / (x1 - x0) * S.sE,
-      kF: (n ? 46 : 84) / 20, kv: (n ? 40 : 72) / 8, top: yF + (n ? 48 : 70), bot: H - (n ? 48 : 40)};
+    const flat = !n && H < 420, yF = Math.round(flat ? Math.max(92, H * 0.31) : H * (n ? 0.31 : 0.33));
+    return {n, flat, bw, bh, x0, x1, yF, X: (s) => x0 + s / S.sE * (x1 - x0), sOf: (x) => (x - x0) / (x1 - x0) * S.sE,
+      kF: (n ? 46 : 84) / 20, kv: (n ? 40 : 72) / 8, top: yF + (n ? 48 : flat ? 50 : 70), bot: H - (n ? 48 : 40)};
   }
   function drawPush(ctx, W, H) {
     const g = geoP(W, H), p = par(), st = posNow(), x = st.x, L = M.ledger(p, x), cx = g.X(x), top = g.yF - g.bh, cy = g.yF - g.bh / 2;
@@ -243,7 +243,7 @@
     // 처음 자리
     if (cx - g.X(0) > g.bw + 4) {
       ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.3; Lab.rrect(ctx, g.X(0) - g.bw / 2, top, g.bw, g.bh, 4); ctx.stroke(); ctx.restore();
-      if (!g.n) text(ctx, '처음 v₀ = ' + fmt(S.v0, 1) + ' m/s', g.X(0), top - 13, {size: 13, w: 500, color: C.muted, halo: true});
+      if (!g.n && top - 13 > 58) text(ctx, '처음 v₀ = ' + fmt(S.v0, 1) + ' m/s', g.X(0), top - 13, {size: 13, w: 500, color: C.muted, halo: true});
     }
     // 이동 거리 (넓은 화면: 바닥 아래 치수선)
     if (!g.n && x > 0.01) {
@@ -272,7 +272,7 @@
       text(ctx, g.n ? 'F' : 'F = ' + fmt(S.F, 0) + ' N', cx + g.bw / 2 + LF / 2, cy - 14, {size: 13.5, w: 600, color: fcol, halo: true});
     }
     // 속도 (넓은 화면: 상자 위, 폰: 바닥 아래)
-    const vy = g.n ? g.yF + 26 : top - 46, vL = st.v * g.kv;
+    const vy = g.n ? g.yF + 26 : Math.max(g.flat ? 22 : 54, top - 46), vL = st.v * g.kv;
     if (vL > 3) arrow(ctx, cx, vy, cx + vL, vy, C.vel, 3, 10);
     const vs = 'v = ' + fmt(st.v, 2) + ' m/s', vw = Lab.measure(ctx, vs, {size: 13.5, w: 600}), vr = cx + Math.max(vL, 0) + 8 + vw < W - 6;
     text(ctx, vs, vr ? cx + Math.max(vL, 0) + 8 : cx - 8, vy, {size: 13.5, w: 600, color: C.vel, align: vr ? 'left' : 'right', halo: true});
@@ -284,11 +284,11 @@
     const L = M.ledger(p, x), xe = xEnd(), n = g.n;
     let pos = Math.max(1, p.F * Math.min(p.sF, xe)), neg = 0;
     for (let i = 0; i <= 80; i++) { const q = M.ledger(p, xe * i / 80); pos = Math.max(pos, q.K, q.K0, q.sum); neg = Math.max(neg, -q.sum, p.f * xe); }
-    const top = g.top + (n ? 30 : 36), bot = g.bot - (n ? 34 : 38), k = (bot - top) / (pos + neg || 1), y0 = top + pos * k;
+    const top = g.top + (n ? 30 : g.flat ? 24 : 36), bot = g.bot - (n ? 34 : g.flat ? 26 : 38), k = (bot - top) / (pos + neg || 1), y0 = top + pos * k;
     const cols = n ? [0.1, 0.27, 0.44, 0.62, 0.86] : [0.12, 0.29, 0.46, 0.63, 0.85], X = (u) => (n ? 10 : 30) + u * (W - (n ? 20 : 60));
     const bw = n ? 30 : 46, Y = (v) => y0 - v * k;
     text(ctx, '일 장부 (J)', n ? 12 : 30, g.top + 4, {size: 13.5, w: 700, color: C.ink, align: 'left'});
-    if (!n) text(ctx, '힘마다 한 일을 부호 붙여 더한다', 120, g.top + 4, {size: 13, w: 500, color: C.muted, align: 'left'});
+    if (!n && !g.flat) text(ctx, '힘마다 한 일을 부호 붙여 더한다', 120, g.top + 4, {size: 13, w: 500, color: C.muted, align: 'left'});
     Lab.line(ctx, [[X(cols[0]) - bw, y0], [X(cols[3]) + bw, y0]], C.ink, 1.6);
     Lab.line(ctx, [[X(cols[4]) - bw, y0], [X(cols[4]) + bw, y0]], C.ink, 1.6);
     const bar = (u, v, col, alpha) => { if (Math.abs(v) < 1e-9) return; ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = col; ctx.fillRect(X(u) - bw / 2, Math.min(y0, Y(v)), bw, Math.abs(Y(v) - y0)); ctx.restore(); };

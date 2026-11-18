@@ -420,6 +420,10 @@
     const P = side ? [cx + side * g.bw / 2, cy] : [cx, cy - g.bh / 2];
     const L = S.F * g.kF, T = [P[0] + d[0] * L, P[1] + d[1] * L], Lc = L * c, Ls = L * sn;
     const away = side >= 0 ? -1 : 1, al = away < 0 ? 'right' : 'left';   // 수직항력·중력 이름표는 힘의 반대쪽
+    const inL = (s, x, a, size) => {                                 // 이름표가 무대 왼쪽 끝 밖으로 나가지 않게
+      const w = Lab.measure(ctx, s, {size, w: 600});
+      return a === 'right' ? Math.max(x, w + 6) : a === 'center' ? Math.max(x, w / 2 + 6) : x;
+    };
     if (S.nmg) {
       const nx = cx + away * g.bw * 0.22, nL = g.n ? 26 : 34, top = cy - g.bh / 2;
       arrow(ctx, nx, top, nx, top - nL, Lab.alpha(C.force, 0.7), 2.4, 9);
@@ -430,14 +434,16 @@
     if (S.comp) {
       if (Math.abs(Lc) > 3) {
         dashArrow(ctx, P[0], P[1], P[0] + Lc, P[1], Lab.alpha(C.force, 0.9), 2.4, 9);
-        text(ctx, 'F cos θ', P[0] + Lc + (c > 0 ? 6 : -6), P[1] + 1, {size: 13, w: 600, color: C.force, align: c > 0 ? 'left' : 'right', halo: true});
+        const cx0 = P[0] + Lc + (c > 0 ? 6 : -6);                     // 왼쪽에 자리가 없으면(상자가 왼쪽 끝 · θ ≈ 180°) 성분 이름표는 생략
+        if (c > 0 || cx0 - Lab.measure(ctx, 'F cos θ', {size: 13, w: 600}) >= 6) text(ctx, 'F cos θ', cx0, P[1] + 1, {size: 13, w: 600, color: C.force, align: c > 0 ? 'left' : 'right', halo: true});
       }
       if (Ls > 3 && Math.abs(Lc) > 3) Lab.line(ctx, [[P[0] + Lc, P[1]], T], Lab.alpha(C.muted, 0.9), 1.4, [3, 4]);
       if (sn > 0.3 && !g.n) text(ctx, 'F sin θ (일 0)', P[0] + Lc + (c >= 0 ? 8 : -8), P[1] - Ls * 0.6, {size: 13, w: 500, color: C.muted, align: c >= 0 ? 'left' : 'right', halo: true});
     }
     arrow(ctx, P[0], P[1], T[0], T[1], C.force, 3.4, 12);
     if (side > 0 && S.th >= 8) Lab.angle(ctx, P[0], P[1], g.n ? 13 : 17, 0, -th, C.ink, g.n ? '' : 'θ');
-    text(ctx, 'F = ' + fmt(S.F, 0) + ' N', T[0] + (c >= 0.2 ? 8 : c <= -0.2 ? -8 : 0), T[1] - (sn > 0.2 ? 12 : 14), {size: 13.5, w: 600, color: C.force, align: c >= 0.2 ? 'left' : c <= -0.2 ? 'right' : 'center', halo: true});
+    const fl = 'F = ' + fmt(S.F, 0) + ' N', fa = c >= 0.2 ? 'left' : c <= -0.2 ? 'right' : 'center';
+    text(ctx, fl, inL(fl, T[0] + (c >= 0.2 ? 8 : c <= -0.2 ? -8 : 0), fa, 13.5), T[1] - (sn > 0.2 ? 12 : 14), {size: 13.5, w: 600, color: C.force, align: fa, halo: true});
     Lab.circle(ctx, T[0], T[1], 5, {fill: C.copper, stroke: C.paper, width: 1.6});
     tipAt = T;
   }
@@ -499,8 +505,9 @@
     const sc = Math.max(10, Math.min((right - left - 6) / (Lm * CS), (base - topY) / (Lm * SN)));
     const P0 = [left, base], u = [CS, -SN], nrm = [-SN, -CS];
     const at = (p) => [P0[0] + u[0] * p * sc, P0[1] + u[1] * p * sc];
-    const led = n ? {x: 12, y: base + 54, w: W - 24, h: H - base - 54 - 44} : {x: W * 0.6, y: 214, w: W * 0.4 - 22, h: Math.min(200, H - 214 - 60)};
-    return {n, sc, P0, u, nrm, at, base, Lm, led, bs: n ? 24 : 34, W, H};
+    const flat = !n && H < 420;                          // 폰 가로·낮은 창: 각 안내를 빼고 장부를 위로
+    const led = n ? {x: 12, y: base + 54, w: W - 24, h: H - base - 54 - 44} : flat ? {x: W * 0.6, y: 104, w: W * 0.4 - 22, h: H - 104 - 52} : {x: W * 0.6, y: 214, w: W * 0.4 - 22, h: Math.min(200, H - 214 - 60)};
+    return {n, flat, sc, P0, u, nrm, at, base, Lm, led, bs: n ? 24 : 34, W, H};
   }
   function drawSlope(ctx, W, H) {
     const g = geoS(W, H), T = trip(), st = M.tripAt(T, S.t), L = st.L, up = L < TD - 1e-6 || S.t < T.tUp - 1e-6, v = Math.abs(st.v);
@@ -517,8 +524,9 @@
     tick(P0, ''); tick(P0 + TD, '');
     if (!g.n) {
       const Tp = g.at(P0 + TD), Sp = g.at(P0);
-      if (Math.abs(p - P0 - TD) > 1.2) text(ctx, '꼭대기 (4 m 위)', Tp[0] - 6, Tp[1] + 18, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
-      text(ctx, '출발·도착', Sp[0] + 4, g.base + 19, {size: 13, w: 500, color: C.muted, align: 'left'});
+      const tl = '꼭대기 (4 m 위)', tw = Lab.measure(ctx, tl, {size: 13, w: 500}), Bc = g.at(p);       // 상자와 가까우면 숨김 (픽셀 거리)
+      if (Math.hypot(Bc[0] - (Tp[0] - 6 - tw / 2), Bc[1] - (Tp[1] + 18)) > tw / 2 + g.bs + 6) text(ctx, tl, Tp[0] - 6, Tp[1] + 18, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+      if (!g.flat) text(ctx, '출발·도착', Sp[0] + 4, g.base + 19, {size: 13, w: 500, color: C.muted, align: 'left'});
     }
     // 상자 (빗면을 따라 p)
     const C0 = g.at(p), cxy = [C0[0] + g.nrm[0] * g.bs / 2, C0[1] + g.nrm[1] * g.bs / 2];
@@ -548,7 +556,7 @@
       }
     }
     if (!g.n) text(ctx, '(힘 화살표는 방향만 나타냄)', 16, 64, {size: 13, w: 500, color: C.muted, align: 'left'});
-    drawTripNotes(ctx, g, up, L);
+    if (!g.flat) drawTripNotes(ctx, g, up, L);
     drawTripLedger(ctx, g, L);
   }
   // 올라갈 때·내려올 때 힘과 이동 방향 사이 각
