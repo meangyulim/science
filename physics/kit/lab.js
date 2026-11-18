@@ -5,8 +5,9 @@
  *  색      Lab.C            CSS 토큰을 읽은 색 묶음 (Lab.C.ink, .muted, .grid, .paper, .copper, .vel, .acc, .force, .neg, .energy, .violet, ...)
  *                           테마(밝게/어둡게)가 바뀌면 자동으로 다시 읽고, Lab.canvas 로 만든 그림을 모두 다시 그린다.
  *  캔버스  Lab.canvas(id, draw) → v {el, ctx, W, H}   크기가 바뀌면 HiDPI 로 맞춘 뒤 draw(v) 를 부른다. W·H 는 CSS 픽셀.
- *  글자    Lab.text(ctx, s, x, y, {size=13, w=600, color, align='center', base='middle', mono, halo})
- *             size 는 px, 13 미만은 13 으로 올린다(폰에서 읽히게). w ≥ 600 이면 굵게. halo: true 면 바탕색 테두리.
+ *  글자    Lab.text(ctx, s, x, y, {size=13, w=500, color, align='center', base='middle', mono, halo})
+ *             size 는 px, 13 미만은 13 으로 올린다(폰에서 읽히게). 굵기 w: 500 보통(기본), 600 이름표·값, 700 정말 중요한 것 하나.
+ *             숫자도 본문 글꼴(Noto Sans KR)로 쓴다(mono 는 예전 페이지와 맞추려고 남긴 옵션, 글꼴은 같다). halo: true 면 바탕색 테두리.
  *          Lab.font(size, w, mono) → ctx.font 문자열
  *  그리기  Lab.arrow(ctx, x0, y0, x1, y1, color, width=2.5, head=10)
  *          Lab.bracket(ctx, x0, x1, y, color, label, up=true)      가로 치수선 |←label→|
@@ -21,7 +22,10 @@
  *          Lab.group(sel, key, onPick, initial)   data-<key> 버튼 묶음 (aria-pressed 관리) → {set(v, quiet)}
  *          Lab.toggle(id, onChange) → {get(), set(b, quiet)}   체크 상자
  *          Lab.check(id, ok, okText, idleText)    예제 확인 줄 (.check / .check.ok)
- *          Lab.tries(map, after)   [data-try] 버튼 → map[key]() 실행, after() 뒤 무대로 스크롤
+ *          Lab.tries(map, after)   [data-try] 버튼 → map[key]() 실행, after(). 무대가 반도 안 보이면 무대로 스크롤
+ *          Lab.ans(big, lines, {tone, lab, ctx, f, html})   「지금 값」 카드: #ansBig 에 큰 결과, #ansLines 에 식 줄(HTML 배열),
+ *             tone = 'neg'|'vel'|'cu'|'ink'|'small' (기본 초록), lab → #ansLab (왼쪽 위 제목), ctx → #ansCtx (오른쪽 위 상황), f → #ansF (식 안내 줄),
+ *             html: true 면 큰 결과도 HTML (λ<sub>A</sub> 처럼 아래첨자)
  *          Lab.pointer(el, {down(x,y), move(x,y), up()})   마우스·터치 끌기 (세로 스크롤은 페이지가 가짐)
  *  색 섞기 Lab.alpha(color, a) → 'rgba(…)'  토큰 색(#hex·rgb)에 투명도를 입힌다 (그라디언트 멈춤점 등)
  *          Lab.rgb(color) → [r, g, b]   (ImageData 로 픽셀을 칠할 때)      Lab.isDark() → 지금 어두운 테마인가
@@ -34,6 +38,11 @@
  *  축 옵션 Lab.axes(..., {yAt: 'left'}) 세로축을 늘 왼쪽에, {xlabelBelow: true} x 축 이름을 눈금 글자 아래 가운데에
  *  숫자    Lab.fmt(v, d=2)  끝 0 자름, 음수는 −   Lab.sg(v, d) 부호 붙임   Lab.sci(v, d) 1.7 × 10⁸   Lab.frac(v) 5/3
  *  기타    Lab.reduceMotion (움직임 줄이기 설정이면 처음에 멈춘 상태로)
+ *  배치    (자동) 관찰 노트 배치를 움직인다 — 페이지 스크립트가 다 돈 뒤(DOMContentLoaded)
+ *          · 조작 시트: #sheetBtn 으로 열고 #sheetClose·Esc 로 닫는다 (좁은 화면). 범례(.stage .legend)는 좁은 화면에서 시트 안으로 옮긴다
+ *          · 지금 읽는 단계: .steps > .step 중 읽는 줄에 걸린 것에 .on, 무대의 #nowstep 에 그 단계의 data-step 글
+ *          · 실험대 높이: .dock 높이를 .bench 의 --dock-h 로 (넓은 화면에서 무대가 조작 줄까지 화면에 들어오게)
+ *          · [data-do] 버튼: "click:#step; check:#cHuy; uncheck:#cX; set:#th=45" (세미콜론으로 여러 개)
  */
 (function () {
   'use strict';
@@ -43,7 +52,7 @@
   const MI = '−';
 
   // 과학 실험실 첫 화면 안(iframe)에서 열렸으면 '← 물리 실험실' 링크를 감춘다
-  try { if (window.self !== window.top) document.querySelectorAll('.back').forEach((b) => { b.hidden = true; }); } catch (e) { /* 다른 출처 */ }
+  try { if (window.self !== window.top) document.querySelectorAll('.back, .topbar .home').forEach((b) => { b.hidden = true; }); } catch (e) { /* 다른 출처 */ }
 
   // ── 색 ─────────────────────────────────────────────────
   const TOKENS = ['bg', 'paper', 'ink', 'muted', 'line', 'line-soft', 'grid', 'glass', 'copper', 'copper-soft', 'on-copper',
@@ -84,17 +93,18 @@
 
   // ── 글자·그리기 ─────────────────────────────────────────
   const FAM_UI = '"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif';
-  const FAM_NUM = '"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace';
-  const font = (size = 13, w = 600, mono = false) => `${w >= 600 ? 700 : 500} ${Math.max(13, size)}px ${mono ? FAM_NUM : FAM_UI}`;
+  const FAM_NUM = FAM_UI;   // 숫자도 본문 글꼴로 (관찰 노트 배치)
+  const weight = (w) => (w >= 700 ? 700 : w >= 600 ? 600 : w <= 400 ? 400 : 500);
+  const font = (size = 13, w = 500, mono = false) => `${weight(w)} ${Math.max(13, size)}px ${mono ? FAM_NUM : FAM_UI}`;
   function text(ctx, s, x, y, o = {}) {
     ctx.save();
-    ctx.font = font(o.size || 13, o.w == null ? 600 : o.w, o.mono);
+    ctx.font = font(o.size || 13, o.w == null ? 500 : o.w, o.mono);
     ctx.fillStyle = o.color || C.ink; ctx.textAlign = o.align || 'center'; ctx.textBaseline = o.base || 'middle';
     if (o.halo) { ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = o.halo === true ? C.paper : o.halo; ctx.strokeText(s, x, y); }
     ctx.fillText(s, x, y);
     ctx.restore();
   }
-  const measure = (ctx, s, o = {}) => { ctx.save(); ctx.font = font(o.size || 13, o.w == null ? 600 : o.w, o.mono); const w = ctx.measureText(s).width; ctx.restore(); return w; };
+  const measure = (ctx, s, o = {}) => { ctx.save(); ctx.font = font(o.size || 13, o.w == null ? 500 : o.w, o.mono); const w = ctx.measureText(s).width; ctx.restore(); return w; };
   function arrow(ctx, x0, y0, x1, y1, col, w = 2.5, h = 10) {
     const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
     if (L < 1) return;
@@ -113,7 +123,7 @@
     ctx.restore();
     const m = (x0 + x1) / 2;
     arrow(ctx, m, y, x0 + 1, y, col, 1.6, 7); arrow(ctx, m, y, x1 - 1, y, col, 1.6, 7);
-    if (label) text(ctx, label, m, y + (up ? -13 : 14), {size: 13, color: col, w: 700, mono: true, halo: true});
+    if (label) text(ctx, label, m, y + (up ? -13 : 14), {size: 13, color: col, w: 600, mono: true, halo: true});
   }
   function vbracket(ctx, x, y0, y1, col, label, right = true) {
     const t = 5;
@@ -122,7 +132,7 @@
     ctx.restore();
     const m = (y0 + y1) / 2;
     arrow(ctx, x, m, x, y0 + 1, col, 1.6, 7); arrow(ctx, x, m, x, y1 - 1, col, 1.6, 7);
-    if (label) text(ctx, label, x + (right ? 9 : -9), m, {size: 13, color: col, w: 700, mono: true, align: right ? 'left' : 'right', halo: true});
+    if (label) text(ctx, label, x + (right ? 9 : -9), m, {size: 13, color: col, w: 600, mono: true, align: right ? 'left' : 'right', halo: true});
   }
   function line(ctx, pts, col, w = 2, dash) {
     if (!pts.length) return;
@@ -139,7 +149,9 @@
     ctx.restore();
   }
   function rrect(ctx, x, y, w, h, r) {
-    r = Math.min(r, w / 2, h / 2);
+    if (w < 0) { x += w; w = -w; }   // 크기가 음수로 계산돼도(아주 작은 화면) arcTo 오류가 나지 않게
+    if (h < 0) { y += h; h = -h; }
+    r = Math.max(0, Math.min(r || 0, w / 2, h / 2));
     ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
     ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
   }
@@ -185,12 +197,13 @@
 
   // ── 움직임 ──────────────────────────────────────────────
   function loop(fn) {
-    let last = 0, alive = true;
+    let last = 0, alive = true, warned = false;
     const step = (ts) => {
       if (!alive) return;
+      requestAnimationFrame(step);   // 다음 프레임을 먼저 건다: 한 프레임에서 오류가 나도 움직임이 멈추지 않게
       const dt = last ? Math.min(0.05, (ts - last) / 1000) : 0; last = ts;
-      if (!document.hidden) fn(dt);
-      requestAnimationFrame(step);
+      if (document.hidden) return;
+      try { fn(dt); } catch (e) { if (!warned) { warned = true; console.error(e); } }
     };
     requestAnimationFrame(step);
     return {stop: () => { alive = false; }};
@@ -243,7 +256,10 @@
       const f = map[b.dataset.try]; if (!f) return;
       f(); after && after(b.dataset.try);
       const st = document.querySelector('.stage');
-      if (st) st.scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block: 'center'});
+      if (st) {   // 무대가 이미 반 넘게 보이면 그대로 둔다 (실험대가 화면에 붙어 있는 배치)
+        const r = st.getBoundingClientRect(), vis = Math.min(r.bottom, innerHeight) - Math.max(r.top, 0);
+        if (vis < r.height * 0.5) st.scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block: 'center'});
+      }
     }));
   }
   function pointer(el, o) {
@@ -308,7 +324,7 @@
   // 바탕 상자가 있는 이름표
   function tag(ctx, s, x, y, o = {}) {
     const size = Math.max(13, o.size || 13), pad = o.pad == null ? 5 : o.pad;
-    const w = measure(ctx, s, {size, w: o.w == null ? 700 : o.w, mono: o.mono}) + pad * 2, h = size + pad * 1.6;
+    const w = measure(ctx, s, {size, w: o.w == null ? 600 : o.w, mono: o.mono}) + pad * 2, h = size + pad * 1.6;
     const al = o.align || 'center';
     const x0 = al === 'left' ? x : al === 'right' ? x - w : x - w / 2;
     ctx.save();
@@ -316,7 +332,7 @@
     ctx.fillStyle = o.bg || C.paper; ctx.fill();
     ctx.lineWidth = 1; ctx.strokeStyle = o.border || C.line; ctx.stroke();
     ctx.restore();
-    text(ctx, s, x0 + w / 2, y + 0.5, {size, w: o.w == null ? 700 : o.w, color: o.color || C.ink, mono: o.mono});
+    text(ctx, s, x0 + w / 2, y + 0.5, {size, w: o.w == null ? 600 : o.w, color: o.color || C.ink, mono: o.mono});
     return w;
   }
   // 아래첨자·위첨자가 있는 글자: 'E_{k,max}', 'v_1', '10^{-34}', 'x^2'
@@ -337,7 +353,7 @@
   }
   function rich(ctx, s, x, y, o = {}) {
     const size = Math.max(13, o.size || 13), small = Math.max(11, Math.round(size * 0.72));
-    const parts = richParts(s), w0 = o.w == null ? 600 : o.w;
+    const parts = richParts(s), w0 = o.w == null ? 500 : o.w;
     const fontOf = (k) => (k ? font(small, w0, o.mono).replace(/\d+px/, small + 'px') : font(size, w0, o.mono));
     ctx.save();
     let total = 0;
@@ -364,7 +380,7 @@
     ctx.beginPath(); ctx.arc(cx, cy, r, a0, a0 + d, d < 0); ctx.stroke(); ctx.restore();
     if (label) {
       const m = a0 + d / 2;
-      text(ctx, label, cx + Math.cos(m) * (r + 13), cy + Math.sin(m) * (r + 13), {size: 13, w: 700, color: col, halo: true});
+      text(ctx, label, cx + Math.cos(m) * (r + 13), cy + Math.sin(m) * (r + 13), {size: 13, w: 600, color: col, halo: true});
     }
     return a0 + d / 2;
   }
@@ -409,7 +425,98 @@
     return fmt(v, d);
   }
 
+  // ── 「지금 값」 카드 ─────────────────────────────────────
+  // Lab.ans('θ₂ = 30°', ['1 × sin <em>60°</em> = √3 × sin θ₂', 'sin θ₂ = 0.5 → <em>θ₂ = 30°</em>'], {ctx: '공기 → 유리'})
+  function ans(big, lines, o = {}) {   // 바뀐 칸만 다시 쓴다 (막대를 끄는 동안 자주 불려도 가볍게)
+    const put = (id, v, html) => {
+      const el = $(id);
+      if (!el || v == null) return;
+      if (html) { if (el.innerHTML !== v) el.innerHTML = v; } else if (el.textContent !== v) el.textContent = v;
+    };
+    put('ansBig', big, o.html);
+    const b = $('ansBig'), cls = 'big' + (o.tone ? ' ' + o.tone : '');
+    if (b && b.className !== cls) b.className = cls;
+    put('ansLab', o.lab, false);
+    put('ansCtx', o.ctx, false);
+    put('ansF', o.f, true);
+    if (lines) put('ansLines', lines.map((h) => '<span class="v">' + h + '</span>').join(''), true);
+  }
+
+  // ── 관찰 노트 배치: 붙어 다니는 실험대 · 조작 시트 · 지금 읽는 단계 · [data-do] ──
+  function layout() {
+    const bench = document.querySelector('.bench'), dock = bench && bench.querySelector('.dock');
+    const sheet = $('sheet'), sb = $('sheetBtn'), chip = $('nowstep');
+    const narrow = window.matchMedia ? matchMedia('(max-width: 999px)') : {matches: false};
+    // 넓은 화면: 실험대(무대 + 조작)가 화면보다 크면 붙어 다니지 않게
+    const fit = () => {
+      if (!bench) return;
+      bench.classList.remove('free');
+      if (narrow.matches) return;
+      const top = parseFloat(getComputedStyle(bench).top) || 0;
+      if (getComputedStyle(bench).position === 'sticky' && bench.offsetHeight + top > innerHeight - 8) bench.classList.add('free');
+    };
+    if (dock && 'ResizeObserver' in window) {
+      new ResizeObserver(() => { bench.style.setProperty('--dock-h', dock.offsetHeight + 'px'); fit(); }).observe(dock);
+    }
+    // 조작 시트 (좁은 화면)
+    const open = (on) => { if (!dock) return; dock.classList.toggle('open', on); if (sb) sb.setAttribute('aria-expanded', String(on)); };
+    if (sb) sb.addEventListener('click', () => open(!dock.classList.contains('open')));
+    if ($('sheetClose')) $('sheetClose').addEventListener('click', () => open(false));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') open(false); });
+    // 범례: 좁은 화면에서는 무대를 가리지 않게 시트 안으로 (여러 개면 모두, 순서대로)
+    const legends = bench ? [...bench.querySelectorAll('.stage .legend')].map((el) => [el, el.parentNode]) : [];
+    const placeLegend = () => {
+      if (!legends.length || !sheet) return;
+      if (narrow.matches) {
+        let at = sheet.querySelector('.sheet-head');
+        legends.forEach(([el]) => {
+          if (el.parentNode !== sheet) { if (at) at.after(el); else sheet.prepend(el); }
+          at = el;
+        });
+      } else legends.forEach(([el, home]) => { if (el.parentNode !== home) home.appendChild(el); });
+    };
+    // 지금 읽는 단계: 읽는 줄(보이는 글 영역의 35% 높이)에 걸린 단계
+    const steps = [...document.querySelectorAll('.steps > .step')];
+    let ticking = false;
+    const pick = () => {
+      ticking = false;
+      if (!steps.length) return;
+      const tb = document.querySelector('.topbar');
+      let top = tb ? tb.getBoundingClientRect().bottom : 0;
+      if (bench && narrow.matches && getComputedStyle(bench).position === 'sticky') top = Math.max(top, bench.getBoundingClientRect().bottom);
+      const lineY = top + (innerHeight - top) * 0.35;
+      let cur = null;
+      for (const st of steps) { if (st.getBoundingClientRect().top <= lineY) cur = st; else break; }
+      if (cur && cur.getBoundingClientRect().bottom < top) cur = null;
+      if (window.scrollY < 40) cur = null;
+      steps.forEach((st) => st.classList.toggle('on', st === cur));
+      if (chip) { chip.hidden = !cur; if (cur) chip.textContent = cur.dataset.step || ''; }
+    };
+    const later = () => { if (!ticking) { ticking = true; requestAnimationFrame(pick); } };
+    addEventListener('scroll', later, {passive: true});
+    addEventListener('resize', () => { placeLegend(); fit(); later(); });
+    if (narrow.addEventListener) narrow.addEventListener('change', () => { open(false); placeLegend(); fit(); });
+    // [data-do]: 단계 카드의 버튼이 조작판을 대신 눌러 준다
+    document.addEventListener('click', (e) => {
+      const b = e.target.closest && e.target.closest('[data-do]');
+      if (!b) return;
+      b.dataset.do.split(';').forEach((cmd) => {
+        const m = cmd.trim().match(/^(click|check|uncheck|set)\s*:\s*(.+)$/);
+        if (!m) return;
+        let sel = m[2].trim(), val = null;
+        if (m[1] === 'set') { const k = sel.lastIndexOf('='); val = sel.slice(k + 1).trim(); sel = sel.slice(0, k).trim(); }
+        const el = document.querySelector(sel);
+        if (!el) return;
+        if (m[1] === 'click') el.click();
+        else if (m[1] === 'set') { el.value = val; el.dispatchEvent(new Event('input', {bubbles: true})); el.dispatchEvent(new Event('change', {bubbles: true})); }
+        else if (el.checked !== (m[1] === 'check')) el.click();
+      });
+    });
+    placeLegend(); fit(); pick();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', layout); else setTimeout(layout, 0);
+
   window.Lab = {C, $, reduceMotion, canvas, font, text, measure, arrow, bracket, vbracket, line, circle, rrect, paper, axes,
     loop, play, slider, group, toggle, check, tries, pointer, alpha, rgb, isDark, wavelengthRGB, wlColor, tag, rich, angle,
-    fmt, sg, sci, pow10, fmtLen, frac, MI, redrawAll};
+    fmt, sg, sci, pow10, fmtLen, frac, MI, redrawAll, ans};
 })();

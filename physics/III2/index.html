@@ -6,10 +6,11 @@
 <title>빛과 물질의 이중성 — 물리 실험실</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../kit/lab.css">
 <style>
 /* 단원 목록: 개념 카드를 원고 순서대로 */
+.u-lead{margin:2px 0 0;color:var(--ink-2);font-size:16.5px;max-width:64ch}
 .u-list{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .u-card{display:grid;gap:4px;align-content:start;height:100%;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:inherit;text-decoration:none;overflow:hidden}
 .u-thumb{display:block;margin:-14px -16px 8px;aspect-ratio:16/10;overflow:hidden;border-bottom:1px solid var(--line-soft);background:var(--copper-soft)}
@@ -18,22 +19,26 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .u-thumb .lt{display:none} :root:not([data-theme="light"]) .u-thumb .dk{display:block}}
 :root[data-theme="dark"] .u-thumb .lt{display:none} :root[data-theme="dark"] .u-thumb .dk{display:block}
 a.u-card:hover{border-color:var(--copper)}
-.u-card b{font-size:16.5px;line-height:1.45}
-.u-card .u-q{font-size:14px;color:var(--muted);line-height:1.6}
-.u-id{font:600 12.5px var(--font-num);color:var(--copper);background:var(--copper-soft);padding:2px 8px;border-radius:999px}
-.u-qual,.u-soon{font-size:12.5px;font-weight:600;color:var(--muted)}
+.u-card b{font-size:16.5px;font-weight:700;line-height:1.45}
+.u-card .u-q{font-size:14.5px;color:var(--ink-2);line-height:1.6}
+.u-id{font-size:12.5px;font-weight:600;color:var(--copper-ink);background:var(--copper-soft);padding:1px 8px;border-radius:999px}
+.u-qual,.u-soon{font-size:12.5px;font-weight:500;color:var(--muted)}
 .u-card.off{opacity:.55}
 .u-head{display:flex;gap:8px;align-items:center}
 </style>
 </head>
-<body>
+<body class="cx">
+<header class="topbar"><div class="tb">
+  <a class="home" href="../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III2 빛과 물질의 이중성: 개념 9개"><span class="uname">III2 빛과 물질의 이중성</span><span class="dots"><a href="01/" title="III2-01 빛의 이중성" aria-label="III2-01 빛의 이중성"></a><a href="02/" title="III2-02 광전 효과의 실험 사실" aria-label="III2-02 광전 효과의 실험 사실"></a><a href="03/" title="III2-03 광전 방정식" aria-label="III2-03 광전 방정식"></a><a href="04/" title="III2-04 광전 효과의 이용" aria-label="III2-04 광전 효과의 이용"></a><a href="05/" title="III2-05 CCD" aria-label="III2-05 CCD"></a><a href="06/" title="III2-06 물질파" aria-label="III2-06 물질파"></a><a href="07/" title="III2-07 물질파 그래프·표 해석" aria-label="III2-07 물질파 그래프·표 해석"></a><a href="08/" title="III2-08 입자의 파동성 증거" aria-label="III2-08 입자의 파동성 증거"></a><a href="09/" title="III2-09 전자 현미경" aria-label="III2-09 전자 현미경"></a></span></nav>
+  <div class="pn"></div>
+</div></header>
 <div class="page">
-  <header class="top">
-    <a class="back" href="../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III2</span><span class="kicker">물리학Ⅰ · Ⅲ. 파동과 정보 통신</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III2</span><span>물리학Ⅰ · Ⅲ. 파동과 정보 통신</span></div>
     <h1>빛과 물질의 이중성</h1>
-    <p class="lead">개념 9개 가운데 9개를 실험 페이지로 만들었어요. 순서대로 보면 단원의 흐름이 이어져요.</p>
-  </header>
+    <p class="u-lead">개념 9개 가운데 9개를 실험 페이지로 만들었어요. 순서대로 보면 단원의 흐름이 이어져요.</p>
+  </div>
   <ol class="u-list">
     <li><a class="u-card" href="01/">
       <span class="u-thumb"><img class="lt" src="../data/thumbs/III2-01.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/III2-01-dark.webp" alt="" loading="lazy"></span>

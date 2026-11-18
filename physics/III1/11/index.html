@@ -6,159 +6,197 @@
 <title>물결파·소리의 간섭</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(위에서 본 두 파원의 간섭 무늬 + 탐침 P)와 조작판, 오른쪽 수치·경로차 자와 P의 수면 높이·선분 위의 점 */
+/* 관찰 노트: 왼쪽 실험대(위에서 본 두 파원의 간섭 무늬 + 탐침 P, 또는 두 스피커와 걷는 선) | 오른쪽 지금 값 + 관찰 ①~④ → 정리 → 예제 → 스스로 확인 */
 #stage{aspect-ratio:16/10}
 #pd{aspect-ratio:10/7.6}
-#seg{height:190px}
-.ro.full{grid-column:1/-1}
-.ro.neg b{color:var(--neg)}
+#seg,#loud{height:190px}
 .legend b.dash{height:0;border-top:3px dashed currentColor;background:none!important;width:18px}
 .legend i.ring{background:none!important;border:2.5px solid var(--neg);width:11px;height:11px}
-.quiz .tag{white-space:nowrap}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.28} #seg{height:210px} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III1 파동의 성질과 활용: 개념 12개 가운데 11번째"><a class="uname" href="../">III1 파동의 성질과 활용</a><span class="dots"><a href="../01/" title="III1-01 횡파와 종파" aria-label="III1-01 횡파와 종파"></a><a href="../02/" title="III1-02 파동 그래프와 진행 방향" aria-label="III1-02 파동 그래프와 진행 방향"></a><a href="../03/" title="III1-03 매질이 바뀔 때" aria-label="III1-03 매질이 바뀔 때"></a><a href="../04/" title="III1-04 굴절과 스넬 법칙" aria-label="III1-04 굴절과 스넬 법칙"></a><a href="../05/" title="III1-05 생활 속 굴절 현상" aria-label="III1-05 생활 속 굴절 현상"></a><a href="../06/" title="III1-06 여러 매질의 굴절" aria-label="III1-06 여러 매질의 굴절"></a><a href="../07/" title="III1-07 전반사와 광섬유" aria-label="III1-07 전반사와 광섬유"></a><a href="../08/" title="III1-08 전자기파와 스펙트럼" aria-label="III1-08 전자기파와 스펙트럼"></a><a href="../09/" title="III1-09 전자기파의 이용" aria-label="III1-09 전자기파의 이용"></a><a href="../10/" title="III1-10 중첩 원리" aria-label="III1-10 중첩 원리"></a><a class="cur" href="./" aria-current="page" title="III1-11 물결파·소리의 간섭" aria-label="III1-11 물결파·소리의 간섭 (지금)"></a><a href="../12/" title="III1-12 빛의 간섭" aria-label="III1-12 빛의 간섭"></a></span></nav>
+  <div class="pn"><a href="../10/" rel="prev" title="이전 개념: III1-10 중첩 원리">‹ <span>10 중첩 원리</span></a><a href="../12/" rel="next" title="다음 개념: III1-12 빛의 간섭"><span>12 빛의 간섭</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III1-11</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III1-11</span><span>물리학 Ⅰ · 파동의 성질과 활용</span></div>
     <h1>물결파·소리의 간섭: 경로차 조건</h1>
-    <p class="lead">두 파원에서 나온 물결이 겹치면 <b>크게 출렁이는 줄(보강선)</b>과 <b>거의 잠잠한 줄(마디선)</b>이 제자리에 고정된다. 구리색 점 P를 끌어 두 파원까지의 거리 차(경로차)를 파장 단위로 재어 보자 — 정수배면 보강, 반정수배면 상쇄.</p>
-  </header>
+    <p class="question"><i>Q</i>두 파원에서 나온 파동이 만날 때 어디는 크게 출렁이고 어디는 잠잠할까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
-        <canvas id="stage" aria-label="위에서 본 두 파원의 간섭 무늬. 밝은 곳은 마루, 어두운 곳은 골. 점 P를 끌어 경로차를 잴 수 있다."></canvas>
-        <div class="hud"><span class="pill" id="hudPhase">같은 위상</span><span class="pill num" id="hudInfo">S₁S₂ = 2λ</span></div>
+        <canvas id="stage" aria-label="위에서 본 두 파원의 간섭 무늬. 밝은 곳은 마루, 어두운 곳은 골. 점 P를 끌어 두 파원까지의 경로차를 잴 수 있다."></canvas>
+        <div class="hud"><span class="pill" id="hudPhase">같은 위상</span><span class="pill" id="hudInfo">S₁S₂ = 2λ · λ = 2 cm</span></div>
         <div class="legend" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <button type="button" class="btn" id="stepQ">¼ 주기 앞으로</button>
           <div class="group" role="group" aria-label="장면">
-            <span class="gl">장면</span>
+            <span class="gl lg">장면</span>
             <button type="button" class="btn" data-scene="water" aria-pressed="true">물결파</button>
-            <button type="button" class="btn" data-scene="sound" aria-pressed="false">소리 (두 스피커)</button>
+            <button type="button" class="btn" data-scene="sound" aria-pressed="false">소리<span class="lg">(두 스피커)</span></button>
           </div>
-          <div class="group" role="group" aria-label="두 파원의 위상">
-            <span class="gl">위상</span>
-            <button type="button" class="btn" data-phase="same" aria-pressed="true">같은 위상</button>
-            <button type="button" class="btn" data-phase="opp" aria-pressed="false">반대 위상</button>
-          </div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">파원·보기</span><span class="sm">파원</span></button>
         </div>
-        <div class="row" id="rowWater">
-          <div class="grow">
-            <label class="ctl-label" for="lam">파장 λ (진동수↑ → λ↓) <output id="lamOut">2 cm</output></label>
-            <input id="lam" type="range" min="1" max="3" step="0.25" value="2">
+        <div class="sheet" id="sheet" role="group" aria-label="파원과 보기">
+          <div class="sheet-head"><b>파원 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="두 파원의 위상">
+              <span class="gl">위상</span>
+              <button type="button" class="btn" data-phase="same" aria-pressed="true">같은 위상</button>
+              <button type="button" class="btn" data-phase="opp" aria-pressed="false">반대 위상</button>
+            </div>
+            <button type="button" class="btn" id="stepQ">¼ 주기 앞으로 ▸</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×0.25</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="true">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="false">×1</button>
+            </div>
           </div>
-          <div class="grow">
-            <label class="ctl-label" for="dist">파원 사이 거리 d <output id="distOut">4 cm = 2λ</output></label>
-            <input id="dist" type="range" min="1" max="8" step="0.5" value="4">
+          <div class="row" id="rowWater">
+            <div class="grow">
+              <label class="ctl-label" for="lam">파장 λ <output id="lamOut">2 cm</output></label>
+              <input id="lam" type="range" min="1" max="3" step="0.25" value="2">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="dist">파원 사이 거리 d <output id="distOut">4 cm = 2λ</output></label>
+              <input id="dist" type="range" min="1" max="8" step="0.5" value="4">
+            </div>
           </div>
-        </div>
-        <div class="row" id="rowSound" hidden>
-          <div class="grow">
-            <label class="ctl-label" for="freq">진동수 f (소리 속력 340 m/s) <output id="freqOut">170 Hz</output></label>
-            <input id="freq" type="range" min="170" max="680" step="10" value="170">
+          <div class="row" id="rowSound" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="freq">진동수 f <output id="freqOut">170 Hz (λ = 2 m)</output></label>
+              <input id="freq" type="range" min="170" max="680" step="10" value="170">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="dS">스피커 사이 거리 d <output id="dSOut">3 m</output></label>
+              <input id="dS" type="range" min="1" max="4" step="0.5" value="3">
+            </div>
           </div>
-          <div class="grow">
-            <label class="ctl-label" for="dS">스피커 사이 거리 d <output id="dSOut">3 m</output></label>
-            <input id="dS" type="range" min="1" max="4" step="0.5" value="3">
-          </div>
-        </div>
-        <div class="row toggles">
-          <label class="chk"><input type="checkbox" id="cLines" checked>보강선·마디선</label>
-          <label class="chk"><input type="checkbox" id="cRings">마루·골 원</label>
-          <label class="chk"><input type="checkbox" id="cTicks" checked>경로 눈금 (λ마다)</label>
-          <span class="spacer"></span>
-          <div class="group" role="group" aria-label="시간 빠르기">
-            <span class="gl">빠르기</span>
-            <button type="button" class="btn mono" data-speed="0.25" aria-pressed="false">×0.25</button>
-            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="true">×0.5</button>
-            <button type="button" class="btn mono" data-speed="1" aria-pressed="false">×1</button>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cLines" checked>보강선·마디선</label>
+            <label class="chk"><input type="checkbox" id="cRings">마루·골 원</label>
+            <label class="chk"><input type="checkbox" id="cTicks" checked>경로 눈금 (λ마다)</label>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치 <small id="roNote">점 P</small></h2>
-        <div class="readouts">
-          <div class="ro"><span id="rR1l">r₁ = S₁P</span><b id="rR1">4λ</b></div>
-          <div class="ro"><span id="rR2l">r₂ = S₂P</span><b id="rR2">3λ</b></div>
-          <div class="ro cu"><span id="rDl">경로차 Δ = |r₁ − r₂|</span><b id="rD">λ</b></div>
-          <div class="ro" id="roJ"><span id="rJl">판정</span><b id="rJ">보강</b></div>
-          <div class="ro full"><span id="rFl">선분 S₁S₂ 위 (양 끝 제외)</span><b id="rF">상쇄 4개 · 보강 3개</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">점 P의 간섭</span><span id="ansCtx">물결파 · 같은 위상</span></div>
+        <div class="big" id="ansBig">보강 간섭</div>
+        <div class="sub">
+          <span class="f" id="ansF">경로차 Δ를 파장 λ로 재면</span>
+          <span id="ansLines"><span class="v">Δ = |r₁ − r₂| = |8 − 6| = <em>2 cm</em></span><span class="v">λ = 2 cm 이므로 Δ = <em>λ</em> (정수배) → <em>보강</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mR1n">r₁ = S₁P</span><b id="mR1">8 cm = 4λ</b></div>
+          <div class="mini"><span id="mR2n">r₂ = S₂P</span><b id="mR2">6 cm = 3λ</b></div>
+          <div class="mini"><span id="mAmpN">P의 진폭 (한 파동은 A)</span><b id="mAmp">2A</b></div>
+          <div class="mini"><span id="mSegN">선분 S₁S₂ (= 2λ) 위 상쇄점</span><b id="mSeg">4개 (보강 3개)</b></div>
         </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2>점 P에 도착한 두 파동 <small>경로차 자 · 수면 높이</small></h2>
-        <canvas class="flat" id="pd" aria-label="경로차를 파장 단위로 나타낸 수직선과, 점 P에서 두 파동의 변위와 그 합의 시간 변화."></canvas>
-        <p class="cap" id="pdCap"></p>
-      </section>
-      <section class="panel wide">
-        <h2 id="segTitle">선분 S₁S₂ 위의 점 <small>개념서 그림 ②</small></h2>
-        <canvas class="flat" id="seg" aria-label="두 파원을 잇는 선분 위의 보강점과 상쇄점."></canvas>
-        <p class="cap" id="segCap"></p>
-      </section>
-    </aside>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 보강선과 마디선">
+          <div class="kind">관찰 1</div>
+          <h3>크게 출렁이는 줄과 잠잠한 줄이 제자리에 생긴다</h3>
+          <p>같은 진동수의 두 파원 S₁, S₂에서 나온 물결이 겹친다. 무대의 밝은 곳은 마루, 어두운 곳은 골이다. <b>마루와 마루, 골과 골</b>이 만나는 곳은 크게 출렁이고(보강 간섭), 마루와 골이 만나는 곳은 거의 잠잠하다(상쇄 간섭).</p>
+          <p class="cap">같은 성질의 점을 이으면 보강선(초록 실선)과 마디선(빨간 점선)이 번갈아 생기고, 시간이 지나도 그 자리에 있다. ‘마루·골 원’을 켜면 두 파원에서 퍼지는 마루(실선)와 골(점선)이 어디서 만나는지 보인다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:[data-scene=water]; check:#cRings; uncheck:#cLines">마루·골 원 보기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=water]; uncheck:#cRings; check:#cLines">보강선·마디선 보기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 경로차 조건">
+          <div class="kind">관찰 2</div>
+          <h3>경로차가 λ의 정수배면 보강, 반정수배면 상쇄</h3>
+          <p>구리색 점 P를 끌어 두 파원까지의 거리 r₁, r₂를 재어 보자. 선 위의 눈금 하나가 λ다. 경로차 Δ = |r₁ − r₂|가 0, λ, 2λ …이면 두 파동이 같은 위상으로 도착해 보강되고, λ/2, 3λ/2 …이면 반대 위상으로 도착해 상쇄된다. P를 보강선·마디선 가까이 놓으면 그 선에 붙는다.</p>
+          <canvas class="flat" id="pd" aria-label="경로차를 파장 단위로 나타낸 수직선과, 점 P에서 두 파동의 변위와 그 합의 시간 변화."></canvas>
+          <p class="cap">위는 경로차 자(초록 ● 보강, 빨간 ○ 상쇄, ▼ 지금 P), 아래는 P의 수면 높이다. 점선은 S₁·S₂에서 각각 온 파동, 검은 실선은 그 합이다. 보강 지점은 진폭 2A로 크게 진동할 뿐 늘 최고점에 있지 않고 변위 0인 순간도 지난다. 상쇄 지점에는 두 파동이 모두 도착하지만 반대 위상이라 합이 늘 0이다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="q3a">보강선 위의 P</button>
+            <button type="button" class="btn" data-try="q3b">마디선 위의 Q</button>
+            <button type="button" class="btn" data-do="click:#stepQ">¼ 주기 앞으로 ▸</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 선분 위의 점">
+          <div class="kind">관찰 3</div>
+          <h3>두 파원 사이에서는 λ/2마다 같은 종류의 점이 온다</h3>
+          <p>선분 S₁S₂ 위에서 한 점이 Δx 움직이면 한 파원에서는 Δx 멀어지고 다른 파원에서는 Δx 가까워져 경로차가 2Δx 변한다. 그래서 이웃한 보강점(또는 상쇄점) 사이는 <b>λ/2</b>이고, 보강점과 상쇄점이 번갈아 온다.</p>
+          <canvas class="flat" id="seg" aria-label="두 파원을 잇는 선분 위의 보강점과 상쇄점. 같은 종류의 점은 λ/2 간격."></canvas>
+          <p class="cap">물결파 장면의 선분 S₁S₂다. 점 위의 수가 그 점의 경로차다. 중점(경로차 0)이 보강인지 상쇄인지 먼저 정하고 양쪽으로 λ/2씩 늘어놓아 센다. 두 파원이 반대 위상이면 출발부터 반 주기 어긋나 조건이 통째로 뒤바뀌므로, 중점과 수직 이등분선이 상쇄 자리가 된다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-do="click:[data-scene=water]; click:[data-phase=same]">같은 위상</button>
+            <button type="button" class="btn" data-do="click:[data-scene=water]; click:[data-phase=opp]">반대 위상</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 소리의 간섭">
+          <div class="kind">관찰 4</div>
+          <h3>소리도 크게 들리는 곳과 작게 들리는 곳이 번갈아 나온다</h3>
+          <p>두 스피커가 같은 진동수의 소리를 같은 위상으로 낸다(소리 속력 340 m/s). 스피커 앞 4 m 선을 따라 걸으면 두 스피커에서 같은 거리인 중앙이 가장 크게 들리고, 양옆으로 크고 작은 곳이 번갈아 나온다. 무대에서 P를 선을 따라 끌어 보자.</p>
+          <canvas class="flat" id="loud" aria-label="스피커 앞 4 m 선을 따라 걸을 때의 소리 크기. 중앙이 가장 크고 크고 작은 곳이 번갈아 나온다."></canvas>
+          <p class="cap">걷는 선을 따라 잰 소리 크기다. 진동수를 높이면 파장 λ = v/f 가 짧아져 무늬가 촘촘해지고, 첫 번째로 작게 들리는 곳이 중앙에 가까워진다. 소음 제거 헤드폰이 소음과 반대 위상의 소리를 만들어 지우는 것, 배가 만든 물결파에 반대 위상의 물결파를 만나게 해 없애는 것도 같은 상쇄 원리다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:[data-scene=sound]; click:[data-phase=same]; set:#freq=170">두 스피커 · 170 Hz</button>
+            <button type="button" class="btn" data-do="click:[data-scene=sound]; click:[data-phase=same]; set:#freq=340">진동수 2배 · 340 Hz</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>같은 위상이면 정수배는 보강, 반정수배는 상쇄</h3>
+          <ul>
+            <li><span class="eq">Δ = mλ</span> → 보강, <span class="eq">Δ = (m + ½)λ</span> → 상쇄 (m = 0, 1, 2 …). 두 파원이 반대 위상이면 둘이 뒤바뀐다.</li>
+            <li>선분 S₁S₂ 위에서 같은 종류의 점은 λ/2 간격이다. 중점은 같은 위상이면 보강, 반대 위상이면 상쇄다.</li>
+            <li>파장이 짧아지면(진동수↑) 무늬가 촘촘해지고, 파원 간격을 좁히면 무늬 간격이 넓어진다.</li>
+            <li>보강 지점도 늘 최고점에 있지는 않다(진폭 2A로 진동). 상쇄 지점에도 두 파동이 모두 도착한다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>같은 위상으로 진동하는 두 파원 사이 거리가 2λ이다. 두 파원을 잇는 선분 위(양 끝 제외)에서 상쇄 간섭 지점은 몇 개인가?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>중점은 경로차 0이고 같은 위상이므로 보강이다. 상쇄점은 중점에서 λ/4 떨어진 곳부터 λ/2 간격: ±λ/4, ±3λ/4. 다음 후보 ±5λ/4는 파원(중점에서 λ)보다 멀어 선분 밖이다. 따라서 <b>4개</b>. 관찰 3의 선분 그림에서 빨간 고리 4개를 확인할 수 있다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>서로 반대 위상으로 진동하는 두 파원 사이 거리가 3λ이다. 선분 위(양 끝 제외)에서 상쇄 간섭 지점은 몇 개인가?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q2">반대 위상 · 3λ로</button></div>
+            <details class="ans"><summary>답 보기</summary><p>반대 위상이면 경로차 0인 중점이 상쇄점이다. 상쇄점은 중점에서 0, ±λ/2, ±λ 떨어진 <b>5곳</b>이고, 다음 ±3λ/2는 파원 자리라 뺀다. 같은 위상의 조건을 그대로 쓰면 보강과 상쇄가 뒤바뀐다.</p></details>
+          </div>
+          <div class="q">
+            <h3>같은 위상 두 파원에서 나온 진폭 A인 물결파가 간섭한다. 보강 지점 P와 상쇄 지점 Q의 수면은 어떻게 움직일까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q3a">보강선 위의 P</button><button type="button" class="btn" data-try="q3b">마디선 위의 Q</button></div>
+            <details class="ans"><summary>답 보기</summary><p>P는 두 파동이 같은 위상으로 만나 <b>진폭 2A</b>로 크게 진동할 뿐, 늘 최고점에 있지 않고 변위 0인 순간도 지난다. Q에는 두 파동이 모두 도착하지만 반대 위상이라 거의 정지한다. 진동수를 높이면 파장이 짧아져 무늬가 촘촘해지므로 보강·상쇄 위치도 바뀐다.</p></details>
+          </div>
+          <div class="q">
+            <h3>같은 위상으로 소리를 내는 두 스피커 S₁, S₂가 3 m 떨어져 있고, 점 P는 S₁ 바로 앞 4 m에 있다. 소리 속력이 340 m/s일 때 P에서 170 Hz와 340 Hz의 소리는 각각 크게 들릴까, 작게 들릴까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q4a">170 Hz</button><button type="button" class="btn" data-try="q4b">340 Hz</button><button type="button" class="btn" data-try="q4c">510 Hz</button></div>
+            <details class="ans"><summary>답 보기</summary><p>S₂P = √(3² + 4²) = 5 m이므로 경로차는 1 m. 170 Hz는 λ = 2 m → Δ = λ/2 → <b>작게</b>(상쇄). 340 Hz는 λ = 1 m → Δ = λ → 크게(보강). 510 Hz는 λ = 2/3 m → Δ = 3λ/2 → 다시 작게.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../10/" rel="prev"><small>← 이전 개념 · III1-10</small><b>중첩 원리</b></a><a href="../12/" rel="next"><small>다음 개념 · III1-12 →</small><b>빛의 간섭</b></a></nav>
+<!-- /nextprev -->
+    </section>
   </main>
-
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>간섭 무늬: 보강선과 마디선</h3>
-        <p>같은 진동수의 두 파원에서 나온 파동이 겹치면 <b>마루+마루, 골+골</b>인 곳은 크게 출렁이고(보강), <b>마루+골</b>인 곳은 거의 잠잠하다(상쇄).</p>
-        <p>같은 성질의 점을 이으면 보강선과 마디선이 번갈아 생기고, 시간이 지나도 그 자리에 고정된다.</p>
-      </article>
-      <article class="concept">
-        <h3>경로차 조건</h3>
-        <p>같은 위상인 두 파원: 경로차 <span class="eq">Δ = mλ</span>(0, λ, 2λ…)이면 같은 위상으로 도착해 보강, <span class="eq">Δ = (m + ½)λ</span>이면 반대 위상으로 도착해 상쇄.</p>
-        <p>두 파원이 <b>반대 위상</b>이면 조건이 통째로 뒤바뀌어, 경로차 0인 수직 이등분선(중점)이 상쇄선이 된다.</p>
-      </article>
-      <article class="concept">
-        <h3>선분 위 세기 · 소리의 간섭</h3>
-        <p>선분 위에서 Δx 움직이면 경로차는 2Δx 변하므로 같은 종류의 점은 <span class="eq">λ/2</span> 간격이다. 중점의 보강·상쇄부터 정하고 양쪽으로 센다.</p>
-        <p>두 스피커 앞을 걸으면 크게·작게 들리는 곳이 번갈아 나온다. 진동수를 높이면 파장이 짧아져 무늬가 촘촘해진다. 소음 제거 헤드폰도 상쇄를 이용한다.</p>
-      </article>
-    </div>
-    <p class="compare">보강 지점은 진폭 2A로 크게 진동할 뿐 늘 최고점에 있는 것이 아니고(변위 0인 순간도 있다), 상쇄 지점에는 두 파동이 모두 도착하지만 반대 위상이라 수면이 거의 움직이지 않는다.</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>같은 위상으로 진동하는 두 파원 사이 거리가 2λ이다. 두 파원을 잇는 선분 위(양 끝 제외)에서 상쇄 간섭 지점은 몇 개인가?<span class="tag">개념서 예제</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button></div>
-        <details><summary>답 보기</summary><p>중점은 경로차 0이고 같은 위상이므로 보강이다. 상쇄점은 중점에서 λ/4 떨어진 곳부터 λ/2 간격: ±λ/4, ±3λ/4. 다음 후보 ±5λ/4는 파원(중점에서 λ)보다 멀어 선분 밖이다. 따라서 <b>4개</b>. 오른쪽 아래 ‘선분 S₁S₂ 위의 점’에서 빨간 고리 4개를 확인할 수 있다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>서로 <b>반대 위상</b>으로 진동하는 두 파원 사이 거리가 3λ이다. 선분 위(양 끝 제외)에서 상쇄 간섭 지점은 몇 개인가?</p>
-        <div class="acts"><button type="button" class="btn" data-try="q2">반대 위상 · 3λ로</button></div>
-        <details><summary>답 보기</summary><p>반대 위상이면 경로차 0인 중점이 상쇄점이다. 상쇄점은 중점에서 0, ±λ/2, ±λ 떨어진 <b>5곳</b>이고, 다음 ±3λ/2는 파원 자리라 뺀다. 같은 위상의 조건을 그대로 쓰면 보강과 상쇄가 뒤바뀐다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>같은 위상 두 파원에서 나온 진폭 A인 물결파가 간섭한다. 보강 지점 P와 상쇄 지점 Q의 수면은 어떻게 움직일까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="q3a">보강선 위의 P</button><button type="button" class="btn" data-try="q3b">마디선 위의 Q</button></div>
-        <details><summary>답 보기</summary><p>P는 두 파동이 같은 위상으로 만나 <b>진폭 2A</b>로 크게 진동할 뿐, 늘 최고점에 있지 않고 변위 0인 순간도 지난다. Q에는 두 파동이 모두 도착하지만 반대 위상이라 <b>거의 정지</b>한다. 진동수를 높이면 파장이 짧아져 무늬가 촘촘해지므로 보강·상쇄 위치도 바뀐다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>같은 위상으로 소리를 내는 두 스피커 S₁, S₂가 3 m 떨어져 있고, 점 P는 S₁ 바로 앞 4 m에 있다. 소리 속력이 340 m/s일 때 P에서 170 Hz와 340 Hz의 소리는 각각 크게 들릴까, 작게 들릴까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="q4a">170 Hz</button><button type="button" class="btn" data-try="q4b">340 Hz</button><button type="button" class="btn" data-try="q4c">510 Hz</button></div>
-        <details><summary>답 보기</summary><p>S₂P = √(3² + 4²) = 5 m이므로 경로차는 1 m. 170 Hz는 λ = 2 m → Δ = λ/2 → <b>작게</b>(상쇄). 340 Hz는 λ = 1 m → Δ = λ → <b>크게</b>(보강). 510 Hz는 λ = 2/3 m → Δ = 3λ/2 → 다시 작게.</p></details>
-      </li>
-    </ol>
-    <nav class="pager"><a href="../10/">← III1-10 중첩 원리</a><a class="home" href="../../">물리 실험실</a><a href="../12/">III1-12 빛의 간섭 →</a></nav>
-  </section>
 </div>
 
 <script src="../../kit/lab.js"></script>
@@ -168,15 +206,13 @@
   'use strict';
   const M = window.III1_11;
   const {$, C, text, arrow, bracket, fmt} = Lab;
-  const reduceMotion = Lab.reduceMotion;
   const PI = Math.PI;
 
   // ── 상태 ────────────────────────────────────────────────
   const VS = 340, LW = 4;                  // 소리 속력(m/s), 스피커 줄에서 걷는 선까지(m)
   const TVIS = 1.0;                        // ×1 에서 한 주기에 걸리는 화면 시간(s)
-  const EX = {lam: 2, d: 4};
   const P0 = {x: 3.5, y: Math.sqrt(36 - 2.25)};          // r₁ = 8 cm(4λ), r₂ = 6 cm(3λ): 경로차 λ 인 보강 지점
-  const S = {scene: 'water', lam: 2, d: 4, opp: false, f: 170, dS: 3, tau: 0, playing: !reduceMotion, speed: 0.5,
+  const S = {scene: 'water', lam: 2, d: 4, opp: false, f: 170, dS: 3, tau: 0, playing: !Lab.reduceMotion, speed: 0.5,
     lines: true, rings: false, ticks: true, Pw: {...P0}, Px: -1.5, pn: 'P'};
   const isW = () => S.scene === 'water';
   const lam = () => (isW() ? S.lam : M.lambdaOf(VS, S.f));
@@ -195,29 +231,21 @@
   const jName = {con: '보강', des: '상쇄', mid: '그 사이'};
 
   // ── 색: 토큰 색에서 RGB 를 뽑아 수면(마루 밝게, 골 어둡게)을 칠한다 ──────
-  function rgbOf(col) {
-    col = (col || '').trim();
-    if (col[0] === '#') {
-      const h = col.length === 4 ? col.slice(1).split('').map((c) => c + c).join('') : col.slice(1, 7);
-      return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
-    }
-    return (col.match(/[\d.]+/g) || [0, 0, 0]).slice(0, 3).map(Number);
-  }
   const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
   function fieldColors() {
-    const paper = rgbOf(C.paper), vel = rgbOf(C.vel), bg = rgbOf(C.bg), ink = rgbOf(C.ink);
-    const dark = paper[0] + paper[1] + paper[2] < 384;
-    return dark ? {hi: mix(mix(bg, vel, 0.6), ink, 0.12), lo: bg} : {hi: paper, lo: mix(mix(paper, vel, 0.62), ink, 0.08)};
+    const paper = Lab.rgb(C.paper), vel = Lab.rgb(C.vel), bg = Lab.rgb(C.bg), ink = Lab.rgb(C.ink);
+    return Lab.isDark() ? {hi: mix(mix(bg, vel, 0.6), ink, 0.12), lo: bg} : {hi: paper, lo: mix(mix(paper, vel, 0.62), ink, 0.08)};
   }
 
   // ── 무대 ────────────────────────────────────────────────
-  const stage = Lab.canvas('stage', draw), pd = Lab.canvas('pd', draw), seg = Lab.canvas('seg', draw);
+  const stage = Lab.canvas('stage', drawStage), pd = Lab.canvas('pd', drawPD), seg = Lab.canvas('seg', drawSeg), loud = Lab.canvas('loud', drawLoud);
 
+  // 넓은 화면은 16:10, 폰은 거의 정사각형(약 358 × 354). 그림은 늘 W·H 에 맞춘다
   function geo() {
     const {W, H} = stage, narrow = W < 520;
     let ppu, ox = W / 2, oy;
-    if (isW()) { ppu = W / (narrow ? 11 : 18); oy = H * (narrow ? 0.74 : 0.78); }
-    else { oy = H - (narrow ? 134 : 88); ppu = Math.min(W / (narrow ? 7.2 : 9.4), (oy - (narrow ? 96 : 78)) / LW); }
+    if (isW()) { ppu = narrow ? Math.min(W / 12, H / 11.9) : Math.min(W / 18, H / 11.2); oy = H * (narrow ? 0.76 : 0.78); }
+    else { oy = H - (narrow ? 84 : 88); ppu = Math.min(W / (narrow ? 7.2 : 9.4), (oy - (narrow ? 84 : 78)) / LW); }
     const X = (x) => ox + x * ppu, Y = (y) => oy - y * ppu;
     const xOf = (px) => (px - ox) / ppu, yOf = (py) => (oy - py) / ppu;
     return {W, H, narrow, ppu, ox, oy, X, Y, xOf, yOf, xMin: xOf(0), xMax: xOf(W), yMin: yOf(H), yMax: yOf(0)};
@@ -275,12 +303,13 @@
     };
     L.con.forEach((D) => { one(D, C.acc); if (D > 0) one(-D, C.acc); });
     L.des.forEach((D) => { one(D, C.neg, [8, 6]); if (D > 0) one(-D, C.neg, [8, 6]); });
-    // 오른쪽 위에 경로차 이름 (물결파만)
+    // 오른쪽 위에 경로차 이름 (물결파만). 왼쪽 위는 HUD 자리, P 와 판정 이름표에 걸리는 것은 뺀다
     if (isW()) {
-      const py = g.narrow ? 70 : 64, y = g.yOf(py);
+      const py = g.narrow ? 54 : 64, y = g.yOf(py), T = probeTag(ctx, g);
+      const hit = (px) => (px + 16 > T.x0 - 4 && px - 16 < T.x1 + 4 && py + 10 > T.y0 - 4 && py - 10 < T.y1 + 4) || Math.hypot(px - T.px, py - T.py) < 24;
       [...L.con.map((D) => [D, 'con']), ...L.des.map((D) => [D, 'des'])].forEach(([D, k]) => {
         const px = g.X(M.xOnLine(D, d, y));
-        if (px > g.W / 2 - 14 && px < g.W - 24) text(ctx, fl(D / l), px, py, {size: 13.5, w: 700, color: k === 'con' ? C.acc : C.neg, halo: true});
+        if (px > g.W / 2 - 14 && px < g.W - 24 && !hit(px)) text(ctx, fl(D / l), px, py, {size: 13.5, w: 600, color: k === 'con' ? C.acc : C.neg, halo: true});
       });
     }
   }
@@ -305,14 +334,14 @@
       const px = g.X(sx), py = g.Y(0), wv = Math.sin(2 * PI * S.tau + ph);
       if (isW()) {
         Lab.circle(ctx, px, py, 7 + 2.5 * wv, {fill: col, stroke: C.paper, width: 2});
-        text(ctx, nm, px, py + 22, {size: 15, w: 700, color: C.ink, halo: true});
+        text(ctx, nm, px, py + 22, {size: 15, w: 600, color: C.ink, halo: true});
       } else {
         // 스피커: 위(앞)를 보는 통과 진동판
         ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 2;
         Lab.rrect(ctx, px - 13, py + 2, 26, 18, 4); ctx.fill(); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(px - 8, py + 2); ctx.lineTo(px - 12, py - 6 - 2 * wv); ctx.lineTo(px + 12, py - 6 - 2 * wv); ctx.lineTo(px + 8, py + 2); ctx.closePath();
         ctx.fillStyle = col; ctx.fill(); ctx.stroke(); ctx.restore();
-        text(ctx, nm, px, py + 33, {size: 15, w: 700, color: C.ink, halo: true});
+        text(ctx, nm, px, py + 33, {size: 15, w: 600, color: C.ink, halo: true});
       }
     });
     if (isW()) {
@@ -328,13 +357,22 @@
     const d = dd(), l = lam(), y = g.Y(LW), L = M.lineDiffs(d, l, S.opp);
     ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.setLineDash([6, 5]); ctx.globalAlpha = 0.85;
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(g.W, y); ctx.stroke(); ctx.restore();
-    text(ctx, g.narrow ? '걷는 선 (앞 ' + LW + ' m)' : '걷는 선 (스피커 앞 ' + LW + ' m)', g.W - 12, y + 18, {size: 13.5, w: 700, color: C.ink, align: 'right', halo: true});
+    text(ctx, g.narrow ? '걷는 선 (앞 ' + LW + ' m)' : '걷는 선 (스피커 앞 ' + LW + ' m)', g.W - 12, y + 18, {size: 13.5, w: 600, color: C.ink, align: 'right', halo: true});
     const put = (D, k) => [D, -D].forEach((Ds, i) => { if (i && D === 0) return; const px = g.X(M.xOnLine(Ds, d, LW)); if (px > 8 && px < g.W - 8) mark(ctx, px, y, k, 6); });
     L.con.forEach((D) => put(D, 'con')); L.des.forEach((D) => put(D, 'des'));
   }
 
+  // 판정 이름표 자리: 넓은 화면은 P 위, 폰(물결파)은 위쪽 HUD·경로차 이름과 겹치지 않게 P 아래
+  function probeTag(ctx, g) {
+    const p = P(), [a, b] = rr(), dl = M.pathDiff(a, b, lam()), j = M.judge(dl, S.opp);
+    const px = g.X(p.x), py = g.Y(p.y), s = 'Δ = ' + fl(dl) + ' → ' + jName[j], right = px < g.W - 190;
+    let ty = py - (p.y > 0.5 && py > 60 ? 26 : -26);
+    if (g.narrow && isW()) ty = py + 30 < g.oy - 22 ? py + 30 : py - 28;
+    const w = Lab.measure(ctx, s, {size: 14, w: 700}) + 12, x0 = right ? px + 16 : px - 16 - w;
+    return {s, j, right, ty, px, py, x0, x1: x0 + w, y0: ty - 12, y1: ty + 12};
+  }
   function drawProbe(ctx, g) {
-    const p = P(), d = dd(), l = lam(), [a, b] = rr(), dl = M.pathDiff(a, b, l), j = M.judge(dl, S.opp);
+    const p = P(), d = dd(), l = lam(), [a, b] = rr();
     const px = g.X(p.x), py = g.Y(p.y);
     [[-d / 2, a, C.violet, 'r₁'], [d / 2, b, C.vel, 'r₂']].forEach(([sx, r, col, nm], i) => {
       const x0 = g.X(sx), y0 = g.Y(0);
@@ -348,13 +386,12 @@
       // 이름: 선의 가운데에서, 다른 파원과 반대쪽으로 비켜 쓴다
       const cx = (x0 + px) / 2, cy = (y0 + py) / 2, nx = -uy, ny = ux;
       const sgn = nx * (g.X(i ? -d / 2 : d / 2) - cx) + ny * (g.Y(0) - cy) > 0 ? -1 : 1;
-      text(ctx, nm + ' = ' + fl(r / l), cx + nx * 20 * sgn, cy + ny * 20 * sgn, {size: 14, w: 700, color: col, halo: true});
+      text(ctx, nm + ' = ' + fl(r / l), cx + nx * 20 * sgn, cy + ny * 20 * sgn, {size: 14, w: 600, color: col, halo: true});
     });
     Lab.circle(ctx, px, py, 10, {stroke: C.copper, width: 3.2});
     Lab.circle(ctx, px, py, 3.5, {fill: C.copper});
-    const s = 'Δ = ' + fl(dl) + ' → ' + jName[j];
-    const right = px < g.W - 190;
-    tag(ctx, s, right ? px + 16 : px - 16, py - (p.y > 0.5 && py > 60 ? 26 : -26), {size: 14, w: 700, color: jCol(j), align: right ? 'left' : 'right', border: jCol(j)});
+    const T = probeTag(ctx, g);
+    tag(ctx, T.s, T.right ? px + 16 : px - 16, T.ty, {size: 14, w: 700, color: jCol(T.j), align: T.right ? 'left' : 'right', border: jCol(T.j)});
     text(ctx, isW() ? S.pn : S.pn + ' (듣는 곳)', px - 15, py + (isW() ? 0 : 18), {size: 14, w: 700, color: C.copper, halo: true, align: 'right'});
   }
 
@@ -370,7 +407,7 @@
     drawProbe(ctx, g);
   }
 
-  // ── 경로차 자 + 점 P 의 수면 높이 ────────────────────────
+  // ── 관찰 2: 경로차 자 + 점 P 의 수면 높이 (지금 장면의 P) ──────
   function drawPD() {
     const {ctx, W, H} = pd; if (!W) return;
     ctx.clearRect(0, 0, W, H);
@@ -378,29 +415,29 @@
     // ① 경로차 자 (파장 단위)
     const maxL = Math.min(4, Math.max(2, Math.ceil(dl * 2 + 1) / 2)), rx = 22, rw = W - 44, ry = 44;
     const Xr = (v) => rx + v / maxL * rw;
-    text(ctx, '경로차 Δ', rx - 4, 12, {size: 13.5, w: 700, align: 'left', color: C.muted});
+    text(ctx, '경로차 Δ', rx - 4, 12, {size: 13.5, w: 600, align: 'left', color: C.muted});
     text(ctx, 'Δ = ' + fl(dl) + ' → ' + jName[j], W - 4, 12, {size: 14, w: 700, align: 'right', color: jCol(j)});
     ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(Xr(0), ry); ctx.lineTo(Xr(maxL), ry); ctx.stroke(); ctx.restore();
     for (let k = 0; k <= maxL * 2 + 1e-9; k++) {
       const v = k / 2, integer = k % 2 === 0, kind = integer !== S.opp ? 'con' : 'des';
       mark(ctx, Xr(v), ry, kind, 5.5);
-      text(ctx, fl(v), Xr(v), ry + 19, {size: 13, w: 600, color: kind === 'con' ? C.acc : C.neg});
+      text(ctx, fl(v), Xr(v), ry + 19, {size: 13, w: 500, color: kind === 'con' ? C.acc : C.neg});
     }
     const mx = Xr(Math.min(dl, maxL));
     ctx.beginPath(); ctx.moveTo(mx, ry - 7); ctx.lineTo(mx - 7, ry - 19); ctx.lineTo(mx + 7, ry - 19); ctx.closePath(); ctx.fillStyle = C.copper; ctx.fill();
     // ② P 의 수면 높이: 두 파동과 합
     const r = {x: 40, y: ry + 58, w: W - 56, h: 0}; r.h = H - r.y - 24;
     const T = (t) => r.x + t / 2 * r.w, Y = (v) => r.y + r.h / 2 - v / 2.3 * (r.h / 2);
-    text(ctx, isW() ? 'P의 수면 높이' : 'P의 공기 진동', r.x - 30, r.y - 16, {size: 13.5, w: 700, align: 'left', color: C.muted});
+    text(ctx, (isW() ? S.pn + '의 수면 높이' : S.pn + '의 공기 진동'), r.x - 30, r.y - 16, {size: 13.5, w: 600, align: 'left', color: C.muted});
     ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(r.x, Y(0)); ctx.lineTo(r.x + r.w, Y(0)); ctx.stroke(); ctx.restore();
     arrow(ctx, r.x, r.y + r.h, r.x, r.y - 6, C.muted, 1.3, 7);
     [2, -2].forEach((v) => {
       ctx.save(); ctx.strokeStyle = C.acc; ctx.globalAlpha = 0.55; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.2;
       ctx.beginPath(); ctx.moveTo(r.x, Y(v)); ctx.lineTo(r.x + r.w, Y(v)); ctx.stroke(); ctx.restore();
-      text(ctx, (v > 0 ? '+' : '−') + '2A', r.x - 6, Y(v), {size: 13, w: 600, color: C.acc, align: 'right'});
+      text(ctx, (v > 0 ? '+' : '−') + '2A', r.x - 6, Y(v), {size: 13, w: 500, color: C.acc, align: 'right'});
     });
-    text(ctx, '0', r.x - 6, Y(0), {size: 13, w: 500, color: C.muted, align: 'right', mono: true});
-    ['0', 'T', '2T'].forEach((s, k) => text(ctx, s, T(k), r.y + r.h + 13, {size: 13, w: 500, color: C.muted, mono: true}));
+    text(ctx, '0', r.x - 6, Y(0), {size: 13, w: 500, color: C.muted, align: 'right'});
+    ['0', 'T', '2T'].forEach((s, k) => text(ctx, s, T(k), r.y + r.h + 13, {size: 13, w: 500, color: C.muted}));
     const ph = S.opp ? PI : 0, f1 = (t) => M.wave(a, l, t), f2 = (t) => M.wave(b, l, t, ph), fs = (t) => f1(t) + f2(t);
     const plot = (f, col, w, dash) => { const pts = []; for (let i = 0; i <= 240; i++) { const t = 2 * i / 240; pts.push([T(t), Y(f(t))]); } Lab.line(ctx, pts, col, w, dash); };
     // 두 점선이 꼭 겹쳐도(같은 위상) 두 색이 번갈아 보이게 점선 시작을 엇갈린다
@@ -412,126 +449,136 @@
     Lab.circle(ctx, T(S.tau), Y(fs(S.tau)), 5.5, {fill: C.copper, stroke: C.paper, width: 1.5});
   }
 
-  // ── 선분 위의 점 (물결파) / 걷는 선의 소리 크기 (소리) ──────────
+  // ── 관찰 3: 선분 S₁S₂ 위의 점 (물결파 장면의 값) ──────────────
   function drawSeg() {
     const {ctx, W, H} = seg; if (!W) return;
     ctx.clearRect(0, 0, W, H);
-    const l = lam(), d = dd();
-    if (isW()) {
-      const pts = M.segmentPoints(d, l, S.opp), pad = 30, yl = H * 0.52;
-      const X = (s) => W / 2 + s / (d / 2) * (W / 2 - pad);
-      // 개수
-      const t1 = '상쇄 ' + pts.des.length + '개', t2 = ' · 보강 ' + pts.con.length + '개', t3 = '  (양 끝 제외)';
-      const o = {size: 15, w: 700}, w1 = Lab.measure(ctx, t1, o), w2 = Lab.measure(ctx, t2, o);
-      text(ctx, t1, 4, 14, {...o, align: 'left', color: C.neg});
-      text(ctx, t2, 4 + w1, 14, {...o, align: 'left', color: C.acc});
-      text(ctx, t3, 4 + w1 + w2, 14, {size: 13, w: 500, align: 'left', color: C.muted});
-      Lab.line(ctx, [[X(-d / 2), yl], [X(d / 2), yl]], C.ink, 2.4);
-      const sp = (l / 4) / (d / 2) * (W / 2 - pad);           // 이웃한 두 점(보강·상쇄) 사이 px
-      const all = [...pts.con.map((s) => [s, 'con']), ...pts.des.map((s) => [s, 'des'])];
-      all.forEach(([s, k]) => {
-        mark(ctx, X(s), yl, k, 7);
-        const show = sp >= 38 || (sp * 2 >= 38 && k === 'des') || Math.abs(s) < 1e-9;   // 좁으면 상쇄점(세는 대상)에만
-        if (show) text(ctx, fl(2 * Math.abs(s) / l), X(s), yl - 20, {size: 13, w: 700, color: k === 'con' ? C.acc : C.neg});
-      });
-      [[-d / 2, 'S₁'], [d / 2, 'S₂']].forEach(([s, nm]) => { Lab.circle(ctx, X(s), yl, 7, {fill: C.ink}); text(ctx, nm, X(s), yl + 20, {size: 14, w: 700}); });
-      text(ctx, '중점', X(0), yl + 22, {size: 13, w: 600, color: C.muted});
-      if (l / 2 < d / 2 - 1e-9) bracket(ctx, X(0), X(l / 2), yl + 46, C.copper, 'λ/2', false);
-      text(ctx, '점 위의 수 = 경로차', W - 4, H - 10, {size: 13, w: 500, color: C.muted, align: 'right'});
-    } else {
-      const xr = 4, r = {x: 40, y: 34, w: W - 56, h: H - 34 - 30};
-      const X = (x) => r.x + (x + xr) / (2 * xr) * r.w, Y = (v) => r.y + r.h - v / 4 * r.h;
-      const I = (x) => M.loudness(M.pathDiff(M.r1(x, LW, d), M.r2(x, LW, d), l), S.opp);
-      text(ctx, '소리 크기', r.x - 30, 12, {size: 13.5, w: 700, align: 'left', color: C.muted});
-      ctx.save(); ctx.fillStyle = C['acc-soft']; ctx.beginPath(); ctx.moveTo(X(-xr), Y(0));
-      for (let i = 0; i <= 300; i++) { const x = -xr + 2 * xr * i / 300; ctx.lineTo(X(x), Y(I(x))); }
-      ctx.lineTo(X(xr), Y(0)); ctx.closePath(); ctx.fill(); ctx.restore();
-      const pts = []; for (let i = 0; i <= 300; i++) { const x = -xr + 2 * xr * i / 300; pts.push([X(x), Y(I(x))]); }
-      Lab.line(ctx, pts, C.ink, 2.6);
-      ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(r.x, Y(0)); ctx.lineTo(r.x + r.w, Y(0)); ctx.stroke(); ctx.restore();
-      for (let x = -xr; x <= xr; x++) {
-        text(ctx, String(x), X(x), r.y + r.h + 13, {size: 13, w: 500, color: C.muted, mono: true});
-      }
-      text(ctx, 'm', r.x + r.w + 10, r.y + r.h + 13, {size: 13, w: 500, color: C.muted});
-      text(ctx, '크게', r.x - 6, Y(4), {size: 13, w: 600, color: C.acc, align: 'right'});
-      text(ctx, '작게', r.x - 6, Y(0) - 8, {size: 13, w: 600, color: C.neg, align: 'right'});
-      const L = M.lineDiffs(d, l, S.opp);
-      const put = (D, k) => [D, -D].forEach((Ds, i) => { if (i && D === 0) return; const x = M.xOnLine(Ds, d, LW); if (Math.abs(x) <= xr) mark(ctx, X(x), Y(k === 'con' ? 4 : 0), k, 5.5); });
-      L.con.forEach((D) => put(D, 'con')); L.des.forEach((D) => put(D, 'des'));
-      const xp = S.Px;
-      ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(X(xp), r.y - 4); ctx.lineTo(X(xp), r.y + r.h); ctx.stroke(); ctx.restore();
-      Lab.circle(ctx, X(xp), Y(I(xp)), 6, {fill: C.copper, stroke: C.paper, width: 1.5});
-      text(ctx, 'P', X(xp) + 10, r.y + 4, {size: 14, w: 700, color: C.copper, align: 'left'});
-      text(ctx, '중앙', X(0), r.y - 8, {size: 13, w: 600, color: C.muted});
-    }
+    const l = S.lam, d = S.d, pts = M.segmentPoints(d, l, S.opp), pad = 30, yl = H * 0.5;
+    const X = (s) => W / 2 + s / (d / 2) * (W / 2 - pad);
+    // 개수
+    const t1 = '상쇄 ' + pts.des.length + '개', t2 = ' · 보강 ' + pts.con.length + '개', t3 = '  (양 끝 제외)';
+    const o = {size: 15, w: 700}, w1 = Lab.measure(ctx, t1, o), w2 = Lab.measure(ctx, t2, o);
+    text(ctx, t1, 4, 14, {...o, align: 'left', color: C.neg});
+    text(ctx, t2, 4 + w1, 14, {...o, align: 'left', color: C.acc});
+    text(ctx, t3, 4 + w1 + w2, 14, {size: 13, w: 500, align: 'left', color: C.muted});
+    // 같은 줄에 안 들어가면(폰) 둘째 줄로
+    const info = 'S₁S₂ = ' + fl(d / l) + (S.opp ? ' · 반대 위상' : ' · 같은 위상'), one = w1 + w2 + Lab.measure(ctx, t3, {size: 13}) + Lab.measure(ctx, info, {size: 13}) + 20 < W;
+    text(ctx, info, one ? W - 4 : 4, one ? 14 : 36, {size: 13, w: 500, align: one ? 'right' : 'left', color: C.muted});
+    Lab.line(ctx, [[X(-d / 2), yl], [X(d / 2), yl]], C.ink, 2.4);
+    const sp = (l / 4) / (d / 2) * (W / 2 - pad);           // 이웃한 두 점(보강·상쇄) 사이 px
+    const all = [...pts.con.map((s) => [s, 'con']), ...pts.des.map((s) => [s, 'des'])];
+    all.forEach(([s, k]) => {
+      mark(ctx, X(s), yl, k, 7);
+      const show = sp >= 38 || (sp * 2 >= 38 && k === 'des') || Math.abs(s) < 1e-9;   // 좁으면 상쇄점(세는 대상)에만
+      if (show) text(ctx, fl(2 * Math.abs(s) / l), X(s), yl - 20, {size: 13, w: 600, color: k === 'con' ? C.acc : C.neg});
+    });
+    [[-d / 2, 'S₁'], [d / 2, 'S₂']].forEach(([s, nm]) => { Lab.circle(ctx, X(s), yl, 7, {fill: C.ink}); text(ctx, nm, X(s), yl + 20, {size: 14, w: 600}); });
+    text(ctx, '중점', X(0), yl + 22, {size: 13, w: 600, color: C.muted});
+    if (l / 2 < d / 2 - 1e-9) bracket(ctx, X(0), X(l / 2), yl + 46, C.copper, 'λ/2', false);
+    text(ctx, '점 위의 수 = 경로차', W - 4, H - 10, {size: 13, w: 500, color: C.muted, align: 'right'});
   }
 
-  function draw() { drawStage(); drawPD(); drawSeg(); }
+  // ── 관찰 4: 걷는 선을 따라 소리 크기 (소리 장면의 값) ──────────
+  function drawLoud() {
+    const {ctx, W, H} = loud; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const l = M.lambdaOf(VS, S.f), d = S.dS, xr = 4, r = {x: 40, y: 34, w: W - 56, h: H - 34 - 30};
+    const X = (x) => r.x + (x + xr) / (2 * xr) * r.w, Y = (v) => r.y + r.h - v / 4 * r.h;
+    const I = (x) => M.loudness(M.pathDiff(M.r1(x, LW, d), M.r2(x, LW, d), l), S.opp);
+    text(ctx, '소리 크기', r.x - 30, 12, {size: 13.5, w: 600, align: 'left', color: C.muted});
+    text(ctx, S.f + ' Hz · λ = ' + Lab.frac(l, 3) + ' m', W - 4, 12, {size: 13, w: 500, align: 'right', color: C.muted});
+    ctx.save(); ctx.fillStyle = C['acc-soft']; ctx.beginPath(); ctx.moveTo(X(-xr), Y(0));
+    for (let i = 0; i <= 300; i++) { const x = -xr + 2 * xr * i / 300; ctx.lineTo(X(x), Y(I(x))); }
+    ctx.lineTo(X(xr), Y(0)); ctx.closePath(); ctx.fill(); ctx.restore();
+    const pts = []; for (let i = 0; i <= 300; i++) { const x = -xr + 2 * xr * i / 300; pts.push([X(x), Y(I(x))]); }
+    Lab.line(ctx, pts, C.ink, 2.6);
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(r.x, Y(0)); ctx.lineTo(r.x + r.w, Y(0)); ctx.stroke(); ctx.restore();
+    for (let x = -xr; x <= xr; x++) text(ctx, x ? String(x) : '중앙', X(x), r.y + r.h + 13, {size: 13, w: x ? 500 : 600, color: C.muted});
+    text(ctx, 'm', r.x + r.w + 10, r.y + r.h + 13, {size: 13, w: 500, color: C.muted});
+    text(ctx, '크게', r.x - 6, Y(4), {size: 13, w: 600, color: C.acc, align: 'right'});
+    text(ctx, '작게', r.x - 6, Y(0) - 8, {size: 13, w: 600, color: C.neg, align: 'right'});
+    const L = M.lineDiffs(d, l, S.opp);
+    const put = (D, k) => [D, -D].forEach((Ds, i) => { if (i && D === 0) return; const x = M.xOnLine(Ds, d, LW); if (Math.abs(x) <= xr) mark(ctx, X(x), Y(k === 'con' ? 4 : 0), k, 5.5); });
+    L.con.forEach((D) => put(D, 'con')); L.des.forEach((D) => put(D, 'des'));
+    const xp = S.Px;
+    ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(X(xp), r.y - 4); ctx.lineTo(X(xp), r.y + r.h); ctx.stroke(); ctx.restore();
+    Lab.circle(ctx, X(xp), Y(I(xp)), 6, {fill: C.copper, stroke: C.paper, width: 1.5});
+    text(ctx, 'P', X(xp) + 10, r.y + 4, {size: 14, w: 600, color: C.copper, align: 'left', halo: true});
+  }
 
-  // ── 수치 ────────────────────────────────────────────────
+  const drawAnim = () => { drawStage(); drawPD(); };
+  const drawAll = () => { drawAnim(); drawSeg(); drawLoud(); };
+
+  // ── 지금 값 ─────────────────────────────────────────────
   const legendHTML = {
     water: '<span><b style="background:var(--acc)"></b>보강선</span><span><b class="dash" style="color:var(--neg)"></b>마디선</span>' +
       '<span><b style="background:var(--violet)"></b>r₁</span><span><b style="background:var(--vel)"></b>r₂</span><span><i style="background:var(--copper)"></i>P (끌어 옮기기)</span>',
     sound: '<span><i style="background:var(--acc)"></i>크게 들림</span><span><i class="ring"></i>작게 들림</span>' +
       '<span><b style="background:var(--violet)"></b>r₁</span><span><b style="background:var(--vel)"></b>r₂</span><span><i style="background:var(--copper)"></i>P (선을 따라 끌기)</span>'};
-  const caps = {
-    water: {pd: '점선 = S₁·S₂에서 각각 P에 온 파동, 실선 = 합. 경로차가 <b>정수배</b>면 같은 위상으로 도착해 2A로 진동하고, <b>반정수배</b>면 반대 위상이라 합이 0이다.',
-      segT: '선분 S₁S₂ 위의 점 <small>개념서 그림 ②</small>', seg: '선분 위에서 Δx 움직이면 경로차는 2Δx 변한다 → 같은 종류의 점은 <b>λ/2 간격</b>. 중점부터 정하고 양쪽으로 센다.'},
-    sound: {pd: '두 스피커의 소리가 P에 경로차만큼 어긋나 도착한다. 같은 위상이면 크게, 반대 위상이면 작게 들린다.',
-      segT: '걷는 선을 따라 소리 크기 <small>개념서 탐구</small>', seg: '중앙(경로차 0)이 가장 크고 양옆으로 크고 작은 곳이 번갈아 나온다. 진동수를 높이면 첫 번째로 작은 곳이 중앙에 가까워진다.'}};
 
   function readouts() {
-    const l = lam(), d = dd(), u = unit(), [a, b] = rr(), dl = M.pathDiff(a, b, l), j = M.judge(dl, S.opp);
-    const pn = S.pn;
-    $('rR1l').textContent = 'r₁ = S₁' + pn + ' = ' + fmt(a, 2) + ' ' + u; $('rR1').textContent = fl(a / l);
-    $('rR2l').textContent = 'r₂ = S₂' + pn + ' = ' + fmt(b, 2) + ' ' + u; $('rR2').textContent = fl(b / l);
-    $('rDl').textContent = '경로차 Δ = |r₁ − r₂| = ' + fmt(Math.abs(a - b), 2) + ' ' + u; $('rD').textContent = fl(dl);
-    $('roNote').textContent = '점 ' + pn;
-    $('rJl').textContent = '판정 (' + (S.opp ? '반대 위상' : '같은 위상') + ')' + (isW() ? {con: ' → 2A 진동', des: ' → 정지', mid: ''}[j] : '');
-    $('rJ').textContent = isW() ? {con: '보강', des: '상쇄', mid: '그 사이'}[j] : {con: '크게 들림', des: '작게 들림', mid: '그 사이'}[j];
-    $('roJ').className = 'ro' + (j === 'con' ? ' acc' : j === 'des' ? ' neg' : '');
-    if (isW()) {
+    const l = lam(), d = dd(), u = unit(), [a, b] = rr(), D = Math.abs(a - b), dl = D / l, j = M.judge(dl, S.opp), pn = S.pn, w = isW();
+    const half = M.judge(dl, false), phase = S.opp ? '반대 위상' : '같은 위상';
+    // HUD
+    const hp = $('hudPhase'); hp.textContent = S.opp ? '반대 위상 (반 주기 어긋남)' : '같은 위상'; hp.className = 'pill' + (S.opp ? ' down' : '');
+    $('hudInfo').textContent = w ? 'S₁S₂ = ' + fl(d / l) + ' · λ = ' + fmt(l, 2) + ' cm' : 'λ = ' + Lab.frac(l, 3) + ' m · ' + S.f + ' Hz';
+    // 지금 값: 경로차 Δ 를 λ 로 재어 판정
+    const res = w ? {con: '보강 간섭', des: '상쇄 간섭', mid: '보강과 상쇄 사이'}[j] : {con: '크게 들린다', des: '작게 들린다', mid: '중간 크기로 들린다'}[j];
+    const say = w ? {con: '보강', des: '상쇄'} : {con: '크게 (보강)', des: '작게 (상쇄)'};
+    const times = '<em>' + fl(dl) + '</em>';
+    let why;
+    if (half === 'mid') why = times + ' → 정수배도 반정수배도 아니다';
+    else if (!S.opp) why = times + ' (' + (half === 'con' ? '정수배' : '반정수배') + ') → <em>' + say[j] + '</em>';
+    else why = times + ' (' + (half === 'con' ? '정수배' : '반정수배') + ')인데 반대 위상 → <em>' + say[j] + '</em>';
+    const lines = w
+      ? ['Δ = |r₁ − r₂| = |' + fmt(a, 2) + ' − ' + fmt(b, 2) + '| = <em>' + fmt(D, 2) + ' cm</em>', 'λ = ' + fmt(l, 2) + ' cm 이므로 Δ = ' + why]
+      : ['λ = v/f = 340 ÷ <em>' + S.f + '</em> = ' + Lab.frac(l, 3) + ' m', 'Δ = |' + fmt(a, 2) + ' − ' + fmt(b, 2) + '| = ' + fmt(D, 2) + ' m = ' + why];
+    Lab.ans(res, lines, {tone: j === 'des' ? 'neg' : j === 'mid' ? 'ink' : '', lab: '점 ' + pn + (w ? '의 간섭' : '에서 들리는 소리'), ctx: (w ? '물결파 · ' : '두 스피커 · ') + phase,
+      f: w ? '경로차 Δ를 파장 λ로 재면' : '파장 λ = v/f 를 구해 경로차 Δ와 견주면'});
+    $('mR1n').textContent = 'r₁ = S₁' + pn; $('mR1').textContent = fmt(a, 2) + ' ' + u + ' = ' + fl(a / l);
+    $('mR2n').textContent = 'r₂ = S₂' + pn; $('mR2').textContent = fmt(b, 2) + ' ' + u + ' = ' + fl(b / l);
+    const amp = M.ampFactor(dl, S.opp);
+    $('mAmpN').textContent = pn + (w ? '의 진폭 (한 파동은 A)' : '의 소리 진폭 (한 스피커는 A)');
+    $('mAmp').textContent = amp < 0.05 ? (w ? '0 (거의 정지)' : '0 (거의 안 들림)') : fmt(amp, amp > 1.95 ? 0 : 1) + 'A';
+    if (w) {
       const pts = M.segmentPoints(d, l, S.opp);
-      $('rFl').textContent = '선분 S₁S₂ 위 (양 끝 제외)';
-      $('rF').textContent = '상쇄 ' + pts.des.length + '개 · 보강 ' + pts.con.length + '개';
-      $('hudInfo').textContent = 'S₁S₂ = ' + fl(d / l) + ' (λ = ' + fmt(l, 2) + ' cm)';
+      $('mSegN').textContent = '선분 S₁S₂ (= ' + fl(d / l) + ') 위 상쇄점';
+      $('mSeg').textContent = pts.des.length + '개 (보강 ' + pts.con.length + '개)';
     } else {
-      $('rFl').textContent = '파장 λ = v / f';
-      $('rF').textContent = '340 ÷ ' + S.f + ' = ' + Lab.frac(l, 3) + ' m';
-      $('hudInfo').textContent = 'λ = ' + Lab.frac(l, 3) + ' m (' + S.f + ' Hz)';
+      const q = M.firstQuiet(d, LW, l, false);
+      $('mSegN').textContent = '걷는 선에서 처음 작게 들리는 곳';
+      $('mSeg').textContent = S.opp ? '중앙 (경로차 0)' : (isFinite(q) ? '중앙에서 ' + fmt(q, 2) + ' m' : '없음');
     }
-    const ph = $('hudPhase'); ph.textContent = S.opp ? '반대 위상 (반 주기 어긋남)' : '같은 위상'; ph.className = 'pill' + (S.opp ? ' down' : '');
     $('lamOut').textContent = fmt(S.lam, 2) + ' cm';
     $('distOut').textContent = fmt(S.d, 1) + ' cm = ' + fl(S.d / S.lam);
     $('freqOut').textContent = S.f + ' Hz (λ = ' + Lab.frac(M.lambdaOf(VS, S.f), 3) + ' m)';
     $('dSOut').textContent = fmt(S.dS, 1) + ' m';
-    const ok = isW() && !S.opp && Math.abs(S.d / S.lam - 2) < 1e-9;
+    const ok = w && !S.opp && Math.abs(S.d / S.lam - 2) < 1e-9;
     Lab.check('exCheck', ok, '개념서 예제 (같은 위상, S₁S₂ = 2λ) → 선분 위(양 끝 제외) 상쇄 지점 4개',
-      '예제: 같은 위상, S₁S₂ = 2λ일 때 선분 위 상쇄 지점 수 — ‘스스로 확인 1’로 돌아갈 수 있어요');
+      '예제: 같은 위상, S₁S₂ = 2λ일 때 선분 위 상쇄 지점 수 — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
   }
 
   // ── 조작 ────────────────────────────────────────────────
   function syncUI() {
     $('rowWater').hidden = !isW(); $('rowSound').hidden = isW();
     $('legend').innerHTML = legendHTML[S.scene];
-    const c = caps[S.scene]; $('pdCap').innerHTML = c.pd; $('segTitle').innerHTML = c.segT; $('segCap').innerHTML = c.seg;
     $('lam').value = S.lam; $('dist').value = S.d; $('freq').value = S.f; $('dS').value = S.dS;
     $('cLines').checked = S.lines; $('cRings').checked = S.rings; $('cTicks').checked = S.ticks;
     sceneG.set(S.scene, true); phaseG.set(S.opp ? 'opp' : 'same', true); speedG.set(S.speed, true);
     readouts();
   }
-  const refresh = () => { syncUI(); draw(); };
+  const refresh = () => { syncUI(); drawAll(); };
   const sceneG = Lab.group('[data-scene]', 'scene', (v) => { S.scene = v; refresh(); }, S.scene);
   const phaseG = Lab.group('[data-phase]', 'phase', (v) => { S.opp = v === 'opp'; refresh(); }, 'same');
   const speedG = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; }, S.speed);
   const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
   const setPlay = (on) => { playCtl.set(on, true); S.playing = on; };
-  $('stepQ').addEventListener('click', () => { setPlay(false); S.tau = ((Math.floor(S.tau * 4 + 1e-6) + 1) / 4) % 1; readouts(); draw(); });
-  const num = (id, key) => $(id).addEventListener('input', (e) => { S[key] = +e.target.value; readouts(); draw(); });
+  $('stepQ').addEventListener('click', () => { setPlay(false); S.tau = ((Math.floor(S.tau * 4 + 1e-6) + 1) / 4) % 1; drawAnim(); });
+  const num = (id, key) => $(id).addEventListener('input', (e) => { S[key] = +e.target.value; readouts(); drawAll(); });
   num('lam', 'lam'); num('dist', 'd'); num('freq', 'f'); num('dS', 'dS');
-  $('cLines').addEventListener('change', (e) => { S.lines = e.target.checked; draw(); });
-  $('cRings').addEventListener('change', (e) => { S.rings = e.target.checked; draw(); });
-  $('cTicks').addEventListener('change', (e) => { S.ticks = e.target.checked; draw(); });
+  $('cLines').addEventListener('change', (e) => { S.lines = e.target.checked; drawStage(); });
+  $('cRings').addEventListener('change', (e) => { S.rings = e.target.checked; drawStage(); });
+  $('cTicks').addEventListener('change', (e) => { S.ticks = e.target.checked; drawStage(); });
 
   // 무대 위 P 끌기 — 보강선·마디선 가까이 오면 그 선 위로 붙인다
   function snap(x, y) {
@@ -543,11 +590,11 @@
     const g = geo(), x = Math.min(g.xMax - 0.2, Math.max(g.xMin + 0.2, g.xOf(px)));
     if (isW()) { const y = Math.min(g.yMax - 0.3, Math.max(g.yMin + 0.3, g.yOf(py))); S.Pw = {x: snap(x, y), y}; }
     else S.Px = snap(x, LW);
-    readouts(); draw();
+    readouts(); drawAnim(); if (!isW()) drawLoud();
   };
   Lab.pointer(stage.el, {down: setP, move: setP});
 
-  // 스스로 확인
+  // 단계 카드·스스로 확인의 상황
   const water = (o) => { Object.assign(S, {scene: 'water', lam: 2, d: 4, opp: false, lines: true, pn: 'P'}, o); };
   const sound = (f) => { Object.assign(S, {scene: 'sound', dS: 3, opp: false, f, Px: -1.5, lines: true, pn: 'P'}); };
   const TRY = {
@@ -560,7 +607,7 @@
   Lab.tries(TRY, () => refresh());
 
   // ── 돌리기 ──────────────────────────────────────────────
-  Lab.loop((dt) => { if (S.playing) { S.tau = (S.tau + dt * S.speed / TVIS) % 1; draw(); } });
+  Lab.loop((dt) => { if (S.playing) { S.tau = (S.tau + dt * S.speed / TVIS) % 1; drawAnim(); } });
   syncUI();
 })();
 </script>

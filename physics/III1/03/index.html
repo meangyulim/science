@@ -6,165 +6,187 @@
 <title>매질이 바뀔 때</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(두 매질을 지나는 파동 + 경계 양쪽 측정선 A·B 의 마루 세기 + 따라가는 마루)와 조작판, 오른쪽 수치·마루 기록 띠·v-λ 직선·소리의 속력 */
+/* 관찰 노트: 왼쪽 실험대(두 매질을 지나는 파동 + 경계 양쪽 측정선 A·B 의 마루 세기 + 따라가는 마루) | 오른쪽 지금 값 + 관찰 ①~③(기록 띠, v-λ 직선, 소리의 속력) → 정리 → 예제 → 스스로 확인 */
 #stage{aspect-ratio:16/11.2}
 #tape{aspect-ratio:10/4.6}
 #vl{aspect-ratio:10/6.6}
 #bars{aspect-ratio:10/5.2}
-.scene .btn{min-width:66px}
-.ratio{margin:10px 0 0;padding:8px 12px;border-radius:12px;background:var(--bg);font:600 15px var(--font-num);color:var(--ink);text-align:center}
-.ratio b{color:var(--vel)}
 .legend .bar{width:3px!important;height:13px!important;border-radius:1px}
-.quiz .tag{white-space:nowrap}
-.controls .note{margin:0}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.42} .pager a:last-child{margin-left:auto} }
+#tapeCount{margin-top:8px}
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III1 파동의 성질과 활용: 개념 12개 가운데 3번째"><a class="uname" href="../">III1 파동의 성질과 활용</a><span class="dots"><a href="../01/" title="III1-01 횡파와 종파" aria-label="III1-01 횡파와 종파"></a><a href="../02/" title="III1-02 파동 그래프와 진행 방향" aria-label="III1-02 파동 그래프와 진행 방향"></a><a class="cur" href="./" aria-current="page" title="III1-03 매질이 바뀔 때" aria-label="III1-03 매질이 바뀔 때 (지금)"></a><a href="../04/" title="III1-04 굴절과 스넬 법칙" aria-label="III1-04 굴절과 스넬 법칙"></a><a href="../05/" title="III1-05 생활 속 굴절 현상" aria-label="III1-05 생활 속 굴절 현상"></a><a href="../06/" title="III1-06 여러 매질의 굴절" aria-label="III1-06 여러 매질의 굴절"></a><a href="../07/" title="III1-07 전반사와 광섬유" aria-label="III1-07 전반사와 광섬유"></a><a href="../08/" title="III1-08 전자기파와 스펙트럼" aria-label="III1-08 전자기파와 스펙트럼"></a><a href="../09/" title="III1-09 전자기파의 이용" aria-label="III1-09 전자기파의 이용"></a><a href="../10/" title="III1-10 중첩 원리" aria-label="III1-10 중첩 원리"></a><a href="../11/" title="III1-11 물결파·소리의 간섭" aria-label="III1-11 물결파·소리의 간섭"></a><a href="../12/" title="III1-12 빛의 간섭" aria-label="III1-12 빛의 간섭"></a></span></nav>
+  <div class="pn"><a href="../02/" rel="prev" title="이전 개념: III1-02 파동 그래프와 진행 방향">‹ <span>02 파동 그래프와 진행 방향</span></a><a href="../04/" rel="next" title="다음 개념: III1-04 굴절과 스넬 법칙"><span>04 굴절과 스넬 법칙</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III1-03</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III1-03</span><span>물리학 Ⅰ · 파동의 성질과 활용</span></div>
     <h1>매질이 바뀔 때: 진동수 불변, 속력과 파장 변화</h1>
-    <p class="lead">경계점은 한 점이라 1초에 받는 진동 수와 내보내는 진동 수가 같다. 그래서 <b>진동수는 그대로</b>이고, 속력은 매질이 정하므로 <b>느린 쪽에서 파장이 짧아진다</b>. 경계 양쪽 측정선 A·B 가 세는 마루 수와 구리색 마루의 빠르기를 비교해 보자.</p>
-  </header>
+    <p class="question"><i>Q</i>파동이 다른 매질로 넘어가면 무엇이 그대로이고 무엇이 바뀔까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
         <canvas id="stage" aria-label="두 매질을 지나는 파동. 경계 양쪽의 측정선 A, B에서 1초 동안 지나가는 마루 수를 센다. 구리색 마루는 경계를 넘으며 빠르기가 바뀐다."></canvas>
-        <div class="hud"><span class="pill num" id="hudT">t = 0.000 s</span><span class="pill" id="hudSlow">느린 화면 ×0.1</span></div>
+        <div class="hud"><span class="pill" id="hudT">t = 0.000 s</span><span class="pill" id="hudSlow">느린 화면 ×0.1</span><span class="pill" id="hudGhost" hidden>회색 점선 = 처음 2 Hz</span></div>
         <div class="legend">
           <span><b class="bar" style="background:var(--vel)"></b><span id="lgMark">마루선</span></span>
           <span><b class="bar" style="background:var(--copper)"></b><span id="lgTrack">따라가는 마루</span></span>
           <span><b style="background:var(--acc)"></b>측정선 A·B (지날 때 깜박)</span>
           <span><i style="background:var(--copper)"></i>경계점</span>
         </div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <button type="button" class="btn" id="stepT">한 주기 앞으로</button>
-          <div class="group scene" role="group" aria-label="장면">
-            <span class="gl">장면</span>
+          <div class="group" role="group" aria-label="장면">
+            <span class="gl lg">장면</span>
             <button type="button" class="btn" data-scene="water" aria-pressed="true">물결파</button>
             <button type="button" class="btn" data-scene="rope" aria-pressed="false">줄</button>
             <button type="button" class="btn" data-scene="sound" aria-pressed="false">소리</button>
           </div>
-        </div>
-        <div class="row">
-          <div class="grow">
-            <label class="ctl-label" for="freq"><span>진동수 f (파원이 정함)</span><output id="freqOut">10 Hz</output></label>
-            <input id="freq" type="range" min="5" max="15" step="1" value="10">
-          </div>
-          <div class="grow">
-            <label class="ctl-label" for="v1"><span id="v1Lab">왼쪽 매질의 속력 v₁</span><output id="v1Out">30 cm/s</output></label>
-            <input id="v1" type="range" min="15" max="40" step="1" value="30">
-          </div>
-          <div class="grow">
-            <label class="ctl-label" for="v2"><span id="v2Lab">오른쪽 매질의 속력 v₂</span><output id="v2Out">20 cm/s</output></label>
-            <input id="v2" type="range" min="15" max="40" step="1" value="20">
-          </div>
-        </div>
-        <div class="row toggles">
-          <label class="chk"><input type="checkbox" id="cRuler" checked>파장 자</label>
-          <label class="chk"><input type="checkbox" id="cTrack" checked>마루 하나 따라가기</label>
-          <label class="chk"><input type="checkbox" id="cGate" checked>측정선 A·B 세기</label>
           <span class="spacer"></span>
-          <div class="group" role="group" aria-label="시간 빠르기">
-            <span class="gl">빠르기</span>
-            <button type="button" class="btn" data-vis="0.5" aria-pressed="false">느리게</button>
-            <button type="button" class="btn" data-vis="1" aria-pressed="true">보통</button>
-            <button type="button" class="btn" data-vis="2" aria-pressed="false">빠르게</button>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">진동수·속력</span><span class="sm">조절</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="진동수와 속력, 보기">
+          <div class="sheet-head"><b>진동수 · 속력 · 보기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="grow">
+              <label class="ctl-label" for="freq"><span>진동수 f (파원이 정함)</span><output id="freqOut">10 Hz</output></label>
+              <input id="freq" type="range" min="5" max="15" step="1" value="10">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="v1"><span id="v1Lab">왼쪽(깊은 곳) 속력 v₁</span><output id="v1Out">30 cm/s</output></label>
+              <input id="v1" type="range" min="15" max="40" step="1" value="30">
+            </div>
+            <div class="grow">
+              <label class="ctl-label" for="v2"><span id="v2Lab">오른쪽(얕은 곳) 속력 v₂</span><output id="v2Out">20 cm/s</output></label>
+              <input id="v2" type="range" min="15" max="40" step="1" value="20">
+            </div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="stepT">한 주기 앞으로 ▸</button>
+            <div class="group" role="group" aria-label="시간 빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-vis="0.5" aria-pressed="false">느리게</button>
+              <button type="button" class="btn" data-vis="1" aria-pressed="true">보통</button>
+              <button type="button" class="btn" data-vis="2" aria-pressed="false">빠르게</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cRuler" checked>파장 자</label>
+            <label class="chk"><input type="checkbox" id="cTrack" checked>마루 하나 따라가기</label>
+            <label class="chk"><input type="checkbox" id="cGate" checked>측정선 A·B 세기</label>
           </div>
         </div>
-        <p class="cap note">그림은 물결의 높이와 공기·물 입자의 밀림을 크게 과장했고, 경계에서 되돌아오는 반사파와 진폭 변화는 그리지 않았다.</p>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치</h2>
-        <div class="readouts">
-          <div class="ro acc"><span>진동수 f · 양쪽 같음</span><b id="rF">10 Hz</b></div>
-          <div class="ro acc"><span>주기 T = 1/f · 양쪽 같음</span><b id="rT">0.1 s</b></div>
-          <div class="ro cu"><span id="rL1n">λ₁ (깊은 곳)</span><b id="rL1">3 cm</b></div>
-          <div class="ro cu"><span id="rL2n">λ₂ (얕은 곳)</span><b id="rL2">2 cm</b></div>
-          <div class="ro vel"><span id="rV1n">v₁ = fλ₁</span><b id="rV1">30 cm/s</b></div>
-          <div class="ro vel"><span id="rV2n">v₂ = fλ₂</span><b id="rV2">20 cm/s</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 파장 비 = 속력 비</span><span id="ansCtx">물결파 · 깊은 곳 → 얕은 곳</span></div>
+        <div class="big" id="ansBig">λ₁ : λ₂ = 3 : 2</div>
+        <div class="sub">
+          <span class="f" id="ansF">f₁ = f₂ = 10 Hz 이므로 v = fλ 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">깊은 곳: v₁ = fλ₁ = 10 × <em>3 cm</em> = <em>30 cm/s</em></span><span class="v">얕은 곳: v₂ = fλ₂ = 10 × <em>2 cm</em> = <em>20 cm/s</em></span></span>
         </div>
-        <p class="ratio" id="rRatio">v₁ : v₂ = λ₁ : λ₂ = 3 : 2</p>
+        <div class="minis">
+          <div class="mini"><span>진동수 f · 양쪽 같음</span><b id="rF">10 Hz</b></div>
+          <div class="mini"><span>주기 T = 1/f · 양쪽 같음</span><b id="rT">0.1 s</b></div>
+          <div class="mini"><span id="rL1n">λ₁ · 깊은 곳</span><b id="rL1">3 cm</b></div>
+          <div class="mini"><span id="rL2n">λ₂ · 얕은 곳</span><b id="rL2">2 cm</b></div>
+        </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2><span id="tapeTitle">1초 동안 지나간 마루</span> <small>측정선 A·B 의 기록</small></h2>
-        <canvas class="flat" id="tape" aria-label="측정선 A와 B를 마루가 지나간 시각을 띠에 찍은 기록. 간격(주기)과 개수(진동수)가 같다."></canvas>
-        <p class="status" id="tapeCount" aria-live="off"></p>
-        <p class="cap">눈금 하나가 마루 하나. 두 띠의 <b>눈금 간격(주기 T)과 개수(진동수 f)가 같다</b>. B 는 마루가 조금 늦게 도착할 뿐이다.</p>
-      </section>
-      <section class="panel">
-        <h2>v = fλ 직선 <small>같은 f → 한 직선 위</small></h2>
-        <canvas class="flat" id="vl" aria-label="가로축 파장, 세로축 속력. 기울기가 진동수인 직선 위에 두 매질의 점이 놓인다."></canvas>
-        <p class="cap">진동수가 같으니 두 매질이 기울기 f 인 한 직선 위에 놓인다 → <span class="eq">v₁ : v₂ = λ₁ : λ₂</span>. f 를 바꾸면 점이 옆으로만(속력 그대로) 움직인다.</p>
-      </section>
-      <section class="panel" id="barsPanel" hidden>
-        <h2>소리의 속력 <small>매질에 따라</small></h2>
-        <canvas class="flat" id="bars" aria-label="공기, 헬륨, 물, 철에서 소리의 속력 막대그래프"></canvas>
-        <p class="cap">대체로 고체 &gt; 액체 &gt; 기체. 같은 기체라도 따뜻할수록, 가벼운 기체일수록 빠르다.</p>
-      </section>
-    </aside>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 진동수는 그대로">
+          <div class="kind">관찰 1</div>
+          <h3>경계를 넘어도 진동수는 그대로다</h3>
+          <p>경계점은 한 점이라 왼쪽에서 1초에 받는 진동 수와 오른쪽으로 1초에 내보내는 진동 수가 같다. 그래서 경계를 넘어도 <b>진동수와 주기는 그대로</b>다. 경계 양쪽의 측정선 A·B 가 같은 시간 동안 언제나 같은 수의 마루를 세는 까닭이다.</p>
+          <canvas class="flat" id="tape" aria-label="측정선 A와 B를 마루가 지나간 시각을 띠에 찍은 기록. 간격(주기)과 개수(진동수)가 같다."></canvas>
+          <p class="status" id="tapeCount" aria-live="off"></p>
+          <p class="cap">측정선 A·B 의 기록이다. 눈금 하나가 마루 하나이고, 두 띠의 눈금 간격(주기 T)과 개수(진동수 f)가 같다. B 는 마루가 조금 늦게 도착할 뿐이다. 무대는 물결의 높이와 공기·물 입자의 밀림을 크게 과장했고, 경계에서 되돌아오는 반사파와 진폭 변화는 그리지 않았다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:#stepT">한 주기씩 앞으로 ▸</button>
+            <button type="button" class="btn" data-do="check:#cGate">측정선 A·B 켜기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 파장이 바뀐다">
+          <div class="kind">관찰 2</div>
+          <h3>느린 쪽에서 파장이 짧아진다</h3>
+          <p>속력은 매질이 정한다. 구리색 마루 하나를 따라가 보면 경계를 넘는 순간 빠르기가 바뀐다. f 가 같으므로 <span class="eq">v = fλ</span> 에서 <span class="eq">v₁/v₂ = λ₁/λ₂</span> 이고, 빠른 매질에서 파장이 길고 느린 매질에서 짧다. 속력과 파장은 언제나 <b>함께</b> 커지거나 작아진다.</p>
+          <canvas class="flat" id="vl" aria-label="가로축 파장, 세로축 속력. 기울기가 진동수인 직선 위에 두 매질의 점이 놓인다."></canvas>
+          <p class="cap">진동수가 같으니 두 매질이 기울기 f 인 한 직선 위에 놓인다 → <span class="eq">v₁ : v₂ = λ₁ : λ₂</span>. 같은 매질에서 더 빨리 흔들면(f↑) 속력은 그대로이고 파장만 짧아진다. f 를 바꾸면 두 점이 옆으로만(속력 그대로) 움직인다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-do="check:#cTrack">마루 하나 따라가기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=water]; set:#v2=15">얕은 곳을 더 얕게</button>
+            <button type="button" class="btn" data-do="click:[data-scene=water]; set:#freq=15">물결파 f 15 Hz</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 매질마다 속력">
+          <div class="kind">관찰 3</div>
+          <h3>속력은 매질마다 다르다</h3>
+          <p><b>줄</b>은 재질이 같으면 가는 줄이 빠르다. 물결파는 깊을수록 빠르다. 얕은 곳에서 마루선이 촘촘해지는 까닭이고, 지진 해일이 해안에서 느려지는 것도 같은 원리다.</p>
+          <p><b>소리</b>는 고체 &gt; 액체 &gt; 기체 순으로 빠르다(공기 약 340 m/s, 물 약 1500 m/s). 빛은 굴절률이 큰 매질일수록 느려 파장이 진공의 1/n 이 된다. 물에 들어갈 때 소리와 반대다.</p>
+          <canvas class="flat" id="bars" aria-label="공기, 헬륨, 물, 철에서 소리의 속력 막대그래프"></canvas>
+          <p class="cap">대체로 고체 &gt; 액체 &gt; 기체다. 같은 기체라도 따뜻할수록, 가벼운 기체일수록 빠르다. ‘소리’ 장면에서 고른 두 매질은 구리색 테두리로 보인다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-do="click:[data-scene=rope]">줄: 굵은 줄 → 가는 줄</button>
+            <button type="button" class="btn" data-do="click:[data-scene=sound]">소리: 공기 → 물</button>
+            <button type="button" class="btn" data-do="click:[data-scene=water]">물결파</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="④ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>그대로인 것은 진동수, 함께 바뀌는 것은 속력과 파장</h3>
+          <ul>
+            <li>경계를 넘어도 그대로인 것: 진동수·주기(파원이 정함). <span class="eq">f₁ = f₂</span></li>
+            <li>함께 커지거나 작아지는 것: 속력과 파장(매질이 정함). <span class="eq">v₁/v₂ = λ₁/λ₂</span></li>
+            <li>물결파는 깊은 곳 = 빠름 = 긴 파장. 소리는 고체 &gt; 액체 &gt; 기체, 따뜻한 공기일수록 빠르다. 빛은 굴절률이 큰 매질에서 느리다.</li>
+            <li>자주 하는 실수: 빨리 흔들면(f↑) 파동이 빨라진다고 생각하는 것. 같은 매질에서는 속력이 그대로이고 파장만 짧아진다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑤ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>진동수 10 Hz인 물결파가 깊은 곳에서 파장 3 cm로 진행하다가 얕은 곳에서 파장 2 cm가 되었다. 두 곳에서의 속력은?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>진동수는 두 곳에서 같은 10 Hz다. 깊은 곳 v = fλ = 10 × 3 = <b>30 cm/s</b>, 얕은 곳 v = 10 × 2 = <b>20 cm/s</b>. 속력 비 3 : 2 = 파장 비 3 : 2 로 맞는다. 무대의 A·B 도 1초 동안 똑같이 10개를 센다.</p></details>
+        </li>
+        <li class="card step" data-step="⑥ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>같은 줄을 흔드는 진동수를 2배로 높였다. 줄에서 진행하는 파동의 속력과 파장은 어떻게 될까?<span class="tagx">개념 체크</span></h3>
+            <div class="acts"><button type="button" class="btn" data-try="double">같은 줄에서 f 2배</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>속력 그대로, 파장 1/2배</b>. 속력은 줄(매질)이 정한다. 무대에서 회색 점선(처음 진동수 2 Hz)과 새 파동(4 Hz)의 마루가 같은 빠르기로 나아가고, 마루 사이만 절반이 된다. 빨리 흔들면 파동이 빨라진다고 생각하면 ‘속력 2배’를 고르게 된다.</p></details>
+          </div>
+          <div class="q">
+            <h3>음파가 공기에서 물로 들어갈 때 진동수, 속력, 파장은 각각 어떻게 될까?<span class="tagx">개념 체크</span></h3>
+            <div class="acts"><button type="button" class="btn" data-try="sound">소리: 공기 → 물</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>진동수 일정, 속력 증가, 파장 증가</b>. 소리는 물에서 약 1500 m/s로 공기(약 340 m/s)보다 훨씬 빠르고, 진동수가 같으므로 파장도 약 4.4배로 길어진다. 빛은 물에 들어가면 느려지므로 소리와 반대다.</p></details>
+          </div>
+          <div class="q">
+            <h3>물결파가 얕은 곳에서 깊은 곳으로 진행할 때 파장은 길어질까, 짧아질까?<span class="tagx">OX</span></h3>
+            <div class="acts"><button type="button" class="btn" data-try="rev">얕은 곳 → 깊은 곳</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>길어진다</b>. 깊은 곳에서 속력이 크고 진동수는 같으므로 λ = v/f 가 커진다(2 cm → 3 cm). 넘어가는 방향이 아니라 ‘어느 쪽이 빠른가’가 파장을 정한다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../02/" rel="prev"><small>← 이전 개념 · III1-02</small><b>파동 그래프와 진행 방향</b></a><a href="../04/" rel="next"><small>다음 개념 · III1-04 →</small><b>굴절과 스넬 법칙</b></a></nav>
+<!-- /nextprev -->
+    </section>
   </main>
-
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>진동수는 파원이 정한다</h3>
-        <p>경계점은 한 점이므로 왼쪽에서 1초에 받는 진동 수와 오른쪽으로 1초에 내보내는 진동 수가 같아야 한다. 그래서 경계를 넘어도 <b>진동수와 주기는 그대로</b>다.</p>
-        <p>무대의 측정선 A·B 가 같은 시간 동안 언제나 같은 수의 마루를 세는 까닭이다.</p>
-      </article>
-      <article class="concept">
-        <h3>속력은 매질이 정하고, 파장이 따라 바뀐다</h3>
-        <p>f 가 같으므로 <span class="eq">v = fλ</span> 에서 <span class="eq">v₁/v₂ = λ₁/λ₂</span>. 빠른 매질에서 파장이 길고, 느린 매질에서 짧다. 속력과 파장은 언제나 함께 커지거나 작아진다.</p>
-        <p>같은 매질에서 더 빨리 흔들면(f↑) 속력은 그대로이고 파장만 짧아진다.</p>
-      </article>
-      <article class="concept">
-        <h3>매질마다 다른 속력</h3>
-        <p><b>줄</b>: 재질이 같으면 가는 줄이 빠르다. <b>물결파</b>: 깊을수록 빠르다 — 얕은 곳에서 마루선이 촘촘해진다(지진 해일이 해안에서 느려지는 것도 같은 원리).</p>
-        <p><b>소리</b>: 고체 &gt; 액체 &gt; 기체(공기 약 340 m/s, 물 약 1500 m/s). <b>빛</b>: 굴절률이 큰 매질일수록 느려 파장이 진공의 1/n 이 된다 — 물에 들어갈 때 소리와 반대다.</p>
-      </article>
-    </div>
-    <p class="compare">경계를 넘어도 그대로인 것: 진동수·주기(파원이 정함). 함께 커지거나 작아지는 것: 속력과 파장(매질이 정함).</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>진동수 10 Hz인 물결파가 깊은 곳에서 파장 3 cm로 진행하다가 얕은 곳에서 파장 2 cm가 되었다. 두 곳에서의 속력은?<span class="tag">개념서 예제</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button></div>
-        <details><summary>답 보기</summary><p>진동수는 두 곳에서 같은 10 Hz다. 깊은 곳 v = fλ = 10 × 3 = <b>30 cm/s</b>, 얕은 곳 v = 10 × 2 = <b>20 cm/s</b>. 속력 비 3 : 2 = 파장 비 3 : 2. 무대의 A·B 도 1초 동안 똑같이 10개를 센다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>같은 줄을 흔드는 진동수를 2배로 높였다. 줄에서 진행하는 파동의 속력과 파장은 어떻게 될까?<span class="tag">개념 체크</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="double">같은 줄에서 f 2배</button></div>
-        <details><summary>답 보기</summary><p><b>속력 그대로, 파장 1/2배</b>. 속력은 줄(매질)이 정한다. 무대에서 회색 점선(처음 진동수 2 Hz)과 새 파동(4 Hz)의 마루가 같은 빠르기로 나아가고, 마루 사이만 절반이 된다. 빨리 흔들면 파동이 빨라진다고 생각하면 ‘속력 2배’를 고르게 된다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>음파가 공기에서 물로 들어갈 때 진동수, 속력, 파장은 각각 어떻게 될까?<span class="tag">개념 체크</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="sound">소리: 공기 → 물</button></div>
-        <details><summary>답 보기</summary><p><b>진동수 일정, 속력 증가, 파장 증가</b>. 소리는 물에서 약 1500 m/s로 공기(약 340 m/s)보다 훨씬 빠르고, 진동수가 같으므로 파장도 약 4.4배로 길어진다. 빛은 물에 들어가면 느려지므로 소리와 반대다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>물결파가 얕은 곳에서 깊은 곳으로 진행할 때 파장은 길어질까, 짧아질까?<span class="tag">OX</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="rev">얕은 곳 → 깊은 곳</button></div>
-        <details><summary>답 보기</summary><p><b>길어진다</b>. 깊은 곳에서 속력이 크고 진동수는 같으므로 λ = v/f 가 커진다(2 cm → 3 cm). 넘어가는 방향이 아니라 ‘어느 쪽이 빠른가’가 파장을 정한다.</p></details>
-      </li>
-    </ol>
-    <nav class="pager"><a href="../02/">← III1-02 파동 그래프와 진행 방향</a><a class="home" href="../../">물리 실험실</a><a href="../04/">III1-04 굴절과 스넬 법칙 →</a></nav>
-  </section>
 </div>
 
 <script src="../../kit/lab.js"></script>
@@ -180,9 +202,9 @@
   // ── 장면 설정 ───────────────────────────────────────────
   // f = [최소, 최대, 간격, 기본], v = [최소, 최대, 간격] (소리는 매질 번호), d1·d2 = 기본 속력(소리는 번호), win = 세는 시간
   const SC = {
-    water: {unit: 'cm', vu: 'cm/s', L: 30, xb: 15, f: [5, 15, 1, 10], v: [15, 40, 1], d1: 30, d2: 20, win: 1, winLab: '1초', mark: '마루', tick: 1, lab: 5, vmax: 40, lmax: 8},
-    rope: {unit: 'm', vu: 'm/s', L: 3, xb: 1.5, f: [2, 6, 1, 4], v: [1, 4, 0.5], d1: 2, d2: 4, win: 1, winLab: '1초', mark: '마루', tick: 0.25, lab: 0.5, vmax: 4.4, lmax: 2.2},
-    sound: {unit: 'm', vu: 'm/s', L: 6, xb: 2.4, f: [500, 2000, 100, 1000], v: [0, 3, 1], d1: 1, d2: 3, win: 0.01, winLab: '0.01초', mark: '밀', tick: 0.25, lab: 1, vmax: 1650, lmax: 3.3},
+    water: {name: '물결파', unit: 'cm', vu: 'cm/s', L: 30, xb: 15, f: [5, 15, 1, 10], v: [15, 40, 1], d1: 30, d2: 20, win: 1, winLab: '1초', mark: '마루', tick: 1, lab: 5, vmax: 40, lmax: 8},
+    rope: {name: '줄', unit: 'm', vu: 'm/s', L: 3, xb: 1.5, f: [2, 6, 1, 4], v: [1, 4, 0.5], d1: 2, d2: 4, win: 1, winLab: '1초', mark: '마루', tick: 0.25, lab: 0.5, vmax: 4.4, lmax: 2.2},
+    sound: {name: '소리', unit: 'm', vu: 'm/s', L: 6, xb: 2.4, f: [500, 2000, 100, 1000], v: [0, 3, 1], d1: 1, d2: 3, win: 0.01, winLab: '0.01초', mark: '밀', tick: 0.25, lab: 1, vmax: 1650, lmax: 3.3},
   };
   const EX = {f: 10, v1: 30, v2: 20};
   const S = {scene: 'water', f: 10, v1: 30, v2: 20, i1: 1, i2: 3, t: 0, n: 0, playing: !Lab.reduceMotion, vis: 1,
@@ -198,10 +220,12 @@
     return [MED[S.i1].name, MED[S.i2].name];
   }
   const fastSlow = () => (S.v1 > S.v2 ? ['빠름', '느림'] : S.v1 < S.v2 ? ['느림', '빠름'] : ['같은 빠르기', '같은 빠르기']);
-  const vStr = (v) => (S.scene === 'sound' ? fmt(v, 0) : fmt(v, 2)) + ' ' + sc().vu;
-  const lStr = (l) => fmt(l, S.scene === 'sound' ? 3 : 2) + ' ' + sc().unit;
+  const vNum = (v) => (S.scene === 'sound' ? fmt(v, 0) : fmt(v, 2));
+  const vStr = (v) => vNum(v) + ' ' + sc().vu;
+  const lDig = () => (S.scene === 'sound' ? 3 : 2);
+  const lStr = (l) => fmt(l, lDig()) + ' ' + sc().unit;
 
-  const stage = Lab.canvas('stage', draw), tape = Lab.canvas('tape', draw), vl = Lab.canvas('vl', draw), bars = Lab.canvas('bars', draw);
+  const stage = Lab.canvas('stage', drawStage), tape = Lab.canvas('tape', drawTape), vl = Lab.canvas('vl', drawVL), bars = Lab.canvas('bars', drawBars);
 
   // ── 시간·세기 ───────────────────────────────────────────
   // n = 파원이 진동한 횟수(f 가 바뀌어도 끊기지 않게 누적). 세기 창: [win0, win0 + win) 동안 측정선을 지난 마루의 시각
@@ -230,13 +254,14 @@
   }
 
   // ── 무대 배치 ───────────────────────────────────────────
+  // 위에서부터: HUD·파원 진동수 | 측정선 A·B 세기 상자 | 장면 그림 | 위치 자 | 범례·지금 단계 자리
   function lay(W, H) {
     const narrow = W < 520, s = sc();
     const padL = narrow ? 46 : 74, padR = narrow ? 14 : 24;
     const ppu = (W - padL - padR) / s.L;
     const X = (x) => padL + x * ppu;
-    const axisY = H - (narrow ? 100 : 66);
-    const bTop = narrow ? 48 : 50, bH = 46;
+    const axisY = H - (narrow ? 60 : 68);
+    const bTop = 46, bH = narrow ? 42 : 46;
     const top = bTop + bH + 18;
     return {narrow, padL, padR, ppu, X, axisY, bTop, bH, top};
   }
@@ -256,14 +281,13 @@
 
     const xTr = S.track ? trackPos() : null;
     let regionBot;
-    if (S.scene === 'water') regionBot = drawWater(ctx, W, H, G, m, nm, fs, xTr);
-    else if (S.scene === 'rope') regionBot = drawRope(ctx, W, H, G, m, nm, fs, xTr);
-    else regionBot = drawSound(ctx, W, H, G, m, nm, fs, xTr);
+    if (S.scene === 'water') regionBot = drawWater(ctx, G, m, nm, fs, xTr);
+    else if (S.scene === 'rope') regionBot = drawRope(ctx, G, m, nm, fs, xTr);
+    else regionBot = drawSound(ctx, G, m, nm, xTr);
 
     // 측정선 A·B 와 세기 상자
     if (S.gate) {
-      const [xa, xb] = gates(), win = s.win;
-      const total = Math.round(S.f * win);
+      const [xa, xb] = gates(), total = Math.round(S.f * s.win);
       [xa, xb].forEach((xg, i) => {
         const now = passRel(xg, S.n0, S.n);
         const X0 = M.waves(xg, m), last = Math.floor(S.n - X0 + 1e-9) + X0;   // 마지막으로 마루가 지난 n
@@ -273,12 +297,12 @@
         ctx.save(); ctx.strokeStyle = flash ? C.acc : C.ink; ctx.globalAlpha = flash ? 1 : 0.5; ctx.lineWidth = flash ? 3.2 : 1.5;
         if (!flash) ctx.setLineDash([5, 5]);
         ctx.beginPath(); ctx.moveTo(gx, G.bTop + G.bH); ctx.lineTo(gx, regionBot); ctx.stroke(); ctx.restore();
-        badge(ctx, G, gx, i ? 'B' : 'A', nm[i], now.length, total, flash);
+        badge(ctx, G, gx, i ? 'B' : 'A', now.length, total, flash);
       });
     }
 
     // 파원 진동수 (양쪽 같음)
-    text(ctx, (narrow ? 'f = ' : '파원 진동수 f = ') + fmt(S.f, 0) + ' Hz', W - 16, 26, {size: 14, color: C.acc, w: 700, align: 'right'});
+    text(ctx, (narrow ? 'f = ' : '파원 진동수 f = ') + fmt(S.f, 0) + ' Hz', W - 16, 26, {size: 14, color: C.acc, w: 600, align: 'right'});
 
     // 위치 자
     ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1;
@@ -287,24 +311,24 @@
     for (let k = 0; k <= nT; k++) {
       const x = k * s.tick, big = Math.abs(x / s.lab - Math.round(x / s.lab)) < 1e-9;
       ctx.beginPath(); ctx.moveTo(X(x), G.axisY - (big ? 5 : 2.5)); ctx.lineTo(X(x), G.axisY + (big ? 5 : 2.5)); ctx.stroke();
-      if (big) text(ctx, fmt(x, 2), X(x), G.axisY + 14, {size: 13, color: C.muted, w: 500, mono: true});
+      if (big) text(ctx, fmt(x, 2), X(x), G.axisY + 14, {size: 13, color: C.muted, w: 500});
     }
     ctx.restore();
     text(ctx, '(' + s.unit + ')', X(0) - 14, G.axisY + 14, {size: 13, color: C.muted, w: 500, align: 'right'});
   }
 
-  function badge(ctx, G, gx, lab, medName, n, total, flash) {
+  function badge(ctx, G, gx, lab, n, total, flash) {
     const bw = G.narrow ? 112 : 150, bh = G.bH, W = stage.W;
     const x = Math.max(8, Math.min(W - bw - 8, gx - bw / 2)), y = G.bTop;
     ctx.save(); Lab.rrect(ctx, x, y, bw, bh, 11); ctx.fillStyle = C.glass; ctx.fill();
     ctx.strokeStyle = flash ? C.acc : C.line; ctx.lineWidth = flash ? 2.2 : 1.2; ctx.stroke(); ctx.restore();
-    text(ctx, lab, x + 13, y + 15, {size: 15, w: 800, color: C.ink});
-    text(ctx, G.narrow ? sc().winLab : sc().winLab + ' 동안', x + 25, y + 15, {size: 13, w: 600, color: C.muted, align: 'left'});
-    text(ctx, String(n), x + bw - 12, y + 16, {size: 19, w: 700, color: C.acc, mono: true, align: 'right'});
+    text(ctx, lab, x + 13, y + 14, {size: 15, w: 600, color: C.ink});
+    text(ctx, G.narrow ? sc().winLab : sc().winLab + ' 동안', x + 25, y + 14, {size: 13, w: 500, color: C.muted, align: 'left'});
+    text(ctx, String(n), x + bw - 12, y + 15, {size: 19, w: 700, color: C.acc, align: 'right'});
     // 칸: 한 칸 = 마루 하나
     const slots = Math.max(1, total), gap = Math.min(8, (bw - 22) / slots), r = Math.min(3, gap * 0.38);
     for (let k = 0; k < slots; k++) {
-      ctx.beginPath(); ctx.arc(x + 11 + gap * (k + 0.5), y + bh - 11, r, 0, 7);
+      ctx.beginPath(); ctx.arc(x + 11 + gap * (k + 0.5), y + bh - 10, r, 0, 7);
       if (k < n) { ctx.fillStyle = C.acc; ctx.fill(); } else { ctx.strokeStyle = C.line; ctx.lineWidth = 1.2; ctx.stroke(); }
     }
   }
@@ -313,26 +337,29 @@
   function lamRuler(ctx, G, cs, a, b, lam, y, label) {
     const X = G.X, inside = cs.filter((c) => c > a + 0.02 * lam && c < b - 0.02 * lam);
     let c0 = null;
-    if (inside.length >= 2) { const mid = (a + b) / 2; let best = 0; for (let i = 0; i < inside.length - 1; i++) if (Math.abs((inside[i] + inside[i + 1]) / 2 - mid) < Math.abs((inside[best] + inside[best + 1]) / 2 - mid)) best = i; c0 = inside[best]; }
-    else if (inside.length === 1) c0 = inside[0] + lam <= sc().L ? inside[0] : inside[0] - lam;
+    if (inside.length >= 2) {
+      const mid = (a + b) / 2; let best = 0;
+      for (let i = 0; i < inside.length - 1; i++) if (Math.abs((inside[i] + inside[i + 1]) / 2 - mid) < Math.abs((inside[best] + inside[best + 1]) / 2 - mid)) best = i;
+      c0 = inside[best];
+    } else if (inside.length === 1) c0 = inside[0] + lam <= sc().L ? inside[0] : inside[0] - lam;
     if (c0 === null) return;
     bracket(ctx, X(c0), X(c0 + lam), y, C.copper, label, false);
   }
 
   // 구리색 마루의 속력 화살표
   function speedArrow(ctx, G, x, y, v) {
-    const len = 22 + 64 * v / sc().vmax, X = G.X(x);
+    const len = (G.narrow ? 16 : 22) + (G.narrow ? 44 : 64) * v / sc().vmax, X = G.X(x);
     arrow(ctx, X + 6, y, X + 6 + len, y, C.copper, 2.8, 9);
     const right = X + len + 14 + 78 < stage.W - 6;
-    text(ctx, vStr(v), right ? X + len + 14 : X - 8, y, {size: 13.5, color: C.copper, w: 700, align: right ? 'left' : 'right', halo: true, mono: true});
+    text(ctx, vStr(v), right ? X + len + 14 : X - 8, y, {size: 13.5, color: C.copper, w: 600, align: right ? 'left' : 'right', halo: true});
   }
 
   // ── 물결파: 위에서 본 수조 + 옆에서 본 단면 ───────────────────
-  function drawWater(ctx, W, H, G, m, nm, fs, xTr) {
+  function drawWater(ctx, G, m, nm, fs, xTr) {
     const {X, narrow} = G, s = sc(), L = s.L, xb = s.xb;
     const avail = G.axisY - 22 - G.top;
-    const tTop = G.top, tBot = G.top + avail * 0.5;
-    const sTop = tBot + (narrow ? 54 : 50), surf = sTop + 16, sBot = G.axisY - 20;
+    const tTop = G.top, tBot = G.top + avail * (narrow ? 0.44 : 0.5);
+    const sTop = tBot + (narrow ? 48 : 50), surf = sTop + 16, sBot = G.axisY - 20;
     const cs = M.crests(S.n, m, 0, L);
     // 물
     ctx.save(); ctx.beginPath(); ctx.rect(X(0), tTop, X(L) - X(0), tBot - tTop); ctx.clip();
@@ -360,15 +387,14 @@
     ctx.save(); ctx.strokeStyle = C.line; ctx.lineWidth = 1.4; ctx.strokeRect(X(0), tTop, X(L) - X(0), tBot - tTop); ctx.restore();
     // 파원(평면파 발생기)
     ctx.save(); Lab.rrect(ctx, X(0) - 14, tTop + 4, 9, tBot - tTop - 8, 3); ctx.fillStyle = C.ink; ctx.fill(); ctx.restore();
-    text(ctx, '파원', X(0) - 10, tTop - 9, {size: 13, color: C.ink, w: 700});
+    text(ctx, '파원', X(0) - 10, tTop - 9, {size: 13, color: C.ink, w: 600});
     // 경계
-    ctx.save(); ctx.strokeStyle = C.ink; ctx.globalAlpha = 0.7; ctx.setLineDash([6, 5]); ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.moveTo(X(xb), tTop - 4); ctx.lineTo(X(xb), sBot); ctx.stroke(); ctx.restore();
-    text(ctx, '경계', X(xb), tTop - 9, {size: 13, color: C.ink, w: 700, halo: true});
+    Lab.line(ctx, [[X(xb), tTop - 4], [X(xb), sBot]], Lab.alpha(C.ink, 0.7), 1.6, [6, 5]);
+    text(ctx, '경계', X(xb), tTop - 9, {size: 13, color: C.ink, w: 600, halo: true});
     // 이름표 (수조 아래쪽 안)
     const ny = tBot - 15;
-    text(ctx, nm[0] + ' · ' + fs[0], X(xb / 2), ny, {size: 14, color: C.ink, w: 700, halo: true});
-    text(ctx, nm[1] + ' · ' + fs[1], X((xb + L) / 2), ny, {size: 14, color: C.ink, w: 700, halo: true});
+    text(ctx, nm[0] + ' · ' + fs[0], X(xb / 2), ny, {size: 14, color: C.ink, w: 600, halo: true});
+    text(ctx, nm[1] + ' · ' + fs[1], X((xb + L) / 2), ny, {size: 14, color: C.ink, w: 600, halo: true});
     // 따라가는 마루의 속력
     if (xTr !== null) speedArrow(ctx, G, xTr, tTop + 17, xTr <= xb ? S.v1 : S.v2);
     // λ 자
@@ -377,7 +403,7 @@
       lamRuler(ctx, G, cs, xb, L, m.l2, tBot + 12, 'λ₂ = ' + lStr(m.l2));
     }
     // 옆에서 본 단면
-    text(ctx, '옆에서 본 단면', X(0) + 6, sTop - 6, {size: 13, color: C.muted, w: 600, align: 'left', halo: true});
+    text(ctx, '옆에서 본 단면', X(0) + 6, sTop - 6, {size: 13, color: C.muted, w: 500, align: 'left', halo: true});
     const aS = narrow ? 5 : 7, D = sBot - surf;
     const vmx = Math.max(S.v1, S.v2);
     const depth = (v) => D * Math.pow(v / vmx, 2);
@@ -395,32 +421,31 @@
       if (sBot - fl < 5) continue;
       ctx.save(); ctx.fillStyle = C['line-soft']; ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2;
       ctx.fillRect(X(a), fl, X(b) - X(a), sBot - fl); ctx.strokeRect(X(a), fl, X(b) - X(a), sBot - fl); ctx.restore();
-      if (sBot - fl > 17) text(ctx, '유리판', (X(a) + X(b)) / 2, (fl + sBot) / 2, {size: 13, color: C.muted, w: 600});
+      if (sBot - fl > 17) text(ctx, '유리판', (X(a) + X(b)) / 2, (fl + sBot) / 2, {size: 13, color: C.muted, w: 500});
     }
-    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(0) - 18, sBot); ctx.lineTo(X(L), sBot); ctx.stroke(); ctx.restore();
+    Lab.line(ctx, [[X(0) - 18, sBot], [X(L), sBot]], C.ink, 2);
     // 파원(단면): 물에 잠긴 막대가 오르내린다
     const bob = -aS * Math.cos(TAU * S.n);
     ctx.save(); Lab.rrect(ctx, X(0) - 14, surf - 24 + bob, 9, 30, 3); ctx.fillStyle = C.ink; ctx.fill(); ctx.restore();
     // 경계점
-    ctx.beginPath(); ctx.arc(X(xb), ySurf(xb), 6, 0, 7); ctx.fillStyle = C.copper; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.paper; ctx.stroke();
-    text(ctx, '경계점', X(xb) + 9, surf - 16, {size: 13, color: C.copper, w: 700, align: 'left', halo: true});
-    if (xTr !== null) { ctx.beginPath(); ctx.arc(X(xTr), ySurf(xTr), 5, 0, 7); ctx.fillStyle = C.copper; ctx.fill(); }
+    Lab.circle(ctx, X(xb), ySurf(xb), 6, {fill: C.copper, stroke: C.paper, width: 2});
+    text(ctx, '경계점', X(xb) + 9, surf - 16, {size: 13, color: C.copper, w: 600, align: 'left', halo: true});
+    if (xTr !== null) Lab.circle(ctx, X(xTr), ySurf(xTr), 5, {fill: C.copper});
     return sBot;
   }
 
   // ── 줄: 굵은 줄과 가는 줄 ────────────────────────────────
-  function drawRope(ctx, W, H, G, m, nm, fs, xTr) {
+  function drawRope(ctx, G, m, nm, fs, xTr) {
     const {X, narrow} = G, s = sc(), L = s.L, xb = s.xb;
     // 세로: 위 = 마루 표시·속력 화살표, 가운데 = 줄, 아래 = λ 자와 이름표. 남는 높이는 위아래로 나눈다
     const avail = G.axisY - 16 - G.top;
-    const amp = Math.min(narrow ? 34 : 64, (avail - 112) / 2);
+    const amp = Math.min(narrow ? 36 : 64, (avail - 112) / 2);
     const slack = Math.max(0, avail - (2 * amp + 112));
     const yR = G.top + 44 + amp + slack * 0.45, rBot = yR + amp + 40, nameY = yR + amp + 64;
     const Y = (x) => yR - amp * M.disp(S.n, x, m);
     const cs = M.crests(S.n, m, 0, L);
     // 평형선
-    ctx.save(); ctx.strokeStyle = C.line; ctx.setLineDash([4, 5]); ctx.lineWidth = 1.1;
-    ctx.beginPath(); ctx.moveTo(X(0), yR); ctx.lineTo(X(L), yR); ctx.stroke(); ctx.restore();
+    Lab.line(ctx, [[X(0), yR], [X(L), yR]], C.line, 1.1, [4, 5]);
     // 줄 (굵기: 느린 줄 = 굵은 줄)
     const th = (v) => Math.max(2.6, Math.min(9, 12 / v)) * (narrow ? 0.75 : 1);
     const same = S.v1 === S.v2;
@@ -443,38 +468,36 @@
     // 마루 표시
     for (const c of cs) {
       const tr = xTr !== null && Math.abs(c - xTr) < 1e-6;
-      ctx.beginPath(); ctx.moveTo(X(c), yR - amp - 9); ctx.lineTo(X(c) - 8, yR - amp - 22); ctx.lineTo(X(c) + 8, yR - amp - 22); ctx.closePath();
-      ctx.fillStyle = tr ? C.copper : C.vel; ctx.fill();
+      ctx.save(); ctx.beginPath(); ctx.moveTo(X(c), yR - amp - 9); ctx.lineTo(X(c) - 8, yR - amp - 22); ctx.lineTo(X(c) + 8, yR - amp - 22); ctx.closePath();
+      ctx.fillStyle = tr ? C.copper : C.vel; ctx.fill(); ctx.restore();
     }
     if (xTr !== null) speedArrow(ctx, G, xTr, yR - amp - 36, xTr <= xb ? S.v1 : S.v2);
     // 파원: 손잡이(진동자)
-    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(0) - 12, yR - amp - 12); ctx.lineTo(X(0) - 12, yR + amp + 12); ctx.stroke(); ctx.restore();
+    Lab.line(ctx, [[X(0) - 12, yR - amp - 12], [X(0) - 12, yR + amp + 12]], C.muted, 2);
     ctx.save(); Lab.rrect(ctx, X(0) - 22, Y(0) - 12, 20, 24, 4); ctx.fillStyle = C.ink; ctx.fill(); ctx.restore();
-    text(ctx, '파원', X(0) - 12, yR + amp + 26, {size: 13, color: C.ink, w: 700});
+    text(ctx, '파원', X(0) - 12, yR + amp + 26, {size: 13, color: C.ink, w: 600});
     // 경계(매듭) — 같은 줄이면 경계가 없다
     if (!same) {
-      ctx.save(); ctx.strokeStyle = C.ink; ctx.globalAlpha = 0.6; ctx.setLineDash([6, 5]); ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(X(xb), G.top - 4); ctx.lineTo(X(xb), rBot + 6); ctx.stroke(); ctx.restore();
-      text(ctx, '경계(매듭)', X(xb), G.top - 9, {size: 13, color: C.ink, w: 700, halo: true});
-      ctx.beginPath(); ctx.arc(X(xb), Y(xb), 7, 0, 7); ctx.fillStyle = C.copper; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.paper; ctx.stroke();
+      Lab.line(ctx, [[X(xb), G.top - 4], [X(xb), rBot + 6]], Lab.alpha(C.ink, 0.6), 1.5, [6, 5]);
+      text(ctx, '경계(매듭)', X(xb), G.top - 9, {size: 13, color: C.ink, w: 600, halo: true});
+      Lab.circle(ctx, X(xb), Y(xb), 7, {fill: C.copper, stroke: C.paper, width: 2});
     }
     // λ 자 (골 아래)
     if (S.ruler) {
       lamRuler(ctx, G, cs, 0, xb, m.l1, yR + amp + 16, 'λ₁ = ' + lStr(m.l1));
       lamRuler(ctx, G, cs, xb, L, m.l2, yR + amp + 16, 'λ₂ = ' + lStr(m.l2));
     }
-    if (same) text(ctx, '같은 줄 — 어디서나 같은 속력 ' + vStr(S.v1), X(L / 2), nameY, {size: 14, color: C.ink, w: 700, halo: true});
+    if (same) text(ctx, '같은 줄 — 어디서나 같은 속력 ' + vStr(S.v1), X(L / 2), nameY, {size: 14, color: C.ink, w: 600, halo: true});
     else {
-      text(ctx, nm[0] + ' · ' + fs[0], X(xb / 2), nameY, {size: 14, color: C.ink, w: 700, halo: true});
-      text(ctx, nm[1] + ' · ' + fs[1], X((xb + L) / 2), nameY, {size: 14, color: C.ink, w: 700, halo: true});
+      text(ctx, nm[0] + ' · ' + fs[0], X(xb / 2), nameY, {size: 14, color: C.ink, w: 600, halo: true});
+      text(ctx, nm[1] + ' · ' + fs[1], X((xb + L) / 2), nameY, {size: 14, color: C.ink, w: 600, halo: true});
     }
-    if (S.ghost) text(ctx, '회색 점선 = 처음 진동수 ' + fmt(S.ghost.f, 0) + ' Hz', X(0), G.top + 2, {size: 13, color: C.muted, w: 600, align: 'left', halo: true});
     return rBot;
   }
 
   // ── 소리: 공기 → 물 (입자 분포와 밀·소) ──────────────────────
   const JIT = []; for (let i = 0; i < 4096; i++) JIT.push(((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1);
-  function drawSound(ctx, W, H, G, m, nm, fs, xTr) {
+  function drawSound(ctx, G, m, nm, xTr) {
     const {X, narrow} = G, s = sc(), L = s.L, xb = s.xb;
     const nameY = G.axisY - 26, bY = nameY - 36, tTop = G.top + 4, tBot = bY - 16;
     const cs = M.crests(S.n, m, 0, L);
@@ -519,24 +542,23 @@
     Lab.rrect(ctx, X(0) - 30, my - hh * 0.45, 12, hh * 0.9, 3); ctx.fill();
     ctx.beginPath(); ctx.moveTo(X(0) - 18, my - hh * 0.3); ctx.lineTo(X(0) - 6 + cone, my - hh); ctx.lineTo(X(0) - 6 + cone, my + hh); ctx.lineTo(X(0) - 18, my + hh * 0.3); ctx.closePath(); ctx.fill();
     ctx.restore();
-    text(ctx, '음원', X(0) - 18, tTop - 9, {size: 13, color: C.ink, w: 700});
+    text(ctx, '음원', X(0) - 18, tTop - 9, {size: 13, color: C.ink, w: 600});
     // 경계
-    ctx.save(); ctx.strokeStyle = C.ink; ctx.globalAlpha = 0.7; ctx.setLineDash([6, 5]); ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.moveTo(X(xb), tTop - 4); ctx.lineTo(X(xb), tBot + 4); ctx.stroke(); ctx.restore();
-    text(ctx, '경계', X(xb), tTop - 9, {size: 13, color: C.ink, w: 700, halo: true});
+    Lab.line(ctx, [[X(xb), tTop - 4], [X(xb), tBot + 4]], Lab.alpha(C.ink, 0.7), 1.6, [6, 5]);
+    text(ctx, '경계', X(xb), tTop - 9, {size: 13, color: C.ink, w: 600, halo: true});
     const sb = aOf(xb) * Math.sin(TAU * (S.n - M.waves(xb, m)));
-    ctx.beginPath(); ctx.arc(X(xb + sb), tBot + 1, 6, 0, 7); ctx.fillStyle = C.copper; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.paper; ctx.stroke();
+    Lab.circle(ctx, X(xb + sb), tBot + 1, 6, {fill: C.copper, stroke: C.paper, width: 2});
     if (xTr !== null) speedArrow(ctx, G, xTr, tTop + 16, xTr <= xb ? S.v1 : S.v2);
     if (S.ruler) {
       lamRuler(ctx, G, cs, 0, xb, m.l1, bY, 'λ₁ = ' + lStr(m.l1));
       lamRuler(ctx, G, cs, xb, L, m.l2, bY, 'λ₂ = ' + lStr(m.l2));
     }
-    text(ctx, nm[0] + ' · ' + vStr(S.v1), X(xb / 2), nameY, {size: 14, color: C.ink, w: 700, halo: true});
-    text(ctx, nm[1] + ' · ' + vStr(S.v2), X((xb + L) / 2), nameY, {size: 14, color: C.ink, w: 700, halo: true});
+    text(ctx, nm[0] + ' · ' + vStr(S.v1), X(xb / 2), nameY, {size: 14, color: C.ink, w: 600, halo: true});
+    text(ctx, nm[1] + ' · ' + vStr(S.v2), X((xb + L) / 2), nameY, {size: 14, color: C.ink, w: 600, halo: true});
     return tBot;
   }
 
-  // ── 패널: 측정선 기록 띠 ────────────────────────────────
+  // ── 관찰 1: 측정선 기록 띠 ──────────────────────────────
   function drawTape() {
     const {ctx, W, H} = tape; if (!W) return;
     ctx.clearRect(0, 0, W, H);
@@ -551,13 +573,13 @@
     const ms = S.scene === 'sound';
     for (let k = 0; k <= 10; k++) {
       const tt = win * k / 10, x = X(tt);
-      ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, r.y); ctx.lineTo(x, r.y + r.h); ctx.stroke(); ctx.restore();
-      if (k % 5 === 0) text(ctx, fmt(ms ? tt * 1000 : tt, 2) + (k === 10 ? (ms ? ' ms' : ' s') : ''), x, r.y + r.h + 13, {size: 13, color: C.muted, w: 500, mono: true, align: k === 10 ? 'right' : 'center'});
+      Lab.line(ctx, [[x, r.y], [x, r.y + r.h]], C.grid, 1);
+      if (k % 5 === 0) text(ctx, fmt(ms ? tt * 1000 : tt, 2) + (k === 10 ? (ms ? ' ms' : ' s') : ''), x, r.y + r.h + 13, {size: 13, color: C.muted, w: 500, align: k === 10 ? 'right' : 'center'});
     }
     rows.forEach((y, i) => {
       ctx.save(); Lab.rrect(ctx, r.x, y - th / 2, r.w, th, 7); ctx.fillStyle = C['line-soft']; ctx.fill(); ctx.restore();
-      text(ctx, i ? 'B' : 'A', 18, y, {size: 16, w: 800, color: C.ink});
-      text(ctx, nm[i], r.x + 2, y - th / 2 - 10, {size: 13, w: 600, color: C.muted, align: 'left'});
+      text(ctx, i ? 'B' : 'A', 18, y, {size: 16, w: 600, color: C.ink});
+      text(ctx, nm[i], r.x + 2, y - th / 2 - 10, {size: 13, w: 500, color: C.muted, align: 'left'});
       // 지난 기록(옅게), 지금 기록
       ctx.save(); ctx.strokeStyle = C.muted; ctx.globalAlpha = 0.35; ctx.lineWidth = 2;
       for (const tt of prev[i]) { if (cur[i].length && tt <= cur[i][cur[i].length - 1] + 1e-9) continue; ctx.beginPath(); ctx.moveTo(X(tt), y - th / 2 + 4); ctx.lineTo(X(tt), y + th / 2 - 4); ctx.stroke(); }
@@ -568,26 +590,25 @@
     });
     // 주기 자: B 띠 한가운데, 이름표 오른쪽의 이웃한 두 눈금 사이
     const ref = cur[1].length >= 2 ? cur[1] : prev[1];
-    const nameEnd = r.x + 2 + Lab.measure(ctx, nm[1], {size: 13, w: 600}) + 18;
+    const nameEnd = r.x + 2 + Lab.measure(ctx, nm[1], {size: 13, w: 500}) + 18;
     for (let i = 0; i + 1 < ref.length; i++) {
       if (X(ref[i]) < nameEnd - 8) continue;
       bracket(ctx, X(ref[i]), X(ref[i + 1]), rows[1], C.copper, null);
-      text(ctx, 'T', (X(ref[i]) + X(ref[i + 1])) / 2, rows[1] - th / 2 - 10, {size: 13.5, color: C.copper, w: 700, mono: true, halo: true});
+      text(ctx, 'T', (X(ref[i]) + X(ref[i + 1])) / 2, rows[1] - th / 2 - 10, {size: 13.5, color: C.copper, w: 600, halo: true});
       break;
     }
     // 지금
     const now = Math.min(win, S.t - S.win0);
-    ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(now), r.y); ctx.lineTo(X(now), r.y + r.h + 2); ctx.stroke(); ctx.restore();
+    Lab.line(ctx, [[X(now), r.y], [X(now), r.y + r.h + 2]], C.copper, 2);
     // 개수
-    $('tapeTitle').textContent = s.winLab + ' 동안 지나간 ' + s.mark;
-    setTxt('tapeCount', '지금 A ' + cur[0].length + '개 · B ' + cur[1].length + '개' + (S.prev ? '  |  지난 ' + s.winLab + ': A ' + S.prev.A.length + '개 = B ' + S.prev.B.length + '개' : ''));
+    setTxt('tapeCount', s.winLab + ' 동안 지나간 ' + s.mark + ': 지금 A ' + cur[0].length + '개 · B ' + cur[1].length + '개' + (S.prev ? '  |  지난 ' + s.winLab + ' A ' + S.prev.A.length + '개 = B ' + S.prev.B.length + '개' : ''));
   }
 
-  // ── 패널: v-λ 직선 ──────────────────────────────────────
+  // ── 관찰 2: v-λ 직선 ────────────────────────────────────
   function drawVL() {
     const {ctx, W, H} = vl; if (!W) return;
     ctx.clearRect(0, 0, W, H);
-    const s = sc(), r = {x: 58, y: 22, w: W - 84, h: H - 58};
+    const s = sc(), narrow = W < 400, r = {x: 58, y: 22, w: W - 84, h: H - 58};
     const xt = [], yt = [];
     const lstep = S.scene === 'water' ? 2 : 0.5, vstep = S.scene === 'water' ? 10 : S.scene === 'rope' ? 1 : 500;
     for (let v = lstep; v < s.lmax - 1e-9; v += lstep) xt.push(+v.toFixed(3));
@@ -597,52 +618,92 @@
     const line = (f, col, dash, w) => {
       const l1 = Math.min(s.lmax, s.vmax / f);
       Lab.line(ctx, [[A.X(0), A.Y(0)], [A.X(l1), A.Y(f * l1)]], col, w, dash);
-      return l1;
     };
     if (S.ghost) {
       line(S.ghost.f, C.muted, [5, 5], 2);
-      text(ctx, '점선: 처음 f = ' + fmt(S.ghost.f, 0) + ' Hz', r.x + r.w, A.y0 - 56, {size: 13, color: C.muted, w: 600, align: 'right', halo: true});
+      text(ctx, '점선: 처음 f = ' + fmt(S.ghost.f, 0) + ' Hz', r.x + r.w, A.y0 - 56, {size: 13, color: C.muted, w: 500, align: 'right', halo: true});
       const lgp = S.v1 / S.ghost.f;
       Lab.circle(ctx, A.X(lgp), A.Y(S.v1), 6, {stroke: C.muted, width: 2});
       arrow(ctx, A.X(lgp) - 8, A.Y(S.v1), A.X(S.v1 / S.f) + 9, A.Y(S.v1), C.muted, 1.8, 7);
     }
     line(S.f, C.acc, null, 2.8);
-    text(ctx, '기울기 = f = ' + fmt(S.f, 0) + ' Hz', r.x + r.w, A.y0 - 34, {size: 13.5, color: C.acc, w: 700, align: 'right', halo: true});
+    text(ctx, (narrow ? '기울기 f = ' : '기울기 = f = ') + fmt(S.f, 0) + ' Hz', r.x + r.w, A.y0 - 34, {size: 13.5, color: C.acc, w: 600, align: 'right', halo: true});
     const nm = names(), pts = [[S.v1 / S.f, S.v1, nm[0], 1], [S.v2 / S.f, S.v2, nm[1], 2]];
-    for (const [l, v] of pts) {
-      Lab.line(ctx, [[A.X(l), A.Y(0)], [A.X(l), A.Y(v)], [A.X(0), A.Y(v)]], C.muted, 1.2, [3, 4]);
-    }
+    for (const [l, v] of pts) Lab.line(ctx, [[A.X(l), A.Y(0)], [A.X(l), A.Y(v)], [A.X(0), A.Y(v)]], C.muted, 1.2, [3, 4]);
     const same = Math.abs(S.v1 - S.v2) < 1e-9;
     pts.forEach(([l, v, n, i], k) => {
       Lab.circle(ctx, A.X(l), A.Y(v), 6.5, {fill: C.vel, stroke: C.paper, width: 2});
       if (same && k) return;
-      const lab = (same ? n : n + ' (' + i + ')');
-      const right = A.X(l) + 12 + 90 < r.x + r.w;
-      text(ctx, lab, A.X(l) + (right ? 12 : -12), A.Y(v) + (v === Math.max(S.v1, S.v2) && !same ? -12 : 12), {size: 13, color: C.vel, w: 700, align: right ? 'left' : 'right', halo: true});
+      const lab = same ? n : n + ' (' + i + ')';
+      const right = A.X(l) + 12 + Lab.measure(ctx, lab, {size: 13, w: 600}) < r.x + r.w + 20;
+      text(ctx, lab, A.X(l) + (right ? 12 : -12), A.Y(v) + (v === Math.max(S.v1, S.v2) && !same ? -12 : 12), {size: 13, color: C.vel, w: 600, align: right ? 'left' : 'right', halo: true});
     });
   }
 
-  // ── 패널: 소리의 속력 ───────────────────────────────────
+  // ── 관찰 3: 소리의 속력 ─────────────────────────────────
   function drawBars() {
-    const {ctx, W, H} = bars; if (!W || S.scene !== 'sound') return;
+    const {ctx, W, H} = bars; if (!W) return;
     ctx.clearRect(0, 0, W, H);
-    const list = M.SOUND, r = {x: 104, y: 8, w: W - 104 - 108, h: H - 16}, bh = r.h / list.length;
-    const vmax = 5100;
+    const list = M.SOUND, narrow = W < 400, x0 = narrow ? 84 : 104;
+    const r = {x: x0, y: 8, w: W - x0 - 12, h: H - 16}, bh = r.h / list.length, vmax = 5100;
     list.forEach((it, i) => {
       const y = r.y + bh * i + bh * 0.18, h = bh * 0.64, w = Math.max(3, it.v / vmax * r.w);
-      const on = MED[S.i1].name === it.name || MED[S.i2].name === it.name;
+      const on = S.scene === 'sound' && (MED[S.i1].name === it.name || MED[S.i2].name === it.name);
       ctx.save(); ctx.fillStyle = on ? C.vel : C['vel-soft']; ctx.globalAlpha = on ? 0.85 : 1; ctx.fillRect(r.x, y, w, h); ctx.restore();
       if (on) { ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.4; ctx.strokeRect(r.x - 1, y - 1, w + 2, h + 2); ctx.restore(); }
-      text(ctx, it.name, r.x - 8, y + h / 2, {size: 13, color: on ? C.ink : C.muted, w: on ? 700 : 500, align: 'right'});
-      text(ctx, '약 ' + it.v + ' m/s', r.x + w + 8, y + h / 2, {size: 13, color: on ? C.ink : C.muted, w: on ? 700 : 500, align: 'left', mono: true});
+      text(ctx, it.name, r.x - 8, y + h / 2, {size: 13, color: on ? C.ink : C.muted, w: on ? 600 : 500, align: 'right'});
+      const vs = '약 ' + it.v + ' m/s', vw = Lab.measure(ctx, vs, {size: 13, w: on ? 600 : 500});
+      const out = r.x + w + 8 + vw <= W - 4;
+      text(ctx, vs, out ? r.x + w + 8 : r.x + w - 8, y + h / 2, {size: 13, color: out ? (on ? C.ink : C.muted) : (on ? C.paper : C.ink), w: on ? 600 : 500, align: out ? 'left' : 'right'});
     });
-    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x, r.y + r.h); ctx.stroke(); ctx.restore();
+    Lab.line(ctx, [[r.x, r.y], [r.x, r.y + r.h]], C.muted, 1.2);
   }
 
-  function draw() { drawStage(); drawTape(); drawVL(); drawBars(); readouts(); }
+  function drawAll() { drawStage(); drawTape(); drawVL(); drawBars(); readouts(); }
 
-  // ── 읽기 값 ─────────────────────────────────────────────
+  // ── 수치·지금 값·예제 확인 ───────────────────────────────
   const setTxt = (id, s) => { const el = $(id); if (el && el.textContent !== s) el.textContent = s; };
+  function gcdR(a, b) {       // 0.5 단위까지 정수 비로
+    const k = 2, A = Math.round(a * k), B = Math.round(b * k);
+    const g = (x, y) => (y ? g(y, x % y) : x);
+    return g(A, B) / k || 1;
+  }
+  const ratioStr = () => {
+    if (S.scene === 'sound') return '1 : ' + fmt(S.v2 / S.v1, 2);
+    const g = gcdR(S.v1, S.v2); return fmt(S.v1 / g, 2) + ' : ' + fmt(S.v2 / g, 2);
+  };
+  // v = fλ 한 줄: λ 를 반올림해 보였으면 ≈
+  const vLine = (name, i, v, l) => {
+    const d = lDig(), eq = Math.abs(+fmt(l, d) - l) > 1e-9 ? ' ≈ ' : ' = ';
+    return name + ': v' + i + ' = fλ' + i + ' = ' + fmt(S.f, 0) + ' × <em>' + lStr(l) + '</em>' + eq + '<em>' + vStr(v) + '</em>';
+  };
+  let ansKey = '', lastOk = null;
+  function answer() {
+    const s = sc(), m = med(), nm = names(), fz = fmt(S.f, 0) + ' Hz';
+    let key, lab, big, lines, o;
+    if (S.ghost) {
+      key = ['g', S.scene, S.f, S.v1, S.ghost.f].join();
+      lab = '같은 줄에서 진동수만 바꾸면';
+      big = 'λ = ' + lStr(m.l1);
+      lines = ['같은 줄이라 v = <em>' + vStr(S.v1) + '</em> 그대로 (속력은 매질이 정한다)',
+        'λ = v/f = ' + vNum(S.v1) + ' ÷ <em>' + fz + '</em> = <em>' + lStr(m.l1) + '</em> (처음 ' + fmt(S.ghost.f, 0) + ' Hz 일 때 ' + lStr(S.v1 / S.ghost.f) + ')'];
+      o = {ctx: s.name + ' · 진동수 ' + fmt(S.ghost.f, 0) + ' → ' + fz, f: '같은 매질에서 f 를 바꾸면 λ = v/f 에 지금 값을 넣어'};
+    } else if (S.v1 === S.v2) {
+      key = ['s', S.scene, S.f, S.v1].join();
+      lab = '같은 매질 · 파장';
+      big = 'λ₁ = λ₂ = ' + lStr(m.l1);
+      lines = ['같은 매질이라 v₁ = v₂ = <em>' + vStr(S.v1) + '</em>', 'λ = v/f = ' + vNum(S.v1) + ' ÷ <em>' + fz + '</em> = <em>' + lStr(m.l1) + '</em>'];
+      o = {ctx: s.name + ' · ' + nm[0], f: 'f₁ = f₂ = ' + fz + ' 이므로 v = fλ 에 지금 값을 넣으면'};
+    } else {
+      key = ['d', S.scene, S.f, S.v1, S.v2].join();
+      lab = '지금 파장 비 = 속력 비';
+      big = 'λ₁ : λ₂ = ' + ratioStr();
+      lines = [vLine(nm[0], '₁', S.v1, m.l1), vLine(nm[1], '₂', S.v2, m.l2)];
+      o = {ctx: s.name + ' · ' + nm[0] + ' → ' + nm[1], f: 'f₁ = f₂ = ' + fz + ' 이므로 v = fλ 에 지금 값을 넣으면'};
+    }
+    if (key === ansKey) return;
+    ansKey = key; setTxt('ansLab', lab); Lab.ans(big, lines, o);
+  }
   function readouts() {
     const s = sc(), m = med(), nm = names();
     setTxt('freqOut', fmt(S.f, 0) + ' Hz');
@@ -653,25 +714,18 @@
     setTxt('rT', S.scene === 'sound' ? fmt(1000 / S.f, 2) + ' ms' : fmt(1 / S.f, 3) + ' s');
     setTxt('rL1n', 'λ₁ · ' + nm[0]); setTxt('rL2n', 'λ₂ · ' + nm[1]);
     setTxt('rL1', lStr(m.l1)); setTxt('rL2', lStr(m.l2));
-    setTxt('rV1n', 'v₁ = fλ₁'); setTxt('rV2n', 'v₂ = fλ₂');
-    setTxt('rV1', vStr(M.speed(S.f, m.l1))); setTxt('rV2', vStr(M.speed(S.f, m.l2)));
-    const ra = S.v1 / S.v2;
-    let rs;
-    if (S.scene === 'water' || S.scene === 'rope') { const g = gcdR(S.v1, S.v2); rs = fmt(S.v1 / g, 2) + ' : ' + fmt(S.v2 / g, 2); }
-    else rs = '1 : ' + fmt(1 / ra, 2);
-    setTxt('rRatio', 'v₁ : v₂ = λ₁ : λ₂ = ' + rs);
     setTxt('lgMark', S.scene === 'sound' ? '밀의 가운데' : S.scene === 'rope' ? '마루' : '마루선');
     setTxt('lgTrack', '따라가는 ' + s.mark);
-    $('hudT').textContent = S.scene === 'sound' ? 't = ' + (S.t * 1000).toFixed(2) + ' ms' : 't = ' + S.t.toFixed(3) + ' s';
-    $('hudSlow').textContent = '느린 화면 ×' + fmt(slow(), 4);
+    const narrow = stage.W && stage.W < 520;
+    setTxt('hudT', S.scene === 'sound' ? 't = ' + (S.t * 1000).toFixed(2) + ' ms' : 't = ' + S.t.toFixed(3) + ' s');
+    setTxt('hudSlow', (narrow ? '' : '느린 화면 ') + '×' + fmt(slow(), 4));
+    const hg = $('hudGhost'); hg.hidden = !S.ghost; if (S.ghost) setTxt('hudGhost', (narrow ? '점선 = ' : '회색 점선 = 처음 ') + fmt(S.ghost.f, 0) + ' Hz');
+    answer();
     const ok = S.scene === 'water' && S.f === EX.f && S.v1 === EX.v1 && S.v2 === EX.v2;
+    if (ok === lastOk) return;
+    lastOk = ok;
     Lab.check('exCheck', ok, '개념서 예제 (10 Hz, λ 3 cm → 2 cm) → 깊은 곳 v = 30 cm/s, 얕은 곳 v = 20 cm/s',
-      '예제: 10 Hz 물결파가 깊은 곳 λ 3 cm → 얕은 곳 λ 2 cm 일 때 속력은? — ‘스스로 확인 1’로 돌아갈 수 있어요');
-  }
-  function gcdR(a, b) {       // 0.5 단위까지 정수 비로
-    const k = 2, A = Math.round(a * k), B = Math.round(b * k);
-    const g = (x, y) => (y ? g(y, x % y) : x);
-    return g(A, B) / k || 1;
+      '예제: 10 Hz 물결파가 깊은 곳 λ 3 cm → 얕은 곳 λ 2 cm 일 때 속력은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
   }
 
   // ── 조작 ────────────────────────────────────────────────
@@ -691,42 +745,41 @@
       S.v1 = vals.v1 !== undefined ? vals.v1 : s.d1; S.v2 = vals.v2 !== undefined ? vals.v2 : s.d2;
       v1.value = S.v1; v2.value = S.v2;
     }
-    $('barsPanel').hidden = key !== 'sound';
     S.ghost = null; S.t = 0; S.n = 0; resetCount();
   }
-  const sceneG = Lab.group('[data-scene]', 'scene', (v) => { applyScene(v); draw(); }, S.scene);
-  freq.addEventListener('input', () => { S.f = +freq.value; S.ghost = null; resetCount(); draw(); });
+  const sceneG = Lab.group('[data-scene]', 'scene', (v) => { applyScene(v); drawAll(); }, S.scene);
+  freq.addEventListener('input', () => { S.f = +freq.value; S.ghost = null; resetCount(); drawAll(); });
   const onV = () => {
     if (S.scene === 'sound') { S.i1 = +v1.value; S.i2 = +v2.value; S.v1 = MED[S.i1].v; S.v2 = MED[S.i2].v; }
     else { S.v1 = +v1.value; S.v2 = +v2.value; }
-    S.ghost = null; resetCount(); draw();
+    S.ghost = null; resetCount(); drawAll();
   };
   v1.addEventListener('input', onV); v2.addEventListener('input', onV);
-  $('cRuler').addEventListener('change', (e) => { S.ruler = e.target.checked; draw(); });
-  $('cTrack').addEventListener('change', (e) => { S.track = e.target.checked; draw(); });
-  $('cGate').addEventListener('change', (e) => { S.gate = e.target.checked; draw(); });
-  const visG = Lab.group('[data-vis]', 'vis', (v) => { S.vis = +v; draw(); }, S.vis);
+  $('cRuler').addEventListener('change', (e) => { S.ruler = e.target.checked; drawAll(); });
+  $('cTrack').addEventListener('change', (e) => { S.track = e.target.checked; drawAll(); });
+  $('cGate').addEventListener('change', (e) => { S.gate = e.target.checked; drawAll(); });
+  const visG = Lab.group('[data-vis]', 'vis', (v) => { S.vis = +v; drawAll(); }, S.vis);
   $('stepT').addEventListener('click', () => {
     setPlay(false);
     const T = 1 / S.f; S.goal = S.t + T; S.goalRate = T / 0.6;
   });
 
-  // ── 스스로 확인: 그 상황으로 ───────────────────────────────
+  // ── 단계 카드의 상황 ────────────────────────────────────
   const TRY = {
     ex: () => { applyScene('water', {f: 10, v1: 30, v2: 20}); advance(0.33); setPlay(false); },
     double: () => { applyScene('rope', {f: 4, v1: 2, v2: 2}); S.ghost = {f: 2, n: 0}; setPlay(true); },
     sound: () => { applyScene('sound', {f: 1000, i1: 1, i2: 3}); advance(0.0042); setPlay(true); },
     rev: () => { applyScene('water', {f: 10, v1: 20, v2: 30}); advance(0.35); setPlay(true); },
   };
-  Lab.tries(TRY, () => { sceneG.set(S.scene, true); visG.set(S.vis, true); draw(); });
+  Lab.tries(TRY, () => { sceneG.set(S.scene, true); visG.set(S.vis, true); drawAll(); });
 
   // ── 돌리기 ──────────────────────────────────────────────
   Lab.loop((dt) => {
     if (S.goal !== null) {
       const d = Math.min(S.goal - S.t, S.goalRate * dt);
       advance(Math.max(0, d)); if (S.t >= S.goal - 1e-12) S.goal = null;
-      draw();
-    } else if (S.playing) { advance(dt * slow()); draw(); }
+      drawAll();
+    } else if (S.playing) { advance(dt * slow()); drawAll(); }
   });
   applyScene('water', {f: 10, v1: 30, v2: 20});
   readouts();

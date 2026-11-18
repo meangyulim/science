@@ -6,33 +6,39 @@
 <title>경보기와 센서 — 광전 효과의 이용</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(위 = 방·하늘, 아래 = 회로)와 조작판, 오른쪽 지금 상태·신호의 사슬·시간 기록·장치 비교표 */
+/* 관찰 노트: 왼쪽 실험대(위 = 방·하늘, 아래 = 회로) | 오른쪽 지금 값 + 관찰 ①~③(신호의 사슬, 시간 기록, 장치마다 작동 조건) → 정리 → 개념 체크 → 스스로 확인 */
 #stage{aspect-ratio:16/11}
 #chain{aspect-ratio:10/3.2}
-#strip{aspect-ratio:10/5.2}
-.quiz .opts{margin:0;font-size:14.5px;line-height:1.8;color:var(--muted)}
-.devs{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5}
+#strip{aspect-ratio:10/5}
+.devs{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;line-height:1.5;color:var(--ink-2)}
 .devs th,.devs td{padding:6px 8px;text-align:left;vertical-align:top;border-top:1px solid var(--line-soft)}
 .devs th{border-top:0;font-size:13px;font-weight:600;color:var(--muted)}
-.devs td:first-child{font-weight:700}
+.devs td:first-child{font-weight:600;color:var(--ink)}
 .devs tr.on td{background:var(--copper-soft)}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.5} }
+/* 폰: 첫 줄(재생 + 장치 4개 + 시트 버튼)이 한 줄에 들어가게 조금 좁힌다 */
+@media (max-width:640px){ #chain{aspect-ratio:10/3.8} #strip{aspect-ratio:10/6} .r1{column-gap:10px} .r1 .group .btn{padding:3px 8px} .r1 .sheet-btn{padding:4px 10px} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III2 빛과 물질의 이중성: 개념 9개 가운데 4번째"><a class="uname" href="../">III2 빛과 물질의 이중성</a><span class="dots"><a href="../01/" title="III2-01 빛의 이중성" aria-label="III2-01 빛의 이중성"></a><a href="../02/" title="III2-02 광전 효과의 실험 사실" aria-label="III2-02 광전 효과의 실험 사실"></a><a href="../03/" title="III2-03 광전 방정식" aria-label="III2-03 광전 방정식"></a><a class="cur" href="./" aria-current="page" title="III2-04 광전 효과의 이용" aria-label="III2-04 광전 효과의 이용 (지금)"></a><a href="../05/" title="III2-05 CCD" aria-label="III2-05 CCD"></a><a href="../06/" title="III2-06 물질파" aria-label="III2-06 물질파"></a><a href="../07/" title="III2-07 물질파 그래프·표 해석" aria-label="III2-07 물질파 그래프·표 해석"></a><a href="../08/" title="III2-08 입자의 파동성 증거" aria-label="III2-08 입자의 파동성 증거"></a><a href="../09/" title="III2-09 전자 현미경" aria-label="III2-09 전자 현미경"></a></span></nav>
+  <div class="pn"><a href="../03/" rel="prev" title="이전 개념: III2-03 광전 방정식">‹ <span>03 광전 방정식</span></a><a href="../05/" rel="next" title="다음 개념: III2-05 CCD"><span>05 CCD</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III2-04</span><span class="kicker">물리학 Ⅰ · 빛과 물질의 이중성</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III2-04</span><span>물리학 Ⅰ · 빛과 물질의 이중성</span></div>
     <h1>광전 효과의 이용: 경보기와 센서</h1>
-    <p class="lead">빛(광자)이 광전관에 닿으면 광전자가 튀어나와 <b>광전류</b>가 흐르고, 빛이 없으면 광전류는 0이다. 장치마다 <b>전류가 끊길 때</b> 울리는지, <b>전류가 생길 때</b> 울리는지 회로를 따라가 보세요.</p>
-  </header>
+    <p class="question"><i>Q</i>빛이 닿거나 끊기는 것을 어떻게 경보로 바꿀까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
         <canvas id="stage" aria-label="광전 효과를 이용한 장치. 광자가 센서에 닿아 광전류가 흐르는지에 따라 전자석·스위치·경보 장치가 움직인다."></canvas>
         <div class="hud"><span class="pill" id="hudScene">도난 경보기</span><span class="pill up" id="hudState">조용</span><span class="pill" id="hudSlow">빠르기 ×1</span></div>
@@ -42,149 +48,170 @@
           <span><b style="background:var(--acc)"></b>광전류</span>
           <span><b style="background:var(--force)"></b>힘·경보</span>
         </div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <div class="group scene" role="group" aria-label="장치">
-            <span class="gl">장치</span>
-            <button type="button" class="btn" data-scene="burglar" aria-pressed="true">도난 경보기</button>
-            <button type="button" class="btn" data-scene="fire" aria-pressed="false">화재 경보기</button>
+          <div class="group" role="group" aria-label="장치">
+            <span class="gl lg">장치</span>
+            <button type="button" class="btn" data-scene="burglar" aria-pressed="true">도난<span class="lg"> 경보기</span></button>
+            <button type="button" class="btn" data-scene="fire" aria-pressed="false">화재<span class="lg"> 경보기</span></button>
             <button type="button" class="btn" data-scene="street" aria-pressed="false">가로등</button>
-            <button type="button" class="btn" data-scene="solar" aria-pressed="false">태양 전지</button>
+            <button type="button" class="btn" data-scene="solar" aria-pressed="false">태양<span class="lg"> 전지</span></button>
           </div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·보기</span><span class="sm">보기</span></button>
         </div>
-        <div class="row" id="rowBurglar">
-          <div class="group" role="group" aria-label="침입자">
-            <span class="gl">침입자</span>
-            <button type="button" class="btn" data-who="none" aria-pressed="false">없음</button>
-            <button type="button" class="btn" data-who="walk" aria-pressed="true">금고로 걸어오기</button>
-            <button type="button" class="btn" data-who="stand" aria-pressed="false">빛 가리고 서기</button>
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 보기">
+          <div class="sheet-head"><b>장면 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row" id="rowBurglar">
+            <div class="group" role="group" aria-label="침입자">
+              <span class="gl">침입자</span>
+              <button type="button" class="btn" data-who="none" aria-pressed="false">없음</button>
+              <button type="button" class="btn" data-who="walk" aria-pressed="true">금고로 걸어오기</button>
+              <button type="button" class="btn" data-who="stand" aria-pressed="false">빛 가리고 서기</button>
+            </div>
+            <div class="group" role="group" aria-label="광원의 빛">
+              <span class="gl">광원</span>
+              <button type="button" class="btn" data-src="violet" aria-pressed="true">보라색 빛 (f &gt; f₀)</button>
+              <button type="button" class="btn" data-src="red" aria-pressed="false">빨간빛 (f &lt; f₀)</button>
+            </div>
           </div>
-          <div class="group" role="group" aria-label="광원의 빛">
-            <span class="gl">광원</span>
-            <button type="button" class="btn" data-src="violet" aria-pressed="true">보라색 빛 (f &gt; f₀)</button>
-            <button type="button" class="btn" data-src="red" aria-pressed="false">빨간빛 (f &lt; f₀)</button>
+          <div class="row" id="rowFire" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="smoke"><span>경보기에 들어오는 연기의 양</span> <output id="smokeOut">0 %</output></label>
+              <input id="smoke" type="range" min="0" max="100" step="5" value="0">
+            </div>
           </div>
-        </div>
-        <div class="row" id="rowFire" hidden>
-          <div class="grow">
-            <label class="ctl-label" for="smoke">경보기에 들어오는 연기의 양 <output id="smokeOut">0 %</output></label>
-            <input id="smoke" type="range" min="0" max="100" step="5" value="0">
+          <div class="row" id="rowStreet" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="hour"><span>시각 (해의 위치)</span> <output id="hourOut">12:00</output></label>
+              <input id="hour" type="range" min="0" max="24" step="0.25" value="12">
+            </div>
+            <label class="chk"><input type="checkbox" id="auto" checked>시간 흐르게</label>
           </div>
-        </div>
-        <div class="row" id="rowStreet" hidden>
-          <div class="grow">
-            <label class="ctl-label" for="hour">시각 (해의 위치) <output id="hourOut">12:00</output></label>
-            <input id="hour" type="range" min="0" max="24" step="0.25" value="12">
+          <div class="row" id="rowSolar" hidden>
+            <div class="grow">
+              <label class="ctl-label" for="sol"><span>태양 전지에 닿는 빛의 세기</span> <output id="solOut">50 %</output></label>
+              <input id="sol" type="range" min="0" max="100" step="5" value="50">
+            </div>
           </div>
-          <label class="chk"><input type="checkbox" id="auto" checked>시간 흐르게</label>
-        </div>
-        <div class="row" id="rowSolar" hidden>
-          <div class="grow">
-            <label class="ctl-label" for="sol">태양 전지에 닿는 빛의 세기 <output id="solOut">50 %</output></label>
-            <input id="sol" type="range" min="0" max="100" step="5" value="50">
-          </div>
-        </div>
-        <div class="row toggles">
-          <label class="chk"><input type="checkbox" id="cForce" checked>힘 화살표</label>
-          <span class="spacer"></span>
-          <div class="group" role="group" aria-label="시간 빠르기">
-            <span class="gl">빠르기</span>
-            <button type="button" class="btn mono" data-speed="0.25" aria-pressed="false">×0.25</button>
-            <button type="button" class="btn mono" data-speed="0.5" aria-pressed="false">×0.5</button>
-            <button type="button" class="btn mono" data-speed="1" aria-pressed="true">×1</button>
+          <div class="row">
+            <label class="chk"><input type="checkbox" id="cForce" checked>힘 화살표</label>
+            <div class="group" role="group" aria-label="시간 빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.25" aria-pressed="false">×0.25</button>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 상태 <small id="sideScene">도난 경보기</small></h2>
-        <div class="readouts">
-          <div class="ro cu"><span id="l1">센서에 닿는 빛</span><b id="r1">있음</b></div>
-          <div class="ro acc"><span id="l2">광전류 (상댓값)</span><b id="r2">1.0</b></div>
-          <div class="ro"><span id="l3">스위치</span><b id="r3">열림</b></div>
-          <div class="ro"><span id="l4">경보 장치</span><b id="r4">조용</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 경보 장치</span><span id="ansCtx">도난 경보기 · 보라색 빛 (f &gt; f₀)</span></div>
+        <div class="big" id="ansBig">조용</div>
+        <div class="sub">
+          <span class="f" id="ansF">도난 경보기는 광전류가 끊길 때 울린다</span>
+          <span id="ansLines"><span class="v">빛이 닿음 → 광전자 → 광전류 <em>1.0</em></span><span class="v">전자석이 막대를 끌어당김 → 스위치 <em>열림</em></span><span class="v">경보 장치에 전류가 없어 <em>조용</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mL0">센서에 닿는 빛</span><b id="mV0">있음</b></div>
+          <div class="mini"><span id="mL1">광전류 (상댓값)</span><b id="mV1">1.0</b></div>
+          <div class="mini"><span id="mL2">스위치</span><b id="mV2">열림</b></div>
+          <div class="mini"><span id="mL3">경보 장치</span><b id="mV3">조용</b></div>
         </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2>신호의 사슬 <small id="chainSub">전류가 끊길 때 울림</small></h2>
-        <canvas class="flat" id="chain" aria-label="빛에서 경보까지 이어지는 신호의 사슬. 지금 켜진 단계가 색으로 표시된다."></canvas>
-        <p class="cap" id="chainCap">빛 → 광전류 → 전자석 → 스위치 → 경보. 빛이 끊기면 사슬이 차례로 뒤집힌다.</p>
-      </section>
-      <section class="panel">
-        <h2>시간 기록 <small>최근 8초</small></h2>
-        <canvas class="flat" id="strip" aria-label="센서에 닿는 빛, 광전류, 경보 장치의 상태를 시간에 따라 기록한 그래프"></canvas>
-        <p class="cap" id="stripCap">도난 경보기: 광전류가 0인 동안 경보가 울린다.</p>
-        <p class="cap">광자의 진행과 전자석·막대의 움직임은 보기 쉽게 느리게 그렸다. 실제로는 빛이 가려지는 순간 거의 동시에 일어난다.</p>
-      </section>
-      <section class="panel wide">
-        <h2>장치마다 작동 조건</h2>
-        <table class="devs" id="devs">
-          <thead><tr><th>장치</th><th>언제 작동?</th><th>그때 광전류는?</th></tr></thead>
-          <tbody>
-            <tr data-dev="burglar"><td>도난 경보기</td><td>빛이 가려질 때 경보</td><td>끊긴다 (0)</td></tr>
-            <tr data-dev="fire"><td>화재 경보기</td><td>연기에 산란된 빛이 닿을 때 경보</td><td>생긴다</td></tr>
-            <tr data-dev="street"><td>가로등 자동 점멸</td><td>어두워질 때 켜짐</td><td>(거의) 끊긴다</td></tr>
-            <tr data-dev="solar"><td>태양 전지·조도계</td><td>빛을 받는 동안 전류를 공급·눈금 표시</td><td>빛의 세기에 비례</td></tr>
-          </tbody>
-        </table>
-        <p class="cap">모두 빛을 받으면 전자가 튀어나오는 <b>광전 효과</b>, 곧 <b>빛의 입자성</b>을 이용한다. 자동문도 빛줄기가 가려지는 것을 광센서로 알아챈다.</p>
-      </section>
-    </aside>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 도난 경보기">
+          <div class="kind">관찰 1</div>
+          <h3>빛이 끊기면 광전류도 끊겨 경보가 울린다</h3>
+          <p>문턱 진동수보다 진동수가 큰 빛의 광자가 광전관의 금속판에서 전자를 떼어 내면 <b>광전류</b>가 흐르고, 빛이 없으면 광전류는 0이다. 도난 경보기는 평소 이 광전류가 전자석에 흘러 금속 막대를 끌어당기므로 스위치가 열려 있다. 침입자가 빛을 가리면 광전류 0 → 전자석이 힘을 잃음 → 용수철이 막대를 당겨 스위치가 닫힘 → 경보. 무대의 회로를 따라 전자(파란 점)가 어디서 흐르고 멈추는지 보자. 침입자를 끌어 빛줄기 속으로 옮겨 봐도 된다.</p>
+          <canvas class="flat" id="chain" aria-label="빛에서 경보까지 이어지는 신호의 사슬. 지금 켜진 단계가 색으로 표시된다."></canvas>
+          <p class="cap" id="chainCap">신호의 사슬 · 도난 경보기 — 빛이 가려지면 광전류 → 전자석 → 스위치가 차례로 뒤집혀 경보가 울린다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:[data-scene=burglar]; click:[data-src=violet]; click:[data-who=stand]">빛 가리고 서기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=burglar]; click:[data-src=violet]; click:[data-who=none]">침입자 없음</button>
+            <button type="button" class="btn" data-do="click:[data-scene=burglar]; click:[data-who=none]; click:[data-src=red]">빨간빛 (f &lt; f₀)으로</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 화재 경보기">
+          <div class="kind">관찰 2</div>
+          <h3>화재 경보기는 반대로 광전류가 생길 때 울린다</h3>
+          <p>광전식 화재 경보기에서 평소 LED 빛은 직진해 흡수판에 닿고 광센서(광 다이오드)에는 닿지 않아 광전류가 0이다. 연기가 들어오면 연기 입자에 <b>산란된 빛</b>이 광센서에 닿아 광전류가 생기고 경보가 울린다. 연기가 많을수록 산란광이 세져 광전류가 크다.</p>
+          <canvas class="flat" id="strip" aria-label="센서에 닿는 빛, 광전류, 경보 장치의 상태를 시간에 따라 기록한 그래프"></canvas>
+          <p class="cap" id="stripCap">시간 기록(최근 8초) · 도난 경보기 — 광전류가 0인 동안 경보가 울린다(광전류와 경보가 서로 반대).</p>
+          <p class="cap">광자의 진행과 전자석·막대의 움직임은 보기 쉽게 느리게 그렸다. 실제로는 빛이 가려지는 순간 거의 동시에 일어난다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:[data-scene=fire]; set:#smoke=40">연기 40 % 넣기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=fire]; set:#smoke=0">연기 빼기</button>
+            <button type="button" class="btn" data-do="click:[data-scene=burglar]">도난 경보기와 견주기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 다른 장치">
+          <div class="kind">관찰 3</div>
+          <h3>가로등·태양 전지도 같은 광전류를 쓴다</h3>
+          <p>자동문·가로등 자동 점멸 장치·조도계도 빛을 받으면 전류가 생기는 광센서를 쓴다. 가로등 자동 점멸 장치는 도난 경보기와 같은 구조라 햇빛이 약해져 광전류가 작아지면 스위치가 닫혀 켜진다. 태양 전지는 광 다이오드를 많이 연결해 빛 에너지를 전기 에너지로 바꾸고, 전류는 닿는 빛의 세기에 비례한다. 무대에서 해를 끌어 시각을 바꿔 봐도 된다.</p>
+          <table class="devs" id="devs">
+            <thead><tr><th>장치</th><th>언제 작동?</th><th>그때 광전류는?</th></tr></thead>
+            <tbody>
+              <tr data-dev="burglar" class="on"><td>도난 경보기</td><td>빛이 가려질 때 경보</td><td>끊긴다 (0)</td></tr>
+              <tr data-dev="fire"><td>화재 경보기</td><td>연기에 산란된 빛이 닿을 때 경보</td><td>생긴다</td></tr>
+              <tr data-dev="street"><td>가로등 자동 점멸</td><td>어두워질 때 켜짐</td><td>(거의) 끊긴다</td></tr>
+              <tr data-dev="solar"><td>태양 전지·조도계</td><td>빛을 받는 동안 전류를 공급·눈금 표시</td><td>빛의 세기에 비례</td></tr>
+            </tbody>
+          </table>
+          <p class="cap">장치마다 작동 조건(지금 장치에 색). 모두 빛을 받으면 전자가 튀어나오는 광전 효과, 곧 빛의 입자성을 이용한다. 자동문도 빛줄기가 가려지는 것을 광센서로 알아챈다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:[data-scene=street]">가로등</button>
+            <button type="button" class="btn" data-do="click:[data-scene=solar]">태양 전지</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="④ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>전류가 끊길 때 울리는가, 생길 때 울리는가</h3>
+          <ul>
+            <li>공통 원리: 문턱 진동수보다 진동수가 큰 빛이 닿으면 광전류가 흐르고, 빛이 없으면 0이다. 광전류는 닿는 빛의 세기(광자 수)에 비례한다. 장치가 전류가 끊길 때 작동하는지 생길 때 작동하는지는 회로 구조로 정해진다.</li>
+            <li><b>도난 경보기</b>·가로등: 광전류 → 전자석 → 막대·스위치. 빛이 끊겨 광전류가 끊길 때 작동한다.</li>
+            <li>화재 경보기: 연기에 산란된 빛이 광센서에 닿아 광전류가 생길 때 울린다.</li>
+            <li>태양 전지·조도계·CCD: 광전류의 크기를 쓴다. 모두 광전 효과, 곧 빛의 입자성을 이용한 장치다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑤ 개념 체크">
+          <div class="kind">개념 체크</div>
+          <h3>광원과 광전관을 이용한 도난 경보기에서 경보가 울리는 순간에 대한 설명으로 옳은 것은?</h3>
+          <p class="cap">① 광전관에 빛이 닿아 광전류가 가장 크게 흐른다<br>② 전자석이 금속 막대를 더 세게 끌어당긴다<br>③ 광원의 진동수가 문턱 진동수보다 작아진다<br>④ 빛이 가려져 광전류가 끊기고 전자석이 힘을 잃는다<br>⑤ 광전관에서 광전자가 더 많이 방출된다</p>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">침입자가 빛을 가리는 순간 (느린 화면)</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p><b>④</b>. 평소에는 광전류가 전자석에 흘러 막대를 끌어당겨 스위치가 열려 있다. 침입자가 빛을 가리면 광전자가 나오지 않아 광전류가 0이 되고, 전자석이 힘을 잃어 용수철이 스위치를 닫으며 경보가 울린다. 이때 광원의 진동수는 그대로다(③ ✗). 만약 처음부터 문턱 진동수보다 작은 빛을 쓰면 침입자가 없어도 늘 울린다. 관찰 1의 ‘빨간빛’으로 확인해 보자.</p></details>
+        </li>
+        <li class="card step" data-step="⑥ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>광전식 화재 경보기는 평소에는 왜 조용하고, 연기가 들어오면 왜 울릴까? 연기가 짙어지면 광전류는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="fire">연기 피우기</button><button type="button" class="btn" data-try="smoke2">연기 짙게</button></div>
+            <details class="ans"><summary>답 보기</summary><p>평소 LED 빛은 직진해 흡수판에 닿을 뿐 광센서에는 닿지 않아 광전류가 0이다. 연기 입자에 산란된 빛이 광센서에 닿으면 광전류가 생겨 경보가 울린다. 도난 경보기와 반대로 <b>전류가 생길 때</b> 울린다. 연기가 짙을수록 산란되는 광자가 많아져 광전류가 커진다.</p></details>
+          </div>
+          <div class="q">
+            <h3>가로등 자동 점멸 장치도 광센서 · 전자석 · 스위치로 되어 있다. 해가 지면 가로등은 왜 켜질까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="dusk">해 질 녘으로</button></div>
+            <details class="ans"><summary>답 보기</summary><p>낮에는 햇빛 때문에 광전류가 흘러 전자석이 막대를 끌어당기므로 스위치가 열려 꺼져 있다. 해가 지면 광전류가 작아져 전자석이 막대를 붙잡지 못하고, 용수철이 스위치를 닫아 가로등이 켜진다. 도난 경보기와 같은 구조라 <b>전류가 끊길 때</b> 작동한다.</p></details>
+          </div>
+          <div class="q">
+            <h3>태양 전지에 닿는 빛의 세기를 2배로 하면 전류는 어떻게 될까? 이런 장치들은 빛의 어떤 성질을 이용할까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="solar">빛의 세기 50 % → 100 %</button></div>
+            <details class="ans"><summary>답 보기</summary><p>닿는 광자 수가 2배가 되어 떼어 내는 전자 수도 2배 → 전류도 <b>2배</b>(전류계 눈금이 2배, 조도계의 원리). 경보기 · 광센서 · 태양 전지 · CCD는 모두 빛을 광자의 흐름으로 보아야 설명되는 광전 효과, 곧 빛의 입자성을 이용한다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../03/" rel="prev"><small>← 이전 개념 · III2-03</small><b>광전 방정식</b></a><a href="../05/" rel="next"><small>다음 개념 · III2-05 →</small><b>CCD</b></a></nav>
+<!-- /nextprev -->
+    </section>
   </main>
-
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>공통 원리: 빛이 닿으면 광전류</h3>
-        <p>문턱 진동수보다 진동수가 큰 빛의 광자가 금속(광 다이오드)에서 전자를 떼어 내면 <b>광전류</b>가 흐르고, 빛이 없으면 광전류는 0이다.</p>
-        <p>광전류는 닿는 빛의 세기(광자 수)에 비례한다. 장치가 <b>전류가 끊길 때</b> 작동하는지 <b>생길 때</b> 작동하는지는 회로 구조로 정해진다.</p>
-      </article>
-      <article class="concept">
-        <h3>도난 경보기: 전류가 끊길 때 울림</h3>
-        <p>평소에는 광전류가 전자석에 흘러 금속 막대를 끌어당기므로 스위치가 열려 있다.</p>
-        <p>침입자가 빛을 가리면 광전류 0 → 전자석이 힘을 잃음 → 용수철이 막대를 당겨 스위치가 닫힘 → <b>경보</b>.</p>
-      </article>
-      <article class="concept">
-        <h3>화재 경보기: 전류가 생길 때 울림</h3>
-        <p>평소 LED 빛은 직진해 흡수판에 닿고 광센서에는 닿지 않아 광전류가 0이다.</p>
-        <p>연기가 들어오면 연기 입자에 <b>산란된 빛</b>이 광센서에 닿아 광전류가 생기고 경보가 울린다. 연기가 많을수록 산란광이 세져 광전류가 크다.</p>
-      </article>
-    </div>
-    <p class="compare">자동문·가로등 자동 점멸 장치·조도계도 빛을 받으면 전류가 생기는 광센서를 쓰고, 태양 전지는 광 다이오드를 많이 연결해 빛 에너지를 전기 에너지로 바꾼다. 모두 광전 효과, 곧 빛의 입자성을 이용한 장치다.</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>광원과 광전관을 이용한 도난 경보기에서 경보가 울리는 순간에 대한 설명으로 옳은 것은?<span class="tag">개념 체크</span></p>
-        <p class="opts">① 광전관에 빛이 닿아 광전류가 가장 크게 흐른다<br>② 전자석이 금속 막대를 더 세게 끌어당긴다<br>③ 광원의 진동수가 문턱 진동수보다 작아진다<br>④ 빛이 가려져 광전류가 끊기고 전자석이 힘을 잃는다<br>⑤ 광전관에서 광전자가 더 많이 방출된다</p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">침입자가 빛을 가리는 순간 (느린 화면)</button></div>
-        <details><summary>답 보기</summary><p><b>④</b>. 평소에는 광전류가 전자석에 흘러 막대를 끌어당겨 스위치가 열려 있다. 침입자가 빛을 가리면 광전자가 나오지 않아 광전류가 0이 되고, 전자석이 힘을 잃어 용수철이 스위치를 닫으며 경보가 울린다. 이때 광원의 진동수는 그대로다(③ ✗). 만약 처음부터 문턱 진동수보다 작은 빛을 쓰면 침입자가 없어도 늘 울린다 — ‘빨간빛’으로 확인해 보자.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>광전식 화재 경보기는 평소에는 왜 조용하고, 연기가 들어오면 왜 울릴까? 연기가 짙어지면 광전류는?</p>
-        <div class="acts"><button type="button" class="btn" data-try="fire">연기 피우기</button><button type="button" class="btn" data-try="smoke2">연기 짙게</button></div>
-        <details><summary>답 보기</summary><p>평소 LED 빛은 직진해 흡수판에 닿을 뿐 광센서에는 닿지 않아 광전류가 0이다. 연기 입자에 산란된 빛이 광센서에 닿으면 광전류가 생겨 경보가 울린다 — 도난 경보기와 반대로 <b>전류가 생길 때</b> 울린다. 연기가 짙을수록 산란되는 광자가 많아져 광전류가 커진다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>가로등 자동 점멸 장치도 광센서 · 전자석 · 스위치로 되어 있다. 해가 지면 가로등은 왜 켜질까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="dusk">해 질 녘으로</button></div>
-        <details><summary>답 보기</summary><p>낮에는 햇빛 때문에 광전류가 흘러 전자석이 막대를 끌어당기므로 스위치가 열려 꺼져 있다. 해가 지면 광전류가 작아져 전자석이 막대를 붙잡지 못하고, 용수철이 스위치를 닫아 가로등이 켜진다. 도난 경보기와 같은 구조라 <b>전류가 끊길 때</b> 작동한다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>태양 전지에 닿는 빛의 세기를 2배로 하면 전류는 어떻게 될까? 이런 장치들은 빛의 어떤 성질을 이용할까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="solar">빛의 세기 50 % → 100 %</button></div>
-        <details><summary>답 보기</summary><p>닿는 광자 수가 2배가 되어 떼어 내는 전자 수도 2배 → 전류도 <b>2배</b>(전류계 눈금이 2배 — 조도계의 원리). 경보기 · 광센서 · 태양 전지 · CCD는 모두 빛을 광자의 흐름으로 보아야 설명되는 광전 효과, 곧 <b>빛의 입자성</b>을 이용한다.</p></details>
-      </li>
-    </ol>
-    <nav class="pager"><a href="../03/">← III2-03 광전 방정식</a><a class="home" href="../../">물리 실험실</a><a href="../05/">III2-05 CCD →</a></nav>
-  </section>
 </div>
 
 <script src="../../kit/lab.js"></script>
@@ -199,7 +226,6 @@
   const rnd = (a, b) => a + Math.random() * (b - a);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const ease = (cur, tgt, dt, tau) => cur + (tgt - cur) * (1 - Math.exp(-dt / tau));
-  const fmt = Lab.fmt;
   const isDark = () => { const m = A(C.paper, 1).match(/[\d.]+/g) || [255, 255, 255]; return (+m[0] + +m[1] + +m[2]) < 300; };
   const shade = () => (isDark() ? C.bg : C.ink);           // 테마와 관계없이 어두운 색 (밤하늘·흡수판)
 
@@ -235,12 +261,15 @@
   const VP = 360, RATE = 14;                          // 광자가 화면에서 움직이는 빠르기 (px/s, 느리게 그림)·광원이 1초에 내는 광자 수(그림용)
 
   // ── 배치 ────────────────────────────────────────────────
+  // 넓은 화면에서는 범례가 무대 왼쪽 아래에 있다(room = 그 높이). 폰 무대는 거의 정사각형이라 방·회로를 따로 줄인다.
+  // 오른쪽 아래(지금 단계 표시)에는 회로가 내려가지 않게 bot 을 잡는다
+  let room = 0;
   function geo(W, H) {
     const n = W < 520, g = {n, W, H};
     g.pad = n ? 12 : 22;
-    g.top = 58;
-    g.bot = H - (n ? 70 : 48);
-    g.split = Math.round(g.top + (g.bot - g.top) * (n ? 0.41 : 0.42));
+    g.top = n ? 52 : 58;
+    g.bot = Math.max(g.top + 140, H - (n ? 32 : Math.max(48, room)));   // 창이 아주 낮아져도 크기가 음수가 되지 않게
+    g.split = Math.round(g.top + (g.bot - g.top) * (n ? 0.37 : 0.42));
     const zh = g.bot - g.split;
     g.sx = Math.round(W * 0.2);
     g.cx = W * (n ? 0.53 : 0.5);
@@ -357,13 +386,13 @@
     ctx.save(); ctx.fillStyle = C.ink;
     if (vertical) {                                 // 세로 도선 위: 위가 (+) 긴 판
       ctx.fillRect(x - 14, y - 5, 28, 2.6); ctx.fillRect(x - 8, y + 3, 16, 5);
-      text(ctx, '+', x + 20, y - 8, {size: 13, color: C.muted, w: 700});
+      text(ctx, '+', x + 20, y - 8, {size: 13, color: C.muted, w: 500});
     } else {                                        // 가로 도선 위: 오른쪽이 (+) 긴 판
       ctx.fillRect(x + 3, y - 14, 2.6, 28); ctx.fillRect(x - 8, y - 8, 5, 16);
-      text(ctx, '+', x + 12, y - 18, {size: 13, color: C.muted, w: 700});
+      text(ctx, '+', x + 12, y - 18, {size: 13, color: C.muted, w: 500});
     }
     ctx.restore();
-    if (label) text(ctx, label, lx, ly, {size: 13, color: C.muted, w: 600, align: la || 'center'});
+    if (label) text(ctx, label, lx, ly, {size: 13, color: C.muted, w: 500, align: la || 'center'});
   }
   function bell(ctx, x, y, r, ring, label, side) {  // (x, y) = 도선이 꺾이는 곳, 종은 그 위에 놓임
     const t = S.t;
@@ -385,7 +414,7 @@
       ctx.restore();
     }
     if (!label) return;
-    const o = {size: ring ? 14 : 13, color: ring ? C.force : C.muted, w: 700, halo: true};
+    const o = {size: ring ? 14 : 13, color: ring ? C.force : C.muted, w: ring ? 700 : 600, halo: true};
     if (side === 'left') text(ctx, ring ? '경보 울림!' : label, x - r - (ring ? 24 : 12), y - 16, Object.assign(o, {align: 'right'}));
     else text(ctx, ring ? '경보 울림!' : label, x, y - r - (ring ? 30 : 22), o);
   }
@@ -400,8 +429,8 @@
     ctx.beginPath(); ctx.moveTo(x, cy); ctx.lineTo(x + Math.cos(a) * (rr + 2), cy + Math.sin(a) * (rr + 2)); ctx.stroke();
     ctx.beginPath(); ctx.arc(x, cy, 3.2, 0, TAU); ctx.fillStyle = C.ink; ctx.fill();
     ctx.restore();
-    text(ctx, 'A', x, y + r * 0.62, {size: 13, color: C.muted, w: 700});
-    if (label) text(ctx, label, lx, y, {size: 13, color: C.muted, w: 600, align: la || 'right'});
+    text(ctx, 'A', x, y + r * 0.62, {size: 13, color: C.muted, w: 500});
+    if (label) text(ctx, label, lx, y, {size: 13, color: C.muted, w: 500, align: la || 'right'});
   }
   function photon(ctx, p, col) {                    // 파동 묶음 + 머리
     const sp = Math.hypot(p.vx, p.vy) || 1, dx = p.vx / sp, dy = p.vy / sp, nx = -dy, ny = dx, len = 18, wl = p.wl || 7;
@@ -464,11 +493,11 @@
       const yl = leverY(g, g.mx), fm = S.mag >= M.HOLD ? 30 * Math.min(1, S.mag) : 0;
       if (fm > 4) {
         arrow(ctx, g.mx, yl + 8 + fm, g.mx, yl + 5, C.force, 2.8, 9);
-        if (!g.n) text(ctx, '자기력', g.mx + 9, yl + 8 + fm * 0.6, {size: 13, color: C.force, w: 700, align: 'left', halo: true});
+        if (!g.n) text(ctx, '자기력', g.mx + 9, yl + 8 + fm * 0.6, {size: 13, color: C.force, w: 600, align: 'left', halo: true});
       }
       const ys = leverY(g, g.spX);
       arrow(ctx, g.spX - 15, ys + 3, g.spX - 15, ys + 29, C.force, 2.8, 9);
-      if (!g.n) text(ctx, '탄성력', g.spX - 22, ys + 20, {size: 13, color: C.force, w: 700, align: 'right', halo: true});
+      if (!g.n) text(ctx, '탄성력', g.spX - 22, ys + 20, {size: 13, color: C.force, w: 600, align: 'right', halo: true});
     }
   }
 
@@ -485,7 +514,7 @@
     ctx.save(); Lab.rrect(ctx, g.safeX - sw / 2, g.split - sh, sw, sh, 5); ctx.fillStyle = A(C.muted, 0.2); ctx.fill(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.8; ctx.stroke();
     ctx.beginPath(); ctx.arc(g.safeX, g.split - sh / 2, sw * 0.2, 0, TAU); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(g.safeX, g.split - sh / 2); ctx.lineTo(g.safeX + Math.cos(open ? S.t * 4 : -1) * sw * 0.16, g.split - sh / 2 + Math.sin(open ? S.t * 4 : -1) * sw * 0.16); ctx.stroke(); ctx.restore();
-    text(ctx, '금고', g.safeX, g.split - sh - 12, {size: 13, color: C.muted, w: 600});
+    text(ctx, '금고', g.safeX, g.split - sh - 12, {size: 13, color: C.muted, w: 500});
     // 빛줄기 (광원 → 바닥 창 → 광전관)
     const endTop = blk ? g.headTop + 4 : g.split;
     ctx.save(); ctx.fillStyle = lightCol(nmSrc(), 0.16);
@@ -495,14 +524,16 @@
     // 광원
     ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.fillRect(g.sx - 21, g.top - 4, 42, 13); ctx.strokeRect(g.sx - 21, g.top - 4, 42, 13);
     ctx.beginPath(); ctx.arc(g.sx, g.top + 9, 8, 0, Math.PI); ctx.fillStyle = col; ctx.fill(); ctx.restore();
-    text(ctx, '광원', g.sx + 28, g.top + 6, {size: 13.5, w: 700, align: 'left'});
-    text(ctx, S.src === 'violet' ? 'f > f₀' : 'f < f₀', g.sx + 28, g.top + 25, {size: 13, w: 700, align: 'left', color: col, mono: true});
+    text(ctx, '광원', g.sx + 28, g.top + 6, {size: 13.5, w: 600, align: 'left'});
+    // 폰: 침입자 이름표와 겹치지 않게 진동수 표시를 같은 줄에
+    const fx = g.n ? g.sx + 36 + Lab.measure(ctx, '광원', {size: 13.5, w: 600}) : g.sx + 28, fy = g.n ? g.top + 6 : g.top + 25;
+    text(ctx, S.src === 'violet' ? 'f > f₀' : 'f < f₀', fx, fy, {size: 13, w: 600, align: 'left', color: col});
     // 광자
     for (const p of photons) photon(ctx, p, col);
     // 침입자
     if (personOn()) drawPerson(ctx, g, S.wx * W);
     // 바닥 아래 회로 표시
-    text(ctx, '바닥 아래 회로', W - g.pad, g.split + 16, {size: 13, color: C.muted, w: 600, align: 'right'});
+    text(ctx, '바닥 아래 회로', W - g.pad, g.split + 16, {size: 13, color: C.muted, w: 500, align: 'right'});
   }
   function drawPerson(ctx, g, x) {
     const fy = g.split - 1, ph = g.ph, hipY = fy - 0.47 * ph, shY = fy - 0.79 * ph, face = S.face;
@@ -526,11 +557,11 @@
     else limb(x, shY + 4, -sw * face * 0.8, 0.17 * ph, 0.16 * ph, -face * 0.3);
     ctx.restore();
     // 이름표: 머리 옆 (무대 밖으로 나가면 반대쪽)
-    const lw2 = Lab.measure(ctx, '침입자', {size: 13.5}), off = 0.12 * ph + 8;
+    const lw2 = Lab.measure(ctx, '침입자', {size: 13.5, w: 600}), off = 0.12 * ph + 8;
     let side = -face;
     if (side > 0 && x + off + lw2 > g.W - 4) side = -1;
     if (side < 0 && x - off - lw2 < 4) side = 1;
-    text(ctx, '침입자', x + side * off, fy - 0.9 * ph, {size: 13.5, w: 700, halo: true, align: side > 0 ? 'left' : 'right'});
+    text(ctx, '침입자', x + side * off, fy - 0.9 * ph, {size: 13.5, w: 600, halo: true, align: side > 0 ? 'left' : 'right'});
   }
   function drawBurglarCircuit(ctx, g) {
     const cxw = g.mx - g.cw / 2 - 4, I = S.I;
@@ -543,14 +574,14 @@
     ctx.strokeStyle = C.muted; ctx.lineWidth = 4.5; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(g.sx, g.yA, g.rc, 0.12 * Math.PI, 0.88 * Math.PI); ctx.stroke();
     ctx.lineWidth = 2; ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.moveTo(g.sx - 0.93 * g.rc, g.yK); ctx.lineTo(g.sx - g.rx, g.yK); ctx.moveTo(g.sx + 4, g.yA); ctx.lineTo(g.sx + g.rx, g.yA); ctx.stroke();
     ctx.beginPath(); ctx.arc(g.sx, g.yA, 4, 0, TAU); ctx.stroke(); ctx.restore();
-    text(ctx, '광전관', g.sx + g.rx + 6, g.yT - g.ry + 4, {size: 13.5, w: 700, align: 'left'});
+    text(ctx, '광전관', g.sx + g.rx + 6, g.yT - g.ry + 4, {size: 13.5, w: 600, align: 'left'});
     if (!g.n) text(ctx, '금속판(−)', g.sx - g.rx - 6, g.yT + g.ry - 2, {size: 13, color: C.muted, w: 500, align: 'right'});
     if (S.src === 'red' && S.sensor > 0.5) text(ctx, 'f < f₀ → 광전자 없음', g.sx, g.yT + g.ry + 14, {size: 13, color: C.neg, w: 700, halo: true});
     // 광전류 방향 (전자와 반대)
     if (I > 0.05) {
       const x0 = Math.min(cxw - 16, g.sx + g.rx + (g.n ? 64 : 120)), x1 = x0 - (g.n ? 34 : 46), yy = g.yA + 13;
       ctx.save(); ctx.globalAlpha = Math.min(1, I); arrow(ctx, x0, yy, x1, yy, C.acc, 2.8, 9); ctx.restore();
-      text(ctx, '광전류', x0 + 6, yy, {size: 13, color: C.acc, w: 700, align: 'left', halo: true});
+      text(ctx, '광전류', x0 + 6, yy, {size: 13, color: C.acc, w: 600, align: 'left', halo: true});
     }
     // 계전기 + 회로 2 (경보 장치)
     const E0 = [g.px + g.Lv * Math.cos(g.aMax), g.yC];
@@ -558,11 +589,13 @@
     wire(ctx, [[E0[0], g.yC], [g.bx, g.yC], [g.bx, g.bat2Y - 5]]);
     battery(ctx, g.bx, g.bat2Y, true, '전원', g.bx - 24, g.bat2Y, 'right');
     relayParts(ctx, g);
-    text(ctx, '전자석', g.mx + g.cw / 2 + (g.n ? 8 : 34), (g.yA + g.yB) / 2 - 8, {size: 13.5, w: 700, align: 'left'});
-    if (g.n) text(ctx, '막대', g.px + 0.5 * g.Lv, leverY(g, g.px + 0.5 * g.Lv) + 17, {size: 13, color: C.copper, w: 700, halo: true});
-    else text(ctx, '금속 막대', g.px + 0.9 * g.Lv, leverY(g, g.px + 0.9 * g.Lv) - 14, {size: 13, color: C.copper, w: 700, halo: true});
-    text(ctx, '용수철', g.spX + 12, (g.py + g.spBase) / 2 + 8, {size: 13, color: C.muted, w: 600, align: 'left'});
-    text(ctx, '접점', E0[0] + 12, g.yC + 14, {size: 13, color: C.muted, w: 600, align: 'left'});
+    text(ctx, '전자석', g.mx + g.cw / 2 + (g.n ? 8 : 34), (g.yA + g.yB) / 2 - 8, {size: 13.5, w: 600, align: 'left'});
+    if (g.n) text(ctx, '막대', g.px + 0.5 * g.Lv, leverY(g, g.px + 0.5 * g.Lv) + 17, {size: 13, color: C.copper, w: 600, halo: true});
+    else text(ctx, '금속 막대', g.px + 0.9 * g.Lv, leverY(g, g.px + 0.9 * g.Lv) - 14, {size: 13, color: C.copper, w: 600, halo: true});
+    // 폰: 막대 이름표와 겹치지 않게 용수철 이름은 받침 옆에, 접점 이름은 생략(전원 이름과 겹침)
+    if (g.n) text(ctx, '용수철', g.spX + 16, g.spBase + 6, {size: 13, color: C.muted, w: 500, align: 'left'});
+    else text(ctx, '용수철', g.spX + 12, (g.py + g.spBase) / 2 + 8, {size: 13, color: C.muted, w: 500, align: 'left'});
+    if (!g.n) text(ctx, '접점', E0[0] + 12, g.yC + 14, {size: 13, color: C.muted, w: 500, align: 'left'});
     const closed = S.lever > 0.97;
     // 전자: 회로 1 은 광전류만큼, 회로 2 는 스위치가 닫혔을 때
     dots(ctx, path1(g), dotOff1, 17);
@@ -584,14 +617,14 @@
     ctx.lineWidth = 1.6; ctx.strokeStyle = C.muted;
     for (const v of vents) for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(v + s * vw, y0); ctx.lineTo(v + s * (vw - 7), y0 + 9); ctx.stroke(); }
     ctx.restore();
-    text(ctx, '연기 들어오는 틈', vents[0], y0 + 22, {size: 13, color: C.muted, w: 600});
+    text(ctx, '연기 들어오는 틈', vents[0], y0 + 22, {size: 13, color: C.muted, w: 500});
     // LED · 빛줄기 · 흡수판
     const lx = x0 + 10, lw = g.n ? 20 : 26;
     ctx.save(); ctx.fillStyle = A(C.energy, 0.15); ctx.fillRect(lx + lw, g.fyb - 4, x1 - 22 - lx - lw, 8); ctx.restore();
     ctx.save(); ctx.fillStyle = A(C.energy, 0.4); ctx.strokeStyle = C.energy; ctx.lineWidth = 2; ctx.fillRect(lx, g.fyb - 10, lw, 20); ctx.strokeRect(lx, g.fyb - 10, lw, 20); ctx.restore();
-    text(ctx, 'LED', lx + lw / 2, g.fyb - 22, {size: 13.5, w: 700});
+    text(ctx, 'LED', lx + lw / 2, g.fyb - 22, {size: 13.5, w: 600});
     ctx.save(); ctx.fillStyle = shade(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.4; ctx.fillRect(x1 - 20, g.fyb - 26, 12, 52); ctx.strokeRect(x1 - 20, g.fyb - 26, 12, 52); ctx.restore();
-    text(ctx, '빛 흡수판', x1 - 26, g.fyb - 38, {size: 13, color: C.muted, w: 600, align: 'right'});
+    text(ctx, '빛 흡수판', x1 - 26, g.fyb - 38, {size: 13, color: C.muted, w: 500, align: 'right'});
     // 연기 입자
     ctx.save(); ctx.fillStyle = A(C.muted, isDark() ? 0.7 : 0.55);
     for (const s of smokeP) { ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU); ctx.fill(); }
@@ -599,7 +632,7 @@
     // 광센서
     const sw = g.fsw;
     ctx.save(); ctx.fillStyle = A(C.vel, 0.28); ctx.strokeStyle = C.vel; ctx.lineWidth = 2; ctx.fillRect(g.fxs - sw / 2, g.fy1 - 18, sw, 14); ctx.strokeRect(g.fxs - sw / 2, g.fy1 - 18, sw, 14); ctx.restore();
-    text(ctx, g.n ? '광센서' : '광센서(광 다이오드)', g.fxs + sw / 2 + 8, g.fy1 - 12, {size: 13.5, w: 700, align: 'left', color: C.vel});
+    text(ctx, g.n ? '광센서' : '광센서(광 다이오드)', g.fxs + sw / 2 + 8, g.fy1 - 12, {size: 13.5, w: 600, align: 'left', color: C.vel});
     for (const p of photons) photon(ctx, p, C.energy);
     // 회로
     const batY = (g.fyTop + g.yBot) / 2, s = sw * 0.3, amY = Math.round((g.fyTop + g.yBot) / 2 + (g.n ? 8 : 12));
@@ -634,14 +667,15 @@
       const mx = W * 0.46, my = g.top + 30;
       ctx.save(); ctx.fillStyle = isDark() ? C.ink : C.paper; ctx.globalAlpha = night; ctx.beginPath(); ctx.arc(mx, my, 12, 0.35 * Math.PI, 1.65 * Math.PI); ctx.arc(mx + 6, my - 2, 10, 1.55 * Math.PI, 0.45 * Math.PI, true); ctx.fill(); ctx.restore();
     }
+    for (const p of photons) photon(ctx, p, C.energy);     // 햇빛 광자: 점멸기·이름표보다 먼저 (이름표가 가려지지 않게)
     // 땅
     ctx.save(); ctx.fillStyle = A(C.muted, 0.14); ctx.fillRect(0, g.split, W, 7); ctx.restore();
     Lab.line(ctx, [[0, g.split], [W, g.split]], C.muted, 2);
     // 점멸기 (광센서가 달린 상자)
     ctx.save(); ctx.fillStyle = A(C.paper, 0.75); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.8; ctx.fillRect(g.sx - 22, g.cabTop, 44, g.split - g.cabTop); ctx.strokeRect(g.sx - 22, g.cabTop, 44, g.split - g.cabTop);
     ctx.beginPath(); ctx.arc(g.sx, g.cabTop, 11, Math.PI, TAU); ctx.closePath(); ctx.fillStyle = A(C.vel, 0.3); ctx.fill(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
-    text(ctx, '광센서', g.sx + 18, g.cabTop - 16, {size: 13.5, w: 700, align: 'left', color: C.vel, halo: true});
-    text(ctx, '점멸기', g.sx - 28, (g.cabTop + g.split) / 2, {size: 13, w: 600, align: 'right', color: C.muted, halo: true});
+    text(ctx, '광센서', g.sx + 18, g.cabTop - 16, {size: 13.5, w: 600, align: 'left', color: C.vel, halo: true});
+    text(ctx, '점멸기', g.sx - 28, (g.cabTop + g.split) / 2, {size: 13, w: 500, align: 'right', color: C.muted, halo: true});
     // 가로등
     const pw = 20;
     ctx.save(); ctx.fillStyle = A(C.muted, 0.16); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.6;
@@ -653,8 +687,8 @@
       ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(g.lampX, g.armY + 12, 44, 0, TAU); ctx.fill(); ctx.restore();
     }
     Lab.circle(ctx, g.lampX, g.armY + 12, 8, {fill: lampOn ? C.energy : C.paper, stroke: C.ink, width: 2});
-    text(ctx, lampOn ? '가로등 켜짐' : '가로등 꺼짐', g.bx - 10, g.armY + 40, {size: 13.5, w: 700, align: 'right', color: lampOn ? C.energy : C.muted, halo: true});
-    for (const p of photons) photon(ctx, p, C.energy);
+    // 폰: 지는 해가 지나가는 하늘을 피해 기둥 밑동(땅 아래)에 쓴다
+    text(ctx, lampOn ? '가로등 켜짐' : '가로등 꺼짐', g.bx - (g.n ? 14 : 10), g.n ? g.split + 16 : g.armY + 40, {size: 13.5, w: 700, align: 'right', color: lampOn ? C.energy : C.muted, halo: true});
     // 회로
     const cxw = g.mx - g.cw / 2 - 4;
     wire(ctx, [[g.sx + 6, g.sensY + 4], [g.sx + 6, g.yA], [cxw, g.yA], [cxw, g.yB], [g.batX + 5, g.yB]]);
@@ -666,12 +700,13 @@
     wire(ctx, [[g.lampX + 7, g.armY + 3], [g.bx + 5, g.armY + 3], [g.bx + 5, g.bat2Y - 12], [g.bx, g.bat2Y - 5]]);
     battery(ctx, g.bx, g.bat2Y, true, '전원', g.bx - 24, g.bat2Y, 'right');
     relayParts(ctx, g);
-    text(ctx, '전자석', g.mx + g.cw / 2 + (g.n ? 8 : 34), (g.yA + g.yB) / 2 - 8, {size: 13.5, w: 700, align: 'left'});
-    text(ctx, '용수철', g.spX + 12, (g.py + g.spBase) / 2 + 8, {size: 13, color: C.muted, w: 600, align: 'left'});
+    text(ctx, '전자석', g.mx + g.cw / 2 + (g.n ? 8 : 34), (g.yA + g.yB) / 2 - 8, {size: 13.5, w: 600, align: 'left'});
+    if (g.n) text(ctx, '용수철', g.spX + 16, g.spBase + 6, {size: 13, color: C.muted, w: 500, align: 'left'});
+    else text(ctx, '용수철', g.spX + 12, (g.py + g.spBase) / 2 + 8, {size: 13, color: C.muted, w: 500, align: 'left'});
     if (S.I > 0.05) {
       const x0 = Math.min(cxw - 16, g.sx + (g.n ? 70 : 130)), x1 = x0 - (g.n ? 34 : 46), yy = g.yA + 13;
       ctx.save(); ctx.globalAlpha = Math.min(1, S.I * 1.5); arrow(ctx, x0, yy, x1, yy, C.acc, 2.8, 9); ctx.restore();
-      text(ctx, '광전류', x0 + 6, yy, {size: 13, color: C.acc, w: 700, align: 'left', halo: true});
+      text(ctx, '광전류', x0 + 6, yy, {size: 13, color: C.acc, w: 600, align: 'left', halo: true});
     }
     dots(ctx, path1(g), dotOff1, 17);
     dots(ctx, path2(g), dotOff2, 17, (i) => i === 5 && !lampOn);
@@ -705,7 +740,7 @@
       ctx.fillStyle = A(C.vel, 0.3 + 0.12 * ((i + j) % 2)); ctx.fill(); ctx.strokeStyle = C.paper; ctx.lineWidth = 1.6; ctx.stroke();
     }
     ctx.beginPath(); ctx.moveTo(...P.BL); ctx.lineTo(...P.BR); ctx.lineTo(...P.TR); ctx.lineTo(...P.TL); ctx.closePath(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
-    text(ctx, '태양 전지', P.TR[0] + 14, P.TR[1] + 6, {size: 13.5, w: 700, align: 'left', halo: true});
+    text(ctx, '태양 전지', P.TR[0] + 14, P.TR[1] + 6, {size: 13.5, w: 600, align: 'left', halo: true});
     if (!g.n) text(ctx, '광 다이오드 여러 개', P.TR[0] + 14, P.TR[1] + 26, {size: 13, w: 500, align: 'left', color: C.muted, halo: true});
     for (const p of photons) photon(ctx, p, C.energy);
     drawElecs(ctx);
@@ -717,24 +752,27 @@
     meter(ctx, P.xa, P.yMid, g.amR, S.I, g.n ? '전류계' : '전류계(조도계)', P.xa - g.amR - 8);
     // 전동기 + 날개
     Lab.circle(ctx, P.xb, P.yMid, 20, {fill: C.paper, stroke: C.ink, width: 2});
-    text(ctx, 'M', P.xb, P.yMid + 1, {size: 15, w: 700});
+    text(ctx, 'M', P.xb, P.yMid + 1, {size: 15, w: 600});
     Lab.line(ctx, [[P.xb + 20, P.yMid], [P.xb + 34, P.yMid]], C.ink, 3);
     ctx.save(); ctx.translate(P.xb + 34, P.yMid); ctx.fillStyle = A(C.acc, 0.55); ctx.strokeStyle = C.acc; ctx.lineWidth = 1.6;
     for (let k = 0; k < 3; k++) { ctx.save(); ctx.rotate(S.spin + k * TAU / 3); ctx.beginPath(); ctx.ellipse(0, -13, 5, 13, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore(); }
     ctx.restore();
     Lab.circle(ctx, P.xb + 34, P.yMid, 3.4, {fill: C.ink});
-    text(ctx, '전동기', P.xb + 34, P.yMid + 40, {size: 13, color: C.muted, w: 600});
-    text(ctx, g.n ? '전지 없이 전류' : '전지 없이 빛만으로 전류가 흐른다', (P.xa + P.xb) / 2, P.yMid, {size: 13.5, color: C.muted, w: 600});
+    text(ctx, '전동기', P.xb + 34, P.yMid + 40, {size: 13, color: C.muted, w: 500});
+    text(ctx, g.n ? '전지 없이 전류' : '전지 없이 빛만으로 전류가 흐른다', (P.xa + P.xb) / 2, P.yMid, {size: 13.5, color: C.muted, w: 500});
     drawFlashes(ctx);
   }
 
   // ── 무대 그리기 ─────────────────────────────────────────
   const stage = Lab.canvas('stage', drawAll), chain = Lab.canvas('chain', drawAll), strip = Lab.canvas('strip', drawAll);
-  let G = null;
+  const stageBox = stage.el.parentNode, legendEl = stageBox.querySelector('.legend');
+  let G = null, lgH = 0, lastW = 0;
+  const legendRoom = () => { if (!legendEl || legendEl.parentNode !== stageBox) return 0; if (!lgH) lgH = legendEl.offsetHeight; return lgH + 14; };
   function drawStage() {
     const {ctx, W, H} = stage; if (!W) return;
     const first = !G;
-    if (!G || G.W !== W) $('hudSlow').hidden = W < 520;
+    if (W !== lastW) { lastW = W; lgH = 0; $('hudSlow').hidden = W < 520; }
+    room = legendRoom();
     G = geo(W, H);
     if (first) settle();                              // 처음(멈춘 채 시작해도): 빛줄기를 광자로 채운 평형 상태
     ctx.clearRect(0, 0, W, H);
@@ -789,7 +827,7 @@
     const {ctx, W, H} = chain; if (!W) return;
     ctx.clearRect(0, 0, W, H);
     const nodes = CHAINS[S.scene], z = snap(), n = nodes.length, gap = W < 420 ? 12 : 18;
-    const bw = (W - gap * (n - 1) - 4) / n, bh = Math.min(68, H - 16), y = (H - bh) / 2, now = performance.now();
+    const bw = Math.max(20, (W - gap * (n - 1) - 4) / n), bh = Math.max(24, Math.min(68, H - 16)), y = (H - bh) / 2, now = performance.now();
     nodes.forEach((nd, i) => {
       const x = 2 + i * (bw + gap), on = nd.on(z), col = C[nd.c];
       const key = S.scene + i;
@@ -802,8 +840,8 @@
       ctx.lineWidth = on ? 2.4 : 1.4; ctx.strokeStyle = on ? col : C.line; ctx.stroke();
       if (age < 1) { ctx.globalAlpha = 1 - age; ctx.lineWidth = 3; ctx.strokeStyle = C.copper; Lab.rrect(ctx, x - 3, y - 3, bw + 6, bh + 6, 12); ctx.stroke(); }
       ctx.restore();
-      text(ctx, nd.k, x + bw / 2, y + bh * 0.32, {size: W < 420 ? 13 : 14, w: 700, color: on ? col : C.muted});
-      text(ctx, nd.s(z), x + bw / 2, y + bh * 0.7, {size: 13, w: 700, color: on ? C.ink : C.muted});
+      text(ctx, nd.k, x + bw / 2, y + bh * 0.32, {size: W < 420 ? 13 : 14, w: 600, color: on ? col : C.muted});
+      text(ctx, nd.s(z), x + bw / 2, y + bh * 0.7, {size: 13, w: on ? 600 : 500, color: on ? C.ink : C.muted});
       if (i < n - 1) arrow(ctx, x + bw + 2, y + bh / 2, x + bw + gap - 1, y + bh / 2, C.muted, 1.8, 7);
     });
   }
@@ -816,7 +854,7 @@
     const keys = ['a', 'b', 'c'];
     for (let k = 0; k < 3; k++) {
       const yb = r.y + lh * (k + 1) - 6, yt = r.y + lh * k + 8;
-      text(ctx, LANES[S.scene][k], lab - 8, (yb + yt) / 2, {size: 13, w: 700, color: cols[k], align: 'right'});
+      text(ctx, LANES[S.scene][k], lab - 8, (yb + yt) / 2, {size: 13, w: 600, color: cols[k], align: 'right'});
       Lab.line(ctx, [[r.x, yb], [r.x + r.w, yb]], C.line, 1);
       const X = (t) => r.x + (t - t0) / span * r.w, Y = (v) => yb - clamp(v, 0, 1.05) / 1.05 * (yb - yt);
       const pts = HIST.filter((h) => h.t >= t0).map((h) => [X(h.t), Y(h[keys[k]])]);
@@ -827,7 +865,7 @@
       }
     }
     text(ctx, '8초 전', r.x, H - 12, {size: 13, color: C.muted, w: 500, align: 'left'});
-    text(ctx, '지금 →', r.x + r.w, H - 12, {size: 13, color: C.muted, w: 600, align: 'right'});
+    text(ctx, '지금 →', r.x + r.w, H - 12, {size: 13, color: C.muted, w: 500, align: 'right'});
   }
   function drawAll() { drawStage(); drawChain(); drawStrip(); }
 
@@ -991,14 +1029,48 @@
     S.mag = S.I; S.lever = S.mag >= M.HOLD ? 0 : 1;
   }
 
-  // ── 읽기 값·예제 확인·HUD ────────────────────────────────
-  let lastTxt = '';
+  // ── 지금 값·작은 수치·예제 확인·HUD ──────────────────────
+  // 지금 값: 장치의 판정(큰 글)과 그 근거(신호가 이어지는 차례)를 지금 상태로
+  function answer() {
+    const z = snap(), sc = S.scene, closed = S.lever > 0.97, magOn = S.mag >= M.HOLD, I1 = S.I < 0.05 ? '0' : S.I.toFixed(1);
+    let lab = '지금 경보 장치', big, tone = '', f, ctx, lines;
+    if (sc === 'burglar') {
+      const red = S.src === 'red', lit = z.light > 0.5;
+      f = '도난 경보기는 광전류가 끊길 때 울린다'; ctx = '도난 경보기 · ' + (red ? '빨간빛 (f < f₀)' : '보라색 빛 (f > f₀)');
+      big = closed ? '경보 울림' : '조용'; tone = closed ? 'neg' : '';
+      lines = [!lit ? `빛이 가려짐 → 광전자 없음 → 광전류 <em>${I1}</em>`
+        : red ? `빛은 닿지만 f &lt; f₀ → 광전자 없음 → 광전류 <em>${I1}</em>` : `빛이 닿음 → 광전자 → 광전류 <em>${I1}</em>`,
+      magOn ? '전자석이 막대를 끌어당김 → 스위치 <em>열림</em>' : '전자석이 힘을 잃음 → 용수철이 막대를 당겨 스위치 <em>닫힘</em>',
+      closed ? (red && lit ? '침입자가 없어도 경보 장치에 전류 → <em>경보</em>' : '경보 장치에 전류가 흘러 <em>경보</em>') : '경보 장치에 전류가 없어 <em>조용</em>'];
+    } else if (sc === 'fire') {
+      const s = Math.round(S.smoke * 100), on = S.I > 0.001;
+      f = '화재 경보기는 광전류가 생길 때 울린다'; ctx = '화재 경보기 · 연기 ' + s + ' %';
+      big = on ? '경보 울림' : '조용'; tone = on ? 'neg' : '';
+      lines = on ? [`연기 <em>${s} %</em> → LED 빛이 연기 입자에 산란되어 광센서에 닿는다`, `산란광 → 광전자 → 광전류 <em>${S.I.toFixed(2)}</em> (연기가 짙을수록 크다)`, '광전류가 경보 장치로 흘러 <em>경보</em>']
+        : ['연기 없음 → LED 빛은 직진해 흡수판에 닿는다', '광센서에 닿는 빛이 없어 광전류 <em>0</em>', '경보 장치에 전류가 없어 <em>조용</em>'];
+    } else if (sc === 'street') {
+      const L = Math.round(z.light * 100), I2 = S.I.toFixed(2);
+      lab = '지금 가로등'; f = '가로등은 광전류가 전자석이 막대를 붙잡는 기준(0.3)보다 작아지면 켜진다';
+      ctx = '가로등 자동 점멸 · ' + hourText(Math.round(S.hour * 4) / 4);
+      big = closed ? '켜짐' : '꺼짐'; tone = closed ? 'cu' : 'ink';
+      lines = [`햇빛 <em>${L} %</em> → 광전류 <em>${I2}</em> ${S.I >= M.HOLD ? '≥' : '&lt;'} 0.3`,
+        magOn ? '전자석이 막대를 끌어당김 → 스위치 <em>열림</em>' : '전자석이 막대를 놓침 → 용수철이 스위치를 <em>닫음</em>',
+        closed ? '가로등에 전류가 흘러 <em>켜짐</em>' : '가로등에 전류가 없어 <em>꺼짐</em>'];
+    } else {
+      const L = Math.round(S.sol * 100);
+      lab = '지금 태양 전지'; f = '태양 전지·조도계는 광전류의 크기를 쓴다 (전류 ∝ 빛의 세기)'; ctx = '태양 전지 · 빛의 세기 ' + L + ' %';
+      big = '전류 ' + S.I.toFixed(2); tone = S.I > 0.01 ? '' : 'ink';
+      lines = [`빛의 세기 <em>${L} %</em> → 닿는 광자 수 → 튀어나오는 전자 수가 같은 비율`, `전류 ∝ 빛의 세기 → <em>${S.I.toFixed(2)}</em> (전지 없이 빛 에너지 → 전기 에너지)`];
+    }
+    return {lab, big, tone, f, ctx, lines};
+  }
+  let lastTxt = '', lastAns = '';
   function readouts() {
     const z = snap(), sc = S.scene, closed = S.lever > 0.97;
     let L = [], R = [];
     if (sc === 'burglar') {
       L = ['센서에 닿는 빛', '광전류 (상댓값)', '스위치', '경보 장치'];
-      R = [z.light > 0.5 ? '있음' : '없음', S.I.toFixed(1), closed ? '닫힘' : '열림', closed ? '울림!' : '조용'];
+      R = [z.light > 0.5 ? '있음' : '없음', S.I < 0.05 ? '0' : S.I.toFixed(1), closed ? '닫힘' : '열림', closed ? '울림!' : '조용'];
     } else if (sc === 'fire') {
       L = ['연기의 양', '센서에 닿는 산란광', '광전류 (상댓값)', '경보 장치'];
       R = [Math.round(S.smoke * 100) + ' %', Math.round(z.light * 100) + ' %', S.I.toFixed(2), z.out ? '울림!' : '조용'];
@@ -1012,35 +1084,38 @@
     const key = sc + L.join() + R.join();
     if (key !== lastTxt) {
       lastTxt = key;
-      for (let k = 0; k < 4; k++) { $('l' + (k + 1)).textContent = L[k]; $('r' + (k + 1)).textContent = R[k]; }
+      for (let k = 0; k < 4; k++) { $('mL' + k).textContent = L[k]; $('mV' + k).textContent = R[k]; }
       const alarm = (sc === 'burglar' && closed) || (sc === 'fire' && z.out);
+      $('mV3').style.color = alarm ? 'var(--neg)' : '';
       const hs = $('hudState');
       hs.className = 'pill' + ((sc === 'burglar' || sc === 'fire') ? (alarm ? ' down' : ' up') : '');
       hs.textContent = sc === 'burglar' ? (alarm ? '광전류 0 · 경보!' : S.I > 0.05 ? '광전류 흐름 · 조용' : '광전류 0 · 조용')
         : sc === 'fire' ? (alarm ? '산란광 → 광전류 · 경보!' : '광전류 0 · 조용')
           : sc === 'street' ? (closed ? '광전류 작음 → 켜짐' : '광전류 흐름 → 꺼짐') : '전류 ∝ 빛의 세기';
       const ok = sc === 'burglar' && S.src === 'violet' && blocked(G || geo(stage.W, stage.H)) && z.light < 0.5 && closed;
-      Lab.check('exCheck', ok, '개념 체크 ④ 확인: 빛이 가려져 광전류 0 → 전자석이 힘을 잃음 → 용수철이 스위치를 닫아 경보',
+      Lab.check('exCheck', ok, '개념 체크 정답(4번) 확인: 빛이 가려져 광전류 0 → 전자석이 힘을 잃음 → 용수철이 스위치를 닫아 경보',
         '개념 체크: 경보가 울리는 순간 무엇이 바뀔까? — 도난 경보기에서 침입자를 빛줄기 속으로 끌어 보세요');
     }
+    const a = answer(), ak = [a.lab, a.big, a.tone, a.f, a.ctx].concat(a.lines).join('|');
+    if (ak !== lastAns) { lastAns = ak; Lab.ans(a.big, a.lines, {tone: a.tone, lab: a.lab, ctx: a.ctx, f: a.f}); }
   }
+  const CAP_CHAIN = {
+    burglar: '빛이 가려지면 광전류 → 전자석 → 스위치가 차례로 뒤집혀 경보가 울린다.',
+    fire: '연기에 산란된 빛이 센서에 닿아야 광전류가 생긴다. 도난 경보기와 반대다.',
+    street: '도난 경보기와 같은 구조다. 햇빛이 약해지면 스위치가 닫혀 가로등이 켜진다.',
+    solar: '광자 수 ∝ 빛의 세기 → 튀어나오는 전자 수 → 전류. 전지 없이 빛 에너지가 전기 에너지로 바뀐다.',
+  };
+  const CAP_STRIP = {
+    burglar: '광전류가 0인 동안 경보가 울린다(광전류와 경보가 서로 반대).',
+    fire: '광전류가 생기는 동안 경보가 울린다(광전류와 경보가 같이 오르내린다).',
+    street: '광전류가 기준보다 작아지면(어두워지면) 가로등이 켜진다.',
+    solar: '빛의 세기, 전류, 전동기 빠르기가 함께 오르내린다.',
+  };
   function sceneText() {
     const sc = S.scene;
     $('hudScene').textContent = SCENES[sc];
-    $('sideScene').textContent = SCENES[sc];
-    $('chainSub').textContent = {burglar: '전류가 끊길 때 울림', fire: '전류가 생길 때 울림', street: '전류가 끊길 때 켜짐', solar: '전류 ∝ 빛의 세기'}[sc];
-    $('chainCap').textContent = {
-      burglar: '빛이 가려지면 광전류 → 전자석 → 스위치가 차례로 뒤집혀 경보가 울린다.',
-      fire: '연기에 산란된 빛이 센서에 닿아야 광전류가 생긴다. 도난 경보기와 반대.',
-      street: '도난 경보기와 같은 구조. 빛(햇빛)이 약해지면 스위치가 닫혀 가로등이 켜진다.',
-      solar: '광자 수 ∝ 빛의 세기 → 튀어나오는 전자 수 → 전류. 전지 없이 빛 에너지가 전기 에너지로.',
-    }[sc];
-    $('stripCap').textContent = {
-      burglar: '도난 경보기: 광전류가 0인 동안 경보가 울린다 (광전류와 경보가 서로 반대).',
-      fire: '화재 경보기: 광전류가 생기는 동안 경보가 울린다 (광전류와 경보가 같이).',
-      street: '가로등: 광전류가 기준보다 작아지면(어두워지면) 켜진다.',
-      solar: '태양 전지: 빛의 세기, 전류, 전동기 빠르기가 함께 오르내린다.',
-    }[sc];
+    $('chainCap').textContent = `신호의 사슬 · ${SCENES[sc]} — ${CAP_CHAIN[sc]}`;
+    $('stripCap').textContent = `시간 기록(최근 8초) · ${SCENES[sc]} — ${CAP_STRIP[sc]}`;
     document.querySelectorAll('#devs tr[data-dev]').forEach((tr) => tr.classList.toggle('on', tr.dataset.dev === sc));
     $('rowBurglar').hidden = sc !== 'burglar'; $('rowFire').hidden = sc !== 'fire'; $('rowStreet').hidden = sc !== 'street'; $('rowSolar').hidden = sc !== 'solar';
     $('hudSlow').textContent = S.speed < 1 ? '느린 화면 ×' + S.speed : '빠르기 ×1';
@@ -1104,7 +1179,7 @@
     stage.el.style.cursor = (S.scene === 'burglar' && y > g.top && y < g.split) || (S.scene === 'street' && y < g.split) ? (drag ? 'grabbing' : 'grab') : 'default';
   });
 
-  // 스스로 확인: 그 상황으로 바꾸기
+  // 개념 체크·스스로 확인: 그 상황으로 바꾸기
   const TRY = {
     ex: () => {
       setScene('burglar'); S.src = 'violet'; srcG.set('violet', true);

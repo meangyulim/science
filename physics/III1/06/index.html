@@ -6,194 +6,208 @@
 <title>여러 매질의 굴절과 물결파 굴절</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(장면 1 = 위에서 본 물결 탱크, 장면 2 = 평행한 여러 층을 지나는 빛)와 조작판,
-   오른쪽 수치 · (P·Q 의 y-t 그래프 또는 n sinθ 넓이) · sin r–sin i 그래프 */
+/* 관찰 노트: 왼쪽 실험대(장면 1 = 위에서 본 물결 탱크, 장면 2 = 평행한 여러 층을 지나는 빛) | 오른쪽 지금 값 + 관찰 ①~④ → 정리 → 예제 → 스스로 확인 */
 #stage{aspect-ratio:16/10.5;cursor:grab}
 #mid{aspect-ratio:10/7.2}
 #sg{aspect-ratio:10/8}
-.sub{display:grid;gap:14px}
-.quiz .tag{white-space:nowrap}
-/* 범례가 그림을 덜 가리게: 넓은 화면은 왼쪽 아래 세로 한 줄씩, 폰은 무대 아래로 */
-@media (min-width:641px){ #legW{flex-direction:column;gap:0} }
-@media (max-width:640px){ #stage{aspect-ratio:1/1.3} .stage .legend{position:static;margin:0 10px 10px;max-width:none} }
+#area{aspect-ratio:10/6.4}
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III1 파동의 성질과 활용: 개념 12개 가운데 6번째"><a class="uname" href="../">III1 파동의 성질과 활용</a><span class="dots"><a href="../01/" title="III1-01 횡파와 종파" aria-label="III1-01 횡파와 종파"></a><a href="../02/" title="III1-02 파동 그래프와 진행 방향" aria-label="III1-02 파동 그래프와 진행 방향"></a><a href="../03/" title="III1-03 매질이 바뀔 때" aria-label="III1-03 매질이 바뀔 때"></a><a href="../04/" title="III1-04 굴절과 스넬 법칙" aria-label="III1-04 굴절과 스넬 법칙"></a><a href="../05/" title="III1-05 생활 속 굴절 현상" aria-label="III1-05 생활 속 굴절 현상"></a><a class="cur" href="./" aria-current="page" title="III1-06 여러 매질의 굴절" aria-label="III1-06 여러 매질의 굴절 (지금)"></a><a href="../07/" title="III1-07 전반사와 광섬유" aria-label="III1-07 전반사와 광섬유"></a><a href="../08/" title="III1-08 전자기파와 스펙트럼" aria-label="III1-08 전자기파와 스펙트럼"></a><a href="../09/" title="III1-09 전자기파의 이용" aria-label="III1-09 전자기파의 이용"></a><a href="../10/" title="III1-10 중첩 원리" aria-label="III1-10 중첩 원리"></a><a href="../11/" title="III1-11 물결파·소리의 간섭" aria-label="III1-11 물결파·소리의 간섭"></a><a href="../12/" title="III1-12 빛의 간섭" aria-label="III1-12 빛의 간섭"></a></span></nav>
+  <div class="pn"><a href="../05/" rel="prev" title="이전 개념: III1-05 생활 속 굴절 현상">‹ <span>05 생활 속 굴절 현상</span></a><a href="../07/" rel="next" title="다음 개념: III1-07 전반사와 광섬유"><span>07 전반사와 광섬유</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III1-06</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III1-06</span><span>물리학 Ⅰ · 파동의 성질과 활용</span></div>
     <h1>여러 매질의 굴절과 물결파 굴절</h1>
-    <p class="lead">위에서 본 물결 탱크에서 마루선이 얕은 곳으로 들어가면 <b>간격(파장)이 좁아지며 경계 쪽으로 돈다</b>. 마루선과 경계면 사이 각이 곧 입사각·굴절각이다. 빛이 평행한 여러 층을 지날 때는 <b>모든 층에서 n sinθ 가 같아서</b> 각이 가장 작은 층의 굴절률이 가장 크다.</p>
-  </header>
+    <p class="question"><i>Q</i>매질이 세 개 이상이거나 그래프로 주어지면 굴절률 순서를 어떻게 정할까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
-        <canvas id="stage" aria-label="장면 1: 위에서 본 물결 탱크. 깊은 곳에서 얕은 곳으로 들어가는 물결파의 마루선이 꺾이고 간격이 좁아진다. 장면 2: 평행한 세 층을 차례로 지나는 빛."></canvas>
-        <div class="hud"><span class="pill num" id="hud1">t = 0.000 s</span><span class="pill" id="hud2">느린 화면 ×0.1</span></div>
-        <div class="legend" id="legW">
-          <span><b style="background:var(--violet)"></b>마루선</span>
-          <span><i style="background:var(--copper)"></i>따라가는 마루선 · P·Q</span>
-          <span><b style="background:var(--vel)"></b>진행 방향</span>
-          <span><b style="background:var(--acc)"></b>수면 높이(P·Q)</span>
-        </div>
-        <div class="legend" id="legL" hidden>
-          <span><b style="background:var(--vel)"></b>빛의 경로</span>
-          <span><i style="background:var(--copper)"></i>빛 펄스</span>
-          <span><b style="background:var(--muted)"></b>처음 방향 연장선</span>
-          <span><b style="background:var(--acc)"></b>n sinθ</span>
-        </div>
+        <canvas id="stage" aria-label="장면 1: 위에서 본 물결 탱크. 깊은 곳에서 얕은 곳으로 들어가는 물결파의 마루선이 꺾이고 간격이 좁아진다. 장면 2: 평행한 세 층을 차례로 지나는 빛. 무대를 끌면 입사 방향이 바뀐다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">t = 0.000 s</span><span class="pill" id="hud2">느린 화면 ×0.1</span></div>
+        <div class="legend col" id="legend"></div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <button type="button" class="btn" id="step">¼ 주기 앞으로</button>
-          <div class="group" role="group" aria-label="장면">
-            <span class="gl">장면</span>
-            <button type="button" class="btn" data-scene="wave" aria-pressed="true">물결파</button>
-            <button type="button" class="btn" data-scene="layers" aria-pressed="false">여러 층의 빛</button>
-          </div>
-          <span class="spacer"></span>
-          <div class="group" role="group" aria-label="빠르기">
-            <span class="gl">빠르기</span>
-            <button type="button" class="btn mono" data-speed="0.05" aria-pressed="false">×0.05</button>
-            <button type="button" class="btn mono" data-speed="0.1" aria-pressed="true">×0.1</button>
-            <button type="button" class="btn mono" data-speed="0.2" aria-pressed="false">×0.2</button>
-          </div>
+          <div class="slider" id="slTh"><label for="th"><span class="lg">입사각 </span>θ₁</label><input id="th" type="range" min="0" max="85" step="1" value="60"><output id="thOut">60°</output></div>
+          <div class="slider" id="slTh0" hidden><label for="th0"><span class="lg">공기에서 입사각 </span>θ₀</label><input id="th0" type="range" min="0" max="80" step="1" value="55"><output id="th0Out">55°</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·매질</span><span class="sm">장면</span></button>
         </div>
-        <div class="sub" id="ctlW">
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 매질">
+          <div class="sheet-head"><b>장면 · 매질 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
           <div class="row">
-            <div class="grow">
-              <label class="ctl-label" for="th">입사각 θ₁ (무대에서 끌어도 된다) <output id="thOut">60°</output></label>
-              <input id="th" type="range" min="0" max="85" step="1" value="60">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="wave" aria-pressed="true">물결파</button>
+              <button type="button" class="btn" data-scene="layers" aria-pressed="false">여러 층의 빛</button>
             </div>
-            <div class="grow">
-              <label class="ctl-label" for="lam">입사 쪽 파장 λ₁ <output id="lamOut">2√3 cm</output></label>
-              <input id="lam" type="range" min="2" max="5" step="0.01" value="3.46">
-            </div>
-            <div class="grow">
-              <label class="ctl-label" for="rat">얕은 곳 속력 ÷ 깊은 곳 속력 <output id="ratOut">1/√3</output></label>
-              <input id="rat" type="range" min="0.4" max="0.95" step="0.001" value="0.577">
-            </div>
-          </div>
-          <div class="row toggles">
-            <div class="group" role="group" aria-label="진행 방향">
-              <span class="gl">진행</span>
-              <button type="button" class="btn" data-dir="0" aria-pressed="true">깊은 곳 → 얕은 곳</button>
-              <button type="button" class="btn" data-dir="1" aria-pressed="false">얕은 곳 → 깊은 곳</button>
-            </div>
-            <label class="chk"><input type="checkbox" id="cCrest" checked>마루선</label>
-            <label class="chk"><input type="checkbox" id="cRay" checked>진행 방향·법선</label>
-            <label class="chk"><input type="checkbox" id="cRule" checked>λ 자</label>
-          </div>
-        </div>
-        <div class="sub" id="ctlL" hidden>
-          <div class="row">
-            <div class="grow">
-              <label class="ctl-label" for="th0">공기에서 입사각 θ₀ (무대에서 끌어도 된다) <output id="th0Out">55°</output></label>
-              <input id="th0" type="range" min="0" max="80" step="1" value="55">
-            </div>
-            <div class="grow">
-              <label class="ctl-label" for="nA">층 A 의 굴절률 <output id="nAOut">1.50</output></label>
-              <input id="nA" type="range" min="1" max="2.5" step="0.01" value="1.5">
+            <button type="button" class="btn" id="step">¼ 주기 앞으로 ▸</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.05" aria-pressed="false">×0.05</button>
+              <button type="button" class="btn" data-speed="0.1" aria-pressed="true">×0.1</button>
+              <button type="button" class="btn" data-speed="0.2" aria-pressed="false">×0.2</button>
             </div>
           </div>
-          <div class="row">
-            <div class="grow">
-              <label class="ctl-label" for="nB">층 B 의 굴절률 <output id="nBOut">1.20</output></label>
-              <input id="nB" type="range" min="1" max="2.5" step="0.01" value="1.2">
+          <div class="sub" id="ctlW">
+            <div class="row">
+              <div class="grow">
+                <label class="ctl-label" for="lam">입사 쪽 파장 λ₁ <output id="lamOut">2√3 cm</output></label>
+                <input id="lam" type="range" min="2" max="5" step="0.01" value="3.46">
+              </div>
+              <div class="grow">
+                <label class="ctl-label" for="rat">얕은 곳 속력 ÷ 깊은 곳 속력 <output id="ratOut">1/√3</output></label>
+                <input id="rat" type="range" min="0.4" max="0.95" step="0.001" value="0.577">
+              </div>
             </div>
-            <div class="grow">
-              <label class="ctl-label" for="nC">층 C 의 굴절률 <output id="nCOut">1.80</output></label>
-              <input id="nC" type="range" min="1" max="2.5" step="0.01" value="1.8">
+            <div class="row">
+              <div class="group" role="group" aria-label="진행 방향">
+                <span class="gl">진행</span>
+                <button type="button" class="btn" data-dir="0" aria-pressed="true">깊은 곳 → 얕은 곳</button>
+                <button type="button" class="btn" data-dir="1" aria-pressed="false">얕은 곳 → 깊은 곳</button>
+              </div>
+            </div>
+            <div class="toggles">
+              <label class="chk"><input type="checkbox" id="cCrest" checked>마루선</label>
+              <label class="chk"><input type="checkbox" id="cRay" checked>진행 방향·법선</label>
+              <label class="chk"><input type="checkbox" id="cRule" checked>λ 자</label>
             </div>
           </div>
-          <div class="row toggles">
-            <label class="chk"><input type="checkbox" id="cGhost" checked>처음 방향 연장선</label>
-            <label class="chk"><input type="checkbox" id="cInv" checked>층마다 n sinθ</label>
+          <div class="sub" id="ctlL" hidden>
+            <div class="row">
+              <div class="grow">
+                <label class="ctl-label" for="nA">층 A 의 굴절률 <output id="nAOut">1.50</output></label>
+                <input id="nA" type="range" min="1" max="2.5" step="0.01" value="1.5">
+              </div>
+              <div class="grow">
+                <label class="ctl-label" for="nB">층 B 의 굴절률 <output id="nBOut">1.20</output></label>
+                <input id="nB" type="range" min="1" max="2.5" step="0.01" value="1.2">
+              </div>
+              <div class="grow">
+                <label class="ctl-label" for="nC">층 C 의 굴절률 <output id="nCOut">1.80</output></label>
+                <input id="nC" type="range" min="1" max="2.5" step="0.01" value="1.8">
+              </div>
+            </div>
+            <div class="toggles">
+              <label class="chk"><input type="checkbox" id="cGhost" checked>처음 방향 연장선</label>
+              <label class="chk"><input type="checkbox" id="cInv" checked>층마다 n sin θ</label>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치</h2>
-        <div class="readouts">
-          <div class="ro cu"><span id="l1">입사각 θ₁</span><b id="r1">60°</b></div>
-          <div class="ro acc"><span id="l2">굴절각 θ₂</span><b id="r2">30°</b></div>
-          <div class="ro"><span id="l3">입사 쪽 파장 λ₁</span><b id="r3">2√3 cm</b></div>
-          <div class="ro"><span id="l4">굴절 쪽 파장 λ₂</span><b id="r4">2 cm</b></div>
-          <div class="ro vel"><span id="l5">v₂/v₁ = λ₂/λ₁</span><b id="r5">1/√3</b></div>
-          <div class="ro"><span id="l6">진동수 f (두 곳 같음)</span><b id="r6">5 Hz</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">얕은 곳의 파장</span><span id="ansCtx">깊은 곳 → 얕은 곳 · f = 5 Hz</span></div>
+        <div class="big" id="ansBig">λ₂ = 2 cm</div>
+        <div class="sub">
+          <span class="f" id="ansF">sin θ₁ : sin θ₂ = λ₁ : λ₂ (= v₁ : v₂) 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">sin <em>60°</em> : sin <em>30°</em> = <em>2√3 cm</em> : λ₂</span><span class="v">λ₂ = 2√3 × sin 30° ÷ sin 60° = <em>2 cm</em></span><span class="v">v₂/v₁ = λ₂/λ₁ = <em>1/√3</em> (진동수는 두 곳에서 같다)</span></span>
         </div>
-        <p class="status" id="rank" hidden></p>
+        <div class="minis">
+          <div class="mini"><span id="l1">입사각 θ₁</span><b id="r1">60°</b></div>
+          <div class="mini"><span id="l2">굴절각 θ₂</span><b id="r2">30°</b></div>
+          <div class="mini"><span id="l3">입사 쪽 파장 λ₁</span><b id="r3">2√3 cm</b></div>
+          <div class="mini"><span id="l4">굴절 쪽 파장 λ₂</span><b id="r4">2 cm</b></div>
+          <div class="mini"><span id="l5">v₂/v₁ = λ₂/λ₁</span><b id="r5">1/√3</b></div>
+          <div class="mini"><span id="l6">진동수 f (두 곳 같음)</span><b id="r6">5 Hz</b></div>
+        </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2><span id="midT">P·Q 의 y-t 그래프</span> <small id="midS">깊은 곳 P, 얕은 곳 Q</small></h2>
-        <canvas class="flat" id="mid" aria-label="장면에 따라: 깊은 곳 P와 얕은 곳 Q의 수면 높이-시간 그래프, 또는 층마다 n과 sinθ로 만든 넓이가 같은 직사각형."></canvas>
-        <p class="cap" id="midC"></p>
-      </section>
-      <section class="panel">
-        <h2>sin r–sin i 그래프 <small id="sgS">실험 그래프</small></h2>
-        <canvas class="flat" id="sg" aria-label="가로축 입사각의 사인, 세로축 굴절각의 사인. 원점을 지나는 직선이고 기울기는 n1/n2."></canvas>
-        <p class="cap" id="sgC"></p>
-      </section>
-    </aside>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 마루선 간격 = 파장">
+          <div class="kind">관찰 1</div>
+          <h3>얕은 곳에서는 마루선 간격이 좁아진다</h3>
+          <p>위에서 본 물결 탱크다. 이웃한 마루선 사이 간격이 파장이고, 간격이 좁은 쪽이 <b>얕고 느린 곳</b>이다. 깊이가 달라도 진동수는 파원이 정하므로 두 곳에서 같다.</p>
+          <canvas class="flat" id="mid" aria-label="깊은 곳 P와 얕은 곳 Q의 수면 높이-시간 그래프. 두 곳의 주기가 같다."></canvas>
+          <p class="cap">깊은 곳 P와 얕은 곳 Q의 수면 높이를 시간에 따라 그렸다. 두 곳의 주기 T 가 같으므로 느린 얕은 곳에서는 <span class="eq">λ = vT</span> 가 짧다.</p>
+          <div class="acts"><button type="button" class="btn go" data-do="click:[data-scene=wave]; click:#step">¼ 주기씩 ▸</button></div>
+        </li>
+        <li class="card step" data-step="② 마루선과 경계면 사이 각">
+          <div class="kind">관찰 2</div>
+          <h3>마루선이 경계 쪽으로 돌며 각이 작아진다</h3>
+          <p>마루선은 진행 방향에 수직이므로 <b>마루선과 경계면 사이 각</b>이 곧 입사각·굴절각이다. 구리색 마루선에서 θ₁ 과 θ₂ 를 읽어 보자. 얕은 곳에 먼저 들어간 끝부터 느려져 마루선이 경계 쪽으로 돈다.</p>
+          <p class="cap"><span class="eq">sin θ₁ : sin θ₂ = λ₁ : λ₂ = v₁ : v₂</span>. λ 자로 잰 두 파장의 비가 두 사인의 비와 같다. 입사 방향은 무대를 끌거나 θ₁ 막대로 바꾼다.</p>
+          <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황 (60° → 30°)</button><button type="button" class="btn" data-do="check:#cRule">λ 자 켜기</button></div>
+        </li>
+        <li class="card step" data-step="③ sin r–sin i 그래프">
+          <div class="kind">관찰 3</div>
+          <h3>sin r–sin i 그래프는 원점을 지나는 직선이다</h3>
+          <p><span class="eq">sin r = (n₁/n₂) sin i</span> 라서 기울기는 입사 쪽 ÷ 굴절 쪽 굴절률(물결파는 v₂/v₁)이다. 기울기 &lt; 1 이면 굴절률이 큰(느린) 매질로 들어가는 경우다. 기울기 &gt; 1 이면 직선이 sin r = 1 에서 끝나고, 그 끝점의 sin i 가 임계각의 사인이다. 더 큰 입사각에서는 굴절 없이 전반사한다.</p>
+          <canvas class="flat" id="sg" aria-label="가로축 입사각의 사인, 세로축 굴절각의 사인. 원점을 지나는 직선이고 기울기는 n1/n2."></canvas>
+          <p class="cap" id="sgC"></p>
+          <div class="acts">
+            <button type="button" class="btn" data-do="click:[data-scene=wave]; click:[data-dir='0']">깊은 곳 → 얕은 곳</button>
+            <button type="button" class="btn" data-do="click:[data-scene=wave]; click:[data-dir='1']">얕은 곳 → 깊은 곳</button>
+            <button type="button" class="btn" data-try="slope">기울기 1.25</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 평행한 여러 층">
+          <div class="kind">관찰 4</div>
+          <h3>평행한 층에서는 n sin θ 가 모두 같다</h3>
+          <p>경계마다 n₁ sin θ₁ = n₂ sin θ₂, n₂ sin θ₂ = n₃ sin θ₃ 이므로 n sin θ 가 모든 층에서 같다. 그래서 <b>각이 가장 작은 층의 굴절률이 가장 크다</b>. 빛 펄스는 굴절률이 큰 층에서 느리게 간다.</p>
+          <canvas class="flat" id="area" aria-label="층마다 가로 n, 세로 sin θ 인 직사각형. 넓이가 모두 같다."></canvas>
+          <p class="cap">가로 n, 세로 sin θ 인 직사각형의 넓이(n × sin θ)가 모두 같다. 넓을수록(굴절률이 클수록) 낮다(각이 작다). 구리색이 굴절률이 가장 큰 층이다. 처음과 마지막이 같은 공기이면 나온 빛은 처음 방향과 평행하고 옆으로만 밀린다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-do="click:[data-scene=layers]">여러 층의 빛</button>
+            <button type="button" class="btn" data-try="exit">다시 공기로 나오면</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>각이 작은 쪽의 굴절률이 크다</h3>
+          <ul>
+            <li>평행한 층: <span class="eq">n₁ sin θ₁ = n₂ sin θ₂ = n₃ sin θ₃</span>. 처음과 마지막 매질의 관계는 중간 층과 무관하다.</li>
+            <li>세 매질 이상이면 계산보다 순서 정리가 먼저다. 경계마다 법선을 긋고 “각이 작은 쪽의 굴절률이 크다”로 부등식을 완성한다. 빛이 지나간 순서와 굴절률 순서는 아무 관계가 없다.</li>
+            <li><span class="eq">sin r = (n₁/n₂) sin i</span>: 기울기 &gt; 1 이면 sin r = 1 에서 끝나고 그 sin i 가 임계각의 사인이다.</li>
+            <li>물결파: 마루선 간격 좁음 = 얕음 = 느림 = 각 작음. 진동수는 깊이와 무관하다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>물결파가 깊은 곳에서 입사각 60°, 파장 2√3 cm로 진행하다 얕은 곳에 들어가 굴절각이 30°가 되었다. 얕은 곳에서의 파장은?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>sin θ₁ : sin θ₂ = λ₁ : λ₂ 에서 sin 60° : sin 30° = √3 : 1 이므로 λ₂ = 2√3 ÷ √3 = <b>2 cm</b>. 진동수가 같으므로 얕은 곳의 속력도 깊은 곳의 1/√3 이다. 무대의 λ 자와 P·Q 의 y-t 그래프(주기 같음)로 확인한다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>경계면이 평행한 매질 A, B, C 를 빛이 차례로 지난다. 진행 방향이 법선과 이루는 각이 A 50°, B 35°, C 42°였다. 굴절률의 순서는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="abc">A 50° · B 35° · C 42° 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>평행한 층에서는 n sin θ 가 모두 같으므로 각이 작을수록 굴절률이 크다. 35° &lt; 42° &lt; 50° 이므로 <b>B &gt; C &gt; A</b>. 지나간 순서(A → B → C)와는 관계없다.</p></details>
+          </div>
+          <div class="q">
+            <h3>물결파가 얕은 곳에서 깊은 곳으로 갈 때 sin r–sin i 그래프가 원점을 지나는 기울기 1.25 인 직선이고 sin r = 1 에서 끝났다. 임계각의 사인값은? (빛에서도 같다)</h3>
+            <div class="acts"><button type="button" class="btn" data-try="slope">기울기 1.25 상황 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>sin r = 1.25 sin i 가 1 이 되는 sin i = 1 ÷ 1.25 = <b>0.8</b> 에서 직선이 끝난다. 입사각을 약 53°보다 크게 하면 굴절파가 사라지고 전반사한다. 기울기가 1 보다 크므로 굴절각은 늘 입사각보다 크다.</p></details>
+          </div>
+          <div class="q">
+            <h3>공기에서 평행한 세 층을 지나 다시 공기로 나온 빛의 방향은? 층의 굴절률을 바꾸면 달라질까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="exit">다시 공기로 나오는 빛 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>n sin θ 가 일정하고 처음과 마지막이 같은 공기이므로 나오는 각 = 들어간 각, 곧 <b>처음 방향과 평행</b>하다. 굴절률을 바꿔도 방향은 그대로이고 옆으로 밀린 거리만 달라진다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../05/" rel="prev"><small>← 이전 개념 · III1-05</small><b>생활 속 굴절 현상</b></a><a href="../07/" rel="next"><small>다음 개념 · III1-07 →</small><b>전반사와 광섬유</b></a></nav>
+<!-- /nextprev -->
+    </section>
   </main>
-
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>평행한 층: n sinθ 일정</h3>
-        <p>경계마다 n₁ sinθ₁ = n₂ sinθ₂, n₂ sinθ₂ = n₃ sinθ₃ 이므로 <span class="eq">n sinθ</span> 가 모든 층에서 같다. 그래서 각이 가장 작은 층의 굴절률이 가장 크다.</p>
-        <p>처음과 마지막 매질의 관계는 중간 층과 무관하다. 바깥 매질이 같으면 나온 빛은 처음 방향과 평행하고 옆으로만 밀린다.</p>
-      </article>
-      <article class="concept">
-        <h3>sin r–sin i 그래프</h3>
-        <p><span class="eq">sin r = (n₁/n₂) sin i</span> 라서 원점을 지나는 직선이고, 기울기는 입사 쪽 ÷ 굴절 쪽 굴절률이다. 기울기 &lt; 1 이면 굴절률이 큰 매질로 들어가는 경우다.</p>
-        <p>기울기 &gt; 1 이면 직선이 sin r = 1 에서 끝난다. 그 끝점의 sin i 가 임계각의 사인이고, 더 큰 입사각에서는 굴절 없이 전반사한다.</p>
-      </article>
-      <article class="concept">
-        <h3>물결파의 굴절</h3>
-        <p>위에서 본 마루선 간격이 파장이다. 간격이 좁은 쪽이 얕고 느린 곳이다. 마루선은 진행 방향에 수직이므로 <b>마루선과 경계면 사이 각 = 입사각·굴절각</b>.</p>
-        <p><span class="eq">sinθ₁ : sinθ₂ = λ₁ : λ₂ = v₁ : v₂</span>. 진동수는 깊이와 무관해서 두 곳의 y-t 그래프 주기가 같다.</p>
-      </article>
-    </div>
-    <p class="compare">세 매질 이상이면 계산보다 순서 정리가 먼저다. 경계마다 법선을 긋고 “각이 작은 쪽의 굴절률이 크다”로 부등식을 완성한다. 빛이 지나간 순서와 굴절률 순서는 아무 관계가 없다.</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>물결파가 깊은 곳에서 입사각 60°, 파장 2√3 cm로 진행하다 얕은 곳에 들어가 굴절각이 30°가 되었다. 얕은 곳에서의 파장은?<span class="tag">개념서 예제</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">예제 상황으로</button></div>
-        <details><summary>답 보기</summary><p>sinθ₁ : sinθ₂ = λ₁ : λ₂ 에서 sin60° : sin30° = √3 : 1 이므로 λ₂ = 2√3 ÷ √3 = <b>2 cm</b>. 진동수가 같으므로 얕은 곳의 속력도 깊은 곳의 1/√3 이다. 무대의 λ 자와 P·Q 의 y-t 그래프(주기 같음)로 확인한다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>경계면이 평행한 매질 A, B, C 를 빛이 차례로 지난다. 진행 방향이 법선과 이루는 각이 A 50°, B 35°, C 42°였다. 굴절률의 순서는?</p>
-        <div class="acts"><button type="button" class="btn" data-try="abc">A 50° · B 35° · C 42° 보기</button></div>
-        <details><summary>답 보기</summary><p>평행한 층에서는 n sinθ 가 모두 같으므로 각이 작을수록 굴절률이 크다. 35° &lt; 42° &lt; 50° 이므로 <b>B &gt; C &gt; A</b>. 지나간 순서(A → B → C)와는 관계없다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>물결파가 얕은 곳에서 깊은 곳으로 갈 때 sin r–sin i 그래프가 원점을 지나는 기울기 1.25 인 직선이고 sin r = 1 에서 끝났다. 임계각의 사인값은? (빛에서도 같다)</p>
-        <div class="acts"><button type="button" class="btn" data-try="slope">기울기 1.25 상황 보기</button></div>
-        <details><summary>답 보기</summary><p>sin r = 1.25 sin i 가 1 이 되는 sin i = 1 ÷ 1.25 = <b>0.8</b> 에서 직선이 끝난다. 입사각을 약 53°보다 크게 하면 굴절파가 사라지고 전반사한다. 기울기가 1 보다 크므로 굴절각은 늘 입사각보다 크다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>공기에서 평행한 세 층을 지나 다시 공기로 나온 빛의 방향은? 층의 굴절률을 바꾸면 달라질까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="exit">다시 공기로 나오는 빛 보기</button></div>
-        <details><summary>답 보기</summary><p>n sinθ 가 일정하고 처음과 마지막이 같은 공기이므로 나오는 각 = 들어간 각, 즉 <b>처음 방향과 평행</b>하다. 굴절률을 바꿔도 방향은 그대로이고 옆으로 밀린 거리만 달라진다.</p></details>
-      </li>
-    </ol>
-    <nav class="pager"><a href="../05/">← III1-05 생활 속 굴절 현상</a><a class="home" href="../../">물리 실험실</a><a href="../07/">III1-07 전반사와 광섬유 →</a></nav>
-  </section>
 </div>
 
 <script src="../../kit/lab.js"></script>
@@ -242,14 +256,14 @@
   }
   function angArc(ctx, O, r, a0, a1, col, label, lr) {
     ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(O[0], O[1], r, a0, a1); ctx.stroke(); ctx.restore();
-    if (label) { const m = (a0 + a1) / 2; text(ctx, label, O[0] + Math.cos(m) * lr, O[1] + Math.sin(m) * lr, {size: 14, w: 700, color: col, halo: true}); }
+    if (label) { const m = (a0 + a1) / 2; text(ctx, label, O[0] + Math.cos(m) * lr, O[1] + Math.sin(m) * lr, {size: 14, w: 600, color: col, halo: true}); }
   }
   // 기울어진 치수선: P–Q 를 n 쪽으로 띄워 그린다
   function dim(ctx, P, Q, n, col, label, lo = 30) {
     const a = add(P, n, 13), b = add(Q, n, 13), m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     Lab.line(ctx, [add(P, n, 4), add(P, n, 19)], col, 1.4); Lab.line(ctx, [add(Q, n, 4), add(Q, n, 19)], col, 1.4);
     arrow(ctx, m[0], m[1], a[0], a[1], col, 1.8, 8); arrow(ctx, m[0], m[1], b[0], b[1], col, 1.8, 8);
-    text(ctx, label, m[0] + n[0] * lo, m[1] + n[1] * lo, {size: 14, w: 700, color: col, halo: true, mono: true});
+    if (label) text(ctx, label, m[0] + n[0] * lo, m[1] + n[1] * lo, {size: 14, w: 600, color: col, halo: true});
   }
 
   // ── 장면 1: 위에서 본 물결 탱크 ─────────────────────────
@@ -260,7 +274,7 @@
     const s1 = M.sinD(S.th), c1 = M.cosD(S.th);
     const g = {narrow, W, H, cm, yB, k, tir, th1: S.th, th2: w.th2, lam1: S.lam, lam2: w.lam2, L1: S.lam * cm, L2: w.lam2 * cm,
       s1, c1, u1: [s1, c1], p1: [c1, -s1], ur: [s1, -c1], pr: [c1, s1], Ox: W * (narrow ? 0.48 : 0.4), deepTop: !S.rev,
-      P: [W * (narrow ? 0.85 : 0.87), H * 0.2], Q: [W * (narrow ? 0.85 : 0.87), H * (narrow ? 0.85 : 0.8)]};
+      P: [W * (narrow ? 0.85 : 0.87), H * 0.2], Q: [W * (narrow ? 0.85 : 0.87), H * 0.78]};
     if (!tir) { const s2 = M.sinD(w.th2), c2 = M.cosD(w.th2); Object.assign(g, {s2, c2, u2: [s2, c2], p2: [c2, -s2]}); }
     return g;
   }
@@ -336,7 +350,7 @@
     [['P', g.P], ['Q', g.Q]].forEach(([nm, X]) => {
       const v = heightAt(g, X[0], X[1]), gx = X[0] + 19;
       Lab.circle(ctx, X[0], X[1], 8, {fill: C.paper, stroke: C.copper, width: 3});
-      text(ctx, nm, X[0] - 18, X[1] - 13, {size: 15, w: 700, color: C.copper, halo: true});
+      text(ctx, nm, X[0] - 18, X[1] - 13, {size: 15, w: 600, color: C.copper, halo: true});
       Lab.line(ctx, [[gx, X[1] - 16], [gx, X[1] + 16]], C.muted, 1.4);
       Lab.circle(ctx, gx, X[1] - 13 * v, 4.5, {fill: C.acc});
     });
@@ -360,6 +374,8 @@
     // 진행 방향을 따라 이웃한 두 마루 사이 = 파장
     const sm1 = -Math.min(Lin * 0.6, 3.4 * g.L1);
     let sa = g.L1 * (ft - Math.ceil(ft - sm1 / g.L1)); if (sa < -Lin + 2) sa += g.L1;
+    // λ₁ 이름표가 왼쪽 위 HUD 밑으로 들어가면 한 파장만큼 입사점 쪽으로 옮긴다
+    if (add(add(O, g.u1, sa + g.L1 / 2), g.p1, 47)[1] < 56 && sa + 2 * g.L1 <= 0) sa += g.L1;
     dim(ctx, add(O, g.u1, sa), add(O, g.u1, sa + g.L1), g.p1, C.copper, 'λ₁ = ' + lamStr(g.lam1) + ' cm', 34);
     if (g.tir) return;
     const sm2 = Math.min(Lout * 0.55, 3.4 * g.L2);
@@ -369,11 +385,14 @@
 
   // ── 장면 2: 평행한 여러 층을 지나는 빛 ──────────────────
   const NAMES = ['공기', 'A', 'B', 'C', '공기'];
+  // 폰(거의 정사각형 무대): 레이저는 HUD 아래(topY)에서, 층은 두께를 키우고, 아래 공기층은 80px 남긴다
   function lgeo(W, H) {
     const narrow = W < 520, ns = [1, S.nA, S.nB, S.nC, 1], th = M.layers(ns, S.th0), tn = th.map((a) => Math.tan(a * RAD));
-    const y1 = Math.round(H * (narrow ? 0.3 : 0.31)), d = Math.round(H * (narrow ? 0.11 : 0.15)), ys = [y1, y1 + d, y1 + 2 * d, y1 + 3 * d];
+    const topY = narrow ? 84 : 86;
+    const y1 = narrow ? Math.max(topY + 30, Math.round(H * 0.33)) : Math.round(H * 0.31);
+    const d = narrow ? Math.round(Math.min(48, (H - y1 - 80) / 3)) : Math.round(H * 0.15), ys = [y1, y1 + d, y1 + 2 * d, y1 + 3 * d];
     const s0 = M.sinD(S.th0), c0 = M.cosD(S.th0), u0 = [s0, c0], u4 = [M.sinD(th[4]), M.cosD(th[4])];
-    const topY = narrow ? 92 : 86, inDx = Math.min((y1 - topY) * tn[0], W * (narrow ? 0.18 : 0.3));
+    const inDx = Math.min((y1 - topY) * tn[0], W * (narrow ? 0.18 : 0.3));
     const span = d * (tn[1] + tn[2] + tn[3]), outDx = (H - 10 - ys[3]) * tn[4];
     const xe = Math.max(16 + inDx + 40 * s0, W / 2 - (span + outDx - inDx) / 2);    // 레이저 몸통까지 화면 안에
     const pts = [[xe, ys[0]]];
@@ -403,42 +422,44 @@
     const rowY = [ys[0] - 18, (ys[0] + ys[1]) / 2, (ys[1] + ys[2]) / 2, (ys[2] + ys[3]) / 2, ys[3] + 44];
     const iMax = [1, 2, 3].reduce((m, i) => (th[i] < th[m] ? i : m), 1);
     rowY.forEach((y, i) => {
-      const name = NAMES[i] + ' · n = ' + (i % 4 ? fmt(ns[i], 2) : '1'), col = i === iMax ? C.copper : C.ink;
-      if (narrow) {          // 폰: 경로는 오른쪽으로만 가므로 층 이름과 n sinθ 를 왼쪽에 두 줄로 (위 공기는 오른쪽)
-        const inv = 'n sinθ = ' + fmt(L.K, 2);
+      const name = NAMES[i] + ' · n = ' + (i % 4 ? fmt(ns[i], 2) : '1'), hot = i === iMax && S.th0 >= 0.5, col = hot ? C.copper : C.ink, wt = hot ? 700 : 600;
+      if (narrow) {          // 폰: 경로는 오른쪽으로만 가므로 층 이름과 n sinθ 를 왼쪽에 두 줄로 (위 공기는 오른쪽). 층이 얇으면 이름만
+        const inv = 'n sinθ = ' + fmt(L.K, 2), two = S.inv && L.d >= 38;
         if (i === 0) {
-          text(ctx, name, W - 14, ys[0] - (S.inv ? 38 : 18), {size: 14, w: 700, align: 'right', halo: true});
-          if (S.inv) text(ctx, inv, W - 14, ys[0] - 17, {size: 13.5, w: 700, align: 'right', color: C.acc, halo: true});
-        } else if (i === 4) text(ctx, name, 14, y, {size: 14, w: 700, align: 'left', halo: true});
+          text(ctx, name, W - 14, ys[0] - (S.inv ? 38 : 18), {size: 14, w: 600, align: 'right', halo: true});
+          if (S.inv) text(ctx, inv, W - 14, ys[0] - 17, {size: 13.5, w: 600, align: 'right', color: C.acc, halo: true});
+        } else if (i === 4) text(ctx, name, 14, ys[3] + 26, {size: 14, w: 600, align: 'left', halo: true});
         else {
-          text(ctx, name, 12, y - (S.inv ? 9 : 0), {size: 14, w: 700, align: 'left', halo: true, color: col});
-          if (S.inv) text(ctx, inv, 12, y + 11, {size: 13, w: 700, align: 'left', color: C.acc, halo: true});
+          text(ctx, name, 12, y - (two ? 9 : 0), {size: 14, w: wt, align: 'left', halo: true, color: col});
+          if (two) text(ctx, inv, 12, y + 11, {size: 13, w: 600, align: 'left', color: C.acc, halo: true});
         }
         return;
       }
-      text(ctx, name, 14, y, {size: 15, w: 700, align: 'left', halo: true, color: col});
-      if (S.inv) text(ctx, fmt(ns[i], 2) + ' × sin' + fmt(th[i], 1) + '° = ' + fmt(L.K, 2), W - 14, y, {size: 14, w: 700, align: 'right', color: C.acc, halo: true, mono: true});
+      text(ctx, name, 14, y, {size: 15, w: wt, align: 'left', halo: true, color: col});
+      if (S.inv) text(ctx, fmt(ns[i], 2) + ' × sin' + fmt(th[i], 1) + '° = ' + fmt(L.K, 2), W - 14, y, {size: 14, w: 600, align: 'right', color: C.acc, halo: true});
     });
     // 처음 방향 연장선과 옆으로 밀린 거리
     if (S.ghost) {
       Lab.line(ctx, [pts[0], add(pts[0], L.u0, toEdge(pts[0], L.u0, W, H, 4))], C.muted, 1.8, [7, 6]);
-      const E = add(pts[3], L.u4, Math.min(110, toEdge(pts[3], L.u4, W, H, 4) * 0.62)), tt = (E[0] - pts[0][0]) * L.u0[0] + (E[1] - pts[0][1]) * L.u0[1];
-      const F = add(pts[0], L.u0, tt), dd = Math.hypot(F[0] - E[0], F[1] - E[1]);
+      // 폰에서는 오른쪽 아래 지금 단계 표시와 겹치지 않게 치수선을 경계 가까이에 둔다
+      const E = add(pts[3], L.u4, narrow ? Math.min(70, toEdge(pts[3], L.u4, W, H, 4) * 0.45) : Math.min(110, toEdge(pts[3], L.u4, W, H, 4) * 0.62));
+      const tt = (E[0] - pts[0][0]) * L.u0[0] + (E[1] - pts[0][1]) * L.u0[1];
+      const F = add(pts[0], L.u0, tt), dd = Math.hypot(F[0] - E[0], F[1] - E[1]), yMax = narrow ? H - 46 : H - 12;
       if (dd > 8) {
         dim(ctx, E, F, L.u0, C.copper, '');
         const mx = (E[0] + F[0]) / 2 + L.u0[0] * 26, my = (E[1] + F[1]) / 2 + L.u0[1] * 26;
-        if (mx > W - 64) text(ctx, '옆으로 밀림', E[0] - 12, E[1] + 18, {size: 14, w: 700, color: C.copper, align: 'right', halo: true});
-        else text(ctx, '옆으로 밀림', Math.max(52, mx), Math.min(H - 12, my), {size: 14, w: 700, color: C.copper, halo: true});
+        if (mx > W - 64) text(ctx, '옆으로 밀림', E[0] - 12, Math.min(yMax, E[1] + 18), {size: 14, w: 600, color: C.copper, align: 'right', halo: true});
+        else text(ctx, '옆으로 밀림', Math.max(52, mx), Math.min(yMax, my), {size: 14, w: 600, color: C.copper, halo: true});
       }
     }
     // 경계마다 법선과 각
     pts.forEach((P) => Lab.line(ctx, [[P[0], P[1] - 32], [P[0], P[1] + 32]], C.muted, 1.3, [5, 4]));
-    if (S.th0 >= 1) { angArc(ctx, pts[0], 30, -Math.PI / 2 - S.th0 * RAD, -Math.PI / 2, C.ink); text(ctx, fmt(S.th0, 1) + '°', pts[0][0] + 8, pts[0][1] - 20, {size: 14, w: 700, align: 'left', halo: true}); }
+    if (S.th0 >= 1) { angArc(ctx, pts[0], 30, -Math.PI / 2 - S.th0 * RAD, -Math.PI / 2, C.ink); text(ctx, fmt(S.th0, 1) + '°', pts[0][0] + 8, pts[0][1] - 20, {size: 14, w: 600, align: 'left', halo: true}); }
     pts.forEach((P, i) => {
       const a = th[i + 1], col = i === 3 ? C.ink : C.acc; if (a < 1) return;
       angArc(ctx, P, 26, Math.PI / 2 - a * RAD, Math.PI / 2, col);
       const al = Math.max(8, 90 - a - 30) * RAD;          // 광선 바깥쪽(오른쪽)에 글자
-      text(ctx, fmt(a, 1) + '°', P[0] + Math.cos(al) * 54, P[1] + Math.sin(al) * 54, {size: 14, w: 700, color: col, halo: true});
+      text(ctx, fmt(a, 1) + '°', P[0] + Math.cos(al) * 54, P[1] + Math.sin(al) * 54, {size: 14, w: 600, color: col, halo: true});
     });
     // 빛의 경로
     ray(ctx, L.src, pts[0], C.vel, 3.2);
@@ -467,22 +488,18 @@
     if (S.scene === 'wave') drawWave(ctx, wgeo(W, H)); else drawLayers(ctx, lgeo(W, H));
   }
 
-  // ── 가운데 패널: P·Q 의 y-t 그래프 / n sinθ 넓이 ─────────
+  // ── 관찰 1: P·Q 의 y-t 그래프 (물결파) ──────────────────
   const mid = Lab.canvas('mid', drawMid);
   function drawMid() {
-    const {ctx, W, H} = mid; if (!W) return;
+    const {ctx, W, H} = mid; if (!W || !stage.W) return;
     ctx.clearRect(0, 0, W, H);
-    if (S.scene === 'wave') drawYT(ctx, W, H); else drawArea(ctx, W, H);
-  }
-  function drawYT(ctx, W, H) {
-    if (!stage.W) return;
     const g = wgeo(stage.W, stage.H), T = 1 / FREQ, span = 2.4 * T, t0 = S.t - span * 0.8;
     const rows = [['P', g.P, g.deepTop ? '깊은 곳' : '얕은 곳'], ['Q', g.Q, g.deepTop ? '얕은 곳' : '깊은 곳']];
     rows.forEach(([nm, X, where], i) => {
       const top = i * H / 2, r = {x: 34, y: top + 30, w: W - 50, h: H / 2 - 48};
       const px = (t) => r.x + (t - t0) / span * r.w, py = (v) => r.y + r.h / 2 - v * (r.h / 2);
       const calm = g.tir && i === 1;
-      text(ctx, nm + ' · ' + where + (calm ? ' — 잔잔함 (굴절파 없음)' : ' — T = ' + fmt(T, 2) + ' s'), 12, top + 14, {size: 13.5, w: 700, align: 'left', color: C.copper});
+      text(ctx, nm + ' · ' + where + (calm ? ' — 잔잔함 (굴절파 없음)' : ' — T = ' + fmt(T, 2) + ' s'), 12, top + 14, {size: 13.5, w: 600, align: 'left', color: C.copper});
       arrow(ctx, r.x, py(0), r.x + r.w + 8, py(0), C.muted, 1.2, 6);
       arrow(ctx, r.x, r.y + r.h + 4, r.x, r.y - 6, C.muted, 1.2, 6);
       text(ctx, 't', r.x + r.w + 6, py(0) - 11, {size: 13, w: 600, color: C.muted, align: 'right'});
@@ -502,25 +519,30 @@
       if (!(g.tir && X[1] < g.yB) && px(tc - T) >= r.x) Lab.bracket(ctx, px(tc - T), px(tc), r.y + r.h + 9, C.copper, '', false);
     });
   }
-  function drawArea(ctx, W, H) {
+
+  // ── 관찰 4: n sinθ 넓이 (여러 층) ───────────────────────
+  const areaV = Lab.canvas('area', drawArea);
+  function drawArea() {
+    const {ctx, W, H} = areaV; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
     const ns = [1, S.nA, S.nB, S.nC, 1], th = M.layers(ns, S.th0), K = M.invariant(1, S.th0);
     const r = {x: 12, y: 50, w: W - 24, h: H - 50 - 48}, gap = 6, sx = (r.w - gap * 4) / ns.reduce((a, b) => a + b, 0), base = r.y + r.h;
     const iMax = [1, 2, 3].reduce((m, i) => (th[i] < th[m] ? i : m), 1);
-    text(ctx, '넓이 = n × sinθ = ' + fmt(K, 2) + ' (모두 같다)', W / 2, 16, {size: 14, w: 700, color: C.acc});
+    text(ctx, '넓이 = n × sin θ = ' + fmt(K, 2) + ' (모두 같다)', W / 2, 16, {size: 14, w: 600, color: C.acc});
     Lab.line(ctx, [[r.x, base], [r.x + r.w, base]], C.muted, 1.2);
     let x = r.x;
     ns.forEach((n, i) => {
-      const w = n * sx, hh = M.sinD(th[i]) * r.h, hot = i === iMax;
+      const w = n * sx, hh = M.sinD(th[i]) * r.h, hot = i === iMax && S.th0 >= 0.5;
       ctx.save(); ctx.fillStyle = C['acc-soft']; ctx.fillRect(x, base - hh, w, hh);
       ctx.strokeStyle = hot ? C.copper : C.acc; ctx.lineWidth = hot ? 3 : 1.8; ctx.strokeRect(x, base - hh, w, hh); ctx.restore();
-      text(ctx, fmt(M.sinD(th[i]), 2), x + w / 2, base - hh - 11, {size: 13, w: 600, color: C.muted, mono: true});
-      text(ctx, NAMES[i], x + w / 2, base + 14, {size: 14, w: 700, color: hot ? C.copper : C.ink});
-      text(ctx, fmt(n, 2), x + w / 2, base + 33, {size: 13, w: 600, color: C.muted, mono: true});
+      text(ctx, fmt(M.sinD(th[i]), 2), x + w / 2, base - hh - 11, {size: 13, w: 500, color: C.muted});
+      text(ctx, NAMES[i], x + w / 2, base + 14, {size: 14, w: 600, color: hot ? C.copper : C.ink});
+      text(ctx, fmt(n, 2), x + w / 2, base + 33, {size: 13, w: 500, color: C.muted});
       x += w + gap;
     });
   }
 
-  // ── sin r–sin i 그래프 ──────────────────────────────────
+  // ── 관찰 3: sin r–sin i 그래프 ──────────────────────────
   const sg = Lab.canvas('sg', drawSG);
   function drawSG() {
     const {ctx, W, H} = sg; if (!W) return;
@@ -533,40 +555,41 @@
     if (S.scene === 'wave') {
       const k = S.rev ? 1 / S.rat : S.rat, e = k > 1 ? [1 / k, 1] : [1, k];
       Lab.line(ctx, [P(0, 0), P(...e)], C.vel, 3.2);
-      text(ctx, '기울기 v₂/v₁ = ' + ratStr(k), r.x + 14, r.y + 30, {size: 14, w: 700, color: C.vel, align: 'left', halo: true});
+      text(ctx, '기울기 v₂/v₁ = ' + ratStr(k), r.x + 14, r.y + 30, {size: 14, w: 600, color: C.vel, align: 'left', halo: true});
       if (k > 1) {
         Lab.line(ctx, [P(e[0], 1), P(e[0], 0)], C.neg, 1.4, [4, 4]);
         Lab.circle(ctx, ax.X(e[0]), ax.Y(1), 6, {fill: C.neg});
-        text(ctx, '끝: sin i = ' + fmt(e[0], 2) + ' (임계각)', ax.X(e[0]) - 8, ax.Y(1) - 14, {size: 13, w: 700, color: C.neg, align: 'right', halo: true});
+        text(ctx, '끝: sin i = ' + fmt(e[0], 2) + ' (임계각)', ax.X(e[0]) - 8, ax.Y(1) - 14, {size: 13, w: 600, color: C.neg, align: 'right', halo: true});
       }
       const x = M.sinD(S.th), y = k * x;
       if (y <= 1 + 1e-9) {
         Lab.line(ctx, [P(x, 0), P(x, y), P(0, y)], C.copper, 1.4, [4, 4]);
         Lab.circle(ctx, ax.X(x), ax.Y(y), 6.5, {fill: C.copper, stroke: C.paper, width: 2});
-        text(ctx, '(' + fmt(x, 2) + ', ' + fmt(y, 2) + ')', ax.X(x) + (x > 0.55 ? -10 : 10), ax.Y(y) + (k > 1 ? 16 : -15), {size: 13, w: 700, color: C.copper, align: x > 0.55 ? 'right' : 'left', halo: true, mono: true});
+        text(ctx, '(' + fmt(x, 2) + ', ' + fmt(y, 2) + ')', ax.X(x) + (x > 0.55 ? -10 : 10), ax.Y(y) + (k > 1 ? 16 : -15), {size: 13, w: 600, color: C.copper, align: x > 0.55 ? 'right' : 'left', halo: true});
       } else {
         Lab.circle(ctx, ax.X(x), ax.Y(0), 6, {fill: C.neg});
-        text(ctx, '굴절 없음', ax.X(x), ax.Y(0) - 16, {size: 13, w: 700, color: C.neg, halo: true});
+        text(ctx, '굴절 없음', ax.X(x), ax.Y(0) - 16, {size: 13, w: 600, color: C.neg, halo: true});
       }
     } else {
       const x = M.sinD(S.th0), ns = [S.nA, S.nB, S.nC];
       ns.forEach((n, i) => {
         const s = 1 / n;
         ctx.save(); ctx.globalAlpha = 0.75; Lab.line(ctx, [P(0, 0), P(1, s)], C.vel, 2.2); ctx.restore();
-        text(ctx, NAMES[i + 1], ax.X(1) + 7, ax.Y(s), {size: 14, w: 700, color: C.vel, align: 'left'});
+        text(ctx, NAMES[i + 1], ax.X(1) + 7, ax.Y(s), {size: 14, w: 600, color: C.vel, align: 'left'});
       });
       Lab.line(ctx, [P(x, 0), P(x, 1)], C.copper, 1.4, [4, 4]);
       const pts = ns.map((n, i) => [x / n, i]).sort((a, b) => a[0] - b[0]);
       pts.forEach(([y, i], j) => {
         Lab.circle(ctx, ax.X(x), ax.Y(y), 6, {fill: C.copper, stroke: C.paper, width: 2});
-        text(ctx, NAMES[i + 1], ax.X(x) - 12 - (j % 2) * 16, ax.Y(y), {size: 13.5, w: 700, color: C.copper, align: 'right', halo: true});
+        text(ctx, NAMES[i + 1], ax.X(x) - 12 - (j % 2) * 16, ax.Y(y), {size: 13.5, w: 600, color: C.copper, align: 'right', halo: true});
       });
-      text(ctx, '공기 → 층 (기울기 1/n)', r.x + 14, r.y + 30, {size: 14, w: 700, color: C.vel, align: 'left', halo: true});
+      text(ctx, '공기 → 층 (기울기 1/n)', r.x + 14, r.y + 30, {size: 14, w: 600, color: C.vel, align: 'left', halo: true});
     }
   }
 
-  // ── 수치 ────────────────────────────────────────────────
+  // ── 지금 값 ─────────────────────────────────────────────
   const set = (i, l, v) => { $('l' + i).textContent = l; $('r' + i).textContent = v; };
+  const sinStr = (d) => 'sin ' + fmt(d, 1) + '°';
   function readouts() {
     $('thOut').textContent = fmt(S.th, 1) + '°';
     $('lamOut').textContent = (Math.abs(S.lam - 2 * R3) < 1e-9 ? '2√3 (≈ 3.46)' : fmt(S.lam, 2)) + ' cm';
@@ -575,45 +598,71 @@
     ['nA', 'nB', 'nC'].forEach((k) => { $(k + 'Out').textContent = S[k].toFixed(2); });
     if (S.scene === 'wave') {
       const k = S.rev ? 1 / S.rat : S.rat, w = M.wave(S.th, S.lam, k), tir = Number.isNaN(w.th2);
+      const from = S.rev ? '얕은 곳' : '깊은 곳', to = S.rev ? '깊은 곳' : '얕은 곳';
       set(1, '입사각 θ₁', fmt(S.th, 1) + '°');
       set(2, '굴절각 θ₂', tir ? '없음' : fmt(w.th2, 1) + '°');
       set(3, '입사 쪽 파장 λ₁', lamStr(S.lam) + ' cm');
       set(4, '굴절 쪽 파장 λ₂', tir ? '–' : fmt(w.lam2, 2) + ' cm');
       set(5, 'v₂/v₁ = λ₂/λ₁', ratStr(k));
       set(6, '진동수 f (두 곳 같음)', FREQ + ' Hz');
-      $('rank').hidden = true;
+      $('ansLab').textContent = to + '의 파장';
+      const o = {ctx: from + ' → ' + to + ' · f = ' + FREQ + ' Hz', f: 'sin θ₁ : sin θ₂ = λ₁ : λ₂ (= v₁ : v₂) 에 지금 값을 넣으면'};
+      if (tir) {
+        Lab.ans('굴절파 없음', ['sin θ₂ = (v₂/v₁) × sin θ₁ = ' + ratStr(k) + ' × sin <em>' + fmt(S.th, 1) + '°</em> = <em>' + fmt(k * M.sinD(S.th), 3) + '</em> &gt; 1',
+          '→ <em>전반사</em>: 물결이 모두 되돌아온다 (sin i 가 ' + fmt(1 / k, 2) + ' 보다 크면)'], Object.assign(o, {tone: 'neg'}));
+      } else if (S.th < 0.5) {
+        Lab.ans('λ₂ = ' + fmt(w.lam2, 2) + ' cm', ['수직으로 들어가면 꺾이지 않고 파장만 바뀐다',
+          'λ₂ = λ₁ × v₂/v₁ = ' + lamStr(S.lam) + ' × ' + ratStr(k) + ' = <em>' + fmt(w.lam2, 2) + ' cm</em>'], o);
+      } else {
+        Lab.ans('λ₂ = ' + fmt(w.lam2, 2) + ' cm', [
+          'sin <em>' + fmt(S.th, 1) + '°</em> : sin <em>' + fmt(w.th2, 1) + '°</em> = <em>' + lamStr(S.lam) + ' cm</em> : λ₂',
+          'λ₂ = ' + lamStr(S.lam) + ' × ' + sinStr(w.th2) + ' ÷ ' + sinStr(S.th) + ' = <em>' + fmt(w.lam2, 2) + ' cm</em>',
+          'v₂/v₁ = λ₂/λ₁ = <em>' + ratStr(k) + '</em> (진동수는 두 곳에서 같다)'], o);
+      }
       $('hud1').textContent = 't = ' + S.t.toFixed(3) + ' s'; $('hud2').textContent = tir ? '전반사' : '느린 화면 ×' + S.slow;
       $('hud2').className = 'pill' + (tir ? ' down' : '');
     } else {
       const ns = [1, S.nA, S.nB, S.nC, 1], th = M.layers(ns, S.th0), K = M.invariant(1, S.th0);
       set(1, '공기에서 입사각 θ₀', fmt(S.th0, 1) + '°');
-      set(2, 'n sinθ (모든 층)', fmt(K, 3));
+      set(2, 'n sin θ (모든 층)', fmt(K, 3));
       ['A', 'B', 'C'].forEach((nm, i) => set(3 + i, '층 ' + nm + ' 의 각 (n = ' + fmt(ns[i + 1], 2) + ')', fmt(th[i + 1], 1) + '°'));
       set(6, '다시 공기로 나온 각', fmt(th[4], 1) + '°');
-      const rk = $('rank'); rk.hidden = false;
-      rk.textContent = '굴절률 큰 순: ' + M.rankByAngle(['A', 'B', 'C'], th.slice(1, 4)).join(' > ') + '  (각이 작은 순)';
-      $('hud1').textContent = 'n sinθ = ' + fmt(K, 3); $('hud2').textContent = '느린 층에서 느린 빛'; $('hud2').className = 'pill';
+      $('ansLab').textContent = '굴절률 큰 순서';
+      const o = {ctx: '공기 → A → B → C → 공기', f: '평행한 층에서는 n sin θ 가 모든 층에서 같으므로'};
+      if (S.th0 < 0.5) {
+        Lab.ans('각으로는 알 수 없다', ['수직으로 들어가면 모든 층에서 θ = 0° 라 꺾이지 않는다', '비스듬히 보내야 각의 크기로 굴절률을 비교할 수 있다'], Object.assign(o, {tone: 'ink'}));
+      } else {
+        const rank = M.rankByAngle(['A', 'B', 'C'], th.slice(1, 4));
+        Lab.ans(rank.join(' > '), [
+          'n sin θ = 1 × sin <em>' + fmt(S.th0, 1) + '°</em> = <em>' + fmt(K, 2) + '</em>',
+          '각: A <em>' + fmt(th[1], 1) + '°</em> · B <em>' + fmt(th[2], 1) + '°</em> · C <em>' + fmt(th[3], 1) + '°</em>',
+          '각이 작은 순 = 굴절률이 큰 순 → <em>' + rank.join(' > ') + '</em>'], o);
+      }
+      $('hud1').textContent = 'n sin θ = ' + fmt(K, 3); $('hud2').textContent = '느린 층에서 느린 빛'; $('hud2').className = 'pill';
     }
     const ok = S.scene === 'wave' && !S.rev && Math.abs(S.th - EX.th) < 1e-9 && Math.abs(S.lam - EX.lam) < 1e-9 && Math.abs(S.rat - EX.rat) < 1e-9;
     Lab.check('exCheck', ok, '개념서 예제 (깊은 곳 60°, λ₁ = 2√3 cm → 굴절각 30°) → 얕은 곳 파장 λ₂ = 2 cm',
-      '예제: 입사각 60°, 파장 2√3 cm 인 물결파가 얕은 곳에서 30°로 꺾이면 λ₂ 는? — ‘스스로 확인 1’로 돌아갈 수 있어요');
+      '예제: 입사각 60°, 파장 2√3 cm 인 물결파가 얕은 곳에서 30°로 꺾이면 λ₂ 는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
   }
-  const CAP = {
-    wave: ['P·Q 의 y-t 그래프', '깊이가 달라도', '위 영역의 P 와 아래 영역의 Q 는 주기 T 가 같다(진동수는 파원이 정함). 그래서 느린 얕은 곳에서는 λ = vT 가 짧다.',
-      '물결파', '원점을 지나는 직선, 기울기 = v₂/v₁ (빛이면 n₁/n₂). 얕은 곳 → 깊은 곳(기울기 > 1)은 sin r = 1 에서 끝나고, 그 sin i 가 임계각의 사인이다.'],
-    layers: ['n sinθ 넓이', '가로 n · 세로 sinθ', '모든 직사각형의 넓이(n × sinθ)가 같다. 넓을수록(굴절률이 클수록) 낮다(각이 작다). 구리색 = 굴절률이 가장 큰 층.',
-      '공기 → 각 층', '공기에서 각 층으로 들어갈 때의 직선(기울기 1/n). 같은 입사각(세로 점선)에서 점이 낮을수록 굴절률이 크다.'],
+  const LEG = {
+    wave: '<span><b style="background:var(--violet)"></b>마루선</span><span><i style="background:var(--copper)"></i>따라가는 마루선 · P·Q</span><span><b style="background:var(--vel)"></b>진행 방향</span><span><b style="background:var(--acc)"></b>수면 높이(P·Q)</span>',
+    layers: '<span><b style="background:var(--vel)"></b>빛의 경로</span><span><i style="background:var(--copper)"></i>빛 펄스</span><span><b style="background:var(--muted)"></b>처음 방향 연장선</span><span><b style="background:var(--acc)"></b>n sin θ</span>',
+  };
+  const SGC = {
+    wave: '지금은 물결파: 기울기 = v₂/v₁ 이다(빛이면 n₁/n₂). 구리색 점이 지금 입사각이다. 얕은 곳 → 깊은 곳으로 바꾸면 기울기가 1 보다 커진다.',
+    layers: '지금은 여러 층의 빛: 공기에서 각 층으로 들어갈 때의 직선(기울기 1/n)이다. 같은 입사각(세로 점선)에서 점이 낮을수록 굴절률이 크다.',
   };
   function setScene(v) {
     S.scene = v;
     const w = v === 'wave';
-    $('ctlW').hidden = !w; $('ctlL').hidden = w; $('legW').hidden = !w; $('legL').hidden = w;
-    $('step').textContent = w ? '¼ 주기 앞으로' : '빛 다시 쏘기';
-    const c = CAP[v];
-    $('midT').textContent = c[0]; $('midS').textContent = c[1]; $('midC').textContent = c[2]; $('sgS').textContent = c[3]; $('sgC').textContent = c[4];
+    $('ctlW').hidden = !w; $('ctlL').hidden = w; $('slTh').hidden = !w; $('slTh0').hidden = w;
+    $('legend').innerHTML = LEG[v];
+    $('legend').classList.toggle('col', w);       // 물결파는 세로 한 줄씩, 여러 층은 아래 공기층 이름을 가리지 않게 가로 한 줄
+    $('step').textContent = w ? '¼ 주기 앞으로 ▸' : '빛 다시 쏘기 ▸';
+    $('sgC').textContent = SGC[v];
     sceneG.set(v, true);
   }
-  function drawAll() { drawStage(); drawMid(); drawSG(); }
+  function drawAll() { drawStage(); drawMid(); drawArea(); drawSG(); }
   function refresh() { readouts(); drawAll(); }
 
   // ── 조작 ────────────────────────────────────────────────

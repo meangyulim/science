@@ -6,179 +6,203 @@
 <title>생활 속 굴절 현상</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
 <style>
-/* Layout: 왼쪽 무대(소리·신기루·물 여섯 장면)와 조작판, 오른쪽 수치·높이별 속력·파면 조각 확대·한 원칙 표 */
+/* 관찰 노트: 왼쪽 실험대(소리·신기루·물 여섯 장면, 구리색 파면 조각을 따라간다) | 오른쪽 지금 값 + 관찰 ①~④ → 정리(한 원칙, 여섯 장면) → 개념 체크 → 스스로 확인 */
 #stage{aspect-ratio:16/10.8}
-#prof{aspect-ratio:10/6.4}
 #zoom{aspect-ratio:10/6.4}
-.ro b.txt{font-family:var(--font-ui);font-weight:700}
-.status.good{color:var(--acc)} .status.bad{color:var(--neg)}
-.rules{width:100%;border-collapse:collapse;font-size:14px;line-height:1.45}
+#prof{aspect-ratio:10/6.4}
+/* 정리 카드의 표: 지금 장면의 줄을 구리색으로 */
+.rules{width:100%;border-collapse:collapse;font-size:14px;line-height:1.45;margin-top:8px}
 .rules th{font-size:13px;color:var(--muted);font-weight:600;text-align:left;padding:5px 6px;border-bottom:1px solid var(--line)}
-.rules td{padding:7px 6px;border-bottom:1px solid var(--line-soft)}
-.rules tr.on td{background:var(--copper-soft);font-weight:700}
-.rules tr.on td:first-child{color:var(--copper)}
-@media (max-width:640px){ #stage{aspect-ratio:1/1.12} }
+.rules td{padding:7px 6px;border-bottom:1px solid var(--line-soft);color:var(--ink-2)}
+.rules tr.on td{background:var(--copper-soft);color:var(--ink)}
+.rules tr.on td:first-child{color:var(--copper-ink);font-weight:600}
+@media (max-width:640px){ .rules{font-size:13px} .rules th,.rules td{padding:6px 4px} }
 </style>
 </head>
-<body>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← 물리 실험실</a>
+  <nav class="unitnav" aria-label="III1 파동의 성질과 활용: 개념 12개 가운데 5번째"><a class="uname" href="../">III1 파동의 성질과 활용</a><span class="dots"><a href="../01/" title="III1-01 횡파와 종파" aria-label="III1-01 횡파와 종파"></a><a href="../02/" title="III1-02 파동 그래프와 진행 방향" aria-label="III1-02 파동 그래프와 진행 방향"></a><a href="../03/" title="III1-03 매질이 바뀔 때" aria-label="III1-03 매질이 바뀔 때"></a><a href="../04/" title="III1-04 굴절과 스넬 법칙" aria-label="III1-04 굴절과 스넬 법칙"></a><a class="cur" href="./" aria-current="page" title="III1-05 생활 속 굴절 현상" aria-label="III1-05 생활 속 굴절 현상 (지금)"></a><a href="../06/" title="III1-06 여러 매질의 굴절" aria-label="III1-06 여러 매질의 굴절"></a><a href="../07/" title="III1-07 전반사와 광섬유" aria-label="III1-07 전반사와 광섬유"></a><a href="../08/" title="III1-08 전자기파와 스펙트럼" aria-label="III1-08 전자기파와 스펙트럼"></a><a href="../09/" title="III1-09 전자기파의 이용" aria-label="III1-09 전자기파의 이용"></a><a href="../10/" title="III1-10 중첩 원리" aria-label="III1-10 중첩 원리"></a><a href="../11/" title="III1-11 물결파·소리의 간섭" aria-label="III1-11 물결파·소리의 간섭"></a><a href="../12/" title="III1-12 빛의 간섭" aria-label="III1-12 빛의 간섭"></a></span></nav>
+  <div class="pn"><a href="../04/" rel="prev" title="이전 개념: III1-04 굴절과 스넬 법칙">‹ <span>04 굴절과 스넬 법칙</span></a><a href="../06/" rel="next" title="다음 개념: III1-06 여러 매질의 굴절"><span>06 여러 매질의 굴절</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
 <div class="page">
-  <header class="top">
-    <a class="back" href="../../">← 물리 실험실</a>
-    <div class="crumbs"><span class="id">III1-05</span><span class="kicker">물리학 Ⅰ · 파동의 성질과 활용</span></div>
+  <div class="title">
+    <div class="crumb"><span class="id">III1-05</span><span>물리학 Ⅰ · 파동의 성질과 활용</span></div>
     <h1>생활 속 굴절 현상</h1>
-    <p class="lead">밤에 멀리서 들리는 소리, 뜨거운 도로의 신기루, 얕아 보이는 물은 모두 한 원칙이다. 구리색 <b>파면 조각</b>을 따라가 보면 느린 쪽 끝이 뒤처지면서 파면이 돌아가고, 파동이 <b>속력이 느린 쪽으로 휘는</b> 것이 보인다.</p>
-  </header>
+    <p class="question"><i>Q</i>신기루, 밤에 잘 들리는 소리, 얕아 보이는 물은 모두 같은 원리일까?</p>
+  </div>
 
-  <main class="lab">
-    <div class="left">
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
       <div class="stage">
-        <canvas id="stage" aria-label="층을 이룬 공기와 물을 지나는 파동. 파면과 경로가 속력이 느린 쪽으로 휜다."></canvas>
-        <div class="hud"><span class="pill" id="hudCase">밤의 소리</span><span class="pill" id="hudNote">휘는 정도 과장</span></div>
+        <canvas id="stage" aria-label="층을 이룬 공기와 물을 지나는 파동. 구리색 파면 조각의 느린 쪽 끝이 뒤처져 파면과 경로가 속력이 느린 쪽으로 휜다. 무대를 끌면 듣는 사람이나 눈이 움직인다."></canvas>
+        <div class="hud"><span class="pill" id="hudCase">밤의 소리 (지면이 차가움)</span><span class="pill" id="hudNote">휘는 정도 과장</span></div>
         <div class="legend" id="legend">
           <span><i style="background:var(--copper)"></i>따라가는 파면 조각</span>
           <span id="legWave"><b style="background:var(--violet)"></b>파면</span>
           <span><b style="background:var(--vel)"></b><em id="legRay" style="font-style:normal">소리의 경로</em></span>
         </div>
+        <span class="nowstep" id="nowstep" hidden></span>
       </div>
-
-      <div class="controls">
-        <div class="row">
+      <div class="dock">
+        <div class="row r1">
           <button type="button" class="play" id="play" aria-pressed="true"></button>
-          <button type="button" class="btn" id="step">한 걸음 앞으로</button>
-          <div class="group" role="group" aria-label="소리">
-            <span class="gl">소리</span>
-            <button type="button" class="btn" data-case="day" aria-pressed="false">낮</button>
-            <button type="button" class="btn" data-case="night" aria-pressed="true">밤</button>
-          </div>
-          <div class="group" role="group" aria-label="신기루">
-            <span class="gl">신기루</span>
-            <button type="button" class="btn" data-case="road" aria-pressed="false">뜨거운 도로</button>
-            <button type="button" class="btn" data-case="sea" aria-pressed="false">차가운 바다</button>
-          </div>
-          <div class="group" role="group" aria-label="물">
-            <span class="gl">물</span>
-            <button type="button" class="btn" data-case="coin" aria-pressed="false">물 밖에서 동전</button>
-            <button type="button" class="btn" data-case="bird" aria-pressed="false">물속에서 새</button>
-          </div>
+          <div class="slider" id="slTg"><label for="tg"><span id="tgWhere">지면</span><span class="lg" id="tgRest"> 근처 기온</span></label><input id="tg" type="range" min="-10" max="60" step="1" value="6"><output id="tgOut">6 °C</output></div>
+          <div class="slider" id="slView" hidden><label for="view"><span class="lg">눈이 </span>보는 각</label><input id="view" type="range" min="0" max="60" step="1" value="30"><output id="viewOut">30°</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·보기</span><span class="sm">장면</span></button>
         </div>
-        <div class="row" id="rowTemp">
-          <div class="grow">
-            <label class="ctl-label" for="tg"><span id="tgName">지면 근처 기온</span> <output id="tgOut">6 °C</output></label>
-            <input id="tg" type="range" min="-10" max="60" step="1" value="6">
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 보기">
+          <div class="sheet-head"><b>장면 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="소리">
+              <span class="gl">소리</span>
+              <button type="button" class="btn" data-case="night" aria-pressed="true">밤</button>
+              <button type="button" class="btn" data-case="day" aria-pressed="false">낮</button>
+            </div>
+            <div class="group" role="group" aria-label="신기루">
+              <span class="gl">신기루</span>
+              <button type="button" class="btn" data-case="road" aria-pressed="false">뜨거운 도로</button>
+              <button type="button" class="btn" data-case="sea" aria-pressed="false">차가운 바다</button>
+            </div>
+            <div class="group" role="group" aria-label="물">
+              <span class="gl">물</span>
+              <button type="button" class="btn" data-case="coin" aria-pressed="false">물 밖에서 동전</button>
+              <button type="button" class="btn" data-case="bird" aria-pressed="false">물속에서 새</button>
+            </div>
           </div>
-          <div class="grow">
-            <label class="ctl-label" for="tt"><span id="ttName">위쪽 기온</span> <output id="ttOut">18 °C</output></label>
-            <input id="tt" type="range" min="-10" max="60" step="1" value="18">
+          <div class="row">
+            <div class="grow" id="rowTt">
+              <label class="ctl-label" for="tt"><span id="ttName">위쪽 기온</span> <output id="ttOut">18 °C</output></label>
+              <input id="tt" type="range" min="-10" max="60" step="1" value="18">
+            </div>
+            <div class="grow" id="rowDep" hidden>
+              <label class="ctl-label" for="dep"><span id="depName">동전의 실제 깊이</span> <output id="depOut">1.2 m</output></label>
+              <input id="dep" type="range" min="0.4" max="1.6" step="0.05" value="1.2">
+            </div>
+            <button type="button" class="btn" id="step">한 걸음 앞으로 ▸</button>
           </div>
-        </div>
-        <div class="row" id="rowWater" hidden>
-          <div class="grow">
-            <label class="ctl-label" for="dep"><span id="depName">동전의 실제 깊이</span> <output id="depOut">1.2 m</output></label>
-            <input id="dep" type="range" min="0.4" max="1.6" step="0.05" value="1.2">
+          <div class="toggles">
+            <label class="chk" id="chkWave"><input type="checkbox" id="cWave" checked>파면</label>
+            <label class="chk"><input type="checkbox" id="cRay" checked>경로(광선)</label>
+            <label class="chk"><input type="checkbox" id="cSeg" checked>파면 조각 따라가기</label>
           </div>
-          <div class="grow">
-            <label class="ctl-label" for="view"><span id="viewName">보는 각 (연직에서 기운 정도)</span> <output id="viewOut">30°</output></label>
-            <input id="view" type="range" min="0" max="60" step="1" value="30">
-          </div>
-        </div>
-        <div class="row toggles">
-          <label class="chk" id="chkWave"><input type="checkbox" id="cWave" checked>파면</label>
-          <label class="chk"><input type="checkbox" id="cRay" checked>경로(광선)</label>
-          <label class="chk"><input type="checkbox" id="cSeg" checked>파면 조각 따라가기</label>
-          <span class="spacer"></span>
-          <span class="cap" id="dragHint" style="margin:0">무대를 끌면 듣는 사람이 움직인다</span>
         </div>
       </div>
-    </div>
+    </section>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>지금 수치</h2>
-        <div class="readouts">
-          <div class="ro"><span id="r1n">지면 근처 소리 속력</span><b id="r1">335 m/s</b></div>
-          <div class="ro"><span id="r2n">위쪽 소리 속력</span><b id="r2">342 m/s</b></div>
-          <div class="ro cu"><span id="r3n">느린 쪽</span><b id="r3" class="txt">지면 쪽</b></div>
-          <div class="ro vel"><span id="r4n">휘는 방향</span><b id="r4" class="txt">아래로</b></div>
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 휘는 방향</span><span id="ansCtx">밤의 소리 · 지면 6 °C, 위 18 °C</span></div>
+        <div class="big" id="ansBig">아래로 휜다</div>
+        <div class="sub">
+          <span class="f" id="ansF">소리의 속력 v = 331 + 0.6t (t: 기온 °C)로 느린 쪽을 찾으면</span>
+          <span id="ansLines"><span class="v">지면 근처: 331 + 0.6 × <em>6</em> = <em>334.6 m/s</em></span><span class="v">위쪽: 331 + 0.6 × <em>18</em> = <em>341.8 m/s</em></span><span class="v">느린 쪽 = <em>지면 쪽</em> → 아래로 휘어 내려와 멀리까지 닿는다</span></span>
         </div>
-        <p class="status" id="result" style="margin-top:10px"></p>
+        <div class="minis">
+          <div class="mini"><span id="r1n">지면 근처 소리 속력</span><b id="r1">334.6 m/s</b></div>
+          <div class="mini"><span id="r2n">위쪽 소리 속력</span><b id="r2">341.8 m/s</b></div>
+          <div class="mini"><span id="r3n">느린 쪽 = 휘는 쪽</span><b id="r3">지면 쪽 (아래)</b></div>
+          <div class="mini"><span id="r4n">멀리 있는 사람</span><b id="r4">잘 들림</b></div>
+        </div>
         <p class="check" id="exCheck"></p>
-      </section>
-      <section class="panel">
-        <h2>높이에 따른 속력 <small id="profSub">느린 쪽이 휘는 쪽</small></h2>
-        <canvas class="flat" id="prof" aria-label="높이에 따른 파동의 속력. 느린 쪽을 화살표로 표시."></canvas>
-        <p class="cap" id="profCap">구리색 가로선은 지금 따라가는 파면 조각의 높이. 속력이 높이에 따라 다르면 파면의 두 끝이 서로 다른 빠르기로 나아간다.</p>
-      </section>
-      <section class="panel">
-        <h2>파면 조각 확대 <small>느린 끝이 뒤처진다</small></h2>
-        <canvas class="flat" id="zoom" aria-label="따라가는 파면 조각을 크게 본 모습. 두 끝의 속력 화살표와 지나온 자리."></canvas>
-        <p class="cap">흐린 구리색은 조금 전 자리. 느린 쪽 끝이 덜 가서 파면이 돌아가고, 파면에 수직인 진행 방향(파란 선)이 <b>느린 쪽으로</b> 꺾인다.</p>
-      </section>
-      <section class="panel wide">
-        <h2>한 원칙, 여섯 장면 <small>파동은 느린 쪽으로 휜다</small></h2>
-        <table class="rules" aria-label="현상별 느린 쪽과 휘는 방향">
-          <thead><tr><th>현상</th><th>느린 쪽</th><th>휘는 방향</th><th>결과</th></tr></thead>
-          <tbody>
-            <tr data-row="day"><td>낮의 소리</td><td>위쪽 찬 공기</td><td>위로</td><td>멀리서 잘 안 들림</td></tr>
-            <tr data-row="night"><td>밤의 소리</td><td>지면 근처 찬 공기</td><td>아래로</td><td>멀리까지 잘 들림</td></tr>
-            <tr data-row="road"><td>뜨거운 도로</td><td>위쪽 공기</td><td>위로</td><td>땅 아래에 거꾸로 선 상</td></tr>
-            <tr data-row="sea"><td>차가운 바다</td><td>해수면 근처 공기</td><td>아래로</td><td>공중에 뜬 상</td></tr>
-            <tr data-row="coin"><td>물속 동전</td><td>물</td><td>공기로 나오며 법선에서 멀어짐</td><td>얕아 보임</td></tr>
-            <tr data-row="bird"><td>물속에서 본 새</td><td>물</td><td>물로 들어오며 법선 쪽으로</td><td>높아 보임</td></tr>
-          </tbody>
-        </table>
-      </section>
-    </aside>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 느린 끝이 뒤처진다">
+          <div class="kind">관찰 1</div>
+          <h3>파면의 느린 쪽 끝이 뒤처진다</h3>
+          <p>밤에 멀리서 들리는 소리, 뜨거운 도로의 신기루, 얕아 보이는 물은 모두 한 원칙이다. 무대의 구리색 <b>파면 조각</b>을 따라가 보자. 조각의 두 끝이 속력이 다른 곳에 걸쳐 있으면 느린 쪽 끝이 덜 가서 파면이 돌아가고, 파면에 수직인 진행 방향이 느린 쪽으로 꺾인다.</p>
+          <canvas class="flat" id="zoom" aria-label="따라가는 파면 조각을 크게 본 모습. 두 끝의 속력 화살표와 지나온 자리."></canvas>
+          <p class="cap">흐린 구리색은 조금 전 자리이고, 파란 화살표 길이가 두 끝의 속력이다(속력 차이는 과장했다). 그래서 파동은 늘 속력이 느린 쪽으로 휘어 들어간다.</p>
+          <div class="acts"><button type="button" class="btn go" data-do="click:#step">한 걸음씩 ▸</button><button type="button" class="btn" data-do="check:#cSeg">파면 조각 켜기</button></div>
+        </li>
+        <li class="card step" data-step="② 밤과 낮의 소리">
+          <div class="kind">관찰 2</div>
+          <h3>소리는 차가운 쪽으로 휜다</h3>
+          <p>소리는 따뜻한 공기에서 빠르다. 밤에는 지면 근처가 차가워 위로 퍼지던 소리가 아래로 휘어 내려오므로 <b>멀리까지 잘 들린다</b>. 낮에는 지면이 따뜻하고 위가 차가워 소리가 위로 휘므로 멀리서는 잘 안 들린다(소리 그늘). 기온이 높이에 상관없이 같으면 휘지 않는다.</p>
+          <canvas class="flat" id="prof" aria-label="높이에 따른 파동의 속력. 느린 쪽을 화살표로 표시."></canvas>
+          <p class="cap" id="profCap">구리색 가로선은 지금 따라가는 파면 조각의 높이다. 소리는 기온이 1 °C 오를 때 약 0.6 m/s 빨라진다. 무대를 끌면 듣는 사람이 움직인다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-try="ex">밤</button>
+            <button type="button" class="btn" data-try="day">낮</button>
+            <button type="button" class="btn" data-try="flat">기온이 고르면</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 신기루">
+          <div class="kind">관찰 3</div>
+          <h3>빛도 느린 쪽으로 휜다: 신기루</h3>
+          <p>공기는 뜨거울수록 밀도가 작아 빛이 조금 빨라진다. 뜨거운 도로 위에서는 지면 근처에서 빛이 빠르므로 아래로 가던 빛이 위쪽(느린 쪽)으로 휘어 눈에 들어온다. 차가운 바다 위에서는 해수면 근처가 느려 위로 가던 빛이 아래로 휜다.</p>
+          <p class="cap">눈은 빛이 곧게 왔다고 여겨, 들어온 방향을 거꾸로 곧게 연장한 곳(파란 점선)에 물체가 있다고 느낀다. 그래서 도로에서는 땅 아래에 거꾸로 선 상(물웅덩이처럼)이, 바다에서는 공중에 뜬 배가 보인다. 실제 속력 차이는 0.01 %도 안 되어 그림은 크게 과장했다. 무대를 끌면 눈 높이가 바뀐다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-try="road">뜨거운 도로</button>
+            <button type="button" class="btn" data-try="sea">차가운 바다</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 얕아 보이는 물">
+          <div class="kind">관찰 4</div>
+          <h3>눈은 꺾인 빛을 곧게 거슬러 본다</h3>
+          <p>경계가 하나일 때도 같다. 물속 동전에서 나온 빛은 느린 물에서 빠른 공기로 나오며 법선에서 멀어지게 꺾인다. 눈은 꺾인 두 빛을 거꾸로 곧게 연장해 만나는 곳, 곧 실제보다 <b>얕은 곳</b>에 동전이 있다고 느낀다. 물속 다리가 짧아 보이는 까닭이다.</p>
+          <p class="cap">반대로 물속에서 물 밖의 새를 보면 빛이 물로 들어오며 법선 쪽으로 꺾여 새가 실제보다 높아 보인다. 비스듬히 볼수록 차이가 커진다(보는 각 막대). 무대를 끌면 눈이 움직인다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-try="coin">물 밖에서 동전</button>
+            <button type="button" class="btn" data-try="bird">물속에서 새</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>한 원칙, 여섯 장면: 파동은 느린 쪽으로 휜다</h3>
+          <table class="rules" aria-label="현상별 느린 쪽과 휘는 방향">
+            <thead><tr><th>현상</th><th>느린 쪽</th><th>휘는 방향</th><th>결과</th></tr></thead>
+            <tbody>
+              <tr data-row="day"><td>낮의 소리</td><td>위쪽 찬 공기</td><td>위로</td><td>멀리서 잘 안 들림</td></tr>
+              <tr data-row="night"><td>밤의 소리</td><td>지면 근처 찬 공기</td><td>아래로</td><td>멀리까지 잘 들림</td></tr>
+              <tr data-row="road"><td>뜨거운 도로</td><td>위쪽 공기</td><td>위로</td><td>땅 아래에 거꾸로 선 상</td></tr>
+              <tr data-row="sea"><td>차가운 바다</td><td>해수면 근처 공기</td><td>아래로</td><td>공중에 뜬 상</td></tr>
+              <tr data-row="coin"><td>물속 동전</td><td>물</td><td>공기로 나오며 법선에서 멀어짐</td><td>얕아 보임</td></tr>
+              <tr data-row="bird"><td>물속에서 본 새</td><td>물</td><td>물로 들어오며 법선 쪽으로</td><td>높아 보임</td></tr>
+            </tbody>
+          </table>
+          <ul>
+            <li>소리는 찬 공기에서 느리고, 빛은 굴절률이 큰 쪽(찬 공기, 물)에서 느리다. 휘는 방향은 언제나 느린 쪽이다.</li>
+            <li>신기루와 얕아 보이는 물은 ‘빛이 휜다’와 ‘눈은 마지막에 들어온 방향의 연장선 위에 물체가 있다고 느낀다’, 이 두 가지로 모두 설명된다.</li>
+            <li>렌즈도 같은 굴절을 모양으로 조절한 것이다. 이산화 탄소 풍선은 소리를 모으는 볼록 렌즈처럼 작용한다. 어느 경우든 진동수는 그대로다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념 체크">
+          <div class="kind">개념 체크</div>
+          <h3>밤에는 낮보다 멀리서 나는 소리가 잘 들린다. 그 이유로 옳은 것은?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">밤 장면으로</button><button type="button" class="btn" data-try="day">낮과 비교</button><button type="button" class="btn" data-try="flat">기온이 고르면</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p><b>밤에는 지면 근처 공기가 차가워 소리가 아래쪽으로 휘어 내려오기 때문</b>이다. 소리는 따뜻한 공기에서 빠르고 파동은 느린 쪽(찬 쪽)으로 휜다. 낮에는 반대로 위로 휘어 멀리 있는 사람에게 소리가 닿지 않는 곳(소리 그늘)이 생긴다. 기온이 고르면 똑바로 퍼진다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>뜨거운 아스팔트 도로 멀리에 물웅덩이가 있는 것처럼 보이고, 그 속에 나무가 거꾸로 비친다. 무엇이 보이는 것이고 왜 거꾸로일까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="road">뜨거운 도로</button></div>
+            <details class="ans"><summary>답 보기</summary><p>지면 근처 뜨거운 공기에서 빛이 빨라, 아래로 가던 빛이 위쪽(느린 쪽)으로 휘어 눈에 들어온다. 눈은 연장선 끝, 곧 <b>땅 아래</b>에 물체가 있다고 느낀다. 나무 꼭대기에서 온 빛일수록 더 아래쪽에서 올라오므로 상이 거꾸로 선다. 물웅덩이처럼 보이는 것은 하늘이 비친 상이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>물속의 잠수부가 수면 위 공중에 떠 있는 새를 올려다본다. 새는 실제보다 어떻게 보일까?<span class="tagx">개념 체크</span></h3>
+            <div class="acts"><button type="button" class="btn" data-try="bird">물속에서 새 보기</button><button type="button" class="btn" data-try="coin">물 밖에서 동전 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>실제보다 높게 보인다.</b> 새의 빛은 공기에서 물로 들어가며 법선 쪽으로 꺾이고, 잠수부의 눈은 꺾인 빛을 거꾸로 곧게 연장한 더 높은 곳에 새가 있다고 느낀다. 물 밖에서 물속 동전이 얕아 보이는 것과 반대 방향의 착각이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>차가운 바다 위에서는 먼 배가 공중에 떠 보이기도 한다. 뜨거운 도로의 신기루와 무엇이 반대일까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="sea">차가운 바다</button><button type="button" class="btn" data-try="road">도로와 비교</button></div>
+            <details class="ans"><summary>답 보기</summary><p>느린 쪽이 반대다. 해수면 근처 찬 공기에서 빛이 느리므로 위로 가던 빛이 <b>아래로</b> 휘어 눈에 들어오고, 눈은 그 연장선 위쪽에 배가 있다고 느낀다(공중에 뜬 상). 뜨거운 도로는 지면 근처가 빨라 빛이 위로 휘고 상이 땅 아래에 생긴다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../04/" rel="prev"><small>← 이전 개념 · III1-04</small><b>굴절과 스넬 법칙</b></a><a href="../06/" rel="next"><small>다음 개념 · III1-06 →</small><b>여러 매질의 굴절</b></a></nav>
+<!-- /nextprev -->
+    </section>
   </main>
-
-  <section class="notes" aria-labelledby="notesTitle">
-    <h2 id="notesTitle">개념 정리</h2>
-    <div class="concepts">
-      <article class="concept">
-        <h3>한 원칙: 느린 쪽으로 휜다</h3>
-        <p>파면의 한쪽 끝이 느린 곳에 있으면 그 끝이 뒤처져 파면이 돌아간다. 진행 방향은 파면에 수직이므로 파동은 늘 <b>속력이 느린 쪽</b>으로 휘어 들어간다.</p>
-        <p>소리는 찬 공기에서 느리고, 빛은 굴절률이 큰 쪽(찬 공기, 물)에서 느리다. 기온이 높이에 상관없이 같으면 휘지 않는다.</p>
-      </article>
-      <article class="concept">
-        <h3>소리와 신기루</h3>
-        <p><b>낮</b>: 지면이 따뜻하고 위가 차가워 소리가 위로 휜다 → 멀리서 잘 안 들림. <b>밤</b>: 지면 근처가 차가워 소리가 아래로 휘어 내려온다 → 멀리까지 들림.</p>
-        <p><b>뜨거운 도로</b>: 아래로 가던 빛이 위로 휘어 눈에 들어와 땅 아래에 거꾸로 선 상(물웅덩이처럼). <b>차가운 바다</b>: 빛이 아래로 휘어 배가 공중에 떠 보인다.</p>
-      </article>
-      <article class="concept">
-        <h3>눈은 빛이 곧게 왔다고 여긴다</h3>
-        <p>물속 동전의 빛은 공기로 나오며 법선에서 멀어지게 꺾인다. 눈은 꺾인 빛을 거꾸로 곧게 연장한 점에 동전이 있다고 느껴 <b>얕아 보인다</b>. 물속에서 물 밖의 새를 보면 반대로 <b>높아 보인다</b>.</p>
-        <p>렌즈도 같은 굴절을 모양으로 조절한 것이다. 이산화 탄소 풍선은 소리를 모으는 볼록 렌즈처럼 작용하고, 어느 경우든 진동수는 그대로다.</p>
-      </article>
-    </div>
-    <p class="compare">신기루와 얕아 보이는 물은 ‘빛이 휜다’와 ‘눈은 마지막에 들어온 방향의 연장선 위에 물체가 있다고 느낀다’, 이 두 가지로 모두 설명된다. 휘는 방향은 언제나 느린 쪽.</p>
-
-    <h2>스스로 확인</h2>
-    <ol class="quiz">
-      <li>
-        <p class="q"><span>1</span>밤에는 낮보다 멀리서 나는 소리가 잘 들린다. 그 이유로 옳은 것은?<span class="tag">개념 체크</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="ex">밤 장면으로</button><button type="button" class="btn" data-try="day">낮과 비교</button><button type="button" class="btn" data-try="flat">기온이 고르면</button></div>
-        <details><summary>답 보기</summary><p><b>밤에는 지면 근처 공기가 차가워 소리가 아래쪽으로 휘어 내려오기 때문</b>이다. 소리는 따뜻한 공기에서 빠르고 파동은 느린 쪽(찬 쪽)으로 휜다. 낮에는 반대로 위로 휘어 멀리 있는 사람에게 소리가 닿지 않는 곳(소리 그늘)이 생긴다. 기온이 고르면 똑바로 퍼진다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>2</span>뜨거운 아스팔트 도로 멀리에 물웅덩이가 있는 것처럼 보이고, 그 속에 나무가 거꾸로 비친다. 무엇이 보이는 것이고 왜 거꾸로일까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="road">뜨거운 도로</button></div>
-        <details><summary>답 보기</summary><p>지면 근처 뜨거운 공기에서 빛이 빨라, 아래로 가던 빛이 위쪽(느린 쪽)으로 휘어 눈에 들어온다. 눈은 연장선 끝, 즉 <b>땅 아래</b>에 물체가 있다고 느낀다. 나무 꼭대기에서 온 빛일수록 더 아래쪽에서 올라오므로 상이 <b>거꾸로</b> 선다. 물웅덩이처럼 보이는 것은 하늘이 비친 상이다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>3</span>물속의 잠수부가 수면 위 공중에 떠 있는 새를 올려다본다. 새는 실제보다 어떻게 보일까?<span class="tag">개념 체크</span></p>
-        <div class="acts"><button type="button" class="btn" data-try="bird">물속에서 새 보기</button><button type="button" class="btn" data-try="coin">물 밖에서 동전 보기</button></div>
-        <details><summary>답 보기</summary><p><b>실제보다 높게 보인다.</b> 새의 빛은 공기에서 물로 들어가며 법선 쪽으로 꺾이고, 잠수부의 눈은 꺾인 빛을 거꾸로 곧게 연장한 더 높은 곳에 새가 있다고 느낀다. 물 밖에서 물속 동전이 얕아 보이는 것과 반대 방향의 착각이다.</p></details>
-      </li>
-      <li>
-        <p class="q"><span>4</span>차가운 바다 위에서는 먼 배가 공중에 떠 보이기도 한다. 뜨거운 도로의 신기루와 무엇이 반대일까?</p>
-        <div class="acts"><button type="button" class="btn" data-try="sea">차가운 바다</button><button type="button" class="btn" data-try="road">도로와 비교</button></div>
-        <details><summary>답 보기</summary><p>느린 쪽이 반대다. 해수면 근처 찬 공기에서 빛이 느리므로 위로 가던 빛이 <b>아래로</b> 휘어 눈에 들어오고, 눈은 그 연장선 위쪽에 배가 있다고 느낀다(공중에 뜬 상). 뜨거운 도로는 지면 근처가 빨라 빛이 위로 휘고 상이 땅 아래에 생긴다.</p></details>
-      </li>
-    </ol>
-    <nav class="pager"><a href="../04/">← III1-04 굴절과 스넬 법칙</a><a class="home" href="../../">물리 실험실</a><a href="../06/">III1-06 여러 매질의 굴절 →</a></nav>
-  </section>
 </div>
 
 <script src="../../kit/lab.js"></script>
@@ -215,6 +239,11 @@
   function mirageProf(road) {
     return road ? M.layered(S.Tg, S.Tt, {shape: 'exp', delta: 0.03, K: 0.012, V0: VL, Tref: S.Tt})
       : M.layered(S.Tg, S.Tt, {shape: 'lin', H: 0.4, K: 0.0125, V0: VL, Tref: S.Tt});
+  }
+  // 물 장면: 눈의 두 점 E1·E2(벌린 정도 pu)로 들어온 두 빛을 거꾸로 연장한 교점 = 보이는 위치
+  function eyePair(E, pu) {
+    const sx = E.x - E.xs, sy = E.y, L = Math.hypot(sx, sy), ux = -sy / L, uy = sx / L;
+    return [{x: E.x + ux * pu, y: E.y + uy * pu}, {x: E.x - ux * pu, y: E.y - uy * pu}];
   }
   function build() {
     const sc = sceneOf();
@@ -253,9 +282,9 @@
       const nO = coin ? NW : 1, nE = coin ? 1 : NW, dir = coin ? 1 : -1;
       const O = coin ? {x: 0, y: -S.depth} : {x: 0, y: S.height};
       const E = M.placeEye(O, nO, nE, S.view, coin ? 1.3 : 1.05, dir);
-      const sx = E.x - E.xs, sy = E.y, L = Math.hypot(sx, sy), ux = -sy / L, uy = sx / L, pu = 0.13;
-      const E1 = {x: E.x + ux * pu, y: E.y + uy * pu}, E2 = {x: E.x - ux * pu, y: E.y - uy * pu};
-      Object.assign(G, {coin, nO, nE, dir, O, E, E1, E2, A: M.apparent(O, E1, E2, nO, nE)});
+      const [E1, E2] = eyePair(E, 0.13);                       // 그림: 두 빛이 잘 보이게 벌렸다
+      const [P1, P2] = eyePair(E, 0.002);                      // 수치: 실제 눈동자 크기에 가깝게
+      Object.assign(G, {coin, nO, nE, dir, O, E, E1, E2, A: M.apparent(O, E1, E2, nO, nE), Ap: M.apparent(O, P1, P2, nO, nE)});
       G.vO = coin ? VW : VA; G.vE = coin ? VA : VW;
       G.phiC = Math.atan((E.xs - O.x) / Math.abs(O.y));
       G.tEye = Math.hypot(E.xs - O.x, O.y) / G.vO + Math.hypot(E.x - E.xs, E.y) / G.vE;
@@ -353,14 +382,14 @@
   }
   function twoTone(ctx, a, b, x, y, colB, o = {}) {        // 'a' 보통 글자 + 'b' 강조 글자, 오른쪽 맞춤이면 align:'right'
     const size = o.size || 13.5;
-    const wa = Lab.measure(ctx, a, {size, w: 500}), wb = Lab.measure(ctx, b, {size, w: 700});
+    const wa = Lab.measure(ctx, a, {size, w: 500}), wb = Lab.measure(ctx, b, {size, w: 600});
     const x0 = o.align === 'right' ? x - wa - wb : (o.align === 'center' ? x - (wa + wb) / 2 : x);
     text(ctx, a, x0, y, {size, w: 500, align: 'left', color: C.ink, halo: true});
-    text(ctx, b, x0 + wa, y, {size, w: 700, align: 'left', color: colB, halo: true});
+    text(ctx, b, x0 + wa, y, {size, w: 600, align: 'left', color: colB, halo: true});
   }
   function lines(ctx, arr, x, y, o = {}) {                // 여러 줄 글자 (가운데 높이 y)
     const lh = (o.size || 13.5) + 4, y0 = y - (arr.length - 1) * lh / 2;
-    arr.forEach((s, i) => text(ctx, s, x, y0 + i * lh, {size: o.size || 13.5, w: 700, align: o.align || 'center', color: o.color || C.ink, halo: true}));
+    arr.forEach((s, i) => text(ctx, s, x, y0 + i * lh, {size: o.size || 13.5, w: 600, align: o.align || 'center', color: o.color || C.ink, halo: true}));
   }
   // 기온(빠르기)에 따른 바탕 색: 빠른(따뜻한) 쪽 주황, 느린(찬) 쪽 파랑
   function tintStrips(ctx, X0, X1, Yof, y0, y1, prof, ref, span) {
@@ -382,21 +411,22 @@
   const stage = Lab.canvas('stage', draw), profV = Lab.canvas('prof', draw), zoom = Lab.canvas('zoom', draw);
   let F = null;                                          // 지금 무대의 좌표 변환 (끌기에도 씀)
 
+  // 좁은 화면(가로 999px 이하)에서는 범례가 시트로 가므로 무대 아래 띠를 줄인다. 폰(W < 520)은 거의 정사각형 무대
   function frame() {
     const {W, H} = stage, narrow = W < 520, sc = sceneOf();
     const top = narrow ? 52 : 50, pad = narrow ? 12 : 20;
     if (sc === 'sound') {
-      const bot = narrow ? 80 : 62, s = W - 2 * pad, gy = H - bot;
+      const bot = narrow ? 46 : 66, s = W - 2 * pad, gy = H - bot;
       return {narrow, s, gy, top, X: (x) => pad + x * s, Y: (y) => gy - y * s, ix: (px) => (px - pad) / s, iy: (py) => (gy - py) / s, yTop: (gy - top) / s};
     }
     if (sc === 'mirage') {
-      const road = CASE[S.key].surf === 'road', bot = narrow ? 64 : 48;
+      const road = CASE[S.key].surf === 'road', bot = narrow ? 40 : 48;
       const yLo = road ? -0.44 : -0.08, yHi = road ? 0.36 : 0.47;
       const s = Math.min(W - 2 * pad, (H - top - bot) / (yHi - yLo)), x0 = (W - s) / 2;
       const gy = top + ((H - top - bot) - (yHi - yLo) * s) * (road ? 0.5 : 0.35) + yHi * s;
-      return {narrow, s, gy, top, X: (x) => x0 + x * s, Y: (y) => gy - y * s, ix: (px) => (px - x0) / s, iy: (py) => (gy - py) / s, yLo, yHi, x0};
+      return {narrow, s, gy, top, bot, X: (x) => x0 + x * s, Y: (y) => gy - y * s, ix: (px) => (px - x0) / s, iy: (py) => (gy - py) / s, yLo, yHi, x0};
     }
-    const coin = S.key === 'coin', bot = narrow ? 64 : 48, wtop = narrow && coin ? 90 : top;
+    const coin = S.key === 'coin', bot = narrow ? 40 : 48, wtop = narrow && coin ? 84 : top;
     const yLo = coin ? -1.85 : -1.3, yHi = coin ? 1.5 : 2.55, xL = coin ? -1.6 : -1.9, xR = coin ? 2.7 : 1.9;
     const s = Math.min((W - 2 * pad) / (xR - xL), (H - wtop - bot) / (yHi - yLo));
     const cx = W / 2 - (xL + xR) / 2 * s, gy = wtop + yHi * s;
@@ -449,7 +479,7 @@
         ctx.lineTo(pts[pts.length - 1][0], gy); ctx.closePath();
         ctx.fillStyle = Lab.alpha(C.neg, 0.08); ctx.fill(); ctx.restore();
         const xm = Math.min(X(0.6), pts[pts.length - 1][0] - 40);
-        if (xm > pts[0][0] + 30) text(ctx, '소리 그늘', xm, gy - 14, {size: 13, color: C.neg, w: 700, halo: true});
+        if (xm > pts[0][0] + 30) text(ctx, '소리 그늘', xm, gy - 14, {size: 13, color: C.neg, w: 600, halo: true});
       }
     }
     // 파면
@@ -485,7 +515,7 @@
     Lab.rrect(ctx, sx - 22, sy - 14, 16, 28, 3); ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(sx - 6, sy - 7); ctx.lineTo(sx + 4, sy - 14); ctx.lineTo(sx + 4, sy + 14); ctx.lineTo(sx - 6, sy + 7); ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.restore();
-    text(ctx, '음원', sx - 8, sy - 28, {size: 13.5, w: 700, halo: true});
+    text(ctx, '음원', Math.max(18, sx - 8), sy - 28, {size: 13.5, w: 600, halo: true});
     // 듣는 사람
     const lx = X(S.Lx), hy = Y(0.062);
     ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(lx, hy + 10); ctx.lineTo(lx, gy); ctx.stroke();
@@ -499,13 +529,13 @@
     ctx.restore();
     const msg = heard ? '잘 들림' : poor ? '잘 안 들림' : '들림';
     text(ctx, msg, Math.min(lx, W - 40), hy - 30, {size: 14.5, w: 700, color: heard ? C.acc : poor ? C.neg : C.ink, halo: true});
-    // 기온 표시
+    // 기온 표시: 위쪽은 오른쪽 위, 지면 근처는 땅 띠 안(넓은 화면) 또는 위쪽 아래 줄(폰)
     const slowUp = G.bend === 'up', slowDn = G.bend === 'down';
     const topY = narrow ? F.top + 26 : F.top + 8;
-    if (G.bend === 'none') text(ctx, `기온이 높이에 상관없이 ${S.Tg} °C → 속력이 같아 곧게 퍼진다`, W - 14, topY, {size: 13.5, w: 600, align: 'right', halo: true});
+    if (G.bend === 'none') text(ctx, narrow ? `기온 ${S.Tg} °C로 고름 → 곧게 퍼진다` : `기온이 높이에 상관없이 ${S.Tg} °C → 속력이 같아 곧게 퍼진다`, W - 14, topY, {size: 13.5, w: 600, align: 'right', halo: true});
     else {
       twoTone(ctx, `위 ${S.Tt} °C: ${S.Tt < S.Tg ? '차가움' : '따뜻함'} → `, slowUp ? '느림' : '빠름', W - 14, topY, slowUp ? C.copper : C.ink, {align: 'right'});
-      twoTone(ctx, `지면 근처 ${S.Tg} °C: ${S.Tg < S.Tt ? '차가움' : '따뜻함'} → `, slowDn ? '느림' : '빠름', W - 14, narrow ? topY + 22 : gy + 19, slowDn ? C.copper : C.ink, {align: 'right'});
+      twoTone(ctx, `지면 근처 ${S.Tg} °C: ${S.Tg < S.Tt ? '차가움' : '따뜻함'} → `, slowDn ? '느림' : '빠름', W - 14, narrow ? topY + 22 : gy + 17, slowDn ? C.copper : C.ink, {align: 'right'});
     }
   }
 
@@ -519,7 +549,9 @@
       ctx.fillStyle = Lab.alpha(C.muted, 0.32); ctx.fillRect(0, gy, W, 9);
       ctx.save(); ctx.strokeStyle = C.paper; ctx.lineWidth = 2; ctx.setLineDash([14, 12]); ctx.beginPath(); ctx.moveTo(0, gy + 4.5); ctx.lineTo(W, gy + 4.5); ctx.stroke(); ctx.restore();
       hatch(ctx, 0, W, gy + 9);
-      text(ctx, '땅속 (실제로는 아무것도 없다)', W - 14, F.Y(F.yLo) + 6, {size: 13, color: C.muted, w: 500, align: 'right'});
+      // 땅속 설명: 넓은 화면은 오른쪽(지금 단계 표시보다 위), 폰은 신기루 이름표와 겹치지 않게 왼쪽 아래
+      if (narrow) text(ctx, '땅속 (실제로는 아무것도 없다)', 14, H - 18, {size: 13, color: C.muted, w: 500, align: 'left'});
+      else text(ctx, '땅속 (실제로는 아무것도 없다)', W - 14, Math.min(F.Y(F.yLo) + 6, H - 50), {size: 13, color: C.muted, w: 500, align: 'right'});
     } else {
       ctx.fillStyle = Lab.alpha(C.vel, 0.14); ctx.fillRect(0, gy, W, H - gy);
       ctx.save(); ctx.strokeStyle = C.vel; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); ctx.restore();
@@ -570,15 +602,19 @@
     }
     drawChunk(ctx, X, Y, chunkTime(), {trail: 4, trailStep: 0.42, alen: 24, pow: 5});
     eye(ctx, ex, ey, G.main && G.mirage ? Math.atan2(Y(G.main.image.y) - ey, X(G.main.image.x) - ex) : 0);
-    text(ctx, '눈', ex, ey - 22, {size: 13.5, w: 700, halo: true});
+    text(ctx, '눈', ex, ey - 22, {size: 13.5, w: 600, halo: true});
     // 층 설명
     const lab = road ? (S.Tg > S.Tt ? ['지면 근처: 뜨거움 → ', '빛이 빠름', C.energy] : ['지면 근처: 차가움 → ', '빛이 느림', C.copper])
       : (S.Tg < S.Tt ? ['해수면 근처: 차가움 → ', '빛이 느림', C.copper] : ['해수면 근처: 따뜻함 → ', '빛이 빠름', C.energy]);
-    if (S.Tg === S.Tt) text(ctx, '기온이 고름 → 휘지 않음', narrow ? W / 2 : X(0.42), road ? gy + 30 : gy - 16, {size: 13.5, w: 600, halo: true});
+    if (S.Tg === S.Tt) {
+      if (narrow) text(ctx, '기온이 고름 → 휘지 않음', 14, road ? gy + 30 : gy + 24, {size: 13.5, w: 600, align: 'left', halo: true});
+      else text(ctx, '기온이 고름 → 휘지 않음', X(0.42), road ? gy + 30 : gy - 16, {size: 13.5, w: 600, halo: true});
+    }
     else if (road) {
       if (narrow) { twoTone(ctx, '↑ ' + lab[0].replace(' → ', ''), '', 14, gy + 30, lab[2], {size: 13.5}); twoTone(ctx, '→ ', lab[1], 14, gy + 48, lab[2], {size: 13.5}); }
       else twoTone(ctx, '↑ ' + lab[0], lab[1], 14, gy + 32, lab[2], {size: 13.5});
-    } else twoTone(ctx, lab[0], lab[1], narrow ? W / 2 : X(0.42), gy - 16, lab[2], {align: 'center', size: 13.5});
+    } else if (narrow) twoTone(ctx, lab[0], lab[1], 14, gy + 24, lab[2], {size: 13.5});     // 폰: 배와 겹치지 않게 바다 쪽에
+    else twoTone(ctx, lab[0], lab[1], X(0.42), gy - 16, lab[2], {align: 'center', size: 13.5});
   }
   function drawShip(ctx, X, Yh, ghost) {
     const sx = X(SHIP.x), w = 0.06 * F.s;
@@ -599,7 +635,7 @@
     if (!F.narrow) {
       text(ctx, '공기 (빠름)', 14, gy - 14, {size: 13.5, w: 600, align: 'left', color: C.muted});
       twoTone(ctx, `물 n = ${NW} (`, '느림', 14, gy + 15, C.copper, {size: 13.5});
-      text(ctx, ')', 14 + Lab.measure(ctx, `물 n = ${NW} (`, {size: 13.5, w: 500}) + Lab.measure(ctx, '느림', {size: 13.5, w: 700}), gy + 15, {size: 13.5, w: 500, align: 'left'});
+      text(ctx, ')', 14 + Lab.measure(ctx, `물 n = ${NW} (`, {size: 13.5, w: 500}) + Lab.measure(ctx, '느림', {size: 13.5, w: 600}), gy + 15, {size: 13.5, w: 500, align: 'left'});
     }
     // 파면
     if (S.wave) {
@@ -631,11 +667,11 @@
     if (coin) {
       ctx.save(); ctx.beginPath(); ctx.ellipse(X(O.x), Y(O.y), 16, 5.5, 0, 0, 7); ctx.fillStyle = C.energy; ctx.fill(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2; ctx.stroke();
       ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.ellipse(X(A.x), Y(A.y), 16, 5.5, 0, 0, 7); ctx.fillStyle = Lab.alpha(C.energy, 0.25); ctx.fill(); ctx.strokeStyle = C.copper; ctx.lineWidth = 2.2; ctx.stroke(); ctx.restore();
-      text(ctx, '동전', X(O.x), Y(O.y) + 19, {size: 13.5, w: 700, halo: true});
+      text(ctx, '동전', X(O.x), Y(O.y) + 19, {size: 13.5, w: 600, halo: true});
       text(ctx, '보이는 위치', X(A.x) + 22, Y(A.y) - 2, {size: 13.5, w: 700, align: 'left', color: C.copper, halo: true});
     } else {
       bird(ctx, X(O.x), Y(O.y), false); bird(ctx, X(A.x), Y(A.y), true);
-      text(ctx, '새', X(O.x) + 26, Y(O.y), {size: 13.5, w: 700, align: 'left', halo: true});
+      text(ctx, '새', X(O.x) + 26, Y(O.y), {size: 13.5, w: 600, align: 'left', halo: true});
       text(ctx, '보이는 위치', X(A.x), Y(A.y) - 24, {size: 13.5, w: 700, color: C.copper, halo: true});
     }
     // 실제·보이는 깊이(높이): 동전은 왼쪽, 새는 오른쪽에 치수선
@@ -650,8 +686,8 @@
     drawChunk(ctx, X, Y, chunkTime(), {trail: 2, trailStep: T0W});
     // 눈
     eye(ctx, X(E.x), Y(E.y), Math.atan2(Y(A.y) - Y(E.y), X(A.x) - X(E.x)), 12);
-    if (coin) text(ctx, '눈', X(E.x) + 20, Y(E.y) - 14, {size: 13.5, w: 700, align: 'left', halo: true});
-    else text(ctx, '잠수부의 눈', X(E.x) - 4, Y(E.y) + 26, {size: 13.5, w: 700, halo: true});
+    if (coin) text(ctx, '눈', X(E.x) + 20, Y(E.y) - 14, {size: 13.5, w: 600, align: 'left', halo: true});
+    else text(ctx, '잠수부의 눈', X(E.x) + 19, Y(E.y) + 4, {size: 13.5, w: 600, align: 'left', halo: true});   // 아래쪽 범례와 겹치지 않게 오른쪽에
   }
   function bird(ctx, x, y, ghost) {
     ctx.save(); ctx.strokeStyle = ghost ? C.copper : C.ink; ctx.lineWidth = ghost ? 2.4 : 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -674,13 +710,13 @@
       for (const [v, yc, lab, slow] of [[3, (r.y + yMid) / 2, '공기', false], [2.26, (yMid + r.y + r.h) / 2, '물', true]]) {
         ctx.save(); ctx.fillStyle = Lab.alpha(C.vel, slow ? 0.3 : 0.18); ctx.strokeStyle = C.vel; ctx.lineWidth = 2;
         ctx.fillRect(r.x, yc - bh / 2, Xv(v) - r.x, bh); ctx.strokeRect(r.x, yc - bh / 2, Xv(v) - r.x, bh); ctx.restore();
-        text(ctx, lab, r.x - 8, yc, {size: 14, w: 700, align: 'right'});
-        text(ctx, (slow ? '' : '') + fmt(v, 2) + (slow ? '  ← 느림' : ''), Xv(v) + 8, yc, {size: 13.5, w: 700, align: 'left', color: slow ? C.copper : C.ink, mono: !slow});
+        text(ctx, lab, r.x - 8, yc, {size: 14, w: 600, align: 'right'});
+        text(ctx, fmt(v, 2) + (slow ? '  ← 느림' : ''), Xv(v) + 8, yc, {size: 13.5, w: 600, align: 'left', color: slow ? C.copper : C.ink});
       }
       // 아래 눈금
       const yb = r.y + r.h;
       arrow(ctx, r.x, yb, r.x + r.w + 8, yb, C.muted, 1.3, 7);
-      for (const v of [0, 1, 2, 3]) { poly(ctx, [[Xv(v), yb - 3], [Xv(v), yb + 3]], C.muted, 1); text(ctx, String(v), Xv(v), yb + 13, {size: 13, w: 500, color: C.muted, mono: true}); }
+      for (const v of [0, 1, 2, 3]) { poly(ctx, [[Xv(v), yb - 3], [Xv(v), yb + 3]], C.muted, 1); text(ctx, String(v), Xv(v), yb + 13, {size: 13, w: 500, color: C.muted}); }
       text(ctx, '빛의 속력 (×10⁸ m/s)', r.x + r.w, yb + 31, {size: 13, w: 600, color: C.muted, align: 'right'});
       if (c) {
         const yy = c.c.y >= 0 ? yMid - c.c.y / yHi * (yMid - r.y) : yMid + c.c.y / yLo * (r.y + r.h - yMid);
@@ -699,27 +735,27 @@
     const yb = ax.y0;
     if (sc === 'sound') {
       const xt = [Math.round(vmin), Math.round(vmax)].filter((v, i, a) => a.indexOf(v) === i);
-      for (const v of xt) { poly(ctx, [[ax.X(v), yb - 3], [ax.X(v), yb + 3]], C.muted, 1); text(ctx, String(v), ax.X(v), yb + 13, {size: 13, w: 500, color: C.muted, mono: true}); }
+      for (const v of xt) { poly(ctx, [[ax.X(v), yb - 3], [ax.X(v), yb + 3]], C.muted, 1); text(ctx, String(v), ax.X(v), yb + 13, {size: 13, w: 500, color: C.muted}); }
       text(ctx, '소리 속력 (m/s)', r.x + r.w, yb + 31, {size: 13, w: 600, color: C.muted, align: 'right'});
     } else {
       text(ctx, '← 느림', r.x + 4, yb + 14, {size: 13, w: 600, color: C.muted, align: 'left'});
       text(ctx, '빠름 →', r.x + r.w, yb + 14, {size: 13, w: 600, color: C.muted, align: 'right'});
-      text(ctx, '빛의 속력', r.x + r.w / 2, yb + 14, {size: 13, w: 600, color: C.muted});
+      if (W > 360) text(ctx, '빛의 속력', r.x + r.w / 2, yb + 14, {size: 13, w: 600, color: C.muted});
     }
-    text(ctx, sc === 'mirage' && !road ? '해수면' : '지면', r.x - 8, ax.Y(0) - 9, {size: 13.5, w: 700, align: 'right'});
-    text(ctx, '위', r.x - 8, ax.Y(yHi * 0.9), {size: 13.5, w: 700, align: 'right'});
+    text(ctx, sc === 'mirage' && !road ? '해수면' : '지면', r.x - 8, ax.Y(0) - 9, {size: 13.5, w: 600, align: 'right'});
+    text(ctx, '위', r.x - 8, ax.Y(yHi * 0.9), {size: 13.5, w: 600, align: 'right'});
     poly(ctx, vs.map(([v, y]) => [ax.X(v), ax.Y(y)]), C.vel, 3);
     // 양 끝 기온
     const g0 = vs[0][0] >= mid, t0 = vs[n][0] >= mid;
-    text(ctx, `${S.Tg} °C`, ax.X(vs[0][0]) + (g0 ? -8 : 8), ax.Y(yHi * (G.road ? 0.17 : 0.07)), {size: 13, w: 700, align: g0 ? 'right' : 'left', halo: true});
-    text(ctx, `${S.Tt} °C`, ax.X(vs[n][0]) + (t0 ? -8 : 8), ax.Y(yHi * 0.94), {size: 13, w: 700, align: t0 ? 'right' : 'left', halo: true});
+    text(ctx, `${S.Tg} °C`, ax.X(vs[0][0]) + (g0 ? -8 : 8), ax.Y(yHi * (G.road ? 0.17 : 0.07)), {size: 13, w: 600, align: g0 ? 'right' : 'left', halo: true});
+    text(ctx, `${S.Tt} °C`, ax.X(vs[n][0]) + (t0 ? -8 : 8), ax.Y(yHi * 0.94), {size: 13, w: 600, align: t0 ? 'right' : 'left', halo: true});
     // 느린 쪽 화살표
     const bd = G.bend;
     if (bd !== 'none') {
       const xa = r.x + r.w + 22, ya = ax.Y(yHi * 0.5), d = bd === 'up' ? -1 : 1;
       arrow(ctx, xa, ya - d * 30, xa, ya + d * 34, C.copper, 3, 11);
-      text(ctx, '느린 쪽', xa + 6, ya + d * 50, {size: 13, w: 700, color: C.copper, align: 'right', halo: true});
-    } else text(ctx, '속력이 고름 → 휘지 않음', r.x + r.w / 2, r.y + 4, {size: 13, w: 700, color: C.muted});
+      text(ctx, '느린 쪽', xa + 6, ya + d * 50, {size: 13, w: 600, color: C.copper, align: 'right', halo: true});
+    } else text(ctx, '속력이 고름 → 휘지 않음', r.x + r.w / 2, r.y + 4, {size: 13, w: 600, color: C.muted});
     if (c) { const yy = ax.Y(Math.max(0, Math.min(yHi, c.c.y))); poly(ctx, [[r.x, yy], [r.x + r.w, yy]], C.copper, 2, {dash: [5, 4]}); }
   }
 
@@ -728,7 +764,7 @@
     const {ctx, W, H} = zoom; if (!W || !G) return;
     ctx.clearRect(0, 0, W, H);
     const tau = chunkTime(), c = chunkAt(tau);
-    if (!c) { text(ctx, '파면 조각이 곧 다시 출발한다', W / 2, H / 2, {size: 14, w: 600, color: C.muted}); return; }
+    if (!c) { text(ctx, '파면 조각이 곧 다시 출발한다', W / 2, H / 2, {size: 14, w: 500, color: C.muted}); return; }
     const water = G.scene === 'water';
     const span = water ? 1.1 : 0.3, m = W / span;
     const cx = c.c.x, cy = c.c.y;
@@ -770,68 +806,86 @@
       if (diff) {
         const off = (y > H / 2 ? 1 : -1) * 16;
         text(ctx, i === fast ? '빠른 끝: 많이 감' : '느린 끝: 뒤처짐', Math.max(70, Math.min(W - 70, x2)), Math.max(14, Math.min(H - 12, y2 + off)),
-          {size: 13.5, w: 700, color: i === fast ? C.ink : C.copper, halo: true});
+          {size: 13.5, w: 600, color: i === fast ? C.ink : C.copper, halo: true});
       }
     });
-    if (!diff) text(ctx, '두 끝의 속력이 같음 → 곧게 나아감', W / 2, 16, {size: 13.5, w: 700, color: C.muted, halo: true});
-    text(ctx, water ? '확대' : '확대 · 속력 차이 과장', W - 8, H - 12, {size: 12, w: 500, color: C.muted, align: 'right'});
+    if (!diff) text(ctx, '두 끝의 속력이 같음 → 곧게 나아감', W / 2, 16, {size: 13.5, w: 600, color: C.muted, halo: true});
+    text(ctx, water ? '확대' : '확대 · 속력 차이 과장', W - 8, H - 12, {size: 13, w: 500, color: C.muted, align: 'right'});
   }
 
   function draw() { drawStage(); drawProf(); drawZoom(); }
 
-  // ── 수치·문구 ───────────────────────────────────────────
+  // ── 지금 값·문구 ────────────────────────────────────────
   const rows = [...document.querySelectorAll('.rules tr[data-row]')];
   function setRO(i, name, val) { $('r' + i + 'n').textContent = name; $('r' + i).textContent = val; }
+  const tS = (t) => (t < 0 ? '(' + fmt(t) + ')' : fmt(t));     // 식에 넣는 기온 (음수는 괄호)
   function readouts() {
-    const sc = sceneOf(), c = CASE[S.key];
+    const sc = sceneOf(), c = CASE[S.key], water = sc === 'water';
     $('hudCase').textContent = sc === 'sound' && G ? (G.bend === 'down' ? '밤의 소리 (지면이 차가움)' : G.bend === 'up' ? '낮의 소리 (지면이 따뜻함)' : '기온이 고를 때') : c.name;
     $('legRay').textContent = sc === 'sound' ? '소리의 경로' : '빛의 경로';
     $('legWave').hidden = sc === 'mirage'; $('chkWave').hidden = sc === 'mirage';
     $('hudNote').textContent = sc === 'mirage' ? '휘는 정도 크게 과장' : sc === 'sound' ? '휘는 정도 과장'
       : S.key === 'coin' ? '물(느림) → 공기: 법선에서 멀어지게 꺾임' : '공기 → 물(느림): 법선 쪽으로 꺾임';
-    $('profCap').textContent = sc === 'sound' ? '구리색 가로선은 지금 따라가는 파면 조각의 높이. 소리는 기온이 높을수록 빠르다(기온 1 °C에 약 0.6 m/s).'
-      : sc === 'mirage' ? '빛도 뜨거운(밀도가 작은) 공기에서 조금 빠르다. 실제 속력 차이는 0.01 %도 안 되어 그림은 크게 과장했다.'
-      : '빛은 물에서 공기보다 느리다(v = c/n). 경계가 하나이면 경계에서 한 번 꺾인다. 구리색 가로선은 파면 조각의 높이.';
-    $('rowTemp').hidden = sc === 'water'; $('rowWater').hidden = sc !== 'water';
-    $('dragHint').textContent = sc === 'sound' ? '무대를 끌면 듣는 사람이 움직인다' : '무대를 끌면 눈이 움직인다';
+    $('profCap').textContent = sc === 'sound' ? '구리색 가로선은 지금 따라가는 파면 조각의 높이다. 소리는 기온이 1 °C 오를 때 약 0.6 m/s 빨라진다. 무대를 끌면 듣는 사람이 움직인다.'
+      : sc === 'mirage' ? '신기루 장면의 높이별 빛의 속력이다. 빛도 뜨거운(밀도가 작은) 공기에서 조금 빠르다. 실제 속력 차이는 0.01 %도 안 되어 그림은 크게 과장했다.'
+      : '물 장면의 빛의 속력이다. 빛은 물에서 공기보다 느리다(v = c/n). 경계가 하나이면 경계에서 한 번 꺾인다. 구리색 가로선은 파면 조각의 높이다.';
+    $('slTg').hidden = water; $('slView').hidden = !water; $('rowTt').hidden = water; $('rowDep').hidden = !water;
     $('tgOut').textContent = S.Tg + ' °C'; $('ttOut').textContent = S.Tt + ' °C';
-    const res = $('result'); let row = null, good = null, msg = '';
+    let row = null;
     if (sc === 'sound') {
-      $('tgName').textContent = '지면 근처 기온'; $('ttName').textContent = '위쪽 기온';
-      const vg = M.soundSpeed(S.Tg), vt = M.soundSpeed(S.Tt);
+      $('tgWhere').textContent = '지면'; $('tgRest').textContent = ' 근처 기온'; $('ttName').textContent = '위쪽 기온';
+      const vg = M.soundSpeed(S.Tg), vt = M.soundSpeed(S.Tt), bd = G.bend, lv = G.level;
       setRO(1, '지면 근처 소리 속력', fmt(vg, 1) + ' m/s'); setRO(2, '위쪽 소리 속력', fmt(vt, 1) + ' m/s');
-      setRO(3, '느린 쪽', G.bend === 'down' ? '지면 쪽' : G.bend === 'up' ? '위쪽' : '없음');
-      setRO(4, '휘는 방향', G.bend === 'down' ? '아래로' : G.bend === 'up' ? '위로' : '곧게');
-      row = G.bend === 'down' ? 'night' : G.bend === 'up' ? 'day' : null;
-      const lv = G.level;
-      good = lv >= 1.2 ? true : lv < 0.5 ? false : null;
-      msg = G.bend === 'down' ? '소리가 아래로 휘어 내려온다 → 멀리까지 잘 들림' : G.bend === 'up' ? '소리가 위로 휘어 올라간다 → 멀리서 잘 안 들림' : '기온이 고름 → 소리가 곧게 퍼진다';
-      if (G.bend === 'up' && lv >= 0.5) msg = '소리가 위로 휜다 → 가까운 곳은 아직 들림';
+      setRO(3, '느린 쪽 = 휘는 쪽', bd === 'down' ? '지면 쪽 (아래)' : bd === 'up' ? '위쪽' : '없음 (곧게)');
+      setRO(4, '멀리 있는 사람', lv >= 1.2 ? '잘 들림' : lv < 0.5 ? '잘 안 들림' : '들림');
+      row = bd === 'down' ? 'night' : bd === 'up' ? 'day' : null;
+      const res = bd === 'down' ? '아래로 휘어 내려와 멀리까지 닿는다' : bd === 'none' ? '휘지 않고 곧게 퍼진다'
+        : lv >= 0.5 ? '위로 휘어 올라간다 (가까운 곳은 아직 들린다)' : '위로 휘어 올라가 멀리서는 잘 안 들린다';
+      Lab.ans(bd === 'down' ? '아래로 휜다' : bd === 'up' ? '위로 휜다' : '곧게 퍼진다', [
+        '지면 근처: 331 + 0.6 × <em>' + tS(S.Tg) + '</em> = <em>' + fmt(vg, 1) + ' m/s</em>',
+        '위쪽: 331 + 0.6 × <em>' + tS(S.Tt) + '</em> = <em>' + fmt(vt, 1) + ' m/s</em>',
+        (bd === 'none' ? '두 속력이 같다 → ' : '느린 쪽 = <em>' + (bd === 'down' ? '지면 쪽' : '위쪽') + '</em> → ') + res,
+      ], {tone: bd === 'none' ? 'ink' : '', ctx: (bd === 'down' ? '밤처럼' : bd === 'up' ? '낮처럼' : '기온이 고름') + ' · 지면 ' + S.Tg + ' °C, 위 ' + S.Tt + ' °C',
+        f: '소리의 속력 v = 331 + 0.6t (t: 기온 °C)로 느린 쪽을 찾으면'});
+      $('ansLab').textContent = '지금 소리가 휘는 방향';
     } else if (sc === 'mirage') {
-      const road = G.road;
-      $('tgName').textContent = road ? '도로 바로 위 기온' : '해수면 바로 위 기온'; $('ttName').textContent = '위쪽 기온';
-      setRO(1, road ? '도로 바로 위' : '해수면 바로 위', S.Tg + ' °C'); setRO(2, '위쪽 공기', S.Tt + ' °C');
-      setRO(3, '느린 쪽', G.bend === 'down' ? (road ? '지면 쪽' : '해수면 쪽') : G.bend === 'up' ? '위쪽' : '없음');
-      setRO(4, '휘는 방향', G.bend === 'down' ? '아래로' : G.bend === 'up' ? '위로' : '곧게');
-      row = G.bend === 'up' ? 'road' : G.bend === 'down' ? 'sea' : null;
-      if (G.mirage) { good = true; msg = road ? '땅 아래에 거꾸로 선 상 → 물웅덩이처럼 보임' : '배가 공중에 떠 보인다'; }
-      else msg = G.bend === 'none' ? '기온이 고름 → 빛이 곧게 와서 신기루 없음' : '이 기온에서는 신기루가 생기지 않는다';
+      const road = G.road, bd = G.bend, where = road ? '도로' : '해수면', same = S.Tg === S.Tt, fastLow = S.Tg > S.Tt;
+      $('tgWhere').textContent = where; $('tgRest').textContent = ' 바로 위 기온'; $('ttName').textContent = '위쪽 기온';
+      const spd = (low) => (same ? '같음' : low === fastLow ? '빛이 빠름' : '빛이 느림');
+      setRO(1, where + ' 바로 위 공기', S.Tg + ' °C · ' + spd(true)); setRO(2, '위쪽 공기', S.Tt + ' °C · ' + spd(false));
+      setRO(3, '느린 쪽 = 휘는 쪽', bd === 'up' ? '위쪽' : bd === 'down' ? where + ' 쪽 (아래)' : '없음 (곧게)');
+      setRO(4, '보이는 상', G.mirage ? (road ? '땅 아래 · 거꾸로' : '공중에 뜬 배') : '신기루 없음');
+      row = bd === 'up' ? 'road' : bd === 'down' ? 'sea' : null;
+      const turn = bd === 'up' ? '아래로 가던 빛이 위로 휘어 눈에 들어온다' : '위로 가던 빛이 아래로 휘어 눈에 들어온다';
+      const L3 = G.mirage ? '눈은 곧게 왔다고 여김 → <em>' + (road ? '땅 아래에 거꾸로 선 상' : '배가 공중에 떠 보인다') + '</em>'
+        : same ? '빛이 곧게 온다 → <em>신기루 없음</em>' : '이 기온에서는 <em>신기루가 생기지 않는다</em>';
+      Lab.ans(bd === 'up' ? '위로 휜다' : bd === 'down' ? '아래로 휜다' : '곧게 온다', [
+        where + ' 바로 위 <em>' + S.Tg + ' °C</em>: ' + spd(true) + ' · 위쪽 <em>' + S.Tt + ' °C</em>: ' + spd(false),
+        same ? '두 층의 빛의 속력이 같다' : '느린 쪽 = <em>' + (bd === 'up' ? '위쪽' : where + ' 쪽') + '</em> → ' + turn,
+        L3,
+      ], {tone: same ? 'ink' : '', ctx: c.name + ' · ' + where + ' ' + S.Tg + ' °C, 위 ' + S.Tt + ' °C',
+        f: '빛은 뜨거운(밀도가 작은) 공기에서 조금 빠르다. 느린 쪽을 찾으면'});
+      $('ansLab').textContent = '지금 빛이 휘는 방향';
     } else {
-      const coin = G.coin, real = coin ? S.depth : S.height, app = coin ? -G.A.y : G.A.y;
+      const coin = G.coin, real = coin ? S.depth : S.height, app = coin ? -G.Ap.y : G.Ap.y, word = coin ? '깊이' : '높이';
+      const aW = coin ? G.E.phi : S.view, aA = coin ? S.view : G.E.phi;      // 물 쪽 각, 공기 쪽 각 (법선과의 각)
       $('depName').textContent = coin ? '동전의 실제 깊이' : '새의 실제 높이';
-      $('viewName').textContent = coin ? '보는 각 (연직에서 기운 정도)' : '올려다보는 각 (연직에서 기운 정도)';
       $('depOut').textContent = fmt(real, 2) + ' m'; $('viewOut').textContent = Math.round(S.view) + '°';
-      setRO(1, coin ? '실제 깊이' : '실제 높이', fmt(real, 2) + ' m'); setRO(2, coin ? '보이는 깊이' : '보이는 높이', fmt(app, 2) + ' m');
-      setRO(3, '느린 쪽', '물'); setRO(4, '꺾이는 방향', coin ? '법선에서 멀어짐' : '법선 쪽으로');
-      row = coin ? 'coin' : 'bird'; good = true;
-      msg = coin ? `얕아 보인다 (실제의 ${fmt(app / real, 2)}배) — 비스듬히 볼수록 더 얕다` : `높아 보인다 (실제의 ${fmt(app / real, 2)}배)`;
+      setRO(1, '실제 ' + word, fmt(real, 2) + ' m'); setRO(2, '보이는 ' + word, fmt(app, 2) + ' m');
+      setRO(3, '느린 쪽', '물 (n = ' + NW + ')'); setRO(4, '꺾이는 방향', coin ? '법선에서 멀어짐' : '법선 쪽으로');
+      row = coin ? 'coin' : 'bird';
+      const snell = '물 ' + NW + ' × sin <em>' + fmt(aW, 1) + '°</em> = 공기 1 × sin <em>' + fmt(aA, 1) + '°</em>';
+      Lab.ans(coin ? '얕아 보인다' : '높아 보인다', [
+        snell + (coin ? ' → 공기로 나오며 법선에서 멀어진다' : ' → 물로 들어오며 법선 쪽으로 꺾인다'),
+        '꺾인 빛을 곧게 거슬러 → 보이는 ' + word + ' <em>' + fmt(app, 2) + ' m</em> ' + (coin ? '<' : '>') + ' 실제 ' + fmt(real, 2) + ' m',
+        '거의 수직으로 보면 ' + fmt(real, 2) + (coin ? ' ÷ ' : ' × ') + NW + ' ≈ ' + fmt(M.apparentNormal(real, coin ? NW : 1, coin ? 1 : NW), 2) + ' m, 비스듬할수록 차이가 커진다',
+      ], {tone: 'cu', ctx: c.name + ' · 보는 각 ' + Math.round(S.view) + '°', f: '경계에서 n₁ sin θ₁ = n₂ sin θ₂ (θ: 법선과의 각)'});
+      $('ansLab').textContent = '지금 보이는 위치';
     }
-    res.textContent = '결과: ' + msg;
-    res.className = 'status' + (good === true ? ' good' : good === false ? ' bad' : '');
     rows.forEach((tr) => tr.classList.toggle('on', tr.dataset.row === row));
     const ok = sc === 'sound' && G.bend === 'down' && G.level >= 1.2;
     Lab.check('exCheck', ok, '개념 체크 상황: 밤에는 지면 근처 공기가 차가워(소리가 느려) 소리가 아래로 휘어 내려온다 → 멀리까지 잘 들림',
-      '개념 체크: 밤에 멀리서 나는 소리가 잘 들리는 까닭은? — ‘스스로 확인 1’의 밤 장면으로');
+      '개념 체크: 밤에 멀리서 나는 소리가 잘 들리는 까닭은? — ‘개념 체크’ 단계의 버튼으로 돌아갈 수 있어요');
   }
 
   // ── 조작 ────────────────────────────────────────────────
@@ -876,7 +930,7 @@
     readouts(); draw();
   }
 
-  // 스스로 확인
+  // 단계 버튼이 만드는 상황
   const TRY = {
     ex: () => { S.Lx = 0.86; setCase('night'); playCtl.set(true); },
     day: () => { S.Lx = 0.86; setCase('day'); playCtl.set(true); },
