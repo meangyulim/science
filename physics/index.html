@@ -57,12 +57,26 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .h-count b{font:600 40px/1 var(--font-num);color:var(--ink);letter-spacing:-.02em}
 .h-count b span{color:var(--muted);font-size:22px}
 .h-count em{font-style:normal;font-size:14.5px;color:var(--muted)}
-/* 공식 지도로 가는 입구 (physics/formulas/) */
-.h-fmap{display:inline-flex;align-items:center;gap:10px;margin-top:18px;padding:10px 16px 10px 12px;border-radius:14px;border:1px solid var(--copper);background:var(--copper-soft);color:var(--copper-ink);text-decoration:none;font-size:15.5px;font-weight:700;line-height:1.3}
-.h-fmap svg{width:26px;height:26px;flex:none}
-.h-fmap small{display:block;font-size:12.5px;font-weight:400;color:var(--ink-2)}
-.h-fmap:hover{background:var(--copper);color:var(--on-copper)}
-.h-fmap:hover small{color:inherit}
+/* 공식 지도로 가는 입구 (physics/formulas/): 지도를 그대로 줄인 그림 + 이름·공식 수.
+   그림은 data/formulas.json 과 formulas/formulas-graph.js 로 그린다(공식 칸 색 = 대단원 색, 출발점 = 구리색) */
+.h-fmap{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:16px;margin-top:22px;max-width:450px;padding:12px 16px 12px 12px;
+  border:1px solid var(--line);border-radius:20px;background:var(--paper);color:var(--ink);text-decoration:none;transition:transform .16s,border-color .16s,box-shadow .16s}
+.h-fmap:hover{transform:translateY(-3px);border-color:var(--copper);box-shadow:0 12px 26px var(--lift)}
+.h-fmap:focus-visible{outline:3px solid var(--copper);outline-offset:2px}
+.h-fmap-net{display:block;width:132px;height:116px;border-radius:14px;background:var(--bg);border:1px solid var(--line-soft)}
+.h-fmap-net .bg{fill:var(--u-soft)}
+.h-fmap-net .e{fill:none;stroke:var(--muted);stroke-opacity:.16;stroke-width:.6;vector-effect:non-scaling-stroke;transition:stroke .2s,stroke-opacity .2s}
+.h-fmap-net .n{fill:var(--u)}
+.h-fmap-net .n.applied{fill:color-mix(in srgb,var(--u) 36%,var(--paper))}
+.h-fmap-net .n.basis{fill:var(--copper)}
+.h-fmap:hover .h-fmap-net .e{stroke:var(--copper);stroke-opacity:.42}
+.h-fmap-k{display:flex;gap:8px;align-items:center;font:600 11.5px/1 var(--font-num);letter-spacing:.14em;color:var(--copper)}
+.h-fmap-t{display:block;margin-top:9px;font-family:var(--font-display);font-size:29px;line-height:1.05;letter-spacing:-.01em}
+.h-fmap-n{display:block;margin-top:9px;font:600 13px/1.3 var(--font-num);color:var(--ink-2)}
+.h-fmap-d{display:block;margin-top:3px;font-size:13.5px;line-height:1.45;color:var(--muted)}
+.h-fmap-go{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--copper);color:var(--on-copper);flex:none;transition:transform .16s}
+.h-fmap-go svg{width:18px;height:18px}
+.h-fmap:hover .h-fmap-go{transform:translateX(3px)}
 
 /* 개념 지도: 한 칸 = 개념 하나 */
 .h-map{--cell:13px;display:grid;gap:18px;justify-items:start}
@@ -147,6 +161,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 }
 @media (max-width:600px){
   .h-hero{padding:22px 18px;border-radius:20px}
+  .h-fmap{gap:12px;padding:10px 12px 10px 10px;border-radius:18px}
+  .h-fmap-net{width:104px;height:92px}
+  .h-fmap-t{font-size:25px}
   .h-map{--cell:10px}
   .h-groups{gap:12px}
   .h-bar{gap:8px}
@@ -160,7 +177,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   .h-name{padding:4px 12px 0;font-size:15.5px}
   .h-q{padding:2px 12px 0;margin-bottom:10px;font-size:13px}
 }
-@media (prefers-reduced-motion: reduce){.h-card,.h-cells a{transition:none}.h-card:hover{transform:none}}
+@media (prefers-reduced-motion: reduce){.h-card,.h-cells a,.h-fmap,.h-fmap-go{transition:none}.h-card:hover,.h-fmap:hover,.h-fmap:hover .h-fmap-go{transform:none}}
 </style>
 </head>
 <body>
@@ -173,7 +190,11 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
         <h1>물리 실험실</h1>
         <p class="h-lead">물리학 Ⅰ·Ⅱ 개념을 하나씩, 눈으로 보고 손으로 움직이는 실험으로 만들어 가요.</p>
         <div class="h-count" id="count"><b>–<span> / 158</span></b><em>개념 실험</em></div>
-        <a class="h-fmap" href="formulas/"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="10" height="7" rx="2"/><rect x="19" y="4" width="10" height="7" rx="2"/><rect x="11" y="21" width="10" height="7" rx="2"/><path d="M8 11c0 5 8 4 8 10M24 11c0 5-8 4-8 10"/></svg><span>공식 지도<small>공식이 어디서 나오는지 이어 보기</small></span></a>
+        <a class="h-fmap" href="formulas/">
+          <svg class="h-fmap-net" id="fmapNet" viewBox="0 0 100 88" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+          <span><span class="h-fmap-k">FORMULA MAP</span><span class="h-fmap-t">공식 지도</span><span class="h-fmap-n" id="fmapCount">물리학 Ⅰ·Ⅱ 공식</span><span class="h-fmap-d">출발점에서 유도까지 이어 보기</span></span>
+          <span class="h-fmap-go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a>
       </div>
       <div class="h-map" id="map" aria-label="개념 지도: 한 칸이 개념 하나, 색칠된 칸은 실험이 있는 개념">
         <p class="h-key">개념 지도를 불러오는 중…</p>
@@ -312,6 +333,29 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   Promise.all([fetch('data/physics_concepts.json').then(r => r.json()), fetch('data/built.json').then(r => r.json())])
     .then(([d, b]) => { D = d; built = new Set(b.built); renderMap(); render(); })
     .catch(() => { $('list').innerHTML = '<p class="h-note">개념 목록을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.</p>'; });
+})();
+</script>
+<script src="formulas/formulas-graph.js"></script>
+<script>
+// 공식 지도 입구의 작은 그림: 지도 배치(formulas-graph.js)를 그대로 줄여 그린다
+(function () {
+  'use strict';
+  const svg = document.getElementById('fmapNet'), count = document.getElementById('fmapCount'), FG = window.FormulaGraph;
+  if (!svg || !FG) return;
+  fetch('data/formulas.json').then(r => r.json()).then(D => {
+    const by = new Map(D.nodes.map(n => [n.id, n]));
+    const L = FG.layout(D, id => ({w: Math.min(400, Math.max(190, by.get(id).tex.length * 6 + 40)), h: 90}));
+    const color = new Map(D.units.map(u => [u.code, D.bigUnits.find(b => b.id === u.big).color]));
+    const r = v => Math.round(v);
+    let h = '';
+    for (const b of D.bigUnits) { const g = L.bigs[b.id]; h += `<rect class="bg c${b.color}" x="${r(g.x)}" y="${r(g.y)}" width="${r(g.w)}" height="${r(g.h)}" rx="90"/>`; }
+    for (const e of D.edges) h += `<path class="e" d="${FG.edgePath(L.nodes[e.from], L.nodes[e.to])}"/>`;
+    for (const n of D.nodes) { const p = L.nodes[n.id]; h += `<rect class="n ${n.role} c${color.get(n.unit)}" x="${r(p.x + 6)}" y="${r(p.y - 34)}" width="${r(p.w - 12)}" height="${r(p.h + 68)}" rx="72"/>`; }
+    const pad = 120;
+    svg.setAttribute('viewBox', `${-pad} ${-pad} ${r(L.bounds.w + 2 * pad)} ${r(L.bounds.h + 2 * pad)}`);
+    svg.innerHTML = h;
+    count.innerHTML = `<span class="nw">공식 ${D.nodes.length}개</span> · <span class="nw">유도 관계 ${D.edges.length}개</span>`;
+  }).catch(() => {});
 })();
 </script>
 </body>

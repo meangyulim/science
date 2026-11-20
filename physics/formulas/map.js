@@ -12,14 +12,14 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const narrow = matchMedia('(max-width: 760px)');
 
-  const map = $('map'), world = $('world'), cardsEl = $('cards'), regionsEl = $('regions'), edgeSvg = $('edges'), edgeG = $('edgeG');
+  const map = $('map'), world = $('world'), cardsEl = $('cards'), regionsEl = $('regions'), labelsEl = $('labels'), edgeSvg = $('edges'), edgeG = $('edgeG');
   const panel = $('panel'), panelIn = $('panelIn'), qIn = $('q'), results = $('results');
   const ROLE = {basis: '출발점', derived: '유도', applied: '응용'};
   const LOD = [0.065, 0.26, 0.5];          // 이 배율보다 작으면 lod0 / lod1 / lod2, 크면 lod3
   const K_MAX = 2.4;
 
   let D = null, IX = null, L = null, colorOfUnit = new Map(), concepts = new Map(), built = new Set();
-  const cardOf = new Map(), edgeEls = [], unitEls = new Map(), bigEls = new Map(), subjEls = new Map();
+  const cardOf = new Map(), edgeEls = [], unitEls = new Map(), ulabEls = new Map(), bigEls = new Map(), subjEls = new Map();
   const view = {x: 0, y: 0, k: 1};       // 화면 = 세계 × k + (x, y)
   let kMin = 0.05, cur = null, panelMode = null, lod = -1;
   const reveal = new Map();               // 공식마다 펼친 줄 수
@@ -84,16 +84,19 @@
   }
 
   function buildRegions() {
-    let h = '';
+    let h = '', labs = '';
     for (const s of D.subjects) h += `<div class="fm-subj-lab" data-subj="${s.id}">${esc(s.name)}</div>`;
     for (const b of D.bigUnits) {
       h += `<div class="fm-big c${b.color}" data-big="${b.id}"><div class="fm-big-lab"><b>${b.roman}</b><span>${esc(b.name)}</span></div></div>`;
     }
     for (const u of D.units) {
       const n = D.nodes.filter(x => x.unit === u.code).length, c = IX.bigOf.get(u.big).color;
-      h += `<div class="fm-unit c${c}${n ? '' : ' empty'}" data-unit="${u.code}"><div class="fm-unit-lab"><b>${esc(u.name)}</b><small>${u.code}${n ? ` · 공식 ${n}` : ''}</small></div>${n ? '' : '<span class="fm-soon">공식 준비 중</span>'}</div>`;
+      h += `<div class="fm-unit c${c}${n ? '' : ' empty'}" data-unit="${u.code}">${n ? '' : '<span class="fm-soon">공식 준비 중</span>'}</div>`;
+      labs += `<div class="fm-unit-lab c${c}" data-ulab="${u.code}"><b>${esc(u.name)}</b><small>${u.code}${n ? ` · 공식 ${n}` : ''}</small></div>`;
     }
     regionsEl.innerHTML = h;
+    labelsEl.innerHTML = labs;   // 단원 이름표는 공식 칸보다 위 층에 둔다
+    labelsEl.querySelectorAll('[data-ulab]').forEach(el => ulabEls.set(el.dataset.ulab, el));
     regionsEl.querySelectorAll('[data-unit]').forEach(el => unitEls.set(el.dataset.unit, el));
     regionsEl.querySelectorAll('[data-big]').forEach(el => bigEls.set(el.dataset.big, el));
     regionsEl.querySelectorAll('[data-subj]').forEach(el => subjEls.set(el.dataset.subj, el));
@@ -158,10 +161,12 @@
   function scaleLabels() {
     const k = view.k;
     const su = lod < 2 ? Math.max(1, 0.5 / k) : Math.max(1, 0.62 / k), sb = Math.max(1, 0.26 / k), ss = Math.max(1, 0.34 / k);
-    for (const [code, el] of unitEls) {
-      const lab = el.firstElementChild, u = L.units[code];
-      lab.style.transform = lod < 2 ? `translate(-50%,-50%) scale(${su})` : `scale(${su})`;
-      lab.style.maxWidth = Math.max(120, (lod < 2 ? u.w + 160 : u.w - 56) / su) + 'px';
+    for (const [code, lab] of ulabEls) {
+      const u = L.units[code], mid = lod === 1;
+      lab.style.left = (mid ? u.x + u.w / 2 : u.x + 28) + 'px';
+      lab.style.top = (mid ? u.y + u.h / 2 : u.y + 24) + 'px';
+      lab.style.transform = mid ? `translate(-50%,-50%) scale(${su})` : `scale(${su})`;
+      lab.style.maxWidth = Math.max(120, (mid ? u.w + 160 : u.w - 56) / su) + 'px';
     }
     for (const [id, el] of bigEls) {
       const lab = el.firstElementChild;
@@ -204,9 +209,10 @@
     flyTo({k, x: a.x + a.w / 2 - b.x * k, y: a.y + a.h / 2 - b.y * k}, ms);
   }
   function fitBox(b, ms, cap) { flyTo(viewFor(b, 24, cap), ms); }
-  /** 처음 보기: 공식이 있는 대단원이 든 과목 줄 전체 */
+  /** 처음 보기: 공식이 있는 과목 줄 전체(폰은 첫 과목만) */
   function overviewBox() {
-    const subj = new Set(D.nodes.map(n => IX.bigOf.get(IX.unitOf.get(n.unit).big).subject));
+    let subj = new Set(D.nodes.map(n => IX.bigOf.get(IX.unitOf.get(n.unit).big).subject));
+    if (narrow.matches && subj.size > 1) subj = new Set([[...subj][0]]);   // 폰: 첫 과목 줄만
     let x0 = Infinity, x1 = -Infinity;
     for (const s of subj) { const b = L.subjects[s]; x0 = Math.min(x0, b.x); x1 = Math.max(x1, b.x + b.w); }
     if (!isFinite(x0)) return L.bounds;
@@ -277,6 +283,8 @@
     const c = e.target.closest('.fm-card');
     if (c) { select(c.dataset.id, {fly: true, push: true, soft: true}); return; }
     if (e.target.closest('.fm-zoom,.fm-legend')) return;
+    const ul = e.target.closest('[data-ulab]');
+    if (ul) { zoomUnit(ul.dataset.ulab, 600); return; }
     const u = e.target.closest('.fm-unit');
     if (u && view.k < LOD[2]) { zoomUnit(u.dataset.unit, 600); return; }
     const b = e.target.closest('.fm-big');

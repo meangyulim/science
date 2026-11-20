@@ -7,7 +7,7 @@ const FG = require('../physics/formulas/formulas-graph.js');
 
 const ids = new Set(D.nodes.map(n => n.id));
 const ROLES = new Set(['basis', 'derived', 'applied']);
-const BASIS_TYPES = new Set(['정의', '법칙', '실험 법칙', '원리', '모형']);
+const BASIS_TYPES = new Set(['정의', '법칙', '실험 법칙', '원리', '모형', '측정값']);
 
 test('과목 · 대단원 · 단원이 개념 목록(physics_concepts.json)과 맞는다', () => {
   const subj = new Set(D.subjects.map(s => s.id)), big = new Map(D.bigUnits.map(b => [b.id, b]));
