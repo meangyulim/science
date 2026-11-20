@@ -1,7 +1,8 @@
 /* 공식 지도 — 이 페이지만의 모양. 토큰(--bg, --paper, --ink, --copper …)은 ../kit/lab.css 것을 쓴다.
    배치: 맨 위 막대(.fm-bar: 실험실로 · 제목 · 찾기 · 목차·테마) → 지도(.fm-map, 화면 전체) + 자세히 패널(.fm-panel)
          넓은 화면: 패널이 오른쪽에 뜬다 / 좁은 화면(≤ 760px): 아래에서 올라오는 시트
-   지도 확대 단계(.lod0~3): 0 과목·대단원 이름과 공식 칸 → 1 단원 이름표와 공식 칸·선 → 2 공식 이름 → 3 공식 카드(수식) */
+   지도 확대 단계(.lod0~3): 0 과목·대단원 이름과 공식 칸 → 1 단원 이름표와 공식 칸·선 → 2 공식 이름 → 3 공식 카드(수식)
+   보기 두 가지: 단원별(기본) · 분야별(.mode-field). 영역·이름표는 보기마다 따로 두고(#regions·#labels / #fregions·#flabels) 바꿀 때 서로 스르르 바뀐다 */
 :root{
   --u1:#2463c7; --u1-soft:rgba(36,99,199,.055); --u1-line:rgba(36,99,199,.30);
   --u2:#7a52c7; --u2-soft:rgba(122,82,199,.06); --u2-line:rgba(122,82,199,.30);
@@ -74,7 +75,9 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .fm-map.drag{cursor:grabbing}
 .fm-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 .fm-regions,.fm-cards,.fm-labels{position:absolute;left:0;top:0}
-.fm-edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.fm-edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;transition:opacity .4s ease}
+.morphing .fm-edges{opacity:0;transition:opacity .12s}
+.morphing .fm-card{will-change:transform;transition:none}
 
 /* 과목·대단원·단원 영역 */
 .fm-subj-lab{position:absolute;transform-origin:0 100%;font-size:60px;font-weight:700;line-height:1;color:var(--ink);white-space:nowrap;letter-spacing:-.02em}
@@ -82,6 +85,9 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .fm-big-lab{position:absolute;left:40px;top:34px;transform-origin:0 0;display:flex;align-items:baseline;gap:16px;white-space:nowrap;color:var(--u)}
 .fm-big-lab b{font-size:52px;font-weight:700;line-height:1}
 .fm-big-lab span{font-size:40px;font-weight:700;line-height:1;color:var(--ink)}
+.fm-big-lab small{font-size:22px;font-weight:600;color:var(--muted);align-self:center}
+.fm-group .fm-big-lab{left:30px;top:auto;bottom:calc(100% + 26px);transform-origin:0 100%}
+.fm-group .fm-big-lab span{font-size:44px}
 .fm-unit{position:absolute;border-radius:26px;background:var(--paper);border:1.5px solid var(--u-line);cursor:pointer}
 .fm-unit:hover{border-color:var(--u)}
 .fm-unit-lab{position:absolute;left:0;top:0;width:max-content;transform-origin:0 0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;color:var(--ink);line-height:1.2;cursor:pointer}
@@ -93,6 +99,25 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .lod1 .fm-unit.empty .fm-soon{display:none}
 .fm-unit.empty .fm-soon{position:absolute;left:28px;bottom:26px;font-size:17px;color:var(--muted)}
 
+/* 분야별: 묶음(.fm-group = .fm-big 모양) 안에 분야 레인. 레인 안은 위에서 아래로 출발점 띠 · 유도 · 응용 칸 */
+.fm-lane{position:absolute;border-radius:26px;background:var(--paper);border:1.5px solid var(--u-line);cursor:pointer;overflow:hidden}
+.fm-lane:hover{border-color:var(--u)}
+.fm-lane .sec{position:absolute;left:0;right:0}
+.fm-lane .sec.basis{background:var(--copper-soft);border-top:1px solid color-mix(in srgb,var(--copper) 26%,transparent);border-bottom:1px solid color-mix(in srgb,var(--copper) 26%,transparent)}
+.fm-lane .sec.applied{background:color-mix(in srgb,var(--u) 5%,transparent);border-top:2px dashed var(--u-line)}
+.fm-lane-lab .ab{flex-basis:100%;font-size:14px;font-weight:400;color:var(--muted);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lod1 .fm-lane-lab .ab,.lod2 .fm-lane-lab .ab{display:none}
+.lod2 .fm-lane-lab b,.lod3 .fm-lane-lab b{white-space:nowrap}
+.fm-sec-lab{position:absolute;left:0;top:0;transform:translateY(-50%);font-size:20px;font-weight:700;line-height:1.3;color:var(--u);background:var(--paper);
+  border:1.5px solid var(--u-line);border-radius:999px;padding:1px 14px;white-space:nowrap;pointer-events:none}
+.fm-sec-lab.applied{border-style:dashed}
+.lod0 .fm-sec-lab,.lod1 .fm-sec-lab,.lod0 .fm-lane-lab{visibility:hidden}
+
+/* 보기 바꾸기: 쓰지 않는 보기의 영역·이름표는 숨긴다(스르르) */
+.fm-regions,.fm-labels{transition:opacity .45s ease}
+.fm-regions.f,.fm-labels.f,.mode-field .fm-regions:not(.f),.mode-field .fm-labels:not(.f){opacity:0;pointer-events:none;visibility:hidden;transition:opacity .45s ease,visibility 0s .45s}
+.mode-field .fm-regions.f,.mode-field .fm-labels.f{opacity:1;pointer-events:auto;visibility:visible;transition:opacity .45s ease}
+
 /* 공식 카드 */
 .fm-card{position:absolute;display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:10px 14px 12px;border-radius:14px;
   background:var(--paper);border:1.5px solid var(--line);box-shadow:var(--card-shadow);color:var(--ink);text-align:left;cursor:pointer;font:inherit;
@@ -101,6 +126,8 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .fm-card:focus-visible{outline:3px solid var(--copper);outline-offset:3px}
 .fm-card .b{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);line-height:1.3;white-space:nowrap}
 .fm-card .b i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.fm-card .b .sj{display:none;position:absolute;right:9px;top:8px;font-style:normal;font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:0 5px;line-height:1.4}
+.mode-field .fm-card .b .sj{display:block}
 .fm-card .n{font-size:14.5px;font-weight:600;line-height:1.35;letter-spacing:-.01em}
 .fm-card .t{display:flex;justify-content:center;padding-top:2px;font-size:16px;line-height:1.2;color:var(--ink);white-space:nowrap}
 .fm-card.basis{background:var(--copper-soft);border-color:color-mix(in srgb,var(--copper) 45%,transparent)}
@@ -117,7 +144,7 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .lod0 .fm-edges,.lod0 .fm-unit-lab{visibility:hidden}
 .lod0 .fm-unit.empty .fm-soon{display:none}
 .lod0 .fm-card > *,.lod1 .fm-card > *{visibility:hidden}
-.lod0 .fm-card,.lod1 .fm-card{box-shadow:none;border:0;border-radius:28px;transform:scale(.88);transition:opacity .2s}
+.lod0 .fm-card,.lod1 .fm-card{box-shadow:none;border:0;border-radius:28px;transform:scale(.88);transition:opacity .2s,background-color .5s}
 .lod0 .fm-card.derived,.lod1 .fm-card.derived{background:var(--u)}
 .lod0 .fm-card.applied,.lod1 .fm-card.applied{background:color-mix(in srgb,var(--u) 34%,var(--paper))}
 .lod0 .fm-card.basis,.lod1 .fm-card.basis{background:var(--copper)}
@@ -132,22 +159,33 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .fm-edges .ah-in{fill:var(--e-in)}
 .fm-edges .ah-out{fill:var(--e-out)}
 .lod1 .fm-edges path{stroke:var(--edge-dim);marker-end:none}
+/* 분야별 보기: 다른 분야로 건너가는 선은 옅은 점선(같은 분야 안의 흐름이 먼저 보이게) */
+.mode-field .fm-edges path.x:not(.h):not(.in):not(.out){stroke-dasharray:5 6;opacity:.5}
+.mode-field.lod1 .fm-edges path.x:not(.h):not(.in):not(.out){opacity:.35}
+.mode-field.has-sel .fm-edges path.x:not(.h):not(.in):not(.out){opacity:.18}
 
 /* 마우스를 올린 공식의 선 */
-.fm-edges path.h{stroke:var(--ink-2);stroke-width:2;opacity:1}
+.fm-edges path.h{stroke:var(--ink-2);stroke-width:2;opacity:1;stroke-dasharray:none}
 
 /* 고른 공식: 조상(출발점까지)과 바로 이어지는 공식만 또렷하게 */
 .has-sel .fm-card:not(.on){opacity:.22}
 .has-sel .fm-edges path{opacity:.18}
-.has-sel .fm-edges path.in{opacity:1;stroke:var(--e-in);stroke-width:2.4;marker-end:url(#ah-in)}
-.has-sel .fm-edges path.out{opacity:1;stroke:var(--e-out);stroke-width:2.4;marker-end:url(#ah-out)}
+.has-sel .fm-edges path.in{opacity:1;stroke:var(--e-in);stroke-width:2.4;marker-end:url(#ah-in);stroke-dasharray:none}
+.has-sel .fm-edges path.out{opacity:1;stroke:var(--e-out);stroke-width:2.4;marker-end:url(#ah-out);stroke-dasharray:none}
 .fm-card.cur{outline:3px solid var(--copper);outline-offset:3px;opacity:1}
 .fm-card.anc{border-color:var(--copper)}
 .fm-card.kid{border-color:var(--vel)}
 .lod0 .fm-card.cur,.lod1 .fm-card.cur{outline-width:10px;transform:scale(1)}
 
 /* 지도 위 고정 자리 */
-.fm-where{position:absolute;left:12px;top:12px;max-width:calc(100% - 24px);display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:13px;color:var(--ink-2);pointer-events:none}
+.fm-top{position:absolute;left:12px;top:12px;right:12px;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;pointer-events:none}
+.fm-mode{display:inline-flex;gap:2px;padding:3px;border-radius:13px;background:var(--glass);border:1px solid var(--line);pointer-events:auto;
+  -webkit-backdrop-filter:saturate(1.4) blur(8px);backdrop-filter:saturate(1.4) blur(8px);box-shadow:0 2px 10px rgba(17,24,39,.08)}
+.fm-mode button{height:34px;padding:0 14px;border:0;border-radius:10px;background:transparent;color:var(--ink-2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.fm-mode button:hover{color:var(--ink);background:var(--line-soft)}
+.fm-mode button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.fm-mode button:focus-visible{outline:2px solid var(--copper);outline-offset:1px}
+.fm-where{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-width:0;font-size:13px;color:var(--ink-2);pointer-events:none}
 .fm-where span{background:var(--glass);border:1px solid var(--line);border-radius:999px;padding:2px 10px;white-space:nowrap}
 .fm-where span.u{color:var(--u);border-color:var(--u-line)}
 .fm-zoom{position:absolute;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:grid;gap:6px}
@@ -161,11 +199,15 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .fm-legend b{display:inline-block;width:18px;height:3px;border-radius:2px}
 .fm-legend b.e-in{background:var(--e-in)}
 .fm-legend b.e-out{background:var(--e-out)}
-.fm-legend .sel-only{display:none}
+.fm-legend b.e-x{height:2px;background:repeating-linear-gradient(90deg,var(--muted) 0 4px,transparent 4px 8px)}
+.fm-legend .sel-only,.fm-legend .f-only{display:none}
+.mode-field .fm-legend .f-only{display:inline-flex}
 .has-sel .fm-legend .sel-only{display:inline-flex}
-.fm-hint{position:absolute;left:50%;top:12px;transform:translateX(-50%);margin:0;font-size:13px;color:var(--muted);background:var(--glass);border:1px solid var(--line);border-radius:999px;
+.fm-hint{position:absolute;left:12px;top:62px;margin:0;font-size:13px;color:var(--muted);background:var(--glass);border:1px solid var(--line);border-radius:999px;
   padding:3px 12px;white-space:nowrap;pointer-events:none;transition:opacity .4s}
 .fm-hint.gone{opacity:0}
+@media (min-width:761px){.fm-hint{left:50%;top:auto;bottom:calc(64px + env(safe-area-inset-bottom,0px));transform:translateX(-50%)}}
+@media (min-width:1100px){.fm-hint{bottom:calc(14px + env(safe-area-inset-bottom,0px))}}
 .fm-loading{position:absolute;inset:0;display:grid;place-items:center;margin:0;color:var(--muted);font-size:15px;pointer-events:none}
 
 /* ── 자세히 패널 ── */
@@ -177,6 +219,11 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .p-crumb{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:13px;color:var(--muted)}
 .p-crumb button{border:0;background:none;padding:0;color:inherit;font-size:13px;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 .p-crumb button:hover{color:var(--ink)}
+.p-crumbs{flex:1;min-width:0;display:grid;gap:2px}
+.p-crumb2{font-size:12px;color:var(--muted);line-height:1.5}
+.p-crumb2 .sj{color:var(--copper-ink)}
+.o-about{margin:12px 0 2px;font-size:13.5px;line-height:1.65;color:var(--ink-2);background:var(--bg);border-radius:12px;padding:10px 12px}
+.o-unit .o-list .o-ab{margin:0;font-size:13px;color:var(--muted);line-height:1.6}
 .p-close{flex:none;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--paper);cursor:pointer;display:grid;place-items:center;color:var(--ink)}
 .p-close svg{width:16px;height:16px}
 .p-role{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:2px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);margin-top:12px}
@@ -269,6 +316,7 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
   .fm-panel-in{padding:6px 16px calc(24px + env(safe-area-inset-bottom,0px))}
   .fm-panel h2{font-size:20px}
   .fm-legend{display:none}
+  .fm-mode button{height:32px;padding:0 11px;font-size:13.5px}
   .fm-hint{top:auto;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:12px;transform:none;white-space:normal;max-width:calc(100% - 80px)}
   .panel-open .fm-zoom{display:none}
 }
@@ -277,5 +325,5 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 }
 @media (prefers-reduced-motion: reduce){
   .p-steps li{animation:none}
-  .fm-card,.fm-edges path,.fm-panel{transition:none}
+  .fm-card,.fm-edges path,.fm-panel,.fm-regions,.fm-labels{transition:none}
 }

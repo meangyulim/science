@@ -1,15 +1,17 @@
 {
  "meta": {
   "title": "물리 공식 지도 데이터",
-  "about": "물리학 Ⅰ·Ⅱ 공식(노드)과 유도 관계(간선). physics/formulas/ 페이지가 이 파일 하나로 지도와 유도 과정을 그린다. 만드는 법은 physics/kit/GUIDE.md 맨 끝 「공식 지도」.",
+  "about": "물리학 Ⅰ·Ⅱ 공식(노드)과 유도 관계(간선). physics/formulas/ 페이지가 이 파일 하나로 지도와 유도 과정을 그린다. 지도는 두 가지로 본다: 단원별(교과서 차례) · 분야별(같은 분야끼리 모아 출발점 → 유도 → 응용). 만드는 법은 physics/kit/GUIDE.md 맨 끝 「공식 지도」.",
   "roles": {
    "basis": "출발점: 정의·법칙처럼 유도하지 않고 정하거나 실험으로 확인하는 것",
    "derived": "유도: 다른 공식에서 이끌어 낸 핵심 공식",
    "applied": "응용: 특정 상황에 맞춰 쓴 공식"
   },
   "fields": {
-   "node": "id(<단원>.<이름>), unit, name, role, tex(LaTeX), basis{type,what,check} | steps[{tex?, say, uses?[노드 id]}], calc?(참고: 미적분), forms?(같은 식의 다른 꼴), note?, concepts[개념 ID], keys?(찾기 낱말)",
-   "edge": "from → to, kind(kinds 의 키). 유도 단계의 uses 를 모두 합친 것과 그 노드로 들어오는 간선의 from 이 같아야 한다(테스트로 확인)."
+   "node": "id(<단원>.<이름>), unit, field(fields 의 id), name, role, tex(LaTeX), basis{type,what,check} | steps[{tex?, say, uses?[노드 id]}], calc?(참고: 미적분), forms?(같은 식의 다른 꼴), note?, concepts[개념 ID], keys?(찾기 낱말)",
+   "edge": "from → to, kind(kinds 의 키). 유도 단계의 uses 를 모두 합친 것과 그 노드로 들어오는 간선의 from 이 같아야 한다(테스트로 확인).",
+   "field": "분야별 보기의 세로 줄 하나. id, group(fieldGroups 의 id), name, about(무엇이 들어 있나). 물리학 Ⅰ·Ⅱ 를 가리지 않고 같은 분야의 공식을 모은다.",
+   "fieldGroup": "분야 묶음(색). id, name, color(1~3, 단원별 보기의 대단원 색과 같은 뜻)."
   }
  },
  "kinds": {
@@ -142,10 +144,108 @@
    "name": "빛과 물질의 이중성"
   }
  ],
+ "fieldGroups": [
+  {
+   "id": "G1",
+   "name": "역학과 에너지",
+   "color": 1
+  },
+  {
+   "id": "G2",
+   "name": "전기와 자기",
+   "color": 2
+  },
+  {
+   "id": "G3",
+   "name": "파동과 양자",
+   "color": 3
+  }
+ ],
+ "fields": [
+  {
+   "id": "motion",
+   "group": "G1",
+   "name": "물체의 운동",
+   "about": "속력·속도·가속도, 등가속도 운동, 상대 속도, 벡터와 포물선 운동"
+  },
+  {
+   "id": "force",
+   "group": "G1",
+   "name": "힘과 평형",
+   "about": "뉴턴 운동 법칙, 연결된 물체, 관성력, 돌림힘과 평형"
+  },
+  {
+   "id": "momentum",
+   "group": "G1",
+   "name": "운동량과 충돌",
+   "about": "운동량과 충격량, 운동량 보존, 충돌과 분리"
+  },
+  {
+   "id": "circular",
+   "group": "G1",
+   "name": "원운동과 진동",
+   "about": "등속 원운동, 구심력, 단진동과 단진자"
+  },
+  {
+   "id": "gravity",
+   "group": "G1",
+   "name": "중력과 천체",
+   "about": "케플러 법칙, 만유인력, 인공위성, 탈출 속력, 등가 원리"
+  },
+  {
+   "id": "energy",
+   "group": "G1",
+   "name": "일과 에너지",
+   "about": "일과 운동 에너지, 퍼텐셜 에너지, 역학적 에너지 보존, 일률"
+  },
+  {
+   "id": "thermo",
+   "group": "G1",
+   "name": "열역학",
+   "about": "기체의 상태, 내부 에너지, 열역학 법칙, 열기관과 열효율, 비열"
+  },
+  {
+   "id": "relativity",
+   "group": "G1",
+   "name": "상대성과 핵에너지",
+   "about": "특수 상대성 이론, 시간 지연·길이 수축, 질량–에너지 동등성, 핵반응"
+  },
+  {
+   "id": "electric",
+   "group": "G2",
+   "name": "전하와 전기장",
+   "about": "쿨롱 법칙, 전기장과 전위차, 축전기"
+  },
+  {
+   "id": "circuit",
+   "group": "G2",
+   "name": "전류와 회로",
+   "about": "전류와 저항, 키르히호프 법칙, 전력, 트랜지스터"
+  },
+  {
+   "id": "magnetic",
+   "group": "G2",
+   "name": "자기장과 전자기 유도",
+   "about": "전류의 자기장, 자기력, 전자기 유도, 변압기와 교류"
+  },
+  {
+   "id": "wave",
+   "group": "G3",
+   "name": "파동과 빛",
+   "about": "파동의 성질, 굴절과 렌즈, 간섭·회절, 도플러 효과, 전자기파"
+  },
+  {
+   "id": "quantum",
+   "group": "G3",
+   "name": "원자와 양자",
+   "about": "보어 원자 모형과 스펙트럼, 에너지띠, 광전 효과, 물질파, 불확정성"
+  }
+ ],
  "nodes": [
   {
    "id": "I1.speed",
    "unit": "I1",
+   "field": "motion",
    "name": "평균 속력",
    "role": "basis",
    "tex": "\\text{평균 속력} = \\frac{\\text{이동 거리}}{\\text{걸린 시간}}",
@@ -165,6 +265,7 @@
   {
    "id": "I1.vavg",
    "unit": "I1",
+   "field": "motion",
    "name": "평균 속도",
    "role": "basis",
    "tex": "\\bar{v} = \\frac{\\Delta x}{\\Delta t}",
@@ -191,6 +292,7 @@
   {
    "id": "I1.accel",
    "unit": "I1",
+   "field": "motion",
    "name": "가속도",
    "role": "basis",
    "tex": "a = \\frac{\\Delta v}{\\Delta t}",
@@ -217,6 +319,7 @@
   {
    "id": "I1.uniform",
    "unit": "I1",
+   "field": "motion",
    "name": "등속 직선 운동",
    "role": "derived",
    "tex": "s = vt",
@@ -247,6 +350,7 @@
   {
    "id": "I1.vt",
    "unit": "I1",
+   "field": "motion",
    "name": "등가속도: 속도 식",
    "role": "derived",
    "tex": "v = v_0 + at",
@@ -277,6 +381,7 @@
   {
    "id": "I1.vbar",
    "unit": "I1",
+   "field": "motion",
    "name": "평균속도법",
    "role": "derived",
    "tex": "\\bar{v} = \\frac{v_0 + v}{2} = \\frac{s}{t}",
@@ -311,6 +416,7 @@
   {
    "id": "I1.st",
    "unit": "I1",
+   "field": "motion",
    "name": "등가속도: 거리 식",
    "role": "derived",
    "tex": "s = v_0 t + \\frac{1}{2}at^2",
@@ -345,6 +451,7 @@
   {
    "id": "I1.v2",
    "unit": "I1",
+   "field": "motion",
    "name": "등가속도: 시간 없는 식",
    "role": "derived",
    "tex": "v^2 - v_0^2 = 2as",
@@ -378,6 +485,7 @@
   {
    "id": "I1.dsat2",
    "unit": "I1",
+   "field": "motion",
    "name": "같은 시간 간격의 거리 차",
    "role": "applied",
    "tex": "\\Delta s = aT^2",
@@ -412,6 +520,7 @@
   {
    "id": "I1.relv",
    "unit": "I1",
+   "field": "motion",
    "name": "상대 속도",
    "role": "derived",
    "tex": "v_{AB} = v_A - v_B",
@@ -444,6 +553,7 @@
   {
    "id": "I1.meet",
    "unit": "I1",
+   "field": "motion",
    "name": "두 물체의 만남",
    "role": "applied",
    "tex": "\\Delta x_{AB} = (v_A - v_B)\\,t",
@@ -477,6 +587,7 @@
   {
    "id": "I1.newton1",
    "unit": "I1",
+   "field": "force",
    "name": "관성 법칙 (뉴턴 제1법칙)",
    "role": "basis",
    "tex": "\\sum \\vec{F} = 0 \\;\\Rightarrow\\; \\vec{v} = \\text{일정}",
@@ -496,6 +607,7 @@
   {
    "id": "I1.newton2",
    "unit": "I1",
+   "field": "force",
    "name": "가속도 법칙 (뉴턴 제2법칙)",
    "role": "basis",
    "tex": "\\vec{F}_{net} = m\\vec{a}",
@@ -521,6 +633,7 @@
   {
    "id": "I1.newton3",
    "unit": "I1",
+   "field": "force",
    "name": "작용 반작용 법칙 (뉴턴 제3법칙)",
    "role": "basis",
    "tex": "\\vec{F}_{AB} = -\\vec{F}_{BA}",
@@ -541,6 +654,7 @@
   {
    "id": "I1.weight",
    "unit": "I1",
+   "field": "force",
    "name": "중력 (무게)",
    "role": "derived",
    "tex": "w = mg",
@@ -572,6 +686,7 @@
   {
    "id": "I1.equil",
    "unit": "I1",
+   "field": "force",
    "name": "힘의 평형",
    "role": "derived",
    "tex": "\\sum \\vec{F} = 0",
@@ -606,6 +721,7 @@
   {
    "id": "I1.hooke",
    "unit": "I1",
+   "field": "force",
    "name": "탄성력 (훅 법칙)",
    "role": "basis",
    "tex": "F = kx",
@@ -627,6 +743,7 @@
   {
    "id": "I1.sysacc",
    "unit": "I1",
+   "field": "force",
    "name": "한 덩어리로 보기: 연결된 물체의 가속도",
    "role": "derived",
    "tex": "a = \\frac{\\sum F_{ext}}{\\sum m}",
@@ -663,6 +780,7 @@
   {
    "id": "I1.share",
    "unit": "I1",
+   "field": "force",
    "name": "힘의 분배",
    "role": "applied",
    "tex": "F_i = \\frac{m_i}{\\sum m}\\,F_{net}",
@@ -698,6 +816,7 @@
   {
    "id": "I1.normal",
    "unit": "I1",
+   "field": "force",
    "name": "가속하는 엘리베이터의 수직 항력",
    "role": "applied",
    "tex": "N = m(g + a)",
@@ -733,6 +852,7 @@
   {
    "id": "I1.atwood",
    "unit": "I1",
+   "field": "force",
    "name": "도르래에 매단 두 물체의 가속도",
    "role": "derived",
    "tex": "a = \\frac{m_1 - m_2}{m_1 + m_2}\\,g",
@@ -763,6 +883,7 @@
   {
    "id": "I1.atwoodT",
    "unit": "I1",
+   "field": "force",
    "name": "도르래 실의 장력",
    "role": "applied",
    "tex": "T = \\frac{2m_1 m_2}{m_1 + m_2}\\,g",
@@ -798,6 +919,7 @@
   {
    "id": "I1.table",
    "unit": "I1",
+   "field": "force",
    "name": "수평면 물체와 매달린 물체",
    "role": "applied",
    "tex": "a = \\frac{m}{M + m}\\,g,\\quad T = \\frac{Mm}{M + m}\\,g",
@@ -829,6 +951,7 @@
   {
    "id": "I1.incline",
    "unit": "I1",
+   "field": "force",
    "name": "마찰 없는 빗면의 가속도",
    "role": "derived",
    "tex": "a = g\\sin\\theta",
@@ -866,6 +989,7 @@
   {
    "id": "I1.cut",
    "unit": "I1",
+   "field": "force",
    "name": "실이 끊어질 때 가속도의 변화",
    "role": "applied",
    "tex": "M_X\\left|\\Delta a_X\\right| = M_Y\\left|\\Delta a_Y\\right| = T",
@@ -901,6 +1025,7 @@
   {
    "id": "I1.momentum",
    "unit": "I1",
+   "field": "momentum",
    "name": "운동량",
    "role": "basis",
    "tex": "p = mv",
@@ -919,6 +1044,7 @@
   {
    "id": "I1.impulse",
    "unit": "I1",
+   "field": "momentum",
    "name": "충격량과 운동량 변화",
    "role": "derived",
    "tex": "I = F\\Delta t = \\Delta p = mv - mv_0",
@@ -959,6 +1085,7 @@
   {
    "id": "I1.avgF",
    "unit": "I1",
+   "field": "momentum",
    "name": "평균 힘과 충격 완화",
    "role": "applied",
    "tex": "\\bar{F} = \\frac{\\Delta p}{\\Delta t}",
@@ -988,6 +1115,7 @@
   {
    "id": "I1.pcons",
    "unit": "I1",
+   "field": "momentum",
    "name": "운동량 보존 법칙",
    "role": "derived",
    "tex": "m_1 v_1 + m_2 v_2 = m_1 v_1' + m_2 v_2'",
@@ -1026,6 +1154,7 @@
   {
    "id": "I1.stick",
    "unit": "I1",
+   "field": "momentum",
    "name": "한 덩어리가 되는 충돌",
    "role": "applied",
    "tex": "v_f = \\frac{m_1 v_1 + m_2 v_2}{m_1 + m_2}",
@@ -1054,6 +1183,7 @@
   {
    "id": "I1.split",
    "unit": "I1",
+   "field": "momentum",
    "name": "정지 상태에서의 분리",
    "role": "applied",
    "tex": "m_A v_A = m_B v_B",
@@ -1081,6 +1211,7 @@
   {
    "id": "I1.elastic",
    "unit": "I1",
+   "field": "momentum",
    "name": "탄성 충돌",
    "role": "derived",
    "tex": "\\tfrac{1}{2}m_1 v_1^2 + \\tfrac{1}{2}m_2 v_2^2 = \\tfrac{1}{2}m_1 v_1'^2 + \\tfrac{1}{2}m_2 v_2'^2",
@@ -1107,6 +1238,7 @@
   {
    "id": "I1.elasticV",
    "unit": "I1",
+   "field": "momentum",
    "name": "정지한 물체와의 탄성 충돌 (교과 심화)",
    "role": "applied",
    "tex": "v_1' = \\frac{m_1 - m_2}{m_1 + m_2}\\,v_1,\\quad v_2' = \\frac{2m_1}{m_1 + m_2}\\,v_1",
@@ -1145,6 +1277,7 @@
   {
    "id": "I2.work",
    "unit": "I2",
+   "field": "energy",
    "name": "일",
    "role": "basis",
    "tex": "W = Fs\\cos\\theta",
@@ -1174,6 +1307,7 @@
   {
    "id": "I2.wke",
    "unit": "I2",
+   "field": "energy",
    "name": "일–운동 에너지 정리",
    "role": "derived",
    "tex": "W_{net} = \\Delta E_k = \\frac{1}{2}mv^2 - \\frac{1}{2}mv_0^2",
@@ -1216,6 +1350,7 @@
   {
    "id": "I2.ek",
    "unit": "I2",
+   "field": "energy",
    "name": "운동 에너지",
    "role": "derived",
    "tex": "E_k = \\frac{1}{2}mv^2",
@@ -1242,6 +1377,7 @@
   {
    "id": "I2.ekp",
    "unit": "I2",
+   "field": "energy",
    "name": "운동 에너지와 운동량",
    "role": "derived",
    "tex": "E_k = \\frac{p^2}{2m}",
@@ -1279,6 +1415,7 @@
   {
    "id": "I2.epg",
    "unit": "I2",
+   "field": "energy",
    "name": "중력 퍼텐셜 에너지",
    "role": "derived",
    "tex": "E_p = mgh",
@@ -1314,6 +1451,7 @@
   {
    "id": "I2.eps",
    "unit": "I2",
+   "field": "energy",
    "name": "탄성 퍼텐셜 에너지",
    "role": "derived",
    "tex": "E_p = \\frac{1}{2}kx^2",
@@ -1355,6 +1493,7 @@
   {
    "id": "I2.wcons",
    "unit": "I2",
+   "field": "energy",
    "name": "보존력이 한 일과 퍼텐셜 에너지",
    "role": "derived",
    "tex": "W_{\\text{보존력}} = -\\Delta E_p",
@@ -1388,6 +1527,7 @@
   {
    "id": "I2.mcons",
    "unit": "I2",
+   "field": "energy",
    "name": "역학적 에너지 보존",
    "role": "derived",
    "tex": "E_k + E_p = \\text{일정}",
@@ -1426,6 +1566,7 @@
   {
    "id": "I2.mconsG",
    "unit": "I2",
+   "field": "energy",
    "name": "중력장에서의 역학적 에너지 보존",
    "role": "applied",
    "tex": "\\frac{1}{2}mv_1^2 + mgh_1 = \\frac{1}{2}mv_2^2 + mgh_2",
@@ -1458,6 +1599,7 @@
   {
    "id": "I2.fall",
    "unit": "I2",
+   "field": "energy",
    "name": "높이와 속력",
    "role": "applied",
    "tex": "v^2 - v_0^2 = 2gh",
@@ -1491,6 +1633,7 @@
   {
    "id": "I2.springE",
    "unit": "I2",
+   "field": "energy",
    "name": "용수철 진동의 역학적 에너지",
    "role": "applied",
    "tex": "\\frac{1}{2}kA^2 = \\frac{1}{2}kx^2 + \\frac{1}{2}mv^2 = \\frac{1}{2}mV^2",
@@ -1524,6 +1667,7 @@
   {
    "id": "I2.springEq",
    "unit": "I2",
+   "field": "force",
    "name": "연직 용수철의 평형",
    "role": "applied",
    "tex": "mg = kx_0",
@@ -1552,6 +1696,7 @@
   {
    "id": "I2.wnc",
    "unit": "I2",
+   "field": "energy",
    "name": "외력이 한 일과 역학적 에너지",
    "role": "derived",
    "tex": "W_{\\text{외력}} = \\Delta E_{\\text{역학}}",
@@ -1588,6 +1733,7 @@
   {
    "id": "I2.friction",
    "unit": "I2",
+   "field": "energy",
    "name": "마찰에 의한 역학적 에너지 손실",
    "role": "applied",
    "tex": "\\Delta E_{\\text{역학}} = -f\\,d",
@@ -1625,6 +1771,7 @@
   {
    "id": "I2.steady",
    "unit": "I2",
+   "field": "energy",
    "name": "등속으로 내려올 때의 손실",
    "role": "applied",
    "tex": "W_{\\text{손실}} = mg\\Delta h",
@@ -1654,6 +1801,7 @@
   {
    "id": "I2.dEk",
    "unit": "I2",
+   "field": "energy",
    "name": "운동 에너지 변화를 평균 속도로",
    "role": "applied",
    "tex": "\\Delta E_k = m\\bar{v}\\,\\Delta v",
@@ -1687,6 +1835,7 @@
   {
    "id": "I2.splitE",
    "unit": "I2",
+   "field": "momentum",
    "name": "분리된 두 물체의 운동 에너지 비",
    "role": "applied",
    "tex": "\\frac{E_{kA}}{E_{kB}} = \\frac{m_B}{m_A}",
@@ -1717,6 +1866,7 @@
   {
    "id": "I2.springSplit",
    "unit": "I2",
+   "field": "momentum",
    "name": "용수철로 밀어 낸 두 물체",
    "role": "applied",
    "tex": "\\frac{1}{2}kx^2 = E_{kA} + E_{kB}",
@@ -1748,6 +1898,7 @@
   {
    "id": "I2.kelvin",
    "unit": "I2",
+   "field": "thermo",
    "name": "절대 온도",
    "role": "basis",
    "tex": "T(\\text{K}) = t(^{\\circ}\\text{C}) + 273",
@@ -1767,6 +1918,7 @@
   {
    "id": "I2.pressure",
    "unit": "I2",
+   "field": "thermo",
    "name": "압력",
    "role": "basis",
    "tex": "P = \\frac{F}{A}",
@@ -1786,6 +1938,7 @@
   {
    "id": "I2.idealgas",
    "unit": "I2",
+   "field": "thermo",
    "name": "이상 기체 상태 방정식",
    "role": "basis",
    "tex": "PV = nRT",
@@ -1806,6 +1959,7 @@
   {
    "id": "I2.U",
    "unit": "I2",
+   "field": "thermo",
    "name": "이상 기체의 내부 에너지",
    "role": "basis",
    "tex": "U = N\\bar{E}_k \\propto NT",
@@ -1825,6 +1979,7 @@
   {
    "id": "I2.UT",
    "unit": "I2",
+   "field": "thermo",
    "name": "내부 에너지와 온도",
    "role": "derived",
    "tex": "\\Delta U \\propto \\Delta T \\propto \\Delta(PV)",
@@ -1860,6 +2015,7 @@
   {
    "id": "I2.gaswork",
    "unit": "I2",
+   "field": "thermo",
    "name": "기체가 한 일",
    "role": "derived",
    "tex": "W = P\\Delta V",
@@ -1901,6 +2057,7 @@
   {
    "id": "I2.first",
    "unit": "I2",
+   "field": "thermo",
    "name": "열역학 제1법칙",
    "role": "basis",
    "tex": "Q = \\Delta U + W",
@@ -1922,6 +2079,7 @@
   {
    "id": "I2.isobaric",
    "unit": "I2",
+   "field": "thermo",
    "name": "등압 과정",
    "role": "applied",
    "tex": "Q = \\Delta U + P\\Delta V",
@@ -1953,6 +2111,7 @@
   {
    "id": "I2.isochoric",
    "unit": "I2",
+   "field": "thermo",
    "name": "등적 과정",
    "role": "applied",
    "tex": "Q = \\Delta U",
@@ -1983,6 +2142,7 @@
   {
    "id": "I2.isothermal",
    "unit": "I2",
+   "field": "thermo",
    "name": "등온 과정",
    "role": "applied",
    "tex": "Q = W",
@@ -2012,6 +2172,7 @@
   {
    "id": "I2.adiabatic",
    "unit": "I2",
+   "field": "thermo",
    "name": "단열 과정",
    "role": "applied",
    "tex": "\\Delta U = -W",
@@ -2042,6 +2203,7 @@
   {
    "id": "I2.second",
    "unit": "I2",
+   "field": "thermo",
    "name": "열역학 제2법칙",
    "role": "basis",
    "tex": "\\text{열}:\\ \\text{고온} \\longrightarrow \\text{저온 (저절로)}",
@@ -2062,6 +2224,7 @@
   {
    "id": "I2.engineW",
    "unit": "I2",
+   "field": "thermo",
    "name": "열기관이 한 일",
    "role": "derived",
    "tex": "W = Q_1 - Q_2",
@@ -2093,6 +2256,7 @@
   {
    "id": "I2.eff",
    "unit": "I2",
+   "field": "thermo",
    "name": "열효율",
    "role": "derived",
    "tex": "e = \\frac{W}{Q_1} = 1 - \\frac{Q_2}{Q_1}",
@@ -2126,6 +2290,7 @@
   {
    "id": "I2.carnot",
    "unit": "I2",
+   "field": "thermo",
    "name": "카르노 기관의 열효율",
    "role": "applied",
    "tex": "e_{\\text{카르노}} = 1 - \\frac{T_2}{T_1}",
@@ -2156,6 +2321,7 @@
   {
    "id": "I3.galilean",
    "unit": "I3",
+   "field": "relativity",
    "name": "고전 역학의 상대 속도",
    "role": "derived",
    "tex": "v_{AB} = v_B - v_A\\quad (v_A,\\,v_B \\ll c)",
@@ -2186,6 +2352,7 @@
   {
    "id": "I3.postulates",
    "unit": "I3",
+   "field": "relativity",
    "name": "특수 상대성 이론의 두 가정",
    "role": "basis",
    "tex": "c = 3\\times 10^8\\,\\text{m/s}\\ \\ (\\text{모든 관성계에서 같다})",
@@ -2206,6 +2373,7 @@
   {
    "id": "I3.simul",
    "unit": "I3",
+   "field": "relativity",
    "name": "동시성의 상대성",
    "role": "derived",
    "tex": "\\text{A 관성계에서 동시} \\;\\not\\Rightarrow\\; \\text{B 관성계에서 동시}",
@@ -2233,6 +2401,7 @@
   {
    "id": "I3.lighttime",
    "unit": "I3",
+   "field": "relativity",
    "name": "빛의 경로 길이로 시간 재기",
    "role": "derived",
    "tex": "t = \\frac{(\\text{그 관성계에서 빛의 경로 길이})}{c}",
@@ -2263,6 +2432,7 @@
   {
    "id": "I3.dilation",
    "unit": "I3",
+   "field": "relativity",
    "name": "시간 지연 (시간 팽창)",
    "role": "derived",
    "tex": "t = \\gamma t_0,\\quad \\gamma = \\frac{1}{\\sqrt{1 - v^2/c^2}} \\geq 1",
@@ -2304,6 +2474,7 @@
   {
    "id": "I3.contraction",
    "unit": "I3",
+   "field": "relativity",
    "name": "길이 수축",
    "role": "derived",
    "tex": "L = \\frac{L_0}{\\gamma} = L_0\\sqrt{1 - \\frac{v^2}{c^2}}",
@@ -2340,6 +2511,7 @@
   {
    "id": "I3.massE",
    "unit": "I3",
+   "field": "relativity",
    "name": "질량–에너지 동등성",
    "role": "basis",
    "tex": "E = mc^2",
@@ -2361,6 +2533,7 @@
   {
    "id": "I3.relmass",
    "unit": "I3",
+   "field": "relativity",
    "name": "상대론적 질량",
    "role": "derived",
    "tex": "m = \\gamma m_0 = \\frac{m_0}{\\sqrt{1 - v^2/c^2}}",
@@ -2395,6 +2568,7 @@
   {
    "id": "I3.rest",
    "unit": "I3",
+   "field": "relativity",
    "name": "정지 에너지",
    "role": "derived",
    "tex": "E_0 = m_0 c^2",
@@ -2422,6 +2596,7 @@
   {
    "id": "I3.defect",
    "unit": "I3",
+   "field": "relativity",
    "name": "질량 결손과 핵에너지",
    "role": "derived",
    "tex": "E = \\Delta m\\,c^2",
@@ -2451,6 +2626,7 @@
   {
    "id": "I3.nuclide",
    "unit": "I3",
+   "field": "relativity",
    "name": "원자핵의 표기",
    "role": "basis",
    "tex": "{}^{A}_{Z}\\text{X},\\quad N = A - Z",
@@ -2471,6 +2647,7 @@
   {
    "id": "I3.nucCons",
    "unit": "I3",
+   "field": "relativity",
    "name": "핵반응의 보존량",
    "role": "basis",
    "tex": "\\textstyle\\sum A_{\\text{전}} = \\sum A_{\\text{후}},\\quad \\sum Z_{\\text{전}} = \\sum Z_{\\text{후}}",
@@ -2491,6 +2668,7 @@
   {
    "id": "I3.fission",
    "unit": "I3",
+   "field": "relativity",
    "name": "우라늄 핵분열",
    "role": "applied",
    "tex": "{}^{235}_{92}\\text{U} + {}^{1}_{0}\\text{n} \\rightarrow {}^{141}_{56}\\text{Ba} + {}^{92}_{36}\\text{Kr} + 3\\,{}^{1}_{0}\\text{n}",
@@ -2525,6 +2703,7 @@
   {
    "id": "I3.fusion",
    "unit": "I3",
+   "field": "relativity",
    "name": "중수소–삼중수소 핵융합",
    "role": "applied",
    "tex": "{}^{2}_{1}\\text{H} + {}^{3}_{1}\\text{H} \\rightarrow {}^{4}_{2}\\text{He} + {}^{1}_{0}\\text{n} + 17.6\\,\\text{MeV}",
@@ -2554,6 +2733,7 @@
   {
    "id": "I3.sun",
    "unit": "I3",
+   "field": "relativity",
    "name": "태양의 수소 핵융합",
    "role": "applied",
    "tex": "4\\,{}^{1}_{1}\\text{H} \\rightarrow {}^{4}_{2}\\text{He} + 2\\,{}^{0}_{+1}\\text{e} + \\text{에너지}",
@@ -2583,6 +2763,7 @@
   {
    "id": "I3.betaPlus",
    "unit": "I3",
+   "field": "relativity",
    "name": "양전자 방출과 쌍소멸 (PET)",
    "role": "applied",
    "tex": "{}^{18}_{9}\\text{F} \\rightarrow {}^{18}_{8}\\text{O} + {}^{0}_{+1}\\text{e}",
@@ -2613,6 +2794,7 @@
   {
    "id": "II1.charge",
    "unit": "II1",
+   "field": "electric",
    "name": "기본 전하량",
    "role": "basis",
    "tex": "q = ne,\\quad e = 1.6\\times 10^{-19}\\,\\text{C}",
@@ -2635,6 +2817,7 @@
   {
    "id": "II1.coulomb",
    "unit": "II1",
+   "field": "electric",
    "name": "쿨롱 법칙",
    "role": "basis",
    "tex": "F = k\\frac{q_1 q_2}{r^2}",
@@ -2658,6 +2841,7 @@
   {
    "id": "II1.three",
    "unit": "II1",
+   "field": "electric",
    "name": "세 전하가 받는 전기력의 합",
    "role": "applied",
    "tex": "\\vec{F}_A + \\vec{F}_B + \\vec{F}_C = 0",
@@ -2692,6 +2876,7 @@
   {
    "id": "II1.zero",
    "unit": "II1",
+   "field": "electric",
    "name": "전기력(전기장)이 0 인 점",
    "role": "applied",
    "tex": "\\frac{q_1}{r_1^2} = \\frac{q_2}{r_2^2}",
@@ -2724,6 +2909,7 @@
   {
    "id": "II1.bohr",
    "unit": "II1",
+   "field": "quantum",
    "name": "보어의 원자 모형 (두 가정)",
    "role": "basis",
    "tex": "2\\pi r m v = nh\\quad (n = 1, 2, 3, \\dots)",
@@ -2746,6 +2932,7 @@
   {
    "id": "II1.radius",
    "unit": "II1",
+   "field": "quantum",
    "name": "궤도 반지름과 전기력",
    "role": "derived",
    "tex": "r_n \\propto n^2,\\quad F \\propto \\frac{1}{r_n^2} \\propto \\frac{1}{n^4}",
@@ -2775,6 +2962,7 @@
   {
    "id": "II1.levels",
    "unit": "II1",
+   "field": "quantum",
    "name": "수소 원자의 에너지 준위",
    "role": "derived",
    "tex": "E_n = -\\frac{13.6}{n^2}\\,\\text{eV}",
@@ -2816,6 +3004,7 @@
   {
    "id": "II1.transition",
    "unit": "II1",
+   "field": "quantum",
    "name": "전자 전이와 빛",
    "role": "derived",
    "tex": "hf = \\frac{hc}{\\lambda} = \\left|E_m - E_n\\right|",
@@ -2853,6 +3042,7 @@
   {
    "id": "II1.ritz",
    "unit": "II1",
+   "field": "quantum",
    "name": "진동수 더하기",
    "role": "applied",
    "tex": "f_{31} = f_{32} + f_{21}",
@@ -2883,6 +3073,7 @@
   {
    "id": "II1.series",
    "unit": "II1",
+   "field": "quantum",
    "name": "수소 스펙트럼의 계열",
    "role": "applied",
    "tex": "\\frac{hc}{\\lambda} = 13.6\\left(\\frac{1}{n^2} - \\frac{1}{m^2}\\right)\\text{eV}",
@@ -2918,6 +3109,7 @@
   {
    "id": "II1.band",
    "unit": "II1",
+   "field": "quantum",
    "name": "고체의 에너지띠",
    "role": "basis",
    "tex": "E_g = E_{\\text{전도띠 바닥}} - E_{\\text{원자가 띠 꼭대기}}",
@@ -2942,6 +3134,7 @@
   {
    "id": "II1.absorb",
    "unit": "II1",
+   "field": "quantum",
    "name": "빛을 흡수하는 조건 (띠 간격)",
    "role": "derived",
    "tex": "E_{\\text{광자}} = hf \\geq E_g",
@@ -2978,6 +3171,7 @@
   {
    "id": "II1.led",
    "unit": "II1",
+   "field": "quantum",
    "name": "발광 다이오드(LED)의 빛",
    "role": "applied",
    "tex": "E_{\\text{광자}} = hf = \\frac{hc}{\\lambda} \\approx E_g",
@@ -3010,6 +3204,7 @@
   {
    "id": "II1.resist",
    "unit": "II1",
+   "field": "circuit",
    "name": "저항과 비저항",
    "role": "basis",
    "tex": "R = \\rho\\frac{l}{A}",
@@ -3030,6 +3225,7 @@
   {
    "id": "II1.conduct",
    "unit": "II1",
+   "field": "circuit",
    "name": "전기 전도도",
    "role": "derived",
    "tex": "\\sigma = \\frac{1}{\\rho} = \\frac{l}{RA}",
@@ -3059,6 +3255,7 @@
   {
    "id": "II2.Bwire",
    "unit": "II2",
+   "field": "magnetic",
    "name": "직선 전류의 자기장",
    "role": "basis",
    "tex": "B = k\\frac{I}{r},\\quad k = 2\\times 10^{-7}\\,\\text{T}\\cdot\\text{m/A}",
@@ -3081,6 +3278,7 @@
   {
    "id": "II2.Bloop",
    "unit": "II2",
+   "field": "magnetic",
    "name": "원형 전류 중심의 자기장",
    "role": "basis",
    "tex": "B = k'\\frac{I}{r},\\quad k' = 2\\pi\\times 10^{-7}\\,\\text{T}\\cdot\\text{m/A}",
@@ -3100,6 +3298,7 @@
   {
    "id": "II2.Bsol",
    "unit": "II2",
+   "field": "magnetic",
    "name": "솔레노이드 내부의 자기장",
    "role": "basis",
    "tex": "B = \\mu_0 n I,\\quad \\mu_0 = 4\\pi\\times 10^{-7}\\,\\text{T}\\cdot\\text{m/A}",
@@ -3124,6 +3323,7 @@
   {
    "id": "II2.Bsum",
    "unit": "II2",
+   "field": "magnetic",
    "name": "자기장의 중첩",
    "role": "derived",
    "tex": "B_{\\text{합}} = \\sum \\left(\\pm k\\frac{I_i}{r_i}\\right)",
@@ -3155,6 +3355,7 @@
   {
    "id": "II2.Bzero",
    "unit": "II2",
+   "field": "magnetic",
    "name": "자기장이 0 인 점",
    "role": "applied",
    "tex": "\\frac{I_1}{r_1} = \\frac{I_2}{r_2}",
@@ -3184,6 +3385,7 @@
   {
    "id": "II2.flux",
    "unit": "II2",
+   "field": "magnetic",
    "name": "자기 선속",
    "role": "basis",
    "tex": "\\Phi = BS,\\quad B = \\frac{\\Phi}{S}",
@@ -3207,6 +3409,7 @@
   {
    "id": "II2.faraday",
    "unit": "II2",
+   "field": "magnetic",
    "name": "패러데이 전자기 유도 법칙",
    "role": "basis",
    "tex": "\\varepsilon = -N\\frac{\\Delta\\Phi}{\\Delta t}",
@@ -3228,6 +3431,7 @@
   {
    "id": "II2.lenz",
    "unit": "II2",
+   "field": "magnetic",
    "name": "렌츠 법칙과 에너지 보존",
    "role": "derived",
    "tex": "\\Phi\\uparrow \\Rightarrow B_{\\text{유도}}\\ \\text{반대},\\quad \\Phi\\downarrow \\Rightarrow B_{\\text{유도}}\\ \\text{같은 방향}",
@@ -3260,6 +3464,7 @@
   {
    "id": "II2.induced",
    "unit": "II2",
+   "field": "magnetic",
    "name": "유도 전류",
    "role": "derived",
    "tex": "I = \\frac{\\varepsilon}{R}",
@@ -3289,6 +3494,7 @@
   {
    "id": "II2.BLv",
    "unit": "II2",
+   "field": "magnetic",
    "name": "움직이는 도체 막대의 기전력",
    "role": "derived",
    "tex": "\\varepsilon = BLv",
@@ -3327,6 +3533,7 @@
   {
    "id": "II2.border",
    "unit": "II2",
+   "field": "magnetic",
    "name": "자기장 경계를 지나는 고리",
    "role": "applied",
    "tex": "\\varepsilon_{\\text{경계}} = (B_2 \\mp B_1)\\,Lv",
@@ -3357,6 +3564,7 @@
   {
    "id": "III1.period",
    "unit": "III1",
+   "field": "wave",
    "name": "주기와 진동수",
    "role": "basis",
    "tex": "f = \\frac{1}{T}",
@@ -3379,6 +3587,7 @@
   {
    "id": "III1.wave",
    "unit": "III1",
+   "field": "wave",
    "name": "파동의 속력",
    "role": "derived",
    "tex": "v = f\\lambda = \\frac{\\lambda}{T}",
@@ -3412,6 +3621,7 @@
   {
    "id": "III1.medium",
    "unit": "III1",
+   "field": "wave",
    "name": "매질이 바뀔 때",
    "role": "derived",
    "tex": "f_1 = f_2 \\;\\Rightarrow\\; \\frac{v_1}{v_2} = \\frac{\\lambda_1}{\\lambda_2}",
@@ -3438,6 +3648,7 @@
   {
    "id": "III1.index",
    "unit": "III1",
+   "field": "wave",
    "name": "굴절률",
    "role": "basis",
    "tex": "n = \\frac{c}{v}",
@@ -3456,6 +3667,7 @@
   {
    "id": "III1.snell",
    "unit": "III1",
+   "field": "wave",
    "name": "스넬 법칙 (굴절 법칙)",
    "role": "derived",
    "tex": "n_1\\sin\\theta_1 = n_2\\sin\\theta_2",
@@ -3501,6 +3713,7 @@
   {
    "id": "III1.layers",
    "unit": "III1",
+   "field": "wave",
    "name": "여러 층을 지나는 빛",
    "role": "applied",
    "tex": "n_1\\sin\\theta_1 = n_2\\sin\\theta_2 = n_3\\sin\\theta_3",
@@ -3531,6 +3744,7 @@
   {
    "id": "III1.critical",
    "unit": "III1",
+   "field": "wave",
    "name": "전반사와 임계각",
    "role": "derived",
    "tex": "\\sin\\theta_c = \\frac{n_2}{n_1}\\quad (n_1 > n_2)",
@@ -3562,6 +3776,7 @@
   {
    "id": "III1.em",
    "unit": "III1",
+   "field": "wave",
    "name": "전자기파의 속력",
    "role": "derived",
    "tex": "c = f\\lambda",
@@ -3595,6 +3810,7 @@
   {
    "id": "III1.superpos",
    "unit": "III1",
+   "field": "wave",
    "name": "중첩 원리",
    "role": "basis",
    "tex": "y = y_1 + y_2",
@@ -3613,6 +3829,7 @@
   {
    "id": "III1.standing",
    "unit": "III1",
+   "field": "wave",
    "name": "정상파",
    "role": "derived",
    "tex": "d_{\\text{마디}} = \\frac{\\lambda}{2},\\quad \\text{배의 진폭} = 2A",
@@ -3647,6 +3864,7 @@
   {
    "id": "III1.interf",
    "unit": "III1",
+   "field": "wave",
    "name": "간섭 조건 (경로차)",
    "role": "derived",
    "tex": "\\Delta = m\\lambda\\ (\\text{보강}),\\quad \\Delta = \\left(m + \\frac{1}{2}\\right)\\lambda\\ (\\text{상쇄})",
@@ -3683,6 +3901,7 @@
   {
    "id": "III2.photon",
    "unit": "III2",
+   "field": "quantum",
    "name": "광자의 에너지 (광양자설)",
    "role": "basis",
    "tex": "E = hf",
@@ -3710,6 +3929,7 @@
   {
    "id": "III2.workfn",
    "unit": "III2",
+   "field": "quantum",
    "name": "일함수와 문턱 진동수",
    "role": "derived",
    "tex": "W = hf_0",
@@ -3742,6 +3962,7 @@
   {
    "id": "III2.einstein",
    "unit": "III2",
+   "field": "quantum",
    "name": "광전 방정식",
    "role": "derived",
    "tex": "E_{k,\\max} = hf - W = h(f - f_0)",
@@ -3779,6 +4000,7 @@
   {
    "id": "III2.stop",
    "unit": "III2",
+   "field": "quantum",
    "name": "정지 전압",
    "role": "derived",
    "tex": "eV_s = E_{k,\\max}",
@@ -3814,6 +4036,7 @@
   {
    "id": "III2.debroglie",
    "unit": "III2",
+   "field": "quantum",
    "name": "물질파 (드브로이 파장)",
    "role": "basis",
    "tex": "\\lambda = \\frac{h}{p} = \\frac{h}{mv}",
@@ -3840,6 +4063,7 @@
   {
    "id": "III2.lamEk",
    "unit": "III2",
+   "field": "quantum",
    "name": "운동 에너지와 물질파 파장",
    "role": "derived",
    "tex": "\\lambda = \\frac{h}{\\sqrt{2mE_k}}",
@@ -3874,6 +4098,7 @@
   {
    "id": "III2.convert",
    "unit": "III2",
+   "field": "quantum",
    "name": "물질파 변환 공식",
    "role": "applied",
    "tex": "p = \\frac{h}{\\lambda},\\quad E_k = \\frac{p^2}{2m} = \\frac{1}{2}pv",
@@ -3908,6 +4133,7 @@
   {
    "id": "III2.emicro",
    "unit": "III2",
+   "field": "quantum",
    "name": "가속 전압과 전자의 파장 (전자 현미경)",
    "role": "applied",
    "tex": "E_k = eV \\;\\Rightarrow\\; \\lambda = \\frac{h}{\\sqrt{2meV}}",
@@ -3945,6 +4171,7 @@
   {
    "id": "A1.vector",
    "unit": "A1",
+   "field": "motion",
    "name": "벡터의 합성과 분해",
    "role": "basis",
    "tex": "A_x = A\\cos\\theta,\\quad A_y = A\\sin\\theta,\\quad A = \\sqrt{A_x^2 + A_y^2}",
@@ -3970,6 +4197,7 @@
   {
    "id": "A1.tilt",
    "unit": "A1",
+   "field": "force",
    "name": "수평 힘으로 붙잡은 빗면 위 물체",
    "role": "applied",
    "tex": "F = mg\\tan\\theta,\\quad N = \\frac{mg}{\\cos\\theta}",
@@ -4003,6 +4231,7 @@
   {
    "id": "A1.torque",
    "unit": "A1",
+   "field": "force",
    "name": "돌림힘",
    "role": "basis",
    "tex": "\\tau = rF\\sin\\theta = Fd",
@@ -4023,6 +4252,7 @@
   {
    "id": "A1.rigid",
    "unit": "A1",
+   "field": "force",
    "name": "강체의 평형 조건",
    "role": "derived",
    "tex": "\\sum\\vec{F} = 0,\\quad \\sum\\tau = 0",
@@ -4058,6 +4288,7 @@
   {
    "id": "A1.lever",
    "unit": "A1",
+   "field": "force",
    "name": "막대의 돌림힘 평형",
    "role": "applied",
    "tex": "T_1 r_1 = T_2 r_2",
@@ -4084,6 +4315,7 @@
   {
    "id": "A1.cm",
    "unit": "A1",
+   "field": "force",
    "name": "무게중심",
    "role": "derived",
    "tex": "x_{cm} = \\frac{\\sum m_i x_i}{\\sum m_i}",
@@ -4115,6 +4347,7 @@
   {
    "id": "A1.tip",
    "unit": "A1",
+   "field": "force",
    "name": "넘어지지 않는 조건",
    "role": "applied",
    "tex": "\\tan\\theta_c = \\frac{b/2}{h_{cm}}",
@@ -4147,6 +4380,7 @@
   {
    "id": "A1.limit",
    "unit": "A1",
+   "field": "force",
    "name": "한계 조건",
    "role": "applied",
    "tex": "N_1 \\ge 0,\\quad N_2 \\ge 0",
@@ -4178,6 +4412,7 @@
   {
    "id": "A1.kin",
    "unit": "A1",
+   "field": "motion",
    "name": "위치·변위·속도·가속도 벡터",
    "role": "derived",
    "tex": "\\vec{v}_{\\text{평균}} = \\frac{\\Delta\\vec{r}}{\\Delta t},\\quad \\vec{a}_{\\text{평균}} = \\frac{\\Delta\\vec{v}}{\\Delta t}",
@@ -4215,6 +4450,7 @@
   {
    "id": "A1.plane",
    "unit": "A1",
+   "field": "motion",
    "name": "평면 위 등가속도 운동",
    "role": "derived",
    "tex": "\\vec{v} = \\vec{v}_0 + \\vec{a}t",
@@ -4246,6 +4482,7 @@
   {
    "id": "A1.path",
    "unit": "A1",
+   "field": "motion",
    "name": "한 방향만 가속될 때의 궤적",
    "role": "applied",
    "tex": "x = \\frac{v_{0x}}{v_{0y}}\\,y + \\frac{a}{2v_{0y}^2}\\,y^2",
@@ -4281,6 +4518,7 @@
   {
    "id": "A1.drop",
    "unit": "A1",
+   "field": "motion",
    "name": "자유 낙하",
    "role": "applied",
    "tex": "v = gt,\\quad h = \\frac{1}{2}gt^2,\\quad v^2 = 2gh",
@@ -4309,6 +4547,7 @@
   {
    "id": "A1.up",
    "unit": "A1",
+   "field": "motion",
    "name": "연직 위로 던진 운동",
    "role": "applied",
    "tex": "t_1 = \\frac{v_0}{g},\\quad t_2 = \\frac{2v_0}{g},\\quad H = \\frac{v_0^2}{2g}",
@@ -4343,6 +4582,7 @@
   {
    "id": "A1.proj",
    "unit": "A1",
+   "field": "motion",
    "name": "포물선 운동",
    "role": "derived",
    "tex": "x = v_0\\cos\\theta\\,t,\\quad y = v_0\\sin\\theta\\,t - \\frac{1}{2}gt^2",
@@ -4380,6 +4620,7 @@
   {
    "id": "A1.traj",
    "unit": "A1",
+   "field": "motion",
    "name": "포물선 궤적의 식",
    "role": "applied",
    "tex": "y = x\\tan\\theta - \\frac{g}{2v_0^2\\cos^2\\theta}\\,x^2",
@@ -4406,6 +4647,7 @@
   {
    "id": "A1.range",
    "unit": "A1",
+   "field": "motion",
    "name": "수평 도달 거리와 최고 높이",
    "role": "applied",
    "tex": "R = \\frac{v_0^2\\sin 2\\theta}{g},\\quad H = \\frac{(v_0\\sin\\theta)^2}{2g}",
@@ -4441,6 +4683,7 @@
   {
    "id": "A1.horiz",
    "unit": "A1",
+   "field": "motion",
    "name": "수평으로 던진 운동",
    "role": "applied",
    "tex": "t = \\sqrt{\\frac{2H}{g}},\\quad R = v_0\\sqrt{\\frac{2H}{g}}",
@@ -4468,6 +4711,7 @@
   {
    "id": "A1.relmove",
    "unit": "A1",
+   "field": "motion",
    "name": "같은 가속도의 두 물체: 상대 운동",
    "role": "applied",
    "tex": "\\vec{a}_A = \\vec{a}_B \\;\\Rightarrow\\; \\vec{v}_{AB} = \\text{일정},\\quad t = \\frac{d}{|\\vec{v}_{AB}|}",
@@ -4505,6 +4749,7 @@
   {
    "id": "A1.slope",
    "unit": "A1",
+   "field": "motion",
    "name": "빗면 좌표계로 본 포물선 운동",
    "role": "applied",
    "tex": "a_{\\text{빗면}} = g\\sin\\alpha,\\quad a_{\\text{수직}} = g\\cos\\alpha,\\quad T = \\frac{2v_{\\text{수직}}}{g\\cos\\alpha}",
@@ -4534,6 +4779,7 @@
   {
    "id": "A1.omega",
    "unit": "A1",
+   "field": "circular",
    "name": "각속도",
    "role": "basis",
    "tex": "\\omega = \\frac{\\Delta\\theta}{\\Delta t}",
@@ -4553,6 +4799,7 @@
   {
    "id": "A1.circ",
    "unit": "A1",
+   "field": "circular",
    "name": "등속 원운동의 주기와 속력",
    "role": "derived",
    "tex": "v = r\\omega,\\quad T = \\frac{2\\pi r}{v} = \\frac{2\\pi}{\\omega} = \\frac{1}{f}",
@@ -4591,6 +4838,7 @@
   {
    "id": "A1.cacc",
    "unit": "A1",
+   "field": "circular",
    "name": "구심 가속도",
    "role": "derived",
    "tex": "a = \\frac{v^2}{r} = r\\omega^2 = \\frac{4\\pi^2 r}{T^2}",
@@ -4628,6 +4876,7 @@
   {
    "id": "A1.cforce",
    "unit": "A1",
+   "field": "circular",
    "name": "구심력",
    "role": "derived",
    "tex": "F = \\frac{mv^2}{r} = mr\\omega^2",
@@ -4657,6 +4906,7 @@
   {
    "id": "A1.conical",
    "unit": "A1",
+   "field": "circular",
    "name": "원뿔 진자",
    "role": "applied",
    "tex": "\\omega^2 = \\frac{g}{l\\cos\\theta},\\quad T = 2\\pi\\sqrt{\\frac{h}{g}}",
@@ -4691,6 +4941,7 @@
   {
    "id": "A1.bank",
    "unit": "A1",
+   "field": "circular",
    "name": "기울어진 길을 도는 물체",
    "role": "applied",
    "tex": "\\tan\\theta = \\frac{v^2}{gr}",
@@ -4719,6 +4970,7 @@
   {
    "id": "A1.hang",
    "unit": "A1",
+   "field": "circular",
    "name": "구멍을 지나 매달린 추와 원운동",
    "role": "applied",
    "tex": "Mg = mr\\left(\\frac{2\\pi}{T}\\right)^2",
@@ -4750,6 +5002,7 @@
   {
    "id": "A1.kepler",
    "unit": "A1",
+   "field": "gravity",
    "name": "케플러 법칙",
    "role": "basis",
    "tex": "T^2 = ka^3",
@@ -4774,6 +5027,7 @@
   {
    "id": "A1.grav",
    "unit": "A1",
+   "field": "gravity",
    "name": "만유인력 법칙",
    "role": "derived",
    "tex": "F = G\\frac{Mm}{r^2}",
@@ -4812,6 +5066,7 @@
   {
    "id": "A1.g",
    "unit": "A1",
+   "field": "gravity",
    "name": "중력 가속도",
    "role": "derived",
    "tex": "g = \\frac{GM}{R^2} = \\frac{4}{3}\\pi\\rho GR",
@@ -4843,6 +5098,7 @@
   {
    "id": "A1.sat",
    "unit": "A1",
+   "field": "gravity",
    "name": "인공위성의 속력과 주기",
    "role": "derived",
    "tex": "v = \\sqrt{\\frac{GM}{r}},\\quad T = 2\\pi\\sqrt{\\frac{r^3}{GM}}",
@@ -4878,6 +5134,7 @@
   {
    "id": "A1.gravU",
    "unit": "A1",
+   "field": "gravity",
    "name": "중력 퍼텐셜 에너지 (만유인력)",
    "role": "derived",
    "tex": "U = -\\frac{GMm}{r}",
@@ -4913,6 +5170,7 @@
   {
    "id": "A1.orbitE",
    "unit": "A1",
+   "field": "gravity",
    "name": "위성의 역학적 에너지",
    "role": "applied",
    "tex": "E = -\\frac{GMm}{2r}",
@@ -4943,6 +5201,7 @@
   {
    "id": "A1.escape",
    "unit": "A1",
+   "field": "gravity",
    "name": "탈출 속력",
    "role": "applied",
    "tex": "v_{\\text{탈출}} = \\sqrt{\\frac{2GM}{R}}",
@@ -4972,6 +5231,7 @@
   {
    "id": "A1.shmF",
    "unit": "A1",
+   "field": "circular",
    "name": "단진자의 복원력",
    "role": "derived",
    "tex": "F = -\\frac{mg}{l}\\,x",
@@ -5004,6 +5264,7 @@
   {
    "id": "A1.shmT",
    "unit": "A1",
+   "field": "circular",
    "name": "단진동의 주기 (교과 심화)",
    "role": "derived",
    "tex": "T = 2\\pi\\sqrt{\\frac{m}{k}}",
@@ -5042,6 +5303,7 @@
   {
    "id": "A1.pend",
    "unit": "A1",
+   "field": "circular",
    "name": "단진자의 주기",
    "role": "derived",
    "tex": "T = 2\\pi\\sqrt{\\frac{l}{g}}",
@@ -5072,6 +5334,7 @@
   {
    "id": "A1.pendV",
    "unit": "A1",
+   "field": "circular",
    "name": "진자의 최대 속력",
    "role": "applied",
    "tex": "v_{\\max} = \\sqrt{2gl(1 - \\cos\\theta)}",
@@ -5104,6 +5367,7 @@
   {
    "id": "A1.fict",
    "unit": "A1",
+   "field": "force",
    "name": "관성력",
    "role": "derived",
    "tex": "\\vec{F}_{\\text{관성}} = -m\\vec{a}",
@@ -5137,6 +5401,7 @@
   {
    "id": "A1.geff",
    "unit": "A1",
+   "field": "circular",
    "name": "가속하는 곳의 유효 중력",
    "role": "applied",
    "tex": "\\vec{g}_{eff} = \\vec{g} - \\vec{a},\\quad T = 2\\pi\\sqrt{\\frac{l}{g_{eff}}}",
@@ -5167,6 +5432,7 @@
   {
    "id": "A1.tiltAcc",
    "unit": "A1",
+   "field": "force",
    "name": "가속하는 차 안의 매달린 추",
    "role": "applied",
    "tex": "\\tan\\theta = \\frac{a}{g}",
@@ -5199,6 +5465,7 @@
   {
    "id": "A1.equiv",
    "unit": "A1",
+   "field": "gravity",
    "name": "등가 원리",
    "role": "basis",
    "tex": "m_{\\text{관성}} = m_{\\text{중력}}",
@@ -5219,6 +5486,7 @@
   {
    "id": "A1.bh",
    "unit": "A1",
+   "field": "gravity",
    "name": "블랙홀",
    "role": "applied",
    "tex": "v_{\\text{탈출}} = \\sqrt{\\frac{2GM}{R}} > c",
@@ -5248,6 +5516,7 @@
   {
    "id": "A2.power",
    "unit": "A2",
+   "field": "energy",
    "name": "일률",
    "role": "derived",
    "tex": "P = \\frac{W}{t} = Fv",
@@ -5276,6 +5545,7 @@
   {
    "id": "A2.slide",
    "unit": "A2",
+   "field": "force",
    "name": "빗면을 등속으로 미끄러질 때의 마찰력",
    "role": "applied",
    "tex": "f = mg\\sin\\theta",
@@ -5305,6 +5575,7 @@
   {
    "id": "A2.projE",
    "unit": "A2",
+   "field": "energy",
    "name": "포물선 운동의 역학적 에너지",
    "role": "applied",
    "tex": "E = \\frac{1}{2}mv_0^2 = \\frac{1}{2}mv^2 + mgy",
@@ -5339,6 +5610,7 @@
   {
    "id": "A2.wg",
    "unit": "A2",
+   "field": "energy",
    "name": "중력이 한 일과 연직 속도",
    "role": "applied",
    "tex": "W_g = \\frac{1}{2}m\\left(v_y^2 - v_{y0}^2\\right)",
@@ -5372,6 +5644,7 @@
   {
    "id": "A2.lowT",
    "unit": "A2",
+   "field": "circular",
    "name": "진자 최저점의 장력",
    "role": "applied",
    "tex": "T - mg = \\frac{mv^2}{l}",
@@ -5399,6 +5672,7 @@
   {
    "id": "A2.heat",
    "unit": "A2",
+   "field": "thermo",
    "name": "비열과 열용량",
    "role": "basis",
    "tex": "Q = cm\\Delta T = C\\Delta T,\\quad C = cm",
@@ -5420,6 +5694,7 @@
   {
    "id": "A2.mix",
    "unit": "A2",
+   "field": "thermo",
    "name": "열평형",
    "role": "applied",
    "tex": "c_1 m_1 (T_1 - T) = c_2 m_2 (T - T_2)",
@@ -5453,6 +5728,7 @@
   {
    "id": "A2.joule",
    "unit": "A2",
+   "field": "thermo",
    "name": "열의 일당량",
    "role": "basis",
    "tex": "W = JQ,\\quad J = 4.2\\times 10^3\\ \\text{J/kcal}",
@@ -5473,6 +5749,7 @@
   {
    "id": "A2.jouleExp",
    "unit": "A2",
+   "field": "thermo",
    "name": "줄의 실험 장부",
    "role": "applied",
    "tex": "NMgh = Jcm\\Delta T",
@@ -5507,6 +5784,7 @@
   {
    "id": "B1.efield",
    "unit": "B1",
+   "field": "electric",
    "name": "전기장",
    "role": "basis",
    "tex": "\\vec{E} = \\frac{\\vec{F}}{q}",
@@ -5527,6 +5805,7 @@
   {
    "id": "B1.pointE",
    "unit": "B1",
+   "field": "electric",
    "name": "점전하의 전기장",
    "role": "derived",
    "tex": "E = k\\frac{q}{r^2}",
@@ -5556,6 +5835,7 @@
   {
    "id": "B1.Esum",
    "unit": "B1",
+   "field": "electric",
    "name": "전기장의 중첩",
    "role": "derived",
    "tex": "\\vec{E} = \\sum_i k\\frac{q_i}{r_i^2}\\,\\hat{r}_i",
@@ -5590,6 +5870,7 @@
   {
    "id": "B1.volt",
    "unit": "B1",
+   "field": "electric",
    "name": "전위차",
    "role": "basis",
    "tex": "V = \\frac{W}{q},\\quad W = qV",
@@ -5610,6 +5891,7 @@
   {
    "id": "B1.uniform",
    "unit": "B1",
+   "field": "electric",
    "name": "균일한 전기장과 전위차",
    "role": "derived",
    "tex": "E = \\frac{V}{d}",
@@ -5648,6 +5930,7 @@
   {
    "id": "B1.accel",
    "unit": "B1",
+   "field": "electric",
    "name": "전압으로 가속한 입자의 속력",
    "role": "derived",
    "tex": "qV = \\frac{1}{2}mv^2",
@@ -5682,6 +5965,7 @@
   {
    "id": "B1.pointU",
    "unit": "B1",
+   "field": "electric",
    "name": "점전하의 전기 퍼텐셜 에너지 (교과 심화)",
    "role": "derived",
    "tex": "U = k\\frac{q_1 q_2}{r}",
@@ -5721,6 +6005,7 @@
   {
    "id": "B1.beam",
    "unit": "B1",
+   "field": "electric",
    "name": "균일한 전기장 속 대전 입자의 운동",
    "role": "applied",
    "tex": "a = \\frac{qE}{m},\\quad y = \\frac{1}{2}\\frac{qE}{m}\\left(\\frac{x}{v_0}\\right)^2",
@@ -5752,6 +6037,7 @@
   {
    "id": "B1.hangQ",
    "unit": "B1",
+   "field": "electric",
    "name": "전기장 속에 매달린 대전 구",
    "role": "applied",
    "tex": "qE = mg\\tan\\theta",
@@ -5779,6 +6065,7 @@
   {
    "id": "B1.kappa",
    "unit": "B1",
+   "field": "electric",
    "name": "유전 상수",
    "role": "basis",
    "tex": "\\kappa = \\frac{\\varepsilon}{\\varepsilon_0} > 1",
@@ -5799,6 +6086,7 @@
   {
    "id": "B1.cap",
    "unit": "B1",
+   "field": "electric",
    "name": "전기 용량",
    "role": "basis",
    "tex": "C = \\frac{Q}{V}",
@@ -5819,6 +6107,7 @@
   {
    "id": "B1.plate",
    "unit": "B1",
+   "field": "electric",
    "name": "평행판 축전기의 전기 용량",
    "role": "derived",
    "tex": "C = \\varepsilon\\frac{A}{d} = \\kappa\\varepsilon_0\\frac{A}{d}",
@@ -5848,6 +6137,7 @@
   {
    "id": "B1.capU",
    "unit": "B1",
+   "field": "electric",
    "name": "축전기에 저장된 에너지",
    "role": "derived",
    "tex": "U = \\frac{1}{2}QV = \\frac{1}{2}CV^2 = \\frac{Q^2}{2C}",
@@ -5882,6 +6172,7 @@
   {
    "id": "B1.capComb",
    "unit": "B1",
+   "field": "electric",
    "name": "축전기의 연결",
    "role": "derived",
    "tex": "C_{\\text{병렬}} = C_1 + C_2,\\quad \\frac{1}{C_{\\text{직렬}}} = \\frac{1}{C_1} + \\frac{1}{C_2}",
@@ -5915,6 +6206,7 @@
   {
    "id": "B1.share",
    "unit": "B1",
+   "field": "electric",
    "name": "축전기의 전하 재분배",
    "role": "applied",
    "tex": "V' = \\frac{C_1 V_0}{C_1 + C_2}",
@@ -5945,6 +6237,7 @@
   {
    "id": "B2.current",
    "unit": "B2",
+   "field": "circuit",
    "name": "전류",
    "role": "basis",
    "tex": "I = \\frac{Q}{t}",
@@ -5964,6 +6257,7 @@
   {
    "id": "B2.ohm",
    "unit": "B2",
+   "field": "circuit",
    "name": "옴의 법칙",
    "role": "basis",
    "tex": "V = IR",
@@ -5984,6 +6278,7 @@
   {
    "id": "B2.kirch",
    "unit": "B2",
+   "field": "circuit",
    "name": "키르히호프 법칙",
    "role": "derived",
    "tex": "\\sum I_{\\text{들어옴}} = \\sum I_{\\text{나감}},\\quad \\sum\\Delta V = 0",
@@ -6016,6 +6311,7 @@
   {
    "id": "B2.Rcomb",
    "unit": "B2",
+   "field": "circuit",
    "name": "저항의 직렬·병렬 연결",
    "role": "derived",
    "tex": "R_{\\text{직렬}} = R_1 + R_2,\\quad \\frac{1}{R_{\\text{병렬}}} = \\frac{1}{R_1} + \\frac{1}{R_2}",
@@ -6048,6 +6344,7 @@
   {
    "id": "B2.bridge",
    "unit": "B2",
+   "field": "circuit",
    "name": "휘트스톤 브리지의 평형",
    "role": "applied",
    "tex": "R_1 R_4 = R_2 R_3",
@@ -6075,6 +6372,7 @@
   {
    "id": "B2.power",
    "unit": "B2",
+   "field": "circuit",
    "name": "전력과 전기 에너지",
    "role": "derived",
    "tex": "P = VI = I^2R = \\frac{V^2}{R}",
@@ -6114,6 +6412,7 @@
   {
    "id": "B2.tr",
    "unit": "B2",
+   "field": "circuit",
    "name": "트랜지스터의 전류",
    "role": "derived",
    "tex": "I_E = I_B + I_C",
@@ -6142,6 +6441,7 @@
   {
    "id": "B2.amp",
    "unit": "B2",
+   "field": "circuit",
    "name": "트랜지스터의 증폭",
    "role": "applied",
    "tex": "\\beta = \\frac{I_C}{I_B},\\quad I_E = (1 + \\beta)\\,I_B",
@@ -6173,6 +6473,7 @@
   {
    "id": "B2.bias",
    "unit": "B2",
+   "field": "circuit",
    "name": "바이어스 전압과 증폭 회로",
    "role": "applied",
    "tex": "V_B = \\frac{R_2}{R_1 + R_2}V_{CC}",
@@ -6210,6 +6511,7 @@
   {
    "id": "B2.compass",
    "unit": "B2",
+   "field": "magnetic",
    "name": "나침반으로 재는 전류의 자기장",
    "role": "applied",
    "tex": "\\tan\\theta = \\frac{B_{\\text{전류}}}{B_{\\text{지구}}}",
@@ -6239,6 +6541,7 @@
   {
    "id": "B2.force",
    "unit": "B2",
+   "field": "magnetic",
    "name": "자기장 속 전류가 받는 힘",
    "role": "basis",
    "tex": "F = BIL\\sin\\theta",
@@ -6261,6 +6564,7 @@
   {
    "id": "B2.rail",
    "unit": "B2",
+   "field": "magnetic",
    "name": "레일 위 막대가 받는 힘과 종단 속도",
    "role": "applied",
    "tex": "F = BIL = \\frac{B^2L^2v}{R}",
@@ -6297,6 +6601,7 @@
   {
    "id": "B2.rod",
    "unit": "B2",
+   "field": "magnetic",
    "name": "회전하는 막대의 기전력",
    "role": "applied",
    "tex": "\\varepsilon = \\frac{1}{2}B\\omega R^2",
@@ -6330,6 +6635,7 @@
   {
    "id": "B2.gen",
    "unit": "B2",
+   "field": "magnetic",
    "name": "발전기의 기전력",
    "role": "derived",
    "tex": "\\varepsilon = NBA\\omega\\sin\\omega t,\\quad \\varepsilon_{\\max} = NBA\\omega",
@@ -6374,6 +6680,7 @@
   {
    "id": "B2.mutual",
    "unit": "B2",
+   "field": "magnetic",
    "name": "상호 유도",
    "role": "derived",
    "tex": "\\varepsilon_2 = -M\\frac{\\Delta I_1}{\\Delta t}",
@@ -6403,6 +6710,7 @@
   {
    "id": "B2.self",
    "unit": "B2",
+   "field": "magnetic",
    "name": "자체 유도",
    "role": "derived",
    "tex": "\\varepsilon = -L\\frac{\\Delta I}{\\Delta t}",
@@ -6433,6 +6741,7 @@
   {
    "id": "B2.trans",
    "unit": "B2",
+   "field": "magnetic",
    "name": "변압기",
    "role": "derived",
    "tex": "\\frac{V_1}{V_2} = \\frac{N_1}{N_2} = \\frac{I_2}{I_1}",
@@ -6467,6 +6776,7 @@
   {
    "id": "B2.loss",
    "unit": "B2",
+   "field": "magnetic",
    "name": "송전선의 전력 손실",
    "role": "applied",
    "tex": "P_{\\text{손실}} = \\left(\\frac{P}{V}\\right)^2 R",
@@ -6501,6 +6811,7 @@
   {
    "id": "B2.rms",
    "unit": "B2",
+   "field": "magnetic",
    "name": "교류의 실효값",
    "role": "derived",
    "tex": "V_{\\text{실효}} = \\frac{V_0}{\\sqrt{2}}",
@@ -6541,6 +6852,7 @@
   {
    "id": "B2.react",
    "unit": "B2",
+   "field": "magnetic",
    "name": "코일과 축전기의 저항 역할 (리액턴스)",
    "role": "derived",
    "tex": "X_L = 2\\pi fL,\\quad X_C = \\frac{1}{2\\pi fC}",
@@ -6584,6 +6896,7 @@
   {
    "id": "B2.res",
    "unit": "B2",
+   "field": "magnetic",
    "name": "RLC 회로의 공명 진동수",
    "role": "derived",
    "tex": "f_0 = \\frac{1}{2\\pi\\sqrt{LC}}",
@@ -6614,6 +6927,7 @@
   {
    "id": "C1.tune",
    "unit": "C1",
+   "field": "wave",
    "name": "라디오의 동조",
    "role": "applied",
    "tex": "f_{\\text{전파}} = \\frac{1}{2\\pi\\sqrt{LC}}",
@@ -6649,6 +6963,7 @@
   {
    "id": "C1.dopS",
    "unit": "C1",
+   "field": "wave",
    "name": "도플러 효과: 음원이 움직일 때",
    "role": "derived",
    "tex": "f' = f\\frac{V}{V \\mp v_s}",
@@ -6679,6 +6994,7 @@
   {
    "id": "C1.dopRatio",
    "unit": "C1",
+   "field": "wave",
    "name": "다가올 때와 멀어질 때의 비",
    "role": "applied",
    "tex": "\\frac{f_A}{f_B} = \\frac{V - v_s}{V + v_s}",
@@ -6708,6 +7024,7 @@
   {
    "id": "C1.dopO",
    "unit": "C1",
+   "field": "wave",
    "name": "도플러 효과: 관찰자가 움직일 때",
    "role": "derived",
    "tex": "f' = f\\frac{V + v_o}{V}",
@@ -6738,6 +7055,7 @@
   {
    "id": "C1.dop",
    "unit": "C1",
+   "field": "wave",
    "name": "도플러 효과 일반식",
    "role": "derived",
    "tex": "f' = f\\frac{V \\pm v_o}{V \\mp v_s}",
@@ -6766,6 +7084,7 @@
   {
    "id": "C1.slit",
    "unit": "C1",
+   "field": "wave",
    "name": "이중 슬릿 간섭 조건",
    "role": "derived",
    "tex": "d\\sin\\theta = m\\lambda\\ (\\text{밝은 무늬})",
@@ -6799,6 +7118,7 @@
   {
    "id": "C1.fringe",
    "unit": "C1",
+   "field": "wave",
    "name": "간섭무늬 간격",
    "role": "applied",
    "tex": "\\Delta x = \\frac{L\\lambda}{d}",
@@ -6830,6 +7150,7 @@
   {
    "id": "C1.single",
    "unit": "C1",
+   "field": "wave",
    "name": "단일 슬릿 회절",
    "role": "derived",
    "tex": "a\\sin\\theta = m\\lambda\\ (\\text{어두운 무늬},\\ m = 1, 2, \\cdots)",
@@ -6860,6 +7181,7 @@
   {
    "id": "C1.singleW",
    "unit": "C1",
+   "field": "wave",
    "name": "중앙 밝은 무늬의 폭",
    "role": "applied",
    "tex": "w_{\\text{중앙}} = \\frac{2L\\lambda}{a}",
@@ -6891,6 +7213,7 @@
   {
    "id": "C1.rays",
    "unit": "C1",
+   "field": "wave",
    "name": "얇은 볼록 렌즈의 광선 규칙",
    "role": "derived",
    "tex": "\\text{축에 나란한 빛} \\to \\text{초점},\\quad \\text{중심을 지나는 빛} \\to \\text{직진}",
@@ -6917,6 +7240,7 @@
   {
    "id": "C1.lens",
    "unit": "C1",
+   "field": "wave",
    "name": "렌즈 방정식",
    "role": "derived",
    "tex": "\\frac{1}{a} + \\frac{1}{b} = \\frac{1}{f}",
@@ -6948,6 +7272,7 @@
   {
    "id": "C1.mag",
    "unit": "C1",
+   "field": "wave",
    "name": "배율과 상의 위치",
    "role": "applied",
    "tex": "m = \\left|\\frac{b}{a}\\right| = \\frac{f}{|a - f|},\\quad b = \\frac{af}{a - f}",
@@ -6978,6 +7303,7 @@
   {
    "id": "C1.twoPos",
    "unit": "C1",
+   "field": "wave",
    "name": "두 위치에서 맺히는 상",
    "role": "applied",
    "tex": "f = \\frac{D^2 - s^2}{4D},\\quad m_1 m_2 = 1",
@@ -7008,6 +7334,7 @@
   {
    "id": "C2.vs",
    "unit": "C2",
+   "field": "quantum",
    "name": "정지 전압–진동수 그래프",
    "role": "applied",
    "tex": "V_s = \\frac{h}{e}f - \\frac{W}{e}",
@@ -7041,6 +7368,7 @@
   {
    "id": "C2.orbitWave",
    "unit": "C2",
+   "field": "quantum",
    "name": "보어 궤도와 물질파",
    "role": "derived",
    "tex": "2\\pi r_n = n\\lambda_n",
@@ -7074,6 +7402,7 @@
   {
    "id": "C2.radius",
    "unit": "C2",
+   "field": "quantum",
    "name": "보어 궤도 반지름",
    "role": "derived",
    "tex": "r_n = a_0 n^2",
@@ -7116,6 +7445,7 @@
   {
    "id": "C2.photonP",
    "unit": "C2",
+   "field": "quantum",
    "name": "광자의 운동량",
    "role": "derived",
    "tex": "p_{\\text{광자}} = \\frac{h}{\\lambda}",
@@ -7144,6 +7474,7 @@
   {
    "id": "C2.uncert",
    "unit": "C2",
+   "field": "quantum",
    "name": "불확정성 원리",
    "role": "basis",
    "tex": "\\Delta x\\,\\Delta p \\geq \\frac{h}{4\\pi}",
@@ -7164,6 +7495,7 @@
   {
    "id": "C2.microscope",
    "unit": "C2",
+   "field": "quantum",
    "name": "빛으로 위치를 재는 사고 실험",
    "role": "applied",
    "tex": "\\Delta x \\approx \\lambda,\\quad \\Delta p \\approx \\frac{h}{\\lambda}",
