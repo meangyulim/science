@@ -8,6 +8,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(ㄷ자 레일 위 막대: 같은 시간 Δt 동안 늘어난 넓이 띠, 유도 전류, 외력·자기력, 에너지 장부 / 레일 위 두 막대 / 회전 막대: 쓸린 부채꼴과 막대 위 속력) | 오른쪽 지금 값 + 관찰 ①~④(Φ–t, 렌츠 네 경우, v–t·I–t, v–r) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5;cursor:grab}
+#gPhi{aspect-ratio:10/5.6}
+#gCase{aspect-ratio:10/6.6}
+#gVt{aspect-ratio:10/5.8}
+#gVr{aspect-ratio:10/5.8}
+.sheet .row > .grow{flex-basis:150px}
+@media (max-width:640px){ #gPhi{aspect-ratio:10/7} #gCase{aspect-ratio:10/10} #gVt{aspect-ratio:10/7.4} #gVr{aspect-ratio:10/7.4} }
+</style>
 </head>
 <body class="cx">
 <!-- topbar -->
@@ -23,15 +33,1053 @@
     <h1>움직이는 막대·회전 막대의 유도 기전력</h1>
     <p class="question"><i>Q</i>레일 위를 미끄러지는 막대는 왜 전지처럼 행동할까?</p>
   </div>
+
   <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="종이면에 들어가는 균일한 자기장 속 ㄷ자 레일 위를 구리색 막대가 움직인다. 같은 시간 간격마다 늘어난 회로 넓이가 보라 띠로 쌓이고, 유도 전류가 주황 점으로 회로를 돈다. 막대에는 외력과 운동을 방해하는 자기력이 빨간 화살표로 그려지고, 막대의 운동은 이 두 힘으로 정해진다. 아래 에너지 장부에서 처음 운동 에너지와 외력이 한 일의 합이 지금 운동 에너지와 저항의 열의 합과 늘 같다. 두 막대 장면과, 한 끝을 축으로 도는 회전 막대 장면도 있다. 막대를 끌면 그 순간으로 옮겨 볼 수 있다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">t = 0.1 s</span><span class="pill" id="hud2">느린 화면 1/20</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider" id="slV"><label for="v"><span class="lg">막대 속력 </span>v</label><input id="v" type="range" min="1" max="10" step="0.5" value="5"><output id="vOut">5 m/s</output></div>
+          <div class="slider" id="slF" hidden><label for="F"><span class="lg">외력 </span>F</label><input id="F" type="range" min="0.02" max="0.3" step="0.01" value="0.1"><output id="FOut">0.1 N</output></div>
+          <div class="slider" id="slV0" hidden><label for="v0"><span class="lg">처음 속력 </span>v₀</label><input id="v0" type="range" min="1" max="10" step="0.5" value="5"><output id="v0Out">5 m/s</output></div>
+          <div class="slider" id="slTh" hidden><label for="th"><span class="lg">빗면 각 </span>θ</label><input id="th" type="range" min="10" max="60" step="5" value="30"><output id="thOut">30°</output></div>
+          <div class="slider" id="slV2" hidden><label for="v2"><span class="lg">막대 Q 속도 </span>v₂</label><input id="v2" type="range" min="-6" max="6" step="1" value="5"><output id="v2Out">5 m/s</output></div>
+          <div class="slider" id="slW" hidden><label for="w"><span class="lg">각속도 </span>ω</label><input id="w" type="range" min="10" max="60" step="5" value="40"><output id="wOut">40 rad/s</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">장면·조건</span><span class="sm">장면</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="장면과 조건">
+          <div class="sheet-head"><b>장면 · 조건 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="장면">
+              <span class="gl">장면</span>
+              <button type="button" class="btn" data-scene="rail" aria-pressed="true">레일 위 막대</button>
+              <button type="button" class="btn" data-scene="two" aria-pressed="false">두 막대</button>
+              <button type="button" class="btn" data-scene="rot" aria-pressed="false">회전 막대</button>
+            </div>
+            <div class="group" role="group" aria-label="자기장 방향">
+              <span class="gl">B</span>
+              <button type="button" class="btn" data-field="in" aria-pressed="true">⊗ 들어감</button>
+              <button type="button" class="btn" data-field="out" aria-pressed="false">⊙ 나옴</button>
+            </div>
+          </div>
+          <div class="row" id="rowMode">
+            <div class="group" role="group" aria-label="막대를 움직이는 방법">
+              <span class="gl">운동</span>
+              <button type="button" class="btn" data-mode="const" aria-pressed="true">등속으로 끌기</button>
+              <button type="button" class="btn" data-mode="force" aria-pressed="false">일정한 힘</button>
+              <button type="button" class="btn" data-mode="push" aria-pressed="false">밀고 놓기</button>
+              <button type="button" class="btn" data-mode="incline" aria-pressed="false">빗면에서 놓기</button>
+            </div>
+            <div class="group" role="group" aria-label="움직이는 방향" id="grpDir">
+              <span class="gl">방향</span>
+              <button type="button" class="btn" data-dir="1" aria-pressed="true">→ 오른쪽</button>
+              <button type="button" class="btn" data-dir="-1" aria-pressed="false">← 왼쪽</button>
+            </div>
+          </div>
+          <div class="row" id="rowRot" hidden>
+            <div class="group" role="group" aria-label="자기장이 있는 곳">
+              <span class="gl">B 영역</span>
+              <button type="button" class="btn" data-band="0" aria-pressed="true">전체</button>
+              <button type="button" class="btn" data-band="1" aria-pressed="false">바깥 절반 띠</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="grow"><label class="ctl-label" for="B"><span>자기장 B</span> <output id="BOut">0.5 T</output></label><input id="B" type="range" min="0.1" max="1" step="0.05" value="0.5"></div>
+            <div class="grow" id="gL"><label class="ctl-label" for="L"><span>막대 길이 L</span> <output id="LOut">0.4 m</output></label><input id="L" type="range" min="0.2" max="0.5" step="0.05" value="0.4"></div>
+            <div class="grow" id="gR"><label class="ctl-label" for="R"><span>회로 저항 R</span> <output id="ROut">2 Ω</output></label><input id="R" type="range" min="1" max="8" step="0.5" value="2"></div>
+            <div class="grow" id="gM"><label class="ctl-label" for="m"><span>막대 질량 m</span> <output id="mOut">2 g</output></label><input id="m" type="range" min="1" max="8" step="0.5" value="2"></div>
+            <div class="grow" id="gV1" hidden><label class="ctl-label" for="v1"><span>막대 P 속도 v₁</span> <output id="v1Out">5 m/s</output></label><input id="v1" type="range" min="-6" max="6" step="1" value="5"></div>
+            <div class="grow" id="gRr" hidden><label class="ctl-label" for="Rr"><span>회전 막대 길이 R</span> <output id="RrOut">0.2 m</output></label><input id="Rr" type="range" min="0.1" max="0.3" step="0.05" value="0.2"></div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="step">한 단계 ▸</button>
+            <button type="button" class="btn" id="restart">처음부터</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×0.5</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
+            <label class="chk" id="tQ"><input type="checkbox" id="cQ">막대 속 전하 (qvB)</label>
+            <label class="chk" id="tInd"><input type="checkbox" id="cInd">유도 전류의 자기장</label>
+            <label class="chk" id="tTip" hidden><input type="checkbox" id="cTip">끝 속력으로 계산하면 (틀림)</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="notes" aria-label="관찰 노트">
-      <p>(만드는 중)</p>
+      <div class="answer">
+        <div class="lab"><span id="ansLab">지금 유도 기전력 · 유도 전류</span><span id="ansCtx">B 0.5 T · L 0.4 m · v 5 m/s · R 2 Ω</span></div>
+        <div class="big" id="ansBig">ε = 1 V · I = 0.5 A</div>
+        <div class="sub">
+          <span class="f" id="ansF">ε = BLv, I = ε/R, F = BIL 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">ε = BLv = 0.5 × 0.4 × <em>5</em> = <em>1 V</em></span><span class="v">I = ε/R = 1 ÷ 2 = <em>0.5 A</em></span><span class="v">F = BIL = 0.5 × 0.5 × 0.4 = <em>0.1 N</em> (운동 반대)</span><span class="v">외력의 일률 Fv = 0.1 × 5 = <em>0.5 W</em> = I²R</span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">지금 자속 Φ = B × 넓이</span><b id="mv1">0.14 Wb</b></div>
+          <div class="mini"><span id="mn2">Δt = 0.02 s 동안 는 자속 BLvΔt</span><b id="mv2">0.02 Wb</b></div>
+          <div class="mini"><span id="mn3">외력이 한 일 (지금까지)</span><b id="mv3">50 mJ</b></div>
+          <div class="mini"><span id="mn4">저항에서 난 열 (지금까지)</span><b id="mv4">50 mJ</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 넓이 → 자속 → BLv">
+          <div class="kind">관찰 1</div>
+          <h3>같은 시간 동안 늘어난 넓이만큼 자속이 늘고, 그 빠르기가 기전력이다</h3>
+          <p>막대가 Δt 동안 vΔt 움직이면 회로가 감싼 넓이가 LvΔt 늘고, 그 넓이를 지나는 자속은 BLvΔt 늘어난다. 무대의 보라 띠 하나하나가 같은 시간 Δt(0.02 s) 동안 늘어난 넓이다. 자속이 늘어나는 빠르기가 기전력이므로 <span class="eq">ε = ΔΦ/Δt = BLv</span>. 띠가 넓을수록, 곧 막대가 빠를수록 기전력이 크다.</p>
+          <canvas class="flat" id="gPhi" aria-label="시간에 따른 회로의 자속 Φ. 등속이면 직선이고, 마지막 Δt 동안의 기울기 ΔΦ/Δt 가 유도 기전력 ε 이다."></canvas>
+          <p class="cap">Φ–t 그래프의 기울기가 ε다. 미시적으로는 막대 속 전하가 막대와 함께 움직이며 로런츠 힘 qvB를 받아 한쪽 끝으로 몰린다. 그래서 막대 양 끝에 (+)·(−)가 생기고, 막대는 기전력 BLv인 <b>전지</b>처럼 행동한다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="ex">예제: 5 m/s로 끌기</button>
+            <button type="button" class="btn" data-try="v10">속력 2배 (10 m/s)</button>
+            <button type="button" class="btn" data-do="check:#cQ">막대 속 전하 보기</button>
+            <button type="button" class="btn" data-do="click:#step">한 단계 ▸</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 렌츠: 운동 방해">
+          <div class="kind">관찰 2</div>
+          <h3>유도 전류는 자속의 변화를 막는 쪽으로 흐르고, 막대는 늘 운동 반대쪽 힘을 받는다</h3>
+          <p>들어가는 방향(⊗)의 자속이 늘면 고리는 나오는 방향(⊙)의 자기장을 만들도록 시계 반대 방향으로 전류를 흘린다. 막대 속에서는 위쪽이다. 이 전류가 자기장 속에서 받는 힘 <span class="eq">F = BIL</span>은 왼쪽, 곧 <b>운동을 방해하는 쪽</b>이다. 막대를 왼쪽으로 끌거나 B를 ⊙로 바꾸면 전류의 방향은 바뀌지만, 힘은 언제나 운동 반대다.</p>
+          <canvas class="flat" id="gCase" aria-label="막대가 오른쪽과 왼쪽으로 움직이고 자기장이 들어가는 방향과 나오는 방향인 네 경우의 유도 전류 방향과 막대가 받는 자기력. 네 경우 모두 자기력은 속도와 반대이다. 지금 무대의 경우에 구리색 테두리."></canvas>
+          <p class="cap">네 경우 모두 자기력이 v와 반대다(구리색 테두리 = 지금 무대). 만약 힘이 운동을 돕는다면 막대가 저절로 빨라지며 에너지가 공짜로 생길 것이다. 렌츠 법칙은 에너지 보존과 같은 이야기다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="left">왼쪽으로 끌기</button>
+            <button type="button" class="btn" data-do="click:[data-field=out]">B를 ⊙로</button>
+            <button type="button" class="btn" data-do="click:[data-field=in]">B를 ⊗로</button>
+            <button type="button" class="btn" data-do="check:#cInd">유도 전류의 자기장</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 종단 속력과 에너지">
+          <div class="kind">관찰 3</div>
+          <h3>일정한 힘으로 끌면 종단 속력에 다가가고, 외력이 한 일은 열이 된다</h3>
+          <p>등속으로 끌려면 외력이 자기력 B²L²v/R과 같아야 한다. 이때 외력의 일률 Fv = B²L²v²/R은 저항의 소비 전력 I²R과 정확히 같아서, 외력이 한 일이 전기 에너지를 거쳐 모두 열이 된다. 일정한 힘 F로 끌면 빨라질수록 자기력이 커져 가속도가 줄고, 두 힘이 같아지는 종단 속력 <span class="eq">v = FR/(B²L²)</span>에 다가간다(교과 심화). 밀고 놓으면 자기력만 남아 느려지다 멈추고, 처음 운동 에너지가 모두 열이 된다.</p>
+          <canvas class="flat" id="gVt" aria-label="레일 위 막대의 속력과 유도 전류의 시간 그래프. 일정한 힘으로 끌면 종단 속력에 다가가고, 밀고 놓으면 0 으로 줄어든다. 전류는 속력에 비례해 같은 모양이다."></canvas>
+          <p class="cap">I = BLv/R이라 전류(오른쪽 눈금)는 속력과 같은 모양으로 변한다. 무대 아래 에너지 장부의 두 줄은 늘 길이가 같다: 처음 운동 에너지 + 외력이 한 일 = 지금 운동 에너지 + 저항의 열. 빗면에서는 중력의 빗면 성분 mg sin θ가 일정한 외력 노릇을 한다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="force">일정한 힘 0.1 N으로 끌기</button>
+            <button type="button" class="btn" data-try="push">5 m/s로 밀고 놓기</button>
+            <button type="button" class="btn" data-try="incline">빗면에서 놓기</button>
+            <button type="button" class="btn" data-try="ex">등속 5 m/s</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 회전 막대 ½BωR²">
+          <div class="kind">관찰 4</div>
+          <h3>회전 막대는 평균 속력 Rω/2로 움직이는 막대와 같다</h3>
+          <p>한쪽 끝 O를 축으로 각속도 ω로 도는 길이 R인 막대는 Δt 동안 중심각 ωΔt인 부채꼴을 쓸고 지나간다. 그 넓이 ½R²ωΔt에 B를 곱한 것이 자속 변화이므로 <span class="eq">ε = ½BωR²</span>. 막대 위 점의 속력 rω는 축에서 멀수록 커지므로, 이것은 평균 속력 Rω/2를 BLv에 넣은 것과 같다.</p>
+          <canvas class="flat" id="gVr" aria-label="회전 막대 위 점의 속력과 축에서의 거리 그래프. 원점을 지나는 직선이고, 그 아래 삼각형 넓이에 B 를 곱하면 유도 기전력이다. 평균 속력 Rω/2 를 점선으로 표시."></canvas>
+          <p class="cap">속력–거리 그래프 아래 삼각형 넓이 ½ × R × Rω에 B를 곱하면 기전력이다. 끝의 속력 Rω를 그대로 쓰면 넓이가 2배인 직사각형이 되어 2배로 틀린다. 자기장이 r₁~r₂ 띠에만 있으면 그 사이 사다리꼴만 세어 <span class="eq">½Bω(r₂² − r₁²)</span>.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="rot">회전 막대 보기</button>
+            <button type="button" class="btn" data-try="band">바깥 절반 띠에만 B</button>
+            <button type="button" class="btn" data-do="check:#cTip">끝 속력으로 계산하면?</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>움직이는 막대 = 기전력 BLv인 전지, 자기력은 늘 운동 방해</h3>
+          <ul>
+            <li><span class="eq">ε = BLv</span>(B × 넓이 변화율), <span class="eq">I = BLv/R</span>, <span class="eq">F = BIL = B²L²v/R</span>(늘 운동 반대). 전류 방향은 렌츠 법칙: 자속의 변화를 방해하는 쪽.</li>
+            <li>등속이면 외력 = 자기력이고 외력의 일률 Fv = I²R(외력이 한 일이 모두 열). 소비 전력 (BLv)²/R은 v²에 비례한다.</li>
+            <li>일정한 힘 F(또는 빗면의 mg sin θ)로 끌면 종단 속력 FR/(B²L²)에 다가간다(교과 심화). 밀고 놓으면 멈출 때까지 열 = ½mv₀².</li>
+            <li>회전 막대 <span class="eq">ε = ½BωR²</span> = B × R × (Rω/2). 띠 영역은 ½Bω(r₂² − r₁²). 두 막대는 각 막대의 BLv 방향을 고리에 표시해 같은 회전 방향이면 합, 반대면 차.</li>
+            <li>자주 하는 실수: 회전 막대에 끝 속력 Rω를 넣어 2배로 계산한다. 두 막대가 같은 방향으로 움직이면 기전력이 더해진다고 본다(넓이가 그대로면 ε = 0).</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>B = 0.5 T, 막대 길이 0.4 m, 속력 5 m/s, 회로 저항 2 Ω이다. 기전력, 전류, 막대가 받는 자기력, 외력의 일률은?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>ε = BLv = 0.5 × 0.4 × 5 = 1 V. I = ε/R = 1 ÷ 2 = 0.5 A. 자기력 F = BIL = 0.5 × 0.5 × 0.4 = 0.1 N이고 운동 반대 방향이다. 일정한 속력으로 끌려면 외력도 0.1 N이어야 하므로 외력의 일률 Fv = 0.1 × 5 = 0.5 W이고, 이는 소비 전력 I²R = 0.25 × 2 = 0.5 W와 같다. 답: <b>1 V, 0.5 A, 0.1 N, 0.5 W</b>.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>길이 0.2 m인 금속 막대가 한쪽 끝을 축으로, 세기 0.5 T인 균일한 자기장에 수직인 면 안에서 각속도 40 rad/s로 회전한다. 막대 양 끝 사이의 유도 기전력의 크기는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="rot">이 회전 막대 보기</button><button type="button" class="btn" data-try="rotTip">끝 속력으로 계산하면?</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>0.4 V</b>. 막대 위 점의 속력은 축에서 0, 끝에서 Rω = 8 m/s로 거리에 비례하므로 평균 속력 4 m/s를 BLv에 넣는다: 0.5 × 0.2 × 4 = 0.4 V(= ½ × 0.5 × 40 × 0.2²). 끝의 속력 8 m/s를 그대로 쓰면 0.8 V라는 오답이 나온다.</p></details>
+          </div>
+          <div class="q">
+            <h3>균일한 자기장 속에서 저항이 연결된 ㄷ자 레일 위의 막대를 외력으로 당겨 일정한 속력으로 움직인다. 옳은 것만 고르면? ㄱ. 막대의 유도 전류가 자기장에서 받는 힘은 운동 방향과 반대다. ㄴ. 막대의 속력을 2배로 하면 회로의 소비 전력도 2배가 된다. ㄷ. 외력이 하는 일률은 회로의 소비 전력과 같다.</h3>
+            <div class="acts"><button type="button" class="btn" data-try="ex">5 m/s로 끌기</button><button type="button" class="btn" data-try="v10">10 m/s로 끌기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>ㄱ, ㄷ</b>. 렌츠 법칙에 따라 자기력은 늘 운동을 방해한다(ㄱ). 기전력 BLv와 전류가 모두 v에 비례하므로 소비 전력 (BLv)²/R은 v²에 비례해 4배가 된다(ㄴ 틀림: 5 m/s에서 0.5 W, 10 m/s에서 2 W). 속력이 일정하면 외력이 한 일이 모두 전기 에너지를 거쳐 열이 되므로 외력의 일률 = 소비 전력이다(ㄷ).</p></details>
+          </div>
+          <div class="q">
+            <h3>레일 위에 놓인 두 막대가 같은 방향으로 같은 속력 5 m/s로 움직인다(B = 0.5 T, 레일 간격 0.4 m). 두 막대와 레일이 만드는 고리의 유도 기전력은? 한 막대만 반대로 움직이면?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="two">같은 방향으로</button><button type="button" class="btn" data-try="twoOpp">반대 방향으로</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>0 V, 2 V</b>. 두 막대 모두 막대 속에서 위쪽으로 미는 BLv = 1 V를 만들지만, 고리를 따라 돌면 한쪽은 위로, 다른 쪽은 아래로 도는 방향이라 서로 빼진다. 고리 넓이가 그대로이니 자속 변화도 0이다. 한 막대만 반대로 움직이면 고리를 따라 같은 방향이 되어 1 + 1 = 2 V다(넓이가 매초 2Lv씩 변한다).</p></details>
+          </div>
+          <div class="q">
+            <h3>질량 2 g인 막대를 레일 위에서 5 m/s로 밀고 놓았다(B = 0.5 T, L = 0.4 m, R = 2 Ω). 막대가 멈출 때까지 저항에서 발생하는 열은? B를 2배로 하면?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="push">밀고 놓기</button><button type="button" class="btn" data-try="push2B">B 2배로 밀고 놓기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>0.025 J (25 mJ)</b>, B가 2배여도 같다. 외력이 없으므로 처음 운동 에너지 ½ × 0.002 × 5² = 0.025 J가 모두 열이 된다. B가 2배면 자기력이 4배라서 더 빨리, 더 짧은 거리에서 멈출 뿐이다.</p></details>
+          </div>
+        </li>
+      </ol>
 <!-- nextprev -->
 <nav class="nextprev" aria-label="이전·다음 개념"><span></span><span></span></nav>
 <!-- /nextprev -->
     </section>
   </main>
 </div>
+
 <script src="../../kit/lab.js"></script>
+<script src="B2-11-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.B2_11;
+  const {$, C, text, arrow, fmt} = Lab;
+  const RAIL = 1.6, XA = 0.2, XB = 1.4;      // 레일 길이(저항 x = 0 부터), 막대가 오가는 범위 (m)
+  const DTW = 0.01;                           // 회전 막대: 쓸린 부채꼴을 보이는 시간 간격 (s)
+  const HOLD = 1.4;                           // 끝에 닿은 뒤 머무는 화면 시간 (s)
+  const TAU = Math.PI * 2;
+  const EX = {B: 0.5, L: 0.4, R: 2, v: 5};
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = {scene: 'rail', mode: 'const', dir: 1, field: 1, B: 0.5, L: 0.4, R: 2, m: 2, v: 5, F: 0.1, v0: 5, th: 30,
+    v1: 5, v2: 5, w: 40, Rr: 0.2, band: 0, t: 0.1, hold: 0, ph: 0, playing: !Lab.reduceMotion, speed: 1,
+    showQ: false, showInd: false, tip: false, drag: false};
+  const n3 = (v) => fmt(v, 3);
+  const mJ = (j) => { const v = j * 1000; return fmt(v, Math.abs(v) >= 100 ? 0 : 1); };
+  const sq = (v) => fmt(v, 3) + '²';
+
+  // 레일 위 막대의 운동 (모형의 닫힌 해). 조건이 바뀔 때만 다시 계산
+  const leftward = () => (S.mode === 'const' || S.mode === 'push') && S.dir < 0;
+  function railP() {
+    return {mode: S.mode, B: S.B, L: S.L, R: S.R, m: S.m / 1000, v: S.dir * S.v, F: S.F, v0: S.dir * S.v0, th: S.th,
+      x0: leftward() ? XB : XA};
+  }
+  let rKey = '', RUN = null;
+  function run() {
+    const p = railP(), key = JSON.stringify(p);
+    if (key === rKey) return RUN;
+    rKey = key;
+    const lf = p.x0 > 1, e = M.runEnd(p, lf ? XA : XA - 0.05, lf ? XB + 0.05 : XB);
+    const inc = p.mode === 'incline';
+    let vMax = 1e-9, fMax = 1e-9, aMax = 1e-9;
+    for (let i = 0; i <= 120; i++) {
+      const s = M.state(p, e.t * i / 120);
+      vMax = Math.max(vMax, Math.abs(s.v)); fMax = Math.max(fMax, Math.abs(s.Fext), Math.abs(s.Fmag)); aMax = Math.max(aMax, Math.abs(s.a));
+    }
+    const end = M.state(p, e.t), k = M.dragK(p.B, p.L, p.R), F = M.extForce(p);
+    RUN = {p, tEnd: e.t, hit: e.hit, dt: inc ? 0.1 : 0.02, slow: inc ? 1 / 4 : 1 / 20, vMax, fMax, aMax, end, k, F,
+      Etot: Math.max(end.K0 + end.W, end.K0, 1e-9), vT: (p.mode === 'force' || inc) ? F / k : null};
+    if (S.t > RUN.tEnd) S.t = RUN.tEnd;
+    return RUN;
+  }
+  // 두 막대: 오래 움직일 수 있는 처음 자리를 고른다
+  let tKey = '', TWO = null;
+  function two() {
+    const key = [S.v1, S.v2, S.B, S.L, S.R, S.field].join('|');
+    if (key === tKey) return TWO;
+    tKey = key;
+    const v1 = S.v1, v2 = S.v2, lo = 0.06, hi = RAIL - 0.06;
+    const tOf = (a, b) => {
+      let t = 0.4;
+      if (v1 < 0) t = Math.min(t, (a - lo) / -v1); if (v1 > 0) t = Math.min(t, (hi - a) / v1);
+      if (v2 < 0) t = Math.min(t, (b - lo) / -v2); if (v2 > 0) t = Math.min(t, (hi - b) / v2);
+      if (v1 > v2) t = Math.min(t, (b - a - 0.14) / (v1 - v2));
+      return t;
+    };
+    let best = null;
+    for (let a = 0.1; a <= 1.15; a += 0.05) for (let b = a + 0.45; b <= 1.5; b += 0.05) {
+      const t = tOf(a, b), sc = t - Math.abs(b - a - 0.6) * 0.002;
+      if (!best || sc > best.sc + 1e-12) best = {a, b, t, sc};
+    }
+    TWO = {a: best.a, b: best.b, tEnd: best.t, slow: 1 / 20, dt: 0.02, r: M.twoRods(S.B, S.L, S.R, v1, v2, S.field)};
+    if (S.t > TWO.tEnd) S.t = TWO.tEnd;
+    return TWO;
+  }
+  const slowNow = () => (S.scene === 'rot' ? 1 / 20 : S.scene === 'two' ? two().slow : run().slow) * S.speed;
+  const tEndNow = () => (S.scene === 'rot' ? Infinity : S.scene === 'two' ? two().tEnd : run().tEnd);
+  const dtNow = () => (S.scene === 'rot' ? DTW : S.scene === 'two' ? two().dt : run().dt);
+
+  // ── 작은 도우미 ─────────────────────────────────────────
+  function fieldMark(ctx, x, y, f, r, col, a) {          // ⊗(f = +1) / ⊙(f = −1)
+    ctx.save(); ctx.globalAlpha = a == null ? 1 : a; ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = Math.max(1.3, r * 0.26);
+    ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke();
+    if (f > 0) { const q = r * 0.6; ctx.beginPath(); ctx.moveTo(x - q, y - q); ctx.lineTo(x + q, y + q); ctx.moveTo(x - q, y + q); ctx.lineTo(x + q, y - q); ctx.stroke(); }
+    else { ctx.beginPath(); ctx.arc(x, y, Math.max(1.6, r * 0.3), 0, TAU); ctx.fill(); }
+    ctx.restore();
+  }
+  function zigzag(ctx, x, y0, y1, amp, col, w) {
+    const k = 6, h = (y1 - y0) / (2 * k), pts = [[x, y0]];
+    for (let i = 0; i < 2 * k; i++) pts.push([x + (i % 2 ? -amp : amp), y0 + h * (i + 0.5)]);
+    pts.push([x, y1]);
+    Lab.line(ctx, pts, col, w);
+  }
+  function hatch(ctx, x0, y0, x1, y1, col, gap) {          // 지금 clip 안 빗금
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.beginPath();
+    const h = y1 - y0;
+    for (let x = x0 - h; x < x1 + gap; x += gap) { ctx.moveTo(x, y1); ctx.lineTo(x + h, y0); }
+    ctx.stroke(); ctx.restore();
+  }
+  function pole(ctx, x, y, sgn, n) {                       // 막대 끝의 (+)·(−) 극
+    Lab.circle(ctx, x, y, n ? 7.5 : 8.5, {fill: C.paper, stroke: C.energy, width: 1.8});
+    text(ctx, sgn, x, y + 0.5, {size: 14, w: 600, color: C.energy});
+  }
+  const tw = (ctx, s, size = 13, w = 500) => Lab.measure(ctx, s, {size, w});
+  function lbl(ctx, s, x, y, W, o) {                        // 무대 밖으로 나가지 않게 붙인 이름표
+    const size = o.size || 13, w = tw(ctx, s, size, o.w == null ? 500 : o.w), al = o.align || 'center';
+    let x0 = al === 'left' ? x : al === 'right' ? x - w : x - w / 2;
+    x0 = Math.max(6, Math.min(W - 6 - w, x0));
+    text(ctx, s, x0, y, Object.assign({}, o, {align: 'left'}));
+  }
+  // 닫힌 둘레를 도는 전류: pts 는 시계 반대 순서(종이면 앞에서 본 방향). ccw = 시계 반대로 흐르는가
+  function loopCurrent(ctx, pts, ccw, n) {
+    const seg = []; let P = 0;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i], b = pts[(i + 1) % pts.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      seg.push([a, b, L, P]); P += L;
+    }
+    if (P < 30) return;
+    const k = Math.max(4, Math.round(P / (n ? 19 : 23))), step = P / k, ph = ((S.ph % step) + step) % step;
+    const at = (d) => {
+      d = ((d % P) + P) % P;
+      for (const [a, b, L, s0] of seg) if (d <= s0 + L + 1e-9) { const u = L ? (d - s0) / L : 0; return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u]; }
+      return pts[0];
+    };
+    for (let i = 0; i < k; i++) { const q = at(i * step + ph); Lab.circle(ctx, q[0], q[1], n ? 2.7 : 3.1, {fill: C.energy}); }
+    const sg = ccw ? 1 : -1;
+    for (const [a, b, L] of seg) {
+      if (L < 40) continue;
+      const ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L, m = [a[0] + (b[0] - a[0]) * 0.3, a[1] + (b[1] - a[1]) * 0.3];
+      arrow(ctx, m[0] - ux * 9 * sg, m[1] - uy * 9 * sg, m[0] + ux * 9 * sg, m[1] + uy * 9 * sg, C.energy, 2.6, 10);
+    }
+  }
+  function niceStep(span, k) {
+    const raw = span / Math.max(1, k), p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+  }
+  function ticks(max, k, min = 0) {
+    const st = niceStep(max - min, k), out = [];
+    for (let v = Math.ceil(min / st) * st; v <= max + 1e-9; v += st) if (Math.abs(v) > 1e-12) out.push(+v.toFixed(6));
+    return out;
+  }
+  function fTag(ctx, s, x, y, col, W) { lbl(ctx, s, x, y, W, {size: 13, w: 600, color: col, halo: true}); }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    if (S.scene === 'rot') drawRot(ctx, W, H); else if (S.scene === 'two') drawTwo(ctx, W, H); else drawRail(ctx, W, H);
+  }
+
+  // 레일 장면 배치: 넓은 무대 = 레일 위, 에너지 장부 아래 / 납작한 무대 = 장부 오른쪽 / 폰 = 정사각형에 모두
+  function geoRail(W, H) {
+    const n = W < 520, low = !n && H < 420;
+    const ml = n ? 40 : 64, mr = n ? 12 : 26;
+    // 장부를 아래에 둘 때와 오른쪽에 둘 때 중 레일이 더 크게 그려지는 쪽
+    const yTs = n ? 84 : low ? 88 : 100, ledH = n ? 116 : low ? 100 : 128;
+    const sStack = Math.min((W - ml - mr) / RAIL, (H - ledH - (n ? 40 : 46) - yTs) / 0.5);
+    const sideW = Math.round(Math.min(320, W * 0.31)), yTf = 78;
+    const sSide = Math.min((W - ml - mr - sideW) / RAIL, (H - 46 - yTf) / 0.5);
+    const flat = !n && sSide > sStack * 1.08, side = flat ? sideW : 0, yT = flat ? yTf : yTs;
+    const s = Math.max(40, flat ? sSide : sStack);
+    const X = (x) => ml + x * s, yB = yT + S.L * s;
+    const box = flat ? {x: W - side + 6, y: yT - 26, w: side - 18, col: true} : {x: 14, y: H - ledH + 8, w: W - 28, col: false, tight: low || n};
+    return {n, flat, ml, mr, side, yT, yB, yM: (yT + yB) / 2, h: yB - yT, s, X, xR: X(RAIL), box};
+  }
+  function fieldGrid(ctx, g, x0, x1) {                     // 레일 사이 자기장 기호 (고정된 자리)
+    const gs = g.n ? 30 : 40, rows = Math.max(1, Math.round(g.h / gs)), dy = g.h / rows;
+    for (let j = 0; j < rows; j++) for (let x = x0 + gs * 0.5; x < x1 - 4; x += gs) fieldMark(ctx, x, g.yT + dy * (j + 0.5), S.field, g.n ? 5 : 6, C.violet, 0.5);
+  }
+  function bLabel(ctx, W, n, extra, y) {
+    const s = n ? 'B ' + fmt(S.B, 2) + ' T ' + (S.field > 0 ? '⊗' : '⊙') : 'B = ' + fmt(S.B, 2) + ' T · ' + (S.field > 0 ? '⊗ 종이면에 들어감' : '⊙ 종이면에서 나옴') + (extra || '');
+    text(ctx, s, W - 14, y != null ? y : n ? 28 : 26, {size: n ? 13 : 14, w: 600, color: C.violet, align: 'right', halo: true});
+  }
+
+  function drawRail(ctx, W, H) {
+    const g = geoRail(W, H), r = run(), p = r.p, t = Math.min(S.t, r.tEnd), st = M.state(p, t), lz = M.lenz(S.field, st.v);
+    const {X, yT, yB, yM, h, n} = g, X0 = X(0), Xr = X(st.x);
+    const dir = st.v > 1e-9 ? 1 : st.v < -1e-9 ? -1 : 1;
+    const held = S.t >= r.tEnd - 1e-9 && r.hit;
+    // 회로가 감싼 넓이 (자속이 지나는 곳)
+    ctx.save(); ctx.fillStyle = Lab.alpha(C.violet, 0.08); ctx.fillRect(X0, yT, Xr - X0, h); ctx.restore();
+    // 같은 시간 Δt 마다 늘어난(왼쪽으로 가면 줄어든) 넓이 띠
+    const K = Math.floor(t / r.dt + 1e-9);
+    let last = null;
+    for (let k = 1; k <= K; k++) {
+      const a = X(M.state(p, (k - 1) * r.dt).x), b = X(M.state(p, k * r.dt).x), lo = Math.min(a, b), w = Math.abs(b - a), nw = k === K;
+      if (w < 0.3) continue;
+      ctx.save();
+      if (dir > 0) { ctx.fillStyle = Lab.alpha(C.violet, nw ? 0.34 : k % 2 ? 0.1 : 0.2); ctx.fillRect(lo, yT, w, h); }
+      else {
+        ctx.beginPath(); ctx.rect(lo, yT, w, h); ctx.clip();
+        ctx.fillStyle = Lab.alpha(C.violet, nw ? 0.14 : 0.04); ctx.fillRect(lo, yT, w, h);
+        hatch(ctx, lo, yT, lo + w, yB, Lab.alpha(C.violet, nw ? 0.75 : 0.28), 8);
+      }
+      ctx.restore();
+      if (nw) last = {lo, w};
+    }
+    if (last && dir > 0) { ctx.save(); ctx.strokeStyle = C.violet; ctx.lineWidth = 1.6; ctx.strokeRect(last.lo, yT, last.w, h); ctx.restore(); }
+    fieldGrid(ctx, g, X0, g.xR);
+    // 레일과 저항
+    const z0 = yT + h * 0.25, z1 = yB - h * 0.25;
+    Lab.line(ctx, [[g.xR, yT], [X0, yT], [X0, z0]], C.ink, 2.6);
+    Lab.line(ctx, [[X0, z1], [X0, yB], [g.xR, yB]], C.ink, 2.6);
+    zigzag(ctx, X0, z0, z1, n ? 6 : 8, C.ink, 2.2);
+    for (const y of [yT, yB]) Lab.line(ctx, [[g.xR, y - 7], [g.xR, y + 7]], C.muted, 2.4);
+    text(ctx, 'R', X0 - (n ? 11 : 15), yM - 10, {size: 14, w: 600, align: 'right', halo: true});
+    text(ctx, fmt(S.R, 1) + ' Ω', X0 - (n ? 11 : 15), yM + 10, {size: 13, w: 500, align: 'right', color: C.muted, halo: true});
+    // 넓이 띠 이름
+    if (last && last.w >= 20) {
+      Lab.bracket(ctx, last.lo, last.lo + last.w, yT - 10, C.violet, 'vΔt', true);
+      if (!n && h >= 100) {
+        const s = dir > 0 ? '넓이 LvΔt' : '줄어든 넓이', ww = tw(ctx, s, 13, 600), cxl = last.lo + last.w / 2;
+        const xL = dir > 0 ? Math.min(cxl - ww / 2, Xr - 17 - ww) : Math.max(cxl - ww / 2, Xr + 17);
+        text(ctx, s, xL, yT + 17, {size: 13, w: 600, color: C.violet, halo: true, align: 'left'});
+      }
+    }
+    // 유도 전류가 만든 자기장 (고리 안)
+    const iccw = S.field * st.I;
+    if (S.showInd && Math.abs(iccw) > 1e-9 && Xr - X0 > 70) {
+      const cx = (X0 + Xr) / 2, cy = yT + h * 0.7;
+      fieldMark(ctx, cx, cy, lz.inducedIn, n ? 10 : 13, C.energy, 1);
+      if (Xr - X0 > 150 && (!n || h > 80)) text(ctx, '유도 전류의 자기장', cx, cy + (n ? 20 : 25), {size: 13, w: 600, color: C.energy, halo: true});
+    }
+    // 막대
+    const ext = n ? 11 : 14, rw = n ? 7 : 9;
+    ctx.save(); ctx.fillStyle = C.copper; Lab.rrect(ctx, Xr - rw / 2, yT - ext, rw, h + 2 * ext, rw / 2); ctx.fill(); ctx.restore();
+    // 유도 전류 (회로를 도는 점: 빠르기 ∝ I)
+    if (Math.abs(iccw) > 1e-9 && Xr - X0 > 14) loopCurrent(ctx, [[Xr, yT], [X0, yT], [X0, yB], [Xr, yB]], iccw > 0, n);
+    if (Math.abs(st.v) > 1e-9) { pole(ctx, Xr, yT + (n ? 11 : 13), lz.topPlus ? '+' : '−', n); pole(ctx, Xr, yB - (n ? 11 : 13), lz.topPlus ? '−' : '+', n); }
+    // 막대 속 전하가 받는 힘 qvB (양전하가 (+) 끝으로)
+    if (S.showQ && Math.abs(st.v) > 1e-9 && h > 60) {
+      const xq = Xr - dir * (n ? 13 : 16), up = lz.topPlus ? -1 : 1, y0 = yM + h * 0.36, y1 = yM + h * 0.1;
+      const ya = up < 0 ? y0 : y1, yb = up < 0 ? y1 : y0;
+      Lab.circle(ctx, xq, ya, n ? 5 : 6, {fill: C.paper, stroke: C.energy, width: 1.6});
+      text(ctx, '+', xq, ya + 0.5, {size: 13, w: 600, color: C.energy});
+      arrow(ctx, xq, ya + up * 8, xq, yb + up * 4, C.energy, 2.4, 9);
+      if (!n) text(ctx, 'qvB', xq - dir * 9, (ya + yb) / 2, {size: 13, w: 600, color: C.energy, align: dir > 0 ? 'right' : 'left', halo: true});
+    }
+    // 속도 (막대 위), 힘 (막대 가운데 높이)
+    const big = p.mode === 'incline' ? 4 : 1;   // 빗면은 속력·힘이 작아 화살표 축척을 키운다 (이름표에 값)
+    const kv = Math.min((n ? 7 : 11) * big, (n ? 44 : 88) / r.vMax), kF = Math.min((n ? 400 : 600) * big, (n ? 46 : 96) / r.fMax);
+    // 힘 이름표: 화살표 쪽에 붙이고, 그쪽에 자리가 없으면 막대 반대쪽에
+    const fLabel = (s, d, y) => {
+      const ww = tw(ctx, s, 13, 600), room = d > 0 ? W - 6 - (Xr + 12) : (Xr - 12) - (X0 + 8);
+      const dd = room >= ww ? d : -d;
+      lbl(ctx, s, Xr + dd * 12, y, W, {size: 13, w: 600, color: C.force, halo: true, align: dd > 0 ? 'left' : 'right'});
+    };
+    if (Math.abs(st.v) > 1e-6) {
+      const L = Math.abs(st.v) * kv, x1 = Xr + dir * (10 + L), yv = yT - 28;
+      arrow(ctx, Xr + dir * 10, yv, x1, yv, C.vel, 3.2, 11);
+      const s = 'v = ' + fmt(Math.abs(st.v), 2) + ' m/s', w = tw(ctx, s, 13, 600);
+      const fits = dir > 0 ? x1 + 8 + w < W - 6 : x1 - 8 - w > 6;
+      if (fits) text(ctx, s, x1 + dir * 8, yv, {size: 13, w: 600, color: C.vel, align: dir > 0 ? 'left' : 'right', halo: true});
+      else lbl(ctx, s, (Xr + x1) / 2, yv - 16, W, {size: 13, w: 600, color: C.vel, halo: true});
+    }
+    const inc = p.mode === 'incline';
+    if (Math.abs(st.Fext) > 1e-9) {
+      const d = Math.sign(st.Fext), L = Math.abs(st.Fext) * kF, x1 = Xr + d * (8 + L);
+      arrow(ctx, Xr + d * 8, yM, x1, yM, C.force, 3.2, 11);
+      fLabel((inc ? 'mg sin θ ' : '외력 ') + fmt(Math.abs(st.Fext), 3) + ' N', d, yM - 14);
+    }
+    if (Math.abs(st.Fmag) > 1e-9) {
+      const d = Math.sign(st.Fmag), L = Math.abs(st.Fmag) * kF, x1 = Xr + d * (8 + L);
+      arrow(ctx, Xr + d * 8, yM, x1, yM, C.force, 3.2, 11);
+      fLabel((n ? '자기력 ' : '자기력 BIL ') + fmt(Math.abs(st.Fmag), 3) + ' N', d, yM + 15);
+    }
+    // 가속도 (넓은 무대): 두 힘의 합의 방향
+    if (!n && p.mode !== 'const' && Math.abs(st.a) > r.aMax * 0.02 && !held) {
+      const d = Math.sign(st.a), L = 14 + 46 * Math.abs(st.a) / r.aMax, ya = yT - 50;
+      if (ya >= 48) { arrow(ctx, Xr + d * 10, ya, Xr + d * (10 + L), ya, C.acc, 2.8, 10); text(ctx, 'a', Xr + d * (18 + L), ya, {size: 14, w: 600, color: C.acc, align: d > 0 ? 'left' : 'right', halo: true}); }
+    }
+    // 막대 아래: 기전력·전류, 두 힘으로 정해지는 운동
+    const e = Math.abs(st.emf), I = Math.abs(st.I);
+    if (e > 1e-9) fTag(ctx, (n ? 'ε ' : 'ε = BLv = ') + n3(e) + ' V · I ' + n3(I) + ' A', Xr, yB + (n ? 22 : 26), C.energy, W);
+    let why;
+    if (held) why = '레일 끝 → 처음부터';
+    else if (p.mode === 'const') why = n ? '외력 = 자기력 → 등속' : '외력 = 자기력 → 힘의 합 0 → 등속';
+    else if (p.mode === 'push') why = n ? '자기력만 → 느려짐' : '자기력만(운동 반대) → 느려진다';
+    else why = Math.abs(st.a) < r.aMax * 0.03 ? (n ? '두 힘이 같아짐 → 종단 속력' : '두 힘이 거의 같다 → 종단 속력') : (n ? (inc ? 'mg sinθ' : '외력') + ' > 자기력 → 빨라짐' : (inc ? '중력 성분' : '외력') + ' > 자기력 → 빨라진다');
+    lbl(ctx, why, Xr, yB + (n ? 41 : 47), W, {size: 13, w: 500, color: C.muted, halo: true});
+    bLabel(ctx, W, n, inc ? ' (빗면에 수직)' : '', n ? g.box.y : null);
+    drawLedger(ctx, g, st, r, W, H);
+  }
+
+  // 에너지 장부: 처음 K₀ + 외력이 한 일 W = 지금 K + 저항의 열 Q
+  function drawLedger(ctx, g, st, r, W, H) {
+    const n = g.n, b = g.box, inc = r.p.mode === 'incline';
+    const showInset = inc && !n && !b.col;
+    const lw = n ? 66 : b.col ? 0 : 148, x0 = b.x + lw, w0 = b.w - lw - (n ? 50 : 60) - (showInset ? 176 : 0);
+    const sc = Math.max(10, w0) / r.Etot;
+    text(ctx, '에너지 장부 (mJ)', b.x, b.y, {size: 13, w: 600, align: 'left'});
+    if (!n) text(ctx, '두 줄의 길이가 늘 같다', b.col ? b.x : b.x + 128, b.col ? b.y + 18 : b.y, {size: 13, w: 500, color: C.muted, align: 'left'});
+    const rows = [
+      [n ? '처음+일' : '처음 K₀ + ' + (inc ? '중력의 일' : '외력의 일'), [[st.K0, C.vel, 'K₀'], [st.W, C.force, inc ? '중력의 일' : '외력의 일']]],
+      [n ? '지금+열' : '지금 K + 저항의 열', [[st.K, C.vel, 'K'], [st.Q, C.energy, '열 Q']]],
+    ];
+    rows.forEach(([name, segs], i) => {
+      const y = b.col ? b.y + 46 + i * 58 : b.tight ? b.y + 22 + i * 26 : b.y + 26 + i * 28, by = b.col ? y + 10 : y;
+      if (b.col) text(ctx, name, b.x, y - 9, {size: 13, w: 500, color: C.ink, align: 'left'});
+      else text(ctx, name, b.x, y, {size: 13, w: 500, color: C.ink, align: 'left'});
+      let x = x0, tot = 0;
+      for (const [v, col, nm] of segs) {
+        const L = Math.max(0, v) * sc;
+        if (L > 0.5) {
+          ctx.save(); ctx.fillStyle = col; ctx.globalAlpha = 0.85; ctx.fillRect(x, by - (b.tight ? 8 : 9), L, b.tight ? 16 : 18); ctx.restore();
+          const s = nm + ' ' + mJ(v);
+          if (tw(ctx, s, 13, 600) + 10 < L) text(ctx, s, x + L / 2, by + 0.5, {size: 13, w: 600, color: C.paper});
+        }
+        x += L; tot += v;
+      }
+      Lab.line(ctx, [[x0, by - 12], [x0, by + 12]], C.muted, 1.2);
+      text(ctx, '= ' + mJ(tot), x + 6, by + 0.5, {size: 13, w: 600, color: C.ink, align: 'left'});
+    });
+    if (showInset) drawInset(ctx, b.x + b.w - 170, b.y - 6, 168, H - b.y, r.p.th);
+  }
+  // 빗면을 옆에서 본 작은 그림: 레일 면이 θ 만큼 기울고, 막대(단면)에 중력과 그 빗면 성분
+  function drawInset(ctx, x, y, w, h, th) {
+    const rad = th * Math.PI / 180, hyp = Math.min(w - 20, (h - 40) / Math.max(0.25, Math.sin(rad)));
+    const xr = x + w - 8, yb = y + h - 14, xl = xr - hyp * Math.cos(rad), yt = yb - hyp * Math.sin(rad);
+    ctx.save(); ctx.fillStyle = Lab.alpha(C.muted, 0.14); ctx.beginPath(); ctx.moveTo(xl, yb); ctx.lineTo(xr, yb); ctx.lineTo(xl, yt); ctx.closePath(); ctx.fill(); ctx.restore();
+    Lab.line(ctx, [[xl, yt], [xr, yb]], C.ink, 2.4);
+    Lab.line(ctx, [[xl - 4, yb], [xr + 4, yb]], C.muted, 1.4);
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(xr, yb, 24, Math.PI, Math.PI + rad); ctx.stroke(); ctx.restore();
+    text(ctx, 'θ', xr - 34, yb - 7, {size: 13, w: 600});
+    const u = [Math.cos(rad), Math.sin(rad)], nrm = [Math.sin(rad), -Math.cos(rad)], t0 = 0.42;
+    const c = [xl + (xr - xl) * t0 + nrm[0] * 7, yt + (yb - yt) * t0 + nrm[1] * 7], G = 40, Gs = G * Math.sin(rad);
+    arrow(ctx, c[0], c[1], c[0], c[1] + G, C.force, 2, 8);
+    Lab.line(ctx, [[c[0], c[1] + G], [c[0] + u[0] * Gs, c[1] + u[1] * Gs]], C.muted, 1.1, [3, 3]);
+    arrow(ctx, c[0], c[1], c[0] + u[0] * Gs, c[1] + u[1] * Gs, C.force, 3, 9);
+    Lab.circle(ctx, c[0], c[1], 6.5, {fill: C.copper, stroke: C.paper, width: 1.5});
+    text(ctx, 'mg', c[0] - 7, c[1] + G - 4, {size: 13, w: 600, color: C.force, align: 'right'});
+    text(ctx, 'mg sin θ', c[0] + u[0] * Gs + 6, c[1] + u[1] * Gs - 12, {size: 13, w: 600, color: C.force, align: 'left', halo: true});
+    text(ctx, '옆에서 본 빗면 (θ = ' + th + '°)', x + w, y + 4, {size: 13, w: 500, color: C.muted, align: 'right'});
+  }
+
+  // ── 두 막대 ─────────────────────────────────────────────
+  function drawTwo(ctx, W, H) {
+    const g = geoRail(W, H), T = two(), t = Math.min(S.t, T.tEnd), r = T.r, {X, yT, yB, yM, h, n} = g;
+    const x1 = T.a + S.v1 * t, x2 = T.b + S.v2 * t, X1 = X(x1), X2 = X(x2);
+    ctx.save(); ctx.fillStyle = Lab.alpha(C.violet, 0.1); ctx.fillRect(X1, yT, X2 - X1, h); ctx.restore();
+    // 마지막 Δt 동안 바뀐 넓이: 고리 바깥으로 가면 늘어난 넓이(보라), 안으로 들어오면 줄어든 넓이(빗금)
+    const K = Math.floor(t / T.dt + 1e-9);
+    if (K >= 1) {
+      const sides = [[T.a + S.v1 * (K - 1) * T.dt, T.a + S.v1 * K * T.dt, -1], [T.b + S.v2 * (K - 1) * T.dt, T.b + S.v2 * K * T.dt, 1]];
+      for (const [a, b, out] of sides) {
+        const xa = X(a), xb = X(b), lo = Math.min(xa, xb), w = Math.abs(xb - xa); if (w < 0.5) continue;
+        const grow = (b - a) * out > 0;
+        ctx.save(); ctx.beginPath(); ctx.rect(lo, yT, w, h); ctx.clip();
+        if (grow) { ctx.fillStyle = Lab.alpha(C.violet, 0.34); ctx.fillRect(lo, yT, w, h); }
+        else { ctx.fillStyle = Lab.alpha(C.violet, 0.1); ctx.fillRect(lo, yT, w, h); hatch(ctx, lo, yT, lo + w, yB, Lab.alpha(C.violet, 0.75), 8); }
+        ctx.restore();
+        if (w >= 22) text(ctx, grow ? '+LvΔt' : '−LvΔt', lo + w / 2, yT - 12, {size: 13, w: 600, color: C.violet, halo: true});
+      }
+    }
+    fieldGrid(ctx, g, X(0), g.xR);
+    Lab.line(ctx, [[X(0), yT], [g.xR, yT]], C.ink, 2.6); Lab.line(ctx, [[X(0), yB], [g.xR, yB]], C.ink, 2.6);
+    for (const xx of [X(0), g.xR]) for (const y of [yT, yB]) Lab.line(ctx, [[xx, y - 7], [xx, y + 7]], C.muted, 2.4);
+    const ext = n ? 11 : 14, rw = n ? 7 : 9;
+    for (const xx of [X1, X2]) { ctx.save(); ctx.fillStyle = C.copper; Lab.rrect(ctx, xx - rw / 2, yT - ext, rw, h + 2 * ext, rw / 2); ctx.fill(); ctx.restore(); }
+    if (Math.abs(r.I) > 1e-9) loopCurrent(ctx, [[X2, yT], [X1, yT], [X1, yB], [X2, yB]], r.ccw, n);
+    // 막대마다: 이름, 속도, 그 막대 혼자의 BLv 방향 (막대 바깥쪽 주황 화살표)
+    const kv = n ? 6 : 10;
+    [[X1, S.v1, r.up1, r.e1, 'P', -1, '₁'], [X2, S.v2, r.up2, r.e2, 'Q', 1, '₂']].forEach(([xx, v, up, e, nm, out, sub]) => {
+      text(ctx, nm, xx, yB + ext + 13, {size: 14, w: 700, halo: true});
+      if (!n) lbl(ctx, 'v' + sub + ' = ' + (v < 0 ? '← ' : v > 0 ? '→ ' : '') + fmt(Math.abs(v), 1) + ' m/s', xx, yB + ext + 32, W, {size: 13, w: 600, color: C.vel, halo: true});
+      if (Math.abs(v) > 1e-9) {
+        const d = Math.sign(v), yv = yT - (n ? 30 : 34), L = Math.max(8, Math.min(Math.abs(v) * kv, d > 0 ? W - 6 - (xx + 10) : xx - 10 - 6));
+        arrow(ctx, xx + d * 10, yv, xx + d * (10 + L), yv, C.vel, 3, 10);
+      }
+      if (up) {
+        const xe = xx + out * (n ? 13 : 17), ya = up > 0 ? yB - h * 0.22 : yT + h * 0.22, yb = up > 0 ? yT + h * 0.22 : yB - h * 0.22;
+        arrow(ctx, xe, ya, xe, yb, C.energy, 2.8, 10);
+        const s = (n ? '' : 'BLv' + sub + ' ') + n3(e) + ' V';
+        text(ctx, s, xe + out * 6, yM, {size: 13, w: 600, color: C.energy, align: out > 0 ? 'left' : 'right', halo: true});
+      }
+    });
+    // 힘: 자기력은 두 막대의 상대 운동을 방해, 손(외력)이 크기가 같고 반대로 잡아 속도를 그대로 유지
+    if (Math.abs(r.F1) > 1e-9 && !n) {
+      const kF = Math.min(600, 90 / Math.abs(r.F1));
+      [[X1, r.F1], [X2, r.F2]].forEach(([xx, F]) => {
+        const d = Math.sign(F), L = Math.abs(F) * kF, y = yM + h * 0.3;
+        arrow(ctx, xx + d * 8, y, xx + d * (8 + L), y, C.force, 2.8, 10);
+        arrow(ctx, xx - d * 8, y, xx - d * (8 + L), y, C.force, 1.8, 9);
+        text(ctx, '자기력', xx + d * (8 + L / 2), y - 13, {size: 13, w: 600, color: C.force, halo: true});
+        text(ctx, '외력', xx - d * (8 + L / 2), y - 13, {size: 13, w: 500, color: C.force, halo: true});
+      });
+    }
+    bLabel(ctx, W, n, '', n ? g.box.y + 4 : null);
+    // 아래 요약: 고리를 따라 같은 방향이면 합, 반대면 차
+    const b = g.box, sameRod = r.up1 === r.up2 && r.up1 !== 0, y0 = b.y + (b.col ? 4 : 0);
+    const dirw = (u) => (u > 0 ? '위' : u < 0 ? '아래' : '없음');
+    const ln = n || b.col ? [
+      'P ' + n3(r.e1) + ' V(' + dirw(r.up1) + ') · Q ' + n3(r.e2) + ' V(' + dirw(r.up2) + ')',
+      (r.up1 && r.up2 ? (sameRod ? '고리에서 반대 → 차' : '고리에서 같은 방향 → 합') : '한 막대만 기전력'),
+      'ε = ' + n3(r.emf) + ' V' + (r.emf > 1e-9 ? ' · I = ' + n3(Math.abs(r.I)) + ' A' : ''),
+    ] : [
+      'P: BLv₁ = ' + n3(r.e1) + ' V (막대 속 ' + dirw(r.up1) + '쪽)    Q: BLv₂ = ' + n3(r.e2) + ' V (막대 속 ' + dirw(r.up2) + '쪽)',
+      r.up1 && r.up2 ? (sameRod ? '두 막대 모두 같은 쪽으로 밀지만, 고리를 따라 돌면 서로 반대 방향 → 차' : '고리를 따라 돌면 같은 방향 → 합') : '한 막대만 기전력을 만든다',
+      'ε = B × (넓이 변화율) = B × L(v₂ − v₁) = ' + fmt(S.B, 2) + ' × ' + fmt(S.L, 2) + ' × (' + fmt(S.v2, 1) + ' − ' + (S.v1 < 0 ? '(' + fmt(S.v1, 1) + ')' : fmt(S.v1, 1)) + ') → |ε| = ' + n3(r.emf) + ' V',
+    ];
+    ln.forEach((s, i) => {
+      text(ctx, s, b.x, y0 + 4 + i * (b.col ? 22 : 24), {size: 13, w: i === 2 ? 600 : 500, color: i === 2 ? C.energy : C.ink, align: 'left'});
+    });
+  }
+
+  // ── 회전 막대 ───────────────────────────────────────────
+  function geoRot(W, H) {
+    const n = W < 520, flat = !n && W / H > 1.85;
+    const rMax = n ? Math.min(W * 0.4, H * 0.35) : Math.min(H * 0.37, W * (flat ? 0.22 : 0.27));
+    const sc = rMax / 0.3, cx = n ? W * 0.5 : W * (flat ? 0.27 : 0.32), cy = n ? H * 0.57 : H * 0.55;
+    return {n, flat, sc, rMax, cx, cy, rho: S.Rr * sc};
+  }
+  function annSector(ctx, cx, cy, r0, r1, a0, a1) {          // 캔버스 각 a0 → a1 (시계 반대로 감소)
+    ctx.beginPath(); ctx.arc(cx, cy, r1, a0, a1, true);
+    if (r0 > 0.5) ctx.arc(cx, cy, r0, a1, a0, false); else ctx.lineTo(cx, cy);
+    ctx.closePath();
+  }
+  function drawRot(ctx, W, H) {
+    const g = geoRot(W, H), {cx, cy, rho, n} = g, w = S.w, band = S.band, ri = band ? rho / 2 : 0;
+    const th = (S.t * w) % TAU, R = S.Rr;
+    // 자기장이 있는 곳
+    const half = g.rMax + (n ? 26 : 40);
+    if (band) { ctx.save(); ctx.fillStyle = Lab.alpha(C.violet, 0.09); annSector(ctx, cx, cy, ri, rho, 0, -TAU + 1e-6); ctx.fill(); ctx.restore(); }
+    else { ctx.save(); ctx.fillStyle = Lab.alpha(C.violet, 0.05); ctx.fillRect(cx - half, cy - half, half * 2, half * 2); ctx.restore(); }
+    const gs = n ? 30 : 38;
+    for (let y = cy - Math.floor(half / gs) * gs; y <= cy + half; y += gs) for (let x = cx - Math.floor(half / gs) * gs; x <= cx + half; x += gs) {
+      const d = Math.hypot(x - cx, y - cy);
+      if (y < 50 || y > H - 6) continue;
+      if (band && (d < ri + 4 || d > rho - 4)) continue;
+      fieldMark(ctx, x, y, S.field, n ? 5 : 6, C.violet, 0.45);
+    }
+    // 끝이 지나는 원, 기준선
+    ctx.save(); ctx.setLineDash([5, 5]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(cx, cy, rho, 0, TAU); ctx.stroke();
+    if (band) { ctx.beginPath(); ctx.arc(cx, cy, ri, 0, TAU); ctx.stroke(); }
+    ctx.restore();
+    Lab.line(ctx, [[cx, cy], [cx + rho, cy]], C.muted, 1.3, [4, 4]);
+    // 이번 바퀴에 쓴 부채꼴, 마지막 Δt 동안 쓴 부채꼴 (ωΔt)
+    ctx.save(); ctx.fillStyle = Lab.alpha(C.violet, 0.12); annSector(ctx, cx, cy, ri, rho, 0, -th); ctx.fill(); ctx.restore();
+    const dA = Math.min(w * DTW, S.t * w), a0 = th - dA;
+    ctx.save(); ctx.fillStyle = Lab.alpha(C.violet, 0.34); annSector(ctx, cx, cy, ri, rho, -a0, -th); ctx.fill();
+    ctx.strokeStyle = C.violet; ctx.lineWidth = 1.5; annSector(ctx, cx, cy, ri, rho, -a0, -th); ctx.stroke(); ctx.restore();
+    const am = th - dA / 2, rl = band ? (ri + rho) / 2 : rho * 0.68;
+    if (dA > 0.15) text(ctx, 'ωΔt', cx + Math.cos(am) * rl, cy - Math.sin(am) * rl, {size: 13, w: 600, color: C.violet, halo: true});
+    // 막대
+    const ux = Math.cos(th), uy = -Math.sin(th), tx = cx + ux * rho, ty = cy + uy * rho;
+    ctx.save(); ctx.strokeStyle = C.copper; ctx.lineWidth = n ? 7 : 9; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(tx, ty); ctx.stroke(); ctx.restore();
+    Lab.circle(ctx, cx, cy, n ? 5 : 6, {fill: C.ink});
+    // 막대 위 점의 속력 rω (회전 방향, 축에서 멀수록 길다)
+    const vt = [-Math.sin(th), -Math.cos(th)], vTip = R * w, kv = Math.min(n ? 6 : 9, (n ? 50 : 78) / vTip);
+    const fAvg = band ? 0.75 : 0.5;
+    [0.25, 0.5, 0.75, 1].forEach((f) => {
+      const px = cx + ux * rho * f, py = cy + uy * rho * f, L = vTip * f * kv, inB = !band || f >= 0.5 - 1e-9;
+      ctx.save(); ctx.globalAlpha = inB ? 1 : 0.35;
+      arrow(ctx, px, py, px + vt[0] * L, py + vt[1] * L, f === fAvg ? C.acc : C.vel, f === fAvg ? 3 : 2.6, 10);
+      ctx.restore();
+    });
+    const at = (s, f) => {                                 // 화살표 끝 너머 이름표 자리 (겹치면 하나만)
+      const px = cx + ux * rho * f + vt[0] * (vTip * f * kv + 12), py = cy + uy * rho * f + vt[1] * (vTip * f * kv + 12), ww = tw(ctx, s, 13, 600);
+      return {s, x: px, y: py, x0: px - ww / 2 - 3, x1: px + ww / 2 + 3, y0: py - 10, y1: py + 10};
+    };
+    const tipL = at(n ? fmt(vTip, 2) + ' m/s' : 'Rω = ' + fmt(vTip, 2) + ' m/s', 1), avgL = at(band ? '평균' : 'Rω/2', fAvg);
+    lbl(ctx, tipL.s, tipL.x, tipL.y, W, {size: 13, w: 600, color: C.vel, halo: true});
+    const hit = avgL.x0 < tipL.x1 && tipL.x0 < avgL.x1 && avgL.y0 < tipL.y1 && tipL.y0 < avgL.y1;
+    if (!n && !hit) lbl(ctx, avgL.s, avgL.x, avgL.y, W, {size: 13, w: 600, color: C.acc, halo: true});
+    // 극성: 양전하가 qvB 를 받아 몰리는 쪽이 (+)
+    const cp = M.rotCenterPlus(S.field, 1);
+    pole(ctx, cx - ux * 16 + uy * 0, cy - uy * 16, cp ? '+' : '−', n);
+    pole(ctx, tx + ux * 15, ty + uy * 15, cp ? '−' : '+', n);
+    text(ctx, 'O', cx + uy * 16 + (n ? 0 : 0), cy - ux * 16, {size: 14, w: 600, halo: true});
+    // 기전력 이름표
+    const e = band ? M.bandEmf(S.B, w, R / 2, R) : M.rotEmf(S.B, w, R);
+    const es = (band ? 'ε = ½Bω(r₂² − r₁²) = ' : 'ε = ½BωR² = ') + n3(e) + ' V';
+    Lab.tag(ctx, n ? 'ε = ' + n3(e) + ' V' : es, 14, H - (n ? 56 : 24), {size: 13, color: C.energy, align: 'left'});
+    bLabel(ctx, W, n);
+    if (!n) drawEquiv(ctx, g, W, H, e);
+  }
+  // 오른쪽: 막대 위 점의 속력(삼각형) = 평균 속력으로 움직이는 곧은 막대(직사각형) — 넓이가 같다
+  function drawEquiv(ctx, g, W, H, e) {
+    const x0 = g.cx + g.rMax + 46, wAll = W - x0 - 16; if (wAll < 190) return;
+    const R = S.Rr, w = S.w, band = S.band, r1 = band ? R / 2 : 0, y0 = 92, hr = Math.min(H - y0 - 92, 230), yO = y0 + hr;
+    const colW = wAll / 2, ka = (colW - 34) / (R * w);
+    text(ctx, '막대 위 점의 속력', x0, 62, {size: 13.5, w: 600, align: 'left'});
+    const rodAt = (x, ra, rb) => { ctx.save(); ctx.fillStyle = C.copper; Lab.rrect(ctx, x - 4, yO - rb / R * hr, 8, (rb - ra) / R * hr, 4); ctx.fill(); ctx.restore(); };
+    // 왼쪽: 회전 막대 (아래 끝 = 축 O)
+    const xa = x0 + 6;
+    rodAt(xa, 0, R);
+    ctx.save(); ctx.fillStyle = C['vel-soft']; ctx.beginPath(); ctx.moveTo(xa + 5, yO - r1 / R * hr); ctx.lineTo(xa + 5 + r1 * w * ka, yO - r1 / R * hr); ctx.lineTo(xa + 5 + R * w * ka, y0); ctx.lineTo(xa + 5, y0); ctx.closePath(); ctx.fill(); ctx.restore();
+    for (let i = 1; i <= 6; i++) {
+      const r = R * i / 6, y = yO - r / R * hr, inB = r >= r1 - 1e-9;
+      ctx.save(); ctx.globalAlpha = inB ? 1 : 0.35; arrow(ctx, xa + 5, y, xa + 5 + r * w * ka, y, C.vel, 2.2, 8); ctx.restore();
+    }
+    Lab.line(ctx, [[xa + 5, yO], [xa + 5 + R * w * ka, y0]], C.vel, 1.6, [4, 3]);
+    text(ctx, 'O', xa, yO + 14, {size: 13, w: 600});
+    text(ctx, '회전: rω', xa - 2, yO + 34, {size: 13, w: 600, color: C.vel, align: 'left'});
+    // 오른쪽: 평균 속력으로 움직이는 곧은 막대 (B 가 있는 부분만)
+    const xb = x0 + colW + 6, vAvg = (r1 + R) * w / 2, vUse = S.tip ? R * w : vAvg, col = S.tip ? C.neg : C.acc;
+    rodAt(xb, r1, R);
+    ctx.save(); ctx.fillStyle = Lab.alpha(col, 0.16); ctx.fillRect(xb + 5, y0, vUse * ka, (R - r1) / R * hr); ctx.restore();
+    for (let i = 0; i <= 5; i++) {
+      const y = y0 + (R - r1) / R * hr * i / 5;
+      arrow(ctx, xb + 5, y, xb + 5 + vUse * ka, y, col, 2.2, 8);
+    }
+    text(ctx, S.tip ? '끝 속력 Rω (틀림)' : (band ? '평균 (r₁+r₂)ω/2' : '평균 Rω/2'), xb - 2, yO + 34, {size: 13, w: 600, color: col, align: 'left'});
+    const msg = S.tip ? (band ? '넓이가 더 크다 → ' + n3(S.B * (R - r1) * R * w) : '넓이 2배 → ' + n3(M.tipMistake(S.B, w, R))) + ' V (틀림)' : '넓이가 같다 → ε = ' + n3(e) + ' V';
+    text(ctx, msg, x0, yO + 58, {size: 13, w: 600, color: S.tip ? C.neg : C.energy, align: 'left'});
+  }
+
+  // ── 관찰 1: Φ–t ────────────────────────────────────────
+  const gPhi = Lab.canvas('gPhi', drawPhi);
+  function phiSeries() {
+    if (S.scene === 'rot') {
+      const per = TAU / S.w, e = S.band ? M.bandEmf(S.B, S.w, S.Rr / 2, S.Rr) : M.rotEmf(S.B, S.w, S.Rr);
+      return {tEnd: per, now: S.t % per, f: (t) => e * t, dt: DTW, title: '쓸린 부채꼴을 지난 자속'};
+    }
+    if (S.scene === 'two') {
+      const T = two();
+      return {tEnd: T.tEnd, now: Math.min(S.t, T.tEnd), f: (t) => S.B * S.L * Math.abs((T.b + S.v2 * t) - (T.a + S.v1 * t)), dt: T.dt, title: '두 막대 사이 고리의 자속'};
+    }
+    const r = run();
+    return {tEnd: r.tEnd, now: Math.min(S.t, r.tEnd), f: (t) => Math.abs(M.state(r.p, t).Phi), dt: r.dt, title: '회로를 지나는 자속'};
+  }
+  function drawPhi() {
+    const {ctx, W, H} = gPhi; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const n = W < 460, q = phiSeries(), N = 120;
+    let fMax = 1e-9;
+    for (let i = 0; i <= N; i++) fMax = Math.max(fMax, q.f(q.tEnd * i / N));
+    const rr = {x: n ? 48 : 56, y: 44, w: W - (n ? 48 : 56) - (n ? 22 : 34), h: H - 44 - 38};
+    const ax = Lab.axes(ctx, rr, {xmin: 0, xmax: q.tEnd, ymin: 0, ymax: fMax * 1.15, xticks: ticks(q.tEnd, n ? 3 : 5), yticks: ticks(fMax * 1.15, 4),
+      xlabel: 't (s)', ylabel: 'Φ (Wb)', grid: true, fmtX: (v) => fmt(v, 3), fmtY: (v) => fmt(v, 3)});
+    const pts = [], done = [];
+    for (let i = 0; i <= N; i++) { const t = q.tEnd * i / N, p = [ax.X(t), ax.Y(q.f(t))]; pts.push(p); if (t <= q.now + 1e-12) done.push(p); }
+    done.push([ax.X(q.now), ax.Y(q.f(q.now))]);
+    ctx.save(); ctx.globalAlpha = 0.35; Lab.line(ctx, pts, C.violet, 2, [5, 4]); ctx.restore();
+    Lab.line(ctx, done, C.violet, 3);
+    // 마지막 Δt 의 기울기 삼각형: ΔΦ/Δt = ε
+    const K = Math.floor(q.now / q.dt + 1e-9);
+    if (K >= 1) {
+      const t0 = (K - 1) * q.dt, t1 = K * q.dt, f0 = q.f(t0), f1 = q.f(t1), P0 = [ax.X(t0), ax.Y(f0)], P1 = [ax.X(t1), ax.Y(f1)];
+      Lab.line(ctx, [P0, [P1[0], P0[1]], P1], C.copper, 2.2);
+      const slope = (f1 - f0) / q.dt, up = slope >= 0;
+      const s = 'ΔΦ/Δt = ' + (slope < -1e-9 ? '−' : '') + n3(Math.abs(slope)) + ' V' + (slope < -1e-9 ? ' (줄어듦)' : '');
+      text(ctx, 'Δt', (P0[0] + P1[0]) / 2, P0[1] + (up ? 12 : -12), {size: 13, w: 600, color: C.copper, halo: true});
+      const ww = tw(ctx, s, 13, 600), o = {size: 13, w: 600, color: C.copper, halo: true};
+      if (up && P0[1] + 30 <= rr.y + rr.h - 8) lbl(ctx, s, P0[0], P0[1] + 30, W, Object.assign(o, {align: 'left'}));        // 삼각형 아래
+      else if (P0[0] - 6 - ww > rr.x + 4) lbl(ctx, s, P0[0] - 6, P0[1] + (up ? -14 : 16), W, Object.assign(o, {align: 'right'}));   // 곡선 바깥 왼쪽
+      else lbl(ctx, s, P1[0] + 12, P1[1] + (up ? -18 : 16), W, Object.assign(o, {align: 'left'}));
+    }
+    Lab.circle(ctx, ax.X(q.now), ax.Y(q.f(q.now)), 5.5, {fill: C.copper, stroke: C.paper, width: 2});
+    text(ctx, q.title, W - 8, 12, {size: 13, w: 500, color: C.muted, align: 'right'});
+  }
+
+  // ── 관찰 2: 렌츠 네 경우 ─────────────────────────────────
+  const gCase = Lab.canvas('gCase', drawCase);
+  function curvedArrow(ctx, cx, cy, r, ccw, col) {           // 고리 안 전류의 도는 방향
+    const a0 = ccw ? 0.35 : Math.PI - 0.35, span = 1.75 * Math.PI;
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2.4; ctx.beginPath();
+    if (ccw) ctx.arc(cx, cy, r, -a0, -a0 - span, true); else ctx.arc(cx, cy, r, -a0, -a0 + span, false);
+    ctx.stroke(); ctx.restore();
+    const ae = ccw ? -a0 - span : -a0 + span, px = cx + r * Math.cos(ae), py = cy + r * Math.sin(ae);
+    const tx = ccw ? Math.sin(ae) : -Math.sin(ae), ty = ccw ? -Math.cos(ae) : Math.cos(ae);
+    arrow(ctx, px - tx * 6, py - ty * 6, px + tx * 3, py + ty * 3, col, 2.4, 8);
+  }
+  function drawCase() {
+    const {ctx, W, H} = gCase; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const n = W < 460, gx = 8, pw = (W - gx * 3) / 2, ph = (H - gx * 3) / 2;
+    const cur = S.scene === 'rail' ? M.state(run().p, Math.min(S.t, run().tEnd)).v : 0;
+    for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+      const d = i ? -1 : 1, f = j ? -1 : 1, x0 = gx + i * (pw + gx), y0 = gx + j * (ph + gx), lz = M.lenz(f, d);
+      const on = S.scene === 'rail' && Math.sign(cur) === d && S.field === f;
+      ctx.save(); Lab.rrect(ctx, x0, y0, pw, ph, 12); ctx.fillStyle = on ? C['copper-soft'] : Lab.alpha(C.muted, 0.06); ctx.fill();
+      ctx.lineWidth = on ? 2.4 : 1; ctx.strokeStyle = on ? C.copper : C.line; ctx.stroke(); ctx.restore();
+      text(ctx, (d > 0 ? '막대 →' : '막대 ←') + ' · B ' + (f > 0 ? '⊗' : '⊙'), x0 + 10, y0 + 14, {size: 13, w: 600, align: 'left'});
+      const l = x0 + 16, rgt = x0 + pw - 10, top = y0 + 40, bot = y0 + ph - 44, hh = bot - top, xr = l + (rgt - l) * 0.64;
+      ctx.save(); ctx.fillStyle = Lab.alpha(C.violet, 0.1); ctx.fillRect(l, top, xr - l, hh); ctx.restore();
+      Lab.line(ctx, [[rgt, top], [l, top], [l, bot], [rgt, bot]], C.ink, 1.8);
+      zigzag(ctx, l, top + hh * 0.3, bot - hh * 0.3, 4, C.ink, 1.6);
+      for (const fx of [0.8, 0.93]) fieldMark(ctx, l + (rgt - l) * fx, top + hh / 2, f, 4.5, C.violet, 0.75);
+      ctx.save(); ctx.fillStyle = C.copper; Lab.rrect(ctx, xr - 3, top - 6, 6, hh + 12, 3); ctx.fill(); ctx.restore();
+      const rr = Math.max(7, Math.min(hh * 0.3, (xr - l) * 0.24)), cxl = (l + xr) / 2 + 2, cyl = top + hh / 2;
+      curvedArrow(ctx, cxl, cyl, rr, lz.ccw, C.energy);
+      fieldMark(ctx, cxl, cyl, lz.inducedIn, Math.max(3.5, rr * 0.36), C.energy, 1);
+      arrow(ctx, xr + d * 5, top - 12, xr + d * 25, top - 12, C.vel, 2.4, 8);
+      text(ctx, 'v', xr + d * 32, top - 12, {size: 13, w: 600, color: C.vel});
+      arrow(ctx, xr - d * 5, top + hh * 0.72, xr - d * 25, top + hh * 0.72, C.force, 2.6, 8);
+      text(ctx, 'F', xr - d * 32, top + hh * 0.72, {size: 13, w: 600, color: C.force, halo: true});
+      const grow = d > 0;                                   // 넓이가 늘면 그 자기장의 자속이 증가
+      text(ctx, (f > 0 ? '⊗' : '⊙') + (grow ? ' 증가' : ' 감소') + ' → ' + (lz.inducedIn > 0 ? '⊗' : '⊙') + ' 만듦', x0 + 10, y0 + ph - 28, {size: 13, w: 500, align: 'left'});
+      text(ctx, '전류 ' + (lz.ccw ? '시계 반대' : '시계') + (n ? '' : ' · F는 v 반대'), x0 + 10, y0 + ph - 11, {size: 13, w: 600, color: on ? C.copper : C.muted, align: 'left'});
+    }
+  }
+
+  // ── 관찰 3: v–t (I 눈금) ─────────────────────────────────
+  const gVt = Lab.canvas('gVt', drawVt);
+  function drawVt() {
+    const {ctx, W, H} = gVt; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const n = W < 460, r = run(), p = r.p, N = 160, here = S.scene === 'rail', now = here ? Math.min(S.t, r.tEnd) : 0;
+    const vTop = Math.max(r.vMax, r.vT || 0) * 1.18, kI = S.B * S.L / S.R;
+    const rr = {x: n ? 44 : 50, y: 44, w: W - (n ? 44 : 50) - (n ? 46 : 58), h: H - 44 - 38};
+    const ax = Lab.axes(ctx, rr, {xmin: 0, xmax: r.tEnd, ymin: 0, ymax: vTop, xticks: ticks(r.tEnd, n ? 3 : 5), yticks: ticks(vTop, 3),
+      xlabel: 't (s)', ylabel: 'v (m/s)', grid: true, fmtX: (v) => fmt(v, 3)});
+    // 오른쪽 눈금: I = BLv/R
+    const iTop = vTop * kI, its = ticks(iTop, 3);
+    Lab.line(ctx, [[rr.x + rr.w, rr.y + rr.h], [rr.x + rr.w, rr.y - 4]], C.energy, 1.2);
+    its.forEach((iv) => { const y = ax.Y(iv / kI); Lab.line(ctx, [[rr.x + rr.w - 3, y], [rr.x + rr.w + 3, y]], C.energy, 1); text(ctx, fmt(iv, 3), rr.x + rr.w + 7, y, {size: 13, w: 500, color: C.energy, align: 'left'}); });
+    text(ctx, 'I (A)', rr.x + rr.w + 8, rr.y - 12, {size: 13, w: 600, color: C.energy, align: 'left'});
+    if (r.vT && r.vT < vTop) {
+      Lab.line(ctx, [[rr.x, ax.Y(r.vT)], [rr.x + rr.w, ax.Y(r.vT)]], C.acc, 1.6, [6, 4]);
+      lbl(ctx, '종단 속력 ' + n3(r.vT) + ' m/s', rr.x + rr.w - 4, ax.Y(r.vT) + 14, W, {size: 13, w: 600, color: C.acc, align: 'right', halo: true});
+    }
+    const pts = [], done = [];
+    for (let i = 0; i <= N; i++) { const t = r.tEnd * i / N, q = [ax.X(t), ax.Y(Math.abs(M.state(p, t).v))]; pts.push(q); if (t <= now + 1e-12) done.push(q); }
+    done.push([ax.X(now), ax.Y(Math.abs(M.state(p, now).v))]);
+    ctx.save(); ctx.globalAlpha = 0.35; Lab.line(ctx, pts, C.vel, 2, [5, 4]); ctx.restore();
+    Lab.line(ctx, done, C.vel, 3);
+    const sn = M.state(p, now);
+    if (here) Lab.circle(ctx, ax.X(now), ax.Y(Math.abs(sn.v)), 5.5, {fill: C.copper, stroke: C.paper, width: 2});
+    const name = {const: '등속으로 끌기', force: '일정한 힘 ' + fmt(S.F, 2) + ' N', push: '밀고 놓기', incline: '빗면 ' + S.th + '°'}[S.mode];
+    text(ctx, '레일 위 막대 · ' + name + (r.hit ? '' : ' (멈출 때까지)'), W - 8, 12, {size: 13, w: 500, color: C.muted, align: 'right'});
+    if (S.scene !== 'rail') text(ctx, '(레일 위 막대 장면에서 움직인다)', rr.x + 8, rr.y + rr.h - 12, {size: 13, w: 500, color: C.muted, align: 'left'});
+  }
+
+  // ── 관찰 4: 회전 막대 v–r ────────────────────────────────
+  const gVr = Lab.canvas('gVr', drawVr);
+  function drawVr() {
+    const {ctx, W, H} = gVr; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const n = W < 460, R = S.Rr, w = S.w, vt = R * w, band = S.band, r1 = band ? R / 2 : 0;
+    const rr = {x: n ? 44 : 52, y: 30, w: W - (n ? 44 : 52) - (n ? 26 : 44), h: H - 30 - 40};
+    const ax = Lab.axes(ctx, rr, {xmin: 0, xmax: R * 1.08, ymin: 0, ymax: vt * 1.2, xticks: [R / 2, R], yticks: [vt / 2, vt],
+      xlabel: '거리 r (m)', ylabel: '속력 v = rω (m/s)', grid: true, fmtX: (v) => fmt(v, 3), fmtY: (v) => fmt(v, 2)});
+    if (S.tip) {
+      ctx.save(); ctx.fillStyle = Lab.alpha(C.neg, 0.1); ctx.fillRect(ax.X(r1), ax.Y(vt), ax.X(R) - ax.X(r1), ax.Y(0) - ax.Y(vt)); ctx.restore();
+      ctx.save(); ctx.setLineDash([6, 4]); ctx.strokeStyle = C.neg; ctx.lineWidth = 2; ctx.strokeRect(ax.X(r1), ax.Y(vt), ax.X(R) - ax.X(r1), ax.Y(0) - ax.Y(vt)); ctx.restore();
+      lbl(ctx, band ? '끝 속력으로 계산: 넓이가 더 크다 (틀림)' : '끝 속력으로 계산: 넓이 2배 (틀림)', ax.X(r1 + R * 0.04), ax.Y(vt) - 12, W, {size: 13, w: 600, color: C.neg, align: 'left', halo: true});
+    }
+    ctx.save(); ctx.fillStyle = C['vel-soft']; ctx.beginPath(); ctx.moveTo(ax.X(r1), ax.Y(0)); ctx.lineTo(ax.X(r1), ax.Y(r1 * w)); ctx.lineTo(ax.X(R), ax.Y(vt)); ctx.lineTo(ax.X(R), ax.Y(0)); ctx.closePath(); ctx.fill(); ctx.restore();
+    Lab.line(ctx, [[ax.X(0), ax.Y(0)], [ax.X(R), ax.Y(vt)]], C.vel, 3);
+    Lab.line(ctx, [[ax.X(R), ax.Y(0)], [ax.X(R), ax.Y(vt)]], C.muted, 1.2, [3, 3]);
+    const vA = (r1 + R) * w / 2;
+    Lab.line(ctx, [[ax.X(r1), ax.Y(vA)], [ax.X(R), ax.Y(vA)]], C.acc, 2.2, [6, 4]);
+    lbl(ctx, (band ? '평균 (r₁+r₂)ω/2 = ' : '평균 Rω/2 = ') + fmt(vA, 2) + ' m/s', ax.X(r1) + 6, ax.Y(vA) - 13, W, {size: 13, w: 600, color: C.acc, align: 'left', halo: true});
+    lbl(ctx, 'Rω = ' + fmt(vt, 2), ax.X(R) - 6, ax.Y(vt) - 13, W, {size: 13, w: 600, color: C.vel, align: 'right', halo: true});
+    const e = band ? M.bandEmf(S.B, w, r1, R) : M.rotEmf(S.B, w, R);
+    const s = band ? 'ε = B × 사다리꼴 = ' + n3(e) + ' V' : 'ε = B × ½R × Rω = ' + n3(e) + ' V';
+    Lab.tag(ctx, s, ax.X(R) - 8, ax.Y(vt * 0.3), {size: 13, color: C.energy, align: 'right'});
+    if (band) { Lab.line(ctx, [[ax.X(r1), ax.Y(0)], [ax.X(r1), ax.Y(vt * 1.05)]], C.violet, 1.4, [4, 3]); text(ctx, 'r₁', ax.X(r1), ax.Y(vt * 1.1), {size: 13, w: 600, color: C.violet}); }
+  }
+
+  // ── 지금 값 ─────────────────────────────────────────────
+  function setText(id, s) { const el = $(id); if (el && el.textContent !== s) el.textContent = s; }
+  function mini(i, name, val) { setText('mn' + i, name); setText('mv' + i, val); }
+  function readouts() {
+    const B = fmt(S.B, 2), Ls = fmt(S.L, 2), Rs = fmt(S.R, 1);
+    if (S.scene === 'rot') {
+      const R = S.Rr, w = S.w, band = S.band, e = band ? M.bandEmf(S.B, w, R / 2, R) : M.rotEmf(S.B, w, R), vt = R * w;
+      const lines = band ? [
+        '띠 r₁ = ' + fmt(R / 2, 3) + ' m ~ r₂ = ' + fmt(R, 3) + ' m 에만 B',
+        'ε = ½Bω(r₂² − r₁²) = ½ × ' + B + ' × <em>' + w + '</em> × (' + sq(R) + ' − ' + sq(R / 2) + ') = <em>' + n3(e) + ' V</em>',
+        '평균 속력 (r₁ + r₂)ω/2 = ' + fmt(0.75 * R * w, 3) + ' m/s → B × (r₂ − r₁) × ' + fmt(0.75 * R * w, 3) + ' = ' + B + ' × ' + fmt(R / 2, 3) + ' × ' + fmt(0.75 * R * w, 3) + ' = ' + n3(e) + ' V',
+      ] : [
+        'ε = ½BωR² = ½ × ' + B + ' × <em>' + w + '</em> × ' + sq(R) + ' = <em>' + n3(e) + ' V</em>',
+        '끝 속력 Rω = ' + fmt(vt, 2) + ' m/s, 평균 Rω/2 = ' + fmt(vt / 2, 2) + ' m/s → BLv = ' + B + ' × ' + fmt(R, 3) + ' × ' + fmt(vt / 2, 2) + ' = ' + n3(e) + ' V',
+      ];
+      if (S.tip) lines.push(band ? '끝 속력 ' + fmt(vt, 2) + ' m/s 를 띠 길이에 넣으면 ' + B + ' × ' + fmt(R / 2, 3) + ' × ' + fmt(vt, 2) + ' = ' + n3(S.B * R / 2 * vt) + ' V (틀림)'
+        : '끝 속력 ' + fmt(vt, 2) + ' m/s 를 그대로 넣으면 ' + B + ' × ' + fmt(R, 3) + ' × ' + fmt(vt, 2) + ' = ' + n3(M.tipMistake(S.B, w, R)) + ' V → 2배 (틀림)');
+      Lab.ans('ε = ' + n3(e) + ' V', lines, {tone: '', lab: '회전 막대 양 끝 사이의 유도 기전력', ctx: 'B ' + B + ' T · ω ' + w + ' rad/s · R ' + fmt(R, 3) + ' m',
+        f: band ? '쓸린 띠 넓이의 변화율 ½ω(r₂² − r₁²)에 B를 곱하면' : 'ε = ½BωR² (쓸린 넓이의 변화율 ½R²ω × B)에 지금 값을 넣으면'});
+      mini(1, band ? '쓸린 띠 넓이의 변화율 ½ω(r₂² − r₁²)' : '쓸린 넓이의 변화율 ½R²ω', fmt(band ? 0.5 * w * (R * R - R * R / 4) : M.sweptRate(w, R), 4) + ' m²/s');
+      mini(2, 'Δt = 0.01 s 동안 쓸린 넓이', fmt((band ? 0.5 * w * (R * R - R * R / 4) : M.sweptRate(w, R)) * DTW, 5) + ' m²');
+      mini(3, '끝 속력 Rω', fmt(vt, 2) + ' m/s');
+      mini(4, '(+)극 (양전하가 몰리는 쪽)', M.rotCenterPlus(S.field, 1) ? '축 O' : '막대 끝');
+    } else if (S.scene === 'two') {
+      const T = two(), r = T.r, same = r.up1 === r.up2 && r.up1 !== 0, w1 = (u) => (u > 0 ? '위쪽' : u < 0 ? '아래쪽' : '없음');
+      Lab.ans('ε = ' + n3(r.emf) + ' V · I = ' + n3(Math.abs(r.I)) + ' A', [
+        '막대 P: BLv₁ = ' + B + ' × ' + Ls + ' × ' + fmt(Math.abs(S.v1), 1) + ' = ' + n3(r.e1) + ' V (막대 속 ' + w1(r.up1) + ')',
+        '막대 Q: BLv₂ = ' + B + ' × ' + Ls + ' × ' + fmt(Math.abs(S.v2), 1) + ' = ' + n3(r.e2) + ' V (막대 속 ' + w1(r.up2) + ')',
+        (r.up1 && r.up2 ? (same ? '고리를 따라 서로 반대 → 차: ' + n3(r.e2) + ' − ' + n3(r.e1) : '고리를 따라 같은 방향 → 합: ' + n3(r.e1) + ' + ' + n3(r.e2)) : '한 막대만 기전력') + ' → <em>ε = ' + n3(r.emf) + ' V</em>',
+      ], {tone: r.emf < 1e-9 ? 'ink' : '', lab: '두 막대 사이 고리의 유도 기전력', ctx: 'v₁ ' + fmt(S.v1, 1) + ' · v₂ ' + fmt(S.v2, 1) + ' m/s · B ' + B + ' T · L ' + Ls + ' m',
+        f: '각 막대의 BLv 방향을 고리에 표시: 같은 회전 방향이면 합, 반대면 차'});
+      mini(1, '넓이 변화율 L(v₂ − v₁)', fmt(r.dAdt, 3) + ' m²/s');
+      mini(2, '고리 전류 (전체 저항 ' + Rs + ' Ω)', r.emf < 1e-9 ? '0' : n3(Math.abs(r.I)) + ' A · ' + (r.ccw ? '시계 반대' : '시계'));
+      mini(3, '막대 P 가 받는 자기력', fmt(Math.abs(r.F1), 3) + ' N');
+      mini(4, '막대 Q 가 받는 자기력', fmt(Math.abs(r.F2), 3) + ' N');
+    } else {
+      const r = run(), p = r.p, t = Math.min(S.t, r.tEnd), st = M.state(p, t), lz = M.lenz(S.field, st.v);
+      const vv = Math.abs(st.v), e = Math.abs(st.emf), I = Math.abs(st.I), Fm = Math.abs(st.Fmag), ms = fmt(S.m, 1);
+      const cdir = lz.ccw ? '시계 반대 방향 · 막대 속 위쪽' : lz.cw ? '시계 방향 · 막대 속 아래쪽' : '없음';
+      if (S.mode === 'const') {
+        const v = S.v, e0 = S.B * S.L * v, I0 = e0 / S.R, F0 = S.B * I0 * S.L;
+        Lab.ans('ε = ' + n3(e0) + ' V · I = ' + n3(I0) + ' A', [
+          'ε = BLv = ' + B + ' × ' + Ls + ' × <em>' + fmt(v, 2) + '</em> = <em>' + n3(e0) + ' V</em>',
+          'I = ε/R = ' + n3(e0) + ' ÷ ' + Rs + ' = <em>' + n3(I0) + ' A</em> (' + cdir + ')',
+          '자기력 F = BIL = ' + B + ' × ' + n3(I0) + ' × ' + Ls + ' = <em>' + n3(F0) + ' N</em> (운동 반대) → 외력도 ' + n3(F0) + ' N',
+          '외력의 일률 Fv = ' + n3(F0) + ' × ' + fmt(v, 2) + ' = <em>' + n3(F0 * v) + ' W</em> = I²R = ' + n3(I0) + '² × ' + Rs,
+        ], {tone: '', lab: '지금 유도 기전력 · 유도 전류', ctx: 'B ' + B + ' T · L ' + Ls + ' m · v ' + fmt(v, 2) + ' m/s · R ' + Rs + ' Ω', f: 'ε = BLv, I = ε/R, F = BIL 에 지금 값을 넣으면'});
+        mini(1, '지금 자속 Φ = B × 넓이', n3(Math.abs(st.Phi)) + ' Wb');
+        mini(2, 'Δt = 0.02 s 동안 바뀐 자속 BLvΔt', fmt(e0 * 0.02, 4) + ' Wb');
+        mini(3, '외력이 한 일 (지금까지)', mJ(st.W) + ' mJ');
+        mini(4, '저항에서 난 열 (지금까지)', mJ(st.Q) + ' mJ');
+      } else if (S.mode === 'push') {
+        const v0 = S.v0, K0 = 0.5 * S.m / 1000 * v0 * v0;
+        Lab.ans('Q = ' + mJ(K0) + ' mJ', [
+          '외력 없음 → 자기력 B²L²v/R 만 운동 반대로 → 느려지다 멈춘다',
+          '지금 v = <em>' + fmt(vv, 2) + ' m/s</em> → 자기력 <em>' + fmt(Fm, 3) + ' N</em>, I = ' + n3(I) + ' A',
+          '멈출 때까지 열 = 처음 운동 에너지 ½mv₀² = ½ × ' + fmt(S.m / 1000, 4) + ' × ' + fmt(v0, 2) + '² = <em>' + fmt(K0, 4) + ' J</em>',
+        ], {tone: 'energy', lab: '멈출 때까지 저항에서 나는 열', ctx: 'v₀ ' + fmt(v0, 2) + ' m/s · m ' + ms + ' g · B ' + B + ' T', f: '에너지 보존: 처음 운동 에너지 = 저항에서 난 열'});
+        mini(1, '지금 속력 v', fmt(vv, 2) + ' m/s');
+        mini(2, '지금 자기력 (운동 반대)', fmt(Fm, 3) + ' N');
+        mini(3, '지금 운동 에너지 K', mJ(st.K) + ' mJ');
+        mini(4, '저항에서 난 열 (지금까지)', mJ(st.Q) + ' mJ');
+      } else {
+        const inc = S.mode === 'incline', F = r.F, vT = r.vT, cmp = Fm < F * 0.98 ? '&lt;' : '≈';
+        const lines = [];
+        if (inc) lines.push('mg sin θ = ' + fmt(S.m / 1000, 4) + ' × 10 × sin ' + S.th + '° = <em>' + fmt(F, 4) + ' N</em>');
+        lines.push('v<sub>종단</sub> = ' + (inc ? 'mg sin θ' : 'F') + ' × R ÷ (B²L²) = ' + fmt(F, 4) + ' × ' + Rs + ' ÷ (' + B + '² × ' + Ls + '²) = <em>' + n3(vT) + ' m/s</em>');
+        lines.push('지금 v = <em>' + fmt(vv, 2) + ' m/s</em> → 자기력 B²L²v/R = <em>' + fmt(Fm, 3) + ' N</em> ' + cmp + ' ' + fmt(F, 3) + ' N' + (cmp === '≈' ? ' → 거의 등속' : ' → 아직 빨라진다'));
+        if (!inc) lines.push('종단에서 외력의 일률 Fv = ' + fmt(F, 3) + ' × ' + n3(vT) + ' = ' + n3(F * vT) + ' W = I²R');
+        Lab.ans('v<sub>종단</sub> = ' + n3(vT) + ' m/s', lines, {tone: 'vel', html: true, lab: inc ? '빗면 위 막대의 종단 속력' : '종단 속력 (외력 = 자기력이 되는 속력)',
+          ctx: (inc ? 'θ ' + S.th + '° · ' : 'F ' + fmt(S.F, 2) + ' N · ') + 'm ' + ms + ' g · B ' + B + ' T · L ' + Ls + ' m · R ' + Rs + ' Ω',
+          f: inc ? '중력의 빗면 성분이 외력 노릇: mg sin θ = B²L²v/R 이 되는 속력 (교과 심화)' : 'F = B²L²v/R 이 되는 속력 (교과 심화)'});
+        mini(1, '지금 속력 v', fmt(vv, 2) + ' m/s');
+        mini(2, '지금 가속도 a = (F − 자기력)/m', fmt(st.a, 1) + ' m/s²');
+        mini(3, (inc ? '중력이 한 일' : '외력이 한 일') + ' (지금까지)', mJ(st.W) + ' mJ');
+        mini(4, '저항에서 난 열 (지금까지)', mJ(st.Q) + ' mJ');
+      }
+    }
+    const ok = S.scene === 'rail' && S.mode === 'const' && S.dir === 1 && S.B === EX.B && S.L === EX.L && S.R === EX.R && S.v === EX.v;
+    Lab.check('exCheck', ok, '개념서 예제 (B 0.5 T · L 0.4 m · 5 m/s · R 2 Ω) → ε 1 V, I 0.5 A, 자기력 0.1 N, 외력의 일률 0.5 W = I²R',
+      '예제: B 0.5 T, L 0.4 m, 5 m/s, R 2 Ω일 때 ε, I, 자기력, 일률은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+    hud();
+  }
+  function hud() {
+    const t = S.scene === 'rot' ? S.t : Math.min(S.t, tEndNow());
+    setText('hud1', 't = ' + fmt(t, 3) + ' s');
+    const sl = slowNow(), held = S.scene !== 'rot' && S.t >= tEndNow() - 1e-9;
+    setText('hud2', held ? (S.scene === 'rail' && !run().hit ? '멈춤 → 처음부터' : '끝 → 처음부터') : sl >= 1 ? '실제 빠르기' : '느린 화면 1/' + fmt(1 / sl, 1));
+  }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  function refresh() { readouts(); drawAll(); }
+  function drawAll() { drawStage(); drawPhi(); drawCase(); drawVt(); drawVr(); }
+  const sl = {};
+  const mkSl = (id, key, f, after) => { sl[key] = Lab.slider(id, {out: id + 'Out', fmt: f, onInput: (v) => { S[key] = v; if (after) after(); refresh(); }}); };
+  mkSl('v', 'v', (v) => fmt(v, 1) + ' m/s');
+  mkSl('F', 'F', (v) => fmt(v, 2) + ' N');
+  mkSl('v0', 'v0', (v) => fmt(v, 1) + ' m/s');
+  mkSl('th', 'th', (v) => v + '°');
+  mkSl('v2', 'v2', (v) => fmt(v, 1) + ' m/s');
+  mkSl('w', 'w', (v) => v + ' rad/s');
+  mkSl('B', 'B', (v) => fmt(v, 2) + ' T');
+  mkSl('L', 'L', (v) => fmt(v, 2) + ' m');
+  mkSl('R', 'R', (v) => fmt(v, 1) + ' Ω');
+  mkSl('m', 'm', (v) => fmt(v, 1) + ' g');
+  mkSl('v1', 'v1', (v) => fmt(v, 1) + ' m/s');
+  mkSl('Rr', 'Rr', (v) => fmt(v, 2) + ' m');
+  const restart = () => { S.t = 0; S.hold = 0; S.ph = 0; };
+  const gScene = Lab.group('[data-scene]', 'scene', (v) => { S.scene = v; restart(); if (v === 'rail') S.t = 0.1; ui(); refresh(); }, S.scene);
+  const gMode = Lab.group('[data-mode]', 'mode', (v) => { S.mode = v; restart(); ui(); refresh(); }, S.mode);
+  const gDir = Lab.group('[data-dir]', 'dir', (v) => { S.dir = +v; restart(); refresh(); }, String(S.dir));
+  const gField = Lab.group('[data-field]', 'field', (v) => { S.field = v === 'in' ? 1 : -1; refresh(); }, 'in');
+  const gBand = Lab.group('[data-band]', 'band', (v) => { S.band = +v; refresh(); }, '0');
+  const gSpeed = Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; hud(); }, '1');
+  const tgl = (id, key) => { const el = $(id); el.addEventListener('change', () => { S[key] = el.checked; refresh(); }); return el; };
+  const cQ = tgl('cQ', 'showQ'), cInd = tgl('cInd', 'showInd'), cTip = tgl('cTip', 'tip');
+  $('restart').addEventListener('click', () => { restart(); refresh(); });
+  $('step').addEventListener('click', () => {          // 한 단계: 다음 Δt 시각으로
+    playCtl.set(false);
+    const dt = dtNow(), tE = tEndNow(), k = Math.floor(S.t / dt + 1e-6) + 1;
+    S.t = k * dt; S.hold = 0;
+    if (S.t > tE + 1e-9) S.t = 0;
+    refresh();
+  });
+  function ui() {
+    const rail = S.scene === 'rail', tw2 = S.scene === 'two', rot = S.scene === 'rot';
+    $('slV').hidden = !(rail && S.mode === 'const'); $('slF').hidden = !(rail && S.mode === 'force');
+    $('slV0').hidden = !(rail && S.mode === 'push'); $('slTh').hidden = !(rail && S.mode === 'incline');
+    $('slV2').hidden = !tw2; $('slW').hidden = !rot;
+    $('rowMode').hidden = !rail; $('grpDir').hidden = !(rail && (S.mode === 'const' || S.mode === 'push'));
+    $('rowRot').hidden = !rot;
+    $('gL').hidden = rot; $('gR').hidden = rot; $('gM').hidden = !rail; $('gV1').hidden = !tw2; $('gRr').hidden = !rot;
+    $('tQ').hidden = rot; $('tInd').hidden = rot; $('tTip').hidden = !rot;
+  }
+  function sync() {
+    for (const k of Object.keys(sl)) sl[k].set(S[k], true);
+    gScene.set(S.scene, true); gMode.set(S.mode, true); gDir.set(String(S.dir), true); gField.set(S.field > 0 ? 'in' : 'out', true);
+    gBand.set(String(S.band), true); gSpeed.set(String(S.speed), true);
+    cQ.checked = S.showQ; cInd.checked = S.showInd; cTip.checked = S.tip;
+    ui();
+  }
+  // 무대 끌기: 레일 장면은 막대를 끌어 그 순간으로(실제 운동의 시각을 찾는다), 회전 막대는 각을 돌린다
+  function scrubRail(x) {
+    const g = geoRail(stage.W, stage.H), r = run(), xm = (x - g.ml) / g.s;
+    const x0 = M.state(r.p, 0).x, x1 = M.state(r.p, r.tEnd).x, lo = Math.min(x0, x1), hi = Math.max(x0, x1), xt = Math.max(lo, Math.min(hi, xm));
+    let a = 0, b = r.tEnd;
+    for (let i = 0; i < 50; i++) { const mid = (a + b) / 2; if ((M.state(r.p, mid).x - xt) * Math.sign(x1 - x0 || 1) < 0) a = mid; else b = mid; }
+    S.t = (a + b) / 2; S.hold = 0;
+  }
+  function scrubRot(x, y) {
+    const g = geoRot(stage.W, stage.H), th = Math.atan2(g.cy - y, x - g.cx), per = TAU / S.w;
+    const turns = Math.floor(S.t / per), a = (th + TAU) % TAU;
+    S.t = turns * per + a / S.w;
+  }
+  Lab.pointer(stage.el, {
+    down: (x, y) => {
+      if (S.scene === 'two') return;
+      if (S.scene === 'rail') { const g = geoRail(stage.W, stage.H); if (y < g.yT - 40 || y > g.yB + 40) return; }
+      S.drag = true; playCtl.set(false);
+      if (S.scene === 'rail') scrubRail(x); else scrubRot(x, y);
+      refresh();
+    },
+    move: (x, y) => { if (!S.drag) return; if (S.scene === 'rail') scrubRail(x); else scrubRot(x, y); refresh(); },
+    up: () => { S.drag = false; },
+  });
+
+  const base = () => Object.assign(S, {scene: 'rail', mode: 'const', dir: 1, field: 1, B: 0.5, L: 0.4, R: 2, m: 2, v: 5, F: 0.1, v0: 5, th: 30, band: 0, tip: false});
+  const TRY = {
+    ex: () => { base(); restart(); S.t = 0.12; playCtl.set(false); },
+    v10: () => { base(); S.v = 10; restart(); S.t = 0.06; playCtl.set(true); },
+    left: () => { base(); S.dir = -1; restart(); S.t = 0.06; playCtl.set(true); },
+    force: () => { base(); S.mode = 'force'; restart(); playCtl.set(true); },
+    push: () => { base(); S.mode = 'push'; restart(); playCtl.set(true); },
+    push2B: () => { base(); S.mode = 'push'; S.B = 1; restart(); playCtl.set(true); },
+    incline: () => { base(); S.mode = 'incline'; S.m = 6; restart(); playCtl.set(true); },
+    rot: () => { base(); Object.assign(S, {scene: 'rot', w: 40, Rr: 0.2}); restart(); S.t = 0.012; playCtl.set(true); },
+    rotTip: () => { base(); Object.assign(S, {scene: 'rot', w: 40, Rr: 0.2, tip: true}); restart(); S.t = 0.012; playCtl.set(false); },
+    band: () => { base(); Object.assign(S, {scene: 'rot', w: 40, Rr: 0.2, band: 1}); restart(); S.t = 0.012; playCtl.set(true); },
+    two: () => { base(); Object.assign(S, {scene: 'two', v1: 5, v2: 5}); restart(); S.t = 0.04; playCtl.set(true); },
+    twoOpp: () => { base(); Object.assign(S, {scene: 'two', v1: -5, v2: 5}); restart(); S.t = 0.04; playCtl.set(true); },
+  };
+  Lab.tries(TRY, () => { sync(); refresh(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  let frame = 0;
+  Lab.loop((dt) => {
+    if (S.playing && !S.drag) {
+      const tE = tEndNow();
+      if (S.t >= tE - 1e-12) { S.hold += dt; if (S.hold > HOLD) restart(); }
+      else S.t = Math.min(tE, S.t + dt * slowNow());
+      // 전류 점: 빠르기 ∝ I (시계 반대 +)
+      let i = 0;
+      if (S.scene === 'rail') { const r = run(); if (S.t < r.tEnd - 1e-12 || !r.hit) i = S.field * M.state(r.p, Math.min(S.t, r.tEnd)).I; }
+      else if (S.scene === 'two') { const T = two(); if (S.t < T.tEnd - 1e-12) i = T.r.I; }
+      S.ph += dt * Math.max(-220, Math.min(220, 130 * i));
+      drawStage();
+      frame++;
+      if (frame % 2 === 0) { drawPhi(); drawVt(); readouts(); if (frame % 6 === 0) drawCase(); }
+    }
+  });
+  sync();
+  readouts();
+})();
+</script>
 </body>
 </html>
