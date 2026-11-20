@@ -171,9 +171,6 @@
       x.fillStyle = `rgb(${umbCol})`;
       const ua = sh[4] * Math.PI;
       x.beginPath(); x.ellipse(pr * 0.06 * (sh[0] - 0.5), pr * 0.06 * (sh[1] - 0.5), ur, ur * (0.78 + 0.22 * sh[2]), ua, 0, 7); x.fill();
-      if (s.kind === 'leader' && sh[3] > 0.5) {   // 큰 흑점은 암부가 둘로 갈라지기도
-        x.beginPath(); x.ellipse(ur * 1.1, ur * 0.5, ur * 0.55, ur * 0.5, 0, 0, 7); x.fill();
-      }
       x.restore();
     }
     paintHa(x, R) {

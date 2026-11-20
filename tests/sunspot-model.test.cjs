@@ -111,15 +111,24 @@ test('점수', () => {
   assert.equal(sum.n, 3); close(sum.low, 25.5); close(sum.high, 29);
 });
 
-test('같은 무리 안의 흑점은 겹치지 않는다 (따로 찍을 수 있게)', () => {
+test('어떤 두 흑점도 겹쳐 보이지 않는다 — 눈에 하나로 보이는데 둘로 세는 일이 없게 (두 관측 모두)', () => {
   const SM = require('../sims/sun/sun-model.js');
-  for (let seed = 1; seed <= 300; seed++) {
+  for (let seed = 1; seed <= 400; seed++) {
     const sun = M.makeSun(seed);
-    for (const g of sun.groups) {
-      const ss = sun.spots.filter(s => s.g === g.id);
-      for (let i = 0; i < ss.length; i++) for (let j = i + 1; j < ss.length; j++) {
-        assert.ok(SM.angDist(ss[i].lat, ss[i].lon0, ss[j].lat, ss[j].lon0) >= 2.6, `seed ${seed} 무리 ${g.id}`);
+    for (const day of [0, sun.dt]) {
+      const sp = M.spotsOn(sun, day);
+      for (let i = 0; i < sp.length; i++) for (let j = i + 1; j < sp.length; j++) {
+        const a = sp[i], c = sp[j];
+        const gap = SM.angDist(a.lat, a.lon, c.lat, c.lon) - M.visR(a) - M.visR(c);
+        assert.ok(gap >= 1.8, `seed ${seed} ${day}일: ${a.kind}#${a.id} 와 ${c.kind}#${c.id} 사이 ${gap.toFixed(2)}°`);
       }
     }
   }
+});
+
+test('흑점 수가 적당하다 (찾을 거리가 충분하고, 너무 많지 않게)', () => {
+  const n = [];
+  for (let seed = 1; seed <= 300; seed++) n.push(M.spotsOn(M.makeSun(seed), 0).length);
+  const avg = n.reduce((a, b) => a + b, 0) / n.length;
+  assert.ok(Math.min(...n) >= 5 && Math.max(...n) <= 20 && avg >= 8, `최소 ${Math.min(...n)} 최대 ${Math.max(...n)} 평균 ${avg.toFixed(1)}`);
 });
