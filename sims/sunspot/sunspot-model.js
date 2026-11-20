@@ -56,7 +56,12 @@
   // 같은 seed 는 반 전체에서 같은 태양이 된다. 날짜 0 = 1일째, 날짜 dt = 두 번째 관측.
   // 흑점은 무리(그룹)를 지어 나온다: 서쪽(앞)의 큰 선행 흑점, 동쪽(뒤)의 후행 흑점, 작은 흑점(포어).
   // 모든 큰 흑점은 두 관측 모두 경도 ±66° 안에 있어 원반 가장자리에 너무 붙지 않는다.
+  // 어떤 두 흑점도 겹쳐 보이지 않는다: 그려지는 반지름(visR)끼리 GAP 이상 떨어뜨린다.
+  // (겹치면 눈에는 흑점 하나인데 찍어야 할 흑점은 둘이 되어 버린다)
   const EDGE = 66;
+  const VIS_K = 1.14;   // 반암부는 불규칙한 타원 다섯 개로 그려서 바깥 끝이 반지름의 약 1.14배까지 나온다(sunspot-board.js)
+  const GAP = 2.2;      // 흑점 가장자리끼리 띄우는 최소 간격(°) — 폰 화면에서도 작은 흑점 둘이 붙어 보이지 않게
+  const visR = s => Math.max(VIS_K * s.penumbra, s.umbra);   // 그려지는 반지름(°)
   function makeSun(seed) {
     const r = rng(seed);
     const uni = (a, b) => a + r() * (b - a);
@@ -68,48 +73,60 @@
     let sid = 0;
     const clash = (lat, lon, min) => groups.some(g => angDist(g.lat, g.lon0, lat, lon) < min ||
       angDist(g.lat, g.lon0 + omegaDeg(g.lat) * dt, lat, lon + omegaDeg(lat) * dt) < min);
-    bands.forEach(([a, b], gi) => {
+    // 새 흑점 c 가 이미 있는 모든 흑점과 두 관측 모두에서 떨어져 보이는지
+    const fits = c => spots.every(o => [0, dt].every((day, i) => {
+      const live = d => (i === 0 ? d.day1 : d.day2);
+      if (!live(o) || !live(c)) return true;
+      const k = day ? Math.max(o.grow, c.grow, 1) : 1;
+      const d = angDist(o.lat, o.lon0 + omegaDeg(o.lat) * day, c.lat, c.lon0 + omegaDeg(c.lat) * day);
+      return d >= (visR(o) + visR(c)) * k + GAP;
+    }));
+    const make = (g, kind, lat, lon0, umbra, pen, life) => ({id: -1, g, kind, lat: +lat.toFixed(2), lon0: +lon0.toFixed(2),
+      umbra: +umbra.toFixed(3), penumbra: +pen.toFixed(3), shape: [r(), r(), r(), r(), r()],
+      grow: g >= 0 ? +uni(0.85, 1.15).toFixed(3) : 1, day1: life !== 2, day2: life !== 1});
+    const put = (c, grp) => { c.id = sid++; spots.push(c); if (grp) grp.spots.push(c.id); return c; };
+    bands.forEach(([a, b]) => {
       for (let k = 0; k < 300; k++) {
         const lat = +((r() < 0.5 ? -1 : 1) * uni(a, b)).toFixed(2);
         const move = omegaDeg(lat) * dt;
         const lon0 = uni(-EDGE + 9, EDGE - move);
         if (clash(lat, lon0, 17)) continue;
-        const g = {id: groups.length, lat, lon0: +lon0.toFixed(2), move, P: rotationPeriod(lat), spots: []};
-        groups.push(g);
-        // 같은 무리 안의 흑점끼리는 2.75° 이상 떨어뜨린다 (겹쳐 보이면 따로 찍을 수 없으니)
-        const roomFor = (dLat, dLon) => g.spots.every(id => { const o = spots[id]; return angDist(o.lat, o.lon0, lat + dLat, lon0 + dLon) >= 2.75; });
-        const add = (kind, dLat, dLon, umbra, pen, life) => {
-          const s = {id: sid++, g: g.id, kind, lat: +(lat + dLat).toFixed(2), lon0: +(lon0 + dLon).toFixed(2),
-            umbra: +umbra.toFixed(3), penumbra: +pen.toFixed(3), shape: [r(), r(), r(), r(), r()],
-            grow: +uni(0.85, 1.15).toFixed(3), day1: life !== 2, day2: life !== 1};
-          g.spots.push(s.id); spots.push(s);
-          return s;
-        };
-        const sgn = lat < 0 ? -1 : 1;
         const U = uni(1.4, 2.2);
-        add('leader', 0, 0, U, U * uni(2.0, 2.4), 0);
-        if (r() < 0.85) { const u = uni(0.9, 1.4); add('follower', sgn * uni(1.2, 3), -uni(5, 8), u, u * uni(1.8, 2.3), 0); }
-        const nPore = Math.floor(uni(0, 2.6));
-        const pore = (life, dl) => {
+        const lead = make(groups.length, 'leader', lat, lon0, U, U * uni(1.9, 2.3), 0);
+        if (!fits(lead)) continue;
+        const g = {id: groups.length, lat: lead.lat, lon0: lead.lon0, move, P: rotationPeriod(lat), spots: []};
+        groups.push(g);
+        put(lead, g);
+        const sgn = lat < 0 ? -1 : 1;
+        // 후행 흑점: 동쪽(뒤)으로 떨어져서, 조금 더 높은 위도에
+        if (r() < 0.85) {
+          const u = uni(0.9, 1.4), pr = u * uni(1.8, 2.2);
           for (let t = 0; t < 30; t++) {
-            const dLat = sgn * uni(-1.5, 3.5), dLon = -uni(2, dl);
-            if (roomFor(dLat, dLon)) { add('pore', dLat, dLon, uni(0.6, 0.9), 0, life); return; }
+            const c = make(g.id, 'follower', lat + sgn * uni(0.8, 3), lon0 - uni(8.5, 13), u, pr, 0);
+            if (fits(c)) { put(c, g); break; }
+          }
+        }
+        // 작은 흑점(포어): 무리 둘레에 흩어져서. 몇 개는 둘째 관측 때 사라지고, 새로 생기기도 한다
+        const pore = life => {
+          for (let t = 0; t < 40; t++) {
+            const c = make(g.id, 'pore', lat + sgn * uni(-3, 5), lon0 - uni(-2, 17), uni(0.6, 0.9), 0, life);
+            if (fits(c)) { put(c, g); return; }
           }
         };
-        for (let p = 0; p < nPore; p++) pore(r() < 0.5 ? 1 : 0, 11);
-        if (r() < 0.5) pore(2, 10);   // 둘째 관측 때 새로 생긴 작은 흑점
+        const nPore = Math.floor(uni(0, 2.6));
+        for (let p = 0; p < nPore; p++) pore(r() < 0.5 ? 1 : 0);
+        if (r() < 0.5) pore(2);   // 둘째 관측 때 새로 생긴 작은 흑점
         break;
       }
     });
     // 무리를 이루지 않은 작은 흑점 하나
     for (let k = 0; k < 300; k++) {
-      const lat = +((r() < 0.5 ? -1 : 1) * uni(4, 30)).toFixed(2);
+      const lat = (r() < 0.5 ? -1 : 1) * uni(4, 30);
       const move = omegaDeg(lat) * dt, lon0 = uni(-EDGE + 4, EDGE - move);
       if (clash(lat, lon0, 13)) continue;
       const u = uni(0.8, 1.1);
-      spots.push({id: sid++, g: -1, kind: 'single', lat, lon0: +lon0.toFixed(2), umbra: +u.toFixed(3), penumbra: +(u * uni(1.7, 2.1)).toFixed(3),
-        shape: [r(), r(), r(), r(), r()], grow: 1, day1: true, day2: true});
-      break;
+      const c = make(-1, 'single', lat, lon0, u, u * uni(1.7, 2.1), 0);
+      if (fits(c)) { put(c, null); break; }
     }
     // 하늘에서 태양의 자리(관측 시각이 달라서 두 날의 자리가 조금 다르다)
     const sky = [{az: uni(163, 171), alt: uni(27, 32)}, null];
@@ -234,7 +251,7 @@
     return {n: ok.length, all: mean(ok.map(p => p.P)), low: mean(low), high: mean(high), nLow: low.length, nHigh: high.length};
   }
 
-  const api = {SUN_RADIUS_DEG, DRIFT, BOARD_SUN, ALIGN_TOL, FOCUS_TOL, SKETCH_SEC, TEAMS, EMOJIS, BOT_NAMES, STAGES, DAY1_STAGES, DAY2_STAGES,
+  const api = {VIS_K, GAP, visR, SUN_RADIUS_DEG, DRIFT, BOARD_SUN, ALIGN_TOL, FOCUS_TOL, SKETCH_SEC, TEAMS, EMOJIS, BOT_NAMES, STAGES, DAY1_STAGES, DAY2_STAGES,
     hashStr, makeSun, spotsOn, hitTol, hitTest, personal, dirVec, tubeOffset, sunAt, measureRotation,
     SCORE, SPOT_PTS, aimScore, focusScore, comboBonus, rotScore, flareScore, encodeMarks, decodeMarks, rotationSummary,
     omegaDeg, rotationPeriod, leaderOf};
