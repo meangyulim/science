@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>공식 지도 · 물리 실험실</title>
+<meta name="description" content="물리학 Ⅰ·Ⅱ 공식을 유도 관계로 이은 지도. 공식을 누르면 출발점부터 유도 과정을 한 줄씩 펼쳐 볼 수 있어요.">
+<script>
+  // 고른 테마를 그리기 전에 붙인다(깜빡임 방지)
+  try { const t = localStorage.getItem('formulas.theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="../kit/lab.css">
+<link rel="stylesheet" href="map.css">
+</head>
+<body class="fm">
+<header class="fm-bar">
+  <a class="fm-back" href="../" aria-label="물리 실험실로"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>물리 실험실</span></a>
+  <h1>공식 지도</h1>
+  <div class="fm-search" role="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
+    <input id="q" type="search" placeholder="공식 찾기 (예: 운동량, 열효율)" autocomplete="off" spellcheck="false"
+      aria-label="공식 찾기" aria-controls="results" aria-expanded="false" role="combobox" aria-autocomplete="list">
+    <ul class="fm-results" id="results" role="listbox" aria-label="찾은 공식" hidden></ul>
+  </div>
+  <div class="fm-tools">
+    <button type="button" class="fm-ic" id="outlineBtn" aria-label="목차" title="목차 (계층으로 보기)" aria-expanded="false" aria-controls="panel">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M8 12h12M8 18h12M4 12h.01M4 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="lg">목차</span></button>
+    <button type="button" class="fm-ic" id="themeBtn" aria-label="밝게·어둡게 바꾸기" title="밝게·어둡게">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
+  </div>
+</header>
+
+<main class="fm-main">
+  <div class="fm-map" id="map" tabindex="0" aria-label="공식 지도: 끌어서 이동, 휠이나 두 손가락으로 확대·축소. 공식을 누르면 유도 과정이 열립니다." aria-describedby="hint">
+    <div class="fm-world" id="world">
+      <div class="fm-regions" id="regions"></div>
+      <svg class="fm-edges" id="edges" aria-hidden="true">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L10 5 L0 9 z" class="ah"/></marker>
+          <marker id="ah-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L10 5 L0 9 z" class="ah-in"/></marker>
+          <marker id="ah-out" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L10 5 L0 9 z" class="ah-out"/></marker>
+        </defs>
+        <g id="edgeG"></g>
+      </svg>
+      <div class="fm-cards" id="cards"></div>
+    </div>
+    <div class="fm-where" id="where" aria-live="polite"></div>
+    <div class="fm-zoom" role="group" aria-label="확대·축소">
+      <button type="button" class="fm-ic" id="zin" aria-label="확대" title="확대"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+      <button type="button" class="fm-ic" id="zout" aria-label="축소" title="축소"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+      <button type="button" class="fm-ic" id="zfit" aria-label="전체 보기" title="전체 보기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="fm-legend" id="legend">
+      <span><i class="k-basis"></i>출발점 (정의·법칙)</span>
+      <span><i class="k-derived"></i>유도</span>
+      <span><i class="k-applied"></i>응용</span>
+      <span class="sel-only"><b class="e-in"></b>나온 곳</span>
+      <span class="sel-only"><b class="e-out"></b>이어지는 곳</span>
+    </div>
+    <p class="fm-hint" id="hint">끌어서 이동 · 휠/두 손가락으로 확대 · 공식을 누르면 유도 과정</p>
+    <p class="fm-loading" id="loading">지도를 그리는 중…</p>
+  </div>
+
+  <aside class="fm-panel" id="panel" aria-label="공식 자세히" hidden>
+    <div class="fm-grip" id="grip" aria-hidden="true"><i></i></div>
+    <div class="fm-panel-in" id="panelIn"></div>
+  </aside>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" crossorigin="anonymous"></script>
+<script src="formulas-graph.js"></script>
+<script src="map.js"></script>
+</body>
+</html>

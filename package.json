@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "description": "테스트 전용 개발 의존성. 사이트는 빌드 없이 그대로 올라간다.",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs"
+  },
+  "devDependencies": {
+    "katex": "0.16.22"
+  }
+}

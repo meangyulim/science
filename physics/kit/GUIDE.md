@@ -158,3 +158,24 @@
 - 원고(개념 설명·그림·예제·개념 체크)의 원본은 사용자 구글 드라이브 `시험준비/4_그림물리_웹사이트/그림물리_원본_코드.zip` 의 `cx/<단원>.py`, `qz/<단원>.py` 이다.
 - 개념서 그림은 공개 사이트 `https://meangyulim.github.io/visual-physics/assets/img/<단원>_s<절>_<a|b|c>.webp` 에 있다.
 - `physics_concepts.json` 의 `page` 는 개념서 웹 페이지의 해당 절이다.
+
+## 공식 지도
+물리학 Ⅰ·Ⅱ 공식을 유도 관계로 이은 지도다(`physics/formulas/`). 첫 화면 머리판의 「공식 지도」 버튼으로 들어간다. 개념 실험 페이지와 따로 돌아가며, `kit/lab.css` 의 토큰만 빌려 쓴다.
+
+- **파일**
+  - `physics/data/formulas.json`: 데이터 전부. 지도와 유도 과정이 이 파일 하나에서 나온다.
+  - `physics/formulas/index.html`(뼈대) · `map.css`(모양) · `map.js`(화면) · `formulas-graph.js`(배치·찾기·순환 찾기 같은 순수 계산, 테스트도 같이 씀)
+  - 수식은 KaTeX(`katex@0.16.22`, jsdelivr)로 그린다. 판을 올리면 `package.json` 의 개발 의존성도 같이 올린다(테스트가 두 판이 같은지 본다).
+- **노드(공식)** 하나: `id`(`<단원>.<영문 이름>`, 예: `I2.mcons`), `unit`, `name`, `role`, `tex`, `concepts`(관련 개념 ID), 있으면 `forms`(같은 식의 다른 꼴), `calc`(참고: 미적분), `note`, `keys`(찾기 낱말).
+  - `role: "basis"` 출발점(정의·법칙): `basis: {type, what, check}`. `type` 은 정의·법칙·실험 법칙·원리·모형 가운데 하나. `what` 은 무엇을 정한 것인지, `check` 는 무엇으로 확인하는지. 들어오는 간선이 없어야 한다.
+  - `role: "derived"`(유도) · `"applied"`(응용): `steps: [{tex, say, uses}]`. 한 줄 = LaTeX 한 줄 + 한국어 설명 한 줄. `uses` 는 그 줄에 쓴 앞 공식의 id 들이다(화면에서 칩이 되어 누르면 그리로 간다). 수식 없이 말로만 하는 줄은 `tex` 를 빼도 된다.
+- **간선** `edges: [{from, to, kind}]`: `kind` 는 `kinds` 의 키(정의 대입·법칙 적용·식 연립·특수한 경우·보존 법칙 적용·그래프·근사). **한 노드의 `uses` 를 모두 모은 것과 그 노드로 들어오는 간선의 `from` 이 정확히 같아야 한다.** 새 줄에 앞 공식을 쓰면 간선도 하나 더한다.
+- **내용 기준**: 고교 수준(대수, 그래프의 넓이·기울기, 기하·벡터 분해)으로 유도한다. 미적분이 더 자연스러우면 `calc` 에 따로 둔다. 기호·부호는 `physics_concepts.json` 의 LaTeX 를 따른다. 고교에서 결과로만 쓰는 것(카르노 효율, 상대론적 질량 등)은 그렇다고 단계 설명에 밝힌다.
+- **배치는 손으로 정하지 않는다.** 과목 = 세로 줄, 대단원 = 가로 띠(같은 번호끼리 같은 높이), 단원 = 상자, 상자 안에서는 출발점이 맨 위 줄이고 같은 단원 안 부모보다 한 줄 아래로 내려간다. 데이터 순서가 같은 줄 안의 처음 순서다.
+- **늘리는 순서**: ① `formulas.json` 에 노드와 간선을 더한다 → ② `npm install`(처음 한 번) 뒤 `node --test tests/formulas-*.test.cjs` → ③ `python3 -m http.server` 로 띄워 폰(390×844)·아이패드(820×1180, 1180×820)·데스크톱(1366×900)에서 새 단원을 눌러 본다.
+- **테스트** (`tests/formulas-data.test.cjs`, `formulas-katex.test.cjs`, `formulas-graph.test.cjs`)
+  - 간선이 없는 노드를 가리키지 않는다. 순환이 없다. 모든 유도는 거슬러 올라가면 출발점에 닿는다.
+  - 유도 단계가 비어 있지 않다. `uses` 와 들어오는 간선이 같다. 관련 개념 ID 가 `physics_concepts.json` 에 있다.
+  - 모든 LaTeX 가 KaTeX 로 오류 없이 렌더링된다(`katex` 가 없으면 이 검사만 건너뛴다).
+  - 배치에서 카드끼리 겹치지 않는다.
+- 주소: `formulas/#f=<공식 id>` 로 그 공식을 연 채로, `&v=<x>,<y>,<배율>` 로 그 위치를 연다. 개념 실험 페이지에서 공식 지도로 보낼 때 쓴다.

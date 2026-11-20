@@ -1,0 +1,3230 @@
+{
+ "meta": {
+  "title": "물리 공식 지도 데이터",
+  "about": "물리학 Ⅰ·Ⅱ 공식(노드)과 유도 관계(간선). physics/formulas/ 페이지가 이 파일 하나로 지도와 유도 과정을 그린다. 만드는 법은 physics/kit/GUIDE.md 맨 끝 「공식 지도」.",
+  "roles": {
+   "basis": "출발점: 정의·법칙처럼 유도하지 않고 정하거나 실험으로 확인하는 것",
+   "derived": "유도: 다른 공식에서 이끌어 낸 핵심 공식",
+   "applied": "응용: 특정 상황에 맞춰 쓴 공식"
+  },
+  "fields": {
+   "node": "id(<단원>.<이름>), unit, name, role, tex(LaTeX), basis{type,what,check} | steps[{tex?, say, uses?[노드 id]}], calc?(참고: 미적분), forms?(같은 식의 다른 꼴), note?, concepts[개념 ID], keys?(찾기 낱말)",
+   "edge": "from → to, kind(kinds 의 키). 유도 단계의 uses 를 모두 합친 것과 그 노드로 들어오는 간선의 from 이 같아야 한다(테스트로 확인)."
+  }
+ },
+ "kinds": {
+  "def": "정의 대입",
+  "law": "법칙 적용",
+  "combine": "식 연립·조합",
+  "special": "특수한 경우",
+  "conserve": "보존 법칙 적용",
+  "graph": "그래프 넓이·기울기",
+  "approx": "근사"
+ },
+ "subjects": [
+  {
+   "id": "P1",
+   "name": "물리학 Ⅰ"
+  },
+  {
+   "id": "P2",
+   "name": "물리학 Ⅱ"
+  }
+ ],
+ "bigUnits": [
+  {
+   "id": "P1-1",
+   "subject": "P1",
+   "roman": "Ⅰ",
+   "name": "역학과 에너지",
+   "color": 1
+  },
+  {
+   "id": "P1-2",
+   "subject": "P1",
+   "roman": "Ⅱ",
+   "name": "물질과 전자기장",
+   "color": 2
+  },
+  {
+   "id": "P1-3",
+   "subject": "P1",
+   "roman": "Ⅲ",
+   "name": "파동과 정보 통신",
+   "color": 3
+  },
+  {
+   "id": "P2-1",
+   "subject": "P2",
+   "roman": "Ⅰ",
+   "name": "역학적 상호 작용",
+   "color": 1
+  },
+  {
+   "id": "P2-2",
+   "subject": "P2",
+   "roman": "Ⅱ",
+   "name": "전자기장",
+   "color": 2
+  },
+  {
+   "id": "P2-3",
+   "subject": "P2",
+   "roman": "Ⅲ",
+   "name": "파동과 물질의 성질",
+   "color": 3
+  }
+ ],
+ "units": [
+  {
+   "code": "I1",
+   "big": "P1-1",
+   "name": "힘과 운동"
+  },
+  {
+   "code": "I2",
+   "big": "P1-1",
+   "name": "에너지와 열"
+  },
+  {
+   "code": "I3",
+   "big": "P1-1",
+   "name": "시공간과 우주"
+  },
+  {
+   "code": "II1",
+   "big": "P1-2",
+   "name": "물질의 구조와 성질"
+  },
+  {
+   "code": "II2",
+   "big": "P1-2",
+   "name": "물질의 자기적 성질과 전자기장"
+  },
+  {
+   "code": "III1",
+   "big": "P1-3",
+   "name": "파동의 성질과 활용"
+  },
+  {
+   "code": "III2",
+   "big": "P1-3",
+   "name": "빛과 물질의 이중성"
+  },
+  {
+   "code": "A1",
+   "big": "P2-1",
+   "name": "힘과 운동"
+  },
+  {
+   "code": "A2",
+   "big": "P2-1",
+   "name": "일과 에너지·열"
+  },
+  {
+   "code": "B1",
+   "big": "P2-2",
+   "name": "전기장과 정전기 유도"
+  },
+  {
+   "code": "B2",
+   "big": "P2-2",
+   "name": "저항·트랜지스터·자기장·전자기 유도"
+  },
+  {
+   "code": "C1",
+   "big": "P2-3",
+   "name": "전자기파와 파동의 성질"
+  },
+  {
+   "code": "C2",
+   "big": "P2-3",
+   "name": "빛과 물질의 이중성"
+  }
+ ],
+ "nodes": [
+  {
+   "id": "I1.speed",
+   "unit": "I1",
+   "name": "평균 속력",
+   "role": "basis",
+   "tex": "\\text{평균 속력} = \\frac{\\text{이동 거리}}{\\text{걸린 시간}}",
+   "basis": {
+    "type": "정의",
+    "what": "경로를 따라 실제로 움직인 길이를 걸린 시간으로 나눈 값으로 정한다. 방향이 없는 양이다.",
+    "check": "자로 잰 경로 길이와 초시계 시간으로 바로 구한다. 되돌아오는 운동에서는 평균 속도의 크기보다 커진다."
+   },
+   "concepts": [
+    "I1-01"
+   ],
+   "keys": [
+    "속력",
+    "이동 거리"
+   ]
+  },
+  {
+   "id": "I1.vavg",
+   "unit": "I1",
+   "name": "평균 속도",
+   "role": "basis",
+   "tex": "\\bar{v} = \\frac{\\Delta x}{\\Delta t}",
+   "basis": {
+    "type": "정의",
+    "what": "위치의 변화(변위)를 걸린 시간으로 나눈 값으로 정한다. 방향(부호)이 있다.",
+    "check": "x–t 그래프에서 두 점을 잇는 직선의 기울기다. 시간 간격을 아주 짧게 줄이면 순간 속도(접선의 기울기)가 된다."
+   },
+   "calc": [
+    {
+     "tex": "v = \\frac{dx}{dt}",
+     "say": "순간 속도는 위치를 시간으로 미분한 값이다."
+    }
+   ],
+   "concepts": [
+    "I1-01",
+    "I1-02"
+   ],
+   "keys": [
+    "속도",
+    "변위"
+   ]
+  },
+  {
+   "id": "I1.accel",
+   "unit": "I1",
+   "name": "가속도",
+   "role": "basis",
+   "tex": "a = \\frac{\\Delta v}{\\Delta t}",
+   "basis": {
+    "type": "정의",
+    "what": "속도의 변화를 걸린 시간으로 나눈 값으로 정한다. 1 m/s²는 1초마다 속도가 1 m/s씩 바뀌는 것이다.",
+    "check": "v–t 그래프의 기울기가 가속도, v–t 그래프 아래 넓이가 변위다. 속도와 가속도의 방향이 같으면 빨라지고 반대면 느려진다."
+   },
+   "calc": [
+    {
+     "tex": "a = \\frac{dv}{dt},\\quad \\Delta v = \\int a\\,dt,\\quad \\Delta x = \\int v\\,dt",
+     "say": "미분하면 기울기, 적분하면 넓이다."
+    }
+   ],
+   "concepts": [
+    "I1-02",
+    "I1-03"
+   ],
+   "keys": [
+    "가속도",
+    "기울기"
+   ]
+  },
+  {
+   "id": "I1.uniform",
+   "unit": "I1",
+   "name": "등속 직선 운동",
+   "role": "derived",
+   "tex": "s = vt",
+   "steps": [
+    {
+     "tex": "\\bar{v} = \\frac{\\Delta x}{\\Delta t}",
+     "say": "평균 속도의 정의에서 출발한다.",
+     "uses": [
+      "I1.vavg"
+     ]
+    },
+    {
+     "tex": "v = \\text{일정} \\;\\Rightarrow\\; \\bar{v} = v",
+     "say": "등속 운동은 속도가 늘 같으므로 평균 속도가 곧 그 속도다."
+    },
+    {
+     "tex": "s = vt",
+     "say": "방향이 바뀌지 않으면 변위의 크기가 이동 거리 s, 걸린 시간이 t 다."
+    }
+   ],
+   "concepts": [
+    "I1-01"
+   ],
+   "keys": [
+    "등속"
+   ]
+  },
+  {
+   "id": "I1.vt",
+   "unit": "I1",
+   "name": "등가속도: 속도 식",
+   "role": "derived",
+   "tex": "v = v_0 + at",
+   "steps": [
+    {
+     "tex": "a = \\frac{v - v_0}{t - 0}",
+     "say": "가속도의 정의에 처음 속도 v₀(시각 0)와 나중 속도 v(시각 t)를 넣는다.",
+     "uses": [
+      "I1.accel"
+     ]
+    },
+    {
+     "tex": "a = \\text{일정}",
+     "say": "등가속도 운동이면 어느 구간을 잡아도 이 값이 같다."
+    },
+    {
+     "tex": "v = v_0 + at",
+     "say": "양변에 t 를 곱해 정리한다. v–t 그래프는 기울기가 a 인 직선이다."
+    }
+   ],
+   "concepts": [
+    "I1-04"
+   ],
+   "keys": [
+    "등가속도"
+   ]
+  },
+  {
+   "id": "I1.vbar",
+   "unit": "I1",
+   "name": "평균속도법",
+   "role": "derived",
+   "tex": "\\bar{v} = \\frac{v_0 + v}{2} = \\frac{s}{t}",
+   "steps": [
+    {
+     "tex": "s = (\\text{v–t 그래프 아래 넓이})",
+     "say": "짧은 시간마다 (속도 × 시간)을 더하면 변위가 되므로, v–t 그래프 아래 넓이가 이동 거리다.",
+     "uses": [
+      "I1.vavg"
+     ]
+    },
+    {
+     "tex": "s = \\frac{(v_0 + v)\\,t}{2}",
+     "say": "등가속도면 그래프가 직선이라 넓이는 사다리꼴이다: (윗변 + 아랫변) × 높이 ÷ 2.",
+     "uses": [
+      "I1.vt"
+     ]
+    },
+    {
+     "tex": "\\bar{v} = \\frac{s}{t} = \\frac{v_0 + v}{2}",
+     "say": "평균 속도(s ÷ t)는 처음 속도와 나중 속도의 평균이다. 등가속도일 때만 성립한다."
+    }
+   ],
+   "concepts": [
+    "I1-04"
+   ],
+   "keys": [
+    "평균 속도",
+    "사다리꼴"
+   ]
+  },
+  {
+   "id": "I1.st",
+   "unit": "I1",
+   "name": "등가속도: 거리 식",
+   "role": "derived",
+   "tex": "s = v_0 t + \\frac{1}{2}at^2",
+   "steps": [
+    {
+     "tex": "s = \\frac{v_0 + v}{2}\\,t",
+     "say": "평균속도법에서 출발한다.",
+     "uses": [
+      "I1.vbar"
+     ]
+    },
+    {
+     "tex": "s = \\frac{v_0 + (v_0 + at)}{2}\\,t",
+     "say": "나중 속도 v 자리에 v₀ + at 를 넣는다.",
+     "uses": [
+      "I1.vt"
+     ]
+    },
+    {
+     "tex": "s = v_0 t + \\frac{1}{2}at^2",
+     "say": "괄호를 풀면 끝. 그래프로 보면 직사각형 v₀t 와 삼각형 ½ · t · at 의 합이다."
+    }
+   ],
+   "concepts": [
+    "I1-04"
+   ],
+   "keys": [
+    "등가속도",
+    "변위"
+   ]
+  },
+  {
+   "id": "I1.v2",
+   "unit": "I1",
+   "name": "등가속도: 시간 없는 식",
+   "role": "derived",
+   "tex": "v^2 - v_0^2 = 2as",
+   "steps": [
+    {
+     "tex": "t = \\frac{v - v_0}{a}",
+     "say": "속도 식 v = v₀ + at 를 t 에 대해 푼다.",
+     "uses": [
+      "I1.vt"
+     ]
+    },
+    {
+     "tex": "s = \\frac{v_0 + v}{2}\\cdot\\frac{v - v_0}{a}",
+     "say": "평균속도법 s = (v₀ + v)t/2 에 넣어 시간을 지운다.",
+     "uses": [
+      "I1.vbar"
+     ]
+    },
+    {
+     "tex": "2as = v^2 - v_0^2",
+     "say": "(v + v₀)(v − v₀) = v² − v₀² 이므로 양변에 2a 를 곱하면 된다. 시간이 주어지지 않을 때 쓴다."
+    }
+   ],
+   "concepts": [
+    "I1-04"
+   ],
+   "keys": [
+    "등가속도"
+   ]
+  },
+  {
+   "id": "I1.dsat2",
+   "unit": "I1",
+   "name": "같은 시간 간격의 거리 차",
+   "role": "applied",
+   "tex": "\\Delta s = aT^2",
+   "steps": [
+    {
+     "tex": "s_1 = v_0 T + \\frac{1}{2}aT^2",
+     "say": "같은 시간 간격 T 동안 첫 구간에서 간 거리.",
+     "uses": [
+      "I1.st"
+     ]
+    },
+    {
+     "tex": "s_2 = (v_0 + aT)\\,T + \\frac{1}{2}aT^2",
+     "say": "다음 구간은 속도 v₀ + aT 로 출발해 같은 시간 T 동안 간다.",
+     "uses": [
+      "I1.vt"
+     ]
+    },
+    {
+     "tex": "\\Delta s = s_2 - s_1 = aT^2",
+     "say": "빼면 v₀ 가 지워진다. 다중 섬광 사진·시간기록계 종이테이프에서 가속도를 구할 때 쓴다."
+    }
+   ],
+   "concepts": [
+    "I1-04"
+   ],
+   "keys": [
+    "섬광 사진",
+    "종이테이프"
+   ]
+  },
+  {
+   "id": "I1.relv",
+   "unit": "I1",
+   "name": "상대 속도",
+   "role": "derived",
+   "tex": "v_{AB} = v_A - v_B",
+   "steps": [
+    {
+     "tex": "x_{AB} = x_A - x_B",
+     "say": "B 에서 본 A 의 위치는 두 위치의 차다."
+    },
+    {
+     "tex": "\\frac{\\Delta x_{AB}}{\\Delta t} = \\frac{\\Delta x_A}{\\Delta t} - \\frac{\\Delta x_B}{\\Delta t}",
+     "say": "같은 시간 동안의 변화를 시간으로 나눈다.",
+     "uses": [
+      "I1.vavg"
+     ]
+    },
+    {
+     "tex": "v_{AB} = v_A - v_B",
+     "say": "B 가 본 A 의 속도 = (대상 A 의 속도) − (관찰자 B 의 속도). 같은 방향이면 차, 반대 방향이면 합이 된다."
+    }
+   ],
+   "note": "고전 역학(v ≪ c)에서만 맞는다. 빛에는 맞지 않는다 → 시공간과 우주.",
+   "concepts": [
+    "I1-05"
+   ],
+   "keys": [
+    "상대 속도"
+   ]
+  },
+  {
+   "id": "I1.meet",
+   "unit": "I1",
+   "name": "두 물체의 만남",
+   "role": "applied",
+   "tex": "\\Delta x_{AB} = (v_A - v_B)\\,t",
+   "steps": [
+    {
+     "tex": "v_{AB} = v_A - v_B",
+     "say": "B 와 함께 움직이며 보면 A 만 상대 속도로 움직인다.",
+     "uses": [
+      "I1.relv"
+     ]
+    },
+    {
+     "tex": "\\Delta x_{AB} = v_{AB}\\,t = (v_A - v_B)\\,t",
+     "say": "상대 속도가 일정하면 등속 운동 s = vt 를 그대로 쓴다.",
+     "uses": [
+      "I1.uniform"
+     ]
+    },
+    {
+     "say": "두 물체의 가속도가 같으면 상대 운동은 등속이다. 처음 거리 d 를 좁히는 데 걸리는 시간은 d ÷ |v_A − v_B| 다."
+    }
+   ],
+   "concepts": [
+    "I1-05"
+   ],
+   "keys": [
+    "만남",
+    "추월"
+   ]
+  },
+  {
+   "id": "I1.newton1",
+   "unit": "I1",
+   "name": "관성 법칙 (뉴턴 제1법칙)",
+   "role": "basis",
+   "tex": "\\sum \\vec{F} = 0 \\;\\Rightarrow\\; \\vec{v} = \\text{일정}",
+   "basis": {
+    "type": "법칙",
+    "what": "알짜힘이 0 이면 정지한 물체는 계속 정지하고, 움직이는 물체는 등속 직선 운동을 한다. 이 법칙이 성립하는 기준틀을 관성계라 한다.",
+    "check": "마찰을 줄일수록 더 멀리 미끄러지는 실험(갈릴레이의 빗면 사고 실험), 버스가 출발할 때 몸이 뒤로 쏠리는 현상으로 확인한다."
+   },
+   "concepts": [
+    "I1-06"
+   ],
+   "keys": [
+    "관성",
+    "제1법칙"
+   ]
+  },
+  {
+   "id": "I1.newton2",
+   "unit": "I1",
+   "name": "가속도 법칙 (뉴턴 제2법칙)",
+   "role": "basis",
+   "tex": "\\vec{F}_{net} = m\\vec{a}",
+   "basis": {
+    "type": "법칙",
+    "what": "가속도는 알짜힘에 비례하고 질량에 반비례한다. 힘의 단위 1 N = 1 kg·m/s² 도 이 식으로 정한다.",
+    "check": "역학 수레에 같은 힘을 주며 질량을 바꾸거나, 같은 질량에 힘을 바꾸며 가속도를 재면 a ∝ F, a ∝ 1/m 이 나온다."
+   },
+   "forms": [
+    "1\\,\\text{N} = 1\\,\\text{kg}\\cdot\\text{m/s}^2"
+   ],
+   "concepts": [
+    "I1-06",
+    "I1-07"
+   ],
+   "keys": [
+    "F=ma",
+    "제2법칙",
+    "알짜힘"
+   ]
+  },
+  {
+   "id": "I1.newton3",
+   "unit": "I1",
+   "name": "작용 반작용 법칙 (뉴턴 제3법칙)",
+   "role": "basis",
+   "tex": "\\vec{F}_{AB} = -\\vec{F}_{BA}",
+   "basis": {
+    "type": "법칙",
+    "what": "A 가 B 에 힘을 주면 B 도 A 에 크기가 같고 방향이 반대인 힘을 동시에 준다. 두 힘은 서로 다른 물체에 작용하므로 서로 지워지지 않는다.",
+    "check": "두 힘 센서를 맞걸고 당기면 늘 같은 값이 나온다. 노 젓기, 로켓의 추진이 예다."
+   },
+   "concepts": [
+    "I1-07",
+    "I1-08"
+   ],
+   "keys": [
+    "작용 반작용",
+    "제3법칙"
+   ]
+  },
+  {
+   "id": "I1.weight",
+   "unit": "I1",
+   "name": "중력 (무게)",
+   "role": "derived",
+   "tex": "w = mg",
+   "steps": [
+    {
+     "tex": "a = g \\approx 9.8\\,\\text{m/s}^2",
+     "say": "공기 저항이 없으면 모든 물체가 같은 가속도 g 로 떨어진다(실험 사실)."
+    },
+    {
+     "tex": "F_{net} = w",
+     "say": "떨어지는 동안 받는 힘은 중력 w 하나뿐이다."
+    },
+    {
+     "tex": "w = mg",
+     "say": "F = ma 에 넣는다. 질량 1 kg 의 무게는 약 9.8 N 이다.",
+     "uses": [
+      "I1.newton2"
+     ]
+    }
+   ],
+   "concepts": [
+    "I1-07"
+   ],
+   "keys": [
+    "무게",
+    "중력"
+   ]
+  },
+  {
+   "id": "I1.equil",
+   "unit": "I1",
+   "name": "힘의 평형",
+   "role": "derived",
+   "tex": "\\sum \\vec{F} = 0",
+   "steps": [
+    {
+     "tex": "\\vec{a} = 0 \\;\\Rightarrow\\; \\vec{F}_{net} = m\\cdot 0 = 0",
+     "say": "정지해 있거나 등속으로 움직이면 가속도가 0 이므로 F = ma 에서 알짜힘이 0 이다.",
+     "uses": [
+      "I1.newton2"
+     ]
+    },
+    {
+     "say": "거꾸로 알짜힘이 0 이면 속도가 변하지 않는다. 관성 법칙과 같은 내용이다.",
+     "uses": [
+      "I1.newton1"
+     ]
+    },
+    {
+     "tex": "\\sum F_x = 0,\\quad \\sum F_y = 0",
+     "say": "힘을 x, y 방향으로 나눠 각 방향의 합이 0 이 되게 식을 세운다."
+    }
+   ],
+   "note": "평형인 두 힘은 한 물체가 받는 힘이고, 작용 반작용인 두 힘은 서로 다른 물체가 받는 힘이다.",
+   "concepts": [
+    "I1-08"
+   ],
+   "keys": [
+    "평형"
+   ]
+  },
+  {
+   "id": "I1.hooke",
+   "unit": "I1",
+   "name": "탄성력 (훅 법칙)",
+   "role": "basis",
+   "tex": "F = kx",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "용수철이 늘어나거나 줄어든 길이 x 에 비례하는 되돌아가려는 힘. k 는 용수철 상수(N/m)다.",
+    "check": "추를 하나씩 더 달며 늘어난 길이를 재면 F–x 그래프가 원점을 지나는 직선이 된다. 탄성 한계 안에서만 맞는다."
+   },
+   "concepts": [
+    "I1-08",
+    "I2-03"
+   ],
+   "keys": [
+    "용수철",
+    "탄성력",
+    "훅"
+   ]
+  },
+  {
+   "id": "I1.sysacc",
+   "unit": "I1",
+   "name": "한 덩어리로 보기: 연결된 물체의 가속도",
+   "role": "derived",
+   "tex": "a = \\frac{\\sum F_{ext}}{\\sum m}",
+   "steps": [
+    {
+     "tex": "m_1 a = F_1 + F_{21},\\quad m_2 a = F_2 + F_{12}",
+     "say": "함께 움직이는 두 물체에 각각 F = ma 를 쓴다. F₁₂ 는 1 이 2 에 주는 힘이다.",
+     "uses": [
+      "I1.newton2"
+     ]
+    },
+    {
+     "tex": "F_{12} + F_{21} = 0",
+     "say": "두 물체가 서로 주고받는 힘(내력)은 작용 반작용이라 더하면 0 이다.",
+     "uses": [
+      "I1.newton3"
+     ]
+    },
+    {
+     "tex": "(m_1 + m_2)\\,a = F_1 + F_2 \\;\\Rightarrow\\; a = \\frac{\\sum F_{ext}}{\\sum m}",
+     "say": "두 식을 더하면 바깥에서 받은 힘(외력)만 남는다."
+    }
+   ],
+   "concepts": [
+    "I1-07",
+    "I1-09"
+   ],
+   "keys": [
+    "연결된 물체",
+    "외력",
+    "내력"
+   ]
+  },
+  {
+   "id": "I1.share",
+   "unit": "I1",
+   "name": "힘의 분배",
+   "role": "applied",
+   "tex": "F_i = \\frac{m_i}{\\sum m}\\,F_{net}",
+   "steps": [
+    {
+     "tex": "a = \\frac{F_{net}}{\\sum m}",
+     "say": "묶음 전체가 같은 가속도로 움직인다.",
+     "uses": [
+      "I1.sysacc"
+     ]
+    },
+    {
+     "tex": "F_i = m_i\\,a = \\frac{m_i}{\\sum m}\\,F_{net}",
+     "say": "물체 i 하나에 F = ma 를 쓰면 알짜힘은 질량에 비례해 나뉜다.",
+     "uses": [
+      "I1.newton2"
+     ]
+    },
+    {
+     "tex": "F_{AB} = \\frac{m}{M + m}\\,F",
+     "say": "뒤에서 M 을 밀어 앞의 m 까지 함께 밀 때, M 이 m 을 미는 힘이 이 값이다."
+    }
+   ],
+   "concepts": [
+    "I1-07",
+    "I1-09"
+   ],
+   "keys": [
+    "분배",
+    "미는 힘"
+   ]
+  },
+  {
+   "id": "I1.normal",
+   "unit": "I1",
+   "name": "가속하는 엘리베이터의 수직 항력",
+   "role": "applied",
+   "tex": "N = m(g + a)",
+   "steps": [
+    {
+     "tex": "N - mg = ma",
+     "say": "위쪽을 + 로 잡는다. 사람은 수직 항력 N(위)과 중력 mg(아래)를 받고 위로 가속한다.",
+     "uses": [
+      "I1.newton2",
+      "I1.weight"
+     ]
+    },
+    {
+     "tex": "N = m(g + a)",
+     "say": "정리한다. 체중계 눈금이 이 N 이다."
+    },
+    {
+     "tex": "N = m(g - a)",
+     "say": "아래로 가속하면 a 대신 −a 를 넣는다. 매달린 물체가 아래로 가속할 때의 장력 T = m(g − a)도 같은 식이다."
+    }
+   ],
+   "concepts": [
+    "I1-07",
+    "I1-09"
+   ],
+   "keys": [
+    "엘리베이터",
+    "체중계",
+    "겉보기 무게"
+   ]
+  },
+  {
+   "id": "I1.atwood",
+   "unit": "I1",
+   "name": "도르래에 매단 두 물체의 가속도",
+   "role": "derived",
+   "tex": "a = \\frac{m_1 - m_2}{m_1 + m_2}\\,g",
+   "steps": [
+    {
+     "tex": "\\sum F_{ext} = m_1 g - m_2 g",
+     "say": "실로 이은 두 물체를 한 덩어리로 보면 장력은 내력이고, 외력은 두 무게의 차다.",
+     "uses": [
+      "I1.weight"
+     ]
+    },
+    {
+     "tex": "a = \\frac{(m_1 - m_2)\\,g}{m_1 + m_2}",
+     "say": "한 덩어리의 가속도 식에 넣는다.",
+     "uses": [
+      "I1.sysacc"
+     ]
+    }
+   ],
+   "concepts": [
+    "I1-09"
+   ],
+   "keys": [
+    "도르래",
+    "애트우드"
+   ]
+  },
+  {
+   "id": "I1.atwoodT",
+   "unit": "I1",
+   "name": "도르래 실의 장력",
+   "role": "applied",
+   "tex": "T = \\frac{2m_1 m_2}{m_1 + m_2}\\,g",
+   "steps": [
+    {
+     "tex": "T - m_2 g = m_2 a",
+     "say": "가벼운 쪽 m₂ 만 본다. 장력(위)이 무게(아래)보다 커서 위로 가속한다.",
+     "uses": [
+      "I1.newton2",
+      "I1.weight"
+     ]
+    },
+    {
+     "tex": "T = m_2\\left(g + \\frac{m_1 - m_2}{m_1 + m_2}\\,g\\right)",
+     "say": "앞에서 구한 가속도를 넣는다.",
+     "uses": [
+      "I1.atwood"
+     ]
+    },
+    {
+     "tex": "T = \\frac{2m_1 m_2}{m_1 + m_2}\\,g",
+     "say": "통분해 정리한다. 장력은 두 무게 사이 값이다."
+    }
+   ],
+   "concepts": [
+    "I1-09"
+   ],
+   "keys": [
+    "장력",
+    "도르래"
+   ]
+  },
+  {
+   "id": "I1.table",
+   "unit": "I1",
+   "name": "수평면 물체와 매달린 물체",
+   "role": "applied",
+   "tex": "a = \\frac{m}{M + m}\\,g,\\quad T = \\frac{Mm}{M + m}\\,g",
+   "steps": [
+    {
+     "tex": "a = \\frac{mg}{M + m}",
+     "say": "마찰이 없으면 외력은 매달린 m 의 무게뿐이다(M 의 무게는 수직 항력과 평형).",
+     "uses": [
+      "I1.sysacc",
+      "I1.weight"
+     ]
+    },
+    {
+     "tex": "T = Ma = \\frac{Mm}{M + m}\\,g",
+     "say": "수평면 위 M 을 끄는 힘은 장력 하나뿐이다.",
+     "uses": [
+      "I1.newton2"
+     ]
+    }
+   ],
+   "concepts": [
+    "I1-09"
+   ],
+   "keys": [
+    "장력",
+    "수평면"
+   ]
+  },
+  {
+   "id": "I1.incline",
+   "unit": "I1",
+   "name": "마찰 없는 빗면의 가속도",
+   "role": "derived",
+   "tex": "a = g\\sin\\theta",
+   "steps": [
+    {
+     "tex": "mg\\sin\\theta,\\quad mg\\cos\\theta",
+     "say": "중력을 빗면 방향 성분과 빗면에 수직인 성분으로 나눈다.",
+     "uses": [
+      "I1.weight"
+     ]
+    },
+    {
+     "tex": "N = mg\\cos\\theta",
+     "say": "빗면에 수직인 방향으로는 움직이지 않으므로 수직 항력과 평형이다.",
+     "uses": [
+      "I1.equil"
+     ]
+    },
+    {
+     "tex": "ma = mg\\sin\\theta \\;\\Rightarrow\\; a = g\\sin\\theta",
+     "say": "빗면 방향의 알짜힘에 F = ma 를 쓴다. 질량과 관계없다.",
+     "uses": [
+      "I1.newton2"
+     ]
+    }
+   ],
+   "concepts": [
+    "I1-10"
+   ],
+   "keys": [
+    "빗면"
+   ]
+  },
+  {
+   "id": "I1.cut",
+   "unit": "I1",
+   "name": "실이 끊어질 때 가속도의 변화",
+   "role": "applied",
+   "tex": "M_X\\left|\\Delta a_X\\right| = M_Y\\left|\\Delta a_Y\\right| = T",
+   "steps": [
+    {
+     "say": "실이 끊어지는 순간 속도는 그대로지만 가속도는 갑자기 바뀐다. 사라지는 힘은 장력 T 하나다."
+    },
+    {
+     "tex": "M_X\\left|\\Delta a_X\\right| = \\left|\\Delta F_X\\right| = T",
+     "say": "F = ma 이므로 (질량 × 가속도의 변화) = (힘의 변화) = T.",
+     "uses": [
+      "I1.newton2"
+     ]
+    },
+    {
+     "tex": "M_Y\\left|\\Delta a_Y\\right| = T",
+     "say": "실은 양 끝 물체를 같은 크기 T 로 당기고 있었다(가벼운 실). 다른 쪽도 같다.",
+     "uses": [
+      "I1.newton3"
+     ]
+    }
+   ],
+   "forms": [
+    "F = M(a_1 - a_2)"
+   ],
+   "concepts": [
+    "I1-10"
+   ],
+   "keys": [
+    "실이 끊어질 때"
+   ]
+  },
+  {
+   "id": "I1.momentum",
+   "unit": "I1",
+   "name": "운동량",
+   "role": "basis",
+   "tex": "p = mv",
+   "basis": {
+    "type": "정의",
+    "what": "질량과 속도의 곱으로 정한다. 속도 방향을 가지며 단위는 kg·m/s 다.",
+    "check": "같은 속도라도 무거운 물체를, 같은 질량이라도 빠른 물체를 멈추기 어렵다는 경험을 한 양으로 묶은 것이다. 충돌 실험에서 합이 보존되는 양으로 확인된다."
+   },
+   "concepts": [
+    "I1-11"
+   ],
+   "keys": [
+    "운동량"
+   ]
+  },
+  {
+   "id": "I1.impulse",
+   "unit": "I1",
+   "name": "충격량과 운동량 변화",
+   "role": "derived",
+   "tex": "I = F\\Delta t = \\Delta p = mv - mv_0",
+   "steps": [
+    {
+     "tex": "I = F\\Delta t",
+     "say": "충격량은 (힘 × 작용 시간)으로 정한다. 힘–시간 그래프 아래 넓이다."
+    },
+    {
+     "tex": "F = m\\frac{\\Delta v}{\\Delta t}",
+     "say": "F = ma 에 가속도의 정의를 넣는다.",
+     "uses": [
+      "I1.newton2",
+      "I1.accel"
+     ]
+    },
+    {
+     "tex": "F\\Delta t = m\\Delta v = mv - mv_0 = \\Delta p",
+     "say": "양변에 Δt 를 곱하면 운동량의 변화가 된다.",
+     "uses": [
+      "I1.momentum"
+     ]
+    }
+   ],
+   "calc": [
+    {
+     "tex": "I = \\int F\\,dt = \\Delta p",
+     "say": "힘이 시간에 따라 변하면 적분(넓이)으로 구한다."
+    }
+   ],
+   "concepts": [
+    "I1-11"
+   ],
+   "keys": [
+    "충격량"
+   ]
+  },
+  {
+   "id": "I1.avgF",
+   "unit": "I1",
+   "name": "평균 힘과 충격 완화",
+   "role": "applied",
+   "tex": "\\bar{F} = \\frac{\\Delta p}{\\Delta t}",
+   "steps": [
+    {
+     "tex": "\\bar{F} = \\frac{I}{\\Delta t} = \\frac{\\Delta p}{\\Delta t}",
+     "say": "충격량–운동량 관계를 시간으로 나눈다.",
+     "uses": [
+      "I1.impulse"
+     ]
+    },
+    {
+     "tex": "\\bar{F} \\propto \\frac{1}{\\Delta t}\\quad (\\Delta p\\ \\text{일정})",
+     "say": "운동량 변화가 같으면 부딪치는 시간이 길수록 평균 힘이 작다. 에어백·글러브·낙법이 이 원리다."
+    }
+   ],
+   "concepts": [
+    "I1-11",
+    "I1-12"
+   ],
+   "keys": [
+    "충격력",
+    "에어백",
+    "안전장치"
+   ]
+  },
+  {
+   "id": "I1.pcons",
+   "unit": "I1",
+   "name": "운동량 보존 법칙",
+   "role": "derived",
+   "tex": "m_1 v_1 + m_2 v_2 = m_1 v_1' + m_2 v_2'",
+   "steps": [
+    {
+     "tex": "F_{AB} = -F_{BA}",
+     "say": "부딪치는 동안 두 물체가 주고받는 힘은 작용 반작용이다.",
+     "uses": [
+      "I1.newton3"
+     ]
+    },
+    {
+     "tex": "\\Delta p_A = -\\Delta p_B",
+     "say": "힘이 작용하는 시간 Δt 도 같으므로 충격량, 곧 운동량 변화가 크기는 같고 방향은 반대다.",
+     "uses": [
+      "I1.impulse"
+     ]
+    },
+    {
+     "tex": "\\Delta p_A + \\Delta p_B = 0",
+     "say": "더하면 전체 운동량은 변하지 않는다(외력이 없을 때)."
+    },
+    {
+     "tex": "m_1 v_1 + m_2 v_2 = m_1 v_1' + m_2 v_2'",
+     "say": "충돌 전 운동량의 합 = 충돌 후 운동량의 합."
+    }
+   ],
+   "concepts": [
+    "I1-13"
+   ],
+   "keys": [
+    "운동량 보존",
+    "충돌"
+   ]
+  },
+  {
+   "id": "I1.stick",
+   "unit": "I1",
+   "name": "한 덩어리가 되는 충돌",
+   "role": "applied",
+   "tex": "v_f = \\frac{m_1 v_1 + m_2 v_2}{m_1 + m_2}",
+   "steps": [
+    {
+     "tex": "v_1' = v_2' = v_f",
+     "say": "충돌 뒤 붙어서 같은 속도로 움직인다(완전 비탄성 충돌)."
+    },
+    {
+     "tex": "m_1 v_1 + m_2 v_2 = (m_1 + m_2)\\,v_f",
+     "say": "운동량 보존에 넣고 v_f 에 대해 푼다.",
+     "uses": [
+      "I1.pcons"
+     ]
+    }
+   ],
+   "concepts": [
+    "I1-13",
+    "I1-14"
+   ],
+   "keys": [
+    "완전 비탄성",
+    "합체"
+   ]
+  },
+  {
+   "id": "I1.split",
+   "unit": "I1",
+   "name": "정지 상태에서의 분리",
+   "role": "applied",
+   "tex": "m_A v_A = m_B v_B",
+   "steps": [
+    {
+     "tex": "0 = m_A v_A' + m_B v_B'",
+     "say": "처음에 함께 정지해 있었으므로 운동량의 합은 0 이다.",
+     "uses": [
+      "I1.pcons"
+     ]
+    },
+    {
+     "tex": "m_A v_A = m_B v_B",
+     "say": "크기만 보면 두 운동량이 같다. 가벼운 쪽이 더 빠르게 반대로 튕겨 나간다(속력 ∝ 1/m)."
+    }
+   ],
+   "concepts": [
+    "I1-13"
+   ],
+   "keys": [
+    "분리",
+    "반동"
+   ]
+  },
+  {
+   "id": "I1.elastic",
+   "unit": "I1",
+   "name": "탄성 충돌",
+   "role": "derived",
+   "tex": "\\tfrac{1}{2}m_1 v_1^2 + \\tfrac{1}{2}m_2 v_2^2 = \\tfrac{1}{2}m_1 v_1'^2 + \\tfrac{1}{2}m_2 v_2'^2",
+   "steps": [
+    {
+     "tex": "\\sum E_k\\ (\\text{전}) = \\sum E_k\\ (\\text{후})",
+     "say": "충돌 전후 운동 에너지의 합이 같은 충돌을 탄성 충돌이라 정한다.",
+     "uses": [
+      "I2.ek"
+     ]
+    },
+    {
+     "say": "운동 에너지가 일부 열·소리로 바뀌면 비탄성 충돌, 붙어서 함께 움직이면 완전 비탄성 충돌이다. 운동량은 어느 충돌에서나 보존된다."
+    }
+   ],
+   "concepts": [
+    "I1-14"
+   ],
+   "keys": [
+    "탄성 충돌",
+    "비탄성"
+   ]
+  },
+  {
+   "id": "I1.elasticV",
+   "unit": "I1",
+   "name": "정지한 물체와의 탄성 충돌 (교과 심화)",
+   "role": "applied",
+   "tex": "v_1' = \\frac{m_1 - m_2}{m_1 + m_2}\\,v_1,\\quad v_2' = \\frac{2m_1}{m_1 + m_2}\\,v_1",
+   "steps": [
+    {
+     "tex": "m_1(v_1 - v_1') = m_2 v_2'",
+     "say": "B 가 정지(v₂ = 0)해 있을 때 운동량 보존 식에서 A 쪽을 모은다.",
+     "uses": [
+      "I1.pcons"
+     ]
+    },
+    {
+     "tex": "m_1(v_1^2 - v_1'^2) = m_2 v_2'^2",
+     "say": "운동 에너지 보존 식도 같은 모양으로 모은다(½ 은 지운다).",
+     "uses": [
+      "I1.elastic"
+     ]
+    },
+    {
+     "tex": "v_1 + v_1' = v_2'",
+     "say": "아래 식을 위 식으로 나눈다. v₁² − v₁′² = (v₁ + v₁′)(v₁ − v₁′) 이다."
+    },
+    {
+     "tex": "v_1' = \\frac{m_1 - m_2}{m_1 + m_2}\\,v_1,\\quad v_2' = \\frac{2m_1}{m_1 + m_2}\\,v_1",
+     "say": "첫 식과 연립해 푼다. 질량이 같으면 v₁′ = 0, v₂′ = v₁ — 속도를 맞바꾼다."
+    }
+   ],
+   "concepts": [
+    "I1-14"
+   ],
+   "keys": [
+    "탄성 충돌",
+    "속도 교환"
+   ]
+  },
+  {
+   "id": "I2.work",
+   "unit": "I2",
+   "name": "일",
+   "role": "basis",
+   "tex": "W = Fs\\cos\\theta",
+   "basis": {
+    "type": "정의",
+    "what": "힘의 이동 방향 성분 F cos θ 와 이동 거리 s 의 곱으로 정한다. 1 J = 1 N·m.",
+    "check": "F–s 그래프 아래 넓이가 일이다. 힘이 이동 방향에 수직(θ = 90°)이면 일은 0, 반대(θ = 180°)면 음수다."
+   },
+   "forms": [
+    "1\\,\\text{J} = 1\\,\\text{N}\\cdot\\text{m}"
+   ],
+   "calc": [
+    {
+     "tex": "W = \\int F\\,ds",
+     "say": "힘이 위치에 따라 변하면 적분(넓이)으로 구한다."
+    }
+   ],
+   "concepts": [
+    "I2-01"
+   ],
+   "keys": [
+    "일",
+    "줄"
+   ]
+  },
+  {
+   "id": "I2.wke",
+   "unit": "I2",
+   "name": "일–운동 에너지 정리",
+   "role": "derived",
+   "tex": "W_{net} = \\Delta E_k = \\frac{1}{2}mv^2 - \\frac{1}{2}mv_0^2",
+   "steps": [
+    {
+     "tex": "W_{net} = F_{net}\\,s",
+     "say": "알짜힘이 이동 방향으로 일정하게 작용할 때 알짜힘이 한 일.",
+     "uses": [
+      "I2.work"
+     ]
+    },
+    {
+     "tex": "W_{net} = ma\\,s",
+     "say": "F = ma 를 넣는다.",
+     "uses": [
+      "I1.newton2"
+     ]
+    },
+    {
+     "tex": "as = \\frac{v^2 - v_0^2}{2}",
+     "say": "등가속도 식 v² − v₀² = 2as 를 쓴다.",
+     "uses": [
+      "I1.v2"
+     ]
+    },
+    {
+     "tex": "W_{net} = \\frac{1}{2}mv^2 - \\frac{1}{2}mv_0^2",
+     "say": "넣고 정리한다. ½mv² 을 운동 에너지라 부른다."
+    }
+   ],
+   "concepts": [
+    "I2-02"
+   ],
+   "keys": [
+    "일-운동 에너지 정리",
+    "알짜일"
+   ]
+  },
+  {
+   "id": "I2.ek",
+   "unit": "I2",
+   "name": "운동 에너지",
+   "role": "derived",
+   "tex": "E_k = \\frac{1}{2}mv^2",
+   "steps": [
+    {
+     "tex": "W_{net} = \\frac{1}{2}mv^2 - 0",
+     "say": "정지(v₀ = 0)한 물체를 속력 v 까지 가속하는 데 필요한 알짜일을 구한다.",
+     "uses": [
+      "I2.wke"
+     ]
+    },
+    {
+     "tex": "E_k = \\frac{1}{2}mv^2",
+     "say": "이 일만큼 물체가 일을 할 수 있는 능력을 가진다. 속력이 2배면 운동 에너지는 4배다."
+    }
+   ],
+   "concepts": [
+    "I2-02"
+   ],
+   "keys": [
+    "운동 에너지"
+   ]
+  },
+  {
+   "id": "I2.ekp",
+   "unit": "I2",
+   "name": "운동 에너지와 운동량",
+   "role": "derived",
+   "tex": "E_k = \\frac{p^2}{2m}",
+   "steps": [
+    {
+     "tex": "E_k = \\frac{1}{2}mv^2",
+     "say": "운동 에너지에서 출발한다.",
+     "uses": [
+      "I2.ek"
+     ]
+    },
+    {
+     "tex": "v = \\frac{p}{m}",
+     "say": "운동량의 정의 p = mv 에서 속력을 운동량으로 쓴다.",
+     "uses": [
+      "I1.momentum"
+     ]
+    },
+    {
+     "tex": "E_k = \\frac{1}{2}m\\frac{p^2}{m^2} = \\frac{p^2}{2m}",
+     "say": "넣어서 정리한다. 운동량이 같으면 운동 에너지는 질량에 반비례한다."
+    }
+   ],
+   "concepts": [
+    "I1-11",
+    "I2-02",
+    "I2-07"
+   ],
+   "keys": [
+    "운동량",
+    "운동 에너지"
+   ]
+  },
+  {
+   "id": "I2.epg",
+   "unit": "I2",
+   "name": "중력 퍼텐셜 에너지",
+   "role": "derived",
+   "tex": "E_p = mgh",
+   "steps": [
+    {
+     "tex": "F = mg",
+     "say": "물체를 천천히(등속) 들어 올리려면 중력과 평형인 힘이 필요하다.",
+     "uses": [
+      "I1.weight",
+      "I1.equil"
+     ]
+    },
+    {
+     "tex": "W = Fh = mgh",
+     "say": "그 힘이 높이 h 만큼 한 일.",
+     "uses": [
+      "I2.work"
+     ]
+    },
+    {
+     "tex": "E_p = mgh",
+     "say": "이 일이 높은 위치에 저장된다고 보고 중력 퍼텐셜 에너지라 한다. 기준면(h = 0)은 마음대로 잡아도 된다."
+    }
+   ],
+   "concepts": [
+    "I2-03"
+   ],
+   "keys": [
+    "위치 에너지",
+    "퍼텐셜"
+   ]
+  },
+  {
+   "id": "I2.eps",
+   "unit": "I2",
+   "name": "탄성 퍼텐셜 에너지",
+   "role": "derived",
+   "tex": "E_p = \\frac{1}{2}kx^2",
+   "steps": [
+    {
+     "tex": "F = kx",
+     "say": "용수철을 x 만큼 늘이는 데 필요한 힘은 늘인 길이에 비례해 커진다.",
+     "uses": [
+      "I1.hooke"
+     ]
+    },
+    {
+     "tex": "W = \\frac{1}{2}\\cdot x\\cdot kx",
+     "say": "힘이 일정하지 않으므로 F–x 그래프 아래 넓이(삼각형)로 일을 구한다.",
+     "uses": [
+      "I2.work"
+     ]
+    },
+    {
+     "tex": "E_p = \\frac{1}{2}kx^2",
+     "say": "이 일이 용수철에 저장된다. 늘이든 줄이든 같은 식이다."
+    }
+   ],
+   "calc": [
+    {
+     "tex": "W = \\int_0^x kx\\,dx = \\frac{1}{2}kx^2",
+     "say": "적분으로 쓰면 한 줄이다."
+    }
+   ],
+   "concepts": [
+    "I2-03",
+    "I2-05"
+   ],
+   "keys": [
+    "탄성",
+    "용수철"
+   ]
+  },
+  {
+   "id": "I2.wcons",
+   "unit": "I2",
+   "name": "보존력이 한 일과 퍼텐셜 에너지",
+   "role": "derived",
+   "tex": "W_{\\text{보존력}} = -\\Delta E_p",
+   "steps": [
+    {
+     "tex": "W_{\\text{중력}} = mgh_1 - mgh_2",
+     "say": "중력이 한 일은 경로와 관계없이 처음·나중 높이로만 정해진다(보존력).",
+     "uses": [
+      "I2.epg"
+     ]
+    },
+    {
+     "tex": "W_{\\text{중력}} = -(E_{p2} - E_{p1}) = -\\Delta E_p",
+     "say": "보존력이 양(+)의 일을 하면 그만큼 퍼텐셜 에너지가 줄어든다."
+    },
+    {
+     "say": "탄성력도 같다. 마찰력은 경로에 따라 일이 달라서 퍼텐셜 에너지를 정할 수 없다.",
+     "uses": [
+      "I2.eps"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-03"
+   ],
+   "keys": [
+    "보존력"
+   ]
+  },
+  {
+   "id": "I2.mcons",
+   "unit": "I2",
+   "name": "역학적 에너지 보존",
+   "role": "derived",
+   "tex": "E_k + E_p = \\text{일정}",
+   "steps": [
+    {
+     "tex": "W_{net} = \\Delta E_k",
+     "say": "알짜힘이 한 일은 운동 에너지 변화와 같다.",
+     "uses": [
+      "I2.wke"
+     ]
+    },
+    {
+     "tex": "W_{net} = W_{\\text{보존력}} = -\\Delta E_p",
+     "say": "보존력(중력·탄성력)만 일을 하면 알짜일 = 보존력의 일이다.",
+     "uses": [
+      "I2.wcons"
+     ]
+    },
+    {
+     "tex": "\\Delta E_k + \\Delta E_p = 0",
+     "say": "두 식을 같게 놓는다."
+    },
+    {
+     "tex": "E_k + E_p = \\text{일정}",
+     "say": "운동 에너지와 퍼텐셜 에너지는 서로 바뀔 뿐 합은 그대로다."
+    }
+   ],
+   "concepts": [
+    "I2-04"
+   ],
+   "keys": [
+    "역학적 에너지",
+    "에너지 보존"
+   ]
+  },
+  {
+   "id": "I2.mconsG",
+   "unit": "I2",
+   "name": "중력장에서의 역학적 에너지 보존",
+   "role": "applied",
+   "tex": "\\frac{1}{2}mv_1^2 + mgh_1 = \\frac{1}{2}mv_2^2 + mgh_2",
+   "steps": [
+    {
+     "tex": "E_{k1} + E_{p1} = E_{k2} + E_{p2}",
+     "say": "두 지점에서 역학적 에너지가 같다.",
+     "uses": [
+      "I2.mcons"
+     ]
+    },
+    {
+     "tex": "\\frac{1}{2}mv_1^2 + mgh_1 = \\frac{1}{2}mv_2^2 + mgh_2",
+     "say": "운동 에너지와 중력 퍼텐셜 에너지 식을 넣는다. 지점별로 높이·속력 표를 만들면 편하다.",
+     "uses": [
+      "I2.ek",
+      "I2.epg"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-04"
+   ],
+   "keys": [
+    "롤러코스터",
+    "진자"
+   ]
+  },
+  {
+   "id": "I2.fall",
+   "unit": "I2",
+   "name": "높이와 속력",
+   "role": "applied",
+   "tex": "v^2 - v_0^2 = 2gh",
+   "steps": [
+    {
+     "tex": "\\frac{1}{2}mv^2 - \\frac{1}{2}mv_0^2 = mg(h_1 - h_2)",
+     "say": "높이 h = h₁ − h₂ 만큼 내려오면 줄어든 퍼텐셜 에너지가 운동 에너지로 바뀐다.",
+     "uses": [
+      "I2.mconsG"
+     ]
+    },
+    {
+     "tex": "v^2 - v_0^2 = 2gh",
+     "say": "m 을 지우고 2 를 곱한다. 질량과 경로(빗면의 모양)에 관계없다."
+    },
+    {
+     "say": "같은 결과가 등가속도 식 v² − v₀² = 2as 에 a = g, s = h 를 넣어도 나온다. 두 길이 같은 답을 준다.",
+     "uses": [
+      "I1.v2"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-04"
+   ],
+   "keys": [
+    "자유 낙하",
+    "낙하 속력"
+   ]
+  },
+  {
+   "id": "I2.springE",
+   "unit": "I2",
+   "name": "용수철 진동의 역학적 에너지",
+   "role": "applied",
+   "tex": "\\frac{1}{2}kA^2 = \\frac{1}{2}kx^2 + \\frac{1}{2}mv^2 = \\frac{1}{2}mV^2",
+   "steps": [
+    {
+     "tex": "\\frac{1}{2}kx^2 + \\frac{1}{2}mv^2 = \\text{일정}",
+     "say": "마찰 없는 수평 용수철 진자에 역학적 에너지 보존을 쓴다.",
+     "uses": [
+      "I2.mcons",
+      "I2.eps",
+      "I2.ek"
+     ]
+    },
+    {
+     "tex": "x = \\pm A:\\ v = 0",
+     "say": "진동의 양 끝에서는 멈추므로 에너지가 모두 탄성 퍼텐셜 에너지 ½kA² 이다."
+    },
+    {
+     "tex": "x = 0:\\ v = V\\,(\\text{최대})",
+     "say": "평형점에서는 늘어난 길이가 0 이므로 모두 운동 에너지 ½mV² 이다."
+    }
+   ],
+   "concepts": [
+    "I2-05"
+   ],
+   "keys": [
+    "용수철 진자",
+    "진동"
+   ]
+  },
+  {
+   "id": "I2.springEq",
+   "unit": "I2",
+   "name": "연직 용수철의 평형",
+   "role": "applied",
+   "tex": "mg = kx_0",
+   "steps": [
+    {
+     "tex": "kx_0 - mg = 0",
+     "say": "연직 용수철에 매단 추가 멈춘 곳(평형점)에서는 탄성력(위)과 중력(아래)이 평형이다.",
+     "uses": [
+      "I1.equil",
+      "I1.hooke",
+      "I1.weight"
+     ]
+    },
+    {
+     "tex": "mg = kx_0",
+     "say": "연직 용수철 진동은 이 평형점을 중심으로 수평 용수철처럼 진동한다."
+    }
+   ],
+   "concepts": [
+    "I2-05"
+   ],
+   "keys": [
+    "연직 용수철"
+   ]
+  },
+  {
+   "id": "I2.wnc",
+   "unit": "I2",
+   "name": "외력이 한 일과 역학적 에너지",
+   "role": "derived",
+   "tex": "W_{\\text{외력}} = \\Delta E_{\\text{역학}}",
+   "steps": [
+    {
+     "tex": "W_{net} = W_{\\text{보존력}} + W_{\\text{외력}} = \\Delta E_k",
+     "say": "알짜일을 보존력이 한 일과 그 밖의 힘(손으로 미는 힘·마찰력)이 한 일로 나눈다.",
+     "uses": [
+      "I2.wke"
+     ]
+    },
+    {
+     "tex": "-\\Delta E_p + W_{\\text{외력}} = \\Delta E_k",
+     "say": "보존력이 한 일은 −ΔE_p 다.",
+     "uses": [
+      "I2.wcons"
+     ]
+    },
+    {
+     "tex": "W_{\\text{외력}} = \\Delta E_k + \\Delta E_p = \\Delta E_{\\text{역학}}",
+     "say": "정리한다. 중력·탄성력 말고 다른 힘이 일을 한 만큼 역학적 에너지가 변한다."
+    }
+   ],
+   "concepts": [
+    "I2-02",
+    "I2-06"
+   ],
+   "keys": [
+    "역학적 에너지 변화",
+    "외력"
+   ]
+  },
+  {
+   "id": "I2.friction",
+   "unit": "I2",
+   "name": "마찰에 의한 역학적 에너지 손실",
+   "role": "applied",
+   "tex": "\\Delta E_{\\text{역학}} = -f\\,d",
+   "steps": [
+    {
+     "tex": "W_f = fd\\cos 180^\\circ = -fd",
+     "say": "운동 마찰력 f 는 늘 운동 반대 방향이라 음(−)의 일을 한다.",
+     "uses": [
+      "I2.work"
+     ]
+    },
+    {
+     "tex": "\\Delta E_{\\text{역학}} = W_f = -fd",
+     "say": "외력이 한 일 = 역학적 에너지 변화. 줄어든 만큼 열과 소리로 바뀐다.",
+     "uses": [
+      "I2.wnc"
+     ]
+    },
+    {
+     "tex": "E_{\\text{처음}} - \\sum W_{\\text{손실}} = E_{\\text{나중}}",
+     "say": "구간이 여럿이면 손실을 차례로 뺀다."
+    }
+   ],
+   "concepts": [
+    "I2-06"
+   ],
+   "keys": [
+    "마찰",
+    "열",
+    "손실"
+   ]
+  },
+  {
+   "id": "I2.steady",
+   "unit": "I2",
+   "name": "등속으로 내려올 때의 손실",
+   "role": "applied",
+   "tex": "W_{\\text{손실}} = mg\\Delta h",
+   "steps": [
+    {
+     "tex": "\\Delta E_k = 0",
+     "say": "등속으로 내려오면 운동 에너지는 그대로다."
+    },
+    {
+     "tex": "\\left|\\Delta E_{\\text{역학}}\\right| = \\left|\\Delta E_p\\right| = mg\\Delta h",
+     "say": "그러므로 줄어든 역학적 에너지 = 줄어든 퍼텐셜 에너지 = 손실된 에너지.",
+     "uses": [
+      "I2.friction",
+      "I2.epg"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-06"
+   ],
+   "keys": [
+    "등속",
+    "공기 저항"
+   ]
+  },
+  {
+   "id": "I2.dEk",
+   "unit": "I2",
+   "name": "운동 에너지 변화를 평균 속도로",
+   "role": "applied",
+   "tex": "\\Delta E_k = m\\bar{v}\\,\\Delta v",
+   "steps": [
+    {
+     "tex": "\\Delta E_k = \\frac{1}{2}m(v^2 - v_0^2)",
+     "say": "운동 에너지의 변화.",
+     "uses": [
+      "I2.ek"
+     ]
+    },
+    {
+     "tex": "= m\\cdot\\frac{v + v_0}{2}\\cdot(v - v_0)",
+     "say": "제곱의 차를 인수분해한다."
+    },
+    {
+     "tex": "= m\\bar{v}\\,\\Delta v",
+     "say": "등가속도면 (v + v₀)/2 는 평균 속도다. 같은 Δv 라도 빠를 때 운동 에너지가 더 많이 변한다.",
+     "uses": [
+      "I1.vbar"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-06"
+   ],
+   "keys": [
+    "평균 속도"
+   ]
+  },
+  {
+   "id": "I2.splitE",
+   "unit": "I2",
+   "name": "분리된 두 물체의 운동 에너지 비",
+   "role": "applied",
+   "tex": "\\frac{E_{kA}}{E_{kB}} = \\frac{m_B}{m_A}",
+   "steps": [
+    {
+     "tex": "p_A = p_B",
+     "say": "정지 상태에서 분리되면 두 물체의 운동량 크기가 같다.",
+     "uses": [
+      "I1.split"
+     ]
+    },
+    {
+     "tex": "E_k = \\frac{p^2}{2m} \\;\\Rightarrow\\; \\frac{E_{kA}}{E_{kB}} = \\frac{m_B}{m_A}",
+     "say": "운동량이 같으면 운동 에너지는 질량에 반비례한다. 가벼운 쪽이 에너지를 더 많이 가져간다.",
+     "uses": [
+      "I2.ekp"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-07"
+   ],
+   "keys": [
+    "분리",
+    "에너지 분배"
+   ]
+  },
+  {
+   "id": "I2.springSplit",
+   "unit": "I2",
+   "name": "용수철로 밀어 낸 두 물체",
+   "role": "applied",
+   "tex": "\\frac{1}{2}kx^2 = E_{kA} + E_{kB}",
+   "steps": [
+    {
+     "tex": "\\frac{1}{2}kx^2 = E_{kA} + E_{kB}",
+     "say": "압축된 용수철의 탄성 퍼텐셜 에너지가 두 물체의 운동 에너지로 바뀐다.",
+     "uses": [
+      "I2.mcons",
+      "I2.eps"
+     ]
+    },
+    {
+     "tex": "E_{kA} = \\frac{m_B}{m_A + m_B}\\cdot\\frac{1}{2}kx^2",
+     "say": "운동 에너지 비가 질량의 반비례이므로 그 비로 나눠 갖는다.",
+     "uses": [
+      "I2.splitE"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-07"
+   ],
+   "keys": [
+    "용수철",
+    "분리"
+   ]
+  },
+  {
+   "id": "I2.kelvin",
+   "unit": "I2",
+   "name": "절대 온도",
+   "role": "basis",
+   "tex": "T(\\text{K}) = t(^{\\circ}\\text{C}) + 273",
+   "basis": {
+    "type": "정의",
+    "what": "기체 분자 운동이 (이론상) 멈추는 −273 °C 를 0 K 로 잡고, 눈금 간격은 섭씨와 같게 정한 온도다.",
+    "check": "부피를 일정하게 둔 기체의 압력–온도 그래프를 늘이면 −273 °C 에서 압력이 0 이 된다."
+   },
+   "concepts": [
+    "I2-08"
+   ],
+   "keys": [
+    "켈빈",
+    "절대 영도"
+   ]
+  },
+  {
+   "id": "I2.pressure",
+   "unit": "I2",
+   "name": "압력",
+   "role": "basis",
+   "tex": "P = \\frac{F}{A}",
+   "basis": {
+    "type": "정의",
+    "what": "단위 넓이에 수직으로 작용하는 힘으로 정한다. 1 Pa = 1 N/m².",
+    "check": "같은 힘이라도 좁은 면(바늘, 칼날)에 주면 압력이 크다. 기체의 압력은 분자들이 벽에 부딪치며 주는 힘이다."
+   },
+   "concepts": [
+    "I2-08"
+   ],
+   "keys": [
+    "압력",
+    "파스칼"
+   ]
+  },
+  {
+   "id": "I2.idealgas",
+   "unit": "I2",
+   "name": "이상 기체 상태 방정식",
+   "role": "basis",
+   "tex": "PV = nRT",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "보일 법칙(온도 일정: PV 일정)과 샤를 법칙(압력 일정: V ∝ T)을 합친 식이다. T 는 절대 온도, n 은 몰수, R 은 기체 상수.",
+    "check": "주사기 속 공기를 누르며 압력과 부피를 재는 실험(보일), 온도에 따른 기체 부피를 재는 실험(샤를). 실제 기체도 압력이 낮고 온도가 높으면 잘 맞는다."
+   },
+   "concepts": [
+    "I2-08"
+   ],
+   "keys": [
+    "보일",
+    "샤를",
+    "기체"
+   ]
+  },
+  {
+   "id": "I2.U",
+   "unit": "I2",
+   "name": "이상 기체의 내부 에너지",
+   "role": "basis",
+   "tex": "U = N\\bar{E}_k \\propto NT",
+   "basis": {
+    "type": "모형",
+    "what": "이상 기체는 분자끼리 힘을 주고받지 않는다고 보므로 내부 에너지는 분자 운동 에너지의 합이다. 절대 온도는 분자 평균 운동 에너지에 비례한다.",
+    "check": "기체를 가열하거나 단열 압축하면 온도가 오른다(분자 운동이 활발해진다). 물리학 Ⅱ 기체 분자 운동론에서 식으로 이어진다."
+   },
+   "concepts": [
+    "I2-08"
+   ],
+   "keys": [
+    "내부 에너지",
+    "분자 운동"
+   ]
+  },
+  {
+   "id": "I2.UT",
+   "unit": "I2",
+   "name": "내부 에너지와 온도",
+   "role": "derived",
+   "tex": "\\Delta U \\propto \\Delta T \\propto \\Delta(PV)",
+   "steps": [
+    {
+     "tex": "\\Delta U \\propto \\Delta T",
+     "say": "분자 수가 같으면 내부 에너지는 절대 온도에 비례한다.",
+     "uses": [
+      "I2.U"
+     ]
+    },
+    {
+     "tex": "T = \\frac{PV}{nR} \\propto PV",
+     "say": "이상 기체 상태 방정식에서 온도는 PV 에 비례한다.",
+     "uses": [
+      "I2.idealgas"
+     ]
+    },
+    {
+     "tex": "\\Delta U \\propto \\Delta(PV)",
+     "say": "P–V 그래프에서 PV 곱이 커지면 내부 에너지가 늘어난다. ΔU 는 처음과 나중 상태만 본다."
+    }
+   ],
+   "concepts": [
+    "I2-09",
+    "I2-10"
+   ],
+   "keys": [
+    "내부 에너지",
+    "온도"
+   ]
+  },
+  {
+   "id": "I2.gaswork",
+   "unit": "I2",
+   "name": "기체가 한 일",
+   "role": "derived",
+   "tex": "W = P\\Delta V",
+   "steps": [
+    {
+     "tex": "F = PA",
+     "say": "단면적 A 인 피스톤을 압력 P 인 기체가 미는 힘.",
+     "uses": [
+      "I2.pressure"
+     ]
+    },
+    {
+     "tex": "W = F\\Delta x = PA\\Delta x",
+     "say": "피스톤이 Δx 만큼 밀려날 때 기체가 한 일.",
+     "uses": [
+      "I2.work"
+     ]
+    },
+    {
+     "tex": "W = P\\Delta V",
+     "say": "AΔx 는 부피 변화 ΔV 다. 압력이 변하면 P–V 그래프 아래 넓이로 구한다."
+    }
+   ],
+   "calc": [
+    {
+     "tex": "W = \\int P\\,dV",
+     "say": "P–V 그래프 아래 넓이를 적분으로 쓴 것이다."
+    }
+   ],
+   "concepts": [
+    "I2-09"
+   ],
+   "keys": [
+    "P-V 그래프",
+    "팽창"
+   ]
+  },
+  {
+   "id": "I2.first",
+   "unit": "I2",
+   "name": "열역학 제1법칙",
+   "role": "basis",
+   "tex": "Q = \\Delta U + W",
+   "basis": {
+    "type": "법칙",
+    "what": "기체가 받은 열은 내부 에너지 증가와 기체가 바깥에 한 일로 나뉜다. 열까지 포함한 에너지 보존 법칙이다. 부호: 받은 열 Q > 0, 기체가 한 일 W > 0.",
+    "check": "줄의 실험(추가 한 일로 물의 온도가 오른다)에서 일과 열이 같은 에너지임을 확인했다. 모든 열기관·냉장고의 에너지 출입이 이 식을 따른다."
+   },
+   "concepts": [
+    "I2-09"
+   ],
+   "keys": [
+    "열역학",
+    "제1법칙",
+    "에너지 보존"
+   ]
+  },
+  {
+   "id": "I2.isobaric",
+   "unit": "I2",
+   "name": "등압 과정",
+   "role": "applied",
+   "tex": "Q = \\Delta U + P\\Delta V",
+   "steps": [
+    {
+     "tex": "W = P\\Delta V",
+     "say": "압력이 일정하면 기체가 한 일은 PΔV 다.",
+     "uses": [
+      "I2.first",
+      "I2.gaswork"
+     ]
+    },
+    {
+     "tex": "V \\uparrow \\;\\Rightarrow\\; T \\uparrow \\;\\Rightarrow\\; \\Delta U > 0",
+     "say": "압력이 같은 채 부피가 늘면 온도도 오른다. 받은 열이 내부 에너지 증가와 일로 나뉜다.",
+     "uses": [
+      "I2.UT"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-10"
+   ],
+   "keys": [
+    "등압",
+    "V-T 그래프"
+   ]
+  },
+  {
+   "id": "I2.isochoric",
+   "unit": "I2",
+   "name": "등적 과정",
+   "role": "applied",
+   "tex": "Q = \\Delta U",
+   "steps": [
+    {
+     "tex": "\\Delta V = 0 \\;\\Rightarrow\\; W = 0",
+     "say": "부피가 그대로면 기체는 일을 하지 않는다.",
+     "uses": [
+      "I2.gaswork"
+     ]
+    },
+    {
+     "tex": "Q = \\Delta U",
+     "say": "받은 열이 모두 내부 에너지(온도)를 올리는 데 쓰인다.",
+     "uses": [
+      "I2.first"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-10"
+   ],
+   "keys": [
+    "등적",
+    "P-T 그래프"
+   ]
+  },
+  {
+   "id": "I2.isothermal",
+   "unit": "I2",
+   "name": "등온 과정",
+   "role": "applied",
+   "tex": "Q = W",
+   "steps": [
+    {
+     "tex": "\\Delta T = 0 \\;\\Rightarrow\\; \\Delta U = 0",
+     "say": "온도가 그대로면 내부 에너지도 그대로다.",
+     "uses": [
+      "I2.UT"
+     ]
+    },
+    {
+     "tex": "Q = W",
+     "say": "받은 열이 모두 바깥에 한 일로 나간다.",
+     "uses": [
+      "I2.first"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-10"
+   ],
+   "keys": [
+    "등온"
+   ]
+  },
+  {
+   "id": "I2.adiabatic",
+   "unit": "I2",
+   "name": "단열 과정",
+   "role": "applied",
+   "tex": "\\Delta U = -W",
+   "steps": [
+    {
+     "tex": "Q = 0 \\;\\Rightarrow\\; 0 = \\Delta U + W",
+     "say": "열 출입이 없다.",
+     "uses": [
+      "I2.first"
+     ]
+    },
+    {
+     "tex": "\\Delta U = -W",
+     "say": "팽창하며 일을 하면(W > 0) 내부 에너지가 줄어 온도가 내려간다. 단열 팽창으로 구름이 생기는 까닭이다.",
+     "uses": [
+      "I2.UT"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-10"
+   ],
+   "keys": [
+    "단열",
+    "구름"
+   ]
+  },
+  {
+   "id": "I2.second",
+   "unit": "I2",
+   "name": "열역학 제2법칙",
+   "role": "basis",
+   "tex": "\\text{열}:\\ \\text{고온} \\longrightarrow \\text{저온 (저절로)}",
+   "basis": {
+    "type": "법칙",
+    "what": "자연 현상은 무질서도(엔트로피)가 커지는 방향으로 일어난다. 열은 저절로 고온에서 저온으로만 흐르고, 받은 열을 모두 일로 바꾸는 열기관은 없다.",
+    "check": "섞인 잉크가 저절로 나뉘지 않고, 뜨거운 물이 식기만 한다. 효율 100 % 인 열기관(제2종 영구 기관)은 아직 하나도 만들어지지 않았다."
+   },
+   "concepts": [
+    "I2-11"
+   ],
+   "keys": [
+    "제2법칙",
+    "엔트로피",
+    "비가역"
+   ]
+  },
+  {
+   "id": "I2.engineW",
+   "unit": "I2",
+   "name": "열기관이 한 일",
+   "role": "derived",
+   "tex": "W = Q_1 - Q_2",
+   "steps": [
+    {
+     "tex": "\\sum \\Delta U = 0",
+     "say": "열기관은 한 순환을 돌면 처음 상태로 돌아오므로 내부 에너지 변화의 합이 0 이다."
+    },
+    {
+     "tex": "\\sum Q = \\sum W",
+     "say": "각 과정의 Q = ΔU + W 를 한 순환 동안 더한다.",
+     "uses": [
+      "I2.first"
+     ]
+    },
+    {
+     "tex": "W = Q_1 - Q_2",
+     "say": "고열원에서 받은 열 Q₁ 에서 저열원으로 버린 열 Q₂ 를 뺀 만큼 일을 한다."
+    }
+   ],
+   "concepts": [
+    "I2-12"
+   ],
+   "keys": [
+    "열기관",
+    "순환"
+   ]
+  },
+  {
+   "id": "I2.eff",
+   "unit": "I2",
+   "name": "열효율",
+   "role": "derived",
+   "tex": "e = \\frac{W}{Q_1} = 1 - \\frac{Q_2}{Q_1}",
+   "steps": [
+    {
+     "tex": "e = \\frac{W}{Q_1}",
+     "say": "열효율은 받은 열 가운데 일로 바뀐 비율로 정한다. 분모는 받은 열만이다."
+    },
+    {
+     "tex": "e = \\frac{Q_1 - Q_2}{Q_1} = 1 - \\frac{Q_2}{Q_1}",
+     "say": "W = Q₁ − Q₂ 를 넣는다.",
+     "uses": [
+      "I2.engineW"
+     ]
+    },
+    {
+     "tex": "Q_2 > 0 \\;\\Rightarrow\\; e < 1",
+     "say": "열을 버리지 않는 열기관은 없으므로(제2법칙) 효율은 늘 1 보다 작다.",
+     "uses": [
+      "I2.second"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-12"
+   ],
+   "keys": [
+    "효율"
+   ]
+  },
+  {
+   "id": "I2.carnot",
+   "unit": "I2",
+   "name": "카르노 기관의 열효율",
+   "role": "applied",
+   "tex": "e_{\\text{카르노}} = 1 - \\frac{T_2}{T_1}",
+   "steps": [
+    {
+     "tex": "\\frac{Q_2}{Q_1} = \\frac{T_2}{T_1}",
+     "say": "가장 효율이 좋은 이상적인 열기관(카르노 기관)에서는 버린 열과 받은 열의 비가 두 열원의 절대 온도 비와 같다. 제2법칙에서 나오지만 증명은 고교 범위를 넘으므로 결과로 쓴다.",
+     "uses": [
+      "I2.second"
+     ]
+    },
+    {
+     "tex": "e = 1 - \\frac{T_2}{T_1}",
+     "say": "열효율 식에 넣는다. 실제 열기관의 효율은 이 값보다 작다.",
+     "uses": [
+      "I2.eff"
+     ]
+    }
+   ],
+   "concepts": [
+    "I2-12"
+   ],
+   "keys": [
+    "카르노",
+    "최대 효율"
+   ]
+  },
+  {
+   "id": "I3.galilean",
+   "unit": "I3",
+   "name": "고전 역학의 상대 속도",
+   "role": "derived",
+   "tex": "v_{AB} = v_B - v_A\\quad (v_A,\\,v_B \\ll c)",
+   "steps": [
+    {
+     "tex": "v_{AB} = v_B - v_A",
+     "say": "관찰자 A 가 본 B 의 속도 = (대상 B 의 속도) − (관찰자 A 의 속도). 힘과 운동 단원의 상대 속도와 같은 식이고, 여기서는 관찰자를 앞에 쓴다.",
+     "uses": [
+      "I1.relv"
+     ]
+    },
+    {
+     "say": "모든 관성계에서 시간과 길이가 같다고 보는 고전 역학의 전제에서 나온 식이다."
+    },
+    {
+     "say": "빛에 쓰면 관찰자마다 빛의 속력이 달라져야 하지만, 마이컬슨·몰리 실험에서는 차이가 없었다. 그래서 특수 상대성 이론이 필요해졌다."
+    }
+   ],
+   "concepts": [
+    "I3-01",
+    "I3-02"
+   ],
+   "keys": [
+    "관성계",
+    "갈릴레이 변환"
+   ]
+  },
+  {
+   "id": "I3.postulates",
+   "unit": "I3",
+   "name": "특수 상대성 이론의 두 가정",
+   "role": "basis",
+   "tex": "c = 3\\times 10^8\\,\\text{m/s}\\ \\ (\\text{모든 관성계에서 같다})",
+   "basis": {
+    "type": "원리",
+    "what": "가정 1(상대성 원리): 모든 관성계에서 물리 법칙은 같다. 가정 2(광속 불변 원리): 진공에서 빛의 속력은 관찰자나 광원의 운동과 관계없이 c 로 같다.",
+    "check": "마이컬슨·몰리 실험에서 지구의 운동 방향에 따른 빛의 속력 차이가 없었다. 이후 뮤온의 수명, GPS 위성 시계 보정 등이 이 가정에서 나온 예측과 맞는다."
+   },
+   "concepts": [
+    "I3-02",
+    "I3-03"
+   ],
+   "keys": [
+    "광속 불변",
+    "상대성 원리"
+   ]
+  },
+  {
+   "id": "I3.simul",
+   "unit": "I3",
+   "name": "동시성의 상대성",
+   "role": "derived",
+   "tex": "\\text{A 관성계에서 동시} \\;\\not\\Rightarrow\\; \\text{B 관성계에서 동시}",
+   "steps": [
+    {
+     "say": "움직이는 우주선 한가운데에서 앞뒤로 빛을 쏜다. 우주선 안에서는 두 빛이 같은 거리를 같은 속력 c 로 가므로 앞뒤 벽에 동시에 닿는다.",
+     "uses": [
+      "I3.postulates"
+     ]
+    },
+    {
+     "say": "밖에서 보아도 빛의 속력은 c 로 같다. 그런데 뒷벽은 빛을 맞으러 다가오고 앞벽은 빛에서 멀어진다."
+    },
+    {
+     "say": "그래서 밖에서는 뒷벽에 먼저 닿는다. 한 관성계에서 동시인 두 사건이 다른 관성계에서는 동시가 아니다."
+    }
+   ],
+   "concepts": [
+    "I3-04"
+   ],
+   "keys": [
+    "동시성"
+   ]
+  },
+  {
+   "id": "I3.lighttime",
+   "unit": "I3",
+   "name": "빛의 경로 길이로 시간 재기",
+   "role": "derived",
+   "tex": "t = \\frac{(\\text{그 관성계에서 빛의 경로 길이})}{c}",
+   "steps": [
+    {
+     "tex": "v_{\\text{빛}} = c",
+     "say": "어느 관성계에서 보아도 빛의 속력은 c 다.",
+     "uses": [
+      "I3.postulates"
+     ]
+    },
+    {
+     "tex": "t = \\frac{L}{c}",
+     "say": "등속 운동 s = vt 를 빛에 쓴다. 관성계마다 경로 길이 L 이 다르면 걸린 시간도 다르다.",
+     "uses": [
+      "I1.uniform"
+     ]
+    }
+   ],
+   "concepts": [
+    "I3-07"
+   ],
+   "keys": [
+    "빛 시계",
+    "경로 길이"
+   ]
+  },
+  {
+   "id": "I3.dilation",
+   "unit": "I3",
+   "name": "시간 지연 (시간 팽창)",
+   "role": "derived",
+   "tex": "t = \\gamma t_0,\\quad \\gamma = \\frac{1}{\\sqrt{1 - v^2/c^2}} \\geq 1",
+   "steps": [
+    {
+     "tex": "t_0 = \\frac{2d}{c}",
+     "say": "빛 시계: 우주선 안에서 빛이 높이 d 인 거울 사이를 한 번 왕복하는 시간(고유 시간).",
+     "uses": [
+      "I3.lighttime"
+     ]
+    },
+    {
+     "tex": "\\left(\\frac{ct}{2}\\right)^2 = d^2 + \\left(\\frac{vt}{2}\\right)^2",
+     "say": "밖에서 보면 우주선이 v 로 가는 동안 빛은 비스듬히 간다. 빛의 속력은 여전히 c 이므로 피타고라스 정리를 쓴다.",
+     "uses": [
+      "I3.postulates"
+     ]
+    },
+    {
+     "tex": "t^2\\,(c^2 - v^2) = c^2 t_0^2",
+     "say": "d = ct₀/2 를 넣고 정리한다."
+    },
+    {
+     "tex": "t = \\frac{t_0}{\\sqrt{1 - v^2/c^2}} = \\gamma t_0",
+     "say": "γ ≥ 1 이므로 움직이는 시계가 느리게 간다. 고유 시간 t₀ 가 가장 짧다."
+    }
+   ],
+   "concepts": [
+    "I3-05",
+    "I3-07"
+   ],
+   "keys": [
+    "시간 팽창",
+    "고유 시간",
+    "로런츠 인자",
+    "감마"
+   ]
+  },
+  {
+   "id": "I3.contraction",
+   "unit": "I3",
+   "name": "길이 수축",
+   "role": "derived",
+   "tex": "L = \\frac{L_0}{\\gamma} = L_0\\sqrt{1 - \\frac{v^2}{c^2}}",
+   "steps": [
+    {
+     "tex": "L_0 = vt",
+     "say": "지구에서 보면 뮤온은 거리 L₀(고유 길이)를 시간 t 동안 간다.",
+     "uses": [
+      "I1.uniform"
+     ]
+    },
+    {
+     "tex": "L = vt_0",
+     "say": "뮤온에서 보면 지구가 같은 상대 속력 v 로, 뮤온 자신의 시계로 잰 시간 t₀ 동안 지나간다."
+    },
+    {
+     "tex": "L = \\frac{vt}{\\gamma} = \\frac{L_0}{\\gamma}",
+     "say": "t = γt₀ 를 넣는다. 운동 방향의 길이만 줄어들고, 고유 길이가 가장 길다.",
+     "uses": [
+      "I3.dilation"
+     ]
+    }
+   ],
+   "concepts": [
+    "I3-06",
+    "I3-08"
+   ],
+   "keys": [
+    "길이 수축",
+    "고유 길이",
+    "뮤온"
+   ]
+  },
+  {
+   "id": "I3.massE",
+   "unit": "I3",
+   "name": "질량–에너지 동등성",
+   "role": "basis",
+   "tex": "E = mc^2",
+   "basis": {
+    "type": "원리",
+    "what": "질량은 에너지의 한 형태이고, 질량 m 에는 에너지 mc² 이 들어 있다. 아인슈타인이 특수 상대성 이론에서 이끌어 냈다(유도는 고교 범위 밖).",
+    "check": "핵반응에서 줄어든 질량만큼 에너지가 나온다(원자력 발전, 태양). 전자와 양전자가 만나 사라지면(쌍소멸) 질량이 감마선 에너지로 바뀐다."
+   },
+   "concepts": [
+    "I3-09",
+    "I3-10",
+    "I3-11"
+   ],
+   "keys": [
+    "아인슈타인",
+    "질량 에너지"
+   ]
+  },
+  {
+   "id": "I3.relmass",
+   "unit": "I3",
+   "name": "상대론적 질량",
+   "role": "derived",
+   "tex": "m = \\gamma m_0 = \\frac{m_0}{\\sqrt{1 - v^2/c^2}}",
+   "steps": [
+    {
+     "tex": "v < c",
+     "say": "빠르게 움직이는 물체에 같은 힘을 계속 주어도 속력은 c 에 다가갈 뿐 넘지 못한다."
+    },
+    {
+     "say": "운동량 보존이 모든 관성계에서 성립하려면(상대성 원리) 빠를수록 관성, 곧 질량이 커져야 한다.",
+     "uses": [
+      "I1.pcons",
+      "I3.postulates"
+     ]
+    },
+    {
+     "tex": "m = \\gamma m_0",
+     "say": "그 비율이 시간 지연과 같은 γ 다. 고교에서는 결과로 쓴다. v → c 이면 m → ∞ 라서 질량 있는 물체는 c 에 이를 수 없다.",
+     "uses": [
+      "I3.dilation"
+     ]
+    }
+   ],
+   "concepts": [
+    "I3-09"
+   ],
+   "keys": [
+    "정지 질량",
+    "상대론적 질량"
+   ]
+  },
+  {
+   "id": "I3.rest",
+   "unit": "I3",
+   "name": "정지 에너지",
+   "role": "derived",
+   "tex": "E_0 = m_0 c^2",
+   "steps": [
+    {
+     "tex": "E = mc^2 = \\gamma m_0 c^2",
+     "say": "움직이는 물체의 전체 에너지에 상대론적 질량을 넣는다.",
+     "uses": [
+      "I3.massE",
+      "I3.relmass"
+     ]
+    },
+    {
+     "tex": "E_0 = m_0 c^2",
+     "say": "정지(v = 0)하면 γ = 1 이다. 정지해 있어도 질량만큼 에너지를 가진다."
+    }
+   ],
+   "concepts": [
+    "I3-09"
+   ],
+   "keys": [
+    "정지 에너지"
+   ]
+  },
+  {
+   "id": "I3.defect",
+   "unit": "I3",
+   "name": "질량 결손과 핵에너지",
+   "role": "derived",
+   "tex": "E = \\Delta m\\,c^2",
+   "steps": [
+    {
+     "tex": "\\Delta m = (\\text{반응 전 질량의 합}) - (\\text{반응 후 질량의 합})",
+     "say": "핵반응 뒤 질량의 합이 조금 줄어든다. 줄어든 질량을 질량 결손이라 한다."
+    },
+    {
+     "tex": "E = \\Delta m\\,c^2",
+     "say": "질량도 에너지이므로, 에너지 보존에 따라 줄어든 질량만큼 에너지가 나온다.",
+     "uses": [
+      "I3.massE"
+     ]
+    }
+   ],
+   "concepts": [
+    "I3-10",
+    "I3-11",
+    "I3-14"
+   ],
+   "keys": [
+    "질량 결손",
+    "핵에너지"
+   ]
+  },
+  {
+   "id": "I3.nuclide",
+   "unit": "I3",
+   "name": "원자핵의 표기",
+   "role": "basis",
+   "tex": "{}^{A}_{Z}\\text{X},\\quad N = A - Z",
+   "basis": {
+    "type": "정의",
+    "what": "Z 는 양성자 수(원자 번호, 전하량), A 는 질량수(양성자 수 + 중성자 수)다. 중성자 수는 N = A − Z. 양성자 수가 같고 중성자 수가 다르면 동위 원소다.",
+    "check": "질량 분석기로 같은 원소의 동위 원소가 서로 다른 질량을 가진다는 것을 확인한다."
+   },
+   "concepts": [
+    "I3-12"
+   ],
+   "keys": [
+    "질량수",
+    "원자 번호",
+    "동위 원소"
+   ]
+  },
+  {
+   "id": "I3.nucCons",
+   "unit": "I3",
+   "name": "핵반응의 보존량",
+   "role": "basis",
+   "tex": "\\textstyle\\sum A_{\\text{전}} = \\sum A_{\\text{후}},\\quad \\sum Z_{\\text{전}} = \\sum Z_{\\text{후}}",
+   "basis": {
+    "type": "법칙",
+    "what": "핵반응 전후에 질량수(핵자 수)의 합과 전하량(양성자 수)의 합이 같다. 질량 자체는 보존되지 않는다(질량 결손).",
+    "check": "지금까지 관측된 모든 핵반응식에서 위 숫자의 합과 아래 숫자의 합이 맞는다."
+   },
+   "concepts": [
+    "I3-13"
+   ],
+   "keys": [
+    "핵반응식",
+    "질량수 보존",
+    "전하량 보존"
+   ]
+  },
+  {
+   "id": "I3.fission",
+   "unit": "I3",
+   "name": "우라늄 핵분열",
+   "role": "applied",
+   "tex": "{}^{235}_{92}\\text{U} + {}^{1}_{0}\\text{n} \\rightarrow {}^{141}_{56}\\text{Ba} + {}^{92}_{36}\\text{Kr} + 3\\,{}^{1}_{0}\\text{n}",
+   "steps": [
+    {
+     "tex": "235 + 1 = 141 + 92 + 3\\times 1 = 236",
+     "say": "질량수(위 숫자)의 합이 같다.",
+     "uses": [
+      "I3.nucCons",
+      "I3.nuclide"
+     ]
+    },
+    {
+     "tex": "92 + 0 = 56 + 36 = 92",
+     "say": "전하량(아래 숫자)의 합도 같다."
+    },
+    {
+     "say": "반응 뒤 질량이 조금 줄어들어(질량 결손) 그만큼 에너지(약 200 MeV)가 나온다. 원자력 발전의 원리다.",
+     "uses": [
+      "I3.defect"
+     ]
+    }
+   ],
+   "concepts": [
+    "I3-13"
+   ],
+   "keys": [
+    "핵분열",
+    "원자력"
+   ]
+  },
+  {
+   "id": "I3.fusion",
+   "unit": "I3",
+   "name": "중수소–삼중수소 핵융합",
+   "role": "applied",
+   "tex": "{}^{2}_{1}\\text{H} + {}^{3}_{1}\\text{H} \\rightarrow {}^{4}_{2}\\text{He} + {}^{1}_{0}\\text{n} + 17.6\\,\\text{MeV}",
+   "steps": [
+    {
+     "tex": "2 + 3 = 4 + 1,\\quad 1 + 1 = 2 + 0",
+     "say": "질량수와 전하량이 각각 보존된다.",
+     "uses": [
+      "I3.nucCons"
+     ]
+    },
+    {
+     "say": "가벼운 원자핵이 합쳐지며 질량이 줄어 17.6 MeV 의 에너지가 나온다.",
+     "uses": [
+      "I3.defect"
+     ]
+    }
+   ],
+   "concepts": [
+    "I3-13",
+    "I3-14"
+   ],
+   "keys": [
+    "핵융합"
+   ]
+  },
+  {
+   "id": "I3.sun",
+   "unit": "I3",
+   "name": "태양의 수소 핵융합",
+   "role": "applied",
+   "tex": "4\\,{}^{1}_{1}\\text{H} \\rightarrow {}^{4}_{2}\\text{He} + 2\\,{}^{0}_{+1}\\text{e} + \\text{에너지}",
+   "steps": [
+    {
+     "tex": "4 = 4 + 2\\times 0,\\quad 4 = 2 + 2\\times 1",
+     "say": "질량수와 전하량이 각각 보존된다(양전자의 전하량 +1).",
+     "uses": [
+      "I3.nucCons"
+     ]
+    },
+    {
+     "say": "수소 원자핵 4개보다 헬륨 원자핵 1개가 가벼워, 그 질량 결손이 태양 빛의 에너지가 된다. 태양의 질량은 조금씩 줄어든다.",
+     "uses": [
+      "I3.defect"
+     ]
+    }
+   ],
+   "concepts": [
+    "I3-14"
+   ],
+   "keys": [
+    "태양",
+    "핵융합"
+   ]
+  },
+  {
+   "id": "I3.betaPlus",
+   "unit": "I3",
+   "name": "양전자 방출과 쌍소멸 (PET)",
+   "role": "applied",
+   "tex": "{}^{18}_{9}\\text{F} \\rightarrow {}^{18}_{8}\\text{O} + {}^{0}_{+1}\\text{e}",
+   "steps": [
+    {
+     "tex": "18 = 18 + 0,\\quad 9 = 8 + 1",
+     "say": "질량수와 전하량이 각각 보존된다.",
+     "uses": [
+      "I3.nucCons"
+     ]
+    },
+    {
+     "say": "나온 양전자는 몸속 전자와 만나 쌍소멸하며 질량 전부가 감마선 에너지로 바뀐다. PET 는 이 감마선을 찍는다.",
+     "uses": [
+      "I3.massE"
+     ]
+    }
+   ],
+   "concepts": [
+    "I3-11"
+   ],
+   "keys": [
+    "PET",
+    "양전자",
+    "쌍소멸"
+   ]
+  }
+ ],
+ "edges": [
+  {
+   "from": "I1.vavg",
+   "to": "I1.uniform",
+   "kind": "special"
+  },
+  {
+   "from": "I1.accel",
+   "to": "I1.vt",
+   "kind": "def"
+  },
+  {
+   "from": "I1.vt",
+   "to": "I1.vbar",
+   "kind": "graph"
+  },
+  {
+   "from": "I1.vavg",
+   "to": "I1.vbar",
+   "kind": "def"
+  },
+  {
+   "from": "I1.vbar",
+   "to": "I1.st",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.vt",
+   "to": "I1.st",
+   "kind": "def"
+  },
+  {
+   "from": "I1.vt",
+   "to": "I1.v2",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.vbar",
+   "to": "I1.v2",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.st",
+   "to": "I1.dsat2",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.vt",
+   "to": "I1.dsat2",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.vavg",
+   "to": "I1.relv",
+   "kind": "def"
+  },
+  {
+   "from": "I1.relv",
+   "to": "I1.meet",
+   "kind": "def"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "I1.meet",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "I1.weight",
+   "kind": "special"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "I1.equil",
+   "kind": "special"
+  },
+  {
+   "from": "I1.newton1",
+   "to": "I1.equil",
+   "kind": "law"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "I1.sysacc",
+   "kind": "law"
+  },
+  {
+   "from": "I1.newton3",
+   "to": "I1.sysacc",
+   "kind": "law"
+  },
+  {
+   "from": "I1.sysacc",
+   "to": "I1.share",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "I1.share",
+   "kind": "law"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "I1.normal",
+   "kind": "law"
+  },
+  {
+   "from": "I1.weight",
+   "to": "I1.normal",
+   "kind": "def"
+  },
+  {
+   "from": "I1.sysacc",
+   "to": "I1.atwood",
+   "kind": "special"
+  },
+  {
+   "from": "I1.weight",
+   "to": "I1.atwood",
+   "kind": "def"
+  },
+  {
+   "from": "I1.atwood",
+   "to": "I1.atwoodT",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "I1.atwoodT",
+   "kind": "law"
+  },
+  {
+   "from": "I1.weight",
+   "to": "I1.atwoodT",
+   "kind": "def"
+  },
+  {
+   "from": "I1.sysacc",
+   "to": "I1.table",
+   "kind": "special"
+  },
+  {
+   "from": "I1.weight",
+   "to": "I1.table",
+   "kind": "def"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "I1.table",
+   "kind": "law"
+  },
+  {
+   "from": "I1.weight",
+   "to": "I1.incline",
+   "kind": "def"
+  },
+  {
+   "from": "I1.equil",
+   "to": "I1.incline",
+   "kind": "law"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "I1.incline",
+   "kind": "law"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "I1.cut",
+   "kind": "law"
+  },
+  {
+   "from": "I1.newton3",
+   "to": "I1.cut",
+   "kind": "law"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "I1.impulse",
+   "kind": "law"
+  },
+  {
+   "from": "I1.accel",
+   "to": "I1.impulse",
+   "kind": "def"
+  },
+  {
+   "from": "I1.momentum",
+   "to": "I1.impulse",
+   "kind": "def"
+  },
+  {
+   "from": "I1.impulse",
+   "to": "I1.avgF",
+   "kind": "def"
+  },
+  {
+   "from": "I1.newton3",
+   "to": "I1.pcons",
+   "kind": "law"
+  },
+  {
+   "from": "I1.impulse",
+   "to": "I1.pcons",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.pcons",
+   "to": "I1.stick",
+   "kind": "special"
+  },
+  {
+   "from": "I1.pcons",
+   "to": "I1.split",
+   "kind": "special"
+  },
+  {
+   "from": "I2.ek",
+   "to": "I1.elastic",
+   "kind": "def"
+  },
+  {
+   "from": "I1.pcons",
+   "to": "I1.elasticV",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.elastic",
+   "to": "I1.elasticV",
+   "kind": "combine"
+  },
+  {
+   "from": "I2.work",
+   "to": "I2.wke",
+   "kind": "def"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "I2.wke",
+   "kind": "law"
+  },
+  {
+   "from": "I1.v2",
+   "to": "I2.wke",
+   "kind": "combine"
+  },
+  {
+   "from": "I2.wke",
+   "to": "I2.ek",
+   "kind": "special"
+  },
+  {
+   "from": "I2.ek",
+   "to": "I2.ekp",
+   "kind": "def"
+  },
+  {
+   "from": "I1.momentum",
+   "to": "I2.ekp",
+   "kind": "def"
+  },
+  {
+   "from": "I1.weight",
+   "to": "I2.epg",
+   "kind": "def"
+  },
+  {
+   "from": "I1.equil",
+   "to": "I2.epg",
+   "kind": "law"
+  },
+  {
+   "from": "I2.work",
+   "to": "I2.epg",
+   "kind": "def"
+  },
+  {
+   "from": "I1.hooke",
+   "to": "I2.eps",
+   "kind": "def"
+  },
+  {
+   "from": "I2.work",
+   "to": "I2.eps",
+   "kind": "graph"
+  },
+  {
+   "from": "I2.epg",
+   "to": "I2.wcons",
+   "kind": "def"
+  },
+  {
+   "from": "I2.eps",
+   "to": "I2.wcons",
+   "kind": "def"
+  },
+  {
+   "from": "I2.wke",
+   "to": "I2.mcons",
+   "kind": "law"
+  },
+  {
+   "from": "I2.wcons",
+   "to": "I2.mcons",
+   "kind": "combine"
+  },
+  {
+   "from": "I2.mcons",
+   "to": "I2.mconsG",
+   "kind": "special"
+  },
+  {
+   "from": "I2.ek",
+   "to": "I2.mconsG",
+   "kind": "def"
+  },
+  {
+   "from": "I2.epg",
+   "to": "I2.mconsG",
+   "kind": "def"
+  },
+  {
+   "from": "I2.mconsG",
+   "to": "I2.fall",
+   "kind": "special"
+  },
+  {
+   "from": "I1.v2",
+   "to": "I2.fall",
+   "kind": "special"
+  },
+  {
+   "from": "I2.mcons",
+   "to": "I2.springE",
+   "kind": "special"
+  },
+  {
+   "from": "I2.eps",
+   "to": "I2.springE",
+   "kind": "def"
+  },
+  {
+   "from": "I2.ek",
+   "to": "I2.springE",
+   "kind": "def"
+  },
+  {
+   "from": "I1.equil",
+   "to": "I2.springEq",
+   "kind": "law"
+  },
+  {
+   "from": "I1.hooke",
+   "to": "I2.springEq",
+   "kind": "def"
+  },
+  {
+   "from": "I1.weight",
+   "to": "I2.springEq",
+   "kind": "def"
+  },
+  {
+   "from": "I2.wke",
+   "to": "I2.wnc",
+   "kind": "law"
+  },
+  {
+   "from": "I2.wcons",
+   "to": "I2.wnc",
+   "kind": "combine"
+  },
+  {
+   "from": "I2.work",
+   "to": "I2.friction",
+   "kind": "def"
+  },
+  {
+   "from": "I2.wnc",
+   "to": "I2.friction",
+   "kind": "special"
+  },
+  {
+   "from": "I2.friction",
+   "to": "I2.steady",
+   "kind": "special"
+  },
+  {
+   "from": "I2.epg",
+   "to": "I2.steady",
+   "kind": "def"
+  },
+  {
+   "from": "I2.ek",
+   "to": "I2.dEk",
+   "kind": "def"
+  },
+  {
+   "from": "I1.vbar",
+   "to": "I2.dEk",
+   "kind": "def"
+  },
+  {
+   "from": "I1.split",
+   "to": "I2.splitE",
+   "kind": "combine"
+  },
+  {
+   "from": "I2.ekp",
+   "to": "I2.splitE",
+   "kind": "def"
+  },
+  {
+   "from": "I2.mcons",
+   "to": "I2.springSplit",
+   "kind": "conserve"
+  },
+  {
+   "from": "I2.eps",
+   "to": "I2.springSplit",
+   "kind": "def"
+  },
+  {
+   "from": "I2.splitE",
+   "to": "I2.springSplit",
+   "kind": "combine"
+  },
+  {
+   "from": "I2.U",
+   "to": "I2.UT",
+   "kind": "def"
+  },
+  {
+   "from": "I2.idealgas",
+   "to": "I2.UT",
+   "kind": "law"
+  },
+  {
+   "from": "I2.pressure",
+   "to": "I2.gaswork",
+   "kind": "def"
+  },
+  {
+   "from": "I2.work",
+   "to": "I2.gaswork",
+   "kind": "def"
+  },
+  {
+   "from": "I2.first",
+   "to": "I2.isobaric",
+   "kind": "special"
+  },
+  {
+   "from": "I2.gaswork",
+   "to": "I2.isobaric",
+   "kind": "def"
+  },
+  {
+   "from": "I2.UT",
+   "to": "I2.isobaric",
+   "kind": "def"
+  },
+  {
+   "from": "I2.first",
+   "to": "I2.isochoric",
+   "kind": "special"
+  },
+  {
+   "from": "I2.gaswork",
+   "to": "I2.isochoric",
+   "kind": "def"
+  },
+  {
+   "from": "I2.first",
+   "to": "I2.isothermal",
+   "kind": "special"
+  },
+  {
+   "from": "I2.UT",
+   "to": "I2.isothermal",
+   "kind": "def"
+  },
+  {
+   "from": "I2.first",
+   "to": "I2.adiabatic",
+   "kind": "special"
+  },
+  {
+   "from": "I2.UT",
+   "to": "I2.adiabatic",
+   "kind": "def"
+  },
+  {
+   "from": "I2.first",
+   "to": "I2.engineW",
+   "kind": "law"
+  },
+  {
+   "from": "I2.engineW",
+   "to": "I2.eff",
+   "kind": "def"
+  },
+  {
+   "from": "I2.second",
+   "to": "I2.eff",
+   "kind": "law"
+  },
+  {
+   "from": "I2.eff",
+   "to": "I2.carnot",
+   "kind": "special"
+  },
+  {
+   "from": "I2.second",
+   "to": "I2.carnot",
+   "kind": "law"
+  },
+  {
+   "from": "I1.relv",
+   "to": "I3.galilean",
+   "kind": "def"
+  },
+  {
+   "from": "I3.postulates",
+   "to": "I3.simul",
+   "kind": "law"
+  },
+  {
+   "from": "I3.postulates",
+   "to": "I3.lighttime",
+   "kind": "law"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "I3.lighttime",
+   "kind": "def"
+  },
+  {
+   "from": "I3.lighttime",
+   "to": "I3.dilation",
+   "kind": "def"
+  },
+  {
+   "from": "I3.postulates",
+   "to": "I3.dilation",
+   "kind": "law"
+  },
+  {
+   "from": "I3.dilation",
+   "to": "I3.contraction",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "I3.contraction",
+   "kind": "def"
+  },
+  {
+   "from": "I1.pcons",
+   "to": "I3.relmass",
+   "kind": "law"
+  },
+  {
+   "from": "I3.postulates",
+   "to": "I3.relmass",
+   "kind": "law"
+  },
+  {
+   "from": "I3.dilation",
+   "to": "I3.relmass",
+   "kind": "combine"
+  },
+  {
+   "from": "I3.massE",
+   "to": "I3.rest",
+   "kind": "special"
+  },
+  {
+   "from": "I3.relmass",
+   "to": "I3.rest",
+   "kind": "def"
+  },
+  {
+   "from": "I3.massE",
+   "to": "I3.defect",
+   "kind": "conserve"
+  },
+  {
+   "from": "I3.nucCons",
+   "to": "I3.fission",
+   "kind": "conserve"
+  },
+  {
+   "from": "I3.nuclide",
+   "to": "I3.fission",
+   "kind": "def"
+  },
+  {
+   "from": "I3.defect",
+   "to": "I3.fission",
+   "kind": "law"
+  },
+  {
+   "from": "I3.nucCons",
+   "to": "I3.fusion",
+   "kind": "conserve"
+  },
+  {
+   "from": "I3.defect",
+   "to": "I3.fusion",
+   "kind": "law"
+  },
+  {
+   "from": "I3.nucCons",
+   "to": "I3.sun",
+   "kind": "conserve"
+  },
+  {
+   "from": "I3.defect",
+   "to": "I3.sun",
+   "kind": "law"
+  },
+  {
+   "from": "I3.nucCons",
+   "to": "I3.betaPlus",
+   "kind": "conserve"
+  },
+  {
+   "from": "I3.massE",
+   "to": "I3.betaPlus",
+   "kind": "law"
+  }
+ ]
+}
