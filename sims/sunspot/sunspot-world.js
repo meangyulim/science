@@ -86,6 +86,66 @@
     return new THREE.CanvasTexture(c);
   }
 
+  // ── 놀이터 소품 ───────────────────────────────────────────
+  let STAR_TEX = null;
+  function starTexture() {
+    if (STAR_TEX) return STAR_TEX;
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const x = c.getContext('2d');
+    const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, 'rgba(255,240,170,.9)'); g.addColorStop(0.35, 'rgba(255,210,90,.35)'); g.addColorStop(1, 'rgba(255,200,80,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+    x.beginPath();
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 15 : 36; x.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); }
+    x.closePath(); x.fillStyle = '#ffd43b'; x.fill(); x.lineWidth = 4; x.strokeStyle = '#fff3bf'; x.stroke();
+    x.fillStyle = '#5c3d00'; x.beginPath(); x.arc(56, 62, 3.2, 0, 7); x.arc(72, 62, 3.2, 0, 7); x.fill();
+    x.strokeStyle = '#5c3d00'; x.lineWidth = 2.5; x.beginPath(); x.arc(64, 66, 6, 0.2, Math.PI - 0.2); x.stroke();
+    STAR_TEX = new THREE.CanvasTexture(c);
+    return STAR_TEX;
+  }
+  // 아기 햇님이: 별 5개를 모으면 따라다니는 작은 태양
+  function petGeometry() {
+    const ps = [part(new THREE.IcosahedronGeometry(0.26, 1), '#ffc93c'),
+      part(new THREE.SphereGeometry(0.035, 6, 5), '#3b2400', [-0.08, 0.04, 0.24]),
+      part(new THREE.SphereGeometry(0.035, 6, 5), '#3b2400', [0.08, 0.04, 0.24]),
+      part(new THREE.SphereGeometry(0.04, 6, 5), '#ff8fa3', [-0.15, -0.04, 0.2], [0, 0, 0], [1, 0.6, 0.5]),
+      part(new THREE.SphereGeometry(0.04, 6, 5), '#ff8fa3', [0.15, -0.04, 0.2], [0, 0, 0], [1, 0.6, 0.5]),
+      part(new THREE.TorusGeometry(0.05, 0.014, 4, 8, Math.PI), '#3b2400', [0, -0.03, 0.245], [0, 0, Math.PI])];
+    return merge(ps);
+  }
+  function rayGeometry() {
+    const ps = [];
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; ps.push(part(new THREE.ConeGeometry(0.06, 0.16, 5), '#ff9f1a', [Math.cos(a) * 0.36, Math.sin(a) * 0.36, 0], [0, 0, a - Math.PI / 2])); }
+    return merge(ps);
+  }
+  function crownGeometry(color) {
+    const ps = [part(new THREE.CylinderGeometry(0.17, 0.17, 0.09, 12, 1, true), color)];
+    for (let i = 0; i < 5; i++) { const a = i * Math.PI * 2 / 5; ps.push(part(new THREE.ConeGeometry(0.05, 0.13, 4), color, [Math.cos(a) * 0.16, 0.1, Math.sin(a) * 0.16])); }
+    ps.push(part(new THREE.SphereGeometry(0.035, 6, 4), '#ff4d6d', [0, 0.02, 0.17]));
+    return merge(ps);
+  }
+  function snowmanGeometry(tc) {
+    return merge([
+      part(new THREE.SphereGeometry(0.5, 12, 9), '#ffffff', [0, 0.42, 0]),
+      part(new THREE.SphereGeometry(0.36, 12, 9), '#ffffff', [0, 1.06, 0]),
+      part(new THREE.SphereGeometry(0.27, 12, 9), '#ffffff', [0, 1.55, 0]),
+      part(new THREE.ConeGeometry(0.05, 0.3, 6), '#ff7a1a', [0, 1.55, 0.37], [Math.PI / 2, 0, 0]),
+      part(new THREE.SphereGeometry(0.035, 6, 4), '#1b1f27', [-0.09, 1.63, 0.23]),
+      part(new THREE.SphereGeometry(0.035, 6, 4), '#1b1f27', [0.09, 1.63, 0.23]),
+      part(new THREE.SphereGeometry(0.04, 6, 4), '#ff9fae', [-0.16, 1.52, 0.2], [0, 0, 0], [1, 0.6, 0.5]),
+      part(new THREE.SphereGeometry(0.04, 6, 4), '#ff9fae', [0.16, 1.52, 0.2], [0, 0, 0], [1, 0.6, 0.5]),
+      part(new THREE.TorusGeometry(0.27, 0.07, 6, 14), tc, [0, 1.3, 0], [Math.PI / 2, 0, 0]),
+      part(new THREE.BoxGeometry(0.1, 0.32, 0.04), tc, [0.14, 1.12, 0.28], [0.2, 0, 0.15]),
+      part(new THREE.SphereGeometry(0.04, 6, 4), '#1b1f27', [0, 1.05, 0.36]),
+      part(new THREE.SphereGeometry(0.04, 6, 4), '#1b1f27', [0, 0.85, 0.44]),
+      part(new THREE.CylinderGeometry(0.16, 0.2, 0.2, 10), tc, [0, 1.84, 0]),
+      part(new THREE.CylinderGeometry(0.26, 0.26, 0.03, 12), tc, [0, 1.75, 0]),
+      rod([-0.3, 1.1, 0], [-0.75, 1.4, 0.05], 0.025, '#6b4f3a'),
+      rod([0.3, 1.1, 0], [0.75, 1.35, -0.05], 0.025, '#6b4f3a')
+    ]);
+  }
+  const SB_V = 12, SB_VY = 4.2, SB_G = 11;   // 눈덩이: 앞으로 12 m/s, 위로 4.2 m/s, 중력 11 m/s²
+
   // ── 하늘 ────────────────────────────────────────────────
   const SKY_VS = `varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
   const SKY_FS = `
@@ -179,6 +239,8 @@
       this.camMode = this.mode === 'host' ? 'overview' : 'me';
       this.camPos = new THREE.Vector3(0, 12, 30); this.camLook = new THREE.Vector3(0, 4, -10);
       this.floaters = [];
+      this.balls = []; this.splashes = []; this.snowmen = new Map(); this.collect = new Map();
+      this.myPlay = null; this.camYaw = 0; this.onSnowHit = null; this.onHitMe = null;
       this.gold = false;
       this.podium = null;
       this.onFrame = null;
@@ -210,7 +272,8 @@
       this.mat = {
         solid: new THREE.MeshStandardMaterial({vertexColors: true, flatShading: true, roughness: 0.82, metalness: 0.04}),
         tube: new THREE.MeshStandardMaterial({vertexColors: true, flatShading: true, roughness: 0.55, metalness: 0.12}),
-        snow: new THREE.MeshStandardMaterial({color: 0xf3f7fc, flatShading: true, roughness: 0.95}),
+        snow: new THREE.MeshStandardMaterial({color: 0xf3f7fc, flatShading: true, roughness: 0.95, emissive: 0x334455}),
+        glow: new THREE.MeshBasicMaterial({vertexColors: true}),
         blob: new THREE.MeshBasicMaterial({map: glowTexture([[0, 'rgba(40,60,90,.38)'], [0.6, 'rgba(40,60,90,.12)'], [1, 'rgba(40,60,90,0)']]), transparent: true, depthWrite: false}),
         sunGlow: glowTexture([[0, 'rgba(255,255,245,1)'], [0.1, 'rgba(255,250,225,1)'], [0.16, 'rgba(255,225,150,.5)'], [0.4, 'rgba(255,190,110,.13)'], [1, 'rgba(255,170,90,0)']]),
         lamp: glowTexture([[0, 'rgba(255,230,170,1)'], [0.25, 'rgba(255,200,120,.5)'], [1, 'rgba(255,180,90,0)']])
@@ -218,7 +281,9 @@
       this.hemi = new THREE.HemisphereLight(0xe8f1ff, 0x9fb0c8, 0.95);
       this.dir = new THREE.DirectionalLight(0xfff0d8, 0.85);
       this.amb = new THREE.AmbientLight(0xffffff, 0.12);
-      this.scene.add(this.hemi, this.dir, this.amb);
+      // 놀이터에서 내 캐릭터를 따라다니는 따뜻한 등불(밤에도 잘 보이게)
+      this.lantern = new THREE.PointLight(0xffd9a0, 0, 14, 1.4);
+      this.scene.add(this.hemi, this.dir, this.amb, this.lantern);
       this.scene.fog = new THREE.Fog(0xd5e3f2, 70, 340);
     }
 
@@ -514,6 +579,7 @@
       const list = Object.entries(players || {}).filter(([, p]) => p && p.name)
         .sort((a, b) => ((a[1].team || 0) - (b[1].team || 0)) || ((a[1].joined || 0) - (b[1].joined || 0)) || (a[0] < b[0] ? -1 : 1));
       const seen = new Set(), count = [0, 0, 0, 0];
+      const ranks = list.filter(([, p]) => (p.sc || p.best)).sort((a, b) => Math.max(b[1].sc || 0, b[1].best || 0) - Math.max(a[1].sc || 0, a[1].best || 0)).map(([id]) => id);
       for (const [id, p] of list) {
         seen.add(id);
         const team = clamp(p.team | 0, 0, 3);
@@ -524,6 +590,7 @@
           rec.rig.position.copy(this.slotPos(team, count[team]));
           rec.az = rec.tAz = p.az != null ? p.az : 150; rec.alt = rec.tAlt = p.alt != null ? p.alt : 10;
           rec.lastEm = p.em ? p.em.t : 0; rec.lastEv = p.ev ? p.ev.t : 0;
+          rec.lastSb = p.sb ? p.sb.t : 0; rec.lastJ = p.pl && p.pl.j ? p.pl.j : 0;
           this.scene.add(rec.rig);
           this.players.set(id, rec);
           if (rec.isMe && this.myPlate) this.attachPlate(rec);
@@ -541,13 +608,85 @@
           rec.st = p.st;
         }
         this.tagTexture(Object.assign({}, p, {icon: this.mode === 'host' && M.STAGES[p.st] && p.st !== 'lobby' ? M.STAGES[p.st].icon : ''}), rec);
-        if (p.em && p.em.t !== rec.lastEm) { rec.lastEm = p.em.t; this.float(rec, emojiTexture(p.em.e), 1.0); }
+        if (p.em && p.em.t !== rec.lastEm) { rec.lastEm = p.em.t; this.float(rec, emojiTexture(p.em.e), 1.0); rec.jump = 1; }
+        // 놀이터: 걸어 다니는 자리(pl), 눈덩이(sb), 아기 햇님이(pet), 왕관(순위)
+        rec.play = p.pl && typeof p.pl === 'object' && p.pl.x != null ? p.pl : null;
+        if (rec.play && rec.play.j && rec.play.j !== rec.lastJ) { rec.lastJ = rec.play.j; rec.pj = 1; }
+        if (p.sb && p.sb.t !== rec.lastSb) { rec.lastSb = p.sb.t; if (!rec.isMe) this.throwSnowball({x: p.sb.x, z: p.sb.z, h: p.sb.h, owner: id}); }
+        rec.petOn = !!p.pet;
+        rec.rank = ranks.indexOf(id) + 1;
         if (p.ev && p.ev.t !== rec.lastEv) { rec.lastEv = p.ev.t; if (p.ev.pop) this.float(rec, textTexture(p.ev.pop, p.ev.c || '#ffd43b'), 1.6, 0.4); }
       }
       for (const [id, rec] of this.players) if (!seen.has(id)) { this.scene.remove(rec.rig); this.players.delete(id); }
     }
     // 내 망원경은 서버를 거치지 않고 바로 움직인다
     setMyAim(az, alt) { this.myAim = {az, alt}; }
+    // ── 놀이터 ──────────────────────────────────────────────
+    setMyPlay(pl) { this.myPlay = pl; }
+    setCamYaw(y) { this.camYaw = y; }
+    myHome() { const r = this.players.get(this.meId); return r ? r.rig.position.clone() : new THREE.Vector3(0, 0, 4); }
+    avatarPos(rec) { const v = new THREE.Vector3(); rec.av.getWorldPosition(v); return v; }
+    // 부딪히는 것들(원): 망원경, 제자리 캐릭터, 눈사람, 장식
+    obstacles() {
+      const out = [{x: 1.5, z: -5.5, r: 1.0}, {x: -38, z: 4, r: 6.6}];
+      [[-31, -7], [31, -7], [-31, 16], [31, 16], [-7, 29], [7, 29]].forEach(([x, z]) => out.push({x, z, r: 0.35}));
+      for (const rec of this.players.values()) {
+        out.push({x: rec.rig.position.x, z: rec.rig.position.z, r: 0.65});
+        if (!rec.isMe && !rec.play) out.push({x: rec.rig.position.x - 1, z: rec.rig.position.z + 0.5, r: 0.4});
+      }
+      for (const m of this.snowmen.values()) out.push({x: m.position.x, z: m.position.z, r: 0.55 * m.userData.s});
+      if (this.podium) [-1.9, 0, 1.9].forEach(x => out.push({x, z: 24, r: 1.0}));
+      return out;
+    }
+    throwSnowball({x, z, h, owner}) {
+      const m = new THREE.Mesh(this._ballGeo || (this._ballGeo = new THREE.SphereGeometry(0.13, 10, 8)), this.mat.snow);
+      const dir = new THREE.Vector3(Math.sin(h), 0, Math.cos(h));
+      const p0 = new THREE.Vector3(x + dir.x * 0.5, 1.45, z + dir.z * 0.5);
+      m.position.copy(p0);
+      this.scene.add(m);
+      this.balls.push({m, p0, dir, t: 0, owner});
+    }
+    splash(pos, n = 14) {
+      const g = new THREE.BufferGeometry(), arr = new Float32Array(n * 3), vel = [];
+      for (let i = 0; i < n; i++) { arr[i * 3] = pos.x; arr[i * 3 + 1] = Math.max(0.1, pos.y); arr[i * 3 + 2] = pos.z; vel.push([(Math.random() - 0.5) * 3, Math.random() * 3 + 1, (Math.random() - 0.5) * 3]); }
+      g.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+      const pts = new THREE.Points(g, new THREE.PointsMaterial({color: 0xffffff, size: 0.11, transparent: true}));
+      this.scene.add(pts);
+      this.splashes.push({pts, vel, t: 0});
+    }
+    // 학생들이 만든 눈사람 (오늘 관측소 전체)
+    setSnowmen(list) {
+      if (!this.ok) return;
+      const keep = new Set();
+      list.forEach(sm => {
+        keep.add(sm.key);
+        if (this.snowmen.has(sm.key)) return;
+        const tc = M.TEAMS[sm.team] ? M.TEAMS[sm.team].color : '#8a96a3';
+        if (!this._smGeo) this._smGeo = {};
+        const geo = this._smGeo[tc] || (this._smGeo[tc] = snowmanGeometry(tc));
+        const m = new THREE.Mesh(geo, this.mat.solid);
+        m.position.set(sm.x, 0.05, sm.z); m.rotation.y = sm.h || 0;
+        m.userData = {s: sm.s || 1, born: this.t};
+        m.scale.setScalar(0.01);
+        this.scene.add(m);
+        this.snowmen.set(sm.key, m);
+      });
+      for (const [k, m] of this.snowmen) if (!keep.has(k)) { this.scene.remove(m); this.snowmen.delete(k); }
+    }
+    // 모으는 별 (내 화면에만)
+    addStar(id, x, z) {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({map: starTexture(), transparent: true, depthWrite: false}));
+      s.position.set(x, 1.1, z); s.scale.set(1.1, 1.1, 1);
+      s.userData = {ph: Math.random() * 6, born: this.t};
+      this.scene.add(s); this.collect.set(id, s);
+    }
+    removeStar(id) {
+      const s = this.collect.get(id);
+      if (!s) return;
+      this.collect.delete(id);
+      this.splash(s.position, 10);
+      this.floaters.push({s, base: s.position.clone(), t: 0, scale: 1.3, aspect: 1});
+    }
     setMyPlate(canvas) {
       this.myPlate = new THREE.CanvasTexture(canvas);
       this.myPlate.minFilter = THREE.LinearFilter; this.myPlate.generateMipmaps = false;
@@ -560,7 +699,7 @@
     float(rec, tex, scale = 1, y0 = 0) {
       const s = new THREE.Sprite(new THREE.SpriteMaterial({map: tex, transparent: true, depthWrite: false, depthTest: false}));
       s.renderOrder = 6;
-      const base = rec.rig.position.clone().add(new THREE.Vector3(-0.6, 2.8 + y0, 0.4));
+      const base = this.avatarPos(rec).add(new THREE.Vector3(0.3, 2.6 + y0, 0));
       s.position.copy(base);
       this.scene.add(s);
       this.floaters.push({s, base, t: 0, scale, aspect: tex.image ? tex.image.width / tex.image.height : 1});
@@ -635,7 +774,9 @@
       this.sunSprite.visible = n < 0.98;
       this.dir.position.set(sd[0] * 50, sd[1] * 50, sd[2] * 50);
       this.dir.intensity = lerp(0.85, 0.08, n);
-      this.hemi.intensity = lerp(0.95, 0.42, n);
+      this.hemi.intensity = lerp(0.95, this.myPlay ? 0.78 : 0.42, n);
+      if (this.myPlay) { this.lantern.position.set(this.myPlay.x, 2.6 + (this.myPlay.y || 0), this.myPlay.z); this.lantern.intensity = 0.4 + 1.4 * n; }
+      else this.lantern.intensity = 0;
       this.hemi.color.setRGB(lerp(0.91, 0.42 + 0.2 * this.aur, n), lerp(0.95, 0.5 + 0.25 * this.aur, n), lerp(1, 0.85, n));
       this.hemi.groundColor.setRGB(lerp(0.62, 0.12, n), lerp(0.69, 0.16, n), lerp(0.78, 0.3, n));
       this.scene.fog.color.setRGB(lerp(0.835, 0.04, n), lerp(0.89, 0.07, n), lerp(0.95, 0.15, n));
@@ -671,11 +812,111 @@
         const j = rec.jump > 0 ? Math.sin((1 - rec.jump) * Math.PI) : 0;
         rec.body.position.y = 0.03 * Math.sin(t * 2.2 + rec.phase) + j * 0.55;
         rec.body.rotation.y = j * Math.PI * 2 * (1 - rec.jump);
-        // 바라보는 쪽: 낮에는 투영판(망원경) 쪽으로 반쯤, 밤에는 북쪽 하늘
-        const face = n > 0.5 ? 0 : (rec.st === 'lobby' || rec.st === 'done1' || rec.st === 'done2' ? 0.35 : 1.25);
-        rec.av.rotation.y = damp(rec.av.rotation.y, face, 3, dt);
-        rec.head.rotation.x = n > 0.5 ? -0.45 : (rec.off ? 0.4 : 0);
+        // 놀이터에서 걸어 다니는 중이면 그 자리로, 아니면 망원경 옆 제자리
+        const pl = rec.isMe ? this.myPlay : rec.play, R = rec.rig.position;
+        const big = this.mode === 'host' ? 1.6 : 1;
+        if (pl) {
+          if (!rec.pp) { const a = this.avatarPos(rec); rec.pp = {x: a.x, z: a.z, h: rec.av.rotation.y, walk: 0}; }
+          const ox = rec.pp.x, oz = rec.pp.z;
+          if (rec.isMe) { rec.pp.x = pl.x; rec.pp.z = pl.z; rec.pp.h = pl.h; }
+          else { rec.pp.x = damp(rec.pp.x, pl.x, 7, dt); rec.pp.z = damp(rec.pp.z, pl.z, 7, dt); rec.pp.h = rec.pp.h + ((((pl.h - rec.pp.h) % (Math.PI * 2)) + Math.PI * 3) % (Math.PI * 2) - Math.PI) * (1 - Math.exp(-8 * dt)); }
+          const sp = Math.hypot(rec.pp.x - ox, rec.pp.z - oz) / Math.max(dt, 1e-3);
+          rec.pp.walk = damp(rec.pp.walk, clamp(sp / 3, 0, 1), 10, dt);
+          if (rec.pj > 0) rec.pj = Math.max(0, rec.pj - dt * 1.6);
+          const jy = rec.isMe ? (pl.y || 0) : (rec.pj > 0 ? Math.sin((1 - rec.pj) * Math.PI) * 1.1 : 0);
+          rec.av.position.set(rec.pp.x - R.x, 0.18 + jy, rec.pp.z - R.z);
+          rec.av.rotation.y = rec.pp.h;
+          const w = rec.pp.walk;
+          rec.body.rotation.z = Math.sin(t * 13) * 0.17 * w;
+          rec.body.position.y += Math.abs(Math.sin(t * 13)) * 0.09 * w;
+          rec.tag.position.set(rec.av.position.x, rec.av.position.y + 2.05 + (big - 1) * 0.6, rec.av.position.z);
+        } else {
+          if (rec.pp) { rec.pp = null; rec.av.position.set(-1.0, 0.18, 0.5); rec.tag.position.set(-0.5, 2.25 + (big - 1) * 0.6, 0.4); }
+          rec.body.rotation.z = 0;
+          // 바라보는 쪽: 낮에는 투영판(망원경) 쪽으로 반쯤, 밤에는 북쪽 하늘
+          const face = n > 0.5 ? 0 : (rec.st === 'lobby' || rec.st === 'done1' || rec.st === 'done2' ? 0.35 : 1.25);
+          rec.av.rotation.y = damp(rec.av.rotation.y, face, 3, dt);
+        }
+        // 눈덩이에 맞으면 어질어질
+        if (rec.hitT != null && t - rec.hitT < 1.2) rec.body.rotation.z += Math.sin(t * 28) * 0.28 * (1 - (t - rec.hitT) / 1.2);
+        rec.head.rotation.x = pl ? 0 : (n > 0.5 ? -0.45 : (rec.off ? 0.4 : 0));
         rec.av.scale.setScalar(rec.off ? 0.85 : 1);
+        // 순위 왕관 (1~3등)
+        if (rec.rank && rec.rank <= 3) {
+          const col = ['#ffd43b', '#dee2e6', '#e8a46a'][rec.rank - 1];
+          if (!rec.crown || rec.crownCol !== col) {
+            if (rec.crown) rec.head.remove(rec.crown);
+            if (!this._crownGeo) this._crownGeo = {};
+            rec.crown = new THREE.Mesh(this._crownGeo[col] || (this._crownGeo[col] = crownGeometry(col)), this.mat.tube);
+            rec.crown.position.set(0, 0.4, -0.02); rec.crown.rotation.x = -0.12; rec.crownCol = col;
+            rec.head.add(rec.crown);
+          }
+          rec.crown.visible = true;
+          rec.crown.rotation.y = t * 0.8;
+        } else if (rec.crown) rec.crown.visible = false;
+        // 아기 햇님이
+        if (rec.petOn) {
+          if (!rec.pet) {
+            rec.pet = new THREE.Group();
+            rec.pet.add(new THREE.Mesh(this._petGeo || (this._petGeo = petGeometry()), this.mat.glow));
+            rec.petRays = new THREE.Mesh(this._rayGeo || (this._rayGeo = rayGeometry()), this.mat.glow);
+            rec.pet.add(rec.petRays);
+            const glow = new THREE.Sprite(new THREE.SpriteMaterial({map: this.mat.lamp, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.6}));
+            glow.scale.set(1.3, 1.3, 1); rec.pet.add(glow);
+            const a = this.avatarPos(rec); rec.pet.position.set(a.x, 2, a.z);
+            this.scene.add(rec.pet);
+          }
+          const a = this.avatarPos(rec), hh = rec.av.rotation.y;
+          const tx = a.x - Math.sin(hh) * 0.6 + Math.cos(hh) * 0.75, tz = a.z - Math.cos(hh) * 0.6 - Math.sin(hh) * 0.75;
+          rec.pet.position.x = damp(rec.pet.position.x, tx, 4, dt);
+          rec.pet.position.z = damp(rec.pet.position.z, tz, 4, dt);
+          rec.pet.position.y = damp(rec.pet.position.y, a.y + 1.75 + Math.sin(t * 3 + rec.phase) * 0.15, 4, dt);
+          rec.pet.rotation.y = hh;
+          rec.petRays.rotation.z = t * 1.5;
+        } else if (rec.pet) { this.scene.remove(rec.pet); rec.pet = null; }
+      }
+      // 눈덩이
+      this.balls = this.balls.filter(b => {
+        b.t += dt;
+        const p = b.p0.clone().addScaledVector(b.dir, SB_V * b.t);
+        p.y = b.p0.y + SB_VY * b.t - 0.5 * SB_G * b.t * b.t;
+        b.m.position.copy(p);
+        for (const rec of this.players.values()) {
+          if (rec.id === b.owner) continue;
+          const a = this.avatarPos(rec);
+          if (Math.hypot(a.x - p.x, a.z - p.z) < 0.55 && p.y > a.y + 0.1 && p.y < a.y + 1.7) {
+            rec.hitT = this.t;
+            this.float(rec, emojiTexture('💫'), 0.9);
+            this.splash(p);
+            if (b.owner === this.meId && this.onSnowHit) this.onSnowHit(rec.id);
+            if (rec.isMe && this.onHitMe) this.onHitMe(b.owner);
+            this.scene.remove(b.m); return false;
+          }
+        }
+        if (p.y < 0.08 || b.t > 2.5) { this.splash(p); this.scene.remove(b.m); return false; }
+        return true;
+      });
+      this.splashes = this.splashes.filter(sp => {
+        sp.t += dt;
+        const pa = sp.pts.geometry.attributes.position;
+        for (let i = 0; i < pa.count; i++) {
+          pa.array[i * 3] += sp.vel[i][0] * dt; pa.array[i * 3 + 2] += sp.vel[i][2] * dt;
+          sp.vel[i][1] -= 9 * dt; pa.array[i * 3 + 1] = Math.max(0.05, pa.array[i * 3 + 1] + sp.vel[i][1] * dt);
+        }
+        pa.needsUpdate = true;
+        sp.pts.material.opacity = 1 - sp.t / 0.7;
+        if (sp.t > 0.7) { this.scene.remove(sp.pts); sp.pts.geometry.dispose(); return false; }
+        return true;
+      });
+      for (const m of this.snowmen.values()) {
+        const k = clamp((t - m.userData.born) / 0.6, 0, 1), e = k < 1 ? 1 + Math.sin(k * Math.PI) * 0.25 : 1;
+        m.scale.setScalar(Math.max(0.01, k) * e * m.userData.s);
+      }
+      for (const s of this.collect.values()) {
+        s.position.y = 1.1 + Math.sin(t * 2.5 + s.userData.ph) * 0.2;
+        s.material.rotation = Math.sin(t * 2 + s.userData.ph) * 0.4;
+        const k = clamp((t - s.userData.born) / 0.4, 0, 1);
+        s.scale.setScalar(1.1 * k);
       }
       // 떠오르는 이모지·글자
       this.floaters = this.floaters.filter(f => {
@@ -710,7 +951,13 @@
     updateCamera(dt) {
       const t = this.t, me = this.players.get(this.meId);
       let pos, look;
-      if (this.camMode === 'podium' && this.podium) {
+      let k1 = 2.6, k2 = 3.2;
+      if (this.camMode === 'play' && this.myPlay) {
+        const pl = this.myPlay, f = [Math.sin(this.camYaw), Math.cos(this.camYaw)], dist = this.w / this.h < 0.9 ? 7 : 5.8;
+        pos = new THREE.Vector3(pl.x - f[0] * dist, 3.3 + (pl.y || 0) * 0.4, pl.z - f[1] * dist);
+        look = new THREE.Vector3(pl.x + f[0] * 2, 1.4 + (pl.y || 0) * 0.5, pl.z + f[1] * 2);
+        k1 = 7; k2 = 9;
+      } else if (this.camMode === 'podium' && this.podium) {
         pos = new THREE.Vector3(Math.sin(t * 0.2) * 1.2, 3.6, 15.5); look = new THREE.Vector3(0, 3.6, 30);
       } else if (this.camMode === 'north') {
         const base = me && this.mode !== 'host' ? me.rig.position : new THREE.Vector3(0, 0, -6);
@@ -728,8 +975,8 @@
         const sway = Math.sin(t * 0.06) * 3;
         pos = new THREE.Vector3(sway - 4, 11.5, 29); look = new THREE.Vector3(sway * 0.3 - 7, 13.4, -16);
       }
-      this.camPos.lerp(pos, 1 - Math.exp(-2.6 * dt));
-      this.camLook.lerp(look, 1 - Math.exp(-3.2 * dt));
+      this.camPos.lerp(pos, 1 - Math.exp(-k1 * dt));
+      this.camLook.lerp(look, 1 - Math.exp(-k2 * dt));
       this.camera.position.copy(this.camPos);
       this.camera.lookAt(this.camLook);
     }

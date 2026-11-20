@@ -202,6 +202,12 @@
       else if (kind === 'alarm') for (let i = 0; i < 4; i++) { this.tone(880, 0.22, 'sawtooth', 0.09, i * 0.42); this.tone(587, 0.2, 'sawtooth', 0.09, i * 0.42 + 0.21); }
       else if (kind === 'emoji') this.tone(990, 0.07, 'sine', 0.06);
       else if (kind === 'whoosh') this.tone(300, 0.5, 'sine', 0.08, 0, 3);
+      else if (kind === 'step') this.tone(120 + Math.random() * 40, 0.05, 'triangle', 0.05);
+      else if (kind === 'throw') this.tone(500, 0.18, 'sine', 0.07, 0, 2.2);
+      else if (kind === 'splat') { this.tone(240, 0.12, 'square', 0.05, 0, 0.5); this.tone(880, 0.08, 'triangle', 0.08, 0.05); }
+      else if (kind === 'star') [1175, 1397, 1760].forEach((f, i) => this.tone(f, 0.12, 'triangle', 0.12, i * 0.06));
+      else if (kind === 'pop') { this.tone(420, 0.1, 'sine', 0.14, 0, 1.8); this.tone(980, 0.12, 'triangle', 0.1, 0.08); }
+      else if (kind === 'jump') this.tone(380, 0.16, 'sine', 0.08, 0, 1.9);
     }
   };
   const Wake = {
@@ -249,7 +255,8 @@
     find: ['⭐ 내 흑점 추적', '투명 용지의 <b>★</b>은 지난번에 기록한 흑점. 오늘은 어디 있을까요? 흑점은 <b>같은 위도를 따라 서쪽(W)</b>으로 움직여요.'],
     done2: ['✅ 자전 주기 측정 끝!', '반 친구들이 잰 값도 모아서 볼까요?'],
     flare: ['⚡ 플레어 경보!', 'Hα 필터로 바꿨어요. 흑점 무리 근처에서 <b>갑자기 하얗게 밝아지는 곳</b>을 찾아 누르세요!'],
-    night: ['🌌 그날 밤…', '플레어 때 뿜어져 나온 물질이 지구에 도착했어요. 북쪽 하늘을 보세요!']
+    night: ['🌌 그날 밤…', '플레어 때 뿜어져 나온 물질이 지구에 도착했어요. 북쪽 하늘을 보세요!'],
+    play: ['⛄ 눈밭 놀이터', '']
   };
 
   function toast(text, ms = 1800) {
@@ -342,7 +349,11 @@
     const paintSnd = () => { snd.textContent = Sound.on ? '🔊' : '🔈'; snd.setAttribute('aria-pressed', String(Sound.on)); };
     paintSnd();
     snd.onclick = () => { Sound.on = !Sound.on; setPref('sound', Sound.on); paintSnd(); Sound.unlock(); };
-    bind3DDrag(); bindBoard(); bindKeys();
+    bind3DDrag(); bindBoard(); bindKeys(); bindPlayTouch();
+    if (S.world) {
+      S.world.onSnowHit = id => { PL.hits++; paintPlayHud(); Sound.play('splat'); const p = S.players[id]; toast(`❄️ 명중! ${p ? p.name : ''}`, 1200); };
+      S.world.onHitMe = owner => { Sound.play('splat'); buzz([40, 30, 40]); const p = S.players[owner]; toast(`앗 차가워! ${p ? p.name + '의 눈덩이' : ''} 💫`, 1500); };
+    }
     $('dir-arrows').onclick = e => { const b = e.target.closest('button[data-dir]'); if (b) chooseDir(b.dataset.dir); };
     addEventListener('resize', layout);
     layout();
@@ -429,6 +440,7 @@
     let last = null;
     wrap.addEventListener('pointerdown', e => {
       if (e.target.closest('button')) return;
+      if (S.stage === 'play') return;
       last = {x: e.clientX, y: e.clientY, id: e.pointerId};
       try { wrap.setPointerCapture(e.pointerId); } catch (x) { /* 괜찮다 */ }
       Sound.unlock();
@@ -489,8 +501,10 @@
     S.tel.alt = clamp(S.tel.alt + dy * k, 0, 85);
   }
   function bindKeys() {
+    addEventListener('keyup', e => { if (S.stage === 'play') playKey(e, false); });
     addEventListener('keydown', e => {
       if (document.body.dataset.screen !== 'student' || e.target.closest('input,select,textarea')) return;
+      if (S.stage === 'play') { playKey(e, true); return; }
       const big = e.shiftKey ? 10 : 1;
       const k = {ArrowLeft: [-4, 0], ArrowRight: [4, 0], ArrowUp: [0, -4], ArrowDown: [0, 4]}[e.key];
       if (k && canSlew()) { e.preventDefault(); nudgeImage(k[0] * big, k[1] * big); }
@@ -835,16 +849,205 @@
       <p>지금 접속한 ${list.length}명 중 <b class="big-num">${rank || '-'}</b>위 · <b>${S.score}</b>점</p>
       <p class="small">모둠 순위: ${teams.map((x, i) => `${i + 1}. ${x.t.icon} ${x.t.name} ${Math.round(x.avg)}`).join(' · ')}</p>
       <p class="fact"><b>오로라</b>는 태양에서 날아온 전기를 띤 입자가 지구 자기장을 따라 극지방 대기로 들어와 빛을 내는 현상이에요. 2024년 5월 강한 태양 폭풍 때는 <b>우리나라에서도 붉은 오로라</b>가 사진에 찍혔어요.</p>
-      <button class="primary big" id="again">🔁 한 번 더 관측하기 (최고 점수는 남아요)</button><button class="ghost" data-close>오로라 구경하기</button>`, null, true);
+      <button class="primary big" id="go-play">⛄ 눈밭 놀이터로! (눈싸움·눈사람·별 모으기)</button>
+      <button class="btn-sun" id="again">🔁 한 번 더 관측하기 (최고 점수는 남아요)</button>`, null, true);
+    $('go-play').onclick = () => { hideOverlay(); enterPlay(); };
     $('again').onclick = () => { hideOverlay(); restartRun(); };
   }
   function restartRun() {
+    exitPlay();
     S.best = Math.max(S.best, S.score);
     S.score = 0; $('st-score').textContent = '0';
     send({best: S.best, sc: 0, hits: 0, mk: null, d1: null, rot: null, fl: null, al: false, cap: false, skT: null});
     if (S.world) { S.world.setNight(0); S.world.setAurora(0); S.world.hidePodium(); S.world.setCamera('me'); }
     resetLocal();
     setStage('prep');
+  }
+
+  // ── 눈밭 놀이터 (관측을 다 끝내면 열린다) ─────────────────────────────
+  // 내 캐릭터로 걸어 다니며 친구에게 눈덩이를 던지고, 눈사람을 만들고(오늘 관측소에 남는다),
+  // 별을 5개 모으면 아기 햇님이가 따라다닌다.
+  const PL = {x: 0, z: 0, h: 0, y: 0, vy: 0, yaw: 0, joy: null, look: null, keys: {}, stars: new Map(), starSeq: 0, got: 0,
+    sm: [], lastSend: 0, sent: null, lastThrow: 0, lastBuild: 0, stepT: 0, jumpT: 0, hits: 0};
+  const STAR_GOAL = 5;
+  const encSm = list => list.map(m => `${m.x.toFixed(1)},${m.z.toFixed(1)},${m.s.toFixed(2)},${m.h.toFixed(2)}`).join(';');
+  const decSm = str => String(str || '').split(';').filter(Boolean).map(t => { const [x, z, sc, h] = t.split(',').map(Number); return {x, z, s: sc || 1, h: h || 0}; }).filter(m => isFinite(m.x) && isFinite(m.z));
+  function snowmenOf(players) {
+    const out = [];
+    entries(players).forEach(([id, p]) => { if (p && p.sm) decSm(p.sm).slice(0, 3).forEach(m => out.push(Object.assign({key: `${id}:${m.x},${m.z}`, team: p.team}, m))); });
+    return out;
+  }
+  function freeSpot(x, z, r = 0.5) {
+    if (!S.world) return true;
+    if (Math.hypot(x, z - 8) > 42) return false;
+    return S.world.obstacles().every(o => Math.hypot(o.x - x, o.z - z) > o.r + r);
+  }
+  function spawnStar() {
+    for (let k = 0; k < 40; k++) {
+      const x = rand(-26, 26), z = rand(-12, 30);
+      if (!freeSpot(x, z, 0.8) || Math.hypot(x - PL.x, z - PL.z) < 4) continue;
+      const id = 'st' + (PL.starSeq++);
+      PL.stars.set(id, {x, z});
+      if (S.world) S.world.addStar(id, x, z);
+      return;
+    }
+  }
+  function enterPlay() {
+    if (!S.world) { toast('이 기기에서는 3D 놀이터를 열 수 없어요'); return; }
+    const home = S.world.myHome();
+    Object.assign(PL, {x: home.x - 1, z: home.z + 1.6, h: 0, y: 0, vy: 0, yaw: 0, joy: null, look: null, keys: {}});
+    PL.got = 0;
+    PL.sm = decSm((S.players[S.store.uid] || {}).sm);
+    setStage('play');
+    S.world.hidePodium();
+    S.world.setCamYaw(0); S.world.setMyPlay({x: PL.x, z: PL.z, h: PL.h, y: 0}); S.world.setCamera('play');
+    for (const id of PL.stars.keys()) S.world.removeStar(id);
+    PL.stars.clear();
+    for (let i = 0; i < 7; i++) spawnStar();
+    $('play-hud').hidden = false;
+    $('play-tip').hidden = false;
+    clearTimeout(PL.tipT); PL.tipT = setTimeout(() => { $('play-tip').hidden = true; }, 9000);
+    paintPlayHud();
+    send({pl: {x: +PL.x.toFixed(2), z: +PL.z.toFixed(2), h: 0}});
+    Sound.play('pop');
+    toast(pref('pet', false) ? '⛄ 놀이터! 아기 햇님이도 같이 왔어요' : `⛄ 놀이터! 반짝이는 별 ${STAR_GOAL}개를 모으면 깜짝 선물이 있어요`, 2800);
+    if (pref('pet', false)) send({pet: true});
+  }
+  function exitPlay() {
+    if (S.world) { S.world.setMyPlay(null); for (const id of PL.stars.keys()) S.world.removeStar(id); }
+    PL.stars.clear();
+    $('play-hud').hidden = true;
+    send({pl: null});
+  }
+  function paintPlayHud() {
+    const pet = pref('pet', false);
+    $('play-stars').textContent = pet ? `⭐ ${PL.got} · ☀️ 아기 햇님이와 함께` : `⭐ ${PL.got}/${STAR_GOAL}`;
+    $('play-hits').textContent = PL.hits ? `❄️ 명중 ${PL.hits}` : '';
+    $('pb-man').textContent = `⛄${PL.sm.length ? ' ' + PL.sm.length + '/3' : ''}`;
+  }
+  function playKey(e, down) {
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    const move = {w: 1, a: 1, s: 1, d: 1, ArrowUp: 1, ArrowDown: 1, ArrowLeft: 1, ArrowRight: 1, 'ㅈ': 1, 'ㅁ': 1, 'ㄴ': 1, 'ㅇ': 1};
+    if (move[k]) { PL.keys[k] = down; e.preventDefault(); $('play-tip').hidden = true; return; }
+    if (!down) return;
+    if (k === ' ') { e.preventDefault(); playJump(); }
+    else if (k === 'f' || k === 'ㄹ' || k === 'Enter') { e.preventDefault(); throwBall(); }
+    else if (k === 'e' || k === 'ㄷ') { e.preventDefault(); buildSnowman(); }
+  }
+  function playJump() {
+    if (PL.y > 0.01) return;
+    PL.vy = 5.6; PL.jumpT = S.store.now();
+    Sound.play('jump');
+  }
+  function throwBall() {
+    const now = performance.now();
+    if (now - PL.lastThrow < 550) return;
+    PL.lastThrow = now;
+    S.world.throwSnowball({x: PL.x, z: PL.z, h: PL.h, owner: S.store.uid});
+    send({sb: {x: +PL.x.toFixed(2), z: +PL.z.toFixed(2), h: +PL.h.toFixed(3), t: S.store.now()}}); flush(true);
+    Sound.play('throw');
+  }
+  function buildSnowman() {
+    const now = performance.now();
+    if (now - PL.lastBuild < 1200) return;
+    const x = PL.x + Math.sin(PL.h) * 1.7, z = PL.z + Math.cos(PL.h) * 1.7;
+    if (!freeSpot(x, z, 0.6)) { toast('여기는 좁아요. 넓은 눈밭에서 만들어요!'); return; }
+    PL.lastBuild = now;
+    PL.sm.push({x, z, s: rand(0.85, 1.2), h: PL.h + Math.PI});
+    if (PL.sm.length > 3) PL.sm.shift();
+    send({sm: encSm(PL.sm)}); flush(true);
+    Sound.play('pop');
+    toast(PL.sm.length >= 3 ? '⛄ 눈사람은 3개까지! 다음엔 가장 오래된 것이 녹아요' : '⛄ 눈사람 완성! 친구들 화면에도 보여요');
+    paintPlayHud();
+  }
+  function updatePlay(dt, now) {
+    let ix = 0, iy = 0;
+    const K = PL.keys;
+    if (K.w || K.ArrowUp || K['ㅈ']) iy += 1;
+    if (K.s || K.ArrowDown || K['ㄴ']) iy -= 1;
+    if (K.a || K.ArrowLeft || K['ㅁ']) ix -= 1;
+    if (K.d || K.ArrowRight || K['ㅇ']) ix += 1;
+    if (PL.joy) { ix += PL.joy.dx; iy += PL.joy.dy; }
+    const mag = Math.min(1, Math.hypot(ix, iy));
+    if (mag > 0.08) {
+      const f = [Math.sin(PL.yaw), Math.cos(PL.yaw)], r = [-Math.cos(PL.yaw), Math.sin(PL.yaw)];
+      let vx = f[0] * iy + r[0] * ix, vz = f[1] * iy + r[1] * ix;
+      const l = Math.hypot(vx, vz) || 1; vx /= l; vz /= l;
+      const sp = 4.6 * mag;
+      let nx = PL.x + vx * sp * dt, nz = PL.z + vz * sp * dt;
+      // 부딪히면 밀려난다
+      S.world.obstacles().forEach(o => {
+        const dx = nx - o.x, dz = nz - o.z, d = Math.hypot(dx, dz), m = o.r + 0.38;
+        if (d < m && d > 1e-4) { nx = o.x + dx / d * m; nz = o.z + dz / d * m; }
+      });
+      const c = Math.hypot(nx, nz - 8);
+      if (c > 42) { nx = nx * 42 / c; nz = 8 + (nz - 8) * 42 / c; }
+      PL.x = nx; PL.z = nz;
+      PL.h = Math.atan2(vx, vz);
+      // 앞으로 걸으면 카메라가 천천히 따라 돈다
+      if (iy > 0.3 && !PL.look) { let d = PL.h - PL.yaw; d = ((d + Math.PI * 3) % (Math.PI * 2)) - Math.PI; PL.yaw += d * Math.min(1, dt * 1.2); }
+      PL.stepT += dt * mag;
+      if (PL.stepT > 0.3 && PL.y < 0.01) { PL.stepT = 0; Sound.play('step'); }
+    }
+    if (PL.y > 0 || PL.vy > 0) { PL.y = Math.max(0, PL.y + PL.vy * dt); PL.vy -= 15 * dt; if (PL.y === 0) PL.vy = 0; }
+    // 별 줍기
+    for (const [id, st] of PL.stars) {
+      if (Math.hypot(st.x - PL.x, st.z - PL.z) < 1.0) {
+        PL.stars.delete(id); S.world.removeStar(id);
+        PL.got++; Sound.play('star'); buzz(15);
+        if (PL.got === STAR_GOAL && !pref('pet', false)) {
+          setPref('pet', true); send({pet: true});
+          setTimeout(() => Sound.play('fanfare'), 250);
+          event('☀️ 아기 햇님이 등장!', '#ffd43b');
+          toast('☀️ 아기 햇님이가 생겼어요! 이제 어디든 따라다녀요 (친구들 화면에도 보여요)', 3600);
+        }
+        paintPlayHud();
+        setTimeout(spawnStar, 1500);
+      }
+    }
+    S.world.setMyPlay({x: PL.x, z: PL.z, h: PL.h, y: PL.y});
+    S.world.setCamYaw(PL.yaw);
+    // 친구들에게 내 자리 알리기 (초당 5번까지, 움직였을 때만)
+    const cur = {x: +PL.x.toFixed(2), z: +PL.z.toFixed(2), h: +PL.h.toFixed(2), j: PL.jumpT || 0};
+    const moved = !PL.sent || Math.abs(PL.sent.x - cur.x) > 0.05 || Math.abs(PL.sent.z - cur.z) > 0.05 || Math.abs(PL.sent.h - cur.h) > 0.1 || PL.sent.j !== cur.j;
+    if (moved && now - PL.lastSend > 200) { PL.lastSend = now; PL.sent = cur; send({pl: cur}); }
+  }
+  // 놀이터 손가락: 왼쪽은 조이스틱(어디를 눌러도 그 자리에), 오른쪽은 둘러보기
+  function bindPlayTouch() {
+    const wrap = $('st-3d-wrap'), joy = $('joy'), knob = $('joy-knob');
+    wrap.addEventListener('pointerdown', e => {
+      if (S.stage !== 'play' || e.target.closest('button')) return;
+      const r = wrap.getBoundingClientRect();
+      try { wrap.setPointerCapture(e.pointerId); } catch (x) { /* 괜찮다 */ }
+      if (e.clientX - r.left < r.width * 0.45 && !PL.joy) {
+        PL.joy = {id: e.pointerId, ox: e.clientX, oy: e.clientY, dx: 0, dy: 0};
+        joy.style.left = (e.clientX - r.left - 55) + 'px'; joy.style.top = (e.clientY - r.top - 55) + 'px';
+        knob.style.transform = 'translate(0,0)';
+        joy.hidden = false;
+      } else if (!PL.look) PL.look = {id: e.pointerId, x: e.clientX};
+      $('play-tip').hidden = true;
+    });
+    wrap.addEventListener('pointermove', e => {
+      if (PL.joy && e.pointerId === PL.joy.id) {
+        let dx = e.clientX - PL.joy.ox, dy = e.clientY - PL.joy.oy;
+        const l = Math.hypot(dx, dy), R = 50;
+        if (l > R) { dx = dx / l * R; dy = dy / l * R; }
+        PL.joy.dx = dx / R; PL.joy.dy = -dy / R;
+        knob.style.transform = `translate(${dx}px,${dy}px)`;
+      } else if (PL.look && e.pointerId === PL.look.id) {
+        PL.yaw -= (e.clientX - PL.look.x) * 0.008;
+        PL.look.x = e.clientX;
+      }
+    });
+    const up = e => {
+      if (PL.joy && e.pointerId === PL.joy.id) { PL.joy = null; joy.hidden = true; }
+      if (PL.look && e.pointerId === PL.look.id) PL.look = null;
+    };
+    wrap.addEventListener('pointerup', up); wrap.addEventListener('pointercancel', up);
+    $('pb-snow').onclick = throwBall;
+    $('pb-jump').onclick = playJump;
+    $('pb-man').onclick = buildSnowman;
+    $('play-again').onclick = () => restartRun();
   }
 
   // ── 덮개 카드 ────────────────────────────────────────────
@@ -936,7 +1139,7 @@
       if (old.rot) S.find = {results: [old.rot.a, old.rot.b].filter(Boolean), targets: [], idx: 0};
       S.board.setSun(S.sun, S.sun.dt); setStage('done2');
     } else if (st === 'flare') { S.focus = S.pers.f0; if (old.fl) startNight(); else startFlareSeq(); }
-    else if (st === 'night') { S.focus = S.pers.f0; startNight(); }
+    else if (st === 'night' || st === 'play') { S.focus = S.pers.f0; startNight(); }
     else showIntro();
   }
 
@@ -982,6 +1185,7 @@
         if (off.sep < 3) $('drag-hint').hidden = true;
       }
       if (S.stage === 'dir' && S.dirArmed && b.off.x > 1.35) S.tel = {az: sky.az, alt: sky.alt};  // 너무 멀리 흘러가면 다시 가운데에서
+      if (S.stage === 'play') updatePlay(dt, now);
       if (S.stage === 'sketch') {
         const left = M.SKETCH_SEC - (S.store.now() - S.skT0) / 1000;
         $('sk-time').textContent = Math.max(0, Math.ceil(left));
@@ -1008,7 +1212,7 @@
       if (S.playersDirty && now - lastPlayers > 250) {
         lastPlayers = now; S.playersDirty = false;
         const list = onlineList(S.players, S.store.now(), S.store.uid);
-        if (S.world) S.world.setPlayers(Object.fromEntries(list), S.store.uid);
+        if (S.world) { S.world.setPlayers(Object.fromEntries(list), S.store.uid); S.world.setSnowmen(snowmenOf(S.players)); }
         updateHud(list);
       }
     };
@@ -1020,7 +1224,7 @@
     $('st-rank').textContent = i >= 0 ? `${i + 1}/${sorted.length}` : '-';
     $('st-room').textContent = S.offline ? '혼자 연습 (가상 친구들)' : `오늘의 관측소 · ${list.length}명 접속`;
     const g = goalOf(list, S.sun), el = $('st-goal');
-    el.hidden = S.stage === 'night';
+    el.hidden = S.stage === 'night' || S.stage === 'play';
     $('st-goal-bar').style.width = clamp(g.hits / g.goal * 100, 0, 100) + '%';
     $('st-goal-text').textContent = `흑점 ${g.hits}/${g.goal}`;
     el.classList.toggle('done', g.hits >= g.goal);
@@ -1185,7 +1389,7 @@
       const t = T.store.now(), list = onlineList(T.players, t, null);
       if (T.dirty) {
         T.dirty = false;
-        if (T.world) T.world.setPlayers(Object.fromEntries(list), null);
+        if (T.world) { T.world.setPlayers(Object.fromEntries(list), null); T.world.setSnowmen(snowmenOf(T.players)); }
         list.forEach(([id, p]) => {
           if (p.ev && p.ev.t && p.ev.t !== T.lastEv[id]) {
             const fresh = T.lastEv[id] !== undefined || t - p.ev.t < 5000;
@@ -1287,7 +1491,17 @@
           this.go(b, 'night', rand(25, 50), upd);
         } else if (b.st === 'night') {
           if (Math.random() < 0.04) upd.em = {e: ['🎉', '😱', '🌌', '👍'][Math.floor(Math.random() * 4)], t: now};
+          // 놀이터: 이리저리 걷다가 가끔 눈덩이를 던지고, 한 번은 눈사람을 만든다
+          if (!b.pl) b.pl = {x: rand(-14, 14), z: rand(12, 20), h: 0, tx: rand(-20, 20), tz: rand(-8, 26)};
+          const dxx = b.pl.tx - b.pl.x, dzz = b.pl.tz - b.pl.z, dd = Math.hypot(dxx, dzz);
+          if (dd < 0.6) { b.pl.tx = rand(-20, 20); b.pl.tz = rand(-8, 26); }
+          else { const st = Math.min(dd, 3.2 * 0.45); b.pl.x += dxx / dd * st; b.pl.z += dzz / dd * st; b.pl.h = Math.atan2(dxx, dzz); }
+          upd.pl = {x: +b.pl.x.toFixed(2), z: +b.pl.z.toFixed(2), h: +b.pl.h.toFixed(2)};
+          if (Math.random() < 0.05) upd.sb = {x: upd.pl.x, z: upd.pl.z, h: upd.pl.h, t: now};
+          if (!b.smDone && Math.random() < 0.03) { b.smDone = true; upd.sm = `${(b.pl.x + Math.sin(b.pl.h) * 1.7).toFixed(1)},${(b.pl.z + Math.cos(b.pl.h) * 1.7).toFixed(1)},${rand(0.85, 1.2).toFixed(2)},${(b.pl.h + Math.PI).toFixed(2)}`; }
+          if (!b.pet && Math.random() < 0.01) { b.pet = true; upd.pet = true; }
           if (due) {
+            b.pl = null; upd.pl = null;
             b.best = Math.max(b.best, b.sc); b.sc = 0;
             Object.assign(upd, {best: b.best, sc: 0, hits: 0, mk: null, d1: null, rot: null, fl: null, al: false});
             b.from = {az: b.pers.aim0.az, alt: b.pers.aim0.alt}; b.az = b.from.az; b.alt = b.from.alt;
@@ -1350,6 +1564,6 @@
     }
   }
 
-  if (params.has('debug')) window.__sunspot = {S, T, M};
+  if (params.has('debug')) window.__sunspot = {S, T, M, PL};
   initEntry();
 })();

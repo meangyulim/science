@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#0b1626">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>흑점 헌터스 · 다 같이 태양 관측</title>
-  <link rel="stylesheet" href="sunspot.css?v=20261121">
+  <link rel="stylesheet" href="sunspot.css?v=20261122">
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script defer src="../sun/sun-model.js?v=20261101"></script>
-  <script defer src="sunspot-model.js?v=20261121"></script>
-  <script defer src="sunspot-world.js?v=20261121"></script>
-  <script defer src="sunspot-board.js?v=20261121"></script>
-  <script defer src="sunspot.js?v=20261121"></script>
+  <script defer src="sunspot-model.js?v=20261122"></script>
+  <script defer src="sunspot-world.js?v=20261122"></script>
+  <script defer src="sunspot-board.js?v=20261122"></script>
+  <script defer src="sunspot.js?v=20261122"></script>
 </head>
 <body data-screen="entry">
 
@@ -83,6 +83,20 @@
     <div class="goal-pill" id="st-goal" hidden><span>🏆 우리 반 목표</span><i><b id="st-goal-bar"></b></i><em id="st-goal-text"></em></div>
     <div class="emoji-bar" id="emoji-bar" aria-label="이모지 보내기"></div>
     <div class="drag-hint" id="drag-hint" hidden>👆 여기를 끌어서 망원경을 크게 돌려요</div>
+    <div class="play-hud" id="play-hud" hidden>
+      <div class="play-top">
+        <span class="play-stars" id="play-stars">⭐ 0/5</span>
+        <span class="play-hits" id="play-hits"></span>
+        <button type="button" id="play-again">🔁 한 번 더 관측</button>
+      </div>
+      <div class="joy" id="joy" hidden><i id="joy-knob"></i></div>
+      <div class="play-btns">
+        <button type="button" id="pb-man" aria-label="눈사람 만들기 (E)">⛄</button>
+        <button type="button" id="pb-jump" aria-label="점프 (스페이스)">⤴️</button>
+        <button type="button" id="pb-snow" class="main" aria-label="눈덩이 던지기 (F)">❄️</button>
+      </div>
+      <p class="play-tip" id="play-tip">👈 왼쪽을 끌면 걷고, 오른쪽을 끌면 둘러봐요<br><small>PC: WASD 걷기 · 스페이스 점프 · F 눈덩이 · E 눈사람</small></p>
+    </div>
   </div>
   <div class="st-panel">
     <div class="mission" id="mission">
