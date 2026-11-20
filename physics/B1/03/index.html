@@ -1,0 +1,1178 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전기장의 벡터 중첩 (2·3차원)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(2차원 평면 또는 3차원 공간의 점전하와 관찰점 P — 전하마다 P 에 만든 E 를 그 전하의 색 화살표로 그리고 꼬리–머리로 이어 합성 전기장을 만든다) | 오른쪽 지금 값 + 관찰 ①~④ → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/10.5;cursor:grab}
+#gSum{aspect-ratio:10/3.0}
+#gFlip{aspect-ratio:10/5.6}
+#gTab{aspect-ratio:auto;height:200px}
+#gEx{aspect-ratio:10/4.4}
+#gProj{aspect-ratio:10/5.6}
+.r1 .group .sm{display:none}
+#qBox{flex:1 1 230px}
+.legend .mix{background:linear-gradient(90deg,var(--violet) 0 34%,var(--energy) 34% 67%,var(--ink) 67%)}
+.stage .legend.side{left:auto;right:12px;bottom:48px;flex-direction:column;gap:0}   /* 넓은 무대: 오른쪽 칸 아래 */
+@media (max-width:640px){
+  .r1 .group .sm{display:inline}
+  #gSum{aspect-ratio:10/4.1}
+  #gFlip{aspect-ratio:10/8.4}
+  #gProj{aspect-ratio:10/8.6}
+  #gEx{aspect-ratio:10/6}
+}
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="B1 전기장과 정전기 유도: 개념 12개 가운데 3번째"><a class="uname" href="../">B1 전기장과 정전기 유도</a><span class="dots"><span title="B1-01 전하와 대전 (준비 중)"></span><span title="B1-02 쿨롱 법칙·전기장 (준비 중)"></span><a class="cur" href="./" aria-current="page" title="B1-03 전기장의 중첩" aria-label="B1-03 전기장의 중첩 (지금)"></a><a href="../04/" title="B1-04 전기력선" aria-label="B1-04 전기력선"></a><span title="B1-05 전위차와 균일한 전기장 (준비 중)"></span><span title="B1-06 전기장 속 입자 운동 (준비 중)"></span><span title="B1-07 도체·절연체·유전 분극 (준비 중)"></span><span title="B1-08 정전기 유도·검전기 (준비 중)"></span><span title="B1-09 정전기의 이용 (준비 중)"></span><span title="B1-10 축전기의 전기 용량 (준비 중)"></span><span title="B1-11 V 일정 vs Q 일정 (준비 중)"></span><span title="B1-12 축전기의 연결 (준비 중)"></span></span></nav>
+  <div class="pn"><a href="../04/" rel="next" title="다음 개념: B1-04 전기력선"><span>04 전기력선</span> ›</a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">B1-03</span><span>물리학 Ⅱ · 전기장과 정전기 유도</span></div>
+    <h1>전기장의 벡터 중첩 (2·3차원)</h1>
+    <p class="question"><i>Q</i>전하가 여러 개일 때 한 점의 전기장을 실수 없이 합치는 방법은?</p>
+  </div>
+
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="평면 또는 공간에 놓인 점전하들과 관찰점 P. 전하마다 P에 만든 전기장을 그 전하의 색 화살표로 그리고, 화살표를 꼬리–머리로 이어 초록 합성 전기장을 만든다. 2차원에서는 전하와 P를 끌어 옮기고, 3차원에서는 끌어서 돌려 본다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">|E| = 1.41 E₀</span><span class="pill" id="hud2">+x 방향</span><span class="pill" id="hud3" hidden>화살표 줄여 그림</span></div>
+        <div class="legend" id="legend">
+          <span><i style="background:var(--force)"></i>양전하</span>
+          <span><i style="background:var(--vel)"></i>음전하</span>
+          <span><b class="mix"></b>전하마다 만든 E (전하 이름 색)</span>
+          <span><b style="background:var(--acc)"></b>합성 전기장</span>
+          <span><i style="background:var(--copper)"></i>관찰점</span>
+        </div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="group" role="group" aria-label="평면·공간">
+            <span class="gl lg">배치</span>
+            <button type="button" class="btn" data-dim="2" aria-pressed="true" aria-label="2차원 평면"><span class="lg">2차원 평면</span><span class="sm">2차원</span></button>
+            <button type="button" class="btn" data-dim="3" aria-pressed="false" aria-label="3차원 공간"><span class="lg">3차원 공간</span><span class="sm">3차원</span></button>
+          </div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">전하·보기</span><span class="sm">전하</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="배치, 전하, 보기">
+          <div class="sheet-head"><b>배치 · 전하 · 보기 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="2차원 배치" data-for="2">
+              <span class="gl">배치</span>
+              <button type="button" class="btn" data-pre="ga" aria-pressed="true">(가) +q·−q</button>
+              <button type="button" class="btn" data-pre="na" aria-pressed="false">(나) +q·+q</button>
+              <button type="button" class="btn" data-pre="sq" aria-pressed="false">정사각형</button>
+              <button type="button" class="btn" data-pre="t345" aria-pressed="false">3·4·5</button>
+              <button type="button" class="btn" data-pre="chal" aria-pressed="false">27q·64q</button>
+            </div>
+            <div class="group" role="group" aria-label="3차원 배치" data-for="3" hidden>
+              <span class="gl">배치</span>
+              <button type="button" class="btn" data-pre="py" aria-pressed="false">사각뿔 (√5 d)</button>
+              <button type="button" class="btn" data-pre="cube" aria-pressed="false">정육면체</button>
+              <button type="button" class="btn" data-pre="tet" aria-pressed="false">정사면체</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="slider" id="qBox"><label for="q">전하 <span id="qName">B</span></label><input id="q" type="range" min="-4" max="4" step="1" value="-1"><output id="qOut">−q</output></div>
+            <button type="button" class="btn" id="flip">부호 바꾸기 ±</button>
+            <button type="button" class="btn" id="add" data-for="2">전하 더하기 +</button>
+            <button type="button" class="btn" id="del" data-for="2">고른 전하 빼기</button>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="step">꼬리–머리 잇기 ▸</button>
+            <div class="group" role="group" aria-label="보는 방향" data-for="3" hidden>
+              <span class="gl">보기</span>
+              <button type="button" class="btn" data-view="iso" aria-pressed="true">비스듬히</button>
+              <button type="button" class="btn" data-view="top" aria-pressed="false">위에서</button>
+              <button type="button" class="btn" data-view="side" aria-pressed="false">옆에서</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cComp">성분</label>
+            <label class="chk"><input type="checkbox" id="cDist" checked>거리 r</label>
+            <label class="chk" data-for="2"><input type="checkbox" id="cMap">전기장 지도</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">P의 합성 전기장</span><span id="ansCtx">E₀ = kq/(√2 d)² = kq/2d²</span></div>
+        <div class="big" id="ansBig">√2 E₀ · +x 방향</div>
+        <div class="sub">
+          <span class="f" id="ansF">전하마다 E를 성분으로 나눠 열마다 더하면 (단위 E₀)</span>
+          <span id="ansLines"><span class="v">E<sub>x</sub> = 0.707 + 0.707 = <em>1.414</em></span><span class="v">E<sub>y</sub> = 0.707 + (−0.707) = <em>0</em> ← 상쇄</span><span class="v">|E| = √(1.414² + 0²) = <em>1.414 E₀</em> → <em>+x 방향</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">세기만 더하면 (틀린 합)</span><b id="mv1">2 E₀</b></div>
+          <div class="mini"><span id="mn2">전하마다 세기 k|q|/r²</span><b id="mv2">A 1 · B 1</b></div>
+          <div class="mini"><span id="mn3">방향 tan θ = E<sub>y</sub>/E<sub>x</sub></span><b id="mv3">0 → θ = 0°</b></div>
+          <div class="mini"><span id="mn4">|E| (q = 1 μC, d = 1 m 이면)</span><b id="mv4">6.4 × 10³ N/C</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 따로 그려 잇기">
+          <div class="kind">관찰 1 · 두 전하 (가)</div>
+          <h3>세기만 더하면 2E₀, 화살표로 이으면 √2 E₀</h3>
+          <p>+q는 (−d, 0), −q는 (d, 0)에 있고 P는 (0, d)에 있다. 두 전하에서 P까지 거리가 √2 d로 같아서, 각 전하가 P에 만드는 전기장의 세기도 E₀으로 같다. 그런데 E<sub>A</sub>는 +q에서 멀어지는 오른쪽 위, E<sub>B</sub>는 −q를 향하는 오른쪽 아래다. 방향이 다른 화살표는 세기를 더하지 않고 <b>꼬리–머리로 이어</b> 더한다. P에서 마지막 머리까지 잇는 초록 화살표가 P의 전기장이다.</p>
+          <canvas class="flat" id="gSum" aria-label="세기만 더한 값과 화살표로 이은 합성 전기장의 크기를 막대로 견준다."></canvas>
+          <p class="cap">세기의 합 2E₀은 화살표가 모두 같은 방향일 때만 맞는다. 지금 두 화살표는 90°를 이루어 합이 √2 E₀ ≈ 1.41 E₀이다. 무대의 전하와 P는 끌어서 옮길 수 있다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:#step">꼬리–머리로 잇기 ▸</button>
+            <button type="button" class="btn" data-try="ga">(가) 배치로</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 부호가 방향을 정한다">
+          <div class="kind">관찰 2 · 부호 바꾸기 (나)</div>
+          <h3>부호 하나를 바꾸면 지워지는 성분이 바뀌어 합이 90° 돈다</h3>
+          <p>전기장의 방향은 그 자리에 놓은 +1 C가 밀리는 쪽이다. 그래서 양전하의 E는 전하에서 멀어지고, 음전하의 E는 전하를 향한다. (가)에서는 E<sub>A</sub>, E<sub>B</sub>의 y성분이 크기가 같고 반대라 지워지고 x성분만 두 배로 남는다. 오른쪽 전하를 +q로 바꾼 (나)에서는 E<sub>B</sub>가 왼쪽 위로 뒤집혀 <b>이번에는 x성분이 지워지고</b> y성분만 남는다.</p>
+          <canvas class="flat" id="gFlip" aria-label="왼쪽은 지금 배치, 오른쪽은 고른 전하의 부호만 바꾼 배치. 두 경우의 전기장 화살표와 합성 전기장을 나란히 보인다."></canvas>
+          <p class="cap">왼쪽은 지금 배치, 오른쪽은 고른 전하(무대에서 누른 전하)의 부호만 바꾼 배치다(두 그림의 화살표는 같은 축척). 같은 자리라도 부호 하나가 합의 방향을 바꾼다. 그래서 문제를 받으면 먼저 대칭으로 지워지는 성분을 찾고, 남는 성분만 계산한다.</p>
+          <div class="acts">
+            <button type="button" class="btn" data-try="ga">(가) +q · −q</button>
+            <button type="button" class="btn go" data-try="na">(나) +q · +q</button>
+            <button type="button" class="btn" data-do="click:#flip">고른 전하 부호 바꾸기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 성분표로 더하기">
+          <div class="kind">관찰 3 · 성분표</div>
+          <h3>거리가 √2배면 세기는 ½배 — 성분표의 열을 더하면 합이 나온다</h3>
+          <p>점전하 하나가 만드는 전기장의 세기는 kq/r²이라 거리의 제곱에 반비례한다. 전하에서 관찰점을 향하는 벡터를 (Δx, Δy)라 하면 성분은 <span class="eq">E<sub>x</sub> = kqΔx/r³</span>, <span class="eq">E<sub>y</sub> = kqΔy/r³</span>이고, 음전하는 q에 음수를 넣으면 방향이 저절로 뒤집힌다. 전하마다 한 줄씩 적고 <b>열마다 더한다</b>.</p>
+          <canvas class="flat" id="gTab" aria-label="성분표: 전하마다 거리, 세기, x성분, y성분을 적고 맨 아래 줄에 열마다 더한 합을 적는다. 지워지는 열은 상쇄로 표시한다."></canvas>
+          <p class="cap">P를 원점으로 옮기면 거리가 √2 d에서 d로 줄어 세기가 2배(√2배가 아니다)가 된다. 합의 방향이 주어지면 tan θ = E<sub>y</sub>/E<sub>x</sub>, 세기가 주어지면 피타고라스, ‘성분 0’이면 그 열의 합 = 0으로 식을 세운다.</p>
+          <canvas class="flat" id="gEx" aria-label="P를 지나는 가로선 위에서 합성 전기장의 x성분 Ex를 위치에 따라 그린 그래프. 전하가 그 선 위에 있으면 그 자리에서 발산하고, 부호가 바뀌는 곳에 Ex = 0인 점이 있다."></canvas>
+          <p class="cap" id="gExCap">P를 지나는 가로선 위의 E<sub>x</sub> 그래프다. 전하가 이 선 위에 오면 그 자리에서 발산하고, 부호가 바뀌는 곳이 E<sub>x</sub> = 0인 점이다. 그래프 문제는 이 세 곳으로 전하의 부호와 크기를 가린다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="p0">P를 원점으로</button>
+            <button type="button" class="btn" data-try="sq">정사각형 배치</button>
+            <button type="button" class="btn" data-do="check:#cComp">성분 보기</button>
+            <button type="button" class="btn" data-do="check:#cMap">전기장 지도</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 3차원도 성분 셋">
+          <div class="kind">관찰 4 · 3차원</div>
+          <h3>3차원도 x·y·z 성분을 더할 뿐 — 거리가 같으면 세기는 전하량에 비례한다</h3>
+          <p>xy 평면의 (±2d, 0, 0), (0, ±2d, 0)에 놓인 네 전하와 z축 위의 P(0, 0, d)는 거리가 모두 √5 d다. 그래서 네 세기는 모두 E₀이고, 방향 단위벡터 (Δx, Δy, Δz)/r만 다르다. 마주 보는 쌍(A와 C, B와 D)끼리 먼저 더하면 x·y성분이 지워지고 <b>z성분 넷만 남는다</b>: 4 × E₀/√5 = 4E₀/√5. 무대를 끌어 돌려 보자.</p>
+          <canvas class="flat" id="gProj" aria-label="3차원 배치를 위에서 본 모습(xy 평면)과 옆에서 본 모습(xz 평면). 위에서 보면 수평 성분이 지워지고 옆에서 보면 z성분이 쌓인다."></canvas>
+          <p class="cap">위에서 보면 네 화살표의 수평 성분이 십자로 지워져 합은 점(⊙, 보는 사람 쪽)으로 보이고, 옆에서 보면 z성분이 쌓인다. D 하나를 −q로 바꾸면 B·D 쌍은 y성분이 더해지고 z성분이 지워져, 합이 B에서 멀어지는 쪽 2E₀으로 바뀐다. (3차원 무대는 사선으로 비춰 그린 그림이다.)</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="py">사각뿔 (√5 d)</button>
+            <button type="button" class="btn" data-try="pyD">D를 −q로</button>
+            <button type="button" class="btn" data-try="tet">정사면체</button>
+            <button type="button" class="btn" data-do="click:[data-view=top]">위에서 보기</button>
+            <button type="button" class="btn" data-do="click:[data-view=side]">옆에서 보기</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>따로 구하고, 성분으로 나눠, 열마다 더한다</h3>
+          <ul>
+            <li>중첩 원리: <span class="eq">E = Σ kq<sub>i</sub>/r<sub>i</sub>² · r̂<sub>i</sub></span>. 각 전하가 혼자 있을 때 만드는 전기장의 벡터 합이다. 세기를 그냥 더하면 안 된다.</li>
+            <li>방향은 부호로: 양전하는 전하에서 멀어지는 쪽, 음전하는 전하를 향하는 쪽. 성분 <span class="eq">E<sub>x</sub> = kqΔx/r³</span>에 q의 부호를 그대로 넣으면 저절로 맞는다.</li>
+            <li>순서: 거리 비를 제곱 → 화살표 그리기 → 대칭으로 지워지는 성분 지우기 → 남은 성분만 계산. 3차원에서 거리가 모두 같으면 세기는 전하량에 비례하고 방향 단위벡터만 다르다.</li>
+            <li>자주 하는 실수: 대각선 거리 √2배를 세기 1/√2배로 처리하기(실제는 ½배), 음전하의 E를 바깥으로 그리기, 세기를 스칼라로 더하기. 전하를 옮기기 전후를 견줄 때는 차를 잡으면 움직이지 않은 전하의 기여가 지워진다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>+q는 (−d, 0), −q는 (d, 0)에 있다. 점 P(0, d)에서 각 전하가 만드는 전기장 세기가 E₀일 때, P의 합성 전기장의 세기와 방향은?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>+q의 기여는 세기 E₀, +q에서 멀어지는 방향 (1, 1)/√2 → 성분 (E₀/√2, E₀/√2). −q의 기여는 세기 E₀, −q를 향하는 방향 (1, −1)/√2 → 성분 (E₀/√2, −E₀/√2). 열마다 더하면 (√2 E₀, 0)이므로 <b>√2 E₀, +x 방향</b>이다. y성분은 대칭으로 지워지고 x성분만 두 배로 남는다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>정사각형 ABCD의 꼭짓점 A, B, C에는 +q, D에는 −q가 있다. 한 전하가 정사각형의 중심 O에 만드는 전기장의 세기를 E₀이라 할 때, O에서 합성 전기장의 방향과 세기는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="sq">정사각형 배치 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>D를 향해 2E₀</b>. 마주 보는 A와 C의 +q는 O에서 크기가 같고 방향이 반대인 전기장을 만들어 지워진다. B의 +q는 B에서 멀어지는 쪽, 곧 D 쪽으로 밀고, D의 −q도 D 쪽으로 당긴다. 같은 방향 둘이라 E₀ + E₀ = 2E₀이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>점 A(−3d, 0)와 B(3d, 0)에 같은 양전하 +Q가 있다. 각 전하가 점 P(0, 4d)에 만드는 전기장의 세기를 E₀이라 할 때, P에서 합성 전기장의 방향과 세기는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="t345">3·4·5 배치 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>+y 방향, 1.6E₀</b>. 두 전하까지 거리가 모두 5d라 방향 단위벡터는 A에서 (0.6, 0.8), B에서 (−0.6, 0.8)이다. x성분은 지워지고 y성분 0.8E₀ 둘이 남는다. 2E₀는 세기를 스칼라처럼 그냥 더한 값이다.</p></details>
+          </div>
+          <div class="q">
+            <h3>한 변이 2d인 정육면체의 꼭짓점 P와 이웃한 세 꼭짓점에 +q가 하나씩 있다. 각 전하가 P에 만드는 세기를 E₀이라 할 때 P의 합성 전기장은? 셋 중 하나를 −q로 바꾸면?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="cube">정육면체 보기</button><button type="button" class="btn" data-try="cubeN">하나를 −q로</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>√3 E₀</b>, P의 맞은편 꼭짓점 O에서 P로 가는 대각선 방향 (1, 1, 1). 세 전기장이 각각 x, y, z축 방향이라 성분이 (E₀, E₀, E₀)이고 크기는 √(E₀² + E₀² + E₀²)이다. 하나를 −q로 바꾸면 그 축의 성분만 뒤집혀 (E₀, E₀, −E₀)가 된다. 세기는 그대로 √3 E₀이고 방향만 바뀐다.</p></details>
+          </div>
+          <div class="q">
+            <h3>xy 평면의 A(3d, 0)에 +27q, B(0, 4d)에 +64q가 있다. 원점 O의 합성 전기장은? C(3d, 4d)에 전하를 하나 더 놓아 O의 전기장을 0으로 만들려면 C의 전하량은?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="chal">배치 보기</button><button type="button" class="btn" data-try="chalC">C에 −125q 놓기</button></div>
+            <details class="ans"><summary>답 보기</summary><p>A는 k·27q/(3d)² = 3kq/d²를 −x 쪽으로, B는 k·64q/(4d)² = 4kq/d²를 −y 쪽으로 만든다. 3 : 4 : 5 삼각형이라 합은 5kq/d², (−3, −4) 방향(C에서 O를 지나 멀어지는 쪽)이다. C까지 거리는 5d이고 O에 C를 향하는 5kq/d²를 만들어야 하므로 음전하다. k|q<sub>C</sub>|/(5d)² = 5kq/d²에서 <b>q<sub>C</sub> = −125q</b>.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><span></span><a href="../04/" rel="next"><small>다음 개념 · B1-04 →</small><b>전기력선</b></a></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+<script src="../../kit/lab.js"></script>
+<script src="B1-03-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.B1_03;
+  const {$, C, text, fmt} = Lab;
+  const MI = '−', AX = ['x', 'y', 'z'], TAU = Math.PI * 2;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = (t) => t * t * (3 - 2 * t);
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  // 전하마다 색: 그 전하의 이름·연결선·그 전하가 만든 E 화살표 (전하가 양인지 음인지는 공 색 빨강·파랑으로)
+  const PAL = ['violet', 'energy', 'ink', 'vel'];
+
+  // ── 배치 (전하·관찰점 수치는 모형 M.PRESETS 와 같다 = 예제·문항 값) ──
+  // view: 2차원 보기 상자 [x0, x1, y0, y1] (d), L: 단위 하나(E₀)의 화살표 길이 (d), c·R: 3차원 보기의 가운데와 반지름
+  const E2 = {unit: 'E₀', def: 'E₀ = kq/(√2 d)² = kq/2d²'};
+  const CHAL = {base: 'chal', view: [-3.3, 4.7, -3.6, 5.1], L: 0.5, unit: 'kq/d²', def: '단위 kq/d² (k = 9 × 10⁹ N·m²/C²)', pn: 'O'};
+  const PY = {base: 'py', L: 1, unit: 'E₀', def: 'E₀ = kq/(√5 d)² = kq/5d²', view3: [-125, 28], c: [0, 0, 1.2], R: 2.85, floor: [-3, 3], axes: [[-3, 3.2], [-3, 3.2], [-0.5, 3.3]], drop: true, outline: true};
+  const PRE = {
+    ga: Object.assign({base: 'ga', sel: 1, view: [-2.5, 2.7, -1.3, 2.75], L: 1}, E2),
+    na: Object.assign({base: 'na', sel: 1, view: [-2.5, 2.7, -1.3, 2.75], L: 1}, E2),
+    sq: {base: 'sq', sel: 3, view: [-3.2, 3.2, -3.35, 3.05], L: 0.9, unit: 'E₀', def: 'E₀ = kq/(2√2 d)² · 한 전하가 O에 만드는 세기', pn: 'O'},
+    t345: {base: 't345', sel: 1, view: [-4.4, 4.4, -1.3, 6.9], L: 1.3, unit: 'E₀', def: 'E₀ = kQ/(5d)² = kQ/25d²', sym: 'Q'},
+    chal: Object.assign({sel: 1}, CHAL),
+    chalC: Object.assign({sel: 2}, CHAL),
+    py: Object.assign({sel: 3}, PY),
+    pyD: Object.assign({sel: 3}, PY),
+    cube: {base: 'cube', sel: 2, L: 1, unit: 'E₀', def: 'E₀ = kq/(2d)² = kq/4d²', view3: [-28, 24], c: [1.5, 1.5, 1.55], R: 2.75, axes: [[0, 3.4], [0, 3.4], [0, 3.4]], cube: 2},
+    tet: {base: 'tet', sel: 2, L: 0.75, unit: 'E₀', def: 'E₀ = kq/(2√3 d)² = kq/12d²', view3: [-125, 28], c: [0, 0, 1.85], R: 3.2, floor: [-3, 3], axes: [[-3, 3.2], [-3, 3.2], [-0.5, 3.6]], drop: true, outline: true},
+  };
+  const VIEWS = {iso: null, top: [0, 90], side: [0, 0]};          // iso: 배치마다 정한 비스듬한 시점 (PRE[key].view3)
+
+  // ── 상태 ────────────────────────────────────────────────
+  const S = {key: 'ga', dim: 2, ch: [], P: [0, 1, 0], q0: 1, r0: Math.SQRT2, sel: 1,
+    playing: !Lab.reduceMotion, asmT: 0, asmGoal: null, comp: false, dist: true, map: false,
+    yaw: -125, pitch: 28, yawBase: -125, spinT: 0, viewGoal: null, view: 'iso',
+    drag: null, hint: true, f: 1, last2: 'ga', last3: 'py'};
+  const pre = () => PRE[S.key];
+  const col = (i) => C[S.ch[i].col];
+
+  function load(key) {
+    const m = M.PRESETS[key], d = PRE[key], was = S.dim, wasBase = PRE[S.key].base;
+    // 같은 자리의 전하는 부호·크기만 바뀌므로 화살표가 줄었다가 반대로 자라게 (처음 놓이는 전하는 0 에서 자란다)
+    const old = S.ch, same = old.length && m.dim === was && old.every((o) => m.charges.some((c) => M.dist(M.v3(c.at), o.at) < 1e-9)) && M.dist(M.v3(m.P), S.P) < 1e-9;
+    S.ch = m.charges.map((c, i) => {
+      const at = M.v3(c.at), o = same ? old.find((x) => M.dist(x.at, at) < 1e-9) : null;
+      return {id: c.id, q: c.q, qd: same ? (o ? o.qd : 0) : c.q, at, col: PAL[i]};
+    });
+    S.key = key; S.dim = m.dim; S.P = M.v3(m.P); S.q0 = m.q0; S.r0 = m.r0; S.sel = d.sel;
+    if (S.dim === 3) {
+      S.last3 = d.base;
+      if (was !== 3 || wasBase !== d.base) { S.yaw = S.yawBase = d.view3[0]; S.pitch = d.view3[1]; S.spinT = 0; S.viewGoal = null; S.view = 'iso'; }
+    } else S.last2 = d.base;
+    restartAsm();
+  }
+  function pristine(key) {
+    const m = M.PRESETS[key], eq = (a, b) => M.dist(a, b) < 1e-9;
+    if (S.dim !== m.dim || S.ch.length !== m.charges.length || !eq(S.P, M.v3(m.P))) return false;
+    return m.charges.every((c, i) => S.ch[i].q === c.q && eq(S.ch[i].at, M.v3(c.at)));
+  }
+  const chs = (disp) => S.ch.map((c) => ({q: disp ? c.qd : c.q, at: c.at}));
+  const solve = (disp) => M.superposeU(chs(disp), S.P, S.q0, S.r0);     // disp: 무대(움직이는 중의 값) / 아니면 정한 값
+
+  // ── 숫자·글 ─────────────────────────────────────────────
+  const f2 = (v) => (Math.abs(v) < 5e-3 ? '0' : fmt(v, 2));
+  const f3 = (v) => (!isFinite(v) ? '–' : Math.abs(v) < 5e-4 ? '0' : fmt(v, Math.abs(v * 100 - Math.round(v * 100)) < 0.05 ? 2 : 3));
+  const par = (v) => (f3(v)[0] === MI ? '(' + f3(v) + ')' : f3(v));
+  const sym = () => pre().sym || 'q';
+  const qText = (q) => (Math.abs(q) < 1e-9 ? '0' : (q > 0 ? '+' : MI) + (Math.abs(q) === 1 ? '' : fmt(Math.abs(q), 2)) + sym());
+  function sqrtParts(n) { let a = 1, b = n; for (let k = 2; k * k <= b; k++) while (b % (k * k) === 0) { b /= k * k; a *= k; } return [a, b]; }
+  function rText(r) {                                          // 거리: 2d, √2 d, 2√3 d, 2.24 d
+    const n = Math.round(r * r);
+    if (!n || Math.abs(r * r - n) > 1e-6) return fmt(r, 2) + ' d';
+    const [a, b] = sqrtParts(n);
+    return b === 1 ? (a === 1 ? 'd' : a + 'd') : (a === 1 ? '' : a) + '√' + b + ' d';
+  }
+  function surd(v) {                                           // 1.6, 2 → 그대로 / √2, 4/√5, √6 → 근호 / 나머지 null
+    const a = Math.abs(v);
+    if (a < 1e-9) return '0';
+    if (Math.abs(a * 100 - Math.round(a * 100)) < 1e-6) return fmt(a, 2);
+    const s2 = a * a;
+    for (const m of [1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16, 20, 25]) {
+      const n = Math.round(s2 * m);
+      if (n < 1 || n > 5000 || Math.abs(s2 * m - n) > 1e-7) continue;
+      const [o, b] = sqrtParts(n * m);                         // a = √(nm)/m = o√b/m
+      if (b === 1) return null;
+      const g = gcd(o, m), num = o / g, den = m / g;
+      if (den === 1) return (num === 1 ? '' : num) + '√' + b;
+      if (den === b) return num + '/√' + b;
+      return (num === 1 ? '' : num) + '√' + b + '/' + den;
+    }
+    return null;
+  }
+  const magText = (v) => (surd(v) || f2(v)) + ' ' + pre().unit;
+  const magLong = (v) => { const s = surd(v); return s && s.includes('√') ? s + ' ' + pre().unit + ' ≈ ' + f2(v) : (s || f2(v)) + ' ' + pre().unit; };
+  function ratioDir(u, n) {                                    // 작은 정수 비: (1, 1, 1), (−3, −4)
+    const nz = u.slice(0, n).filter((x) => Math.abs(x) > 1e-9).map(Math.abs), m = Math.min(...nz);
+    for (let k = 1; k <= 6; k++) {
+      const r = u.slice(0, n).map((x) => x / m * k);
+      if (r.every((x) => Math.abs(x - Math.round(x)) < 1e-6 && Math.abs(x) < 12.5)) return '(' + r.map((x) => fmt(Math.round(x), 0)).join(', ') + ')';
+    }
+    return null;
+  }
+  function dirText(E, short) {
+    const n = S.dim === 3 ? 3 : 2, m = M.norm(E);
+    if (m < 1e-9) return '방향 없음';
+    const u = M.scale(E, 1 / m);
+    for (let a = 0; a < n; a++) if (Math.abs(u[a]) > 1 - 1e-9) return (u[a] > 0 ? '+' : MI) + AX[a] + ' 방향';
+    const along = (sg) => S.ch.find((c) => sg * M.dot(u, M.unit(M.sub(c.at, S.P))) > 1 - 1e-9);
+    const to = along(1), away = to ? null : along(-1);
+    if (to) return to.id + (short ? ' 쪽' : '를 향해');
+    if (away) return away.id + (short ? ' 반대쪽' : '에서 멀어지는 쪽');
+    const r = ratioDir(u, n);
+    if (r) return r + ' 방향';
+    return n === 2 ? 'θ = ' + fmt(M.dirDeg(E), 1) + '°' : '(' + u.map((x) => fmt(x, 2)).join(', ') + ') 방향';
+  }
+  function cancelText(sol) {
+    const n = S.dim === 3 ? 3 : 2, c = [];
+    for (let a = 0; a < n; a++) if (M.cancels(sol.parts, a)) c.push(AX[a]);
+    if (sol.mag < 1e-9 * Math.max(1, sol.scalar)) return '모두 상쇄 → 0';
+    return c.length ? c.join('·') + '성분 상쇄' : '지워지는 성분 없음';
+  }
+
+  // ── 꼬리–머리 잇기: 처음엔 모두 P 에서, 다음 화살표를 앞 화살표의 머리로 하나씩 옮기고, 끝으로 합이 자란다 ──
+  const CH = {IN: 0.8, MOVE: 0.9, GAP: 0.3, GROW: 0.6, HOLD: 2.6};
+  const tSum = () => CH.IN + Math.max(0, S.ch.length - 1) * (CH.MOVE + CH.GAP);
+  const tDone = () => tSum() + CH.GROW;
+  const tEnd = () => tDone() + CH.HOLD;
+  const prog = (k) => (k === 0 ? 1 : clamp((S.asmT - CH.IN - (k - 1) * (CH.MOVE + CH.GAP)) / CH.MOVE, 0, 1));
+  const growP = () => clamp((S.asmT - tSum()) / CH.GROW, 0, 1);
+  function restartAsm() { S.asmGoal = null; S.asmT = S.playing ? 0 : tDone(); }
+  function chainVecs(sol) {                                    // 화살표 하나하나와 이어 붙인 끝점 (P 기준, 단위)
+    const out = [], acc = [0, 0, 0];
+    sol.parts.forEach((p) => { if (!isFinite(p.mag)) return; out.push(p.E); acc[0] += p.E[0]; acc[1] += p.E[1]; acc[2] += p.E[2]; out.push(acc.slice()); });
+    return out;
+  }
+
+  // ── 그리기 도우미 ───────────────────────────────────────
+  const lbl = (ctx, s, x, y, c, o = {}) => text(ctx, s, x, y, Object.assign({size: 14, w: 600, color: c || C.ink, halo: true}, o));
+  const rlbl = (ctx, s, x, y, c, o = {}) => Lab.rich(ctx, s, x, y, Object.assign({size: 14, w: 600, color: c || C.ink, halo: true}, o));
+  function tip(ctx, q, u, c, hh) {
+    ctx.save(); ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(q[0], q[1]);
+    ctx.lineTo(q[0] - u[0] * hh - u[1] * hh * 0.5, q[1] - u[1] * hh + u[0] * hh * 0.5);
+    ctx.lineTo(q[0] - u[0] * hh + u[1] * hh * 0.5, q[1] - u[1] * hh - u[0] * hh * 0.5);
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function dashArrow(ctx, p, q, c, w = 2, hh = 9, dash = [6, 5]) {
+    const L = Math.hypot(q[0] - p[0], q[1] - p[1]); if (L < 3) return;
+    const u = [(q[0] - p[0]) / L, (q[1] - p[1]) / L], h = Math.min(hh, L * 0.5);
+    Lab.line(ctx, [p, [q[0] - u[0] * h * 0.8, q[1] - u[1] * h * 0.8]], c, w, dash);
+    tip(ctx, q, u, c, h);
+  }
+  function bar(ctx, x, y, w, c, a) { if (w <= 0.5) return; ctx.save(); ctx.fillStyle = Lab.alpha(c, a); Lab.rrect(ctx, x, y, w, 11, 3); ctx.fill(); ctx.restore(); }
+  function panelBox(ctx, b) {
+    ctx.save(); Lab.rrect(ctx, b.x, b.y, b.w, b.h, 14); ctx.fillStyle = Lab.alpha(C.paper, 0.78); ctx.fill();
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
+  }
+  // 공 모양 점전하: 양 = 빨강, 음 = 파랑. 0 이면 점선 동그라미. 고른 전하는 구리색 고리
+  function ball(ctx, x, y, r, q, sel) {
+    if (Math.abs(q) < 0.03) {
+      ctx.save(); ctx.setLineDash([3, 3]); Lab.circle(ctx, x, y, r, {stroke: C.muted, width: 1.6}); ctx.restore();
+      text(ctx, '0', x, y + 0.5, {size: 13, w: 600, color: C.muted});
+    } else {
+      const c = q > 0 ? C.force : C.vel, g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.42, r * 0.1, x, y, r);
+      g.addColorStop(0, Lab.alpha(c, 0.45)); g.addColorStop(1, c);
+      ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fillStyle = g; ctx.fill(); ctx.restore();
+      text(ctx, q > 0 ? '+' : MI, x, y + 0.5, {size: Math.max(13, r * 1.35), w: 700, color: C.paper});
+    }
+    if (sel) Lab.circle(ctx, x, y, r + 5, {stroke: C.copper, width: 2.4});
+  }
+  // 전하 이름(전하 색) + 전하량. away = 관찰점 반대쪽 (화면 단위 방향)
+  function chargeLabel(ctx, x, y, r, i, away, small) {
+    const c = S.ch[i], s1 = c.id, s2 = qText(c.q), z1 = small ? 14 : 15;
+    const w1 = Lab.measure(ctx, s1, {size: z1, w: 600}), w2 = Lab.measure(ctx, s2, {size: 13, w: 600}), w = w1 + 4 + w2;
+    const k = r + 9 + Math.abs(away[0]) * w / 2 + Math.abs(away[1]) * 7;
+    const cx = x + away[0] * k, cy = y + away[1] * k;
+    text(ctx, s1, cx - w / 2 + w1 / 2, cy, {size: z1, w: 600, color: col(i), halo: true});
+    text(ctx, s2, cx - w / 2 + w1 + 4 + w2 / 2, cy + 1, {size: 13, w: 600, color: C.muted, halo: true});
+  }
+  // 월드 화살표 p → p + v·Lw. 3차원에서 화면에 거의 점이면 ⊙(보는 쪽) / ⊗(화면 안쪽)
+  function arrowW(ctx, T, p, v, Lw, c, w, head, dash) {
+    const q = M.add(p, M.scale(v, Lw)), a = T(p), b = T(q), L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (L < 4) {
+      if (a.length > 2 && M.norm(v) * Lw > 0.08) dotCross(ctx, a[0], a[1], c, b[2] > a[2]);
+      return;
+    }
+    if (dash) dashArrow(ctx, a, b, c, w, head, dash); else Lab.arrow(ctx, a[0], a[1], b[0], b[1], c, w, head);
+  }
+  function dotCross(ctx, x, y, c, toward) {
+    Lab.circle(ctx, x, y, 8, {stroke: c, width: 2});
+    if (toward) Lab.circle(ctx, x, y, 2.6, {fill: c});
+    else Lab.line(ctx, [[x - 5, y - 5], [x + 5, y + 5]], c, 2), Lab.line(ctx, [[x - 5, y + 5], [x + 5, y - 5]], c, 2);
+  }
+  // 축척: 단위 하나의 화살표 길이 막대
+  function scaleBar(ctx, x, y, Lpx, maxW, right) {
+    const unit = pre().unit, cap = Math.max(36, Math.min(140, (maxW || 200) - 60)), R = [0.25, 0.5, 1, 2, 5, 10];
+    let ref = Lpx >= 24 && Lpx <= cap ? 1 : Lpx > cap ? (R.filter((r) => r * Lpx <= cap).pop() || 0.25) : (R.find((r) => r * Lpx >= 24) || 10);
+    const w = Math.max(6, ref * Lpx), tail = '= ' + fmt(ref, 2) + ' ' + unit;
+    const tot = Lab.measure(ctx, '화살표', {size: 13}) + 8 + w + 6 + Lab.measure(ctx, tail, {size: 13});
+    if (right) x -= tot;
+    text(ctx, '화살표', x, y, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
+    const x0 = x + Lab.measure(ctx, '화살표', {size: 13}) + 8;
+    Lab.line(ctx, [[x0, y], [x0 + w, y]], C.muted, 2.6);
+    Lab.line(ctx, [[x0, y - 5], [x0, y + 5]], C.muted, 1.4); Lab.line(ctx, [[x0 + w, y - 5], [x0 + w, y + 5]], C.muted, 1.4);
+    text(ctx, tail, x0 + w + 6, y, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
+  }
+  function setScale(f) {
+    const was = S.f < 0.999, now = f < 0.999; S.f = f;
+    if (was !== now) $('hud3').hidden = !now;
+  }
+
+  // ── 꼬리–머리로 이은 화살표 + 합 (2·3차원 공통; T = 월드 → 화면) ──
+  function drawChain(ctx, T, sol, Lw, o = {}) {
+    const n = sol.parts.length, P = S.P, tails = [], at = [];
+    let acc = P;
+    for (let k = 0; k < n; k++) { tails.push(acc); acc = M.add(acc, M.scale(sol.parts[k].E, Lw)); }
+    for (let k = 0; k < n; k++) { const e = ease(prog(k)); at.push([0, 1, 2].map((j) => lerp(P[j], tails[k][j], e))); }
+    for (let k = 1; k < n; k++) if (prog(k) > 0) arrowW(ctx, T, P, sol.parts[k].E, Lw, Lab.alpha(col(k), 0.42), 1.8, 9, [5, 4]);   // 제자리(P)에 남은 흔적
+    const gp = growP();
+    if (gp > 0 && sol.mag > 1e-9 * Math.max(1, sol.scalar)) arrowW(ctx, T, P, sol.sum, Lw * ease(gp), C.acc, o.sw || 6.4, 18);   // 합은 굵게 밑에 (같은 직선 위 화살표도 보이게)
+    for (let k = 0; k < n; k++) { const pr = prog(k); arrowW(ctx, T, at[k], sol.parts[k].E, Lw, col(k), pr > 0 && pr < 1 ? 3.8 : 3.2, 12); }
+    return {at, end: acc};
+  }
+  function labelChain(ctx, T, sol, Lw, r, nar) {
+    const n = sol.parts.length, heads = r.at.map((t, k) => M.add(t, M.scale(sol.parts[k].E, Lw)));
+    const pts = [S.P, ...r.at, ...heads].map(T), cen = pts.reduce((s, p) => [s[0] + p[0] / pts.length, s[1] + p[1] / pts.length], [0, 0]);
+    const busy = [S.P, ...S.ch.map((c) => c.at)].map(T), placed = [];
+    for (let k = 0; k < n; k++) {
+      const a = T(r.at[k]), b = T(heads[k]), L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (L < 12) continue;
+      const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], nr = [-(b[1] - a[1]) / L, (b[0] - a[0]) / L];
+      let side = nr[0] * (m[0] - cen[0]) + nr[1] * (m[1] - cen[1]) >= 0 ? 1 : -1;
+      const room = (sd) => Math.min(...busy.map((q) => Math.hypot(m[0] + nr[0] * sd * 15 - q[0], m[1] + nr[1] * sd * 15 - q[1])),
+        ...placed.map((q) => Math.hypot(m[0] + nr[0] * sd * 15 - q[0], m[1] + nr[1] * sd * 15 - q[1]) + 2));   // 전하·관찰점·앞서 놓은 이름표를 피한다
+      if (room(side) < 24 && room(-side) > room(side)) side = -side;
+      const q = [m[0] + nr[0] * side * 15, m[1] + nr[1] * side * 15 + 1];
+      placed.push(q);
+      rlbl(ctx, 'E_' + S.ch[k].id, q[0], q[1], col(k), {size: nar ? 13 : 14});
+    }
+    if (growP() >= 1 && sol.mag > 1e-9 * Math.max(1, sol.scalar)) {
+      const a = T(S.P), b = T(M.add(S.P, M.scale(sol.sum, Lw))), L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (L > 6) {
+        const u = [(b[0] - a[0]) / L, (b[1] - a[1]) / L], s = nar ? 'E' : 'E = ' + magText(sol.mag);
+        lbl(ctx, s, b[0] + u[0] * 17, b[1] + u[1] * 17 + 1, C.acc, {size: nar ? 14 : 15, align: u[0] > 0.4 ? 'left' : u[0] < -0.4 ? 'right' : 'center'});
+      }
+    }
+  }
+  // 관찰점: 구리색 점 + 이름 (합의 반대쪽에)
+  function drawP(ctx, T, sol, Lw, nar) {
+    const Ps = T(S.P), name = pre().pn || 'P';
+    let u = [-0.7, -0.7];
+    if (sol.mag > 1e-9 * Math.max(1, sol.scalar)) {
+      const b = T(M.add(S.P, M.scale(sol.sum, Lw))), L = Math.hypot(b[0] - Ps[0], b[1] - Ps[1]);
+      if (L > 2) u = [(b[0] - Ps[0]) / L, (b[1] - Ps[1]) / L];
+    }
+    Lab.circle(ctx, Ps[0], Ps[1], 6.5, {fill: C.copper, stroke: C.paper, width: 2});
+    lbl(ctx, name, Ps[0] - u[0] * 18, Ps[1] - u[1] * 18, C.copper, {size: 16, w: 700});
+    if (S.hint && (pristine('ga') || pristine('na')) && !nar) lbl(ctx, '끌어 옮기기', Ps[0] - u[0] * 18, Ps[1] - u[1] * 18 + (u[1] > 0 ? -17 : 17), C.copper, {size: 13, w: 500});
+  }
+  // 성분: 합의 계단(초록 점선) + (2차원) 전하마다 성분(전하 색 점선, 겹치지 않게 조금씩 비켜서)
+  function drawComp(ctx, T, sol, Lw, n) {
+    const P = S.P, Ps = T(P), m = sol.parts.length;
+    if (n === 2) sol.parts.forEach((p, k) => {
+      const off = (k - (m - 1) / 2) * 4;
+      for (let a = 0; a < 2; a++) {
+        const v = [0, 0, 0]; v[a] = p.E[a] * Lw;
+        const e = T(M.add(P, v)); if (Math.hypot(e[0] - Ps[0], e[1] - Ps[1]) < 5) continue;
+        const sh = a ? [off, 0] : [0, off];
+        dashArrow(ctx, [Ps[0] + sh[0], Ps[1] + sh[1]], [e[0] + sh[0], e[1] + sh[1]], Lab.alpha(col(k), 0.85), 2, 8, [4, 4]);
+        const h = T(M.add(P, M.scale(p.E, Lw)));
+        Lab.line(ctx, [h, e], Lab.alpha(col(k), 0.4), 1, [2, 3]);
+      }
+    });
+    let cur = P;                                                  // 합의 성분 계단 (값은 오른쪽 칸·성분표에)
+    for (let a = 0; a < n; a++) {
+      const v = [0, 0, 0]; v[a] = sol.sum[a] * Lw;
+      const nx = M.add(cur, v), A = T(cur), B = T(nx);
+      if (Math.hypot(B[0] - A[0], B[1] - A[1]) >= 6) dashArrow(ctx, A, B, C.acc, 2.4, 10, [6, 4]);
+      cur = nx;
+    }
+  }
+
+  // ── 무대 ────────────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    if (S.dim === 2) drawPlane(ctx, W, H); else drawSpace(ctx, W, H);
+  }
+  // 오른쪽 칸(넓은 무대)의 크기: 축마다 성분 줄 + 막대 둘 + 축척. 자리가 모자라면 줄 간격을 줄이고, 그래도 모자라면 막대를 뺀다
+  function panelSpec(H, nAx, n) {
+    const avail = H - 58, need = (st, gp, br) => 42 + nAx * (12 + st * (n - 1) + gp) + (br ? 70 : 0) + 38;
+    let step = 7, gap = 16, bars = true;
+    if (need(step, gap, bars) > avail) { step = 5; gap = 10; }
+    if (need(step, gap, bars) > avail) bars = false;
+    return {step, gap, bars, h: Math.min(avail, need(step, gap, bars))};
+  }
+  const legend = $('legend');
+  function layout(W, H) {
+    const nar = W < 520, panel = !nar && W >= 600 && H >= 250, pw = panel ? Math.round(clamp(W * 0.28, 200, 240)) : 0;
+    const ps = panel ? panelSpec(H, S.dim === 3 ? 3 : 2, S.ch.length) : null;
+    const legIn = !nar && legend.parentNode === stage.el.parentNode;               // 범례가 무대 안에 있다 (넓은 화면)
+    const side = !!(panel && legIn && H - 12 - ps.h - 56 >= 124);                  // 오른쪽 칸 아래에 범례가 들어가면 그리로
+    if (legend.classList.contains('side') !== side) legend.classList.toggle('side', side);
+    return {nar, panel, pw, ps, legB: legIn && !side ? 34 : 0, box: panel ? {x: W - pw - 12, y: 12, w: pw, h: ps.h} : null};
+  }
+
+  // 2차원 평면: 모눈(1칸 = d), 보기 상자를 무대에 맞춘다
+  function geo2(W, H) {
+    const l = layout(W, H), top = l.nar ? 50 : 40, bot = (l.nar ? 38 : 12) + l.legB;
+    const area = {x: 12, y: top, w: W - 24 - (l.panel ? l.pw + 12 : 0), h: H - top - bot};
+    const [x0, x1, y0, y1] = pre().view, s = Math.min(area.w / (x1 - x0), area.h / (y1 - y0));
+    const ox = area.x + (area.w - s * (x1 - x0)) / 2 - s * x0, oy = area.y + (area.h - s * (y1 - y0)) / 2 + s * y1;
+    return Object.assign(l, {area, s, view: [x0, x1, y0, y1], X: (x) => ox + s * x, Y: (y) => oy - s * y, inv: (px, py) => [(px - ox) / s, (oy - py) / s]});
+  }
+  function fit2(g, sol) {                                      // 화살표가 그림 칸을 벗어나면 모두 같은 비율로 줄인다
+    const L = pre().L, a0 = g.inv(g.area.x + 4, g.area.y + 4), a1 = g.inv(g.area.x + g.area.w - 4, g.area.y + g.area.h - 4);
+    const lo = [a0[0], a1[1]], hi = [a1[0], a0[1]];
+    let f = 1;
+    for (const v of chainVecs(sol)) for (let a = 0; a < 2; a++) {
+      const dv = v[a] * L, p = S.P[a];
+      if (dv > 1e-9) f = Math.min(f, (hi[a] - p) / dv); else if (dv < -1e-9) f = Math.min(f, (lo[a] - p) / dv);
+    }
+    return clamp(f, 0.03, 1);
+  }
+  const tick = (v) => (v === 1 ? 'd' : v === -1 ? MI + 'd' : fmt(v, 0) + 'd');
+  function grid2(ctx, g) {
+    const [x0, x1, y0, y1] = g.view;
+    ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath();
+    for (let x = Math.ceil(x0); x <= x1; x++) { ctx.moveTo(g.X(x), g.Y(y0)); ctx.lineTo(g.X(x), g.Y(y1)); }
+    for (let y = Math.ceil(y0); y <= y1; y++) { ctx.moveTo(g.X(x0), g.Y(y)); ctx.lineTo(g.X(x1), g.Y(y)); }
+    ctx.stroke(); ctx.restore();
+    Lab.arrow(ctx, g.X(x0), g.Y(0), g.X(x1), g.Y(0), C.muted, 1.4, 8);
+    Lab.arrow(ctx, g.X(0), g.Y(y0), g.X(0), g.Y(y1), C.muted, 1.4, 8);
+    text(ctx, 'x', g.X(x1) - 2, g.Y(0) - 13, {size: 14, w: 600, color: C.muted});
+    text(ctx, 'y', g.X(0) + 13, g.Y(y1) + 4, {size: 14, w: 600, color: C.muted});
+    if (M.norm(S.P) > 1e-9) text(ctx, 'O', g.X(0) - 10, g.Y(0) + 12, {size: 13, w: 600, color: C.muted});
+    const every = g.s < 44 ? 2 : 1, busy = [S.P, ...S.ch.map((c) => c.at)].map((p) => [g.X(p[0]), g.Y(p[1])]);
+    const free = (x, y) => busy.every((b) => Math.hypot(b[0] - x, b[1] - y) > 22);           // 전하·관찰점 자리의 눈금 글자는 뺀다
+    ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 1;
+    for (let x = Math.ceil(x0 + 0.3); x <= x1 - 0.3; x++) {
+      if (!x) continue;
+      ctx.beginPath(); ctx.moveTo(g.X(x), g.Y(0) - 3); ctx.lineTo(g.X(x), g.Y(0) + 3); ctx.stroke();
+      if (x % every === 0 && free(g.X(x), g.Y(0) + 6)) text(ctx, tick(x), g.X(x), g.Y(0) + 13, {size: 13, w: 500, color: C.muted, halo: true});
+    }
+    for (let y = Math.ceil(y0 + 0.3); y <= y1 - 0.3; y++) {
+      if (!y) continue;
+      ctx.beginPath(); ctx.moveTo(g.X(0) - 3, g.Y(y)); ctx.lineTo(g.X(0) + 3, g.Y(y)); ctx.stroke();
+      if (y % every === 0 && free(g.X(0) - 10, g.Y(y))) text(ctx, tick(y), g.X(0) - 7, g.Y(y), {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
+    }
+    ctx.restore();
+  }
+  // 전기장 지도: 모눈점마다 합성 전기장의 방향 (진하기 = 세기)
+  function drawMap(ctx, g) {
+    const [x0, x1, y0, y1] = g.view, step = g.s >= 70 ? 0.5 : 1, len = Math.min(15, step * g.s * 0.38), cs = chs(true);
+    for (let x = Math.ceil(x0 / step) * step; x <= x1 + 1e-9; x += step) for (let y = Math.ceil(y0 / step) * step; y <= y1 + 1e-9; y += step) {
+      const p = [x, y, 0];
+      if (cs.some((c) => M.dist(c.at, p) < 0.35) || M.dist(S.P, p) < 0.3) continue;
+      const E = M.superpose(cs, p).sum, m = Math.hypot(E[0], E[1]);
+      if (m < 1e-6) continue;
+      const a = clamp(0.14 + 0.2 * (Math.log10(m) + 1.4), 0.1, 0.55), u = [E[0] / m, -E[1] / m], cx = g.X(x), cy = g.Y(y);
+      Lab.arrow(ctx, cx - u[0] * len / 2, cy - u[1] * len / 2, cx + u[0] * len / 2, cy + u[1] * len / 2, Lab.alpha(C.violet, a), 1.5, 5);
+    }
+  }
+  function drawPlane(ctx, W, H) {
+    const g = geo2(W, H), sol = solve(true), d = pre(), f = fit2(g, sol);
+    setScale(f);
+    const Lw = d.L * f, Lpx = Lw * g.s, T = (p) => [g.X(p[0]), g.Y(p[1])], Ps = T(S.P), rad = g.nar ? 12 : 15;
+    grid2(ctx, g);
+    if (S.map) drawMap(ctx, g);
+    // 전하 → 관찰점 (전하 색 점선). 양전하는 E 가 그 직선의 연장선 위에 있으므로 P 너머로 조금 더
+    S.ch.forEach((c, i) => {
+      const a = T(c.at), u = M.unit(M.sub(S.P, c.at)), ext = c.qd > 0 ? Math.min(70, Lpx * sol.parts[i].mag + 16) : 0;
+      Lab.line(ctx, [a, [Ps[0] + u[0] * ext, Ps[1] - u[1] * ext]], Lab.alpha(col(i), 0.55), 1.5, [2, 4]);
+    });
+    if (S.dist && (!g.nar || S.ch.length <= 2)) {
+      const pts = [Ps, ...S.ch.map((c) => T(c.at))], cen = pts.reduce((s, p) => [s[0] + p[0] / pts.length, s[1] + p[1] / pts.length], [0, 0]);
+      const rs = sol.parts.map((p) => p.r), same = S.ch.length > 2 && rs.every((r) => Math.abs(r - rs[0]) < 1e-9);
+      const far = S.ch.reduce((b, c, i) => (M.dot(M.unit(M.sub(c.at, S.P)), sol.sum) < M.dot(M.unit(M.sub(S.ch[b].at, S.P)), sol.sum) ? i : b), 0);
+      S.ch.forEach((c, i) => {                                    // 전하–관찰점 선의 바깥쪽(배치의 가운데 반대쪽)에
+        if (same && i !== far) return;
+        const a = T(c.at), L = Math.hypot(Ps[0] - a[0], Ps[1] - a[1]); if (L < 70) return;
+        const m = [lerp(a[0], Ps[0], 0.4), lerp(a[1], Ps[1], 0.4)], nr = [-(Ps[1] - a[1]) / L, (Ps[0] - a[0]) / L];
+        const sd = nr[0] * (m[0] - cen[0]) + nr[1] * (m[1] - cen[1]) >= 0 ? 1 : -1;
+        text(ctx, 'r = ' + rText(sol.parts[i].r) + (same ? ' (모두)' : ''), m[0] + nr[0] * 15 * sd, m[1] + nr[1] * 15 * sd, {size: 13, w: 500, color: C.muted, halo: true});
+      });
+    }
+    S.ch.forEach((c, i) => { const a = T(c.at); ball(ctx, a[0], a[1], rad, c.qd, i === S.sel); });
+    S.ch.forEach((c, i) => { const a = T(c.at), u = M.unit(M.sub(c.at, S.P)); chargeLabel(ctx, a[0], a[1], rad, i, [u[0], -u[1]], g.nar); });
+    if (S.comp) drawComp(ctx, T, sol, Lw, 2);
+    const r = drawChain(ctx, T, sol, Lw);
+    labelChain(ctx, T, sol, Lw, r, g.nar);
+    drawP(ctx, T, sol, Lw, g.nar);
+    if (g.panel) drawPanel(ctx, g.box, g.ps, sol, 2, Lpx);
+    else if (g.nar) scaleBar(ctx, 14, H - 15, Lpx, 150);
+    else scaleBar(ctx, W - 12, g.area.y - 18, Lpx, 200, true);
+  }
+
+  // 3차원 공간: 사선(정사영) 투영, 끌어서 돌린다
+  function geo3(W, H) {
+    const l = layout(W, H), top = l.nar ? 46 : 40, bot = (l.nar ? 48 : 12) + l.legB, d = pre();
+    const area = {x: 10, y: top, w: W - 20 - (l.panel ? l.pw + 12 : 0), h: H - top - bot};
+    const s = Math.min(area.w, area.h) / (2 * d.R), cx = area.x + area.w / 2, cy = area.y + area.h / 2;
+    const T = (p) => { const q = M.project(M.sub(p, d.c), S.yaw, S.pitch); return [cx + s * q.x, cy - s * q.y, q.depth]; };
+    return Object.assign(l, {area, s, T, d});
+  }
+  function fit3(g, sol) {                                      // 화살표 끝이 보기 구(반지름 R) 안에 들게
+    const d = g.d, a = M.sub(S.P, d.c), R = d.R * 1.02, aa = M.dot(a, a);
+    let f = 1;
+    for (const v of chainVecs(sol)) {
+      const b = M.scale(v, d.L), bb = M.dot(b, b); if (bb < 1e-12) continue;
+      const ab = M.dot(a, b), disc = ab * ab - bb * (aa - R * R);
+      if (disc < 0) continue;
+      const t = (-ab + Math.sqrt(disc)) / bb;
+      if (t > 0) f = Math.min(f, t);
+    }
+    return clamp(f, 0.05, 1);
+  }
+  function drawSpace(ctx, W, H) {
+    const g = geo3(W, H), d = g.d, T = g.T, sol = solve(true), f = fit3(g, sol);
+    setScale(f);
+    const Lw = d.L * f, Lpx = Lw * g.s, seg = (p, q, c, w, dash) => Lab.line(ctx, [T(p), T(q)], c, w, dash);
+    if (d.floor) {                                                // 바닥(xy 평면) 모눈
+      const [a, b] = d.floor;
+      for (let i = a; i <= b; i++) { seg([i, a, 0], [i, b, 0], C.line, 1); seg([a, i, 0], [b, i, 0], C.line, 1); }
+    }
+    if (d.cube) {                                                 // 정육면체 (원점 O 꼭짓점, 한 변 2d) + 대각선 O → P
+      const s = d.cube, V = [];
+      for (let i = 0; i < 8; i++) V.push([(i & 1) * s, ((i >> 1) & 1) * s, ((i >> 2) & 1) * s]);
+      for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++) { const x = i ^ j; if (x === 1 || x === 2 || x === 4) seg(V[i], V[j], Lab.alpha(C.ink, 0.32), 1.4); }
+      seg([0, 0, 0], S.P, Lab.alpha(C.acc, 0.55), 1.5, [6, 5]);
+    }
+    d.axes.forEach(([a0, a1], ax) => {
+      const p0 = [0, 0, 0], p1 = [0, 0, 0]; p0[ax] = a0; p1[ax] = a1;
+      const A = T(p0), B = T(p1);
+      if (Math.hypot(B[0] - A[0], B[1] - A[1]) > 8) Lab.arrow(ctx, A[0], A[1], B[0], B[1], C.muted, 1.5, 9);
+      const p2 = p1.slice(); p2[ax] += 0.3; const Q = T(p2);
+      text(ctx, AX[ax], Q[0], Q[1], {size: 15, w: 600, color: C.muted, halo: true});
+    });
+    if (d.outline) { const pts = S.ch.map((c) => T(c.at)); pts.push(pts[0]); Lab.line(ctx, pts, Lab.alpha(C.muted, 0.6), 1.3, [5, 5]); }
+    const O = T([0, 0, 0]);
+    if (d.drop) { const foot = [S.P[0], S.P[1], 0]; seg(S.P, foot, C.muted, 1.3, [4, 4]); Lab.circle(ctx, O[0], O[1], 3, {fill: C.muted}); }
+    text(ctx, 'O', O[0] - 11, O[1] + 11, {size: 13, w: 600, color: C.muted, halo: true});
+    S.ch.forEach((c, i) => seg(c.at, S.P, Lab.alpha(col(i), 0.55), 1.5, [2, 4]));
+    if (S.dist) {                                                 // 거리: 모두 같으면 하나만. 전하·관찰점에서 가장 먼 자리에
+      const rs = sol.parts.map((p) => p.r), allSame = rs.every((r) => Math.abs(r - rs[0]) < 1e-9), Ps = T(S.P);
+      const busy = [Ps, ...S.ch.map((c) => T(c.at))], room = (q) => Math.min(...busy.map((b) => Math.hypot(b[0] - q[0], b[1] - q[1])));
+      const spot = (i) => {
+        const a = T(S.ch[i].at), m = [lerp(a[0], Ps[0], 0.5), lerp(a[1], Ps[1], 0.5)], L = Math.hypot(Ps[0] - a[0], Ps[1] - a[1]) || 1, nr = [-(Ps[1] - a[1]) / L, (Ps[0] - a[0]) / L];
+        return [1, -1].map((sd) => [m[0] + nr[0] * 16 * sd, m[1] + nr[1] * 16 * sd]).reduce((u, v) => (room(v) > room(u) ? v : u));
+      };
+      const picks = allSame ? [S.ch.map((c, i) => [i, spot(i)]).reduce((u, v) => (room(v[1]) > room(u[1]) ? v : u))] : (g.nar && S.ch.length > 2 ? [] : S.ch.map((c, i) => [i, spot(i)]));
+      picks.forEach(([i, q]) => text(ctx, 'r = ' + rText(rs[i]) + (allSame && S.ch.length > 1 ? ' (모두)' : ''), q[0], q[1], {size: 13, w: 500, color: C.muted, halo: true}));
+    }
+    const order = S.ch.map((c, i) => i).sort((i, j) => T(S.ch[i].at)[2] - T(S.ch[j].at)[2]), Ps = T(S.P);
+    for (const i of order) { const a = T(S.ch[i].at); ball(ctx, a[0], a[1], (g.nar ? 11 : 14) * (1 + 0.06 * a[2] / d.R), S.ch[i].qd, i === S.sel); }
+    const seen = [];
+    for (const i of order) {
+      const a = T(S.ch[i].at), L = Math.hypot(a[0] - Ps[0], a[1] - Ps[1]) || 1, k = seen.filter((b) => Math.hypot(b[0] - a[0], b[1] - a[1]) < 6).length;
+      chargeLabel(ctx, a[0], a[1] + k * 18, g.nar ? 11 : 14, i, [(a[0] - Ps[0]) / L, (a[1] - Ps[1]) / L], g.nar);
+      seen.push(a);
+    }
+    if (S.comp) drawComp(ctx, T, sol, Lw, 3);
+    const r = drawChain(ctx, T, sol, Lw);
+    labelChain(ctx, T, sol, Lw, r, g.nar);
+    drawP(ctx, T, sol, Lw, g.nar);
+    if (g.panel) drawPanel(ctx, g.box, g.ps, sol, 3, Lpx);
+    else if (g.nar) scaleBar(ctx, 14, H - 15, Lpx, 150);
+    else scaleBar(ctx, W - 12, g.area.y - 18, Lpx, 200, true);
+    const hx = g.nar ? 14 : g.area.x + g.area.w - 4, hy = g.nar ? H - 35 : g.area.y - 18;
+    if (g.nar || g.panel) text(ctx, S.hint ? '끌어서 돌려 보기' : '사선 투영 그림', hx, hy, {size: 13, w: S.hint ? 600 : 500, color: S.hint ? C.copper : C.muted, align: g.nar ? 'left' : 'right', halo: true});
+  }
+
+  // 오른쪽 칸 (넓은 무대): 축마다 성분을 꼬리–머리로 이어 붙인 줄 + 세기만 더한 값 vs 화살표 합 + 축척
+  function drawPanel(ctx, b, ps, sol, nAx, Lpx) {
+    panelBox(ctx, b);
+    const n = sol.parts.length, unit = pre().unit, {step, gap} = ps, showBars = ps.bars;
+    text(ctx, '성분끼리 이어 붙이기', b.x + 12, b.y + 17, {size: 13, w: 600, color: C.muted, align: 'left'});
+    const x0 = b.x + 30, x1 = b.x + b.w - 64, mid = (x0 + x1) / 2;
+    let mx = 1e-9;
+    for (let a = 0; a < nAx; a++) { let p = 0; for (const pt of sol.parts) { p += pt.E[a]; mx = Math.max(mx, Math.abs(p)); } }
+    const k = (x1 - x0) / 2 / mx;
+    const laneH = 12 + step * (n - 1), gp = growP();
+    let y = b.y + 42;
+    for (let a = 0; a < nAx; a++) {
+      text(ctx, AX[a], b.x + 15, y + laneH / 2 - 5, {size: 15, w: 600, color: C.ink});
+      Lab.line(ctx, [[mid, y - 7], [mid, y + laneH - 1]], C.line, 1.4);
+      let p = 0;
+      sol.parts.forEach((pt, i) => {
+        const pr = prog(i); if (pr <= 0) return;
+        const v = pt.E[a] * ease(pr), yy = y + step * i;
+        if (Math.abs(v * k) >= 3) Lab.arrow(ctx, mid + p * k, yy, mid + (p + v) * k, yy, col(i), 3, 8);
+        else Lab.circle(ctx, mid + p * k, yy, 2.4, {fill: col(i)});
+        p += v;
+      });
+      const s = sol.sum[a], can = M.cancels(sol.parts, a), zero = Math.abs(s) < 5e-3;
+      if (gp > 0) {
+        const xs = mid + s * k;
+        Lab.line(ctx, [[xs, y - 7], [xs, y + laneH + 3]], C.acc, 2, [3, 3]);
+        Lab.circle(ctx, xs, y + laneH + 3, 3.6, {fill: C.acc});
+        text(ctx, can ? '0 상쇄' : f2(s), b.x + b.w - 10, y + laneH / 2 - 4, {size: 14, w: 600, color: can ? C.neg : zero ? C.muted : C.acc, align: 'right'});
+      }
+      y += laneH + gap;
+    }
+    if (showBars) {
+      y += 6;
+      const bx = b.x + 12, bw = b.w - 24, kb = bw / Math.max(sol.scalar, sol.mag, 1e-9);
+      text(ctx, '세기만 더하면', bx, y, {size: 13, w: 500, color: C.muted, align: 'left'});
+      text(ctx, f2(sol.scalar) + ' ' + unit, bx + bw, y, {size: 13, w: 600, color: C.muted, align: 'right'});
+      let xx = bx;
+      sol.parts.forEach((pt, i) => { const w = pt.mag * kb; bar(ctx, xx, y + 10, w - 1.5, col(i), 0.8); xx += w; });
+      y += 36;
+      text(ctx, '화살표로 이으면 |E|', bx, y, {size: 13, w: 600, color: C.acc, align: 'left'});
+      text(ctx, f2(sol.mag) + ' ' + unit, bx + bw, y, {size: 13, w: 600, color: C.acc, align: 'right'});
+      bar(ctx, bx, y + 10, sol.mag * kb, C.acc, 0.85);
+    }
+    scaleBar(ctx, b.x + 12, b.y + b.h - 20, Lpx, b.w - 24);
+  }
+
+  // ── 관찰 1: 세기만 더한 값 vs 화살표로 이은 합 ──────────
+  const gSum = Lab.canvas('gSum', drawGSum);
+  function drawGSum() {
+    const {ctx, W, H} = gSum; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const sol = solve(false), n = sol.parts.length, nar = W < 430, pad = 8, bw = W - 2 * pad;
+    const kb = bw / Math.max(sol.scalar, sol.mag, 1e-9), names = S.ch.map((c) => 'E_' + c.id).join(' + ');
+    const rowH = (H - 26) / 2, y1 = 12, y2 = 12 + rowH;
+    Lab.rich(ctx, nar ? '세기만 더하면' : '세기만 더하면   ' + names, pad, y1, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, magLong(sol.scalar), W - pad, y1, {size: 13, w: 600, color: C.muted, align: 'right'});
+    let x = pad;
+    sol.parts.forEach((p, i) => { const w = p.mag * kb; bar(ctx, x, y1 + 11, w - 2, col(i), 0.85); x += w; });
+    Lab.rich(ctx, nar ? '화살표로 이으면' : '화살표로 이으면   |' + names + '|', pad, y2, {size: 13, w: 600, color: C.acc, align: 'left'});
+    text(ctx, magLong(sol.mag), W - pad, y2, {size: 13, w: 600, color: C.acc, align: 'right'});
+    bar(ctx, pad, y2 + 11, sol.mag * kb, C.acc, 0.9);
+    let foot = '화살표가 모두 같은 방향일 때만 두 값이 같다';
+    if (n === 2 && sol.parts[0].mag > 1e-9 && sol.parts[1].mag > 1e-9) {
+      const ang = Math.acos(clamp(M.dot(sol.parts[0].E, sol.parts[1].E) / (sol.parts[0].mag * sol.parts[1].mag), -1, 1)) * 180 / Math.PI;
+      foot = '두 화살표 사이 각 ' + fmt(ang, 0) + '° — 0°일 때만 두 값이 같다';
+    }
+    text(ctx, foot, pad, H - 9, {size: 13, w: 500, color: C.muted, align: 'left'});
+  }
+
+  // ── 관찰 2: 지금 배치 | 고른 전하의 부호만 바꾼 배치 ────
+  const gFlip = Lab.canvas('gFlip', drawGFlip);
+  function miniMap(b) {
+    const area = {x: b.x + 8, y: b.y + 26, w: b.w - 16, h: b.h - 26 - 42};
+    if (S.dim === 2) {
+      const [x0, x1, y0, y1] = pre().view, s = Math.min(area.w / (x1 - x0), area.h / (y1 - y0));
+      const ox = area.x + (area.w - s * (x1 - x0)) / 2 - s * x0, oy = area.y + (area.h - s * (y1 - y0)) / 2 + s * y1;
+      return {area, T: (p) => [ox + s * p[0], oy - s * p[1]]};
+    }
+    const d = pre(), s = Math.min(area.w, area.h) / (2 * d.R), cx = area.x + area.w / 2, cy = area.y + area.h / 2;
+    return {area, T: (p) => { const q = M.project(M.sub(p, d.c), S.yaw, S.pitch); return [cx + s * q.x, cy - s * q.y, q.depth]; }};
+  }
+  function miniFit(mp, sol) {
+    const L = pre().L, Ps = mp.T(S.P), A = mp.area;
+    let f = 1;
+    for (const v of chainVecs(sol)) {
+      const q = mp.T(M.add(S.P, M.scale(v, L))), dx = q[0] - Ps[0], dy = q[1] - Ps[1];
+      if (dx > 0.5) f = Math.min(f, (A.x + A.w - Ps[0]) / dx); else if (dx < -0.5) f = Math.min(f, (A.x - Ps[0]) / dx);
+      if (dy > 0.5) f = Math.min(f, (A.y + A.h - Ps[1]) / dy); else if (dy < -0.5) f = Math.min(f, (A.y - Ps[1]) / dy);
+    }
+    return clamp(f, 0.03, 1);
+  }
+  function drawGFlip() {
+    const {ctx, W, H} = gFlip; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const i = clamp(S.sel, 0, S.ch.length - 1), A = S.ch.map((c) => ({q: c.q, at: c.at})), B = A.map((c, j) => (j === i ? {q: -c.q, at: c.at} : c));
+    const sa = M.superposeU(A, S.P, S.q0, S.r0), sb = M.superposeU(B, S.P, S.q0, S.r0);
+    const gap = 10, pw = (W - gap) / 2, boxes = [{x: 0, y: 0, w: pw, h: H}, {x: pw + gap, y: 0, w: pw, h: H}], maps = boxes.map(miniMap);
+    const f = Math.min(miniFit(maps[0], sa), miniFit(maps[1], sb));
+    miniPanel(ctx, boxes[0], maps[0], sa, A, f, '지금', -1);
+    miniPanel(ctx, boxes[1], maps[1], sb, B, f, S.ch[i].id + '의 부호만 바꾸면', i);
+  }
+  function miniPanel(ctx, b, mp, sol, cs, f, title, fi) {
+    ctx.save(); Lab.rrect(ctx, b.x, b.y, b.w, b.h, 12); ctx.fillStyle = C.bg; ctx.fill(); ctx.restore();
+    text(ctx, title, b.x + b.w / 2, b.y + 14, {size: 13, w: 600, color: fi >= 0 ? C.copper : C.muted});
+    const T = mp.T, L = pre().L * f, P = S.P, Ps = T(P), small = b.w < 200;
+    if (S.dim === 2) {
+      const [x0, x1, y0, y1] = pre().view;
+      Lab.line(ctx, [T([x0, 0]), T([x1, 0])], C.line, 1.2); Lab.line(ctx, [T([0, y0]), T([0, y1])], C.line, 1.2);
+    }
+    cs.forEach((c, k) => Lab.line(ctx, [T(c.at), Ps], Lab.alpha(col(k), 0.45), 1.2, [2, 3]));
+    let acc = P;
+    sol.parts.forEach((p, k) => { const nx = M.add(acc, M.scale(p.E, L)); if (k > 0) dashArrow(ctx, T(acc), T(nx), Lab.alpha(col(k), 0.7), 1.6, 7, [4, 3]); acc = nx; });
+    const zero = sol.mag < 1e-9 * Math.max(1, sol.scalar);
+    if (!zero) { const e = T(M.add(P, M.scale(sol.sum, L))); Lab.arrow(ctx, Ps[0], Ps[1], e[0], e[1], C.acc, 3.6, 10); }
+    sol.parts.forEach((p, k) => { const e = T(M.add(P, M.scale(p.E, L))); if (Math.hypot(e[0] - Ps[0], e[1] - Ps[1]) > 3) Lab.arrow(ctx, Ps[0], Ps[1], e[0], e[1], col(k), 2.6, 9); });
+    cs.forEach((c, k) => {
+      const a = T(c.at); ball(ctx, a[0], a[1], 8, c.q, k === fi);
+      if (!small || cs.length <= 2) { const L2 = Math.hypot(a[0] - Ps[0], a[1] - Ps[1]) || 1; text(ctx, S.ch[k].id, a[0] + (a[0] - Ps[0]) / L2 * 17, a[1] + (a[1] - Ps[1]) / L2 * 17, {size: 13, w: 600, color: col(k), halo: C.bg}); }
+    });
+    Lab.circle(ctx, Ps[0], Ps[1], 4.5, {fill: C.copper, stroke: C.bg, width: 1.5});
+    const line1 = zero ? '합 0' : magText(sol.mag) + ' · ' + dirText(sol.sum, true);
+    const z1 = Lab.measure(ctx, line1, {size: 13, w: 600}) > b.w - 10 ? magText(sol.mag) : line1;
+    text(ctx, z1, b.x + b.w / 2, b.y + b.h - 29, {size: 13, w: 600, color: zero ? C.ink : C.acc});
+    text(ctx, cancelText(sol), b.x + b.w / 2, b.y + b.h - 11, {size: 13, w: 500, color: C.muted});
+  }
+
+  // ── 관찰 3: 성분표 ──────────────────────────────────────
+  const gTab = Lab.canvas('gTab', drawGTab);
+  const tabHeight = () => 26 + 30 * (S.ch.length + 1) + 30;
+  function drawGTab() {
+    const {ctx, W, H} = gTab; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const sol = solve(false), nAx = S.dim === 3 ? 3 : 2, unit = pre().unit, nar = W < 430;
+    const heads = ['전하', '거리 r', '세기 E', ...AX.slice(0, nAx).map((a) => 'E_' + a)];
+    const c0 = nar ? 56 : 74, cw = (W - c0 - 4) / (heads.length - 1), cx = (j) => c0 + cw * (j - 1) + cw / 2;
+    const rowH = 30, top = 26, num = (v) => (Math.abs(v) < 5e-4 ? '0' : nar ? fmt(v, 2) : f3(v));
+    heads.forEach((h, j) => Lab.rich(ctx, h, j ? cx(j) : 6, 12, {size: 13, w: 600, color: C.muted, align: j ? 'center' : 'left'}));
+    Lab.line(ctx, [[4, top - 1], [W - 4, top - 1]], C.line, 1);
+    const mxE = Math.max(1e-9, ...sol.parts.map((p) => p.mag)), half = cw / 2 - 5;
+    const cell = (j, y, v, c, signed) => {
+      const L = Math.abs(v) / mxE * (signed ? half : cw - 10);
+      ctx.save(); ctx.fillStyle = Lab.alpha(c, 0.22);
+      if (signed) { const x0 = cx(j); Lab.rrect(ctx, v >= 0 ? x0 : x0 - L, y - 9, L, 18, 4); }
+      else Lab.rrect(ctx, cx(j) - cw / 2 + 5, y - 9, L, 18, 4);
+      ctx.fill(); ctx.restore();
+      if (signed) Lab.line(ctx, [[cx(j), y - 11], [cx(j), y + 11]], C.line, 1);
+      text(ctx, num(v), cx(j), y, {size: 14, w: 500, color: C.ink, halo: true});
+    };
+    sol.parts.forEach((p, i) => {
+      const y = top + rowH * (i + 0.5);
+      text(ctx, S.ch[i].id, 8, y, {size: 15, w: 600, color: col(i), align: 'left'});
+      text(ctx, qText(S.ch[i].q), 24, y + 1, {size: 13, w: 500, color: C.muted, align: 'left'});
+      text(ctx, rText(p.r), cx(1), y, {size: 14, w: 500, color: C.ink});
+      cell(2, y, p.mag, col(i), false);
+      for (let a = 0; a < nAx; a++) cell(3 + a, y, p.E[a], col(i), true);
+    });
+    const ys = top + rowH * (sol.parts.length + 0.5);
+    Lab.line(ctx, [[4, ys - rowH / 2], [W - 4, ys - rowH / 2]], C.ink, 1.2);
+    text(ctx, '합', 8, ys, {size: 15, w: 600, color: C.acc, align: 'left'});
+    text(ctx, '세기 합 ' + num(sol.scalar), cx(2), ys, {size: 13, w: 500, color: C.muted});
+    for (let a = 0; a < nAx; a++) {
+      const can = M.cancels(sol.parts, a);
+      text(ctx, can ? '0 상쇄' : num(sol.sum[a]), cx(3 + a), ys, {size: 14, w: 700, color: can ? C.neg : C.acc});
+    }
+    const sq = sol.sum.slice(0, nAx).map((v) => (num(v)[0] === MI ? '(' + num(v) + ')' : num(v)) + '²').join(' + ');
+    const foot = nar ? '|E| = ' + num(sol.mag) + ' ' + unit + ' ≠ 세기 합 ' + num(sol.scalar) : '|E| = √(' + sq + ') = ' + num(sol.mag) + ' ' + unit + '  ≠  세기 합 ' + num(sol.scalar) + ' ' + unit;
+    text(ctx, foot, 6, H - 12, {size: 13, w: 600, color: C.acc, align: 'left'});
+  }
+
+  // ── 관찰 3: P 를 지나는 선 위의 성분 그래프 (2차원 Eₓ–x, 3차원 E_z–z) ──
+  const gEx = Lab.canvas('gEx', drawGEx);
+  function drawGEx() {
+    const {ctx, W, H} = gEx; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const three = S.dim === 3, ax = three ? 2 : 0, cs = chs(false), u0 = S.r0 * S.r0 / S.q0, unit = pre().unit, nm = three ? 'z' : 'x';
+    const [lo, hi] = three ? [Math.min(-0.5, pre().axes[2][0]), pre().axes[2][1] + 0.5] : pre().view.slice(0, 2);
+    const at = (t) => { const p = S.P.slice(); p[ax] = t; return p; };
+    const onLine = cs.filter((c) => [0, 1, 2].every((k) => k === ax || Math.abs(c.at[k] - S.P[k]) < 1e-9));
+    const N = 420, T = [], V = [];
+    for (let i = 0; i <= N; i++) {
+      const t = lo + (hi - lo) * i / N, p = at(t);
+      T.push(t); V.push(onLine.some((c) => Math.abs(c.at[ax] - t) < 1e-6) ? NaN : M.superpose(cs, p).sum[ax] * u0);
+    }
+    const EP = M.superpose(cs, S.P).sum[ax] * u0;
+    const fin = V.filter(isFinite).map(Math.abs).sort((a, b) => a - b), p80 = fin.length ? fin[Math.floor(fin.length * 0.8)] : 1;
+    const ym = Math.max(0.5, Math.abs(EP) * 1.4, p80 * 1.25), nar = W < 430;
+    const r = {x: 44, y: 22, w: W - 44 - 20, h: H - 22 - 30};
+    const nice = [0.5, 1, 2, 5, 10, 20, 50].find((v) => ym / v <= 2.6) || 100;
+    const yt = []; for (let v = -Math.floor(ym / nice) * nice; v <= ym + 1e-9; v += nice) yt.push(+v.toFixed(6));
+    const xt = []; const xs = (hi - lo) > 7 ? 2 : 1; for (let v = Math.ceil(lo / xs) * xs; v <= hi + 1e-9; v += xs) xt.push(v);
+    const A = Lab.axes(ctx, r, {xmin: lo, xmax: hi, ymin: -ym, ymax: ym, xticks: [], yticks: yt, yAt: 'left', grid: true,
+      fmtY: (v) => fmt(v, 1), xlabel: nm});
+    Lab.rich(ctx, 'E_' + nm + ' (' + unit + ')', r.x + 8, r.y - 6, {size: 13, w: 600, color: C.muted, align: 'left'});
+    ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath();     // 위치 눈금은 그래프 아래 가장자리에 (곡선과 겹치지 않게)
+    xt.forEach((v) => { ctx.moveTo(A.X(v), r.y); ctx.lineTo(A.X(v), r.y + r.h); });
+    ctx.stroke(); ctx.restore();
+    xt.forEach((v) => text(ctx, v === 0 ? '0' : tick(v), A.X(v), r.y + r.h + 13, {size: 13, w: 500, color: C.muted}));
+    Lab.line(ctx, [[r.x, A.Y(0)], [r.x + r.w, A.Y(0)]], C.muted, 1.2);
+    onLine.forEach((c) => {                                       // 선 위의 전하: 그 자리에서 발산
+      const i = cs.indexOf(c), x = A.X(c.at[ax]);
+      Lab.line(ctx, [[x, r.y], [x, r.y + r.h]], Lab.alpha(col(i), 0.7), 1.4, [4, 4]);
+      const right = x < r.x + r.w - 70;                           // 선 오른쪽(끝이면 왼쪽)에 이름
+      text(ctx, S.ch[i].id + ' ' + qText(c.q), x + (right ? 6 : -6), r.y + 9, {size: 13, w: 600, color: col(i), align: right ? 'left' : 'right', halo: true});
+    });
+    ctx.save(); ctx.beginPath(); ctx.rect(r.x, r.y - 2, r.w, r.h + 4); ctx.clip();
+    ctx.strokeStyle = C.acc; ctx.lineWidth = 2.8; ctx.lineJoin = 'round'; ctx.beginPath();
+    let pen = false;
+    for (let i = 0; i <= N; i++) {
+      const v = V[i];
+      if (!isFinite(v) || (i && isFinite(V[i - 1]) && Math.abs(v - V[i - 1]) > ym && Math.sign(v) !== Math.sign(V[i - 1]))) { pen = false; if (!isFinite(v)) continue; }
+      const x = A.X(T[i]), y = A.Y(clamp(v, -ym * 1.1, ym * 1.1));
+      if (pen) ctx.lineTo(x, y); else { ctx.moveTo(x, y); pen = true; }
+    }
+    ctx.stroke(); ctx.restore();
+    for (let i = 1; i <= N; i++) {                               // Eₓ = 0 인 곳 (발산이 아닌 부호 바뀜)
+      const a = V[i - 1], b = V[i];
+      if (!isFinite(a) || !isFinite(b) || Math.sign(a) === Math.sign(b) || Math.abs(a - b) > ym) continue;
+      const t = T[i - 1] + (T[i] - T[i - 1]) * a / (a - b);
+      Lab.circle(ctx, A.X(t), A.Y(0), 4.5, {fill: C.paper, stroke: C.acc, width: 2});
+    }
+    const px = A.X(S.P[ax]), py = A.Y(clamp(EP, -ym, ym));
+    Lab.line(ctx, [[px, A.Y(0)], [px, py]], C.copper, 1.4, [3, 3]);
+    Lab.circle(ctx, px, py, 5.5, {fill: C.copper, stroke: C.paper, width: 2});
+    text(ctx, (pre().pn || 'P') + ' ' + f2(EP), px + 9, py + (EP >= 0 ? -12 : 12), {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+  }
+
+  // ── 관찰 4: 위에서 본 모습 · 옆에서 본 모습 ─────────────
+  const gProj = Lab.canvas('gProj', drawGProj);
+  function drawGProj() {
+    const {ctx, W, H} = gProj; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    let cfg;
+    if (S.dim === 3) cfg = {sol: solve(false), ch: S.ch, P: S.P, L: pre().L, tag: ''};
+    else {                                                        // 2차원 장면일 때: 3차원 사각뿔(√5 d) 미리 보기
+      const m = M.PRESETS.py;
+      cfg = {sol: M.solve('py'), ch: m.charges.map((c, i) => ({id: c.id, q: c.q, at: M.v3(c.at), col: PAL[i]})), P: M.v3(m.P), L: PRE.py.L, tag: '미리 보기 · '};
+    }
+    const gap = 10, pw = (W - gap) / 2;
+    orthoPanel(ctx, {x: 0, y: 0, w: pw, h: H}, cfg, 0);
+    orthoPanel(ctx, {x: pw + gap, y: 0, w: pw, h: H}, cfg, 1);
+  }
+  // 정사영 한 칸: kind 0 = 위에서(xy), 1 = 옆에서(xz, −y 쪽에서 본다). 화면에 수직인 화살표는 ⊙(보는 쪽)·⊗(안쪽)
+  function orthoPanel(ctx, b, cfg, kind) {
+    const ax = kind ? [0, 2] : [0, 1], out = kind ? 1 : 2, outSign = kind ? -1 : 1, {sol, ch, P} = cfg, cc = (k) => C[ch[k].col];
+    ctx.save(); Lab.rrect(ctx, b.x, b.y, b.w, b.h, 12); ctx.fillStyle = C.bg; ctx.fill(); ctx.restore();
+    const ttl = (kind ? '옆에서 본 모습 (xz 평면)' : '위에서 본 모습 (xy 평면)');
+    text(ctx, b.w < 230 ? cfg.tag + (kind ? '옆에서 (xz)' : '위에서 (xy)') : cfg.tag + ttl, b.x + b.w / 2, b.y + 14, {size: 13, w: 600, color: C.muted});
+    const area = {x: b.x + 14, y: b.y + 30, w: b.w - 28, h: b.h - 30 - 30};
+    const pts = [[0, 0, 0], P, ...ch.map((c) => c.at), ...[sol.sum, ...sol.parts.map((p) => p.E)].map((v) => M.add(P, M.scale(v, cfg.L)))];
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    pts.forEach((p) => { x0 = Math.min(x0, p[ax[0]]); x1 = Math.max(x1, p[ax[0]]); y0 = Math.min(y0, p[ax[1]]); y1 = Math.max(y1, p[ax[1]]); });
+    const pad = 0.6; x0 -= pad; x1 += pad; y0 -= pad; y1 += pad;
+    const s = Math.min(area.w / (x1 - x0), area.h / (y1 - y0));
+    const ox = area.x + (area.w - s * (x1 - x0)) / 2 - s * x0, oy = area.y + (area.h - s * (y1 - y0)) / 2 + s * y1;
+    const T = (p) => [ox + s * p[ax[0]], oy - s * p[ax[1]]], Ps = T(P);
+    let f = 1;                                                    // 화살표 축척: 합과 하나하나가 칸 안에
+    for (const v of [sol.sum, ...sol.parts.map((p) => p.E)]) {
+      const dx = v[ax[0]] * cfg.L * s, dy = -v[ax[1]] * cfg.L * s;
+      if (dx > 0.5) f = Math.min(f, (area.x + area.w - Ps[0]) / dx); else if (dx < -0.5) f = Math.min(f, (area.x - Ps[0]) / dx);
+      if (dy > 0.5) f = Math.min(f, (area.y + area.h - Ps[1]) / dy); else if (dy < -0.5) f = Math.min(f, (area.y - Ps[1]) / dy);
+    }
+    const Lw = cfg.L * clamp(f, 0.05, 1);
+    Lab.line(ctx, [T([x0, 0, 0]), T([x1, 0, 0])], C.line, 1.2);
+    const v0 = [0, 0, 0], v1 = [0, 0, 0]; v0[ax[1]] = y0; v1[ax[1]] = y1;
+    Lab.line(ctx, [T(v0), T(v1)], C.line, 1.2);
+    const ex = T([x1, 0, 0]), ey = T(v1);
+    text(ctx, 'x', ex[0] - 6, ex[1] - 10, {size: 13, w: 600, color: C.muted});
+    text(ctx, AX[ax[1]], ey[0] + 10, ey[1] + 8, {size: 13, w: 600, color: C.muted});
+    ch.forEach((c, k) => Lab.line(ctx, [T(c.at), Ps], Lab.alpha(cc(k), 0.4), 1.2, [2, 3]));
+    const arrowP = (v, c, w, head) => {
+      const e = [Ps[0] + v[ax[0]] * Lw * s, Ps[1] - v[ax[1]] * Lw * s];
+      if (Math.hypot(e[0] - Ps[0], e[1] - Ps[1]) >= 4) Lab.arrow(ctx, Ps[0], Ps[1], e[0], e[1], c, w, head);
+      else if (Math.abs(v[out]) > 1e-9) dotCross(ctx, Ps[0], Ps[1], c, v[out] * outSign > 0);
+    };
+    const zero = sol.mag < 1e-9 * Math.max(1, sol.scalar);
+    if (!zero) arrowP(sol.sum, C.acc, 3.8, 11);
+    sol.parts.forEach((p, k) => arrowP(p.E, cc(k), 2.4, 8));
+    const done = new Set();
+    ch.forEach((c, k) => {
+      const a = T(c.at), key = Math.round(a[0]) + ',' + Math.round(a[1]);
+      ball(ctx, a[0], a[1], 7.5, c.q, false);
+      const L2 = Math.hypot(a[0] - Ps[0], a[1] - Ps[1]) || 1, n2 = done.has(key);
+      text(ctx, c.id, a[0] + (a[0] - Ps[0]) / L2 * 15 + (n2 ? 13 : 0), a[1] + (a[1] - Ps[1]) / L2 * 15, {size: 13, w: 600, color: cc(k), halo: C.bg});
+      done.add(key);
+    });
+    Lab.circle(ctx, Ps[0], Ps[1], 4.5, {fill: C.copper, stroke: C.bg, width: 1.5});
+    const s1 = '합의 (' + AX[ax[0]] + ', ' + AX[ax[1]] + ') = (' + f2(sol.sum[ax[0]]) + ', ' + f2(sol.sum[ax[1]]) + ')';
+    text(ctx, s1, b.x + b.w / 2, b.y + b.h - 13, {size: 13, w: 600, color: C.acc});
+  }
+
+  // ── 지금 값 ─────────────────────────────────────────────
+  function readouts() {
+    const sol = solve(false), d = pre(), unit = d.unit, nAx = S.dim === 3 ? 3 : 2, pn = d.pn || 'P';
+    const zero = sol.mag < 1e-9 * Math.max(1, sol.scalar), lines = [];
+    for (let a = 0; a < nAx; a++) {
+      const terms = sol.parts.map((p) => p.E[a]), can = M.cancels(sol.parts, a);
+      const pairs = M.cancelPairs(sol.parts, a).map(([i, j]) => S.ch[i].id + '·' + S.ch[j].id);
+      let note = '';
+      if (can) note = ' ← 상쇄' + (sol.parts.length > 2 && pairs.length ? ' (' + pairs.join(', ') + ')' : '');
+      else if (pairs.length) note = ' (' + pairs.join(', ') + ' 상쇄)';
+      lines.push('E<sub>' + AX[a] + '</sub> = ' + terms.map((t, i) => (i ? par(t) : f3(t))).join(' + ') + ' = <em>' + f3(sol.sum[a]) + '</em>' + note);
+    }
+    const sq = sol.sum.slice(0, nAx).map((v) => par(v) + '²').join(' + ');
+    lines.push('|E| = √(' + sq + ') = <em>' + (zero ? '0' : f3(sol.mag) + ' ' + unit) + '</em>' + (zero ? ' — 모두 지워진다' : ' → <em>' + dirText(sol.sum) + '</em>'));
+    const big = zero ? 'E = 0 (모두 상쇄)' : magText(sol.mag) + ' · ' + dirText(sol.sum);
+    Lab.ans(big, lines, {tone: zero ? 'ink' : big.length > 14 ? 'small' : '', lab: pn + '의 합성 전기장', ctx: d.def,
+      f: '전하마다 E를 성분으로 나눠 열마다 더하면 (단위 ' + unit + ')'});
+    $('mv1').textContent = f2(sol.scalar) + ' ' + unit;
+    $('mv2').textContent = S.ch.map((c, i) => c.id + ' ' + f2(sol.parts[i].mag)).join(' · ');
+    if (nAx === 2) {
+      $('mn3').innerHTML = '방향 tan θ = E<sub>y</sub>/E<sub>x</sub>';
+      const [ex, ey] = sol.sum;
+      $('mv3').textContent = zero ? '–' : Math.abs(ex) < 1e-9 ? 'Eₓ = 0 → θ = ' + (ey > 0 ? '90°' : MI + '90°') : f2(ey / ex) + ' → θ = ' + fmt(M.dirDeg(sol.sum), 1) + '°';
+    } else {
+      $('mn3').textContent = '방향 단위벡터 E/|E|';
+      $('mv3').textContent = zero ? '–' : '(' + sol.sum.map((v) => f2(v / sol.mag)).join(', ') + ')';
+    }
+    $('mv4').textContent = zero ? '0 N/C' : Lab.sci(sol.mag * 9e3 * S.q0 / (S.r0 * S.r0), 1, {force: true}) + ' N/C';
+    $('hud1').textContent = zero ? 'E = 0' : '|E| = ' + f2(sol.mag) + ' ' + unit;
+    $('hud2').textContent = zero ? '모두 상쇄' : dirText(sol.sum, true);
+    Lab.check('exCheck', S.key === 'ga' && pristine('ga'), '개념서 예제 (+q(−d, 0), −q(d, 0), P(0, d)) → √2 E₀, +x 방향 — y성분은 대칭으로 상쇄',
+      '예제: +q(−d, 0), −q(d, 0)일 때 P(0, d)의 합성 전기장은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function drawAll() { drawStage(); drawGSum(); drawGFlip(); drawGTab(); drawGEx(); drawGProj(); }
+  function refresh() { readouts(); drawAll(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; S.asmGoal = null; if (on && S.asmT >= tEnd() - 0.05) S.asmT = 0; });
+  const dimG = Lab.group('[data-dim]', 'dim', (v) => { if (+v !== S.dim) { load(+v === 3 ? S.last3 : S.last2); sync(); refresh(); } }, '2');
+  const preG = Lab.group('[data-pre]', 'pre', (v) => { load(v); sync(); refresh(); }, 'ga');
+  const viewG = Lab.group('[data-view]', 'view', (v) => setView(v), 'iso');
+  function setView(v) {
+    if (S.dim !== 3) load(S.last3);
+    const V = VIEWS[v] || pre().view3;
+    let dy = V[0] - S.yaw; dy -= Math.round(dy / 360) * 360;
+    S.view = v; S.viewGoal = {yaw: S.yaw + dy, pitch: V[1]};
+    playCtl.set(false); S.asmGoal = null; if (S.asmT < tDone()) S.asmT = tDone();
+    sync(); refresh();
+  }
+  const qEl = $('q');
+  function syncQ() {
+    const c = S.ch[S.sel]; if (!c) return;
+    $('qName').textContent = c.id;
+    const big = Math.abs(c.q) > 4;
+    qEl.disabled = big; if (!big) qEl.value = c.q;
+    $('qOut').textContent = qText(c.q);
+  }
+  qEl.addEventListener('input', () => { const c = S.ch[S.sel]; if (!c) return; c.q = +qEl.value; syncQ(); refresh(); });
+  $('flip').addEventListener('click', () => { const c = S.ch[S.sel]; if (!c) return; c.q = -c.q; syncQ(); refresh(); });
+  $('add').addEventListener('click', () => {
+    if (S.dim !== 2 || S.ch.length >= 4) return;
+    const [x0, x1, y0, y1] = pre().view, ok = (p) => p[0] > x0 + 0.3 && p[0] < x1 - 0.3 && p[1] > y0 + 0.3 && p[1] < y1 - 0.3;
+    const free = [[0, -1], [-2, 1], [2, 1], [-1, 2], [1, 2], [0, 2], [-2, -1], [2, -1], [0, -2], [1, -1], [-1, -1], [2, 2], [-2, 2]]
+      .map((p) => [p[0], p[1], 0]).find((p) => ok(p) && M.dist(p, S.P) >= 0.9 && S.ch.every((c) => M.dist(c.at, p) >= 0.9));
+    if (!free) return;
+    const id = [...'ABCD'].find((l) => !S.ch.some((c) => c.id === l)), cl = PAL.find((k) => !S.ch.some((c) => c.col === k));
+    S.ch.push({id, q: 1, qd: 0, at: free, col: cl});
+    S.sel = S.ch.length - 1; restartAsm(); sync(); refresh();
+  });
+  $('del').addEventListener('click', () => {
+    if (S.dim !== 2 || S.ch.length <= 1) return;
+    S.ch.splice(S.sel, 1); S.sel = Math.min(S.sel, S.ch.length - 1); restartAsm(); sync(); refresh();
+  });
+  $('step').addEventListener('click', () => {
+    playCtl.set(false);
+    const n = S.ch.length;
+    if (S.asmT >= tDone() - 1e-6) { S.asmT = 0; S.asmGoal = CH.IN; }
+    else {
+      let k = 1; while (k < n && prog(k) >= 1) k++;
+      if (k < n) { S.asmT = CH.IN + (k - 1) * (CH.MOVE + CH.GAP); S.asmGoal = S.asmT + CH.MOVE; }
+      else { S.asmT = tSum(); S.asmGoal = tDone(); }
+    }
+    drawStage();
+  });
+  $('cComp').addEventListener('change', (e) => { S.comp = e.target.checked; drawStage(); });
+  $('cDist').addEventListener('change', (e) => { S.dist = e.target.checked; drawStage(); });
+  $('cMap').addEventListener('change', (e) => { S.map = e.target.checked; if (S.map && S.dim !== 2) { load(S.last2); sync(); } refresh(); });
+
+  // 무대에서 끌기: 2차원은 전하·관찰점을 옮기고(모눈 반 칸에 맞춤), 3차원은 돌린다(전하를 누르면 고르기)
+  function hit(T, x, y, r) {
+    let best = -1, bd = 1e9;
+    S.ch.forEach((c, i) => { const a = T(c.at), d = Math.hypot(x - a[0], y - a[1]); if (d < bd) { bd = d; best = i; } });
+    return bd <= r ? best : -1;
+  }
+  Lab.pointer(stage.el, {
+    down(x, y) {
+      S.drag = null;
+      if (!stage.W) return;
+      if (S.dim === 2) {
+        const g = geo2(stage.W, stage.H), T = (p) => [g.X(p[0]), g.Y(p[1])], i = hit(T, x, y, 24), Ps = T(S.P), dP = Math.hypot(x - Ps[0], y - Ps[1]);
+        if (dP < 22 && (i < 0 || dP < Math.hypot(x - T(S.ch[i].at)[0], y - T(S.ch[i].at)[1]))) S.drag = {type: 'P'};
+        else if (i >= 0) { S.drag = {type: 'ch', i}; S.sel = i; syncQ(); refresh(); }
+        if (S.drag) S.hint = false;
+      } else {
+        const g = geo3(stage.W, stage.H), i = hit(g.T, x, y, 20);
+        if (i >= 0) { S.sel = i; syncQ(); refresh(); }
+        else { S.drag = {type: 'rot', x, y, yaw: S.yaw, pitch: S.pitch}; S.viewGoal = null; S.hint = false; }
+      }
+    },
+    move(x, y) {
+      const dr = S.drag; if (!dr || !stage.W) return;
+      if (dr.type === 'rot') {
+        S.yaw = dr.yaw - (x - dr.x) * 0.45; S.pitch = clamp(dr.pitch + (y - dr.y) * 0.35, -10, 90);
+        S.yawBase = S.yaw - 16 * Math.sin(S.spinT * TAU / 14);
+        if (S.view !== '') { S.view = ''; viewG.set('', true); }
+        drawStage(); drawGFlip(); return;
+      }
+      const g = geo2(stage.W, stage.H), w = g.inv(x, y), [x0, x1, y0, y1] = g.view;
+      const p = [clamp(Math.round(w[0] * 2) / 2, Math.ceil((x0 + 0.3) * 2) / 2, Math.floor((x1 - 0.3) * 2) / 2),
+        clamp(Math.round(w[1] * 2) / 2, Math.ceil((y0 + 0.3) * 2) / 2, Math.floor((y1 - 0.3) * 2) / 2), 0];
+      if (dr.type === 'P') {
+        if (M.dist(p, S.P) < 1e-9 || S.ch.some((c) => M.dist(c.at, p) < 0.4)) return;
+        S.P = p;
+      } else {
+        const c = S.ch[dr.i];
+        if (M.dist(p, c.at) < 1e-9 || M.dist(p, S.P) < 0.4 || S.ch.some((o, j) => j !== dr.i && M.dist(o.at, p) < 0.4)) return;
+        c.at = p;
+      }
+      refresh();
+    },
+    up() { S.drag = null; },
+  });
+  function sync() {
+    dimG.set(String(S.dim), true);
+    preG.set(pre().base, true);
+    viewG.set(S.view, true);
+    document.querySelectorAll('[data-for]').forEach((el) => { el.hidden = el.dataset.for !== String(S.dim); });
+    $('cComp').checked = S.comp; $('cDist').checked = S.dist; $('cMap').checked = S.map;
+    syncQ();
+    $('add').disabled = S.ch.length >= 4; $('del').disabled = S.ch.length <= 1;
+    const h = tabHeight() + 'px'; if (gTab.el.style.height !== h) gTab.el.style.height = h;
+    const nm = S.dim === 3 ? 'z' : 'x', cap = 'P를 지나는 ' + (S.dim === 3 ? '세로선' : '가로선') + ' 위의 E<sub>' + nm + '</sub> 그래프다. 전하가 이 선 위에 오면 그 자리에서 발산하고, 부호가 바뀌는 곳이 E<sub>' + nm + '</sub> = 0인 점이다. 그래프 문제는 이 세 곳으로 전하의 부호와 크기를 가린다.';
+    if ($('gExCap').innerHTML !== cap) $('gExCap').innerHTML = cap;
+  }
+  const TRY = {
+    ex: () => load('ga'), ga: () => load('ga'), na: () => load('na'), sq: () => load('sq'), t345: () => load('t345'),
+    chal: () => load('chal'), chalC: () => load('chalC'),
+    p0: () => { load('ga'); S.P = [0, 0, 0]; },
+    py: () => load('py'), pyD: () => load('pyD'), tet: () => load('tet'), cube: () => load('cube'),
+    cubeN: () => { load('cube'); S.ch[2].q = -1; S.sel = 2; },
+  };
+  Lab.tries(TRY, () => { sync(); refresh(); });
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  Lab.loop((dt) => {
+    let dirty = false, side = false;
+    for (const c of S.ch) {                                       // 전하량이 바뀌면 화살표가 줄었다가 반대로 자란다
+      if (c.qd === c.q) continue;
+      c.qd += (c.q - c.qd) * Math.min(1, dt * 6);
+      if (Math.abs(c.q - c.qd) < 0.01 * Math.max(1, Math.abs(c.q))) c.qd = c.q;
+      dirty = true;
+    }
+    if (S.asmGoal !== null) { S.asmT = Math.min(S.asmGoal, S.asmT + dt); if (S.asmT >= S.asmGoal) S.asmGoal = null; dirty = true; }
+    else if (S.playing) { S.asmT += dt; if (S.asmT > tEnd()) S.asmT = 0; dirty = true; }
+    if (S.dim === 3) {
+      if (S.viewGoal) {
+        const k = Math.min(1, dt * 7);
+        S.yaw += (S.viewGoal.yaw - S.yaw) * k; S.pitch += (S.viewGoal.pitch - S.pitch) * k;
+        if (Math.abs(S.viewGoal.yaw - S.yaw) < 0.05 && Math.abs(S.viewGoal.pitch - S.pitch) < 0.05) {
+          S.yaw = S.viewGoal.yaw; S.pitch = S.viewGoal.pitch; S.viewGoal = null; S.yawBase = S.yaw; S.spinT = 0;
+        }
+        dirty = side = true;
+      } else if (S.playing && !(S.drag && S.drag.type === 'rot')) {
+        S.spinT += dt; S.yaw = S.yawBase + 16 * Math.sin(S.spinT * TAU / 14); dirty = side = true;
+      }
+    }
+    if (dirty) drawStage();
+    if (side) drawGFlip();
+  });
+  load('ga'); S.asmT = tDone();                                    // 처음에는 다 이은 모습부터 (잠시 뒤 다시 이어 붙인다)
+  sync(); readouts();
+})();
+</script>
+</body>
+</html>

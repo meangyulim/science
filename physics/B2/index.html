@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>저항·트랜지스터·자기장·전자기 유도 — 물리 실험실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../kit/lab.css">
+<style>
+/* 단원 목록: 개념 카드를 원고 순서대로 */
+.u-lead{margin:2px 0 0;color:var(--ink-2);font-size:16.5px;max-width:64ch}
+.u-list{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.u-card{display:grid;gap:4px;align-content:start;height:100%;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:inherit;text-decoration:none;overflow:hidden}
+.u-thumb{display:block;margin:-14px -16px 8px;aspect-ratio:16/10;overflow:hidden;border-bottom:1px solid var(--line-soft);background:var(--copper-soft)}
+.u-thumb img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}
+.u-thumb .dk{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .u-thumb .lt{display:none} :root:not([data-theme="light"]) .u-thumb .dk{display:block}}
+:root[data-theme="dark"] .u-thumb .lt{display:none} :root[data-theme="dark"] .u-thumb .dk{display:block}
+a.u-card:hover{border-color:var(--copper)}
+.u-card b{font-size:16.5px;font-weight:700;line-height:1.45}
+.u-card .u-q{font-size:14.5px;color:var(--ink-2);line-height:1.6}
+.u-id{font-size:12.5px;font-weight:600;color:var(--copper-ink);background:var(--copper-soft);padding:1px 8px;border-radius:999px}
+.u-qual,.u-soon{font-size:12.5px;font-weight:500;color:var(--muted)}
+.u-card.off{opacity:.55}
+.u-head{display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body class="cx">
+<header class="topbar"><div class="tb">
+  <a class="home" href="../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="B2 저항·트랜지스터·자기장·전자기 유도: 개념 14개"><span class="uname">B2 저항·트랜지스터·자기장·전자기 유도</span><span class="dots"><span title="B2-01 저항과 옴의 법칙 (준비 중)"></span><span title="B2-02 키르히호프 법칙 (준비 중)"></span><span title="B2-03 소비 전력 (준비 중)"></span><span title="B2-04 반도체와 트랜지스터 (준비 중)"></span><span title="B2-05 증폭·스위칭 작용 (준비 중)"></span><a href="06/" title="B2-06 바이어스와 증폭 회로" aria-label="B2-06 바이어스와 증폭 회로"></a><span title="B2-07 자기장과 자기력선 (준비 중)"></span><span title="B2-08 직선 전류의 자기장 (준비 중)"></span><span title="B2-09 원형 도선·솔레노이드 (준비 중)"></span><span title="B2-10 패러데이·렌츠 법칙 (준비 중)"></span><a href="11/" title="B2-11 움직이는 막대의 유도" aria-label="B2-11 움직이는 막대의 유도"></a><span title="B2-12 발전기·전기 기타 (준비 중)"></span><a href="13/" title="B2-13 상호·자체 유도와 변압기" aria-label="B2-13 상호·자체 유도와 변압기"></a><a href="14/" title="B2-14 RLC 공명" aria-label="B2-14 RLC 공명"></a></span></nav>
+  <div class="pn"></div>
+</div></header>
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">B2</span><span>물리학Ⅱ · Ⅱ. 전자기장</span></div>
+    <h1>저항·트랜지스터·자기장·전자기 유도</h1>
+    <p class="u-lead">개념 14개 가운데 4개를 실험 페이지로 만들었어요. 순서대로 보면 단원의 흐름이 이어져요.</p>
+  </div>
+  <ol class="u-list">
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B2-01</span><span class="u-soon">준비 중</span></span>
+      <b>전기 저항과 옴의 법칙</b>
+      <span class="u-q">왜 도선이 길수록 저항이 크고, 굵을수록 저항이 작을까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B2-02</span><span class="u-soon">준비 중</span></span>
+      <b>직렬·병렬, 키르히호프 법칙과 회로 재구성</b>
+      <span class="u-q">복잡한 회로도 결국 어떤 두 규칙으로 풀릴까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B2-03</span><span class="u-soon">준비 중</span></span>
+      <b>전기 에너지와 소비 전력</b>
+      <span class="u-q">직렬에서는 저항이 큰 전구가, 병렬에서는 저항이 작은 전구가 밝은 이유는?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B2-04</span><span class="u-soon">준비 중</span></span>
+      <b>반도체와 트랜지스터의 구조·작동 원리</b>
+      <span class="u-q">얇은 베이스 하나가 어떻게 큰 컬렉터 전류를 만들어 낼까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B2-05</span><span class="u-soon">준비 중</span></span>
+      <b>트랜지스터의 증폭 작용과 스위칭 작용</b>
+      <span class="u-q">트랜지스터는 에너지를 만들지 않는데 어떻게 신호를 키울까?</span>
+    </div></li>
+    <li><a class="u-card" href="06/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/B2-06.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/B2-06-dark.webp" alt="" loading="lazy"></span>
+      <span class="u-head"><span class="u-id">B2-06</span></span>
+      <b>바이어스 전압과 증폭 회로 설계</b>
+      <span class="u-q">교류 신호를 그대로 베이스에 넣으면 왜 절반이 사라질까?</span>
+    </a></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B2-07</span><span class="u-soon">준비 중</span></span>
+      <b>자기장·자기력선과 전류의 자기 작용</b>
+      <span class="u-q">자기력선은 왜 끊어지지 않고 닫힌 곡선이 될까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B2-08</span><span class="u-soon">준비 중</span></span>
+      <b>직선 전류의 자기장과 중첩</b>
+      <span class="u-q">여러 도선의 자기장은 어떻게 더하고, 자기장이 0인 점은 어디에 생길까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B2-09</span><span class="u-soon">준비 중</span></span>
+      <b>원형 도선·솔레노이드·전자석</b>
+      <span class="u-q">직선 도선을 둥글게 감으면 자기장은 어떻게 모일까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B2-10</span><span class="u-soon">준비 중</span></span>
+      <b>전자기 유도: 패러데이 법칙과 렌츠 법칙</b>
+      <span class="u-q">유도 전류의 방향은 왜 항상 &#x27;변화를 방해하는&#x27; 쪽일까?</span>
+    </div></li>
+    <li><a class="u-card" href="11/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/B2-11.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/B2-11-dark.webp" alt="" loading="lazy"></span>
+      <span class="u-head"><span class="u-id">B2-11</span></span>
+      <b>움직이는 막대·회전 막대의 유도 기전력</b>
+      <span class="u-q">레일 위를 미끄러지는 막대는 왜 전지처럼 행동할까?</span>
+    </a></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B2-12</span><span class="u-soon">준비 중</span></span>
+      <b>전자기 유도의 이용: 발전기·전기 기타</b>
+      <span class="u-q">회전 코일의 선속이 최대인 순간에 왜 기전력은 0일까?</span>
+    </div></li>
+    <li><a class="u-card" href="13/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/B2-13.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/B2-13-dark.webp" alt="" loading="lazy"></span>
+      <span class="u-head"><span class="u-id">B2-13</span></span>
+      <b>상호 유도·자체 유도와 변압기, 그 이용</b>
+      <span class="u-q">1차 전류가 클 때가 아니라 변할 때만 2차 전류가 흐르는 이유는?</span>
+    </a></li>
+    <li><a class="u-card" href="14/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/B2-14.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/B2-14-dark.webp" alt="" loading="lazy"></span>
+      <span class="u-head"><span class="u-id">B2-14</span></span>
+      <b>교류 회로와 RLC 공명</b>
+      <span class="u-q">진동수를 바꾸면 저항·코일·축전기의 전류는 각각 어떻게 변할까?</span>
+    </a></li>
+  </ol>
+</div>
+<script src="../kit/lab.js"></script>
+</body>
+</html>

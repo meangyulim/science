@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>교류 회로와 RLC 공명</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../kit/lab.css">
+<style>
+/* 관찰 노트: 왼쪽 실험대(교류 전원 + R·L·C 직렬 회로: 전류 점이 앞뒤로 오가고 소자마다 전압 막대 · 아래 V·I·V_R·V_L·V_C–t 그래프 · 옆 회전 위상자) | 오른쪽 지금 값 + 관찰 ①~④(박자, 진동수–전류 모양, 공명, 봉우리 옮기기) → 정리 → 예제 → 스스로 확인 */
+#stage{aspect-ratio:16/11}
+#gShape{aspect-ratio:10/7.4}
+#gRes{aspect-ratio:10/8.6}
+#gShift{aspect-ratio:10/6.6}
+#gShape,#gRes,#gShift{cursor:ew-resize}
+@media (max-width:640px){ #gShape{aspect-ratio:10/8.8} #gRes{aspect-ratio:10/10} #gShift{aspect-ratio:10/8} }
+</style>
+</head>
+<body class="cx">
+<!-- topbar -->
+<header class="topbar"><div class="tb">
+  <a class="home" href="../../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="B2 저항·트랜지스터·자기장·전자기 유도: 개념 14개 가운데 14번째"><a class="uname" href="../">B2 저항·트랜지스터·자기장·전자기 유도</a><span class="dots"><span title="B2-01 저항과 옴의 법칙 (준비 중)"></span><span title="B2-02 키르히호프 법칙 (준비 중)"></span><span title="B2-03 소비 전력 (준비 중)"></span><span title="B2-04 반도체와 트랜지스터 (준비 중)"></span><span title="B2-05 증폭·스위칭 작용 (준비 중)"></span><a href="../06/" title="B2-06 바이어스와 증폭 회로" aria-label="B2-06 바이어스와 증폭 회로"></a><span title="B2-07 자기장과 자기력선 (준비 중)"></span><span title="B2-08 직선 전류의 자기장 (준비 중)"></span><span title="B2-09 원형 도선·솔레노이드 (준비 중)"></span><span title="B2-10 패러데이·렌츠 법칙 (준비 중)"></span><a href="../11/" title="B2-11 움직이는 막대의 유도" aria-label="B2-11 움직이는 막대의 유도"></a><span title="B2-12 발전기·전기 기타 (준비 중)"></span><a href="../13/" title="B2-13 상호·자체 유도와 변압기" aria-label="B2-13 상호·자체 유도와 변압기"></a><a class="cur" href="./" aria-current="page" title="B2-14 RLC 공명" aria-label="B2-14 RLC 공명 (지금)"></a></span></nav>
+  <div class="pn"><a href="../13/" rel="prev" title="이전 개념: B2-13 상호·자체 유도와 변압기">‹ <span>13 상호·자체 유도와 변압기</span></a></div>
+</div></header>
+<!-- /topbar -->
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">B2-14</span><span>물리학 Ⅱ · 저항·트랜지스터·자기장·전자기 유도</span></div>
+    <h1>교류 회로와 RLC 공명</h1>
+    <p class="question"><i>Q</i>진동수를 바꾸면 저항·코일·축전기의 전류는 각각 어떻게 변할까?</p>
+  </div>
+
+  <main class="lay">
+    <section class="bench" aria-label="실험대">
+      <div class="stage">
+        <canvas id="stage" aria-label="교류 전원에 저항·코일·축전기를 직렬로 이은 회로. 구리색 점(전류)이 전류에 비례하는 빠르기로 도선을 따라 앞뒤로 오가고, 소자마다 아래 막대가 양 끝 전압을 보인다. 축전기 극판에는 쌓인 전하가 표시된다. 아래는 전원 전압·전류·각 소자 전압의 시간 그래프(두 주기)이고, 오른쪽 위상자 그림에서는 같은 순간의 전압·전류 화살표가 반시계 방향으로 돈다. 실제보다 4000배 느리게 보인다."></canvas>
+        <div class="hud"><span class="pill" id="hud1">f = 1 kHz</span><span class="pill" id="hud2">I₀ = 0.1 A</span><span class="pill" id="hud3">4000배 느리게</span></div>
+        <span class="nowstep" id="nowstep" hidden></span>
+      </div>
+      <div class="dock">
+        <div class="row r1">
+          <button type="button" class="play" id="play" aria-pressed="true"></button>
+          <div class="slider"><label for="f"><span class="lg">진동수 </span>f</label><input id="f" type="range" min="200" max="4000" step="10" value="1000"><output id="fOut">1 kHz</output></div>
+          <button type="button" class="btn sheet-btn" id="sheetBtn" aria-expanded="false" aria-controls="sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 12h1M7 12h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="11" cy="4" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lg">회로·값</span><span class="sm">회로</span></button>
+        </div>
+        <div class="sheet" id="sheet" role="group" aria-label="회로와 값">
+          <div class="sheet-head"><b>회로 · 값 바꾸기</b><button type="button" class="btn ghost" id="sheetClose">닫기</button></div>
+          <div class="row">
+            <div class="group" role="group" aria-label="회로">
+              <span class="gl">회로</span>
+              <button type="button" class="btn" data-kind="RLC" aria-pressed="true">R·L·C 직렬</button>
+              <button type="button" class="btn" data-kind="R" aria-pressed="false">저항만</button>
+              <button type="button" class="btn" data-kind="L" aria-pressed="false">코일만</button>
+              <button type="button" class="btn" data-kind="C" aria-pressed="false">축전기만</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="grow"><label class="ctl-label" for="cap"><span>전기 용량 C</span> <output id="capOut">1 μF</output></label><input id="cap" type="range" min="0.25" max="8" step="0.25" value="1"></div>
+            <div class="grow"><label class="ctl-label" for="ind"><span>자체 유도 계수 L</span> <output id="indOut">10 mH</output></label><input id="ind" type="range" min="2.5" max="40" step="2.5" value="10"></div>
+            <div class="grow"><label class="ctl-label" for="res"><span>저항 R</span> <output id="resOut">20 Ω</output></label><input id="res" type="range" min="10" max="100" step="5" value="20"></div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="toF0">f = f₀ 로 맞추기</button>
+            <button type="button" class="btn" id="step">⅛ 주기 ▸</button>
+            <button type="button" class="btn" id="sweep">진동수 훑기 ▸</button>
+            <div class="group" role="group" aria-label="빠르기">
+              <span class="gl">빠르기</span>
+              <button type="button" class="btn" data-speed="0.5" aria-pressed="false">×½</button>
+              <button type="button" class="btn" data-speed="1" aria-pressed="true">×1</button>
+              <button type="button" class="btn" data-speed="2" aria-pressed="false">×2</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="cWhy">까닭: 기울기 · 옮겨진 전하</label>
+            <label class="chk"><input type="checkbox" id="cRadio">라디오 방송국</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="관찰 노트">
+      <div class="answer">
+        <div class="lab"><span id="ansLab">공명 진동수</span><span id="ansCtx">L = 10 mH · C = 1 μF · R = 20 Ω</span></div>
+        <div class="big" id="ansBig">f₀ ≈ 1.6 kHz</div>
+        <div class="sub">
+          <span class="f" id="ansF">f₀ = 1/(2π√(LC)) 에 지금 값을 넣으면</span>
+          <span id="ansLines"><span class="v">√(LC) = √(<em>10 × 10⁻³ H</em> × <em>1 × 10⁻⁶ F</em>) = 1 × 10⁻⁴ s</span><span class="v">f₀ = 1 ÷ (2π × 1 × 10⁻⁴ s) = <em>1.59 × 10³ Hz ≈ 1.6 kHz</em></span></span>
+        </div>
+        <div class="minis">
+          <div class="mini"><span id="mn1">X<sub>L</sub> = 2πfL</span><b id="mv1">62.8 Ω</b></div>
+          <div class="mini"><span id="mn2">X<sub>C</sub> = 1/(2πfC)</span><b id="mv2">159 Ω</b></div>
+          <div class="mini"><span id="mn3">전류 최댓값 I₀ = V₀/Z</span><b id="mv3">0.1 A</b></div>
+          <div class="mini"><span id="mn4">Z = √(R² + (X<sub>L</sub> − X<sub>C</sub>)²)</span><b id="mv4">98.4 Ω</b></div>
+          <div class="mini"><span id="mn5">V<sub>L</sub> · V<sub>C</sub> 최댓값</span><b id="mv5">6.4 V · 16.2 V</b></div>
+          <div class="mini"><span id="mn6">전원 전압과 전류</span><b id="mv6">전류가 앞섬</b></div>
+        </div>
+        <p class="check" id="exCheck"></p>
+      </div>
+
+      <ol class="steps">
+        <li class="card step" data-step="① 소자마다 다른 박자">
+          <div class="kind">관찰 1</div>
+          <h3>저항 전압은 전류와 같은 박자, 코일 전압은 ¼주기 앞서고 축전기 전압은 ¼주기 뒤진다</h3>
+          <p>교류 전원이 밀었다 당겼다 하면 구리색 점(전류)이 도선을 따라 앞뒤로 오간다. 점의 빠르기가 곧 전류의 세기다. 직렬이라 세 소자에 같은 전류가 흐르지만, 소자 아래 막대(양 끝 전압)가 가장 커지는 때는 서로 다르다. 저항은 전류가 클 때 전압도 크다(V<sub>R</sub> = IR). 코일은 <b>전류의 변화</b>를 방해하므로(자체 유도), 전류가 0을 지나며 가장 빨리 변할 때 전압이 최대다. 축전기 전압은 쌓인 전하에 비례해서, 한쪽으로 흐르던 전류가 멈추는 순간(가득 충전) 최대다.</p>
+          <p class="cap">시간 그래프의 세로 점선은 전류 I 가 최대인 때다. 오른쪽 위상자는 같은 순간의 전압·전류 화살표로, 반시계 방향으로 돌며 세로 성분이 지금 값이다(V<sub>L</sub> 은 I 보다 90° 앞, V<sub>C</sub> 는 90° 뒤). 무대는 실제보다 4000배 느리게 보여 준다(1 kHz → 화면에서 1초에 0.25번). 진동수를 올리면 화면에서도 그만큼 빨리 진동하고, 점의 빠르기는 늘 전류에 비례한다. 시간 그래프를 좌우로 끌거나 위상자를 돌리면 그 순간에서 멈춘다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-do="click:[data-kind=R]">저항만</button>
+            <button type="button" class="btn go" data-do="click:[data-kind=L]">코일만</button>
+            <button type="button" class="btn go" data-do="click:[data-kind=C]">축전기만</button>
+            <button type="button" class="btn" data-do="click:#step">⅛ 주기씩 ▸</button>
+            <button type="button" class="btn" data-do="click:[data-kind=L]; check:#cWhy">코일: 기울기 보기</button>
+            <button type="button" class="btn" data-do="click:[data-kind=C]; check:#cWhy">축전기: 넓이 보기</button>
+          </div>
+        </li>
+        <li class="card step" data-step="② 진동수와 방해">
+          <div class="kind">관찰 2</div>
+          <h3>진동수가 높을수록 코일은 더 막고 축전기는 덜 막는다</h3>
+          <p>코일은 전류가 빨리 바뀔수록 더 세게 방해한다(자체 유도 기전력은 전류의 변화율에 비례): <span class="eq">X<sub>L</sub> = 2πfL</span>. 축전기에 한 번에 쌓이는 전하는 CV₀ 로 정해져 있어서, 진동수가 낮으면 방향이 바뀌기 전에 일찍 가득 차고 전하가 천천히 오가 전류가 작다. 진동수가 높으면 같은 전하를 자주 충전·방전하므로 전류가 잘 흐른다: <span class="eq">X<sub>C</sub> = 1/(2πfC)</span>. 저항 R 은 진동수와 무관하다.</p>
+          <canvas class="flat" id="gShape" aria-label="같은 전원에 저항만, 코일만, 축전기만, 세 소자 직렬을 이었을 때 진동수–전류 최댓값 그래프 네 개. 저항은 수평선, 코일은 줄어드는 곡선, 축전기는 원점을 지나는 직선, 직렬은 공명 진동수에서 봉우리. 지금 진동수를 세로 점선과 점으로 표시."></canvas>
+          <p class="cap">같은 전원(최댓값 10 V)에 소자 하나씩 이었을 때의 전류 최댓값이다. 그래프 모양만 보면 소자를 안다: 수평 = 저항, 줄어듦 = 코일(진동수 2배 → 전류 ½배), 원점을 지나는 직선 = 축전기(<span class="eq">I = 2πfCV₀</span>, 진동수 2배 → 전류 2배). 축전기만 이으면 진동수를 바꿔도 점이 오가는 폭은 같고(극판에 쌓이는 전하 CV₀ 가 같다) 오가는 빠르기만 달라진다. 직류(f = 0)에서 코일은 그냥 도선이고, 축전기는 충전이 끝나면 전류를 막는다. 그래프를 좌우로 끌어도 진동수가 바뀐다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="L1">코일만 1 kHz</button>
+            <button type="button" class="btn" data-try="L2">코일만 2 kHz</button>
+            <button type="button" class="btn go" data-try="C1">축전기만 1 kHz</button>
+            <button type="button" class="btn" data-try="C2">축전기만 2 kHz</button>
+            <button type="button" class="btn" data-do="click:#sweep">진동수 훑기 ▸</button>
+          </div>
+        </li>
+        <li class="card step" data-step="③ 공명">
+          <div class="kind">관찰 3</div>
+          <h3>X<sub>L</sub> = X<sub>C</sub> 인 진동수에서 두 방해가 상쇄되어 전류가 가장 크다</h3>
+          <p>세 소자를 직렬로 이으면 코일과 축전기의 방해가 서로 반대로 작용한다. 진동수가 낮으면 X<sub>C</sub> 가, 높으면 X<sub>L</sub> 이 커서 전류가 작다. 두 곡선이 만나는 <b>공명 진동수</b> <span class="eq">f₀ = 1/(2π√(LC))</span> 에서 X<sub>L</sub> = X<sub>C</sub> 가 되어 남는 방해는 R 뿐이고, 전류가 최대(V₀/R)가 된다.</p>
+          <canvas class="flat" id="gRes" aria-label="위: 진동수에 따른 코일의 방해 X_L(원점 지나는 직선)과 축전기의 방해 X_C(줄어드는 곡선), 저항 R(수평선). 두 곡선이 만나는 진동수가 공명 진동수. 아래: 세 소자 직렬 회로의 진동수–전류 최댓값 곡선. 공명 진동수에서 봉우리. 지금 진동수를 세로선으로 표시."></canvas>
+          <p class="cap">공명에서는 전원 전압과 전류가 같은 박자(같은 위상)다. 이때 코일과 축전기 양 끝 전압은 0이 아니다. 크기가 같고 위상이 반대라 합이 0일 뿐, 각각은 전원 전압보다 클 수도 있다(기본값에서는 50 V, 전원의 5배). 무대의 V<sub>L</sub>·V<sub>C</sub> 막대가 늘 반대로 움직이는 것을 보자. 그래프를 좌우로 끌어도 진동수가 바뀐다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="res">f = f₀ 에 맞추기</button>
+            <button type="button" class="btn" data-try="lo">f₀ 의 ½</button>
+            <button type="button" class="btn" data-try="hi">f₀ 의 2배</button>
+          </div>
+        </li>
+        <li class="card step" data-step="④ 봉우리 옮기기">
+          <div class="kind">관찰 4</div>
+          <h3>C 나 L 을 키우면 봉우리가 낮은 진동수로 가고, R 은 높이만 바꾼다</h3>
+          <p>공명 진동수는 √(LC) 에 반비례한다. C 를 4배로 하면 √(LC) 가 2배라 봉우리가 f₀/2 로 옮겨 간다. 봉우리 높이 V₀/R 은 L·C 와 무관하다. 반대로 R 만 2배로 하면 봉우리 자리는 그대로이고 높이만 ½배가 된다. 극판 간격을 줄이거나 유전체를 넣어 C 를 키우면 공명 진동수가 낮아지고, 간격을 늘리면 높아진다.</p>
+          <canvas class="flat" id="gShift" aria-label="진동수–전류 최댓값 곡선. 회색 점선은 처음 회로(10 mH, 1 μF, 20 Ω), 구리색은 지금 회로. C를 키우면 봉우리가 낮은 진동수로, R을 키우면 높이만 낮아진다. 라디오 방송국 표시를 켜면 각 방송 진동수에서의 전류를 막대로 보인다."></canvas>
+          <p class="cap">라디오는 가변 축전기로 C 를 돌려 듣고 싶은 방송의 진동수에 f₀ 를 맞춘다(동조). 그러면 그 방송의 신호만 큰 전류를 만든다. 방송국 표시를 켜고 전기 용량 C 막대를 움직여 보자(방송 진동수는 그림에 맞게 낮춘 비유다. 실제 AM 방송은 수백 kHz 이상이다). 스피커 분배 회로에서는 코일이 저음을, 축전기가 고음을 통과시킨다.</p>
+          <div class="acts">
+            <button type="button" class="btn go" data-try="c4">C 4배 (4 μF)</button>
+            <button type="button" class="btn" data-try="r2">R 2배 (40 Ω)</button>
+            <button type="button" class="btn" data-try="radio">라디오 동조</button>
+            <button type="button" class="btn" data-try="base">처음 값으로</button>
+          </div>
+        </li>
+        <li class="card step sum" data-step="⑤ 정리">
+          <div class="kind">핵심 정리</div>
+          <h3>그래프 모양으로 소자를, 봉우리 자리로 √(LC) 를, 봉우리 높이로 R 을 읽는다</h3>
+          <ul>
+            <li>방해 정도: 저항 R(진동수와 무관) · 코일 <span class="eq">X<sub>L</sub> = 2πfL</span>(진동수↑ → 전류↓) · 축전기 <span class="eq">X<sub>C</sub> = 1/(2πfC)</span>(진동수↑ → 전류↑). 직류에서 코일은 통과, 축전기는 충전 뒤 차단.</li>
+            <li>R·L·C 직렬: X<sub>L</sub> = X<sub>C</sub> 일 때 공명, <span class="eq">f₀ = 1/(2π√(LC))</span>. C 4배 → f₀ ½배. R 은 봉우리 높이(V₀/R)만 바꾼다.</li>
+            <li>박자: 저항 전압은 전류와 같이, 코일 전압은 ¼주기 앞서, 축전기 전압은 ¼주기 뒤져 최대가 된다. 공명에서 V<sub>L</sub>·V<sub>C</sub> 는 크기가 같고 반대다(각각 0이 아니다).</li>
+            <li>교류의 실효값 = 최댓값/√2 (같은 저항에서 같은 열을 내는 직류의 값). 가정용 220 V 는 실효값이고 최댓값은 약 311 V 다.</li>
+            <li>자주 하는 실수: 코일과 축전기의 진동수 의존성을 반대로 기억한다. 공명 진동수 비에서 제곱근을 빠뜨린다.</li>
+          </ul>
+        </li>
+        <li class="card step ex" data-step="⑥ 개념서 예제">
+          <div class="kind">개념서 예제</div>
+          <h3>L = 10 mH, C = 1 μF 인 RLC 직렬 회로의 공명 진동수는? C 를 4 μF 로 바꾸면?</h3>
+          <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button><button type="button" class="btn" data-try="ex4">C = 4 μF 로</button></div>
+          <details class="ans"><summary>풀이 보기</summary><p>LC = 10⁻² × 10⁻⁶ = 10⁻⁸ 이므로 √(LC) = 10⁻⁴ s. f₀ = 1/(2π × 10⁻⁴) ≈ <b>1.6 × 10³ Hz (약 1.6 kHz)</b>. C 가 4배면 √(LC) 가 2배라 f₀ 는 ½배인 약 8.0 × 10² Hz(0.8 kHz)다. 두 경우 모두 공명에서 X<sub>L</sub> = X<sub>C</sub>(100 Ω, 50 Ω)이고, 전류 최댓값은 V₀/R 로 같다.</p></details>
+        </li>
+        <li class="card step" data-step="⑦ 스스로 확인">
+          <div class="kind">스스로 확인</div>
+          <div class="q">
+            <h3>교류 전원의 전압 최댓값은 그대로 두고 진동수만 바꾸며 전류의 최댓값을 쟀다. 소자 X 하나만 이었을 때 전류가 진동수에 비례해 커졌다. X 는 저항·코일·축전기 가운데 무엇일까?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="qR">저항만 훑기</button><button type="button" class="btn" data-try="qL">코일만 훑기</button><button type="button" class="btn" data-try="qC">축전기만 훑기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>축전기</b>. X<sub>C</sub> = 1/(2πfC) 가 진동수에 반비례하므로 I = V₀/X<sub>C</sub> = 2πfCV₀ 는 진동수에 비례한다(원점을 지나는 직선). 코일은 X<sub>L</sub> = 2πfL 이라 진동수가 클수록 전류가 줄고, 저항은 진동수와 무관하며, 세 소자 직렬은 공명 진동수에서 봉우리를 보인다.</p></details>
+          </div>
+          <div class="q">
+            <h3>RLC 직렬 회로의 공명 진동수가 f₀ 이다. 코일의 자체 유도 계수를 2배, 축전기의 전기 용량을 8배로 바꾸면 공명 진동수는?</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q2">L 2배 · C 8배 해 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>f₀/4</b>. f₀ = 1/(2π√(LC)) 에서 LC 가 16배가 되므로 공명 진동수는 1/√16 = ¼배다(10 mH·1 μF 의 약 1.6 kHz → 20 mH·8 μF 의 약 0.4 kHz). 제곱근을 빠뜨리면 f₀/16 을 고르게 된다. 저항을 바꾸면 공명 진동수는 그대로이고 봉우리 높이만 달라진다.</p></details>
+          </div>
+          <div class="q">
+            <h3>(O, X) RLC 직렬 회로가 공명할 때 코일과 축전기 양 끝의 전압은 각각 0 이다.</h3>
+            <div class="acts"><button type="button" class="btn" data-try="q3">공명에서 멈춰 보기</button></div>
+            <details class="ans"><summary>답 보기</summary><p><b>X</b>. 공명에서도 전류가 흐르므로 V<sub>L</sub> = I₀X<sub>L</sub>, V<sub>C</sub> = I₀X<sub>C</sub> 는 0이 아니다. 둘은 크기가 같고 늘 반대 방향(위상이 반대)이라 합이 0일 뿐이고, 각각 전원 전압보다 클 수 있다(기본값에서 50 V, 전원 10 V). 그래서 전원 전압이 모두 저항에 걸려 전류가 V₀/R 로 가장 크다.</p></details>
+          </div>
+        </li>
+      </ol>
+<!-- nextprev -->
+<nav class="nextprev" aria-label="이전·다음 개념"><a href="../13/" rel="prev"><small>← 이전 개념 · B2-13</small><b>상호·자체 유도와 변압기</b></a><span></span></nav>
+<!-- /nextprev -->
+    </section>
+  </main>
+</div>
+
+<script src="../../kit/lab.js"></script>
+<script src="B2-14-model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.B2_14;
+  const {$, C, text, rich, arrow, fmt} = Lab;
+  const TAU = 2 * Math.PI;
+  const V0 = 10;                  // 전원 전압의 최댓값 (V) — 진동수만 바꾼다
+  const LAM = 4000;               // 느린 화면: 실제보다 4000배 느리게 (빠르기 ×1). 1 kHz → 화면에서 0.25 Hz
+  const F_MIN = 200, F_MAX = 4000;
+  const BASE = {R: 20, L: 10e-3, C: 1e-6};
+  const KIND = {RLC: 'R·L·C 직렬', R: '저항만', L: '코일만', C: '축전기만'};
+  const V_STEPS = [5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500];
+  const I_STEPS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5];
+  const OHM_STEPS = [100, 150, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000];
+  const niceUp = (v, steps) => steps.find((s) => s >= v * 0.999) || steps[steps.length - 1];
+
+  // ── 상태 ────────────────────────────────────────────────
+  // ph: 전류의 위상 θ (i = I₀ sin θ), d: 전류 점이 지금까지 옮겨 간 거리(px) = 지나간 전하 × (px/C)
+  const S = {kind: 'RLC', f: 1000, R: BASE.R, L: BASE.L, C: BASE.C, ph: 0, d: 0, playing: !Lab.reduceMotion, speed: 1,
+    why: false, radio: false, sweep: null};
+  const st = () => M.state(S.kind, S.f, V0, S.R, S.L, S.C);
+  const f0 = () => M.f0(S.L, S.C);
+  const has = (x) => S.kind === x || S.kind === 'RLC';
+  const atRes = () => Math.abs(S.f - f0()) <= f0() * 0.004;
+  const STATIONS = [{n: 'A', f: 800}, {n: 'B', f: 1600}, {n: 'C', f: 3200}];   // 라디오 비유 (진동수를 낮춰 그림)
+
+  // ── 숫자 ────────────────────────────────────────────────
+  const fStr = (f) => (f >= 999.5 ? fmt(f / 1000, 2) + ' kHz' : Math.round(f) + ' Hz');
+  const kHz1 = (f) => fmt(f / 1000, f < 1000 ? 2 : 1);
+  const ohm = (x) => (x >= 100 ? String(Math.round(x)) : fmt(x, x >= 10 ? 1 : 2)) + ' Ω';
+  const amp = (i) => fmt(i, i >= 0.1 ? 2 : 3) + ' A';
+  const volt = (v) => fmt(v, v >= 1 ? 1 : 2) + ' V';
+  const uF = (c) => fmt(c * 1e6, 2);
+  const ratio = (r) => ({0.25: '¼', 0.5: '½', 2: '2', 4: '4'})[String(+r.toFixed(6))] || fmt(r, 2);
+  const mH = (l) => fmt(l * 1e3, 2);
+
+  // ── 무대 배치 ───────────────────────────────────────────
+  // 넓은 화면: 위 왼쪽 = 회로, 위 오른쪽 = 위상자, 아래 = 시간 그래프 / 폰: 위 = 회로, 아래 왼쪽 = 시간 그래프, 아래 오른쪽 = 위상자
+  function geo(W, H) {
+    const nar = W < 520, flat = !nar && H < 400 && W >= 760;
+    if (nar) {
+      const yMid = Math.round(H * 0.49);
+      return {nar, flat, W, H, cir: {x0: 8, x1: W - 8, y0: 50, y1: yMid},
+        tg: {x0: 4, x1: Math.round(W * 0.63), y0: yMid + 8, y1: H - 10},
+        ph: {x0: Math.round(W * 0.63) + 4, x1: W - 6, y0: yMid + 6, y1: H - 42}};
+    }
+    if (flat) {     // 납작하고 넓은 무대(폰 가로 등): 회로 | 시간 그래프 | 위상자
+      const xa = Math.round(W * 0.42), xb = Math.round(W * 0.79);
+      return {nar, flat, W, H, cir: {x0: 8, x1: xa, y0: 46, y1: H - 8},
+        tg: {x0: xa + 6, x1: xb, y0: 46, y1: H - 40},
+        ph: {x0: xb + 4, x1: W - 8, y0: 10, y1: H - 44}};
+    }
+    const yMid = Math.round(H * 0.53), xs = Math.round(W * 0.63);
+    return {nar, flat, W, H, cir: {x0: 12, x1: xs, y0: 50, y1: yMid},
+      ph: {x0: xs + 8, x1: W - 10, y0: 10, y1: yMid},
+      tg: {x0: 8, x1: W - 10, y0: yMid + 6, y1: H - 40}};
+  }
+  // 회로: 왼쪽 도선에 전원, 윗변에 소자. 전류 점이 다니는 길(폴리라인)과 숨는 구간(전원 속, 축전기 극판 사이)
+  let cgCache = null;
+  function circuitGeo(W, H) {
+    const key = W + 'x' + H + S.kind;
+    if (cgCache && cgCache.key === key) return cgCache;
+    const g = geo(W, H), nar = g.nar, b = g.cir, span = b.y1 - b.y0;
+    const xl = b.x0 + (nar ? 24 : 34), xr = b.x1 - (nar ? 10 : 14);
+    const yt = b.y0 + Math.min(nar ? 22 : 32, span * 0.22), yb = b.y1 - Math.min(nar ? 8 : 14, span * 0.08);
+    const w = xr - xl, ys = (yt + yb) / 2, rs = nar ? 12 : Math.max(11, Math.min(17, (yb - yt) * 0.13));
+    const kinds = S.kind === 'RLC' ? ['R', 'L', 'C'] : [S.kind];
+    const at = S.kind === 'RLC' ? [0.33, 0.58, 0.83] : [0.58];
+    const size = {R: Math.min(nar ? 42 : 74, w * 0.17), L: Math.min(nar ? 48 : 80, w * 0.18), C: nar ? 14 : 18};
+    const els = kinds.map((k, j) => ({k, x: xl + w * at[j], w: size[k]}));
+    const pts = [[xl, yb], [xl, yt]], col = [null, null];    // col[k]: 점 k−1 → k 선분의 색 키 (null = 도선)
+    let gap = null;
+    const push = (p, c) => { pts.push(p); col.push(c); };
+    for (const e of els) {
+      const a = e.x - e.w / 2, z = e.x + e.w / 2;
+      push([a, yt], null);
+      if (e.k === 'R') {
+        const n = 6, am = nar ? 6 : 9;
+        for (let j = 0; j < n; j++) push([a + e.w * (j + 0.5) / n, yt + (j % 2 ? am : -am)], 'R');
+        push([z, yt], 'R');
+      } else if (e.k === 'L') {
+        const n = 4, r = e.w / (2 * n);
+        for (let j = 0; j < n; j++) {
+          const c0 = a + r * (2 * j + 1);
+          for (let m = 1; m <= 8; m++) { const t = Math.PI - Math.PI * m / 8; push([c0 + r * Math.cos(t), yt - r * 1.5 * Math.sin(t)], 'L'); }
+        }
+      } else { gap = pts.length - 1; push([z, yt], 'gap'); }
+    }
+    push([xr, yt], null); push([xr, yb], null); push([xl, yb], null);
+    const cum = [0];
+    for (let k = 1; k < pts.length; k++) cum.push(cum[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
+    const total = cum[cum.length - 1];
+    const hide = [[yb - ys - rs - 1, yb - ys + rs + 1]];
+    if (gap !== null) hide.push([cum[gap], cum[gap + 1]]);
+    const hb = Math.max(10, (yb - yt) / 2 - (nar ? 18 : 26));
+    // 전하 1 μC 이 지나가면 점이 (회로 둘레/600) px 옮겨 간다 — 회로 종류와 무관한 한 가지 비율 (점의 빠르기 ∝ 전류)
+    cgCache = {key, g, nar, xl, xr, yt, yb, w, ys, rs, els, pts, col, cum, total, hide, hb, ym: (yt + yb) / 2 + (nar ? 2 : 4),
+      qpx: 2 * (w + yb - yt) / 600 * 1e6};
+    return cgCache;
+  }
+  function posAt(cg, s) {
+    const {cum, pts} = cg;
+    let lo = 0, hi = cum.length - 1;
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (cum[m] <= s) lo = m; else hi = m; }
+    const u = (s - cum[lo]) / Math.max(1e-9, cum[hi] - cum[lo]);
+    return [pts[lo][0] + (pts[hi][0] - pts[lo][0]) * u, pts[lo][1] + (pts[hi][1] - pts[lo][1]) * u];
+  }
+  // 전압 눈금(모든 전압이 같은 눈금)과 전류 눈금
+  function scales(s) {
+    const Vsc = niceUp(Math.max(V0, s.VR, s.VL, s.VC), V_STEPS);
+    // 전류 눈금: R·L·C 직렬과 저항만은 V₀/R(공명 때 최대), 코일만·축전기만은 지금 전류에 맞춘 눈금. 진동수 훑기 동안에는 고정 눈금(늘고 주는 것이 보이게)
+    const Isc = S.kind === 'RLC' || S.kind === 'R' ? V0 / S.R
+      : S.sweep ? Math.max(M.current(S.kind, F_MIN, V0, S.R, S.L, S.C), M.current(S.kind, F_MAX, V0, S.R, S.L, S.C)) : niceUp(s.I0, I_STEPS);
+    return {V: Vsc, I: Isc};
+  }
+  const elCol = (k) => ({R: C.acc, L: C.vel, C: C.violet}[k] || C.ink);
+
+  // ── 무대 그리기 ─────────────────────────────────────────
+  const stage = Lab.canvas('stage', drawStage);
+  let lastNar = null, tgGeo = null, phGeo = null;
+  function drawStage() {
+    const {ctx, W, H} = stage; if (!W) return;
+    if ((W < 520) !== lastNar) { lastNar = W < 520; hud(); }
+    const cg = circuitGeo(W, H), s = st(), x = M.instant(s, S.ph), sc = scales(s);
+    if (!cg.g.ph) phGeo = null;
+    ctx.clearRect(0, 0, W, H);
+    Lab.paper(ctx, W, H, 24);
+    drawCircuit(ctx, cg, s, x, sc);
+    if (cg.g.ph) drawPhasor(ctx, cg.g, s, sc);
+    drawTime(ctx, cg.g, s, sc);
+  }
+  function vbar(ctx, x, yc, h, v, ampV, Vsc, col, bw) {       // 양 끝 전압 막대 (위 = +)
+    ctx.save(); Lab.rrect(ctx, x - bw / 2, yc - h, bw, 2 * h, 3); ctx.fillStyle = C.paper; ctx.fill(); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
+    const hv = h * Math.max(-1, Math.min(1, v / Vsc)), ha = h * Math.min(1, ampV / Vsc);
+    ctx.save(); ctx.fillStyle = col; ctx.globalAlpha = 0.88; ctx.fillRect(x - bw / 2 + 1.5, Math.min(yc, yc - hv), bw - 3, Math.abs(hv)); ctx.restore();
+    Lab.line(ctx, [[x - bw / 2 - 4, yc], [x + bw / 2 + 4, yc]], C.muted, 1.2);
+    for (const sgn of [-1, 1]) Lab.line(ctx, [[x - bw / 2 - 3, yc - sgn * ha], [x + bw / 2 + 3, yc - sgn * ha]], col, 1.3, [2, 2]);
+  }
+  function drawCircuit(ctx, cg, s, x, sc) {
+    const {nar, xl, xr, yt, yb, ys, rs, els, pts, col, hb, ym} = cg;
+    // 도선과 소자 (저항 = 초록 지그재그, 코일 = 파랑 고리, 축전기 = 보라 극판)
+    ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    for (let k = 1; k < pts.length; k++) {
+      const c = col[k]; if (c === 'gap') continue;
+      ctx.strokeStyle = c ? elCol(c) : C.ink; ctx.lineWidth = c ? 2.8 : 2.2;
+      ctx.beginPath(); ctx.moveTo(pts[k - 1][0], pts[k - 1][1]); ctx.lineTo(pts[k][0], pts[k][1]); ctx.stroke();
+    }
+    ctx.restore();
+    // 전류 점: 모두 같은 거리 d 만큼 옮겨 간다 (직렬 회로 어디서나 전류가 같다)
+    const n = Math.max(12, Math.round(cg.total / (nar ? 14 : 17))), step = cg.total / n, r = nar ? 2.9 : 3.3;
+    ctx.save(); ctx.fillStyle = C.copper;
+    for (let k = 0; k < n; k++) {
+      const sk = (((k * step + S.d) % cg.total) + cg.total) % cg.total;
+      if (cg.hide.some(([a, b]) => sk > a && sk < b)) continue;
+      const p = posAt(cg, sk);
+      ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, TAU); ctx.fill();
+    }
+    ctx.restore();
+    // 소자 이름표 · 전압 막대 · 축전기 전하
+    const bw = nar ? 10 : 15, lbY = yt - (nar ? 21 : 24);
+    for (const e of els) {
+      const c = elCol(e.k), v = {R: x.vR, L: x.vL, C: x.vC}[e.k], A = {R: s.VR, L: s.VL, C: s.VC}[e.k];
+      const nm = {R: 'R ' + fmt(S.R, 0) + ' Ω', L: 'L ' + mH(S.L) + ' mH', C: 'C ' + uF(S.C) + ' μF'}[e.k];
+      text(ctx, nm, e.x, lbY - (e.k === 'C' ? (nar ? 3 : 5) : 0), {size: nar ? 13 : 14, w: 600, color: c, halo: true});
+      vbar(ctx, e.x, ym, hb, v, A, sc.V, c, bw);
+      if (e.k === 'C') drawPlates(ctx, e, yt, x.q, s, sc, nar);
+      else if (Math.abs(v) > sc.V * 0.04) {            // 전위가 높은 끝 +, 낮은 끝 − (축전기는 극판 전하로 보인다)
+        const al = Math.min(1, Math.abs(v) / (sc.V * 0.25)), yS = yt - (nar ? 8 : 12), dx = e.w / 2 + (nar ? 6 : 8);
+        ctx.save(); ctx.globalAlpha = al;
+        text(ctx, v > 0 ? '+' : '−', e.x - dx, yS, {size: 14, w: 600, color: v > 0 ? C.force : C.vel});
+        text(ctx, v > 0 ? '−' : '+', e.x + dx, yS, {size: 14, w: 600, color: v > 0 ? C.vel : C.force});
+        ctx.restore();
+      }
+    }
+    // 전원: 원 + 물결, 지금 + 극
+    ctx.save(); ctx.beginPath(); ctx.arc(xl, ys, rs, 0, TAU); ctx.fillStyle = C.paper; ctx.fill(); ctx.lineWidth = 2.2; ctx.strokeStyle = C.ink; ctx.stroke();
+    ctx.beginPath();
+    for (let k = 0; k <= 24; k++) { const u = k / 24, px = xl - rs * 0.62 + rs * 1.24 * u, py = ys - rs * 0.36 * Math.sin(TAU * u); k ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+    ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    const pol = x.v / V0, sx = xl + rs + 8;
+    if (Math.abs(pol) > 0.08) {
+      ctx.save(); ctx.globalAlpha = Math.min(1, Math.abs(pol) * 1.6);
+      text(ctx, '+', sx, pol > 0 ? ys - rs * 0.9 : ys + rs * 0.9, {size: 15, w: 600, color: C.force});
+      text(ctx, '−', sx, pol > 0 ? ys + rs * 0.9 : ys - rs * 0.9, {size: 15, w: 600, color: C.vel});
+      ctx.restore();
+    }
+    const vx = xl + rs + (nar ? 22 : 30);
+    vbar(ctx, vx, ym, hb, x.v, V0, sc.V, C.ink, bw);
+    text(ctx, nar ? '전원' : '전원 ' + V0 + ' V', xl - 4, yt - (nar ? 21 : 24), {size: nar ? 13 : 14, w: 600, color: C.ink, align: 'left', halo: true});
+    // 전류 화살표 (오른쪽 도선 안쪽): 길이 ∝ 지금 전류, 아래 = 시계 방향
+    const ax = xr - (nar ? 12 : 16), li = hb * 1.1 * x.i / sc.I;
+    if (Math.abs(li) > 3) arrow(ctx, ax, ym - li / 2, ax, ym + li / 2, C.copper, 3, 9);
+    text(ctx, 'I', ax - (nar ? 10 : 12), ym, {size: 14, w: 600, color: C.copper, halo: true});
+    if (!nar && cg.w > 300) text(ctx, '막대 = 양 끝 전압 (점선 = 최댓값)', (xl + xr) / 2 + 20, yb - 12, {size: 13, w: 500, color: C.muted, halo: true});
+  }
+  // 축전기 극판과 쌓인 전하 (+는 빨강, −는 파랑). 전하 q = C·v_C 라서 막대와 같이 움직인다
+  function drawPlates(ctx, e, yt, q, s, sc, nar) {
+    const hp = nar ? 24 : 36, a = e.x - e.w / 2, z = e.x + e.w / 2;
+    Lab.line(ctx, [[a, yt - hp / 2], [a, yt + hp / 2]], C.violet, 3.6);
+    Lab.line(ctx, [[z, yt - hp / 2], [z, yt + hp / 2]], C.violet, 3.6);
+    const qmax = S.C * sc.V, k = Math.min(4, Math.round(4 * Math.abs(q) / qmax));
+    const glyph = (x0, y0, plus, c) => {
+      Lab.line(ctx, [[x0 - 3, y0], [x0 + 3, y0]], c, 1.8);
+      if (plus) Lab.line(ctx, [[x0, y0 - 3], [x0, y0 + 3]], c, 1.8);
+    };
+    for (let j = 0; j < k; j++) {
+      const y0 = yt - hp / 2 + hp * (j + 0.5) / 4 + (4 - k) * hp / 8;
+      glyph(a - 6, y0, q > 0, q > 0 ? C.force : C.vel);
+      glyph(z + 6, y0, q < 0, q < 0 ? C.force : C.vel);
+    }
+  }
+
+  // ── 위상자: 같은 순간의 화살표. 세로 성분이 지금 값이다 ─────
+  function drawPhasor(ctx, g, s, sc) {
+    const b = g.ph, nar = g.nar;
+    const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2 + (nar ? 6 : 12);
+    const Rp = Math.max(20, Math.min((b.x1 - b.x0) / 2 - (nar || b.x1 - b.x0 < 230 ? 12 : 22), (b.y1 - b.y0) / 2 - (nar ? 12 : 22)));
+    const roomy = b.x1 - b.x0 > 230;
+    text(ctx, roomy ? '위상자 · 반시계 방향으로 돈다' : '위상자', b.x0 + (nar ? 2 : 6), b.y0 + 9, {size: 13, w: 600, color: C.muted, align: 'left'});
+    if (roomy) text(ctx, '세로 성분 = 지금 값', b.x0 + 6, b.y0 + 28, {size: 13, w: 500, color: C.muted, align: 'left'});
+    phGeo = {cx, cy, Rp};
+    Lab.circle(ctx, cx, cy, Rp, {stroke: C.line, width: 1.2});
+    Lab.line(ctx, [[cx - Rp - 6, cy], [cx + Rp + 6, cy]], C.line, 1);
+    Lab.line(ctx, [[cx, cy - Rp - 6], [cx, cy + Rp + 6]], C.line, 1);
+    const th = S.ph, kV = Rp / sc.V, kI = Rp * 0.9 / sc.I, hd = nar ? 8 : 10;
+    const P = (o, len, ang) => [o[0] + len * Math.cos(ang), o[1] - len * Math.sin(ang)];
+    const O = [cx, cy];
+    const lab = (p, ang, sTxt, c, off = 13) => rich(ctx, sTxt, Math.max(b.x0 + 12, Math.min(g.W - 14, p[0] + Math.cos(ang) * off)), p[1] - Math.sin(ang) * off, {size: 14, w: 600, color: c, halo: true});
+    const vec = (len, ang, c, sTxt) => {           // 가운데에서 나가는 화살표 + 이름표
+      const p = P(O, len, ang);
+      if (len > 2.5) { arrow(ctx, cx, cy, p[0], p[1], c, 2.8, hd); lab(p, ang, sTxt, c); }
+    };
+    const pI = P(O, s.I0 * kI, th);
+    if (S.kind === 'RLC') {
+      const pR = P(O, s.VR * kV, th), net = (s.VL - s.VC) * kV;
+      vec(s.VL * kV, th + Math.PI / 2, C.vel, 'V_L');
+      vec(s.VC * kV, th - Math.PI / 2, C.violet, 'V_C');
+      const pV = P(pR, net, th + Math.PI / 2);
+      if (Math.abs(net) > 2.5) Lab.line(ctx, [pR, pV], C.muted, 1.6, [4, 3]);
+      const vAng = th + s.phi;
+      arrow(ctx, cx, cy, pV[0], pV[1], C.ink, 3.2, hd + 1);
+      if (s.I0 * kI > 2.5) arrow(ctx, cx, cy, pI[0], pI[1], C.copper, 2.4, hd);
+      if (s.VR * kV > 2.5) arrow(ctx, cx, cy, pR[0], pR[1], C.acc, 3, hd);
+      // 이름표: V(전원)와 V_R 이 겹치면(공명) 하나로
+      const sameDir = Math.abs(s.phi) < 0.06;
+      lab(pV, vAng, sameDir ? 'V = V_R' : 'V', C.ink, 14);
+      if (!sameDir && s.VR * kV > 14) lab(pR, th - 0.6, 'V_R', C.acc, 12);
+      if (s.I0 * kI > 6) lab(pI, th + (sameDir ? -0.5 : 0.35), 'I', C.copper, 12);
+    } else {
+      const vAng = th + s.phi, c = elCol(S.kind);
+      const pV = P(O, V0 * kV, vAng);
+      arrow(ctx, cx, cy, pV[0], pV[1], c, 3.2, hd + 1);
+      if (s.I0 * kI > 2.5) arrow(ctx, cx, cy, pI[0], pI[1], C.copper, 2.6, hd);
+      const same = S.kind === 'R';
+      lab(pV, vAng + (same ? 0.35 : 0), 'V_' + S.kind, c, 14);
+      lab(pI, th - (same ? 0.35 : 0), 'I', C.copper, 12);
+    }
+    Lab.circle(ctx, cx, cy, 3, {fill: C.ink});
+    if (S.kind === 'RLC' && atRes()) Lab.tag(ctx, '공명', b.x1 - 4, b.y0 + 10, {size: 13, color: C.copper, align: 'right'});
+  }
+
+  // ── 시간 그래프: 두 주기 (전류 i = I₀ sin(2πt/T) 기준) ─────
+  const ROW = {
+    v: {lab: 'V', col: () => (S.kind === 'RLC' ? C.ink : elCol(S.kind)), amp: (s) => s.V0, f: (s, th) => M.sourceV(s, th), sh: (s) => s.phi},
+    i: {lab: 'I', col: () => C.copper, amp: (s) => s.I0, f: (s, th) => s.I0 * Math.sin(th), sh: () => 0, cur: true},
+    vR: {lab: 'V_R', col: () => C.acc, amp: (s) => s.VR, f: (s, th) => s.VR * Math.sin(th), sh: () => 0},
+    vL: {lab: 'V_L', col: () => C.vel, amp: (s) => s.VL, f: (s, th) => s.VL * Math.cos(th), sh: () => Math.PI / 2},
+    vC: {lab: 'V_C', col: () => C.violet, amp: (s) => s.VC, f: (s, th) => -s.VC * Math.cos(th), sh: () => -Math.PI / 2},
+  };
+  function rowsFor(g) {
+    if (S.kind !== 'RLC') return ['v', 'i'];
+    return g.nar || g.flat || g.H < 430 ? ['v', 'i', 'vL', 'vC'] : ['v', 'i', 'vR', 'vL', 'vC'];
+  }
+  function drawTime(ctx, g, s, sc) {
+    const b = g.tg, nar = g.nar, rows = rowsFor(g), compact = nar || b.x1 - b.x0 < 440;
+    const lw = nar ? 30 : 44, rw = nar ? 6 : compact ? 54 : 86, tb = 16;
+    const x0 = b.x0 + lw, x1 = b.x1 - rw, y0 = b.y0 + tb, rh = (b.y1 - y0) / rows.length, am = Math.max(6, rh * (rows.length <= 2 ? 0.32 : 0.38));
+    const X = (u) => x0 + (x1 - x0) * u / 2;
+    tgGeo = {x0, x1, y0, y1: b.y1};
+    const ticks = compact ? [[0, '0'], [1, 'T'], [2, '2T']] : [[0, '0'], [0.5, 'T/2'], [1, 'T'], [1.5, '3T/2'], [2, '2T']];
+    for (const [u, sTxt] of ticks) {
+      Lab.line(ctx, [[X(u), y0], [X(u), b.y1]], C.line, 1);
+      text(ctx, sTxt, X(u) + (u === 2 ? 2 : 0), b.y0 + 7, {size: 13, w: 500, color: C.muted, align: u === 2 ? 'right' : u === 0 ? 'left' : 'center'});
+    }
+    if (!compact) text(ctx, 'T = ' + fmt(1000 / S.f, 2) + ' ms', x1 + 8, b.y0 + 7, {size: 13, w: 600, color: C.muted, align: 'left'});
+    // 전류가 최대인 때 (세로 점선)
+    for (const u of [0.25, 1.25]) Lab.line(ctx, [[X(u), y0], [X(u), b.y1]], Lab.alpha(C.copper, 0.6), 1.3, [4, 4]);
+    const uc = (((S.ph % (2 * TAU)) + 2 * TAU) % (2 * TAU)) / TAU;
+    rows.forEach((key, j) => {
+      const R = ROW[key], yc = y0 + rh * (j + 0.5), c = R.col(), den = R.cur ? sc.I : sc.V;
+      Lab.line(ctx, [[x0, yc], [x1, yc]], C.line, 1);
+      if ((key === 'vL' || key === 'vC') && !nar) {       // 전원 전압 최댓값 높이 (점선)
+        const hv = am * V0 / den;
+        if (hv < am * 1.02) for (const sg of [-1, 1]) Lab.line(ctx, [[x0, yc - sg * hv], [x1, yc - sg * hv]], Lab.alpha(C.ink, 0.28), 1, [2, 4]);
+      }
+      if (key === 'i' && S.why && S.kind !== 'R') drawWhy(ctx, X, yc, am, s, sc, uc, nar);
+      ctx.save(); ctx.strokeStyle = c; ctx.lineWidth = R.cur ? 3 : 2.6; ctx.lineJoin = 'round'; ctx.beginPath();
+      for (let k = 0; k <= 180; k++) {
+        const u = 2 * k / 180, yy = yc - am * Math.max(-1.15, Math.min(1.15, R.f(s, TAU * u) / den));
+        k ? ctx.lineTo(X(u), yy) : ctx.moveTo(X(u), yy);
+      }
+      ctx.stroke(); ctx.restore();
+      const lb = key === 'v' && S.kind !== 'RLC' ? 'V_' + S.kind : R.lab;
+      rich(ctx, lb, b.x0 + lw / 2 - 2, yc, {size: nar ? 13 : 15, w: 700, color: c});
+      if (!nar) text(ctx, R.cur ? amp(s.I0) : volt(R.amp(s)), x1 + 8, yc, {size: 13, w: 600, color: c, align: 'left'});
+      // 전압이 최대인 때를 전류가 최대인 때(점선)와 견준다
+      if (!R.cur && R.amp(s) / den > 0.04) {
+        const shift = R.sh(s), up = 0.25 - shift / TAU;      // 0.25 근처의 마루 (u)
+        const yp = yc - am * R.amp(s) / den;
+        for (const u of [up, up + 1]) if (u >= -1e-6 && u <= 2 + 1e-6) Lab.circle(ctx, X(u), yp, 3.6, {fill: c});
+        const du = up - 0.25, ya = Math.max(yc - rh / 2 + (j ? 4 : 8), yp - 8);
+        if (Math.abs(du) > 0.02 && !nar) {
+          const from = X(1.25), to = X(1.25 + du);
+          arrow(ctx, from, ya, to, ya, c, 1.8, 7);
+          const t = Math.abs(Math.abs(du) - 0.25) < 0.005 ? '¼T ' : '';
+          text(ctx, t + (du < 0 ? '앞섬' : '뒤짐'), du < 0 ? from + 6 : to + 6, ya, {size: 13, w: 600, color: c, align: 'left', halo: true});
+        } else if (Math.abs(du) <= 0.02 && key !== 'vR' && !nar) {
+          text(ctx, '같은 박자', X(1.25) + 8, ya, {size: 13, w: 600, color: c, align: 'left', halo: true});
+        }
+      }
+    });
+    // 지금 시각
+    Lab.line(ctx, [[X(uc), y0], [X(uc), b.y1]], Lab.alpha(C.copper, 0.85), 1.6);
+    rows.forEach((key, j) => {
+      const R = ROW[key], yc = y0 + rh * (j + 0.5), den = R.cur ? sc.I : sc.V;
+      const yy = yc - am * Math.max(-1.15, Math.min(1.15, R.f(s, S.ph) / den));
+      Lab.circle(ctx, X(uc), yy, 4.6, {fill: R.col(), stroke: C.paper, width: 1.6});
+    });
+  }
+  // 까닭: 전류 그래프의 기울기 → 코일 전압, 전류가 0을 지난 뒤 옮겨진 전하(넓이) → 축전기 전압의 변화
+  function drawWhy(ctx, X, yc, am, s, sc, uc, nar) {
+    const a = am * s.I0 / sc.I, uz = Math.floor(uc * 2) / 2;
+    if (has('C') && a > 2) {
+      ctx.save(); ctx.fillStyle = Lab.alpha(C.violet, 0.22); ctx.beginPath(); ctx.moveTo(X(uz), yc);
+      for (let k = 0; k <= 30; k++) { const u = uz + (uc - uz) * k / 30; ctx.lineTo(X(u), yc - a * Math.sin(TAU * u)); }
+      ctx.lineTo(X(uc), yc); ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+    if (has('L') && a > 2) {
+      const px = X(uc), py = yc - a * Math.sin(TAU * uc), dxu = (X(2) - X(0)) / 2, sl = -a * TAU * Math.cos(TAU * uc) / dxu;
+      const hl = nar ? 22 : 36, n = Math.hypot(1, sl);
+      Lab.line(ctx, [[px - hl / n, py - sl * hl / n], [px + hl / n, py + sl * hl / n]], C.vel, 3);
+    }
+    if (!nar) {
+      let xr = X(2);
+      if (has('C')) xr -= rich(ctx, '넓이(옮겨진 전하) → V_C', xr, yc - am - 7, {size: 13, w: 600, color: C.violet, align: 'right', halo: true}) + 12;
+      if (has('L')) rich(ctx, '기울기 → V_L', xr, yc - am - 7, {size: 13, w: 600, color: C.vel, align: 'right', halo: true});
+    }
+  }
+
+  // ── 관찰 2: 그래프 모양 넷 ──────────────────────────────
+  const gShape = Lab.canvas('gShape', drawShape);
+  let shapeRects = [];
+  function curveI(kind, R_, L_, C_) { return (f) => M.current(kind, Math.max(f, 1), V0, R_, L_, C_); }
+  function plotCurve(ctx, ax, r, fn, col, w, dash) {
+    ctx.save(); ctx.beginPath(); ctx.rect(r.x, r.y - 2, r.w + 4, r.h + 2); ctx.clip();
+    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineJoin = 'round'; if (dash) ctx.setLineDash(dash);
+    ctx.beginPath();
+    const n = Math.max(80, Math.round(r.w));
+    for (let k = 0; k <= n; k++) { const f = F_MAX * k / n, y = ax.Y(Math.min(fn(f), ax.top * 1.2)); k ? ctx.lineTo(ax.X(f), y) : ctx.moveTo(ax.X(f), y); }
+    ctx.stroke(); ctx.restore();
+  }
+  function drawShape() {
+    const {ctx, W, H} = gShape; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 440, gap = nar ? 8 : 12, pw = (W - gap) / 2, ph = (H - gap) / 2;
+    const Itop = 1.25 * V0 / S.R;
+    const P = [['R', '(가) 저항만', 'f 와 무관'], ['L', '(나) 코일만', 'X_L = 2πfL ↑'], ['C', '(다) 축전기만', 'X_C = 1/(2πfC) ↓'], ['RLC', '(라) R·L·C 직렬', 'f₀ 에서 최대']];
+    shapeRects = [];
+    P.forEach(([k, title, hint], j) => {
+      const ox = (j % 2) * (pw + gap), oy = Math.floor(j / 2) * (ph + gap), on = k === S.kind;
+      const c = k === 'RLC' ? C.copper : elCol(k);
+      ctx.save(); Lab.rrect(ctx, ox + 1, oy + 1, pw - 2, ph - 2, 10); ctx.fillStyle = on ? C['copper-soft'] : C.paper; ctx.fill();
+      ctx.strokeStyle = on ? C.copper : C.line; ctx.lineWidth = on ? 2 : 1; ctx.stroke(); ctx.restore();
+      text(ctx, title, ox + 10, oy + 14, {size: 13, w: 600, color: c, align: 'left'});
+      const r = {x: ox + 16, y: oy + 40, w: pw - 16 - 16, h: ph - 40 - 14};
+      const ax = Lab.axes(ctx, r, {xmin: 0, xmax: F_MAX, ymin: 0, ymax: Itop});
+      ax.top = Itop;
+      text(ctx, 'f', r.x + r.w + 4, ax.y0 - 10, {size: 13, w: 600, color: C.muted, align: 'right'});
+      text(ctx, 'I₀', r.x + 8, r.y - 4, {size: 13, w: 600, color: C.muted, align: 'left'});
+      if (!nar) rich(ctx, hint, ox + pw - 10, oy + 14, {size: 13, w: 500, color: C.muted, align: 'right'});
+      plotCurve(ctx, ax, r, curveI(k, S.R, S.L, S.C), c, 2.8);
+      if (k === 'RLC') Lab.line(ctx, [[ax.X(f0()), r.y], [ax.X(f0()), ax.y0]], C.muted, 1, [2, 3]);
+      const I = M.current(k, S.f, V0, S.R, S.L, S.C), X = ax.X(S.f), Y = ax.Y(Math.min(I, Itop * 1.08));
+      Lab.line(ctx, [[X, ax.y0], [X, Y]], Lab.alpha(C.copper, 0.7), 1.3, [3, 3]);
+      Lab.circle(ctx, X, Y, 5, {fill: c, stroke: C.paper, width: 1.8});
+      if (!nar) { const rt = X < r.x + r.w * 0.62; text(ctx, amp(I), X + (rt ? 9 : -9), Math.max(r.y + 8, Y - 13), {size: 13, w: 600, color: c, align: rt ? 'left' : 'right', halo: true}); }
+      shapeRects.push({r, k});
+    });
+  }
+
+  // ── 관찰 3: 위 X_L·X_C–f, 아래 I₀–f ─────────────────────
+  const gRes = Lab.canvas('gRes', drawRes);
+  let resRect = null;
+  function drawRes() {
+    const {ctx, W, H} = gRes; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 440, lx = nar ? 40 : 50, rx = nar ? 16 : 22;
+    const hTop = (H - 26 - 30 - 34) * 0.5;
+    const top = {x: lx, y: 26, w: W - lx - rx, h: hTop};
+    const bot = {x: lx, y: 26 + hTop + 34, w: W - lx - rx, h: H - (26 + hTop + 34) - 30};
+    resRect = bot;
+    const Xc = Math.sqrt(S.L / S.C), Xtop = niceUp(Math.max(3 * Xc, 2.5 * S.R), OHM_STEPS), F0 = f0();
+    const xt = [1000, 2000, 3000, 4000];
+    const a1 = Lab.axes(ctx, top, {xmin: 0, xmax: F_MAX, ymin: 0, ymax: Xtop, xticks: xt, fmtX: () => '', yticks: [Xtop / 2, Xtop], fmtY: (v) => fmt(v, 0), grid: true});
+    a1.top = Xtop;
+    rich(ctx, nar ? '방해 정도 (Ω)' : '방해 정도 (Ω): X_L, X_C, R', a1.x0 + 8, top.y - 12, {size: 13, w: 600, color: C.muted, align: 'left'});
+    Lab.line(ctx, [[a1.X(0), a1.Y(S.R)], [a1.X(F_MAX), a1.Y(S.R)]], C.acc, 2.2, [6, 4]);
+    plotCurve(ctx, a1, top, (f) => M.XL(f, S.L), C.vel, 2.8);
+    plotCurve(ctx, a1, top, (f) => M.XC(Math.max(f, 1), S.C), C.violet, 2.8);
+    const lbl = (sTxt, f, y, c, al) => rich(ctx, sTxt, a1.X(f), y, {size: 14, w: 600, color: c, align: al, halo: true});
+    const fL = Math.min(F_MAX * 0.95, Xtop * 0.92 / (TAU * S.L));
+    lbl('X_L', fL - F_MAX * 0.02, a1.Y(M.XL(fL, S.L)) - 4, C.vel, 'right');
+    const fC = Math.max(F_MAX * 0.04, 1 / (TAU * S.C * Xtop * 0.9));
+    lbl('X_C', fC + F_MAX * 0.03, Math.max(top.y + 10, a1.Y(M.XC(fC, S.C)) - 2), C.violet, 'left');
+    lbl('R', F_MAX * 0.99, a1.Y(S.R) - 11, C.acc, 'right');
+    // 공명점과 지금 진동수
+    const a2 = Lab.axes(ctx, bot, {xmin: 0, xmax: F_MAX, ymin: 0, ymax: 1.25 * V0 / S.R, xticks: xt, fmtX: (v) => v / 1000 + (nar ? 'k' : ' kHz'), yticks: [V0 / S.R], fmtY: (v) => fmt(v, 2), grid: true});
+    a2.top = 1.25 * V0 / S.R;
+    text(ctx, '전류 최댓값 I₀ (A) — R·L·C 직렬', a2.x0 + 8, bot.y - 12, {size: 13, w: 600, color: C.muted, align: 'left'});
+    if (F0 <= F_MAX) {
+      Lab.line(ctx, [[a1.X(F0), top.y], [a2.X(F0), a2.y0]], C.muted, 1.2, [4, 4]);
+      if (Xc <= Xtop) {
+        Lab.circle(ctx, a1.X(F0), a1.Y(Xc), 5.5, {fill: C.ink, stroke: C.paper, width: 1.8});
+        const rt = S.f <= F0 ? F0 < F_MAX * 0.75 : F0 < F_MAX * 0.25;
+        rich(ctx, 'X_L = X_C', a1.X(F0) + (rt ? 9 : -9), a1.Y(Xc) - 14, {size: 13, w: 600, color: C.ink, align: rt ? 'left' : 'right', halo: true});
+      }
+    }
+    plotCurve(ctx, a2, bot, curveI('RLC', S.R, S.L, S.C), C.copper, 3);
+    if (F0 <= F_MAX) {
+      Lab.circle(ctx, a2.X(F0), a2.Y(V0 / S.R), 4.5, {fill: C.ink});
+      text(ctx, 'f₀ = ' + fStr(F0), a2.X(F0) + (F0 < F_MAX * 0.6 ? 8 : -8), a2.Y(V0 / S.R) - 12, {size: 13, w: 600, color: C.ink, align: F0 < F_MAX * 0.6 ? 'left' : 'right', halo: true});
+    }
+    // 지금 진동수: 두 방해의 차이(구리색)와 전류
+    const X = a1.X(S.f), xl_ = M.XL(S.f, S.L), xc_ = M.XC(S.f, S.C);
+    Lab.line(ctx, [[X, top.y], [X, a2.y0]], Lab.alpha(C.copper, 0.75), 1.4);
+    const yL = a1.Y(Math.min(xl_, Xtop)), yC = a1.Y(Math.min(xc_, Xtop));
+    ctx.save(); ctx.globalAlpha = 0.35; Lab.line(ctx, [[X, yL], [X, yC]], C.copper, 6); ctx.restore();
+    if (xl_ <= Xtop) Lab.circle(ctx, X, yL, 4.5, {fill: C.vel, stroke: C.paper, width: 1.5});
+    if (xc_ <= Xtop) Lab.circle(ctx, X, yC, 4.5, {fill: C.violet, stroke: C.paper, width: 1.5});
+    const lt = S.f <= F0 ? S.f > F_MAX * 0.2 : S.f > F_MAX * 0.8;
+    if (Math.abs(yL - yC) > 18 && !nar) rich(ctx, '|X_L − X_C|', X + (lt ? -8 : 8), (yL + yC) / 2, {size: 13, w: 600, color: C.copper, align: lt ? 'right' : 'left', halo: true});
+    const I = M.current('RLC', S.f, V0, S.R, S.L, S.C);
+    Lab.circle(ctx, a2.X(S.f), a2.Y(I), 6.5, {fill: C.copper, stroke: C.paper, width: 2});
+    const yI = a2.Y(I) + 14 > a2.y0 - 10 ? a2.Y(I) - 14 : a2.Y(I) + 14;
+    text(ctx, amp(I), a2.X(S.f) + (S.f < F_MAX * 0.7 ? 10 : -10), yI, {size: 13, w: 600, color: C.copper, align: S.f < F_MAX * 0.7 ? 'left' : 'right', halo: true});
+  }
+
+  // ── 관찰 4: 처음 회로와 지금 회로, 라디오 방송국 ──────────
+  const gShift = Lab.canvas('gShift', drawShift);
+  let shiftRect = null;
+  function drawShift() {
+    const {ctx, W, H} = gShift; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const nar = W < 440, lx = nar ? 40 : 50, rx = nar ? 16 : 22;
+    const r = {x: lx, y: 30, w: W - lx - rx, h: H - 30 - (S.radio ? 50 : 30)};
+    shiftRect = r;
+    const Itop = 1.25 * Math.max(V0 / S.R, V0 / BASE.R);
+    const ax = Lab.axes(ctx, r, {xmin: 0, xmax: F_MAX, ymin: 0, ymax: Itop, xticks: [1000, 2000, 3000, 4000], fmtX: (v) => v / 1000 + (nar ? 'k' : ' kHz'),
+      yticks: [V0 / BASE.R / 2, V0 / BASE.R], fmtY: (v) => fmt(v, 2), grid: true});
+    ax.top = Itop;
+    text(ctx, '전류 최댓값 I₀ (A)', ax.x0 + 8, r.y - 14, {size: 13, w: 600, color: C.muted, align: 'left'});
+    const F0b = M.f0(BASE.L, BASE.C), F0 = f0();
+    plotCurve(ctx, ax, r, curveI('RLC', BASE.R, BASE.L, BASE.C), Lab.alpha(C.muted, 0.9), 2, [6, 5]);
+    plotCurve(ctx, ax, r, curveI('RLC', S.R, S.L, S.C), C.copper, 3.2);
+    const same = Math.abs(S.R - BASE.R) < 1e-9 && Math.abs(S.L - BASE.L) < 1e-12 && Math.abs(S.C - BASE.C) < 1e-15;
+    if (!same) text(ctx, '처음 회로', ax.X(F0b), ax.Y(V0 / BASE.R) - 12, {size: 13, w: 500, color: C.muted, halo: true});
+    if (F0 <= F_MAX) {
+      const X0 = ax.X(F0), Y0 = ax.Y(V0 / S.R);
+      Lab.line(ctx, [[X0, Y0], [X0, ax.y0]], Lab.alpha(C.copper, 0.6), 1.2, [3, 3]);
+      Lab.circle(ctx, X0, Y0, 5, {fill: C.copper, stroke: C.paper, width: 1.8});
+      // 봉우리 정보: 봉우리가 오른쪽이면 왼쪽 위, 아니면 오른쪽 위
+      const rightSide = F0 <= F_MAX * 0.6, tx = rightSide ? r.x + r.w : r.x + 12, al = rightSide ? 'right' : 'left';
+      const t1 = '봉우리 f₀ = ' + fStr(F0) + (Math.abs(F0 / F0b - 1) < 1e-6 ? '' : ' (처음의 ' + ratio(F0 / F0b) + '배)');
+      const t2 = '높이 V₀/R = ' + amp(V0 / S.R) + (Math.abs(S.R / BASE.R - 1) < 1e-9 ? '' : ' (처음의 ' + ratio(BASE.R / S.R) + '배)');
+      text(ctx, t1, tx, r.y + 6, {size: 13, w: 600, color: C.copper, align: al, halo: true});
+      text(ctx, t2, tx, r.y + 25, {size: 13, w: 500, color: C.copper, align: al, halo: true});
+    }
+    const I = M.current('RLC', S.f, V0, S.R, S.L, S.C);
+    Lab.line(ctx, [[ax.X(S.f), ax.y0], [ax.X(S.f), ax.Y(I)]], Lab.alpha(C.copper, 0.6), 1.2);
+    Lab.circle(ctx, ax.X(S.f), ax.Y(I), 5.5, {fill: C.paper, stroke: C.copper, width: 2.2});
+    if (S.radio) {
+      const resp = STATIONS.map((q) => M.current('RLC', q.f, V0, S.R, S.L, S.C)), best = resp.indexOf(Math.max(...resp));
+      STATIONS.forEach((q, j) => {
+        const X = ax.X(q.f), on = j === best, c = on ? C.energy : C.muted;
+        ctx.save(); ctx.globalAlpha = on ? 0.9 : 0.55; ctx.fillStyle = c; ctx.fillRect(X - 4, ax.Y(resp[j]), 8, ax.y0 - ax.Y(resp[j])); ctx.restore();
+        text(ctx, (nar ? '' : '방송 ') + q.n + (on ? (nar ? ' 크게' : ' 크게 들림') : ''), X, ax.y0 + 31, {size: 13, w: on ? 600 : 500, color: on ? C.energy : C.muted});
+      });
+    }
+  }
+  // 그래프를 좌우로 끌어 진동수 바꾸기
+  function dragF(view, rectOf) {
+    const go = (x) => { const r = rectOf(); if (!r) return; setF(F_MAX * (x - r.x) / r.w); };
+    Lab.pointer(view.el, {down: (x) => go(x), move: (x) => go(x)});
+  }
+  dragF(gRes, () => resRect);
+  dragF(gShift, () => shiftRect);
+  // 2×2 그래프: 누른 칸의 가로 위치로
+  let shapeRect = null;
+  Lab.pointer(gShape.el, {down: (x, y) => { const p = shapeRects.find((q) => x >= q.r.x - 12 && x <= q.r.x + q.r.w + 12 && y >= q.r.y - 40 && y <= q.r.y + q.r.h + 16); if (p) { shapeRect = p.r; setF(F_MAX * (x - p.r.x) / p.r.w); } },
+    move: (x) => { if (shapeRect) setF(F_MAX * (x - shapeRect.x) / shapeRect.w); }, up: () => { shapeRect = null; }});
+
+  // ── 지금 값 ─────────────────────────────────────────────
+  const setMini = (i, name, val) => { const a = $('mn' + i), b = $('mv' + i); if (a.innerHTML !== name) a.innerHTML = name; if (b.textContent !== val) b.textContent = val; };
+  const sci2 = (v) => Lab.sci(v, 2, {force: true});
+  function hud() {
+    const s = st();
+    $('hud1').textContent = 'f = ' + fStr(S.f);
+    $('hud2').textContent = 'I₀ = ' + amp(s.I0) + (S.kind === 'RLC' && atRes() ? ' · 공명' : '');
+    $('hud2').className = 'pill' + (S.kind === 'RLC' && atRes() ? ' up' : '');
+    const nar = stage.W ? stage.W < 520 : innerWidth < 560;
+    $('hud3').hidden = nar;
+    $('hud3').textContent = fmt(LAM / S.speed, 0) + '배 느리게';
+  }
+  function readouts() {
+    const s = st(), F0 = f0(), fr = Math.round(S.f);
+    $('fOut').textContent = fStr(S.f);
+    $('capOut').textContent = uF(S.C) + ' μF';
+    $('indOut').textContent = mH(S.L) + ' mH';
+    $('resOut').textContent = fmt(S.R, 0) + ' Ω';
+    const rmsI = amp(M.rms(s.I0));
+    if (S.kind === 'RLC') {
+      const sq = Math.sqrt(S.L * S.C), lead = Math.abs(s.phi) < 0.01 ? '같은 박자 (공명)' : s.phi > 0 ? '전압이 앞섬 (f > f₀)' : '전류가 앞섬 (f < f₀)';
+      let now;
+      if (atRes()) now = '지금 f = f₀ → X<sub>L</sub> = X<sub>C</sub> = ' + ohm(s.XL) + ', 전류 최대 I₀ = V₀/R = ' + V0 + ' ÷ ' + fmt(S.R, 0) + ' = <em>' + amp(s.I0) + '</em>';
+      else now = '지금 f = ' + fStr(S.f) + (S.f < F0 ? ' &lt; f₀ → X<sub>L</sub> ' + ohm(s.XL) + ' &lt; X<sub>C</sub> ' : ' &gt; f₀ → X<sub>L</sub> ' + ohm(s.XL) + ' &gt; X<sub>C</sub> ') + ohm(s.XC) + ', I₀ = <em>' + amp(s.I0) + '</em>';
+      Lab.ans('f₀ ≈ ' + kHz1(F0) + ' kHz', [
+        '√(LC) = √(<em>' + mH(S.L) + ' × 10⁻³ H</em> × <em>' + uF(S.C) + ' × 10⁻⁶ F</em>) = ' + sci2(sq) + ' s',
+        'f₀ = 1 ÷ (2π × ' + sci2(sq) + ' s) = <em>' + sci2(F0) + ' Hz ≈ ' + kHz1(F0) + ' kHz</em>',
+        now,
+      ], {tone: '', lab: '공명 진동수', ctx: 'L = ' + mH(S.L) + ' mH · C = ' + uF(S.C) + ' μF · R = ' + fmt(S.R, 0) + ' Ω', f: 'f₀ = 1/(2π√(LC)) 에 지금 값을 넣으면'});
+      setMini(1, 'X<sub>L</sub> = 2πfL', ohm(s.XL));
+      setMini(2, 'X<sub>C</sub> = 1/(2πfC)', ohm(s.XC));
+      setMini(3, '전류 최댓값 I₀ = V₀/Z (실효값 I₀/√2)', amp(s.I0) + ' (실효 ' + rmsI + ')');
+      setMini(4, 'Z = √(R² + (X<sub>L</sub> − X<sub>C</sub>)²) <span class="tagx">심화</span>', ohm(s.Z));
+      setMini(5, 'V<sub>L</sub> · V<sub>C</sub> 최댓값 (전원 ' + V0 + ' V)', volt(s.VL) + ' · ' + volt(s.VC));
+      setMini(6, '전원 전압과 전류의 박자', lead);
+    } else {
+      const k = S.kind, nm = {R: '저항은', L: '코일은', C: '축전기는'}[k];
+      let lines, big = 'I₀ = ' + amp(s.I0), f;
+      if (k === 'R') {
+        f = 'I₀ = V₀/R 에 지금 값을 넣으면';
+        lines = ['I₀ = ' + V0 + ' V ÷ <em>' + fmt(S.R, 0) + ' Ω</em> = <em>' + amp(s.I0) + '</em>', '식에 f 가 없다 → 진동수를 바꿔도 전류는 그대로 (수평선)'];
+      } else if (k === 'L') {
+        f = 'X<sub>L</sub> = 2πfL, I₀ = V₀/X<sub>L</sub> 에 지금 값을 넣으면';
+        lines = ['X<sub>L</sub> = 2π × <em>' + fr + ' Hz</em> × <em>' + fmt(S.L, 4) + ' H</em> = <em>' + ohm(s.XL) + '</em>',
+          'I₀ = ' + V0 + ' V ÷ ' + ohm(s.XL) + ' = <em>' + amp(s.I0) + '</em>', 'f 가 2배 → X<sub>L</sub> 2배 → 전류 ½배'];
+      } else {
+        f = 'X<sub>C</sub> = 1/(2πfC), I₀ = V₀/X<sub>C</sub> 에 지금 값을 넣으면';
+        lines = ['X<sub>C</sub> = 1 ÷ (2π × <em>' + fr + ' Hz</em> × <em>' + uF(S.C) + ' × 10⁻⁶ F</em>) = <em>' + ohm(s.XC) + '</em>',
+          'I₀ = ' + V0 + ' V ÷ ' + ohm(s.XC) + ' = <em>' + amp(s.I0) + '</em> (= 2πfCV₀)', 'f 가 2배 → X<sub>C</sub> ½배 → 전류 2배'];
+      }
+      Lab.ans(big, lines, {tone: 'cu', lab: '지금 전류 최댓값', ctx: KIND[k] + ' · f = ' + fStr(S.f), f});
+      const X = {R: [fmt(S.R, 0) + ' Ω', '방해 정도 R'], L: [ohm(s.XL), '방해 정도 X<sub>L</sub> = 2πfL'], C: [ohm(s.XC), '방해 정도 X<sub>C</sub> = 1/(2πfC)']}[k];
+      setMini(1, X[1], X[0]);
+      setMini(2, '실효 전류 I₀/√2', rmsI);
+      setMini(3, '진동수가 2배이면 전류', {R: '그대로', L: '½배', C: '2배'}[k]);
+      setMini(4, '전압과 전류의 박자', {R: '같은 박자', L: '전압이 ¼주기 앞섬', C: '전압이 ¼주기 뒤짐'}[k]);
+      setMini(5, '진동수–전류 그래프', {R: '수평선', L: '줄어드는 곡선', C: '원점 지나는 직선'}[k]);
+      setMini(6, '직류(f = 0)이면 ' + nm, {R: '전류가 흐른다 (V₀/R)', L: '그냥 도선 (막지 않음)', C: '충전 뒤 전류 차단'}[k]);
+    }
+    hud();
+    const exL = Math.abs(S.L - 10e-3) < 1e-12, c1 = Math.abs(S.C - 1e-6) < 1e-15, c4 = Math.abs(S.C - 4e-6) < 1e-15;
+    const ok = S.kind === 'RLC' && exL && (c1 || c4);
+    Lab.check('exCheck', ok, c4 ? '예제 둘째 물음: C = 4 μF → √(LC) 2배 → f₀ = 7.96 × 10² Hz ≈ 0.8 kHz (½배)' : '개념서 예제 (L = 10 mH, C = 1 μF) → √(LC) = 10⁻⁴ s, f₀ = 1/(2π × 10⁻⁴) ≈ 1.6 kHz',
+      '예제: L = 10 mH, C = 1 μF 인 RLC 직렬 회로의 공명 진동수는? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
+  }
+  function drawCards() { drawShape(); drawRes(); drawShift(); }
+  function refresh() { readouts(); drawStage(); drawCards(); }
+
+  // ── 조작 ────────────────────────────────────────────────
+  const fEl = $('f'), capEl = $('cap'), indEl = $('ind'), resEl = $('res');
+  function setF(v, keepSweep) {
+    S.f = Math.max(F_MIN, Math.min(F_MAX, v));
+    fEl.value = Math.round(S.f / 10) * 10;
+    if (!keepSweep) S.sweep = null;
+    refresh();
+  }
+  fEl.addEventListener('input', () => setF(+fEl.value));
+  capEl.addEventListener('input', () => { S.C = +capEl.value * 1e-6; refresh(); });
+  indEl.addEventListener('input', () => { S.L = +indEl.value * 1e-3; refresh(); });
+  resEl.addEventListener('input', () => { S.R = +resEl.value; refresh(); });
+  const kindG = Lab.group('[data-kind]', 'kind', (v) => { S.kind = v; cgCache = null; refresh(); }, S.kind);
+  Lab.group('[data-speed]', 'speed', (v) => { S.speed = +v; hud(); }, String(S.speed));
+  const playCtl = Lab.play('play', S.playing, (on) => { S.playing = on; });
+  const cWhy = $('cWhy'), cRadio = $('cRadio');
+  cWhy.addEventListener('change', () => { S.why = cWhy.checked; refresh(); });
+  cRadio.addEventListener('change', () => { S.radio = cRadio.checked; refresh(); });
+  // 위상을 옮기면 전류 점도 그동안 지나간 전하만큼 옮겨 간다
+  function advance(dph) {
+    const s = st(), cg = stage.W ? circuitGeo(stage.W, stage.H) : null;
+    if (cg) S.d += cg.qpx * (-s.q0) * (Math.cos(S.ph + dph) - Math.cos(S.ph));
+    S.ph += dph;
+  }
+  $('step').addEventListener('click', () => { playCtl.set(false); S.sweep = null; const q = Math.PI / 4; advance((Math.floor(S.ph / q + 1e-6) + 1) * q - S.ph); refresh(); });
+  $('toF0').addEventListener('click', () => { setF(f0()); });
+  // 무대에서 끌기: 시간 그래프를 좌우로 끌면 그 시각, 위상자를 돌리면 그 위상에서 멈춘다 (점도 그만큼 옮겨 간다)
+  let drag = null;
+  const where = (x, y) => (tgGeo && x >= tgGeo.x0 - 8 && x <= tgGeo.x1 + 8 && y >= tgGeo.y0 - 16 && y <= tgGeo.y1 ? 'tg'
+    : phGeo && Math.hypot(x - phGeo.cx, y - phGeo.cy) <= phGeo.Rp + 16 ? 'ph' : null);
+  function scrub(x, y) {
+    const per = drag === 'tg' ? 2 * TAU : TAU;
+    const target = drag === 'tg' ? Math.max(0, Math.min(2, 2 * (x - tgGeo.x0) / (tgGeo.x1 - tgGeo.x0))) * TAU
+      : ((Math.atan2(phGeo.cy - y, x - phGeo.cx) % TAU) + TAU) % TAU;
+    let nt = S.ph - (((S.ph % per) + per) % per) + Math.min(target, per - 1e-9);
+    if (nt - S.ph > per / 2) nt -= per; else if (S.ph - nt > per / 2) nt += per;
+    advance(nt - S.ph); drawStage();
+  }
+  Lab.pointer(stage.el, {
+    down: (x, y) => { drag = where(x, y); if (!drag) return; playCtl.set(false); S.sweep = null; scrub(x, y); },
+    move: (x, y) => { if (drag) scrub(x, y); },
+    up: () => { drag = null; },
+  });
+  stage.el.addEventListener('mousemove', (e) => { const r = stage.el.getBoundingClientRect(); stage.el.style.cursor = where(e.clientX - r.left, e.clientY - r.top) ? 'grab' : ''; });
+  $('sweep').addEventListener('click', () => { S.sweep = {t: 0, dur: 10}; S.f = F_MIN; fEl.value = F_MIN; playCtl.set(true); refresh(); });
+  function sync() {
+    fEl.value = Math.round(S.f / 10) * 10; capEl.value = S.C * 1e6; indEl.value = S.L * 1e3; resEl.value = S.R;
+    kindG.set(S.kind, true); cWhy.checked = S.why; cRadio.checked = S.radio; cgCache = null;
+  }
+  // 단계 카드의 버튼: 그 상황으로
+  function setup(o) {
+    S.kind = o.kind || 'RLC';
+    if (o.base) Object.assign(S, {R: BASE.R, L: BASE.L, C: BASE.C});
+    for (const k of ['R', 'L', 'C']) if (o[k] != null) S[k] = o[k];
+    S.f = o.f === 'f0' ? f0() : o.f === 'half' ? f0() / 2 : o.f === 'double' ? f0() * 2 : o.f != null ? o.f : S.f;
+    S.f = Math.max(F_MIN, Math.min(F_MAX, S.f));
+    S.radio = !!o.radio; S.sweep = o.sweep ? {t: 0, dur: 10} : null;
+    if (o.sweep) S.f = F_MIN;
+    if (o.ph != null) advance(S.ph - (((S.ph % (2 * TAU)) + 2 * TAU) % (2 * TAU)) + o.ph - S.ph);
+    if (o.why != null) S.why = o.why;
+    playCtl.set(o.play !== false);
+    sync();
+  }
+  const TRY = {
+    ex: () => setup({base: true, f: 'f0'}),
+    ex4: () => setup({base: true, C: 4e-6, f: 'f0'}),
+    L1: () => setup({kind: 'L', base: true, f: 1000}), L2: () => setup({kind: 'L', base: true, f: 2000}),
+    C1: () => setup({kind: 'C', base: true, f: 1000}), C2: () => setup({kind: 'C', base: true, f: 2000}),
+    res: () => setup({base: true, f: 'f0'}), lo: () => setup({base: true, f: 'half'}), hi: () => setup({base: true, f: 'double'}),
+    c4: () => setup({base: true, C: 4e-6, f: 'f0'}),
+    r2: () => setup({base: true, R: 40, f: 'f0'}),
+    radio: () => setup({base: true, f: 1600, radio: true}),
+    base: () => setup({base: true, f: 1000}),
+    qR: () => setup({kind: 'R', base: true, sweep: true}), qL: () => setup({kind: 'L', base: true, sweep: true}), qC: () => setup({kind: 'C', base: true, sweep: true}),
+    q2: () => setup({base: true, L: 20e-3, C: 8e-6, f: 'f0'}),
+    q3: () => setup({base: true, f: 'f0', ph: Math.PI * 0.25, play: false}),
+  };
+  Lab.tries(TRY, () => refresh());
+
+  // ── 돌리기 ──────────────────────────────────────────────
+  // 화면의 1초 = 실제 1/(4000 ÷ 빠르기) 초. 위상은 2πf 로, 전류 점은 지나간 전하만큼(속력 ∝ 전류) 움직인다
+  const seen = (v) => { if (!v.W) return false; const r = v.el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  let roT = 0;
+  Lab.loop((dt) => {
+    if (S.sweep) {
+      S.sweep.t += dt;
+      const u = Math.min(1, S.sweep.t / S.sweep.dur);
+      S.f = F_MIN + (F_MAX - F_MIN) * u; fEl.value = Math.round(S.f / 10) * 10;
+      if (u >= 1) S.sweep = null;
+      roT += dt; if (roT > 0.08 || !S.sweep) { roT = 0; readouts(); }
+      if (seen(gShape)) drawShape(); if (seen(gRes)) drawRes(); if (seen(gShift)) drawShift();
+    }
+    if (!S.playing) { if (S.sweep) drawStage(); return; }
+    advance(TAU * S.f / (LAM / S.speed) * dt);
+    drawStage();
+  });
+  readouts();
+})();
+</script>
+</body>
+</html>
