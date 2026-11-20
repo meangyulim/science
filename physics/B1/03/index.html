@@ -14,6 +14,7 @@
 #gSum{aspect-ratio:10/3.0}
 #gFlip{aspect-ratio:10/5.6}
 #gTab{aspect-ratio:auto;height:200px}
+#gEx{aspect-ratio:10/4.4}
 #gProj{aspect-ratio:10/5.6}
 .r1 .group .sm{display:none}
 #qBox{flex:1 1 230px}
@@ -24,6 +25,7 @@
   #gSum{aspect-ratio:10/4.1}
   #gFlip{aspect-ratio:10/8.4}
   #gProj{aspect-ratio:10/8.6}
+  #gEx{aspect-ratio:10/6.2}
 }
 </style>
 </head>
@@ -155,6 +157,8 @@
           <p>점전하 하나가 만드는 전기장의 세기는 kq/r²이라 거리의 제곱에 반비례한다. 전하에서 관찰점을 향하는 벡터를 (Δx, Δy)라 하면 성분은 <span class="eq">E<sub>x</sub> = kqΔx/r³</span>, <span class="eq">E<sub>y</sub> = kqΔy/r³</span>이고, 음전하는 q에 음수를 넣으면 방향이 저절로 뒤집힌다. 전하마다 한 줄씩 적고 <b>열마다 더한다</b>.</p>
           <canvas class="flat" id="gTab" aria-label="성분표: 전하마다 거리, 세기, x성분, y성분을 적고 맨 아래 줄에 열마다 더한 합을 적는다. 지워지는 열은 상쇄로 표시한다."></canvas>
           <p class="cap">P를 원점으로 옮기면 거리가 √2 d에서 d로 줄어 세기가 2배(√2배가 아니다)가 된다. 합의 방향이 주어지면 tan θ = E<sub>y</sub>/E<sub>x</sub>, 세기가 주어지면 피타고라스, ‘성분 0’이면 그 열의 합 = 0으로 식을 세운다.</p>
+          <canvas class="flat" id="gEx" aria-label="P를 지나는 가로선 위에서 합성 전기장의 x성분 Ex를 위치에 따라 그린 그래프. 전하가 그 선 위에 있으면 그 자리에서 발산하고, 부호가 바뀌는 곳에 Ex = 0인 점이 있다."></canvas>
+          <p class="cap" id="gExCap">P를 지나는 가로선 위의 E<sub>x</sub> 그래프다. 전하가 이 선 위에 오면 그 자리에서 발산하고, 부호가 바뀌는 곳이 E<sub>x</sub> = 0인 점이다. 그래프 문제는 이 세 곳으로 전하의 부호와 크기를 가린다.</p>
           <div class="acts">
             <button type="button" class="btn go" data-try="p0">P를 원점으로</button>
             <button type="button" class="btn" data-try="sq">정사각형 배치</button>
@@ -862,6 +866,57 @@
     text(ctx, foot, 6, H - 12, {size: 13, w: 600, color: C.acc, align: 'left'});
   }
 
+  // ── 관찰 3: P 를 지나는 선 위의 성분 그래프 (2차원 Eₓ–x, 3차원 E_z–z) ──
+  const gEx = Lab.canvas('gEx', drawGEx);
+  function drawGEx() {
+    const {ctx, W, H} = gEx; if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    const three = S.dim === 3, ax = three ? 2 : 0, cs = chs(false), u0 = S.r0 * S.r0 / S.q0, unit = pre().unit, nm = three ? 'z' : 'x';
+    const [lo, hi] = three ? [Math.min(-0.5, pre().axes[2][0]), pre().axes[2][1] + 0.5] : pre().view.slice(0, 2);
+    const at = (t) => { const p = S.P.slice(); p[ax] = t; return p; };
+    const onLine = cs.filter((c) => [0, 1, 2].every((k) => k === ax || Math.abs(c.at[k] - S.P[k]) < 1e-9));
+    const N = 420, T = [], V = [];
+    for (let i = 0; i <= N; i++) {
+      const t = lo + (hi - lo) * i / N, p = at(t);
+      T.push(t); V.push(onLine.some((c) => Math.abs(c.at[ax] - t) < 1e-6) ? NaN : M.superpose(cs, p).sum[ax] * u0);
+    }
+    const EP = M.superpose(cs, S.P).sum[ax] * u0;
+    const fin = V.filter(isFinite).map(Math.abs).sort((a, b) => a - b), p80 = fin.length ? fin[Math.floor(fin.length * 0.8)] : 1;
+    const ym = Math.max(0.5, Math.abs(EP) * 1.4, p80 * 1.25), nar = W < 430;
+    const r = {x: 44, y: 22, w: W - 44 - 20, h: H - 22 - (nar ? 40 : 36)};
+    const nice = [0.5, 1, 2, 5, 10, 20, 50].find((v) => ym / v <= 2.6) || 100;
+    const yt = []; for (let v = -Math.floor(ym / nice) * nice; v <= ym + 1e-9; v += nice) yt.push(+v.toFixed(6));
+    const xt = []; const xs = (hi - lo) > 7 ? 2 : 1; for (let v = Math.ceil(lo / xs) * xs; v <= hi + 1e-9; v += xs) xt.push(v);
+    const A = Lab.axes(ctx, r, {xmin: lo, xmax: hi, ymin: -ym, ymax: ym, xticks: xt, yticks: yt, yAt: 'left', grid: true,
+      fmtX: (v) => (v === 0 ? '0' : tick(v)), fmtY: (v) => fmt(v, 1), xlabel: nm, ylabel: 'E_' + nm + ' (' + unit + ')'});
+    Lab.line(ctx, [[r.x, A.Y(0)], [r.x + r.w, A.Y(0)]], C.muted, 1.2);
+    onLine.forEach((c) => {                                       // 선 위의 전하: 그 자리에서 발산
+      const i = cs.indexOf(c), x = A.X(c.at[ax]);
+      Lab.line(ctx, [[x, r.y], [x, r.y + r.h]], Lab.alpha(col(i), 0.7), 1.4, [4, 4]);
+      text(ctx, S.ch[i].id + ' ' + qText(c.q), x, r.y - 8, {size: 13, w: 600, color: col(i), halo: true});
+    });
+    ctx.save(); ctx.beginPath(); ctx.rect(r.x, r.y - 2, r.w, r.h + 4); ctx.clip();
+    ctx.strokeStyle = C.acc; ctx.lineWidth = 2.8; ctx.lineJoin = 'round'; ctx.beginPath();
+    let pen = false;
+    for (let i = 0; i <= N; i++) {
+      const v = V[i];
+      if (!isFinite(v) || (i && isFinite(V[i - 1]) && Math.abs(v - V[i - 1]) > ym && Math.sign(v) !== Math.sign(V[i - 1]))) { pen = false; if (!isFinite(v)) continue; }
+      const x = A.X(T[i]), y = A.Y(clamp(v, -ym * 1.1, ym * 1.1));
+      if (pen) ctx.lineTo(x, y); else { ctx.moveTo(x, y); pen = true; }
+    }
+    ctx.stroke(); ctx.restore();
+    for (let i = 1; i <= N; i++) {                               // Eₓ = 0 인 곳 (발산이 아닌 부호 바뀜)
+      const a = V[i - 1], b = V[i];
+      if (!isFinite(a) || !isFinite(b) || Math.sign(a) === Math.sign(b) || Math.abs(a - b) > ym) continue;
+      const t = T[i - 1] + (T[i] - T[i - 1]) * a / (a - b);
+      Lab.circle(ctx, A.X(t), A.Y(0), 4.5, {fill: C.paper, stroke: C.acc, width: 2});
+    }
+    const px = A.X(S.P[ax]), py = A.Y(clamp(EP, -ym, ym));
+    Lab.line(ctx, [[px, A.Y(0)], [px, py]], C.copper, 1.4, [3, 3]);
+    Lab.circle(ctx, px, py, 5.5, {fill: C.copper, stroke: C.paper, width: 2});
+    text(ctx, (pre().pn || 'P') + ' ' + f2(EP), px + 9, py + (EP >= 0 ? -12 : 12), {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
+  }
+
   // ── 관찰 4: 위에서 본 모습 · 옆에서 본 모습 ─────────────
   const gProj = Lab.canvas('gProj', drawGProj);
   function drawGProj() {
@@ -959,7 +1014,7 @@
     Lab.check('exCheck', S.key === 'ga' && pristine('ga'), '개념서 예제 (+q(−d, 0), −q(d, 0), P(0, d)) → √2 E₀, +x 방향 — y성분은 대칭으로 상쇄',
       '예제: +q(−d, 0), −q(d, 0)일 때 P(0, d)의 합성 전기장은? — ‘개념서 예제’ 단계의 버튼으로 돌아갈 수 있어요');
   }
-  function drawAll() { drawStage(); drawGSum(); drawGFlip(); drawGTab(); drawGProj(); }
+  function drawAll() { drawStage(); drawGSum(); drawGFlip(); drawGTab(); drawGEx(); drawGProj(); }
   function refresh() { readouts(); drawAll(); }
 
   // ── 조작 ────────────────────────────────────────────────
