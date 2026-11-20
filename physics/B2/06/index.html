@@ -169,7 +169,7 @@
           <h3>입력은 베이스 쪽, 출력은 컬렉터 쪽: 작은 입력이 큰 출력이 된다</h3>
           <p>마이크(입력)는 축전기 C₁을 거쳐 베이스에, 스피커(출력)는 축전기 C₂를 거쳐 컬렉터에 연결된다. 축전기는 직류를 막아 바이어스를 지키고 변하는 성분만 통과시킨다. 입력이 0.1 V 오르면 I<sub>C</sub>가 늘어 R<sub>C</sub>에 걸리는 전압이 커지므로 컬렉터 전위는 약 0.29 V 내려간다. <b>출력이 입력보다 크고</b> 위아래가 뒤집혀 있다.</p>
           <canvas class="flat" id="gIO" aria-label="입력 신호와 출력 신호를 같은 시간축, 같은 전압 눈금에 그린 그래프. 출력이 입력보다 크고 위아래가 뒤집혀 있다. 잘린 부분은 붉게 표시한다."></canvas>
-          <p class="cap">커진 출력의 에너지는 트랜지스터가 만든 것이 아니라 전원 V<sub>CC</sub>가 공급한다. 트랜지스터는 작은 베이스 신호로 그 흐름을 조절할 뿐이다. 동작점이 너무 낮으면 신호의 일부에서 전류가 끊기고, 너무 높으면 V<sub>C</sub>가 V<sub>B</sub>까지 내려가 증폭 조건이 깨진다. 어느 쪽이든 출력이 잘린다(붉은 부분). 무대 위 두 작은 화면(입력·출력)도 같은 눈금으로 그렸다.</p>
+          <p class="cap">커진 출력의 에너지는 트랜지스터가 만든 것이 아니라 전원 V<sub>CC</sub>가 공급한다. 트랜지스터는 작은 베이스 신호로 그 흐름을 조절할 뿐이다. 동작점이 너무 낮으면 신호의 일부에서 전류가 끊기고, 너무 높으면 V<sub>C</sub>가 V<sub>B</sub>까지 내려가 증폭 조건이 깨진다. 어느 쪽이든 출력이 잘린다(붉은 부분). 장면 2는 E-B 사이에 V<sub>BE</sub>(0.7 V)가 걸려야 전류가 흐른다고 보았고, 무대 위 두 작은 화면(입력·출력)은 같은 눈금으로 그렸다.</p>
           <div class="acts">
             <button type="button" class="btn" data-try="lo2">동작점 낮게 (R₂ 2.5 kΩ)</button>
             <button type="button" class="btn" data-try="hi2">동작점 높게 (R₂ 17 kΩ)</button>
@@ -630,7 +630,7 @@
     let xa = Math.min(th, c.lo.vB), xb = Math.max(th, c.hi.vB);
     const span = Math.max(xb - xa, 0.5); xa -= span * 0.25; xb += span * 0.3;
     const L = nar ? 40 : 50, r = {x: L, y: 26, w: Math.round((W - L) * 0.52), h: Math.round(H * 0.48)};
-    const ym = niceUp(Math.max(c.hi.IC, icOf(vb0), 1e-6) * 1.45);
+    const ym = niceUp(Math.max(c.hi.IC, icOf(vb0), icOf(xb) * 0.8, 1e-6) * 1.45);
     const X = (v) => r.x + (v - xa) / (xb - xa) * r.w, Y = (i) => r.y + r.h - Math.min(i, ym * 1.04) / ym * r.h;
     const yIn0 = r.y + r.h + 26, hIn = H - yIn0 - 10, xO0 = r.x + r.w + 26, wO = W - xO0 - 10;
     // 전류가 흐르지 못하는 전압 (기준 왼쪽): 그래프와 입력 칸 모두
