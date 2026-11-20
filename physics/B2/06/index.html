@@ -469,7 +469,7 @@
   }
   function labels2(ctx, g, st, c, p) {
     const {xD, xIn, xC1, xT, xBat, yTop, yBot, yMid, yCn, yEn, xC2, xOut, nar} = g;
-    rich(ctx, 'V_{CC} = ' + fmt(p.Vcc, 1) + ' V', xBat - (nar ? 16 : 22), yTop - 14, {size: 14, w: 700, align: 'right', halo: true});
+    rich(ctx, 'V_{CC} = ' + fmt(p.Vcc, 1) + ' V', xBat - (nar ? 16 : 22), yTop - 14, {size: 14, w: 600, align: 'right', halo: true});
     text(ctx, nar ? '0 V' : '접지 0 V', Math.round((xIn + xD) / 2) + 16, yBot + 11, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
     const tg = S.tags;
     rlab(ctx, g, 'R_1', kO(p.R1), xD + 13, yTop, yMid, 'left', tg ? cur(st.IR1) : '');
@@ -481,12 +481,12 @@
     text(ctx, 'C₂', xC2, yCn - 19 * g.k - 4, {size: 13, w: 600, halo: true});
     // 입력 · 출력
     const rS = Math.round(12 * g.k + 3);
-    if (nar) { text(ctx, '입력', xIn, yMid - 14, {size: 13, w: 700, color: C.copper, halo: true}); }
+    if (nar) { text(ctx, '입력', xIn, yMid - 14, {size: 13, w: 600, color: C.copper, halo: true}); }
     else {
-      text(ctx, g.flat ? '입력 ±' + f1(p.amp) + ' V' : '입력 (마이크)', xIn + rS + 8, g.ySrc - (g.flat ? 0 : 9), {size: 13, w: 700, color: C.copper, align: 'left', halo: true});
+      text(ctx, g.flat ? '입력 ±' + f1(p.amp) + ' V' : '입력 (마이크)', xIn + rS + 8, g.ySrc - (g.flat ? 0 : 9), {size: 13, w: 600, color: C.copper, align: 'left', halo: true});
       if (!g.flat) text(ctx, '±' + f1(p.amp) + ' V', xIn + rS + 8, g.ySrc + 9, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
     }
-    text(ctx, nar ? '출력' : '출력 → 스피커', nar ? xOut : Math.min(xOut, g.xBat - 22 * g.k - 52), yCn + (nar ? -15 : 18), {size: 13, w: 700, color: C.vel, halo: true});
+    text(ctx, nar ? '출력' : '출력 → 스피커', nar ? xOut : Math.min(xOut, g.xBat - 22 * g.k - 52), yCn + (nar ? -15 : 18), {size: 13, w: 600, color: C.vel, halo: true});
     batLabel(ctx, g, p);
     if (!tg) return;
     rtag(ctx, 'V_B ' + fmt(st.vB, 2) + ' V', xD - 8, yMid + 15, {align: 'right'});
@@ -497,7 +497,7 @@
   }
   function labels1(ctx, g, st, c, p) {
     const {xS, xT, xBat, yTop, yBot, yMid, yCn, xC2, xOut, nar} = g;
-    rich(ctx, 'V_{CC} = ' + fmt(p.Vcc, 1) + ' V', xBat - (nar ? 16 : 22), yTop - 14, {size: 14, w: 700, align: 'right', halo: true});
+    rich(ctx, 'V_{CC} = ' + fmt(p.Vcc, 1) + ' V', xBat - (nar ? 16 : 22), yTop - 14, {size: 14, w: 600, align: 'right', halo: true});
     text(ctx, nar ? '0 V' : '접지 0 V', Math.round((xS + xT) / 2) + 16, yBot + 11, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
     const tg = S.tags, ax = xT - 13, al = 'right';
     rlab(ctx, g, 'R_C', kO(p.Rc), ax, yTop, yCn, al, tg ? 'I_C ' + cur(st.IC) : '');
@@ -506,15 +506,15 @@
     const none = p.bias < 1e-9;
     const one = nar || g.flat;
     text(ctx, nar ? (none ? '없음' : f1(biasEff()) + ' V') : g.flat ? (none ? '바이어스 없음' : (p.flip ? '거꾸로 ' : '바이어스 ') + f1(p.bias) + ' V') : (none ? '바이어스 없음' : p.flip ? '바이어스 (거꾸로)' : '바이어스'),
-      lx, g.yBat - (one ? 0 : 9), {size: 13, w: 700, color: none ? C.muted : col, align: 'right', halo: true});
+      lx, g.yBat - (one ? 0 : 9), {size: 13, w: 600, color: none ? C.muted : col, align: 'right', halo: true});
     if (!one) text(ctx, f1(p.bias) + ' V', lx, g.yBat + 9, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
     const rS = Math.round(12 * g.k + 3);
-    if (g.flat) text(ctx, '신호 ±' + f1(p.amp) + ' V', xS - rS - 6, g.ySrc, {size: 13, w: 700, color: C.copper, align: 'right', halo: true});
+    if (g.flat) text(ctx, '신호 ±' + f1(p.amp) + ' V', xS - rS - 6, g.ySrc, {size: 13, w: 600, color: C.copper, align: 'right', halo: true});
     else {
-      text(ctx, nar ? '신호' : '신호 (마이크)', xS - rS - 6, g.ySrc - 9, {size: 13, w: 700, color: C.copper, align: 'right', halo: true});
+      text(ctx, nar ? '신호' : '신호 (마이크)', xS - rS - 6, g.ySrc - 9, {size: 13, w: 600, color: C.copper, align: 'right', halo: true});
       text(ctx, '±' + f1(p.amp) + ' V', xS - rS - 6, g.ySrc + 9, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
     }
-    text(ctx, nar ? '출력' : '출력 → 스피커', nar ? xOut : Math.min(xOut, g.xBat - 22 * g.k - 52), yCn + (nar ? -15 : 18), {size: 13, w: 700, color: C.vel, halo: true});
+    text(ctx, nar ? '출력' : '출력 → 스피커', nar ? xOut : Math.min(xOut, g.xBat - 22 * g.k - 52), yCn + (nar ? -15 : 18), {size: 13, w: 600, color: C.vel, halo: true});
     text(ctx, 'C₂', xC2, yCn - 19 * g.k - 4, {size: 13, w: 600, halo: true});
     batLabel(ctx, g, p);
     if (!tg) return;
@@ -747,7 +747,7 @@
         text(ctx, '+ 신호', lx1, Y(Math.max(vB, b)) - 10, {size: sz, w: 600, color: C.copper, align: 'right'});
       } else text(ctx, (nar ? '' : '바이어스 ') + f1(b) + ' V + 신호', lx1, Y(Math.max(vB, b, 0)) - 14, {size: sz, w: 600, color: C.copper, align: 'right'});
     }
-    rich(ctx, 'V_B ' + fmt(vB, 2) + ' V', (x1 + x2) / 2, Y(vB) - 10, {size: sz, w: 700, color: C.copper, halo: true});
+    rich(ctx, 'V_B ' + fmt(vB, 2) + ' V', (x1 + x2) / 2, Y(vB) - 10, {size: sz, w: 600, color: C.copper, halo: true});
     const ebTxt = st.on ? '순방향' : st.fwd ? '0.7 V 못 미침' : '역방향';
     const items = [
       {y: Y(Vcc), s: 'V_{CC} ' + fmt(Vcc, 1) + ' V', col: C.muted, top: true},
