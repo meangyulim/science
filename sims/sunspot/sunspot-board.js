@@ -19,8 +19,17 @@
     return c;
   }
   let GRAN = null, MOTTLE = null;
-  // 캔버스 blur 필터를 쓸 수 있는지 (사파리 18 전에는 안 된다)
-  const FILTER_OK = (() => { try { const x = document.createElement('canvas').getContext('2d'); x.filter = 'blur(1px)'; return x.filter === 'blur(1px)'; } catch (e) { return false; } })();
+  // 캔버스 blur 필터가 실제로 그려지는지. 값을 넣고 읽어 보기만 하면 안 된다 — 필터를 모르는
+  // 브라우저(아이패드 사파리 등)에서도 그냥 속성이 하나 생겨서 같은 값이 읽히기 때문이다.
+  // 그래서 작은 네모를 흐리게 그려 보고, 옆 화소까지 번졌는지로 판단한다.
+  const FILTER_OK = (() => {
+    try {
+      const c = document.createElement('canvas'); c.width = c.height = 16;
+      const x = c.getContext('2d');
+      x.filter = 'blur(2px)'; x.fillStyle = '#000'; x.fillRect(7, 7, 2, 2);
+      return x.getImageData(12, 8, 1, 1).data[3] > 0;
+    } catch (e) { return false; }
+  })();
   function granulation() {
     if (GRAN) return GRAN;
     GRAN = noiseCanvas(256, (x, n) => {
@@ -516,5 +525,6 @@
     }
   }
 
+  Board.FILTER_OK = FILTER_OK;
   root.SunspotBoard = Board;
 })(typeof window !== 'undefined' ? window : this);
