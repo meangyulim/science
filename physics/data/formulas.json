@@ -434,7 +434,8 @@
    ],
    "note": "고전 역학(v ≪ c)에서만 맞는다. 빛에는 맞지 않는다 → 시공간과 우주.",
    "concepts": [
-    "I1-05"
+    "I1-05",
+    "A1-09"
    ],
    "keys": [
     "상대 속도"
@@ -508,7 +509,8 @@
    ],
    "concepts": [
     "I1-06",
-    "I1-07"
+    "I1-07",
+    "A1-05"
    ],
    "keys": [
     "F=ma",
@@ -594,7 +596,8 @@
    ],
    "note": "평형인 두 힘은 한 물체가 받는 힘이고, 작용 반작용인 두 힘은 서로 다른 물체가 받는 힘이다.",
    "concepts": [
-    "I1-08"
+    "I1-08",
+    "A1-01"
    ],
    "keys": [
     "평형"
@@ -718,7 +721,8 @@
    ],
    "concepts": [
     "I1-07",
-    "I1-09"
+    "I1-09",
+    "A1-15"
    ],
    "keys": [
     "엘리베이터",
@@ -852,7 +856,8 @@
     }
    ],
    "concepts": [
-    "I1-10"
+    "I1-10",
+    "A1-05"
    ],
    "keys": [
     "빗면"
@@ -1158,7 +1163,8 @@
     }
    ],
    "concepts": [
-    "I2-01"
+    "I2-01",
+    "A2-01"
    ],
    "keys": [
     "일",
@@ -1199,7 +1205,8 @@
     }
    ],
    "concepts": [
-    "I2-02"
+    "I2-02",
+    "A2-02"
    ],
    "keys": [
     "일-운동 에너지 정리",
@@ -1261,7 +1268,8 @@
    "concepts": [
     "I1-11",
     "I2-02",
-    "I2-07"
+    "I2-07",
+    "III2-07"
    ],
    "keys": [
     "운동량",
@@ -1370,7 +1378,8 @@
     }
    ],
    "concepts": [
-    "I2-03"
+    "I2-03",
+    "A2-01"
    ],
    "keys": [
     "보존력"
@@ -1438,7 +1447,8 @@
     }
    ],
    "concepts": [
-    "I2-04"
+    "I2-04",
+    "A2-02"
    ],
    "keys": [
     "롤러코스터",
@@ -1567,7 +1577,8 @@
    ],
    "concepts": [
     "I2-02",
-    "I2-06"
+    "I2-06",
+    "A2-03"
    ],
    "keys": [
     "역학적 에너지 변화",
@@ -1601,7 +1612,9 @@
     }
    ],
    "concepts": [
-    "I2-06"
+    "I2-06",
+    "A2-03",
+    "A2-04"
    ],
    "keys": [
     "마찰",
@@ -1630,7 +1643,8 @@
     }
    ],
    "concepts": [
-    "I2-06"
+    "I2-06",
+    "A2-04"
    ],
    "keys": [
     "등속",
@@ -1876,7 +1890,8 @@
     }
    ],
    "concepts": [
-    "I2-09"
+    "I2-09",
+    "A2-09"
    ],
    "keys": [
     "P-V 그래프",
@@ -1895,7 +1910,8 @@
     "check": "줄의 실험(추가 한 일로 물의 온도가 오른다)에서 일과 열이 같은 에너지임을 확인했다. 모든 열기관·냉장고의 에너지 출입이 이 식을 따른다."
    },
    "concepts": [
-    "I2-09"
+    "I2-09",
+    "A2-09"
    ],
    "keys": [
     "열역학",
@@ -2593,6 +2609,4590 @@
     "양전자",
     "쌍소멸"
    ]
+  },
+  {
+   "id": "II1.charge",
+   "unit": "II1",
+   "name": "기본 전하량",
+   "role": "basis",
+   "tex": "q = ne,\\quad e = 1.6\\times 10^{-19}\\,\\text{C}",
+   "basis": {
+    "type": "측정값",
+    "what": "전하량의 가장 작은 덩어리가 전자 하나의 전하량 e 이고, 모든 전하량은 e 의 정수배다. 대전은 전자가 옮겨 가는 것이며, 전하는 생기거나 없어지지 않고 옮겨질 뿐이다(전하량 보존).",
+    "check": "밀리컨의 기름방울 실험에서 기름방울의 전하량이 늘 e 의 정수배로 나왔다. 톰슨은 음극선이 음(−)전하를 띤 입자(전자)의 흐름임을 보였다."
+   },
+   "concepts": [
+    "II1-01",
+    "B1-01"
+   ],
+   "keys": [
+    "전하",
+    "전자",
+    "전하량 보존",
+    "밀리컨"
+   ]
+  },
+  {
+   "id": "II1.coulomb",
+   "unit": "II1",
+   "name": "쿨롱 법칙",
+   "role": "basis",
+   "tex": "F = k\\frac{q_1 q_2}{r^2}",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "두 점전하 사이의 전기력은 두 전하량의 곱에 비례하고 거리의 제곱에 반비례한다. 같은 부호끼리는 밀고 다른 부호끼리는 당긴다. k ≈ 9.0 × 10⁹ N·m²/C².",
+    "check": "쿨롱이 비틀림 저울로 대전된 두 공 사이의 힘을 거리를 바꿔 가며 쟀다. 거리를 2배로 하면 힘이 1/4 이 된다."
+   },
+   "forms": [
+    "k = 9.0\\times 10^{9}\\,\\text{N}\\cdot\\text{m}^2/\\text{C}^2"
+   ],
+   "concepts": [
+    "II1-02",
+    "B1-02"
+   ],
+   "keys": [
+    "전기력",
+    "쿨롱"
+   ]
+  },
+  {
+   "id": "II1.three",
+   "unit": "II1",
+   "name": "세 전하가 받는 전기력의 합",
+   "role": "applied",
+   "tex": "\\vec{F}_A + \\vec{F}_B + \\vec{F}_C = 0",
+   "steps": [
+    {
+     "tex": "\\vec{F}_A = \\vec{F}_{BA} + \\vec{F}_{CA}",
+     "say": "각 전하가 받는 힘은 나머지 두 전하가 주는 쿨롱 힘을 더한 것이다(중첩).",
+     "uses": [
+      "II1.coulomb"
+     ]
+    },
+    {
+     "tex": "\\vec{F}_{AB} = -\\vec{F}_{BA},\\ \\dots",
+     "say": "세 전하가 주고받는 힘은 모두 작용 반작용 짝이다.",
+     "uses": [
+      "I1.newton3"
+     ]
+    },
+    {
+     "tex": "\\vec{F}_A + \\vec{F}_B + \\vec{F}_C = 0",
+     "say": "모두 더하면 짝끼리 지워진다. 두 전하가 받는 힘을 알면 세 번째는 바로 나온다."
+    }
+   ],
+   "concepts": [
+    "II1-02"
+   ],
+   "keys": [
+    "중첩",
+    "세 전하"
+   ]
+  },
+  {
+   "id": "II1.zero",
+   "unit": "II1",
+   "name": "전기력(전기장)이 0 인 점",
+   "role": "applied",
+   "tex": "\\frac{q_1}{r_1^2} = \\frac{q_2}{r_2^2}",
+   "steps": [
+    {
+     "tex": "k\\frac{q_1 q}{r_1^2} = k\\frac{q_2 q}{r_2^2}",
+     "say": "시험 전하 q 가 두 전하에게서 받는 힘이 크기는 같고 방향은 반대인 곳을 찾는다.",
+     "uses": [
+      "II1.coulomb"
+     ]
+    },
+    {
+     "tex": "\\frac{r_1}{r_2} = \\sqrt{\\frac{q_1}{q_2}}",
+     "say": "k 와 q 를 지우고 제곱근을 취한다. 전하량 비 4 : 1 이면 거리 비 2 : 1."
+    },
+    {
+     "say": "같은 부호면 두 전하 사이(작은 전하 쪽), 다른 부호면 바깥(작은 전하 바깥쪽)에 생긴다. 시험 전하의 부호와는 관계없다."
+    }
+   ],
+   "concepts": [
+    "II1-03",
+    "II1-04",
+    "B1-04"
+   ],
+   "keys": [
+    "0인 점",
+    "평형점"
+   ]
+  },
+  {
+   "id": "II1.bohr",
+   "unit": "II1",
+   "name": "보어의 원자 모형 (두 가정)",
+   "role": "basis",
+   "tex": "2\\pi r m v = nh\\quad (n = 1, 2, 3, \\dots)",
+   "basis": {
+    "type": "모형",
+    "what": "가정 1(양자 조건): 전자는 2πrmv = nh 를 만족하는 궤도에서만 돌고, 그 궤도에서는 빛을 내지 않는다. 가정 2(진동수 조건): 궤도를 옮길 때만 두 궤도의 에너지 차를 빛으로 내거나 흡수한다.",
+    "check": "수소 기체의 선 스펙트럼이 띄엄띄엄한 파장에서만 나타난다. 이 모형으로 계산한 파장이 측정과 맞는다. 러더퍼드 모형의 두 결함(원자 붕괴, 연속 스펙트럼)을 해결했다."
+   },
+   "concepts": [
+    "II1-05",
+    "C2-05"
+   ],
+   "keys": [
+    "보어",
+    "양자 조건",
+    "진동수 조건",
+    "양자수"
+   ]
+  },
+  {
+   "id": "II1.radius",
+   "unit": "II1",
+   "name": "궤도 반지름과 전기력",
+   "role": "derived",
+   "tex": "r_n \\propto n^2,\\quad F \\propto \\frac{1}{r_n^2} \\propto \\frac{1}{n^4}",
+   "steps": [
+    {
+     "tex": "r_n = a_0 n^2",
+     "say": "보어 모형으로 계산하면 n 번째 궤도 반지름은 n² 에 비례한다(물리학 Ⅱ 에서 유도).",
+     "uses": [
+      "C2.radius"
+     ]
+    },
+    {
+     "tex": "F = k\\frac{e^2}{r_n^2} \\propto \\frac{1}{n^4}",
+     "say": "쿨롱 법칙에 넣는다. n 이 커지면 궤도가 커지고 전기력은 빠르게 약해진다.",
+     "uses": [
+      "II1.coulomb"
+     ]
+    }
+   ],
+   "concepts": [
+    "II1-05"
+   ],
+   "keys": [
+    "궤도 반지름"
+   ]
+  },
+  {
+   "id": "II1.levels",
+   "unit": "II1",
+   "name": "수소 원자의 에너지 준위",
+   "role": "derived",
+   "tex": "E_n = -\\frac{13.6}{n^2}\\,\\text{eV}",
+   "steps": [
+    {
+     "tex": "\\frac{mv^2}{r} = k\\frac{e^2}{r^2}",
+     "say": "원자핵 둘레를 도는 전자에 필요한 구심력을 쿨롱 힘이 준다.",
+     "uses": [
+      "A1.cforce",
+      "II1.coulomb"
+     ]
+    },
+    {
+     "tex": "E = \\frac{1}{2}mv^2 - k\\frac{e^2}{r} = -k\\frac{e^2}{2r}",
+     "say": "운동 에너지와 전기 퍼텐셜 에너지를 더한다. 첫 식에서 ½mv² = ke²/2r 이다.",
+     "uses": [
+      "B1.pointU"
+     ]
+    },
+    {
+     "tex": "E_n = -\\frac{ke^2}{2a_0}\\cdot\\frac{1}{n^2} = -\\frac{13.6}{n^2}\\,\\text{eV}",
+     "say": "궤도 반지름 r_n = a₀n² 를 넣는다. 에너지가 음수인 것은 전자가 원자핵에 묶여 있기 때문이다. 물리학 Ⅰ 에서는 이 결과를 쓴다.",
+     "uses": [
+      "C2.radius"
+     ]
+    }
+   ],
+   "concepts": [
+    "II1-06",
+    "C2-05"
+   ],
+   "keys": [
+    "에너지 준위",
+    "바닥상태",
+    "들뜬상태",
+    "이온화"
+   ]
+  },
+  {
+   "id": "II1.transition",
+   "unit": "II1",
+   "name": "전자 전이와 빛",
+   "role": "derived",
+   "tex": "hf = \\frac{hc}{\\lambda} = \\left|E_m - E_n\\right|",
+   "steps": [
+    {
+     "say": "전자가 에너지 준위 m 에서 n 으로 옮기면 두 준위의 에너지 차가 빛 알갱이 하나로 나오거나(방출) 들어간다(흡수). 보어의 진동수 조건이다.",
+     "uses": [
+      "II1.bohr"
+     ]
+    },
+    {
+     "tex": "E_{\\text{광자}} = hf = \\frac{hc}{\\lambda}",
+     "say": "광자 하나의 에너지.",
+     "uses": [
+      "III2.photon"
+     ]
+    },
+    {
+     "tex": "hf = \\frac{hc}{\\lambda} = \\left|E_m - E_n\\right|",
+     "say": "에너지 차가 클수록 진동수가 크고 파장이 짧다."
+    }
+   ],
+   "concepts": [
+    "II1-06",
+    "II1-08",
+    "C2-05"
+   ],
+   "keys": [
+    "전이",
+    "방출",
+    "흡수",
+    "선 스펙트럼"
+   ]
+  },
+  {
+   "id": "II1.ritz",
+   "unit": "II1",
+   "name": "진동수 더하기",
+   "role": "applied",
+   "tex": "f_{31} = f_{32} + f_{21}",
+   "steps": [
+    {
+     "tex": "E_3 - E_1 = (E_3 - E_2) + (E_2 - E_1)",
+     "say": "3 → 1 전이의 에너지 차는 3 → 2 와 2 → 1 의 합이다."
+    },
+    {
+     "tex": "hf_{31} = hf_{32} + hf_{21}",
+     "say": "각 에너지 차가 광자 에너지 hf 다.",
+     "uses": [
+      "II1.transition"
+     ]
+    },
+    {
+     "tex": "\\frac{1}{\\lambda_{31}} = \\frac{1}{\\lambda_{32}} + \\frac{1}{\\lambda_{21}}",
+     "say": "진동수·에너지는 그대로 더하고, 파장은 역수로 바꿔야만 더할 수 있다."
+    }
+   ],
+   "concepts": [
+    "II1-06"
+   ],
+   "keys": [
+    "진동수"
+   ]
+  },
+  {
+   "id": "II1.series",
+   "unit": "II1",
+   "name": "수소 스펙트럼의 계열",
+   "role": "applied",
+   "tex": "\\frac{hc}{\\lambda} = 13.6\\left(\\frac{1}{n^2} - \\frac{1}{m^2}\\right)\\text{eV}",
+   "steps": [
+    {
+     "tex": "\\frac{hc}{\\lambda} = E_m - E_n",
+     "say": "높은 준위 m 에서 낮은 준위 n 으로 떨어지며 내는 빛.",
+     "uses": [
+      "II1.transition"
+     ]
+    },
+    {
+     "tex": "= 13.6\\left(\\frac{1}{n^2} - \\frac{1}{m^2}\\right)\\text{eV}",
+     "say": "E_n = −13.6/n² eV 를 넣는다.",
+     "uses": [
+      "II1.levels"
+     ]
+    },
+    {
+     "say": "끝 준위 n 이 같으면 한 계열이다. n = 1 라이먼(자외선), n = 2 발머(가시광선 포함), n = 3 파셴(적외선). 계열에서 가장 긴 파장은 바로 위 준위(m = n + 1)에서 온다."
+    }
+   ],
+   "concepts": [
+    "II1-07"
+   ],
+   "keys": [
+    "라이먼",
+    "발머",
+    "파셴",
+    "스펙트럼"
+   ]
+  },
+  {
+   "id": "II1.band",
+   "unit": "II1",
+   "name": "고체의 에너지띠",
+   "role": "basis",
+   "tex": "E_g = E_{\\text{전도띠 바닥}} - E_{\\text{원자가 띠 꼭대기}}",
+   "basis": {
+    "type": "모형",
+    "what": "고체에서는 원자들이 가까이 모여 에너지 준위가 아주 촘촘히 갈라지며 띠를 이룬다. 전자가 채워진 원자가 띠와 비어 있는 전도띠 사이의 틈이 띠 간격 E_g 다. 도체(겹침) < 반도체 < 절연체 순으로 크다.",
+    "check": "도체·반도체·절연체의 전기 전도성 차이, 반도체가 띠 간격보다 큰 에너지의 빛만 흡수하는 것, LED 색이 띠 간격으로 정해지는 것으로 확인한다."
+   },
+   "concepts": [
+    "II1-09",
+    "II1-11",
+    "II1-12"
+   ],
+   "keys": [
+    "띠 간격",
+    "원자가 띠",
+    "전도띠",
+    "반도체",
+    "양공"
+   ]
+  },
+  {
+   "id": "II1.absorb",
+   "unit": "II1",
+   "name": "빛을 흡수하는 조건 (띠 간격)",
+   "role": "derived",
+   "tex": "E_{\\text{광자}} = hf \\geq E_g",
+   "steps": [
+    {
+     "say": "원자가 띠의 전자가 전도띠로 올라가려면 띠 간격 이상의 에너지를 한 번에 받아야 한다.",
+     "uses": [
+      "II1.band"
+     ]
+    },
+    {
+     "tex": "hf \\geq E_g",
+     "say": "빛은 광자 하나씩 에너지를 주므로 광자 하나의 에너지가 띠 간격 이상이어야 한다.",
+     "uses": [
+      "III2.photon"
+     ]
+    },
+    {
+     "tex": "\\lambda \\leq \\frac{hc}{E_g}",
+     "say": "파장이 이보다 길면 아무리 세게 비춰도 흡수되지 않는다. 광 다이오드·태양 전지·CCD 의 작동 조건이다."
+    }
+   ],
+   "concepts": [
+    "II1-09",
+    "II1-15",
+    "III2-05"
+   ],
+   "keys": [
+    "광 다이오드",
+    "태양 전지",
+    "흡수"
+   ]
+  },
+  {
+   "id": "II1.led",
+   "unit": "II1",
+   "name": "발광 다이오드(LED)의 빛",
+   "role": "applied",
+   "tex": "E_{\\text{광자}} = hf = \\frac{hc}{\\lambda} \\approx E_g",
+   "steps": [
+    {
+     "say": "순방향 전압을 걸면 전도띠의 전자와 원자가 띠의 양공이 접합면에서 만나 결합한다.",
+     "uses": [
+      "II1.band"
+     ]
+    },
+    {
+     "tex": "\\frac{hc}{\\lambda} \\approx E_g",
+     "say": "결합하며 띠 간격만큼의 에너지를 광자 하나로 낸다.",
+     "uses": [
+      "III2.photon"
+     ]
+    },
+    {
+     "say": "띠 간격이 클수록 파장이 짧다(빨강 → 초록 → 파랑). 역방향 전압에서는 켜지지 않는다."
+    }
+   ],
+   "concepts": [
+    "II1-13"
+   ],
+   "keys": [
+    "LED",
+    "발광 다이오드"
+   ]
+  },
+  {
+   "id": "II1.resist",
+   "unit": "II1",
+   "name": "저항과 비저항",
+   "role": "basis",
+   "tex": "R = \\rho\\frac{l}{A}",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "같은 물질의 도선은 길이 l 에 비례하고 단면적 A 에 반비례하는 저항을 가진다. 비례 상수 ρ(비저항)는 물질과 온도로 정해진다.",
+    "check": "같은 재질의 도선을 길이·굵기를 바꿔 가며 저항을 재면 R ∝ l/A 가 나온다. 길이 2배는 같은 도선 두 개를 직렬로, 단면적 2배는 병렬로 이은 것과 같다."
+   },
+   "concepts": [
+    "II1-10",
+    "B2-01"
+   ],
+   "keys": [
+    "비저항",
+    "저항"
+   ]
+  },
+  {
+   "id": "II1.conduct",
+   "unit": "II1",
+   "name": "전기 전도도",
+   "role": "derived",
+   "tex": "\\sigma = \\frac{1}{\\rho} = \\frac{l}{RA}",
+   "steps": [
+    {
+     "tex": "\\sigma = \\frac{1}{\\rho}",
+     "say": "전기가 잘 통하는 정도를 비저항의 역수로 정한다."
+    },
+    {
+     "tex": "\\rho = \\frac{RA}{l} \\;\\Rightarrow\\; \\sigma = \\frac{l}{RA}",
+     "say": "R = ρl/A 를 ρ 에 대해 풀어 넣는다.",
+     "uses": [
+      "II1.resist"
+     ]
+    },
+    {
+     "say": "모양을 바꿔도 변하지 않는 물질 고유의 값이다. 온도가 오르면 도체는 작아지고(원자 진동) 반도체는 커진다(전자·양공 증가)."
+    }
+   ],
+   "concepts": [
+    "II1-10"
+   ],
+   "keys": [
+    "전도도"
+   ]
+  },
+  {
+   "id": "II2.Bwire",
+   "unit": "II2",
+   "name": "직선 전류의 자기장",
+   "role": "basis",
+   "tex": "B = k\\frac{I}{r},\\quad k = 2\\times 10^{-7}\\,\\text{T}\\cdot\\text{m/A}",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "긴 직선 도선 둘레에는 도선을 중심으로 한 동심원 모양의 자기장이 생긴다. 세기는 전류에 비례하고 거리에 반비례한다. 방향은 오른손 엄지를 전류 방향으로 할 때 네 손가락이 감는 방향이다.",
+    "check": "외르스테드가 도선 아래 나침반 바늘이 전류를 흘리자 돌아가는 것을 보았다. 거리를 2배로 하면 자기장이 1/2 이 된다(전기력의 1/r² 과 다르다)."
+   },
+   "concepts": [
+    "II2-01",
+    "II2-02",
+    "B2-08"
+   ],
+   "keys": [
+    "자기장",
+    "오른손 법칙",
+    "외르스테드"
+   ]
+  },
+  {
+   "id": "II2.Bloop",
+   "unit": "II2",
+   "name": "원형 전류 중심의 자기장",
+   "role": "basis",
+   "tex": "B = k'\\frac{I}{r},\\quad k' = 2\\pi\\times 10^{-7}\\,\\text{T}\\cdot\\text{m/A}",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "원형 도선 중심의 자기장은 전류에 비례하고 반지름에 반비례한다. 시계 방향 전류면 종이면에 들어가는 방향, 시계 반대 방향이면 나오는 방향이다.",
+    "check": "반지름을 2배로 하면 중심의 자기장이 1/2 이 된다. 원형 도선을 한 바퀴 더 감으면 2배가 된다."
+   },
+   "concepts": [
+    "II2-03",
+    "B2-09"
+   ],
+   "keys": [
+    "원형 도선"
+   ]
+  },
+  {
+   "id": "II2.Bsol",
+   "unit": "II2",
+   "name": "솔레노이드 내부의 자기장",
+   "role": "basis",
+   "tex": "B = \\mu_0 n I,\\quad \\mu_0 = 4\\pi\\times 10^{-7}\\,\\text{T}\\cdot\\text{m/A}",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "촘촘히 감은 긴 코일(솔레노이드) 안의 자기장은 고르고, 단위 길이당 감은 수 n 과 전류 I 에 비례한다. 오른손으로 전류 방향을 감아쥐면 엄지가 N 극(내부 자기장 방향)이다.",
+    "check": "솔레노이드 안 여러 곳에서 자기장을 재면 위치와 단면적에 관계없이 같다. 철심을 넣으면 매우 세진다(전자석)."
+   },
+   "forms": [
+    "B = k''nI,\\quad k'' = 4\\pi\\times 10^{-7}"
+   ],
+   "concepts": [
+    "II2-03",
+    "II2-05",
+    "B2-09"
+   ],
+   "keys": [
+    "솔레노이드",
+    "전자석"
+   ]
+  },
+  {
+   "id": "II2.Bsum",
+   "unit": "II2",
+   "name": "자기장의 중첩",
+   "role": "derived",
+   "tex": "B_{\\text{합}} = \\sum \\left(\\pm k\\frac{I_i}{r_i}\\right)",
+   "steps": [
+    {
+     "tex": "B_i = k\\frac{I_i}{r_i}",
+     "say": "도선마다 따로 자기장을 구한다.",
+     "uses": [
+      "II2.Bwire"
+     ]
+    },
+    {
+     "tex": "\\odot = +,\\quad \\otimes = -",
+     "say": "자기장도 벡터라 더해야 한다. 종이면에 수직이면 나오는 방향을 +, 들어가는 방향을 − 로 붙여 숫자처럼 더한다."
+    },
+    {
+     "tex": "B_{\\text{합}} = \\sum \\left(\\pm k\\frac{I_i}{r_i}\\right)",
+     "say": "도선을 넘어가면 같은 도선의 자기장 방향이 뒤집힌다는 점에 주의한다."
+    }
+   ],
+   "concepts": [
+    "II2-04",
+    "B2-08"
+   ],
+   "keys": [
+    "중첩"
+   ]
+  },
+  {
+   "id": "II2.Bzero",
+   "unit": "II2",
+   "name": "자기장이 0 인 점",
+   "role": "applied",
+   "tex": "\\frac{I_1}{r_1} = \\frac{I_2}{r_2}",
+   "steps": [
+    {
+     "tex": "k\\frac{I_1}{r_1} - k\\frac{I_2}{r_2} = 0",
+     "say": "두 도선의 자기장이 크기는 같고 방향은 반대인 곳.",
+     "uses": [
+      "II2.Bsum"
+     ]
+    },
+    {
+     "tex": "\\frac{r_1}{r_2} = \\frac{I_1}{I_2}",
+     "say": "거리 비 = 전류 비(전기력처럼 제곱근이 아니다)."
+    },
+    {
+     "say": "같은 방향 전류면 두 도선 사이, 반대 방향 전류면 바깥(작은 전류 쪽)에 생긴다."
+    }
+   ],
+   "concepts": [
+    "II2-04"
+   ],
+   "keys": [
+    "0인 점"
+   ]
+  },
+  {
+   "id": "II2.flux",
+   "unit": "II2",
+   "name": "자기 선속",
+   "role": "basis",
+   "tex": "\\Phi = BS,\\quad B = \\frac{\\Phi}{S}",
+   "basis": {
+    "type": "정의",
+    "what": "자기장에 수직인 면 S 를 지나는 자기력선의 양으로 정한다. 단위는 Wb(= T·m²). 자기장 B 는 단위 넓이를 지나는 자기 선속(자기 선속 밀도)이다.",
+    "check": "면을 기울이면 지나는 자기력선이 줄어 Φ = BS cos θ 가 된다(θ 는 자기장과 면의 법선이 이루는 각)."
+   },
+   "forms": [
+    "\\Phi = BA\\cos\\theta"
+   ],
+   "concepts": [
+    "II2-10",
+    "B2-10"
+   ],
+   "keys": [
+    "자기 선속",
+    "웨버"
+   ]
+  },
+  {
+   "id": "II2.faraday",
+   "unit": "II2",
+   "name": "패러데이 전자기 유도 법칙",
+   "role": "basis",
+   "tex": "\\varepsilon = -N\\frac{\\Delta\\Phi}{\\Delta t}",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "코일을 지나는 자기 선속이 변하면 그 변화율과 감은 수에 비례하는 기전력이 생긴다. − 부호는 유도 전류가 선속의 변화를 방해하는 방향이라는 뜻이다(렌츠 법칙).",
+    "check": "코일에 자석을 넣었다 뺐다 하면 검류계 바늘이 움직이고, 빠르게 움직일수록·감은 수가 많을수록 크게 움직인다. 자석을 멈추면 아무리 세도 0 이다."
+   },
+   "concepts": [
+    "II2-10",
+    "B2-10"
+   ],
+   "keys": [
+    "전자기 유도",
+    "유도 기전력",
+    "패러데이"
+   ]
+  },
+  {
+   "id": "II2.lenz",
+   "unit": "II2",
+   "name": "렌츠 법칙과 에너지 보존",
+   "role": "derived",
+   "tex": "\\Phi\\uparrow \\Rightarrow B_{\\text{유도}}\\ \\text{반대},\\quad \\Phi\\downarrow \\Rightarrow B_{\\text{유도}}\\ \\text{같은 방향}",
+   "steps": [
+    {
+     "say": "유도 전류는 선속이 늘면 반대 방향, 줄면 같은 방향의 자기장을 만든다. 패러데이 법칙의 − 부호다.",
+     "uses": [
+      "II2.faraday"
+     ]
+    },
+    {
+     "say": "반대로 흐른다면 자석을 조금만 밀어도 점점 빨라져 에너지가 저절로 생긴다. 에너지 보존에 어긋난다.",
+     "uses": [
+      "I2.mcons"
+     ]
+    },
+    {
+     "say": "그래서 자석이 다가오면 밀고 멀어지면 당긴다. 유도가 일어나면 역학적 에너지가 전기 에너지(열)로 바뀌어 줄어든다."
+    }
+   ],
+   "concepts": [
+    "II2-11",
+    "B2-10"
+   ],
+   "keys": [
+    "렌츠",
+    "유도 전류 방향"
+   ]
+  },
+  {
+   "id": "II2.induced",
+   "unit": "II2",
+   "name": "유도 전류",
+   "role": "derived",
+   "tex": "I = \\frac{\\varepsilon}{R}",
+   "steps": [
+    {
+     "tex": "\\varepsilon = -N\\frac{\\Delta\\Phi}{\\Delta t}",
+     "say": "유도 기전력을 구한다.",
+     "uses": [
+      "II2.faraday"
+     ]
+    },
+    {
+     "tex": "I = \\frac{\\varepsilon}{R}",
+     "say": "회로 저항이 R 이면 옴의 법칙으로 전류가 정해진다. B–t 그래프의 기울기가 클수록 전류가 크다.",
+     "uses": [
+      "B2.ohm"
+     ]
+    }
+   ],
+   "concepts": [
+    "II2-10"
+   ],
+   "keys": [
+    "유도 전류"
+   ]
+  },
+  {
+   "id": "II2.BLv",
+   "unit": "II2",
+   "name": "움직이는 도체 막대의 기전력",
+   "role": "derived",
+   "tex": "\\varepsilon = BLv",
+   "steps": [
+    {
+     "tex": "\\Delta S = L\\,v\\Delta t",
+     "say": "길이 L 인 막대가 속력 v 로 Δt 동안 움직이면 회로 넓이가 이만큼 는다.",
+     "uses": [
+      "I1.uniform"
+     ]
+    },
+    {
+     "tex": "\\Delta\\Phi = B\\,\\Delta S = BLv\\Delta t",
+     "say": "자기장이 고르면 선속 변화는 B × 넓이 변화.",
+     "uses": [
+      "II2.flux"
+     ]
+    },
+    {
+     "tex": "\\varepsilon = \\frac{\\Delta\\Phi}{\\Delta t} = BLv",
+     "say": "패러데이 법칙(N = 1)에 넣는다.",
+     "uses": [
+      "II2.faraday"
+     ]
+    }
+   ],
+   "concepts": [
+    "II2-12",
+    "B2-11"
+   ],
+   "keys": [
+    "도체 막대",
+    "BLv"
+   ]
+  },
+  {
+   "id": "II2.border",
+   "unit": "II2",
+   "name": "자기장 경계를 지나는 고리",
+   "role": "applied",
+   "tex": "\\varepsilon_{\\text{경계}} = (B_2 \\mp B_1)\\,Lv",
+   "steps": [
+    {
+     "tex": "\\varepsilon_{\\text{앞}} = B_2Lv,\\quad \\varepsilon_{\\text{뒤}} = B_1Lv",
+     "say": "고리의 앞변과 뒷변이 서로 다른 영역에 있으면 두 변에 각각 기전력이 생긴다.",
+     "uses": [
+      "II2.BLv"
+     ]
+    },
+    {
+     "tex": "\\varepsilon_{\\text{경계}} = (B_2 \\mp B_1)\\,Lv",
+     "say": "같은 방향 자기장이면 두 기전력이 고리를 반대로 돌려 차가 되고, 반대 방향이면 합이 된다."
+    },
+    {
+     "say": "Φ(x) 그래프를 먼저 그리면 기울기가 전류다. 완전히 들어간 구간은 기울기 0 이라 전류가 없다."
+    }
+   ],
+   "concepts": [
+    "II2-12"
+   ],
+   "keys": [
+    "경계",
+    "Φ-x 그래프"
+   ]
+  },
+  {
+   "id": "III1.period",
+   "unit": "III1",
+   "name": "주기와 진동수",
+   "role": "basis",
+   "tex": "f = \\frac{1}{T}",
+   "basis": {
+    "type": "정의",
+    "what": "주기 T 는 한 번 진동하는 데 걸리는 시간, 진동수 f 는 1초 동안 진동하는 횟수로 정한다. 단위는 Hz(= 1/s).",
+    "check": "초시계로 10번 진동하는 시간을 재어 10 으로 나누면 주기가 나온다. y–t 그래프에서 같은 모양이 되풀이되는 시간 간격이다."
+   },
+   "concepts": [
+    "III1-01",
+    "III1-02",
+    "A1-10"
+   ],
+   "keys": [
+    "주기",
+    "진동수",
+    "헤르츠"
+   ]
+  },
+  {
+   "id": "III1.wave",
+   "unit": "III1",
+   "name": "파동의 속력",
+   "role": "derived",
+   "tex": "v = f\\lambda = \\frac{\\lambda}{T}",
+   "steps": [
+    {
+     "tex": "\\lambda = vT",
+     "say": "파원이 한 번 진동하는 동안(주기 T) 파동은 한 파장 λ 만큼 나아간다. 등속 운동 s = vt 다.",
+     "uses": [
+      "I1.uniform"
+     ]
+    },
+    {
+     "tex": "v = \\frac{\\lambda}{T} = f\\lambda",
+     "say": "f = 1/T 를 쓴다. 매질은 제자리에서 진동하고, 이동하는 것은 파형과 에너지다.",
+     "uses": [
+      "III1.period"
+     ]
+    }
+   ],
+   "concepts": [
+    "III1-01",
+    "III1-02"
+   ],
+   "keys": [
+    "파장",
+    "파동",
+    "횡파",
+    "종파"
+   ]
+  },
+  {
+   "id": "III1.medium",
+   "unit": "III1",
+   "name": "매질이 바뀔 때",
+   "role": "derived",
+   "tex": "f_1 = f_2 \\;\\Rightarrow\\; \\frac{v_1}{v_2} = \\frac{\\lambda_1}{\\lambda_2}",
+   "steps": [
+    {
+     "say": "경계면 양쪽은 같은 박자로 흔들리므로 진동수(주기)는 변하지 않는다. 진동수는 파원이, 속력은 매질이 정한다."
+    },
+    {
+     "tex": "\\frac{v_1}{v_2} = \\frac{f\\lambda_1}{f\\lambda_2} = \\frac{\\lambda_1}{\\lambda_2}",
+     "say": "v = fλ 에 같은 f 를 넣는다. 빠른 매질에서 파장이 길다.",
+     "uses": [
+      "III1.wave"
+     ]
+    }
+   ],
+   "concepts": [
+    "III1-03"
+   ],
+   "keys": [
+    "매질",
+    "물결파"
+   ]
+  },
+  {
+   "id": "III1.index",
+   "unit": "III1",
+   "name": "굴절률",
+   "role": "basis",
+   "tex": "n = \\frac{c}{v}",
+   "basis": {
+    "type": "정의",
+    "what": "진공에서 빛의 속력 c 를 그 매질에서 빛의 속력 v 로 나눈 값으로 정한다. 굴절률이 클수록 빛이 느리다. 진공은 1, 물은 약 1.33, 유리는 약 1.5.",
+    "check": "빛이 굴절하는 정도를 재어 구한다. 굴절률이 큰 매질로 들어가면 빛이 법선 쪽으로 꺾인다."
+   },
+   "concepts": [
+    "III1-04"
+   ],
+   "keys": [
+    "굴절률"
+   ]
+  },
+  {
+   "id": "III1.snell",
+   "unit": "III1",
+   "name": "스넬 법칙 (굴절 법칙)",
+   "role": "derived",
+   "tex": "n_1\\sin\\theta_1 = n_2\\sin\\theta_2",
+   "steps": [
+    {
+     "say": "평면파의 파면이 경계에 비스듬히 닿는다. 먼저 닿은 끝은 매질 2 에서 느리게 퍼지고, 나머지 끝은 매질 1 에서 계속 간다(하위헌스 원리)."
+    },
+    {
+     "tex": "v_1 t = d\\sin\\theta_1,\\quad v_2 t = d\\sin\\theta_2",
+     "say": "같은 시간 t 동안 두 끝이 간 거리. d 는 경계 위 두 점 사이의 거리다.",
+     "uses": [
+      "I1.uniform"
+     ]
+    },
+    {
+     "tex": "\\frac{\\sin\\theta_1}{\\sin\\theta_2} = \\frac{v_1}{v_2} = \\frac{\\lambda_1}{\\lambda_2}",
+     "say": "두 식을 나눈다. 진동수가 같으므로 속력 비 = 파장 비.",
+     "uses": [
+      "III1.medium"
+     ]
+    },
+    {
+     "tex": "n_1\\sin\\theta_1 = n_2\\sin\\theta_2",
+     "say": "v = c/n 을 넣는다. 느린 쪽(굴절률 큰 쪽)에서 각이 작다.",
+     "uses": [
+      "III1.index"
+     ]
+    }
+   ],
+   "forms": [
+    "\\frac{\\sin\\theta_1}{\\sin\\theta_2} = \\frac{v_1}{v_2} = \\frac{\\lambda_1}{\\lambda_2} = \\frac{n_2}{n_1}"
+   ],
+   "concepts": [
+    "III1-04",
+    "III1-05"
+   ],
+   "keys": [
+    "굴절",
+    "스넬",
+    "하위헌스"
+   ]
+  },
+  {
+   "id": "III1.layers",
+   "unit": "III1",
+   "name": "여러 층을 지나는 빛",
+   "role": "applied",
+   "tex": "n_1\\sin\\theta_1 = n_2\\sin\\theta_2 = n_3\\sin\\theta_3",
+   "steps": [
+    {
+     "tex": "n_1\\sin\\theta_1 = n_2\\sin\\theta_2,\\quad n_2\\sin\\theta_2 = n_3\\sin\\theta_3",
+     "say": "경계면이 나란하면 한 경계의 굴절각이 다음 경계의 입사각이 된다.",
+     "uses": [
+      "III1.snell"
+     ]
+    },
+    {
+     "tex": "n\\sin\\theta = \\text{일정}",
+     "say": "그러므로 n sin θ 는 층을 지나도 그대로다. 처음과 마지막 매질만 보면 된다."
+    },
+    {
+     "tex": "\\sin r = \\frac{n_1}{n_2}\\sin i",
+     "say": "sin r – sin i 그래프는 기울기 n₁/n₂ 인 직선이다."
+    }
+   ],
+   "concepts": [
+    "III1-06"
+   ],
+   "keys": [
+    "여러 매질"
+   ]
+  },
+  {
+   "id": "III1.critical",
+   "unit": "III1",
+   "name": "전반사와 임계각",
+   "role": "derived",
+   "tex": "\\sin\\theta_c = \\frac{n_2}{n_1}\\quad (n_1 > n_2)",
+   "steps": [
+    {
+     "tex": "n_1\\sin\\theta_c = n_2\\sin 90^\\circ",
+     "say": "굴절률이 큰 쪽에서 작은 쪽으로 갈 때, 굴절각이 90° 가 되는 입사각이 임계각이다.",
+     "uses": [
+      "III1.snell"
+     ]
+    },
+    {
+     "tex": "\\sin\\theta_c = \\frac{n_2}{n_1}",
+     "say": "입사각이 이보다 크면 빛이 모두 반사된다(전반사). 굴절률 차가 클수록 임계각이 작다."
+    },
+    {
+     "say": "광섬유는 굴절률이 큰 코어를 작은 클래딩이 감싸 빛이 전반사하며 나아가게 한다."
+    }
+   ],
+   "concepts": [
+    "III1-07"
+   ],
+   "keys": [
+    "전반사",
+    "임계각",
+    "광섬유"
+   ]
+  },
+  {
+   "id": "III1.em",
+   "unit": "III1",
+   "name": "전자기파의 속력",
+   "role": "derived",
+   "tex": "c = f\\lambda",
+   "steps": [
+    {
+     "tex": "v = f\\lambda",
+     "say": "파동의 기본 관계.",
+     "uses": [
+      "III1.wave"
+     ]
+    },
+    {
+     "tex": "c = f\\lambda,\\quad c = 3\\times 10^8\\,\\text{m/s}",
+     "say": "전자기파는 진공에서 종류에 관계없이 같은 속력 c 로 간다. 진동수가 클수록 파장이 짧다."
+    },
+    {
+     "say": "진동수 순서: 감마선 > X선 > 자외선 > 가시광선 > 적외선 > 마이크로파 > 라디오파. 파장은 반대 순서."
+    }
+   ],
+   "concepts": [
+    "III1-08",
+    "III1-09",
+    "C1-01"
+   ],
+   "keys": [
+    "전자기파",
+    "스펙트럼",
+    "빛의 속력"
+   ]
+  },
+  {
+   "id": "III1.superpos",
+   "unit": "III1",
+   "name": "중첩 원리",
+   "role": "basis",
+   "tex": "y = y_1 + y_2",
+   "basis": {
+    "type": "원리",
+    "what": "두 파동이 만나면 그 자리의 변위는 각 파동의 변위를 더한 것이다. 만난 뒤에는 서로 영향 없이 원래 모양대로 진행한다.",
+    "check": "용수철이나 줄의 양 끝에서 펄스를 보내면 겹친 순간 높이가 더해지고, 지나간 뒤에는 원래 모양으로 갈라진다."
+   },
+   "concepts": [
+    "III1-10"
+   ],
+   "keys": [
+    "중첩"
+   ]
+  },
+  {
+   "id": "III1.standing",
+   "unit": "III1",
+   "name": "정상파",
+   "role": "derived",
+   "tex": "d_{\\text{마디}} = \\frac{\\lambda}{2},\\quad \\text{배의 진폭} = 2A",
+   "steps": [
+    {
+     "say": "파장과 진폭이 같은 두 파동이 마주 보고 진행하면 겹친 파형이 앞으로 나아가지 않고 제자리에서 진동한다.",
+     "uses": [
+      "III1.superpos"
+     ]
+    },
+    {
+     "tex": "d_{\\text{마디}} = \\frac{\\lambda}{2}",
+     "say": "두 파동이 늘 반대로 움직여 지워지는 점(마디)은 반 파장마다 있다.",
+     "uses": [
+      "III1.wave"
+     ]
+    },
+    {
+     "tex": "\\text{배의 진폭} = 2A",
+     "say": "두 변위가 늘 같이 움직이는 점(배)은 ±2A 사이를 진동한다."
+    }
+   ],
+   "concepts": [
+    "III1-10"
+   ],
+   "keys": [
+    "정상파",
+    "마디",
+    "배"
+   ]
+  },
+  {
+   "id": "III1.interf",
+   "unit": "III1",
+   "name": "간섭 조건 (경로차)",
+   "role": "derived",
+   "tex": "\\Delta = m\\lambda\\ (\\text{보강}),\\quad \\Delta = \\left(m + \\frac{1}{2}\\right)\\lambda\\ (\\text{상쇄})",
+   "steps": [
+    {
+     "say": "같은 위상으로 진동하는 두 파원에서 나온 파동이 한 점에서 만난다.",
+     "uses": [
+      "III1.superpos"
+     ]
+    },
+    {
+     "tex": "\\Delta = |r_1 - r_2| = m\\lambda",
+     "say": "경로차가 파장의 정수배면 마루와 마루가 만나 보강 간섭.",
+     "uses": [
+      "III1.wave"
+     ]
+    },
+    {
+     "tex": "\\Delta = \\left(m + \\frac{1}{2}\\right)\\lambda",
+     "say": "반 파장 어긋나면 마루와 골이 만나 상쇄 간섭. 두 파원이 반대 위상이면 두 조건이 서로 바뀐다."
+    }
+   ],
+   "concepts": [
+    "III1-11",
+    "III1-12"
+   ],
+   "keys": [
+    "간섭",
+    "보강",
+    "상쇄",
+    "경로차"
+   ]
+  },
+  {
+   "id": "III2.photon",
+   "unit": "III2",
+   "name": "광자의 에너지 (광양자설)",
+   "role": "basis",
+   "tex": "E = hf",
+   "basis": {
+    "type": "원리",
+    "what": "빛은 진동수 f 에 비례하는 에너지 hf 를 가진 알갱이(광자)의 흐름이다. h ≈ 6.6 × 10⁻³⁴ J·s(플랑크 상수). c = fλ 를 쓰면 E = hc/λ.",
+    "check": "광전 효과: 문턱 진동수보다 작은 빛은 아무리 세도 전자를 떼어 내지 못하고, 큰 빛은 약해도 즉시 떼어 낸다. 빛의 세기는 광자 수, 진동수는 광자 하나의 에너지다."
+   },
+   "forms": [
+    "E = \\frac{hc}{\\lambda}"
+   ],
+   "concepts": [
+    "III1-08",
+    "III2-01",
+    "III2-03",
+    "C2-01"
+   ],
+   "keys": [
+    "광자",
+    "광양자설",
+    "플랑크 상수",
+    "입자성"
+   ]
+  },
+  {
+   "id": "III2.workfn",
+   "unit": "III2",
+   "name": "일함수와 문턱 진동수",
+   "role": "derived",
+   "tex": "W = hf_0",
+   "steps": [
+    {
+     "say": "금속에서 전자 하나를 떼어 내는 데 드는 최소 에너지를 일함수 W 라 한다. 금속마다 다르다."
+    },
+    {
+     "tex": "hf_0 = W",
+     "say": "광자 하나의 에너지가 일함수와 같아지는 진동수가 문턱 진동수 f₀ 다.",
+     "uses": [
+      "III2.photon"
+     ]
+    },
+    {
+     "tex": "f_0 = \\frac{W}{h}",
+     "say": "이보다 작은 진동수의 빛은 몇 개를 함께 비춰도 전자를 떼어 내지 못한다(광자는 하나씩 흡수된다)."
+    }
+   ],
+   "concepts": [
+    "III2-02",
+    "III2-03",
+    "C2-02"
+   ],
+   "keys": [
+    "일함수",
+    "문턱 진동수"
+   ]
+  },
+  {
+   "id": "III2.einstein",
+   "unit": "III2",
+   "name": "광전 방정식",
+   "role": "derived",
+   "tex": "E_{k,\\max} = hf - W = h(f - f_0)",
+   "steps": [
+    {
+     "tex": "hf = W + E_{k,\\max}",
+     "say": "전자가 광자 하나의 에너지를 받아, 일함수만큼 써서 빠져나오고 나머지를 운동 에너지로 가진다(에너지 보존).",
+     "uses": [
+      "III2.photon"
+     ]
+    },
+    {
+     "tex": "E_{k,\\max} = hf - W = h(f - f_0)",
+     "say": "W = hf₀ 를 넣는다. f–E_k 그래프는 기울기 h 인 직선(모든 금속 공통), 가로 절편이 f₀ 다.",
+     "uses": [
+      "III2.workfn"
+     ]
+    }
+   ],
+   "forms": [
+    "E_{k,\\max} = hc\\left(\\frac{1}{\\lambda} - \\frac{1}{\\lambda_0}\\right)"
+   ],
+   "concepts": [
+    "III2-02",
+    "III2-03",
+    "III2-04",
+    "C2-02"
+   ],
+   "keys": [
+    "광전 효과",
+    "광전자",
+    "아인슈타인"
+   ]
+  },
+  {
+   "id": "III2.stop",
+   "unit": "III2",
+   "name": "정지 전압",
+   "role": "derived",
+   "tex": "eV_s = E_{k,\\max}",
+   "steps": [
+    {
+     "say": "광전관에 역방향 전압을 걸어 점점 키우면 광전류가 줄다가 V_s 에서 0 이 된다."
+    },
+    {
+     "tex": "-eV_s = 0 - E_{k,\\max}",
+     "say": "전기력이 가장 빠른 전자에게 한 일(−eV_s)만큼 운동 에너지가 줄어 멈춘다(일–운동 에너지 정리).",
+     "uses": [
+      "I2.wke"
+     ]
+    },
+    {
+     "tex": "eV_s = E_{k,\\max} = hf - W",
+     "say": "정지 전압을 재면 광전자의 최대 운동 에너지를 알 수 있다.",
+     "uses": [
+      "III2.einstein"
+     ]
+    }
+   ],
+   "concepts": [
+    "III2-03",
+    "C2-02",
+    "C2-03"
+   ],
+   "keys": [
+    "정지 전압",
+    "광전류"
+   ]
+  },
+  {
+   "id": "III2.debroglie",
+   "unit": "III2",
+   "name": "물질파 (드브로이 파장)",
+   "role": "basis",
+   "tex": "\\lambda = \\frac{h}{p} = \\frac{h}{mv}",
+   "basis": {
+    "type": "원리",
+    "what": "빛이 입자성을 가지듯, 운동하는 입자도 운동량 p 에 반비례하는 파장을 가진 파동성을 가진다(드브로이 가설).",
+    "check": "데이비슨·거머 실험(니켈 결정에 전자를 쏘아 특정 각에서 강한 반사), 톰슨의 금속박 전자 회절, 전자 이중 슬릿 간섭 무늬로 확인했다."
+   },
+   "forms": [
+    "mv\\lambda = h"
+   ],
+   "concepts": [
+    "III2-06",
+    "III2-08",
+    "C2-04"
+   ],
+   "keys": [
+    "물질파",
+    "드브로이",
+    "파동성",
+    "전자 회절"
+   ]
+  },
+  {
+   "id": "III2.lamEk",
+   "unit": "III2",
+   "name": "운동 에너지와 물질파 파장",
+   "role": "derived",
+   "tex": "\\lambda = \\frac{h}{\\sqrt{2mE_k}}",
+   "steps": [
+    {
+     "tex": "E_k = \\frac{p^2}{2m} \\;\\Rightarrow\\; p = \\sqrt{2mE_k}",
+     "say": "운동 에너지와 운동량의 관계에서 p 를 구한다.",
+     "uses": [
+      "I2.ekp"
+     ]
+    },
+    {
+     "tex": "\\lambda = \\frac{h}{p} = \\frac{h}{\\sqrt{2mE_k}}",
+     "say": "드브로이 파장에 넣는다. 운동 에너지가 4배면 파장은 1/2 배(1/4 배가 아니다).",
+     "uses": [
+      "III2.debroglie"
+     ]
+    }
+   ],
+   "forms": [
+    "2mE_k\\lambda^2 = h^2"
+   ],
+   "concepts": [
+    "III2-06",
+    "C2-04"
+   ],
+   "keys": [
+    "물질파",
+    "운동 에너지"
+   ]
+  },
+  {
+   "id": "III2.convert",
+   "unit": "III2",
+   "name": "물질파 변환 공식",
+   "role": "applied",
+   "tex": "p = \\frac{h}{\\lambda},\\quad E_k = \\frac{p^2}{2m} = \\frac{1}{2}pv",
+   "steps": [
+    {
+     "tex": "p = \\frac{h}{\\lambda}",
+     "say": "파장을 알면 운동량이 바로 나온다.",
+     "uses": [
+      "III2.debroglie"
+     ]
+    },
+    {
+     "tex": "E_k = \\frac{p^2}{2m} = \\frac{1}{2}pv",
+     "say": "운동 에너지는 p²/2m, 또는 p = mv 를 써서 ½pv.",
+     "uses": [
+      "I2.ekp",
+      "I1.momentum"
+     ]
+    },
+    {
+     "tex": "m = \\frac{p^2}{2E_k},\\quad v = \\frac{2E_k}{p}",
+     "say": "그래프 축에 맞는 꼴을 골라 쓴다."
+    }
+   ],
+   "concepts": [
+    "III2-07"
+   ],
+   "keys": [
+    "물질파 그래프"
+   ]
+  },
+  {
+   "id": "III2.emicro",
+   "unit": "III2",
+   "name": "가속 전압과 전자의 파장 (전자 현미경)",
+   "role": "applied",
+   "tex": "E_k = eV \\;\\Rightarrow\\; \\lambda = \\frac{h}{\\sqrt{2meV}}",
+   "steps": [
+    {
+     "tex": "E_k = eV",
+     "say": "정지한 전자를 전압 V 로 가속하면 전기력이 한 일 eV 만큼 운동 에너지를 얻는다.",
+     "uses": [
+      "I2.wke"
+     ]
+    },
+    {
+     "tex": "\\lambda = \\frac{h}{\\sqrt{2meV}}",
+     "say": "운동 에너지–파장 식에 넣는다. 전하가 q 인 입자면 e 대신 q.",
+     "uses": [
+      "III2.lamEk"
+     ]
+    },
+    {
+     "say": "가속 전압을 높일수록 파장이 짧아져 더 작은 것을 구별한다(분해능 ↑). 그래서 전자 현미경은 광학 현미경보다 분해능이 좋다."
+    }
+   ],
+   "forms": [
+    "\\lambda = \\frac{h}{\\sqrt{2mqV}}"
+   ],
+   "concepts": [
+    "III2-09",
+    "C2-04"
+   ],
+   "keys": [
+    "전자 현미경",
+    "분해능"
+   ]
+  },
+  {
+   "id": "A1.vector",
+   "unit": "A1",
+   "name": "벡터의 합성과 분해",
+   "role": "basis",
+   "tex": "A_x = A\\cos\\theta,\\quad A_y = A\\sin\\theta,\\quad A = \\sqrt{A_x^2 + A_y^2}",
+   "basis": {
+    "type": "정의",
+    "what": "크기와 방향을 함께 가진 양(벡터)은 화살표를 꼬리–머리로 이어 더하고, 서로 수직인 두 성분으로 나눠 계산한다. 빼기는 반대 방향 화살표를 더하는 것이다.",
+    "check": "힘 센서 세 개로 고리를 평형시키면 세 힘의 화살표를 이었을 때 닫힌 삼각형이 된다. 모눈 위에서는 화살표 길이가 아니라 가로·세로 칸 수를 센다."
+   },
+   "forms": [
+    "\\vec{C} = \\vec{A} + \\vec{B},\\quad \\vec{A} - \\vec{B} = \\vec{A} + (-\\vec{B})"
+   ],
+   "concepts": [
+    "A1-01",
+    "A1-05"
+   ],
+   "keys": [
+    "벡터",
+    "성분",
+    "합력",
+    "분해"
+   ]
+  },
+  {
+   "id": "A1.tilt",
+   "unit": "A1",
+   "name": "수평 힘으로 붙잡은 빗면 위 물체",
+   "role": "applied",
+   "tex": "F = mg\\tan\\theta,\\quad N = \\frac{mg}{\\cos\\theta}",
+   "steps": [
+    {
+     "tex": "N\\cos\\theta = mg",
+     "say": "마찰 없는 빗면(경사각 θ) 위 물체를 수평 힘 F 로 붙잡는다. 연직 방향 성분의 합이 0 이다.",
+     "uses": [
+      "I1.equil",
+      "A1.vector",
+      "I1.weight"
+     ]
+    },
+    {
+     "tex": "N\\sin\\theta = F",
+     "say": "수평 방향 성분의 합도 0 이다."
+    },
+    {
+     "tex": "F = mg\\tan\\theta,\\quad N = \\frac{mg}{\\cos\\theta}",
+     "say": "두 식을 나누거나 풀어서 구한다. 실에 매달려 기울어진 물체도 같은 꼴이다."
+    }
+   ],
+   "concepts": [
+    "A1-01"
+   ],
+   "keys": [
+    "성분 평형",
+    "빗면"
+   ]
+  },
+  {
+   "id": "A1.torque",
+   "unit": "A1",
+   "name": "돌림힘",
+   "role": "basis",
+   "tex": "\\tau = rF\\sin\\theta = Fd",
+   "basis": {
+    "type": "정의",
+    "what": "물체를 돌리는 능력을 축에서 힘의 작용선까지의 수직 거리(팔 길이) d 와 힘의 곱으로 정한다. 단위는 N·m.",
+    "check": "문손잡이가 경첩에서 먼 곳에 있는 까닭, 같은 힘이라도 렌치 끝을 잡을수록 볼트가 잘 돌아가는 것. 기울어진 막대에 연직 힘이 작용하면 팔 길이는 수평 거리다."
+   },
+   "concepts": [
+    "A1-02"
+   ],
+   "keys": [
+    "돌림힘",
+    "토크",
+    "팔 길이"
+   ]
+  },
+  {
+   "id": "A1.rigid",
+   "unit": "A1",
+   "name": "강체의 평형 조건",
+   "role": "derived",
+   "tex": "\\sum\\vec{F} = 0,\\quad \\sum\\tau = 0",
+   "steps": [
+    {
+     "tex": "\\sum\\vec{F} = 0",
+     "say": "물체가 옮겨 가지 않으려면 알짜힘이 0 이어야 한다.",
+     "uses": [
+      "I1.equil"
+     ]
+    },
+    {
+     "tex": "\\sum\\tau = 0",
+     "say": "돌지도 않으려면 어느 축을 잡아도 돌림힘의 합이 0 이어야 한다.",
+     "uses": [
+      "A1.torque"
+     ]
+    },
+    {
+     "tex": "\\sum\\tau_{\\text{시계}} = \\sum\\tau_{\\text{반시계}}",
+     "say": "모르는 힘이 지나는 점을 축으로 잡으면 그 힘이 식에서 빠져 계산이 쉬워진다."
+    }
+   ],
+   "concepts": [
+    "A1-02",
+    "A1-04"
+   ],
+   "keys": [
+    "강체",
+    "평형"
+   ]
+  },
+  {
+   "id": "A1.lever",
+   "unit": "A1",
+   "name": "막대의 돌림힘 평형",
+   "role": "applied",
+   "tex": "T_1 r_1 = T_2 r_2",
+   "steps": [
+    {
+     "tex": "T_1 r_1 - T_2 r_2 = 0",
+     "say": "축 양쪽에서 반대로 돌리는 두 힘의 돌림힘이 같다.",
+     "uses": [
+      "A1.rigid"
+     ]
+    },
+    {
+     "say": "지레, 시소, 모빌이 모두 이 식이다. 축에서 먼 쪽은 작은 힘으로도 평형을 이룬다."
+    }
+   ],
+   "concepts": [
+    "A1-02"
+   ],
+   "keys": [
+    "지레",
+    "시소"
+   ]
+  },
+  {
+   "id": "A1.cm",
+   "unit": "A1",
+   "name": "무게중심",
+   "role": "derived",
+   "tex": "x_{cm} = \\frac{\\sum m_i x_i}{\\sum m_i}",
+   "steps": [
+    {
+     "say": "무게중심은 물체 전체의 무게가 한 점에 모여 작용한다고 보아도 돌림힘이 같아지는 점으로 정한다."
+    },
+    {
+     "tex": "\\sum m_i g\\,(x_i - x_{cm}) = 0",
+     "say": "무게중심을 받치면 돌지 않으므로, 그 점에 대한 각 부분의 돌림힘 합이 0 이다.",
+     "uses": [
+      "A1.torque",
+      "A1.rigid"
+     ]
+    },
+    {
+     "tex": "x_{cm} = \\frac{\\sum m_i x_i}{\\sum m_i}",
+     "say": "g 를 지우고 x_cm 에 대해 푼다. 질량으로 가중한 평균 위치다."
+    }
+   ],
+   "concepts": [
+    "A1-03"
+   ],
+   "keys": [
+    "무게중심",
+    "질량 중심"
+   ]
+  },
+  {
+   "id": "A1.tip",
+   "unit": "A1",
+   "name": "넘어지지 않는 조건",
+   "role": "applied",
+   "tex": "\\tan\\theta_c = \\frac{b/2}{h_{cm}}",
+   "steps": [
+    {
+     "say": "무게중심을 지나는 연직선이 받침면 안에 있으면 중력의 돌림힘이 물체를 다시 세운다.",
+     "uses": [
+      "A1.rigid"
+     ]
+    },
+    {
+     "tex": "\\tan\\theta_c = \\frac{b/2}{h_{cm}}",
+     "say": "넘어지기 직전에는 무게중심이 받침면 모서리 바로 위에 온다. 밑면 폭 b, 무게중심 높이 h.",
+     "uses": [
+      "A1.cm"
+     ]
+    },
+    {
+     "say": "무게중심이 낮고 밑면이 넓을수록 넘어지기 어렵다."
+    }
+   ],
+   "concepts": [
+    "A1-03"
+   ],
+   "keys": [
+    "안정성",
+    "넘어짐"
+   ]
+  },
+  {
+   "id": "A1.limit",
+   "unit": "A1",
+   "name": "한계 조건",
+   "role": "applied",
+   "tex": "N_1 \\ge 0,\\quad N_2 \\ge 0",
+   "steps": [
+    {
+     "say": "받침점은 물체를 밀 수만 있고 당길 수 없으므로 수직 항력은 0 이상이어야 한다."
+    },
+    {
+     "tex": "N_1 = 0",
+     "say": "막대가 넘어가기 직전(최대·최소 조건)에는 한쪽 수직 항력이 0 이 되고, 남은 받침점이 축이 된다.",
+     "uses": [
+      "A1.rigid"
+     ]
+    },
+    {
+     "tex": "0 \\le T \\le m_{\\text{바닥}}\\,g",
+     "say": "실로 바닥의 물체를 당길 때도 바닥 물체가 뜨기 직전이 한계다."
+    }
+   ],
+   "concepts": [
+    "A1-04"
+   ],
+   "keys": [
+    "최대",
+    "최소",
+    "한계"
+   ]
+  },
+  {
+   "id": "A1.kin",
+   "unit": "A1",
+   "name": "위치·변위·속도·가속도 벡터",
+   "role": "derived",
+   "tex": "\\vec{v}_{\\text{평균}} = \\frac{\\Delta\\vec{r}}{\\Delta t},\\quad \\vec{a}_{\\text{평균}} = \\frac{\\Delta\\vec{v}}{\\Delta t}",
+   "steps": [
+    {
+     "tex": "\\Delta\\vec{r} = \\vec{r}_2 - \\vec{r}_1",
+     "say": "평면 운동에서는 위치를 화살표(위치 벡터)로 쓰고, 변위는 그 차다.",
+     "uses": [
+      "A1.vector"
+     ]
+    },
+    {
+     "tex": "\\vec{v}_{\\text{평균}} = \\frac{\\Delta\\vec{r}}{\\Delta t}",
+     "say": "직선 운동의 평균 속도 정의를 벡터로 넓힌다.",
+     "uses": [
+      "I1.vavg"
+     ]
+    },
+    {
+     "tex": "\\vec{a}_{\\text{평균}} = \\frac{\\Delta\\vec{v}}{\\Delta t}",
+     "say": "가속도도 같다. 가속도 방향은 Δv 방향(= 알짜힘 방향)이고 속도 방향과는 관계없다.",
+     "uses": [
+      "I1.accel"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-05"
+   ],
+   "keys": [
+    "위치 벡터",
+    "변위 벡터"
+   ]
+  },
+  {
+   "id": "A1.plane",
+   "unit": "A1",
+   "name": "평면 위 등가속도 운동",
+   "role": "derived",
+   "tex": "\\vec{v} = \\vec{v}_0 + \\vec{a}t",
+   "steps": [
+    {
+     "tex": "\\vec{v} = \\vec{v}_0 + \\vec{a}t",
+     "say": "가속도가 일정하면 속도 벡터는 가속도 방향으로 고르게 변한다.",
+     "uses": [
+      "A1.kin",
+      "I1.vt"
+     ]
+    },
+    {
+     "tex": "\\Delta x = \\frac{v_{0x} + v_x}{2}t,\\quad \\Delta y = \\frac{v_{0y} + v_y}{2}t",
+     "say": "x, y 성분으로 나누면 각 방향이 따로 등가속도 직선 운동이다(평균속도법).",
+     "uses": [
+      "I1.vbar"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-06"
+   ],
+   "keys": [
+    "평면 운동",
+    "성분"
+   ]
+  },
+  {
+   "id": "A1.path",
+   "unit": "A1",
+   "name": "한 방향만 가속될 때의 궤적",
+   "role": "applied",
+   "tex": "x = \\frac{v_{0x}}{v_{0y}}\\,y + \\frac{a}{2v_{0y}^2}\\,y^2",
+   "steps": [
+    {
+     "tex": "t = \\frac{y}{v_{0y}}",
+     "say": "y 방향은 가속도가 없어 등속이다.",
+     "uses": [
+      "I1.uniform",
+      "A1.plane"
+     ]
+    },
+    {
+     "tex": "x = v_{0x}t + \\frac{1}{2}at^2",
+     "say": "x 방향은 가속도 a 인 등가속도 운동이다.",
+     "uses": [
+      "I1.st"
+     ]
+    },
+    {
+     "tex": "x = \\frac{v_{0x}}{v_{0y}}\\,y + \\frac{a}{2v_{0y}^2}\\,y^2",
+     "say": "t 를 지우면 포물선 궤적이 된다."
+    }
+   ],
+   "concepts": [
+    "A1-06"
+   ],
+   "keys": [
+    "궤적",
+    "포물선"
+   ]
+  },
+  {
+   "id": "A1.drop",
+   "unit": "A1",
+   "name": "자유 낙하",
+   "role": "applied",
+   "tex": "v = gt,\\quad h = \\frac{1}{2}gt^2,\\quad v^2 = 2gh",
+   "steps": [
+    {
+     "tex": "v_0 = 0,\\quad a = g",
+     "say": "가만히 놓은 물체는 처음 속도 0, 가속도 g 인 등가속도 운동을 한다."
+    },
+    {
+     "tex": "v = gt,\\quad h = \\frac{1}{2}gt^2,\\quad v^2 = 2gh",
+     "say": "등가속도 세 식에 넣는다.",
+     "uses": [
+      "I1.vt",
+      "I1.st",
+      "I1.v2"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-07"
+   ],
+   "keys": [
+    "자유 낙하"
+   ]
+  },
+  {
+   "id": "A1.up",
+   "unit": "A1",
+   "name": "연직 위로 던진 운동",
+   "role": "applied",
+   "tex": "t_1 = \\frac{v_0}{g},\\quad t_2 = \\frac{2v_0}{g},\\quad H = \\frac{v_0^2}{2g}",
+   "steps": [
+    {
+     "tex": "0 = v_0 - gt_1",
+     "say": "최고점에서 속도가 0 이다. 위를 + 로 잡으면 가속도는 −g.",
+     "uses": [
+      "I1.vt"
+     ]
+    },
+    {
+     "tex": "0 - v_0^2 = -2gH",
+     "say": "시간 없는 식으로 최고 높이를 구한다.",
+     "uses": [
+      "I1.v2"
+     ]
+    },
+    {
+     "tex": "t_2 = 2t_1 = \\frac{2v_0}{g}",
+     "say": "올라가는 시간과 내려오는 시간이 같다(최고점 기준 대칭). 같은 높이에서 속력도 같다."
+    }
+   ],
+   "concepts": [
+    "A1-07"
+   ],
+   "keys": [
+    "연직 투사",
+    "최고점"
+   ]
+  },
+  {
+   "id": "A1.proj",
+   "unit": "A1",
+   "name": "포물선 운동",
+   "role": "derived",
+   "tex": "x = v_0\\cos\\theta\\,t,\\quad y = v_0\\sin\\theta\\,t - \\frac{1}{2}gt^2",
+   "steps": [
+    {
+     "tex": "v_{0x} = v_0\\cos\\theta,\\quad v_{0y} = v_0\\sin\\theta",
+     "say": "처음 속도를 수평·연직 성분으로 나눈다.",
+     "uses": [
+      "A1.vector"
+     ]
+    },
+    {
+     "tex": "x = v_0\\cos\\theta\\,t",
+     "say": "수평 방향에는 힘이 없어 등속 운동.",
+     "uses": [
+      "I1.uniform"
+     ]
+    },
+    {
+     "tex": "y = v_0\\sin\\theta\\,t - \\frac{1}{2}gt^2",
+     "say": "연직 방향은 가속도 −g 인 등가속도 운동. 두 운동은 서로 영향을 주지 않는다.",
+     "uses": [
+      "I1.st"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-08"
+   ],
+   "keys": [
+    "포물선 운동",
+    "비스듬히 던진 운동"
+   ]
+  },
+  {
+   "id": "A1.traj",
+   "unit": "A1",
+   "name": "포물선 궤적의 식",
+   "role": "applied",
+   "tex": "y = x\\tan\\theta - \\frac{g}{2v_0^2\\cos^2\\theta}\\,x^2",
+   "steps": [
+    {
+     "tex": "t = \\frac{x}{v_0\\cos\\theta}",
+     "say": "수평 식에서 시간을 x 로 쓴다.",
+     "uses": [
+      "A1.proj"
+     ]
+    },
+    {
+     "tex": "y = x\\tan\\theta - \\frac{g}{2v_0^2\\cos^2\\theta}\\,x^2",
+     "say": "연직 식에 넣으면 아래로 볼록한 포물선의 식이다."
+    }
+   ],
+   "concepts": [
+    "A1-08"
+   ],
+   "keys": [
+    "궤적"
+   ]
+  },
+  {
+   "id": "A1.range",
+   "unit": "A1",
+   "name": "수평 도달 거리와 최고 높이",
+   "role": "applied",
+   "tex": "R = \\frac{v_0^2\\sin 2\\theta}{g},\\quad H = \\frac{(v_0\\sin\\theta)^2}{2g}",
+   "steps": [
+    {
+     "tex": "t = \\frac{2v_0\\sin\\theta}{g}",
+     "say": "다시 땅(y = 0)에 닿는 시각.",
+     "uses": [
+      "A1.proj"
+     ]
+    },
+    {
+     "tex": "R = v_0\\cos\\theta\\cdot\\frac{2v_0\\sin\\theta}{g} = \\frac{v_0^2\\sin 2\\theta}{g}",
+     "say": "수평 식에 넣는다. 2 sin θ cos θ = sin 2θ 이므로 45° 에서 가장 멀리 가고, 여각 쌍(30°·60°)은 같은 거리를 간다."
+    },
+    {
+     "tex": "H = \\frac{(v_0\\sin\\theta)^2}{2g}",
+     "say": "최고점에서 연직 속도가 0 이므로 v² − v₀² = 2as 를 연직 방향에 쓴다.",
+     "uses": [
+      "I1.v2"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-08"
+   ],
+   "keys": [
+    "도달 거리",
+    "최고 높이",
+    "45도"
+   ]
+  },
+  {
+   "id": "A1.horiz",
+   "unit": "A1",
+   "name": "수평으로 던진 운동",
+   "role": "applied",
+   "tex": "t = \\sqrt{\\frac{2H}{g}},\\quad R = v_0\\sqrt{\\frac{2H}{g}}",
+   "steps": [
+    {
+     "tex": "H = \\frac{1}{2}gt^2",
+     "say": "수평으로 던지면(θ = 0) 연직 방향은 자유 낙하와 같다.",
+     "uses": [
+      "A1.proj"
+     ]
+    },
+    {
+     "tex": "t = \\sqrt{\\frac{2H}{g}},\\quad R = v_0 t = v_0\\sqrt{\\frac{2H}{g}}",
+     "say": "떨어지는 시간은 던진 속력과 관계없고 높이로만 정해진다."
+    }
+   ],
+   "concepts": [
+    "A1-08",
+    "A1-07"
+   ],
+   "keys": [
+    "수평 투사"
+   ]
+  },
+  {
+   "id": "A1.relmove",
+   "unit": "A1",
+   "name": "같은 가속도의 두 물체: 상대 운동",
+   "role": "applied",
+   "tex": "\\vec{a}_A = \\vec{a}_B \\;\\Rightarrow\\; \\vec{v}_{AB} = \\text{일정},\\quad t = \\frac{d}{|\\vec{v}_{AB}|}",
+   "steps": [
+    {
+     "tex": "\\vec{v}_{AB} = \\vec{v}_A - \\vec{v}_B",
+     "say": "상대 속도를 벡터로 쓴다.",
+     "uses": [
+      "I1.relv"
+     ]
+    },
+    {
+     "tex": "\\Delta\\vec{v}_{AB} = (\\vec{a}_A - \\vec{a}_B)\\,t = 0",
+     "say": "두 물체가 모두 중력만 받으면 가속도가 같아 상대 속도가 변하지 않는다.",
+     "uses": [
+      "I1.vt"
+     ]
+    },
+    {
+     "tex": "t = \\frac{d}{|\\vec{v}_{AB}|}",
+     "say": "서로를 보면 등속 직선 운동이므로 처음 거리 d 를 상대 속력으로 나누면 만나는 시간이다.",
+     "uses": [
+      "I1.uniform"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-09"
+   ],
+   "keys": [
+    "상대 운동",
+    "만남"
+   ]
+  },
+  {
+   "id": "A1.slope",
+   "unit": "A1",
+   "name": "빗면 좌표계로 본 포물선 운동",
+   "role": "applied",
+   "tex": "a_{\\text{빗면}} = g\\sin\\alpha,\\quad a_{\\text{수직}} = g\\cos\\alpha,\\quad T = \\frac{2v_{\\text{수직}}}{g\\cos\\alpha}",
+   "steps": [
+    {
+     "tex": "a_{\\text{빗면}} = g\\sin\\alpha,\\quad a_{\\text{수직}} = g\\cos\\alpha",
+     "say": "경사각 α 인 빗면 방향과 빗면에 수직인 방향으로 축을 잡고 g 를 나눈다.",
+     "uses": [
+      "A1.vector"
+     ]
+    },
+    {
+     "tex": "T = \\frac{2v_{\\text{수직}}}{g\\cos\\alpha}",
+     "say": "빗면에 수직인 방향은 위로 던진 운동과 같다. 다시 빗면에 닿는 시간은 올라갔다 내려오는 시간이다.",
+     "uses": [
+      "A1.up"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-09"
+   ],
+   "keys": [
+    "빗면 좌표계"
+   ]
+  },
+  {
+   "id": "A1.omega",
+   "unit": "A1",
+   "name": "각속도",
+   "role": "basis",
+   "tex": "\\omega = \\frac{\\Delta\\theta}{\\Delta t}",
+   "basis": {
+    "type": "정의",
+    "what": "원운동에서 단위 시간 동안 돈 각(라디안)으로 정한다. 단위는 rad/s. 한 바퀴는 2π rad.",
+    "check": "회전판 위 여러 점은 각속도가 모두 같지만 바깥 점일수록 빠르다. 같은 축에 붙은 것은 같은 ω, 벨트로 이은 것은 같은 v."
+   },
+   "concepts": [
+    "A1-10"
+   ],
+   "keys": [
+    "각속도",
+    "라디안"
+   ]
+  },
+  {
+   "id": "A1.circ",
+   "unit": "A1",
+   "name": "등속 원운동의 주기와 속력",
+   "role": "derived",
+   "tex": "v = r\\omega,\\quad T = \\frac{2\\pi r}{v} = \\frac{2\\pi}{\\omega} = \\frac{1}{f}",
+   "steps": [
+    {
+     "tex": "\\Delta s = r\\Delta\\theta \\;\\Rightarrow\\; v = r\\omega",
+     "say": "반지름 r 인 원에서 Δθ(라디안)만큼 돌면 호의 길이는 rΔθ 다.",
+     "uses": [
+      "A1.omega"
+     ]
+    },
+    {
+     "tex": "T = \\frac{2\\pi r}{v} = \\frac{2\\pi}{\\omega}",
+     "say": "한 바퀴(2πr)를 속력 v 로 도는 시간이 주기다.",
+     "uses": [
+      "I1.uniform"
+     ]
+    },
+    {
+     "tex": "T = \\frac{1}{f},\\quad \\omega = 2\\pi f",
+     "say": "진동수는 1초에 도는 횟수.",
+     "uses": [
+      "III1.period"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-10"
+   ],
+   "keys": [
+    "원운동",
+    "주기",
+    "진동수"
+   ]
+  },
+  {
+   "id": "A1.cacc",
+   "unit": "A1",
+   "name": "구심 가속도",
+   "role": "derived",
+   "tex": "a = \\frac{v^2}{r} = r\\omega^2 = \\frac{4\\pi^2 r}{T^2}",
+   "steps": [
+    {
+     "tex": "\\frac{|\\Delta\\vec{v}|}{v} = \\frac{|\\Delta\\vec{r}|}{r}",
+     "say": "짧은 시간 동안 속도는 크기 v 그대로 방향만 Δθ 돈다. 속도 화살표가 만드는 삼각형과 위치 화살표가 만드는 삼각형이 닮음이다.",
+     "uses": [
+      "A1.kin"
+     ]
+    },
+    {
+     "tex": "|\\Delta\\vec{r}| \\approx v\\Delta t",
+     "say": "아주 짧은 시간에는 현의 길이가 호의 길이와 같다."
+    },
+    {
+     "tex": "a = \\frac{|\\Delta\\vec{v}|}{\\Delta t} = \\frac{v^2}{r}",
+     "say": "가속도는 원의 중심을 향한다(구심 가속도)."
+    },
+    {
+     "tex": "a = r\\omega^2 = \\frac{4\\pi^2 r}{T^2}",
+     "say": "v = rω, ω = 2π/T 를 넣는다.",
+     "uses": [
+      "A1.circ"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-10"
+   ],
+   "keys": [
+    "구심 가속도"
+   ]
+  },
+  {
+   "id": "A1.cforce",
+   "unit": "A1",
+   "name": "구심력",
+   "role": "derived",
+   "tex": "F = \\frac{mv^2}{r} = mr\\omega^2",
+   "steps": [
+    {
+     "tex": "F = ma",
+     "say": "원운동도 뉴턴 제2법칙을 따른다.",
+     "uses": [
+      "I1.newton2"
+     ]
+    },
+    {
+     "tex": "F = \\frac{mv^2}{r} = mr\\omega^2",
+     "say": "구심 가속도를 넣는다. 구심력은 새로운 힘이 아니라 실제 힘들(장력, 중력, 마찰력…)의 중심 방향 성분의 합이다.",
+     "uses": [
+      "A1.cacc"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-11"
+   ],
+   "keys": [
+    "구심력"
+   ]
+  },
+  {
+   "id": "A1.conical",
+   "unit": "A1",
+   "name": "원뿔 진자",
+   "role": "applied",
+   "tex": "\\omega^2 = \\frac{g}{l\\cos\\theta},\\quad T = 2\\pi\\sqrt{\\frac{h}{g}}",
+   "steps": [
+    {
+     "tex": "T_{\\text{실}}\\cos\\theta = mg",
+     "say": "길이 l 인 실이 연직과 θ 를 이루며 수평 원을 돈다. 연직 방향은 평형.",
+     "uses": [
+      "A1.vector",
+      "I1.weight"
+     ]
+    },
+    {
+     "tex": "T_{\\text{실}}\\sin\\theta = m(l\\sin\\theta)\\,\\omega^2",
+     "say": "장력의 수평 성분이 구심력이다. 반지름은 l sin θ.",
+     "uses": [
+      "A1.cforce"
+     ]
+    },
+    {
+     "tex": "\\omega^2 = \\frac{g}{l\\cos\\theta},\\quad T = 2\\pi\\sqrt{\\frac{h}{g}}",
+     "say": "나누어 정리한다. h = l cos θ 는 매단 점에서 원판까지의 높이다."
+    }
+   ],
+   "concepts": [
+    "A1-11"
+   ],
+   "keys": [
+    "원뿔 진자"
+   ]
+  },
+  {
+   "id": "A1.bank",
+   "unit": "A1",
+   "name": "기울어진 길을 도는 물체",
+   "role": "applied",
+   "tex": "\\tan\\theta = \\frac{v^2}{gr}",
+   "steps": [
+    {
+     "tex": "N\\cos\\theta = mg,\\quad N\\sin\\theta = \\frac{mv^2}{r}",
+     "say": "마찰 없이 기울어진 길(경사각 θ)을 돌 때, 수직 항력의 연직 성분은 무게와 평형, 수평 성분은 구심력이다.",
+     "uses": [
+      "A1.vector",
+      "A1.cforce"
+     ]
+    },
+    {
+     "tex": "\\tan\\theta = \\frac{v^2}{gr}",
+     "say": "나누면 질량이 지워진다. 원뿔 안쪽 면을 도는 물체, 커브 길의 경사도 같다."
+    }
+   ],
+   "concepts": [
+    "A1-11"
+   ],
+   "keys": [
+    "경사",
+    "커브"
+   ]
+  },
+  {
+   "id": "A1.hang",
+   "unit": "A1",
+   "name": "구멍을 지나 매달린 추와 원운동",
+   "role": "applied",
+   "tex": "Mg = mr\\left(\\frac{2\\pi}{T}\\right)^2",
+   "steps": [
+    {
+     "tex": "T_{\\text{실}} = Mg",
+     "say": "책상 구멍 아래에 매달린 추 M 이 멈춰 있으므로 실의 장력은 그 무게와 같다.",
+     "uses": [
+      "I1.weight",
+      "I1.equil"
+     ]
+    },
+    {
+     "tex": "Mg = mr\\omega^2 = mr\\left(\\frac{2\\pi}{T}\\right)^2",
+     "say": "책상 위에서 도는 물체 m 의 구심력이 이 장력이다.",
+     "uses": [
+      "A1.cforce",
+      "A1.circ"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-11"
+   ],
+   "keys": [
+    "구심력 실험"
+   ]
+  },
+  {
+   "id": "A1.kepler",
+   "unit": "A1",
+   "name": "케플러 법칙",
+   "role": "basis",
+   "tex": "T^2 = ka^3",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "1법칙: 행성은 태양을 한 초점으로 하는 타원 궤도를 돈다. 2법칙: 태양과 행성을 잇는 선이 같은 시간에 쓸고 가는 넓이는 같다. 3법칙: 공전 주기의 제곱은 긴반지름의 세제곱에 비례한다.",
+    "check": "티코 브라헤가 남긴 정밀한 행성 관측 자료를 케플러가 분석해 찾았다. 긴반지름 a 는 (근일점 거리 + 원일점 거리) ÷ 2."
+   },
+   "forms": [
+    "r_1 + r_2 = 2a",
+    "r_1 v_1 = r_2 v_2\\ (\\text{근일점과 원일점})"
+   ],
+   "concepts": [
+    "A1-12"
+   ],
+   "keys": [
+    "케플러",
+    "타원",
+    "면적 속도"
+   ]
+  },
+  {
+   "id": "A1.grav",
+   "unit": "A1",
+   "name": "만유인력 법칙",
+   "role": "derived",
+   "tex": "F = G\\frac{Mm}{r^2}",
+   "steps": [
+    {
+     "tex": "F = m\\frac{4\\pi^2 r}{T^2}",
+     "say": "행성(질량 m)이 반지름 r 인 원궤도를 돈다고 보면 필요한 구심력.",
+     "uses": [
+      "A1.cforce"
+     ]
+    },
+    {
+     "tex": "T^2 = kr^3 \\;\\Rightarrow\\; F = \\frac{4\\pi^2}{k}\\cdot\\frac{m}{r^2}",
+     "say": "케플러 제3법칙을 넣으면 힘은 행성 질량에 비례하고 거리 제곱에 반비례한다.",
+     "uses": [
+      "A1.kepler"
+     ]
+    },
+    {
+     "tex": "F = G\\frac{Mm}{r^2}",
+     "say": "작용 반작용으로 태양(질량 M)도 같은 크기의 힘을 받으므로 M 에도 비례해야 한다. G ≈ 6.67 × 10⁻¹¹ N·m²/kg² 는 캐번디시가 쟀다.",
+     "uses": [
+      "I1.newton3"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-13"
+   ],
+   "keys": [
+    "만유인력",
+    "중력",
+    "뉴턴"
+   ]
+  },
+  {
+   "id": "A1.g",
+   "unit": "A1",
+   "name": "중력 가속도",
+   "role": "derived",
+   "tex": "g = \\frac{GM}{R^2} = \\frac{4}{3}\\pi\\rho GR",
+   "steps": [
+    {
+     "tex": "mg = G\\frac{Mm}{R^2}",
+     "say": "지표면에서 물체의 무게는 지구가 당기는 만유인력이다.",
+     "uses": [
+      "A1.grav",
+      "I1.weight"
+     ]
+    },
+    {
+     "tex": "g = \\frac{GM}{R^2}",
+     "say": "질량 m 이 지워진다. 높이 h 에서는 R 대신 R + h."
+    },
+    {
+     "tex": "g = \\frac{4}{3}\\pi\\rho GR",
+     "say": "M = (4/3)πR³ρ 를 넣으면 밀도 ρ 로 쓸 수 있다."
+    }
+   ],
+   "concepts": [
+    "A1-13"
+   ],
+   "keys": [
+    "중력 가속도"
+   ]
+  },
+  {
+   "id": "A1.sat",
+   "unit": "A1",
+   "name": "인공위성의 속력과 주기",
+   "role": "derived",
+   "tex": "v = \\sqrt{\\frac{GM}{r}},\\quad T = 2\\pi\\sqrt{\\frac{r^3}{GM}}",
+   "steps": [
+    {
+     "tex": "\\frac{mv^2}{r} = G\\frac{Mm}{r^2}",
+     "say": "원궤도를 도는 위성의 구심력을 만유인력이 준다.",
+     "uses": [
+      "A1.grav",
+      "A1.cforce"
+     ]
+    },
+    {
+     "tex": "v = \\sqrt{\\frac{GM}{r}}",
+     "say": "높이 돌수록 느리다."
+    },
+    {
+     "tex": "T = \\frac{2\\pi r}{v} = 2\\pi\\sqrt{\\frac{r^3}{GM}}",
+     "say": "주기 식에 넣으면 T² ∝ r³, 곧 케플러 제3법칙이 다시 나온다.",
+     "uses": [
+      "A1.circ"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-13"
+   ],
+   "keys": [
+    "인공위성",
+    "정지 위성"
+   ]
+  },
+  {
+   "id": "A1.gravU",
+   "unit": "A1",
+   "name": "중력 퍼텐셜 에너지 (만유인력)",
+   "role": "derived",
+   "tex": "U = -\\frac{GMm}{r}",
+   "steps": [
+    {
+     "say": "무한히 먼 곳을 기준(U = 0)으로 잡는다. 물체를 멀리 옮길 때 만유인력에 맞서 해야 하는 일이 퍼텐셜 에너지의 증가다.",
+     "uses": [
+      "I2.wcons"
+     ]
+    },
+    {
+     "tex": "U = -\\frac{GMm}{r}",
+     "say": "힘이 거리마다 달라 F–r 그래프의 넓이로 구해야 한다. 고교에서는 결과로 쓴다. 가까울수록 더 낮은(음의) 값이다.",
+     "uses": [
+      "A1.grav"
+     ]
+    }
+   ],
+   "calc": [
+    {
+     "tex": "U(r) = -\\int_r^{\\infty} G\\frac{Mm}{x^2}\\,dx = -\\frac{GMm}{r}",
+     "say": "넓이를 적분으로 구한 것이다."
+    }
+   ],
+   "concepts": [
+    "A1-13"
+   ],
+   "keys": [
+    "퍼텐셜 에너지",
+    "중력 위치 에너지"
+   ]
+  },
+  {
+   "id": "A1.orbitE",
+   "unit": "A1",
+   "name": "위성의 역학적 에너지",
+   "role": "applied",
+   "tex": "E = -\\frac{GMm}{2r}",
+   "steps": [
+    {
+     "tex": "E_k = \\frac{1}{2}mv^2 = \\frac{GMm}{2r}",
+     "say": "원궤도 위성의 속력 v² = GM/r 을 넣는다.",
+     "uses": [
+      "I2.ek",
+      "A1.sat"
+     ]
+    },
+    {
+     "tex": "E = E_k + U = \\frac{GMm}{2r} - \\frac{GMm}{r} = -\\frac{GMm}{2r}",
+     "say": "전체 에너지는 음수이고, 높은 궤도일수록 크다(0 에 가깝다).",
+     "uses": [
+      "A1.gravU"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-13"
+   ],
+   "keys": [
+    "궤도 에너지"
+   ]
+  },
+  {
+   "id": "A1.escape",
+   "unit": "A1",
+   "name": "탈출 속력",
+   "role": "applied",
+   "tex": "v_{\\text{탈출}} = \\sqrt{\\frac{2GM}{R}}",
+   "steps": [
+    {
+     "tex": "\\frac{1}{2}mv^2 - \\frac{GMm}{R} = 0",
+     "say": "지표면에서 쏘아 무한히 먼 곳(U = 0)에 겨우 닿으려면 역학적 에너지가 0 이어야 한다.",
+     "uses": [
+      "I2.mcons",
+      "I2.ek",
+      "A1.gravU"
+     ]
+    },
+    {
+     "tex": "v_{\\text{탈출}} = \\sqrt{\\frac{2GM}{R}}",
+     "say": "정리한다. 질량과 관계없다. 지구에서 약 11.2 km/s."
+    }
+   ],
+   "concepts": [
+    "A1-13",
+    "A1-16"
+   ],
+   "keys": [
+    "탈출 속력"
+   ]
+  },
+  {
+   "id": "A1.shmF",
+   "unit": "A1",
+   "name": "단진자의 복원력",
+   "role": "derived",
+   "tex": "F = -\\frac{mg}{l}\\,x",
+   "steps": [
+    {
+     "tex": "F = -mg\\sin\\theta",
+     "say": "실 방향 힘(장력)은 운동 방향에 수직이므로, 중력의 접선 성분만 추를 되돌린다.",
+     "uses": [
+      "A1.vector",
+      "I1.weight"
+     ]
+    },
+    {
+     "tex": "\\sin\\theta \\approx \\theta = \\frac{x}{l}",
+     "say": "각이 작으면(약 10° 이하) sin θ ≈ θ 로 근사한다. x 는 평형점에서 호를 따라 잰 변위."
+    },
+    {
+     "tex": "F = -\\frac{mg}{l}\\,x",
+     "say": "변위에 비례하고 방향이 반대인 힘: 단진동의 조건이다. 용수철의 k 자리에 mg/l."
+    }
+   ],
+   "concepts": [
+    "A1-14"
+   ],
+   "keys": [
+    "단진동",
+    "복원력"
+   ]
+  },
+  {
+   "id": "A1.shmT",
+   "unit": "A1",
+   "name": "단진동의 주기 (교과 심화)",
+   "role": "derived",
+   "tex": "T = 2\\pi\\sqrt{\\frac{m}{k}}",
+   "steps": [
+    {
+     "tex": "a_x = -\\omega^2 x",
+     "say": "등속 원운동을 옆에서 보면(그림자) 단진동이다. 구심 가속도 rω² 의 가로 성분은 −ω²x.",
+     "uses": [
+      "A1.cacc"
+     ]
+    },
+    {
+     "tex": "F = -kx = ma = -m\\omega^2 x",
+     "say": "용수철의 복원력에 뉴턴 제2법칙을 쓰고 비교한다.",
+     "uses": [
+      "I1.hooke",
+      "I1.newton2"
+     ]
+    },
+    {
+     "tex": "\\omega = \\sqrt{\\frac{k}{m}} \\;\\Rightarrow\\; T = \\frac{2\\pi}{\\omega} = 2\\pi\\sqrt{\\frac{m}{k}}",
+     "say": "주기는 진폭과 관계없다.",
+     "uses": [
+      "A1.circ"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-14"
+   ],
+   "keys": [
+    "용수철 진자",
+    "주기"
+   ]
+  },
+  {
+   "id": "A1.pend",
+   "unit": "A1",
+   "name": "단진자의 주기",
+   "role": "derived",
+   "tex": "T = 2\\pi\\sqrt{\\frac{l}{g}}",
+   "steps": [
+    {
+     "tex": "k = \\frac{mg}{l}",
+     "say": "단진자의 복원력 F = −(mg/l)x 에서 용수철 상수에 해당하는 값.",
+     "uses": [
+      "A1.shmF"
+     ]
+    },
+    {
+     "tex": "T = 2\\pi\\sqrt{\\frac{m}{mg/l}} = 2\\pi\\sqrt{\\frac{l}{g}}",
+     "say": "단진동의 주기 식에 넣는다. 질량·진폭과 관계없고 실의 길이와 g 로만 정해진다(진자의 등시성).",
+     "uses": [
+      "A1.shmT"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-14"
+   ],
+   "keys": [
+    "단진자",
+    "등시성"
+   ]
+  },
+  {
+   "id": "A1.pendV",
+   "unit": "A1",
+   "name": "진자의 최대 속력",
+   "role": "applied",
+   "tex": "v_{\\max} = \\sqrt{2gl(1 - \\cos\\theta)}",
+   "steps": [
+    {
+     "tex": "h = l(1 - \\cos\\theta)",
+     "say": "실 길이 l, 최대 각 θ 일 때 최저점에서 잰 추의 높이."
+    },
+    {
+     "tex": "\\frac{1}{2}mv_{\\max}^2 = mgl(1 - \\cos\\theta)",
+     "say": "역학적 에너지 보존: 높이에서 잃은 퍼텐셜 에너지 = 최저점의 운동 에너지.",
+     "uses": [
+      "I2.mconsG"
+     ]
+    },
+    {
+     "tex": "v_{\\max} = \\sqrt{2gl(1 - \\cos\\theta)}",
+     "say": "최대 속력은 질량과 관계없다. 에너지–시간 그래프의 주기는 진자 주기의 절반이다."
+    }
+   ],
+   "concepts": [
+    "A1-14",
+    "A2-06"
+   ],
+   "keys": [
+    "진자",
+    "최대 속력"
+   ]
+  },
+  {
+   "id": "A1.fict",
+   "unit": "A1",
+   "name": "관성력",
+   "role": "derived",
+   "tex": "\\vec{F}_{\\text{관성}} = -m\\vec{a}",
+   "steps": [
+    {
+     "say": "가속도 a 로 움직이는 차 안(가속 좌표계)에서는 관성 법칙이 그대로 성립하지 않는다.",
+     "uses": [
+      "I1.newton1"
+     ]
+    },
+    {
+     "tex": "\\vec{F}_{\\text{관성}} = -m\\vec{a}",
+     "say": "그 안의 관찰자는 가속도와 반대 방향으로 ma 의 힘이 더 있다고 보면 F = ma 를 그대로 쓸 수 있다. 실제로 무엇이 미는 힘은 아니다.",
+     "uses": [
+      "I1.newton2"
+     ]
+    },
+    {
+     "say": "관성계에서 볼 때는 실제 힘만, 가속계에서 볼 때는 관성력을 더한다. 한 풀이에서 섞지 않는다."
+    }
+   ],
+   "concepts": [
+    "A1-15"
+   ],
+   "keys": [
+    "관성력",
+    "가속 좌표계",
+    "원심력"
+   ]
+  },
+  {
+   "id": "A1.geff",
+   "unit": "A1",
+   "name": "가속하는 곳의 유효 중력",
+   "role": "applied",
+   "tex": "\\vec{g}_{eff} = \\vec{g} - \\vec{a},\\quad T = 2\\pi\\sqrt{\\frac{l}{g_{eff}}}",
+   "steps": [
+    {
+     "tex": "\\vec{g}_{eff} = \\vec{g} - \\vec{a}",
+     "say": "가속계에서는 중력 mg 와 관성력 −ma 를 합쳐 하나의 \"유효 중력\"으로 본다.",
+     "uses": [
+      "A1.fict"
+     ]
+    },
+    {
+     "tex": "T = 2\\pi\\sqrt{\\frac{l}{g_{eff}}}",
+     "say": "진자의 주기 식의 g 자리에 g_eff 를 넣는다. 위로 가속하는 엘리베이터에서는 g + a 라 주기가 짧아진다.",
+     "uses": [
+      "A1.pend"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-15"
+   ],
+   "keys": [
+    "유효 중력",
+    "엘리베이터"
+   ]
+  },
+  {
+   "id": "A1.tiltAcc",
+   "unit": "A1",
+   "name": "가속하는 차 안의 매달린 추",
+   "role": "applied",
+   "tex": "\\tan\\theta = \\frac{a}{g}",
+   "steps": [
+    {
+     "tex": "T\\sin\\theta = ma,\\quad T\\cos\\theta = mg",
+     "say": "차 안에서 보면 추는 관성력 ma(뒤쪽)와 중력, 장력이 평형이다.",
+     "uses": [
+      "A1.fict",
+      "A1.vector"
+     ]
+    },
+    {
+     "tex": "\\tan\\theta = \\frac{a}{g}",
+     "say": "실이 연직과 이루는 각으로 차의 가속도를 잴 수 있다(가속도계)."
+    },
+    {
+     "tex": "F_{\\text{원심}} = mr\\omega^2",
+     "say": "회전하는 판 위에서 보면 바깥쪽으로 관성력(원심력)이 있는 것처럼 보인다."
+    }
+   ],
+   "concepts": [
+    "A1-15"
+   ],
+   "keys": [
+    "가속도계",
+    "원심력"
+   ]
+  },
+  {
+   "id": "A1.equiv",
+   "unit": "A1",
+   "name": "등가 원리",
+   "role": "basis",
+   "tex": "m_{\\text{관성}} = m_{\\text{중력}}",
+   "basis": {
+    "type": "원리",
+    "what": "가속 좌표계의 관성력과 중력은 안에서는 구별할 수 없다. 관성 질량과 중력 질량이 같다. 아인슈타인은 이를 바탕으로 중력을 시공간의 휘어짐으로 설명했다(일반 상대성 이론).",
+    "check": "모든 물체가 같은 가속도로 떨어진다. 별빛이 태양 근처에서 휘는 것(중력 렌즈), 중력이 센 곳에서 시간이 느리게 가는 것(GPS 위성 시계 보정)이 예측과 맞는다."
+   },
+   "concepts": [
+    "A1-16"
+   ],
+   "keys": [
+    "등가 원리",
+    "일반 상대성 이론",
+    "중력 렌즈"
+   ]
+  },
+  {
+   "id": "A1.bh",
+   "unit": "A1",
+   "name": "블랙홀",
+   "role": "applied",
+   "tex": "v_{\\text{탈출}} = \\sqrt{\\frac{2GM}{R}} > c",
+   "steps": [
+    {
+     "say": "등가 원리에 따르면 빛도 중력이 센 곳에서 휘어 간다.",
+     "uses": [
+      "A1.equiv"
+     ]
+    },
+    {
+     "tex": "\\sqrt{\\frac{2GM}{R}} > c \\;\\Rightarrow\\; R < \\frac{2GM}{c^2}",
+     "say": "탈출 속력이 빛의 속력보다 크면 빛조차 빠져나오지 못한다. 이 반지름(사건의 지평선)은 일반 상대성 이론의 결과와도 같다.",
+     "uses": [
+      "A1.escape"
+     ]
+    }
+   ],
+   "concepts": [
+    "A1-16"
+   ],
+   "keys": [
+    "블랙홀",
+    "사건의 지평선"
+   ]
+  },
+  {
+   "id": "A2.power",
+   "unit": "A2",
+   "name": "일률",
+   "role": "derived",
+   "tex": "P = \\frac{W}{t} = Fv",
+   "steps": [
+    {
+     "tex": "P = \\frac{W}{t}",
+     "say": "1초 동안 한 일로 일률을 정한다. 단위 W(와트) = J/s."
+    },
+    {
+     "tex": "P = \\frac{Fs}{t} = Fv",
+     "say": "힘이 이동 방향으로 일정할 때 W = Fs 를 넣고 s/t = v 를 쓴다(교과 심화).",
+     "uses": [
+      "I2.work",
+      "I1.uniform"
+     ]
+    }
+   ],
+   "concepts": [
+    "A2-01"
+   ],
+   "keys": [
+    "일률",
+    "와트"
+   ]
+  },
+  {
+   "id": "A2.slide",
+   "unit": "A2",
+   "name": "빗면을 등속으로 미끄러질 때의 마찰력",
+   "role": "applied",
+   "tex": "f = mg\\sin\\theta",
+   "steps": [
+    {
+     "tex": "mg\\sin\\theta - f = 0",
+     "say": "등속이면 빗면 방향의 힘이 평형이다. 중력의 빗면 성분은 mg sin θ.",
+     "uses": [
+      "I1.equil",
+      "I1.incline"
+     ]
+    },
+    {
+     "tex": "f = mg\\sin\\theta",
+     "say": "마찰력 크기는 중력의 빗면 성분과 같다. 그 구간에서 잃은 에너지 f l = mgΔh."
+    }
+   ],
+   "concepts": [
+    "A2-03",
+    "A2-04"
+   ],
+   "keys": [
+    "등속",
+    "마찰력"
+   ]
+  },
+  {
+   "id": "A2.projE",
+   "unit": "A2",
+   "name": "포물선 운동의 역학적 에너지",
+   "role": "applied",
+   "tex": "E = \\frac{1}{2}mv_0^2 = \\frac{1}{2}mv^2 + mgy",
+   "steps": [
+    {
+     "tex": "\\frac{1}{2}mv_0^2 = \\frac{1}{2}mv^2 + mgy",
+     "say": "공기 저항이 없으면 포물선 운동에서도 역학적 에너지가 보존된다.",
+     "uses": [
+      "I2.mconsG"
+     ]
+    },
+    {
+     "tex": "E = mgH + \\frac{1}{2}mv_{0x}^2",
+     "say": "수평 속도는 변하지 않으므로 최고점에서도 운동 에너지 ½mv₀ₓ² 이 남는다.",
+     "uses": [
+      "A1.proj"
+     ]
+    },
+    {
+     "tex": "\\frac{K_y}{K_x} = \\tan^2\\theta",
+     "say": "처음 운동 에너지를 수평·연직 몫으로 나누면 그 비는 tan²θ. 연직 몫만 높이와 바뀐다."
+    }
+   ],
+   "concepts": [
+    "A2-05"
+   ],
+   "keys": [
+    "포물선",
+    "역학적 에너지"
+   ]
+  },
+  {
+   "id": "A2.wg",
+   "unit": "A2",
+   "name": "중력이 한 일과 연직 속도",
+   "role": "applied",
+   "tex": "W_g = \\frac{1}{2}m\\left(v_y^2 - v_{y0}^2\\right)",
+   "steps": [
+    {
+     "tex": "W_g = \\Delta E_k",
+     "say": "포물선 운동에서 일을 하는 힘은 중력뿐이다.",
+     "uses": [
+      "I2.wke"
+     ]
+    },
+    {
+     "tex": "W_g = \\frac{1}{2}m\\left(v_y^2 - v_{y0}^2\\right)",
+     "say": "수평 속도는 그대로이므로 운동 에너지 변화는 연직 속도에서만 생긴다.",
+     "uses": [
+      "A1.proj"
+     ]
+    },
+    {
+     "tex": "\\frac{v_x}{|v_y|} = \\tan\\phi",
+     "say": "도착 방향(φ: 연직과 이루는 각)은 두 속도 성분의 비로 정한다. 시간 조건은 Δv 로, 거리 조건은 일로 바꿔 연립한다."
+    }
+   ],
+   "concepts": [
+    "A2-07"
+   ],
+   "keys": [
+    "연직 속도"
+   ]
+  },
+  {
+   "id": "A2.lowT",
+   "unit": "A2",
+   "name": "진자 최저점의 장력",
+   "role": "applied",
+   "tex": "T - mg = \\frac{mv^2}{l}",
+   "steps": [
+    {
+     "tex": "T - mg = \\frac{mv^2}{l}",
+     "say": "최저점에서 장력(위)과 중력(아래)의 차가 중심(위)을 향하는 구심력이다.",
+     "uses": [
+      "A1.cforce",
+      "I1.weight"
+     ]
+    },
+    {
+     "say": "속력 v 는 역학적 에너지 보존으로 먼저 구한다. 최저점의 장력은 무게보다 크다."
+    }
+   ],
+   "concepts": [
+    "A2-07"
+   ],
+   "keys": [
+    "장력",
+    "최저점"
+   ]
+  },
+  {
+   "id": "A2.heat",
+   "unit": "A2",
+   "name": "비열과 열용량",
+   "role": "basis",
+   "tex": "Q = cm\\Delta T = C\\Delta T,\\quad C = cm",
+   "basis": {
+    "type": "정의",
+    "what": "질량 1 kg 인 물질의 온도를 1 K 올리는 데 드는 열을 비열 c 로, 물체 전체의 온도를 1 K 올리는 데 드는 열을 열용량 C 로 정한다. 온도는 입자 평균 운동 에너지, 열은 옮겨 가는 에너지다.",
+    "check": "같은 열을 주어도 물보다 식용유의 온도가 더 많이 오른다. 물의 비열 약 4.2 kJ/(kg·K) 는 매우 큰 편이다."
+   },
+   "concepts": [
+    "A2-08",
+    "A2-10"
+   ],
+   "keys": [
+    "비열",
+    "열용량",
+    "열량"
+   ]
+  },
+  {
+   "id": "A2.mix",
+   "unit": "A2",
+   "name": "열평형",
+   "role": "applied",
+   "tex": "c_1 m_1 (T_1 - T) = c_2 m_2 (T - T_2)",
+   "steps": [
+    {
+     "say": "뜨거운 물체와 찬 물체를 접촉시키면 같은 온도 T 가 될 때까지 열이 옮겨 간다."
+    },
+    {
+     "tex": "Q_{\\text{잃음}} = Q_{\\text{얻음}}",
+     "say": "바깥과 열 출입이 없으면 에너지 보존에 따라 잃은 열 = 얻은 열.",
+     "uses": [
+      "I2.first"
+     ]
+    },
+    {
+     "tex": "c_1 m_1 (T_1 - T) = c_2 m_2 (T - T_2)",
+     "say": "각각 Q = cmΔT 로 쓴다.",
+     "uses": [
+      "A2.heat"
+     ]
+    }
+   ],
+   "concepts": [
+    "A2-08"
+   ],
+   "keys": [
+    "열평형",
+    "혼합"
+   ]
+  },
+  {
+   "id": "A2.joule",
+   "unit": "A2",
+   "name": "열의 일당량",
+   "role": "basis",
+   "tex": "W = JQ,\\quad J = 4.2\\times 10^3\\ \\text{J/kcal}",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "역학적 일 W 가 모두 열로 바뀌면 열량 Q 와 일정한 비 J 를 이룬다. 1 kcal 의 열은 4.2 × 10³ J 의 일과 같다. 일과 열이 같은 에너지라는 증거다.",
+    "check": "줄은 추가 내려가며 물속 날개를 돌리게 하고, 추가 한 일과 물의 온도 상승을 비교해 J 를 쟀다."
+   },
+   "concepts": [
+    "A2-10"
+   ],
+   "keys": [
+    "줄",
+    "일당량",
+    "칼로리"
+   ]
+  },
+  {
+   "id": "A2.jouleExp",
+   "unit": "A2",
+   "name": "줄의 실험 장부",
+   "role": "applied",
+   "tex": "NMgh = Jcm\\Delta T",
+   "steps": [
+    {
+     "tex": "W = N\\cdot Mgh",
+     "say": "질량 M 인 추가 높이 h 를 N 번 내려오며 잃은 퍼텐셜 에너지가 날개를 돌린 일이다.",
+     "uses": [
+      "I2.epg"
+     ]
+    },
+    {
+     "tex": "NMgh = J\\,cm\\Delta T",
+     "say": "그 일이 모두 물이 얻은 열(cmΔT)로 바뀐다. 단위(cal ↔ J)만 맞추면 된다.",
+     "uses": [
+      "A2.joule",
+      "A2.heat"
+     ]
+    },
+    {
+     "tex": "Fs = J\\,cm\\Delta T",
+     "say": "손으로 힘 F 를 주어 s 만큼 문질러도 같은 장부다."
+    }
+   ],
+   "concepts": [
+    "A2-10"
+   ],
+   "keys": [
+    "줄의 실험"
+   ]
+  },
+  {
+   "id": "B1.efield",
+   "unit": "B1",
+   "name": "전기장",
+   "role": "basis",
+   "tex": "\\vec{E} = \\frac{\\vec{F}}{q}",
+   "basis": {
+    "type": "정의",
+    "what": "어떤 점에 놓은 시험 전하 q 가 받는 전기력을 q 로 나눈 값, 곧 +1 C 이 받는 힘으로 정한다. 단위 N/C. 방향은 양전하를 놓았을 때 밀리는 방향이다.",
+    "check": "작은 대전체를 여러 곳에 놓아 힘을 재면 위치마다 크기와 방향이 다르다. 전기력선을 그리면 촘촘한 곳이 센 곳이다."
+   },
+   "concepts": [
+    "B1-02",
+    "B1-04"
+   ],
+   "keys": [
+    "전기장",
+    "전기력선"
+   ]
+  },
+  {
+   "id": "B1.pointE",
+   "unit": "B1",
+   "name": "점전하의 전기장",
+   "role": "derived",
+   "tex": "E = k\\frac{q}{r^2}",
+   "steps": [
+    {
+     "tex": "F = k\\frac{qq_0}{r^2}",
+     "say": "점전하 q 가 거리 r 에 놓인 시험 전하 q₀ 에 주는 힘.",
+     "uses": [
+      "II1.coulomb"
+     ]
+    },
+    {
+     "tex": "E = \\frac{F}{q_0} = k\\frac{q}{r^2}",
+     "say": "전기장의 정의대로 q₀ 로 나눈다. 양전하는 바깥쪽, 음전하는 안쪽을 향한다.",
+     "uses": [
+      "B1.efield"
+     ]
+    }
+   ],
+   "concepts": [
+    "B1-02"
+   ],
+   "keys": [
+    "점전하"
+   ]
+  },
+  {
+   "id": "B1.Esum",
+   "unit": "B1",
+   "name": "전기장의 중첩",
+   "role": "derived",
+   "tex": "\\vec{E} = \\sum_i k\\frac{q_i}{r_i^2}\\,\\hat{r}_i",
+   "steps": [
+    {
+     "tex": "\\vec{E} = \\vec{E}_1 + \\vec{E}_2 + \\cdots",
+     "say": "전하가 여럿이면 각 전하가 만드는 전기장을 벡터로 더한다.",
+     "uses": [
+      "B1.pointE"
+     ]
+    },
+    {
+     "tex": "E_x = k\\frac{q\\,\\Delta x}{r^3},\\quad E_y = k\\frac{q\\,\\Delta y}{r^3}",
+     "say": "세기 kq/r² 에 방향 성분 Δx/r, Δy/r 을 곱해 성분을 구한다.",
+     "uses": [
+      "A1.vector"
+     ]
+    },
+    {
+     "tex": "\\tan\\theta = \\frac{E_y}{E_x}",
+     "say": "성분을 모두 더한 뒤 크기와 방향을 구한다. 표(전하 | 세기 | 가로 | 세로)를 만들면 편하다."
+    }
+   ],
+   "concepts": [
+    "B1-03"
+   ],
+   "keys": [
+    "중첩",
+    "성분"
+   ]
+  },
+  {
+   "id": "B1.volt",
+   "unit": "B1",
+   "name": "전위차",
+   "role": "basis",
+   "tex": "V = \\frac{W}{q},\\quad W = qV",
+   "basis": {
+    "type": "정의",
+    "what": "전하 q 를 한 점에서 다른 점으로 옮길 때 전기력에 맞서 하는 일을 q 로 나눈 값, 곧 +1 C 당 일로 정한다. 단위 V = J/C.",
+    "check": "전압계로 두 점 사이를 잰다. 전위–위치 그래프에서 기울기의 크기가 전기장, 내려가는 방향이 전기장 방향이다."
+   },
+   "concepts": [
+    "B1-05"
+   ],
+   "keys": [
+    "전위",
+    "전압",
+    "볼트"
+   ]
+  },
+  {
+   "id": "B1.uniform",
+   "unit": "B1",
+   "name": "균일한 전기장과 전위차",
+   "role": "derived",
+   "tex": "E = \\frac{V}{d}",
+   "steps": [
+    {
+     "tex": "F = qE",
+     "say": "균일한 전기장 속 전하가 받는 힘은 어디서나 같다.",
+     "uses": [
+      "B1.efield"
+     ]
+    },
+    {
+     "tex": "W = Fd = qEd",
+     "say": "전기장 방향으로 d 만큼 옮길 때의 일.",
+     "uses": [
+      "I2.work"
+     ]
+    },
+    {
+     "tex": "qEd = qV \\;\\Rightarrow\\; E = \\frac{V}{d}",
+     "say": "전위차의 정의 W = qV 와 같게 놓는다. 평행판 사이 전기장이다.",
+     "uses": [
+      "B1.volt"
+     ]
+    }
+   ],
+   "concepts": [
+    "B1-05",
+    "B1-10"
+   ],
+   "keys": [
+    "균일한 전기장",
+    "평행판"
+   ]
+  },
+  {
+   "id": "B1.accel",
+   "unit": "B1",
+   "name": "전압으로 가속한 입자의 속력",
+   "role": "derived",
+   "tex": "qV = \\frac{1}{2}mv^2",
+   "steps": [
+    {
+     "tex": "W = qV",
+     "say": "전위차 V 를 지나는 동안 전기력이 한 일.",
+     "uses": [
+      "B1.volt"
+     ]
+    },
+    {
+     "tex": "qV = \\frac{1}{2}mv^2 - 0",
+     "say": "정지 상태에서 출발했다면 그 일이 모두 운동 에너지가 된다.",
+     "uses": [
+      "I2.wke"
+     ]
+    },
+    {
+     "tex": "v = \\sqrt{\\frac{2qV}{m}}",
+     "say": "전압이 4배면 속력은 2배다."
+    }
+   ],
+   "concepts": [
+    "B1-05"
+   ],
+   "keys": [
+    "가속 전압",
+    "전자총"
+   ]
+  },
+  {
+   "id": "B1.pointU",
+   "unit": "B1",
+   "name": "점전하의 전기 퍼텐셜 에너지 (교과 심화)",
+   "role": "derived",
+   "tex": "U = k\\frac{q_1 q_2}{r}",
+   "steps": [
+    {
+     "say": "쿨롱 힘도 만유인력처럼 거리의 제곱에 반비례하므로, 같은 방법(F–r 그래프의 넓이)으로 퍼텐셜 에너지를 구한다.",
+     "uses": [
+      "A1.gravU"
+     ]
+    },
+    {
+     "tex": "U = k\\frac{q_1 q_2}{r}",
+     "say": "무한히 먼 곳을 기준(0)으로 잡는다. 같은 부호면 양수(가까울수록 큼), 다른 부호면 음수다.",
+     "uses": [
+      "II1.coulomb"
+     ]
+    },
+    {
+     "tex": "U = -k\\frac{e^2}{r}",
+     "say": "수소 원자의 전자(−e)와 원자핵(+e)은 음수다."
+    }
+   ],
+   "calc": [
+    {
+     "tex": "U(r) = \\int_r^{\\infty} k\\frac{q_1 q_2}{x^2}\\,dx = k\\frac{q_1 q_2}{r}",
+     "say": "넓이를 적분으로 구한 것이다."
+    }
+   ],
+   "concepts": [
+    "B1-05",
+    "C2-05"
+   ],
+   "keys": [
+    "전기 퍼텐셜 에너지"
+   ]
+  },
+  {
+   "id": "B1.beam",
+   "unit": "B1",
+   "name": "균일한 전기장 속 대전 입자의 운동",
+   "role": "applied",
+   "tex": "a = \\frac{qE}{m},\\quad y = \\frac{1}{2}\\frac{qE}{m}\\left(\\frac{x}{v_0}\\right)^2",
+   "steps": [
+    {
+     "tex": "a = \\frac{F}{m} = \\frac{qE}{m}",
+     "say": "전기력 qE 에 F = ma 를 쓴다.",
+     "uses": [
+      "B1.efield",
+      "I1.newton2"
+     ]
+    },
+    {
+     "tex": "y = \\frac{1}{2}\\frac{qE}{m}\\left(\\frac{x}{v_0}\\right)^2",
+     "say": "전기장에 수직으로 들어가면 수평으로 던진 운동과 같다. g 자리에 qE/m.",
+     "uses": [
+      "A1.horiz"
+     ]
+    }
+   ],
+   "concepts": [
+    "B1-06"
+   ],
+   "keys": [
+    "대전 입자",
+    "편향"
+   ]
+  },
+  {
+   "id": "B1.hangQ",
+   "unit": "B1",
+   "name": "전기장 속에 매달린 대전 구",
+   "role": "applied",
+   "tex": "qE = mg\\tan\\theta",
+   "steps": [
+    {
+     "tex": "qE = mg\\tan\\theta",
+     "say": "수평 전기력 qE 가 실에 매달린 구를 θ 만큼 기울인다. 수평 힘으로 붙잡은 물체와 같은 평형이다.",
+     "uses": [
+      "A1.tilt",
+      "B1.efield"
+     ]
+    },
+    {
+     "say": "전기장이 2배면 tan θ 가 2배. 구의 전하 부호는 기우는 방향으로 판단한다."
+    }
+   ],
+   "concepts": [
+    "B1-06"
+   ],
+   "keys": [
+    "힘의 평형",
+    "대전 구"
+   ]
+  },
+  {
+   "id": "B1.kappa",
+   "unit": "B1",
+   "name": "유전 상수",
+   "role": "basis",
+   "tex": "\\kappa = \\frac{\\varepsilon}{\\varepsilon_0} > 1",
+   "basis": {
+    "type": "정의",
+    "what": "절연체(유전체)를 전기장 속에 넣으면 분자들이 늘어서며(유전 분극) 안쪽 전기장이 약해진다. 그 매질의 유전율 ε 와 진공 유전율 ε₀ 의 비를 유전 상수 κ 로 정한다.",
+    "check": "대전된 축전기 극판 사이에 유리나 종이를 넣으면 전압이 1/κ 로 줄고, 전원에 연결된 채면 모이는 전하가 κ 배가 된다. 도체 내부 전기장은 0, 절연체 내부는 약해질 뿐이다."
+   },
+   "concepts": [
+    "B1-07"
+   ],
+   "keys": [
+    "유전체",
+    "유전 분극",
+    "유전율"
+   ]
+  },
+  {
+   "id": "B1.cap",
+   "unit": "B1",
+   "name": "전기 용량",
+   "role": "basis",
+   "tex": "C = \\frac{Q}{V}",
+   "basis": {
+    "type": "정의",
+    "what": "축전기 극판에 모인 전하량 Q 를 두 극판 사이의 전위차 V 로 나눈 값으로 정한다. 단위 F(패럿) = C/V.",
+    "check": "축전기를 여러 전압으로 충전해 전하량을 재면 Q–V 그래프가 원점을 지나는 직선이고, 그 기울기가 C 다."
+   },
+   "concepts": [
+    "B1-10"
+   ],
+   "keys": [
+    "축전기",
+    "전기 용량",
+    "패럿"
+   ]
+  },
+  {
+   "id": "B1.plate",
+   "unit": "B1",
+   "name": "평행판 축전기의 전기 용량",
+   "role": "derived",
+   "tex": "C = \\varepsilon\\frac{A}{d} = \\kappa\\varepsilon_0\\frac{A}{d}",
+   "steps": [
+    {
+     "tex": "C = \\varepsilon_0\\frac{A}{d}",
+     "say": "극판 넓이 A 가 클수록, 간격 d 가 작을수록 같은 전압에 전하가 많이 모인다(실험 결과).",
+     "uses": [
+      "B1.cap"
+     ]
+    },
+    {
+     "tex": "C = \\kappa\\varepsilon_0\\frac{A}{d} = \\varepsilon\\frac{A}{d}",
+     "say": "유전체를 채우면 κ 배가 된다.",
+     "uses": [
+      "B1.kappa"
+     ]
+    }
+   ],
+   "concepts": [
+    "B1-10"
+   ],
+   "keys": [
+    "평행판"
+   ]
+  },
+  {
+   "id": "B1.capU",
+   "unit": "B1",
+   "name": "축전기에 저장된 에너지",
+   "role": "derived",
+   "tex": "U = \\frac{1}{2}QV = \\frac{1}{2}CV^2 = \\frac{Q^2}{2C}",
+   "steps": [
+    {
+     "tex": "\\Delta W = V\\Delta q",
+     "say": "전하 Δq 를 더 옮길 때마다 그때의 전압 V 만큼 일을 한다.",
+     "uses": [
+      "B1.volt"
+     ]
+    },
+    {
+     "tex": "U = \\frac{1}{2}QV",
+     "say": "V 가 q 에 비례해 커지므로 Q–V 그래프 아래 삼각형 넓이가 저장된 에너지다."
+    },
+    {
+     "tex": "U = \\frac{1}{2}CV^2 = \\frac{Q^2}{2C}",
+     "say": "Q = CV 로 바꿔 쓴다. 전압 일정이면 ½CV²(C 에 비례), 전하 일정이면 Q²/2C(C 에 반비례)를 쓴다.",
+     "uses": [
+      "B1.cap"
+     ]
+    }
+   ],
+   "concepts": [
+    "B1-10",
+    "B1-11"
+   ],
+   "keys": [
+    "축전기 에너지"
+   ]
+  },
+  {
+   "id": "B1.capComb",
+   "unit": "B1",
+   "name": "축전기의 연결",
+   "role": "derived",
+   "tex": "C_{\\text{병렬}} = C_1 + C_2,\\quad \\frac{1}{C_{\\text{직렬}}} = \\frac{1}{C_1} + \\frac{1}{C_2}",
+   "steps": [
+    {
+     "tex": "Q = Q_1 + Q_2 = (C_1 + C_2)V",
+     "say": "병렬: 두 축전기의 전압이 같고 전하량이 더해진다.",
+     "uses": [
+      "B1.cap"
+     ]
+    },
+    {
+     "tex": "V = V_1 + V_2 = \\frac{Q}{C_1} + \\frac{Q}{C_2}",
+     "say": "직렬: 가운데 이어진 두 극판은 처음에 중성이었으므로(전하량 보존) 두 축전기에 같은 Q 가 모이고, 전압이 더해진다.",
+     "uses": [
+      "II1.charge"
+     ]
+    },
+    {
+     "say": "극판 넓이를 나눠 유전체를 넣으면 병렬, 간격을 나눠 넣으면 직렬로 계산한다."
+    }
+   ],
+   "concepts": [
+    "B1-12"
+   ],
+   "keys": [
+    "직렬",
+    "병렬"
+   ]
+  },
+  {
+   "id": "B1.share",
+   "unit": "B1",
+   "name": "축전기의 전하 재분배",
+   "role": "applied",
+   "tex": "V' = \\frac{C_1 V_0}{C_1 + C_2}",
+   "steps": [
+    {
+     "tex": "C_1 V_0 = (C_1 + C_2)\\,V'",
+     "say": "충전된 C₁ 을 빈 C₂ 와 병렬로 이으면 전하량이 보존된 채 같은 전압이 될 때까지 나뉜다.",
+     "uses": [
+      "II1.charge",
+      "B1.capComb"
+     ]
+    },
+    {
+     "tex": "\\Delta U = \\frac{1}{2}\\frac{C_1 C_2}{C_1 + C_2}V_0^2",
+     "say": "연결 전후 저장 에너지를 비교하면 이만큼 줄어든다(도선의 열·전자기파로 나감).",
+     "uses": [
+      "B1.capU"
+     ]
+    }
+   ],
+   "concepts": [
+    "B1-12"
+   ],
+   "keys": [
+    "재분배"
+   ]
+  },
+  {
+   "id": "B2.current",
+   "unit": "B2",
+   "name": "전류",
+   "role": "basis",
+   "tex": "I = \\frac{Q}{t}",
+   "basis": {
+    "type": "정의",
+    "what": "도선의 한 단면을 1초 동안 지나는 전하량으로 정한다. 단위 A = C/s. 전류의 방향은 양전하가 움직이는 방향(전자의 이동과 반대)이다.",
+    "check": "전류계를 회로에 직렬로 연결해 잰다."
+   },
+   "concepts": [
+    "B2-01"
+   ],
+   "keys": [
+    "전류",
+    "암페어"
+   ]
+  },
+  {
+   "id": "B2.ohm",
+   "unit": "B2",
+   "name": "옴의 법칙",
+   "role": "basis",
+   "tex": "V = IR",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "온도가 일정하면 도체에 흐르는 전류는 양 끝 전압에 비례한다. 비례 상수의 역수가 저항 R 이다.",
+    "check": "전원 전압을 바꿔 가며 전압계·전류계로 재면 V–I 그래프가 원점을 지나는 직선이다. 기울기가 저항이다."
+   },
+   "concepts": [
+    "B2-01"
+   ],
+   "keys": [
+    "옴",
+    "저항",
+    "전압"
+   ]
+  },
+  {
+   "id": "B2.kirch",
+   "unit": "B2",
+   "name": "키르히호프 법칙",
+   "role": "derived",
+   "tex": "\\sum I_{\\text{들어옴}} = \\sum I_{\\text{나감}},\\quad \\sum\\Delta V = 0",
+   "steps": [
+    {
+     "tex": "\\sum I_{\\text{들어옴}} = \\sum I_{\\text{나감}}",
+     "say": "갈림길(노드)에서 전하가 쌓이거나 사라지지 않는다(전하량 보존).",
+     "uses": [
+      "II1.charge"
+     ]
+    },
+    {
+     "tex": "\\sum\\Delta V = 0",
+     "say": "회로를 한 바퀴 돌아 제자리로 오면 전위가 처음과 같다(에너지 보존). 전지에서 오른 만큼 저항에서 내려간다.",
+     "uses": [
+      "B1.volt"
+     ]
+    }
+   ],
+   "concepts": [
+    "B2-02",
+    "B2-04"
+   ],
+   "keys": [
+    "키르히호프",
+    "전류 법칙",
+    "전압 법칙"
+   ]
+  },
+  {
+   "id": "B2.Rcomb",
+   "unit": "B2",
+   "name": "저항의 직렬·병렬 연결",
+   "role": "derived",
+   "tex": "R_{\\text{직렬}} = R_1 + R_2,\\quad \\frac{1}{R_{\\text{병렬}}} = \\frac{1}{R_1} + \\frac{1}{R_2}",
+   "steps": [
+    {
+     "tex": "V = IR_1 + IR_2 = I(R_1 + R_2)",
+     "say": "직렬: 같은 전류가 흐르고 전압이 나뉜다.",
+     "uses": [
+      "B2.kirch",
+      "B2.ohm"
+     ]
+    },
+    {
+     "tex": "I = \\frac{V}{R_1} + \\frac{V}{R_2} = V\\left(\\frac{1}{R_1} + \\frac{1}{R_2}\\right)",
+     "say": "병렬: 같은 전압이 걸리고 전류가 나뉜다."
+    },
+    {
+     "say": "스위치 상태가 바뀌면 노드마다 이름을 붙여 회로를 다시 그린다. 같은 두 노드 사이에 있으면 병렬이다."
+    }
+   ],
+   "concepts": [
+    "B2-02"
+   ],
+   "keys": [
+    "직렬",
+    "병렬",
+    "합성 저항"
+   ]
+  },
+  {
+   "id": "B2.bridge",
+   "unit": "B2",
+   "name": "휘트스톤 브리지의 평형",
+   "role": "applied",
+   "tex": "R_1 R_4 = R_2 R_3",
+   "steps": [
+    {
+     "tex": "I_1 R_1 = I_2 R_2,\\quad I_1 R_3 = I_2 R_4",
+     "say": "가운데 검류계에 전류가 흐르지 않으면 양쪽 가운데 점의 전위가 같다.",
+     "uses": [
+      "B2.kirch",
+      "B2.ohm"
+     ]
+    },
+    {
+     "tex": "\\frac{R_1}{R_3} = \\frac{R_2}{R_4} \\;\\Rightarrow\\; R_1 R_4 = R_2 R_3",
+     "say": "두 식을 나눈다. 모르는 저항을 정밀하게 잴 때 쓴다."
+    }
+   ],
+   "concepts": [
+    "B2-02"
+   ],
+   "keys": [
+    "브리지"
+   ]
+  },
+  {
+   "id": "B2.power",
+   "unit": "B2",
+   "name": "전력과 전기 에너지",
+   "role": "derived",
+   "tex": "P = VI = I^2R = \\frac{V^2}{R}",
+   "steps": [
+    {
+     "tex": "W = qV = VIt",
+     "say": "전하 q = It 가 전위차 V 를 지나며 잃는 전기 에너지.",
+     "uses": [
+      "B1.volt",
+      "B2.current"
+     ]
+    },
+    {
+     "tex": "P = \\frac{W}{t} = VI",
+     "say": "1초 동안 쓰는 에너지가 전력이다."
+    },
+    {
+     "tex": "P = I^2R = \\frac{V^2}{R}",
+     "say": "V = IR 을 넣는다. 직렬이면 I 가 같아 저항 큰 쪽이, 병렬이면 V 가 같아 저항 작은 쪽이 밝다.",
+     "uses": [
+      "B2.ohm"
+     ]
+    }
+   ],
+   "forms": [
+    "W = Pt = VIt"
+   ],
+   "concepts": [
+    "B2-03"
+   ],
+   "keys": [
+    "전력",
+    "소비 전력",
+    "전기 에너지"
+   ]
+  },
+  {
+   "id": "B2.tr",
+   "unit": "B2",
+   "name": "트랜지스터의 전류",
+   "role": "derived",
+   "tex": "I_E = I_B + I_C",
+   "steps": [
+    {
+     "say": "n-p-n 트랜지스터에서 전류는 베이스(B)와 컬렉터(C)로 들어가 이미터(E)로 나간다. p-n-p 는 모두 반대."
+    },
+    {
+     "tex": "I_E = I_B + I_C",
+     "say": "트랜지스터 전체를 한 갈림길로 보면 들어온 전류 = 나간 전류.",
+     "uses": [
+      "B2.kirch"
+     ]
+    }
+   ],
+   "concepts": [
+    "B2-04"
+   ],
+   "keys": [
+    "트랜지스터",
+    "이미터",
+    "베이스",
+    "컬렉터"
+   ]
+  },
+  {
+   "id": "B2.amp",
+   "unit": "B2",
+   "name": "트랜지스터의 증폭",
+   "role": "applied",
+   "tex": "\\beta = \\frac{I_C}{I_B},\\quad I_E = (1 + \\beta)\\,I_B",
+   "steps": [
+    {
+     "tex": "\\beta = \\frac{I_C}{I_B}",
+     "say": "작은 베이스 전류가 큰 컬렉터 전류를 조절한다. 그 비를 전류 증폭률 β 로 정한다."
+    },
+    {
+     "tex": "I_E = I_B + \\beta I_B = (1 + \\beta)\\,I_B",
+     "say": "I_E = I_B + I_C 에 넣는다. 가장 큰 전류는 이미터 전류다.",
+     "uses": [
+      "B2.tr"
+     ]
+    },
+    {
+     "say": "베이스 전류가 0 이면 컬렉터 전류도 0 이다(스위치로 쓰임)."
+    }
+   ],
+   "concepts": [
+    "B2-05"
+   ],
+   "keys": [
+    "증폭",
+    "스위칭",
+    "증폭률"
+   ]
+  },
+  {
+   "id": "B2.bias",
+   "unit": "B2",
+   "name": "바이어스 전압과 증폭 회로",
+   "role": "applied",
+   "tex": "V_B = \\frac{R_2}{R_1 + R_2}V_{CC}",
+   "steps": [
+    {
+     "tex": "V_B = \\frac{R_2}{R_1 + R_2}V_{CC}",
+     "say": "두 저항으로 전원 전압을 나눠 베이스에 일정한 직류 전압을 준다(전압 분배).",
+     "uses": [
+      "B2.Rcomb"
+     ]
+    },
+    {
+     "tex": "V_B = V_E + V_{BE},\\quad V_C = V_E + V_{CE}",
+     "say": "각 단자 사이 전압을 이어 더한다.",
+     "uses": [
+      "B2.kirch"
+     ]
+    },
+    {
+     "tex": "R_C = \\frac{V_{CC} - V_C}{I_C}",
+     "say": "컬렉터 저항에 걸린 전압을 전류로 나눈다. 바이어스가 없으면 교류 신호의 절반이 잘린다.",
+     "uses": [
+      "B2.ohm"
+     ]
+    }
+   ],
+   "concepts": [
+    "B2-06"
+   ],
+   "keys": [
+    "바이어스",
+    "전압 분배"
+   ]
+  },
+  {
+   "id": "B2.compass",
+   "unit": "B2",
+   "name": "나침반으로 재는 전류의 자기장",
+   "role": "applied",
+   "tex": "\\tan\\theta = \\frac{B_{\\text{전류}}}{B_{\\text{지구}}}",
+   "steps": [
+    {
+     "say": "남북 방향 도선 아래 나침반은 지구 자기장(북쪽)과 전류의 자기장(동서쪽)을 더한 방향을 가리킨다.",
+     "uses": [
+      "II2.Bwire"
+     ]
+    },
+    {
+     "tex": "\\tan\\theta = \\frac{B_{\\text{전류}}}{B_{\\text{지구}}}",
+     "say": "서로 수직인 두 자기장을 벡터로 더하면 바늘이 돌아간 각 θ 가 나온다.",
+     "uses": [
+      "A1.vector"
+     ]
+    }
+   ],
+   "concepts": [
+    "B2-07"
+   ],
+   "keys": [
+    "나침반",
+    "지구 자기장"
+   ]
+  },
+  {
+   "id": "B2.force",
+   "unit": "B2",
+   "name": "자기장 속 전류가 받는 힘",
+   "role": "basis",
+   "tex": "F = BIL\\sin\\theta",
+   "basis": {
+    "type": "실험 법칙",
+    "what": "자기장 B 속에서 길이 L 인 도선에 전류 I 가 흐르면 전류와 자기장 모두에 수직인 힘을 받는다. θ 는 전류와 자기장 사이의 각. 이 식으로 자기장의 세기(단위 T = N/(A·m))를 정하기도 한다.",
+    "check": "자석 사이의 도선에 전류를 흘리면 도선이 튀어 나간다. 전류나 자기장 중 하나를 뒤집으면 힘도 뒤집힌다. 전동기·스피커가 이 힘을 쓴다."
+   },
+   "concepts": [
+    "II2-06",
+    "B2-11"
+   ],
+   "keys": [
+    "자기력",
+    "전동기",
+    "플레밍",
+    "스피커"
+   ]
+  },
+  {
+   "id": "B2.rail",
+   "unit": "B2",
+   "name": "레일 위 막대가 받는 힘과 종단 속도",
+   "role": "applied",
+   "tex": "F = BIL = \\frac{B^2L^2v}{R}",
+   "steps": [
+    {
+     "tex": "I = \\frac{BLv}{R}",
+     "say": "움직이는 막대에 생긴 기전력 BLv 로 유도 전류가 흐른다.",
+     "uses": [
+      "II2.BLv",
+      "II2.induced"
+     ]
+    },
+    {
+     "tex": "F = BIL = \\frac{B^2L^2v}{R}",
+     "say": "그 전류가 자기장에서 받는 힘은 운동을 방해한다(렌츠). 빠를수록 크다.",
+     "uses": [
+      "B2.force"
+     ]
+    },
+    {
+     "tex": "v_{\\text{종단}} = \\frac{FR}{B^2L^2}",
+     "say": "일정한 힘 F 로 끌면 방해하는 힘과 같아지는 속력에서 등속이 된다(교과 심화)."
+    }
+   ],
+   "concepts": [
+    "B2-11"
+   ],
+   "keys": [
+    "레일",
+    "종단 속도",
+    "전자기 제동"
+   ]
+  },
+  {
+   "id": "B2.rod",
+   "unit": "B2",
+   "name": "회전하는 막대의 기전력",
+   "role": "applied",
+   "tex": "\\varepsilon = \\frac{1}{2}B\\omega R^2",
+   "steps": [
+    {
+     "tex": "v = r\\omega",
+     "say": "한 끝을 축으로 도는 막대의 각 부분은 축에서 멀수록 빠르다.",
+     "uses": [
+      "A1.circ"
+     ]
+    },
+    {
+     "tex": "\\bar{v} = \\frac{0 + R\\omega}{2}",
+     "say": "속력이 거리에 비례하므로 평균 속력은 끝 속력의 절반이다."
+    },
+    {
+     "tex": "\\varepsilon = BR\\bar{v} = \\frac{1}{2}B\\omega R^2",
+     "say": "BLv 에 길이 R 과 평균 속력을 넣는다.",
+     "uses": [
+      "II2.BLv"
+     ]
+    }
+   ],
+   "concepts": [
+    "B2-11"
+   ],
+   "keys": [
+    "회전 막대"
+   ]
+  },
+  {
+   "id": "B2.gen",
+   "unit": "B2",
+   "name": "발전기의 기전력",
+   "role": "derived",
+   "tex": "\\varepsilon = NBA\\omega\\sin\\omega t,\\quad \\varepsilon_{\\max} = NBA\\omega",
+   "steps": [
+    {
+     "tex": "\\Phi = BA\\cos\\omega t",
+     "say": "넓이 A 인 코일이 자기장 속에서 각속도 ω 로 돌면 선속이 이렇게 변한다.",
+     "uses": [
+      "II2.flux"
+     ]
+    },
+    {
+     "tex": "v_\\perp = \\frac{a}{2}\\,\\omega\\sin\\omega t",
+     "say": "자기장을 끊고 지나가는 두 변(길이 b, 축에서 a/2)의 속도 가운데 자기장에 수직인 성분.",
+     "uses": [
+      "A1.circ"
+     ]
+    },
+    {
+     "tex": "\\varepsilon = N\\cdot 2\\,Bb\\,v_\\perp = NBA\\omega\\sin\\omega t",
+     "say": "두 변의 기전력 BLv 를 더한다(A = ab). 선속이 최대일 때 기전력은 0, 선속이 0 일 때 기전력이 최대다.",
+     "uses": [
+      "II2.BLv"
+     ]
+    }
+   ],
+   "calc": [
+    {
+     "tex": "\\varepsilon = -N\\frac{d\\Phi}{dt} = NBA\\omega\\sin\\omega t",
+     "say": "선속을 시간으로 미분해도 같다."
+    }
+   ],
+   "concepts": [
+    "B2-12",
+    "II2-13"
+   ],
+   "keys": [
+    "발전기",
+    "교류"
+   ]
+  },
+  {
+   "id": "B2.mutual",
+   "unit": "B2",
+   "name": "상호 유도",
+   "role": "derived",
+   "tex": "\\varepsilon_2 = -M\\frac{\\Delta I_1}{\\Delta t}",
+   "steps": [
+    {
+     "tex": "N_2\\Phi_2 \\propto I_1",
+     "say": "1차 코일의 전류가 만드는 자기장은 전류에 비례하므로 2차 코일을 지나는 선속도 I₁ 에 비례한다. 그 비례 상수를 M(상호 유도 계수)이라 한다.",
+     "uses": [
+      "II2.Bsol"
+     ]
+    },
+    {
+     "tex": "\\varepsilon_2 = -N_2\\frac{\\Delta\\Phi_2}{\\Delta t} = -M\\frac{\\Delta I_1}{\\Delta t}",
+     "say": "패러데이 법칙에 넣는다. I₁–t 그래프의 기울기가 2차 기전력이다.",
+     "uses": [
+      "II2.faraday"
+     ]
+    }
+   ],
+   "concepts": [
+    "B2-13"
+   ],
+   "keys": [
+    "상호 유도"
+   ]
+  },
+  {
+   "id": "B2.self",
+   "unit": "B2",
+   "name": "자체 유도",
+   "role": "derived",
+   "tex": "\\varepsilon = -L\\frac{\\Delta I}{\\Delta t}",
+   "steps": [
+    {
+     "tex": "N\\Phi \\propto I",
+     "say": "코일 자신의 전류가 만드는 선속도 전류에 비례한다. 비례 상수 L 을 자체 유도 계수라 한다.",
+     "uses": [
+      "II2.Bsol"
+     ]
+    },
+    {
+     "tex": "\\varepsilon = -L\\frac{\\Delta I}{\\Delta t}",
+     "say": "전류가 바뀌면 그 변화를 방해하는 기전력이 코일 자신에 생긴다. 스위치를 끌 때 불꽃이 튀는 까닭이다.",
+     "uses": [
+      "II2.faraday"
+     ]
+    }
+   ],
+   "concepts": [
+    "B2-13"
+   ],
+   "keys": [
+    "자체 유도",
+    "인덕턴스"
+   ]
+  },
+  {
+   "id": "B2.trans",
+   "unit": "B2",
+   "name": "변압기",
+   "role": "derived",
+   "tex": "\\frac{V_1}{V_2} = \\frac{N_1}{N_2} = \\frac{I_2}{I_1}",
+   "steps": [
+    {
+     "tex": "V_1 = N_1\\frac{\\Delta\\Phi}{\\Delta t},\\quad V_2 = N_2\\frac{\\Delta\\Phi}{\\Delta t}",
+     "say": "철심이 두 코일에 같은 선속을 보내므로 한 바퀴당 기전력이 같다.",
+     "uses": [
+      "II2.faraday"
+     ]
+    },
+    {
+     "tex": "\\frac{V_1}{V_2} = \\frac{N_1}{N_2}",
+     "say": "전압은 감은 수에 비례한다."
+    },
+    {
+     "tex": "V_1 I_1 = V_2 I_2 \\;\\Rightarrow\\; \\frac{I_2}{I_1} = \\frac{N_1}{N_2}",
+     "say": "손실이 없으면 1차 전력 = 2차 전력(에너지 보존). 전압을 높이면 전류가 준다.",
+     "uses": [
+      "B2.power"
+     ]
+    }
+   ],
+   "concepts": [
+    "B2-13"
+   ],
+   "keys": [
+    "변압기",
+    "감은 수"
+   ]
+  },
+  {
+   "id": "B2.loss",
+   "unit": "B2",
+   "name": "송전선의 전력 손실",
+   "role": "applied",
+   "tex": "P_{\\text{손실}} = \\left(\\frac{P}{V}\\right)^2 R",
+   "steps": [
+    {
+     "tex": "I = \\frac{P}{V}",
+     "say": "같은 전력 P 를 보낼 때 송전 전압이 높을수록 전류가 작다.",
+     "uses": [
+      "B2.power"
+     ]
+    },
+    {
+     "tex": "P_{\\text{손실}} = I^2R = \\left(\\frac{P}{V}\\right)^2 R",
+     "say": "송전선 저항에서 열로 잃는 전력. 전압을 10배 높이면 손실은 1/100."
+    },
+    {
+     "say": "그래서 발전소에서 변압기로 전압을 높여 보내고 마을 가까이에서 다시 낮춘다.",
+     "uses": [
+      "B2.trans"
+     ]
+    }
+   ],
+   "concepts": [
+    "B2-13"
+   ],
+   "keys": [
+    "송전",
+    "전력 손실",
+    "고전압"
+   ]
+  },
+  {
+   "id": "B2.rms",
+   "unit": "B2",
+   "name": "교류의 실효값",
+   "role": "derived",
+   "tex": "V_{\\text{실효}} = \\frac{V_0}{\\sqrt{2}}",
+   "steps": [
+    {
+     "tex": "V = V_0\\sin\\omega t",
+     "say": "발전기가 만드는 교류 전압.",
+     "uses": [
+      "B2.gen"
+     ]
+    },
+    {
+     "tex": "\\bar{P} = \\frac{\\overline{V^2}}{R} = \\frac{V_0^2}{2R}",
+     "say": "저항에서 쓰는 전력 V²/R 을 한 주기 동안 평균한다. sin² 의 평균은 1/2 이다.",
+     "uses": [
+      "B2.power"
+     ]
+    },
+    {
+     "tex": "V_{\\text{실효}} = \\frac{V_0}{\\sqrt{2}}",
+     "say": "같은 평균 전력을 내는 직류 전압이 실효값이다. 가정용 220 V 는 실효값이다."
+    }
+   ],
+   "calc": [
+    {
+     "tex": "\\frac{1}{T}\\int_0^T \\sin^2\\omega t\\,dt = \\frac{1}{2}",
+     "say": "sin² 의 평균을 적분으로 구한 것이다."
+    }
+   ],
+   "concepts": [
+    "B2-14"
+   ],
+   "keys": [
+    "실효값",
+    "교류"
+   ]
+  },
+  {
+   "id": "B2.react",
+   "unit": "B2",
+   "name": "코일과 축전기의 저항 역할 (리액턴스)",
+   "role": "derived",
+   "tex": "X_L = 2\\pi fL,\\quad X_C = \\frac{1}{2\\pi fC}",
+   "steps": [
+    {
+     "say": "코일은 전류의 변화를 방해한다(자체 유도). 진동수가 클수록 변화가 빨라 더 세게 방해한다.",
+     "uses": [
+      "B2.self"
+     ]
+    },
+    {
+     "say": "축전기는 진동수가 클수록 충전과 방전이 잦아 전류가 잘 흐른다.",
+     "uses": [
+      "B1.cap"
+     ]
+    },
+    {
+     "tex": "X_L = \\omega L = 2\\pi fL,\\quad X_C = \\frac{1}{\\omega C} = \\frac{1}{2\\pi fC}",
+     "say": "ω = 2πf 를 쓴다. 고교에서는 결과로 쓴다. 진동수를 높이면 코일 전류는 줄고 축전기 전류는 는다.",
+     "uses": [
+      "A1.circ"
+     ]
+    }
+   ],
+   "calc": [
+    {
+     "tex": "V = L\\frac{dI}{dt},\\ I = I_0\\sin\\omega t \\;\\Rightarrow\\; V_0 = \\omega L I_0",
+     "say": "전압과 전류의 진폭 비가 ωL 이다."
+    }
+   ],
+   "concepts": [
+    "B2-14",
+    "C1-02"
+   ],
+   "keys": [
+    "리액턴스",
+    "유도 리액턴스",
+    "용량 리액턴스"
+   ]
+  },
+  {
+   "id": "B2.res",
+   "unit": "B2",
+   "name": "RLC 회로의 공명 진동수",
+   "role": "derived",
+   "tex": "f_0 = \\frac{1}{2\\pi\\sqrt{LC}}",
+   "steps": [
+    {
+     "tex": "X_L = X_C",
+     "say": "코일과 축전기의 방해 효과가 서로 지워지면 전류가 가장 크다(공명).",
+     "uses": [
+      "B2.react"
+     ]
+    },
+    {
+     "tex": "2\\pi f_0 L = \\frac{1}{2\\pi f_0 C} \\;\\Rightarrow\\; f_0 = \\frac{1}{2\\pi\\sqrt{LC}}",
+     "say": "f₀ 에 대해 푼다."
+    }
+   ],
+   "concepts": [
+    "B2-14",
+    "C1-01",
+    "C1-02"
+   ],
+   "keys": [
+    "공명",
+    "공진",
+    "고유 진동수"
+   ]
+  },
+  {
+   "id": "C1.tune",
+   "unit": "C1",
+   "name": "라디오의 동조",
+   "role": "applied",
+   "tex": "f_{\\text{전파}} = \\frac{1}{2\\pi\\sqrt{LC}}",
+   "steps": [
+    {
+     "tex": "f_0 = \\frac{1}{2\\pi\\sqrt{LC}}",
+     "say": "수신 회로의 고유 진동수.",
+     "uses": [
+      "B2.res"
+     ]
+    },
+    {
+     "tex": "C = \\frac{1}{4\\pi^2 f^2 L}",
+     "say": "가변 축전기로 고유 진동수를 원하는 방송의 진동수 f 에 맞추면 그 전파만 크게 받는다(동조)."
+    },
+    {
+     "say": "파장 λ = c/f 인 전자기파가 가속 전하(진동하는 전류)에서 만들어지고, 안테나가 전기장과 나란할 때 가장 잘 받는다.",
+     "uses": [
+      "III1.em"
+     ]
+    }
+   ],
+   "concepts": [
+    "C1-01",
+    "C1-02"
+   ],
+   "keys": [
+    "동조",
+    "라디오",
+    "안테나"
+   ]
+  },
+  {
+   "id": "C1.dopS",
+   "unit": "C1",
+   "name": "도플러 효과: 음원이 움직일 때",
+   "role": "derived",
+   "tex": "f' = f\\frac{V}{V \\mp v_s}",
+   "steps": [
+    {
+     "tex": "\\lambda_{\\text{앞}} = \\frac{V - v_s}{f},\\quad \\lambda_{\\text{뒤}} = \\frac{V + v_s}{f}",
+     "say": "한 주기 동안 소리는 V/f 만큼 가고 음원은 v_s/f 만큼 따라간다. 앞쪽 파면은 촘촘해지고 뒤쪽은 성겨진다.",
+     "uses": [
+      "I1.uniform"
+     ]
+    },
+    {
+     "tex": "f' = \\frac{V}{\\lambda'} = f\\frac{V}{V \\mp v_s}",
+     "say": "음속 V 는 그대로이므로 짧아진 파장만큼 진동수가 커진다(앞: −, 뒤: +).",
+     "uses": [
+      "III1.wave"
+     ]
+    }
+   ],
+   "concepts": [
+    "C1-03"
+   ],
+   "keys": [
+    "도플러",
+    "음원"
+   ]
+  },
+  {
+   "id": "C1.dopRatio",
+   "unit": "C1",
+   "name": "다가올 때와 멀어질 때의 비",
+   "role": "applied",
+   "tex": "\\frac{f_A}{f_B} = \\frac{V - v_s}{V + v_s}",
+   "steps": [
+    {
+     "tex": "f_A = f\\frac{V}{V - v_s},\\quad f_B = f\\frac{V}{V + v_s}",
+     "say": "음원이 다가올 때(A)와 멀어질 때(B).",
+     "uses": [
+      "C1.dopS"
+     ]
+    },
+    {
+     "tex": "\\frac{1}{f_A} + \\frac{1}{f_B} = \\frac{2}{f}",
+     "say": "역수로 더하면 v_s 가 지워져 원래 진동수가 나온다."
+    }
+   ],
+   "forms": [
+    "\\frac{f_B}{f_A} = \\frac{V - v_s}{V + v_s}"
+   ],
+   "concepts": [
+    "C1-03"
+   ],
+   "keys": [
+    "도플러"
+   ]
+  },
+  {
+   "id": "C1.dopO",
+   "unit": "C1",
+   "name": "도플러 효과: 관찰자가 움직일 때",
+   "role": "derived",
+   "tex": "f' = f\\frac{V + v_o}{V}",
+   "steps": [
+    {
+     "tex": "V' = V + v_o",
+     "say": "관찰자가 음원 쪽으로 v_o 로 다가가면 관찰자에게 소리는 V + v_o 로 다가온다(상대 속도). 파장은 그대로다.",
+     "uses": [
+      "I1.relv"
+     ]
+    },
+    {
+     "tex": "f' = \\frac{V + v_o}{\\lambda} = f\\frac{V + v_o}{V}",
+     "say": "1초 동안 만나는 파면 수가 진동수다. 멀어지면 + 대신 −.",
+     "uses": [
+      "III1.wave"
+     ]
+    }
+   ],
+   "concepts": [
+    "C1-04"
+   ],
+   "keys": [
+    "도플러",
+    "관찰자"
+   ]
+  },
+  {
+   "id": "C1.dop",
+   "unit": "C1",
+   "name": "도플러 효과 일반식",
+   "role": "derived",
+   "tex": "f' = f\\frac{V \\pm v_o}{V \\mp v_s}",
+   "steps": [
+    {
+     "tex": "f' = f\\frac{V}{V \\mp v_s}\\cdot\\frac{V \\pm v_o}{V}",
+     "say": "음원이 바꾼 파장과 관찰자가 바꾼 상대 속력을 함께 쓴다.",
+     "uses": [
+      "C1.dopS",
+      "C1.dopO"
+     ]
+    },
+    {
+     "tex": "f' = f\\frac{V \\pm v_o}{V \\mp v_s}",
+     "say": "서로 다가가는 쪽이면 진동수가 커지도록 부호를 고른다. 과속 단속 카메라·초음파 혈류 측정에 쓴다."
+    }
+   ],
+   "concepts": [
+    "C1-04"
+   ],
+   "keys": [
+    "도플러",
+    "스피드건"
+   ]
+  },
+  {
+   "id": "C1.slit",
+   "unit": "C1",
+   "name": "이중 슬릿 간섭 조건",
+   "role": "derived",
+   "tex": "d\\sin\\theta = m\\lambda\\ (\\text{밝은 무늬})",
+   "steps": [
+    {
+     "tex": "\\Delta = d\\sin\\theta",
+     "say": "간격 d 인 두 슬릿에서 먼 스크린의 한 점까지의 경로차."
+    },
+    {
+     "tex": "d\\sin\\theta = m\\lambda",
+     "say": "경로차가 파장의 정수배면 보강(밝은 무늬).",
+     "uses": [
+      "III1.interf"
+     ]
+    },
+    {
+     "tex": "d\\sin\\theta = \\left(m + \\frac{1}{2}\\right)\\lambda",
+     "say": "반 파장 어긋나면 상쇄(어두운 무늬). 중앙(m = 0)은 밝다. 빛이 파동이라는 증거다."
+    }
+   ],
+   "concepts": [
+    "C1-05",
+    "III1-12"
+   ],
+   "keys": [
+    "이중 슬릿",
+    "영",
+    "간섭무늬"
+   ]
+  },
+  {
+   "id": "C1.fringe",
+   "unit": "C1",
+   "name": "간섭무늬 간격",
+   "role": "applied",
+   "tex": "\\Delta x = \\frac{L\\lambda}{d}",
+   "steps": [
+    {
+     "tex": "\\sin\\theta \\approx \\tan\\theta = \\frac{x}{L}",
+     "say": "스크린까지 거리 L 이 슬릿 간격보다 훨씬 크면 각이 작아 근사한다.",
+     "uses": [
+      "C1.slit"
+     ]
+    },
+    {
+     "tex": "x_m = \\frac{mL\\lambda}{d} \\;\\Rightarrow\\; \\Delta x = \\frac{L\\lambda}{d}",
+     "say": "이웃한 밝은 무늬 사이 간격. 파장이 길수록, 슬릿 간격이 좁을수록 넓다."
+    },
+    {
+     "tex": "\\lambda = \\frac{d\\,\\Delta x}{L}",
+     "say": "무늬 간격을 재어 빛의 파장을 구한다."
+    }
+   ],
+   "concepts": [
+    "C1-05"
+   ],
+   "keys": [
+    "무늬 간격",
+    "파장 측정"
+   ]
+  },
+  {
+   "id": "C1.single",
+   "unit": "C1",
+   "name": "단일 슬릿 회절",
+   "role": "derived",
+   "tex": "a\\sin\\theta = m\\lambda\\ (\\text{어두운 무늬},\\ m = 1, 2, \\cdots)",
+   "steps": [
+    {
+     "say": "폭 a 인 슬릿을 위아래 반으로 나누면, 위 반의 각 점과 아래 반의 짝 점에서 나온 빛의 경로차가 (a/2) sin θ 다."
+    },
+    {
+     "tex": "\\frac{a}{2}\\sin\\theta = \\frac{\\lambda}{2}",
+     "say": "이 경로차가 반 파장이면 짝마다 상쇄되어 어둡다.",
+     "uses": [
+      "III1.interf"
+     ]
+    },
+    {
+     "tex": "a\\sin\\theta = m\\lambda",
+     "say": "슬릿을 더 잘게 나누어 같은 논리를 쓰면 m = 1, 2, … 에서 어둡다. 이중 슬릿과 달리 어두운 무늬의 조건이다."
+    }
+   ],
+   "concepts": [
+    "C1-06"
+   ],
+   "keys": [
+    "회절",
+    "단일 슬릿"
+   ]
+  },
+  {
+   "id": "C1.singleW",
+   "unit": "C1",
+   "name": "중앙 밝은 무늬의 폭",
+   "role": "applied",
+   "tex": "w_{\\text{중앙}} = \\frac{2L\\lambda}{a}",
+   "steps": [
+    {
+     "tex": "x_1 = \\frac{L\\lambda}{a}",
+     "say": "첫 번째 어두운 무늬의 위치(작은 각 근사).",
+     "uses": [
+      "C1.single"
+     ]
+    },
+    {
+     "tex": "w_{\\text{중앙}} = 2x_1 = \\frac{2L\\lambda}{a}",
+     "say": "중앙 밝은 무늬는 옆 무늬의 2배 폭이다. λ/a 가 클수록 회절이 잘 일어난다."
+    },
+    {
+     "say": "회절을 줄이려면 파장을 짧게, 구경을 크게 한다(전자 현미경·큰 망원경)."
+    }
+   ],
+   "concepts": [
+    "C1-06",
+    "C1-07"
+   ],
+   "keys": [
+    "중앙 무늬",
+    "분해능"
+   ]
+  },
+  {
+   "id": "C1.rays",
+   "unit": "C1",
+   "name": "얇은 볼록 렌즈의 광선 규칙",
+   "role": "derived",
+   "tex": "\\text{축에 나란한 빛} \\to \\text{초점},\\quad \\text{중심을 지나는 빛} \\to \\text{직진}",
+   "steps": [
+    {
+     "say": "렌즈의 두 굽은 면에서 빛이 각각 굴절한다(스넬 법칙). 축에서 멀수록 면이 더 기울어 더 크게 꺾인다.",
+     "uses": [
+      "III1.snell"
+     ]
+    },
+    {
+     "say": "렌즈가 얇고 빛이 축 가까이 지나면, 축에 나란히 들어온 빛은 모두 한 점(초점)을 지나고, 렌즈 중심을 지나는 빛은 꺾이지 않고 곧게 간다."
+    }
+   ],
+   "concepts": [
+    "C1-08"
+   ],
+   "keys": [
+    "볼록 렌즈",
+    "초점",
+    "광선"
+   ]
+  },
+  {
+   "id": "C1.lens",
+   "unit": "C1",
+   "name": "렌즈 방정식",
+   "role": "derived",
+   "tex": "\\frac{1}{a} + \\frac{1}{b} = \\frac{1}{f}",
+   "steps": [
+    {
+     "tex": "\\frac{h'}{h} = \\frac{b}{a}",
+     "say": "렌즈 중심을 지나는 빛이 만드는 두 닮은 삼각형(물체 거리 a, 상 거리 b).",
+     "uses": [
+      "C1.rays"
+     ]
+    },
+    {
+     "tex": "\\frac{h'}{h} = \\frac{b - f}{f}",
+     "say": "축에 나란히 들어와 초점을 지나는 빛이 만드는 두 닮은 삼각형."
+    },
+    {
+     "tex": "\\frac{b}{a} = \\frac{b - f}{f} \\;\\Rightarrow\\; \\frac{1}{a} + \\frac{1}{b} = \\frac{1}{f}",
+     "say": "두 비를 같게 놓고 abf 로 나눈다."
+    }
+   ],
+   "concepts": [
+    "C1-08"
+   ],
+   "keys": [
+    "렌즈 방정식",
+    "상"
+   ]
+  },
+  {
+   "id": "C1.mag",
+   "unit": "C1",
+   "name": "배율과 상의 위치",
+   "role": "applied",
+   "tex": "m = \\left|\\frac{b}{a}\\right| = \\frac{f}{|a - f|},\\quad b = \\frac{af}{a - f}",
+   "steps": [
+    {
+     "tex": "b = \\frac{af}{a - f}",
+     "say": "렌즈 방정식을 b 에 대해 푼다. a > f 면 실상(거꾸로), a < f 면 허상(바로 선 확대).",
+     "uses": [
+      "C1.lens"
+     ]
+    },
+    {
+     "tex": "m = \\left|\\frac{b}{a}\\right| = \\frac{f}{|a - f|}",
+     "say": "배율은 거리 비. 크기 비 m 이 주어지면 b = ma 로 바꿔 렌즈 방정식에 넣는다."
+    }
+   ],
+   "concepts": [
+    "C1-08",
+    "C1-10"
+   ],
+   "keys": [
+    "배율",
+    "실상",
+    "허상",
+    "돋보기"
+   ]
+  },
+  {
+   "id": "C1.twoPos",
+   "unit": "C1",
+   "name": "두 위치에서 맺히는 상",
+   "role": "applied",
+   "tex": "f = \\frac{D^2 - s^2}{4D},\\quad m_1 m_2 = 1",
+   "steps": [
+    {
+     "say": "물체와 스크린 사이 거리 D 가 고정이면 렌즈를 두 위치에 놓을 때 선명한 상이 맺힌다. 두 위치에서 a 와 b 가 서로 바뀐다.",
+     "uses": [
+      "C1.lens"
+     ]
+    },
+    {
+     "tex": "a + b = D,\\quad b - a = s \\;\\Rightarrow\\; f = \\frac{ab}{a + b} = \\frac{D^2 - s^2}{4D}",
+     "say": "렌즈 방정식에서 f = ab/(a + b). 두 위치 사이 거리 s 를 쓴다. D ≥ 4f 여야 한다."
+    },
+    {
+     "tex": "m_1 m_2 = 1,\\quad h = \\sqrt{h_1 h_2}",
+     "say": "배율은 서로 역수이므로 두 상 크기의 기하 평균이 물체 크기다."
+    }
+   ],
+   "concepts": [
+    "C1-09"
+   ],
+   "keys": [
+    "두 위치",
+    "상 크기"
+   ]
+  },
+  {
+   "id": "C2.vs",
+   "unit": "C2",
+   "name": "정지 전압–진동수 그래프",
+   "role": "applied",
+   "tex": "V_s = \\frac{h}{e}f - \\frac{W}{e}",
+   "steps": [
+    {
+     "tex": "eV_s = hf - W",
+     "say": "정지 전압과 광전 방정식을 같게 놓는다.",
+     "uses": [
+      "III2.stop",
+      "III2.einstein"
+     ]
+    },
+    {
+     "tex": "V_s = \\frac{h}{e}f - \\frac{W}{e}",
+     "say": "V_s–f 그래프는 기울기 h/e 인 직선이다. 금속이 달라도 기울기는 같고, 가로 절편이 문턱 진동수다."
+    },
+    {
+     "say": "빛의 세기를 바꾸면 광전류 그래프의 높이만, 진동수를 바꾸면 왼쪽 끝(−V_s)만 움직인다."
+    }
+   ],
+   "concepts": [
+    "C2-02",
+    "C2-03"
+   ],
+   "keys": [
+    "정지 전압",
+    "그래프",
+    "광전류"
+   ]
+  },
+  {
+   "id": "C2.orbitWave",
+   "unit": "C2",
+   "name": "보어 궤도와 물질파",
+   "role": "derived",
+   "tex": "2\\pi r_n = n\\lambda_n",
+   "steps": [
+    {
+     "tex": "2\\pi r m v = nh",
+     "say": "보어의 양자 조건.",
+     "uses": [
+      "II1.bohr"
+     ]
+    },
+    {
+     "tex": "2\\pi r = n\\frac{h}{mv} = n\\lambda",
+     "say": "드브로이 파장 λ = h/mv 를 쓰면 궤도 둘레가 물질파 파장의 정수배다.",
+     "uses": [
+      "III2.debroglie"
+     ]
+    },
+    {
+     "say": "전자의 물질파가 궤도를 한 바퀴 돌아 제자리에서 맞물리는(정상파) 궤도만 허용된다는 뜻이다."
+    }
+   ],
+   "concepts": [
+    "C2-05"
+   ],
+   "keys": [
+    "양자 조건",
+    "정상파"
+   ]
+  },
+  {
+   "id": "C2.radius",
+   "unit": "C2",
+   "name": "보어 궤도 반지름",
+   "role": "derived",
+   "tex": "r_n = a_0 n^2",
+   "steps": [
+    {
+     "tex": "\\frac{mv^2}{r} = k\\frac{e^2}{r^2}",
+     "say": "쿨롱 힘이 원운동의 구심력이다.",
+     "uses": [
+      "A1.cforce",
+      "II1.coulomb"
+     ]
+    },
+    {
+     "tex": "v = \\frac{nh}{2\\pi m r}",
+     "say": "양자 조건 2πrmv = nh 에서 속력을 구한다.",
+     "uses": [
+      "II1.bohr"
+     ]
+    },
+    {
+     "tex": "r_n = \\frac{h^2}{4\\pi^2 mke^2}\\,n^2 = a_0 n^2",
+     "say": "첫 식에 넣어 r 에 대해 푼다. a₀ ≈ 0.053 nm(보어 반지름)."
+    },
+    {
+     "tex": "\\lambda_n = \\frac{2\\pi r_n}{n} = 2\\pi a_0 n",
+     "say": "그 궤도의 물질파 파장도 n 에 비례한다.",
+     "uses": [
+      "C2.orbitWave"
+     ]
+    }
+   ],
+   "concepts": [
+    "C2-05"
+   ],
+   "keys": [
+    "보어 반지름",
+    "궤도 반지름"
+   ]
+  },
+  {
+   "id": "C2.photonP",
+   "unit": "C2",
+   "name": "광자의 운동량",
+   "role": "derived",
+   "tex": "p_{\\text{광자}} = \\frac{h}{\\lambda}",
+   "steps": [
+    {
+     "tex": "p = \\frac{E}{c}",
+     "say": "빛의 운동량은 에너지를 빛의 속력으로 나눈 값이다(특수 상대성 이론의 결과, 결과로 쓴다)."
+    },
+    {
+     "tex": "p = \\frac{hf}{c} = \\frac{h}{\\lambda}",
+     "say": "E = hf, c = fλ 를 넣는다. 물질파 λ = h/p 와 같은 꼴이다. 콤프턴 산란에서 확인된다.",
+     "uses": [
+      "III2.photon",
+      "III1.em"
+     ]
+    }
+   ],
+   "concepts": [
+    "C2-06"
+   ],
+   "keys": [
+    "광자 운동량",
+    "콤프턴"
+   ]
+  },
+  {
+   "id": "C2.uncert",
+   "unit": "C2",
+   "name": "불확정성 원리",
+   "role": "basis",
+   "tex": "\\Delta x\\,\\Delta p \\geq \\frac{h}{4\\pi}",
+   "basis": {
+    "type": "원리",
+    "what": "입자의 위치와 운동량을 동시에 정확히 알 수 없다. 위치의 불확정성 Δx 와 운동량의 불확정성 Δp 의 곱은 h/4π 보다 작아질 수 없다(하이젠베르크).",
+    "check": "단일 슬릿에 전자나 빛을 보낼 때 슬릿을 좁히면(위치를 정확히 하면) 무늬가 오히려 넓게 퍼진다(옆 방향 운동량이 불확실해진다)."
+   },
+   "concepts": [
+    "C2-06",
+    "C2-07"
+   ],
+   "keys": [
+    "불확정성",
+    "하이젠베르크"
+   ]
+  },
+  {
+   "id": "C2.microscope",
+   "unit": "C2",
+   "name": "빛으로 위치를 재는 사고 실험",
+   "role": "applied",
+   "tex": "\\Delta x \\approx \\lambda,\\quad \\Delta p \\approx \\frac{h}{\\lambda}",
+   "steps": [
+    {
+     "tex": "\\Delta x \\approx \\lambda",
+     "say": "빛으로 전자의 위치를 보려면 대략 파장 정도의 오차가 생긴다(회절)."
+    },
+    {
+     "tex": "\\Delta p \\approx \\frac{h}{\\lambda}",
+     "say": "부딪친 광자가 운동량을 그만큼 바꿔 놓는다.",
+     "uses": [
+      "C2.photonP"
+     ]
+    },
+    {
+     "tex": "\\Delta x\\,\\Delta p \\approx h",
+     "say": "파장이 짧은 빛을 쓰면 위치는 정확해지지만 운동량이 더 크게 흐트러진다. 둘의 곱은 줄일 수 없다.",
+     "uses": [
+      "C2.uncert"
+     ]
+    }
+   ],
+   "concepts": [
+    "C2-06"
+   ],
+   "keys": [
+    "감마선 현미경"
+   ]
   }
  ],
  "edges": [
@@ -3225,6 +7825,1241 @@
    "from": "I3.massE",
    "to": "I3.betaPlus",
    "kind": "law"
+  },
+  {
+   "from": "I1.newton3",
+   "to": "II1.three",
+   "kind": "law"
+  },
+  {
+   "from": "II1.coulomb",
+   "to": "II1.three",
+   "kind": "def"
+  },
+  {
+   "from": "II1.coulomb",
+   "to": "II1.zero",
+   "kind": "special"
+  },
+  {
+   "from": "C2.radius",
+   "to": "II1.radius",
+   "kind": "special"
+  },
+  {
+   "from": "II1.coulomb",
+   "to": "II1.radius",
+   "kind": "def"
+  },
+  {
+   "from": "A1.cforce",
+   "to": "II1.levels",
+   "kind": "law"
+  },
+  {
+   "from": "II1.coulomb",
+   "to": "II1.levels",
+   "kind": "def"
+  },
+  {
+   "from": "B1.pointU",
+   "to": "II1.levels",
+   "kind": "def"
+  },
+  {
+   "from": "C2.radius",
+   "to": "II1.levels",
+   "kind": "def"
+  },
+  {
+   "from": "II1.bohr",
+   "to": "II1.transition",
+   "kind": "law"
+  },
+  {
+   "from": "III2.photon",
+   "to": "II1.transition",
+   "kind": "def"
+  },
+  {
+   "from": "II1.transition",
+   "to": "II1.ritz",
+   "kind": "combine"
+  },
+  {
+   "from": "II1.transition",
+   "to": "II1.series",
+   "kind": "combine"
+  },
+  {
+   "from": "II1.levels",
+   "to": "II1.series",
+   "kind": "def"
+  },
+  {
+   "from": "II1.band",
+   "to": "II1.absorb",
+   "kind": "def"
+  },
+  {
+   "from": "III2.photon",
+   "to": "II1.absorb",
+   "kind": "def"
+  },
+  {
+   "from": "II1.band",
+   "to": "II1.led",
+   "kind": "def"
+  },
+  {
+   "from": "III2.photon",
+   "to": "II1.led",
+   "kind": "def"
+  },
+  {
+   "from": "II1.resist",
+   "to": "II1.conduct",
+   "kind": "def"
+  },
+  {
+   "from": "II2.Bwire",
+   "to": "II2.Bsum",
+   "kind": "def"
+  },
+  {
+   "from": "II2.Bsum",
+   "to": "II2.Bzero",
+   "kind": "special"
+  },
+  {
+   "from": "II2.faraday",
+   "to": "II2.lenz",
+   "kind": "def"
+  },
+  {
+   "from": "I2.mcons",
+   "to": "II2.lenz",
+   "kind": "conserve"
+  },
+  {
+   "from": "II2.faraday",
+   "to": "II2.induced",
+   "kind": "def"
+  },
+  {
+   "from": "B2.ohm",
+   "to": "II2.induced",
+   "kind": "law"
+  },
+  {
+   "from": "II2.faraday",
+   "to": "II2.BLv",
+   "kind": "def"
+  },
+  {
+   "from": "II2.flux",
+   "to": "II2.BLv",
+   "kind": "def"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "II2.BLv",
+   "kind": "def"
+  },
+  {
+   "from": "II2.BLv",
+   "to": "II2.border",
+   "kind": "combine"
+  },
+  {
+   "from": "III1.period",
+   "to": "III1.wave",
+   "kind": "def"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "III1.wave",
+   "kind": "def"
+  },
+  {
+   "from": "III1.wave",
+   "to": "III1.medium",
+   "kind": "special"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "III1.snell",
+   "kind": "def"
+  },
+  {
+   "from": "III1.medium",
+   "to": "III1.snell",
+   "kind": "combine"
+  },
+  {
+   "from": "III1.index",
+   "to": "III1.snell",
+   "kind": "def"
+  },
+  {
+   "from": "III1.snell",
+   "to": "III1.layers",
+   "kind": "special"
+  },
+  {
+   "from": "III1.snell",
+   "to": "III1.critical",
+   "kind": "special"
+  },
+  {
+   "from": "III1.wave",
+   "to": "III1.em",
+   "kind": "special"
+  },
+  {
+   "from": "III1.superpos",
+   "to": "III1.standing",
+   "kind": "law"
+  },
+  {
+   "from": "III1.wave",
+   "to": "III1.standing",
+   "kind": "def"
+  },
+  {
+   "from": "III1.superpos",
+   "to": "III1.interf",
+   "kind": "law"
+  },
+  {
+   "from": "III1.wave",
+   "to": "III1.interf",
+   "kind": "def"
+  },
+  {
+   "from": "III2.photon",
+   "to": "III2.workfn",
+   "kind": "def"
+  },
+  {
+   "from": "III2.photon",
+   "to": "III2.einstein",
+   "kind": "conserve"
+  },
+  {
+   "from": "III2.workfn",
+   "to": "III2.einstein",
+   "kind": "def"
+  },
+  {
+   "from": "III2.einstein",
+   "to": "III2.stop",
+   "kind": "def"
+  },
+  {
+   "from": "I2.wke",
+   "to": "III2.stop",
+   "kind": "law"
+  },
+  {
+   "from": "III2.debroglie",
+   "to": "III2.lamEk",
+   "kind": "def"
+  },
+  {
+   "from": "I2.ekp",
+   "to": "III2.lamEk",
+   "kind": "def"
+  },
+  {
+   "from": "III2.debroglie",
+   "to": "III2.convert",
+   "kind": "def"
+  },
+  {
+   "from": "I2.ekp",
+   "to": "III2.convert",
+   "kind": "def"
+  },
+  {
+   "from": "I1.momentum",
+   "to": "III2.convert",
+   "kind": "def"
+  },
+  {
+   "from": "III2.lamEk",
+   "to": "III2.emicro",
+   "kind": "special"
+  },
+  {
+   "from": "I2.wke",
+   "to": "III2.emicro",
+   "kind": "law"
+  },
+  {
+   "from": "I1.equil",
+   "to": "A1.tilt",
+   "kind": "law"
+  },
+  {
+   "from": "A1.vector",
+   "to": "A1.tilt",
+   "kind": "def"
+  },
+  {
+   "from": "I1.weight",
+   "to": "A1.tilt",
+   "kind": "def"
+  },
+  {
+   "from": "I1.equil",
+   "to": "A1.rigid",
+   "kind": "law"
+  },
+  {
+   "from": "A1.torque",
+   "to": "A1.rigid",
+   "kind": "def"
+  },
+  {
+   "from": "A1.rigid",
+   "to": "A1.lever",
+   "kind": "special"
+  },
+  {
+   "from": "A1.torque",
+   "to": "A1.cm",
+   "kind": "def"
+  },
+  {
+   "from": "A1.rigid",
+   "to": "A1.cm",
+   "kind": "law"
+  },
+  {
+   "from": "A1.cm",
+   "to": "A1.tip",
+   "kind": "def"
+  },
+  {
+   "from": "A1.rigid",
+   "to": "A1.tip",
+   "kind": "law"
+  },
+  {
+   "from": "A1.rigid",
+   "to": "A1.limit",
+   "kind": "special"
+  },
+  {
+   "from": "I1.vavg",
+   "to": "A1.kin",
+   "kind": "def"
+  },
+  {
+   "from": "I1.accel",
+   "to": "A1.kin",
+   "kind": "def"
+  },
+  {
+   "from": "A1.vector",
+   "to": "A1.kin",
+   "kind": "def"
+  },
+  {
+   "from": "A1.kin",
+   "to": "A1.plane",
+   "kind": "def"
+  },
+  {
+   "from": "I1.vt",
+   "to": "A1.plane",
+   "kind": "special"
+  },
+  {
+   "from": "I1.vbar",
+   "to": "A1.plane",
+   "kind": "special"
+  },
+  {
+   "from": "A1.plane",
+   "to": "A1.path",
+   "kind": "special"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "A1.path",
+   "kind": "def"
+  },
+  {
+   "from": "I1.st",
+   "to": "A1.path",
+   "kind": "def"
+  },
+  {
+   "from": "I1.vt",
+   "to": "A1.drop",
+   "kind": "special"
+  },
+  {
+   "from": "I1.st",
+   "to": "A1.drop",
+   "kind": "special"
+  },
+  {
+   "from": "I1.v2",
+   "to": "A1.drop",
+   "kind": "special"
+  },
+  {
+   "from": "I1.vt",
+   "to": "A1.up",
+   "kind": "special"
+  },
+  {
+   "from": "I1.v2",
+   "to": "A1.up",
+   "kind": "special"
+  },
+  {
+   "from": "A1.vector",
+   "to": "A1.proj",
+   "kind": "def"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "A1.proj",
+   "kind": "special"
+  },
+  {
+   "from": "I1.st",
+   "to": "A1.proj",
+   "kind": "special"
+  },
+  {
+   "from": "A1.proj",
+   "to": "A1.traj",
+   "kind": "combine"
+  },
+  {
+   "from": "A1.proj",
+   "to": "A1.range",
+   "kind": "special"
+  },
+  {
+   "from": "I1.v2",
+   "to": "A1.range",
+   "kind": "def"
+  },
+  {
+   "from": "A1.proj",
+   "to": "A1.horiz",
+   "kind": "special"
+  },
+  {
+   "from": "I1.relv",
+   "to": "A1.relmove",
+   "kind": "def"
+  },
+  {
+   "from": "I1.vt",
+   "to": "A1.relmove",
+   "kind": "def"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "A1.relmove",
+   "kind": "def"
+  },
+  {
+   "from": "A1.vector",
+   "to": "A1.slope",
+   "kind": "def"
+  },
+  {
+   "from": "A1.up",
+   "to": "A1.slope",
+   "kind": "special"
+  },
+  {
+   "from": "A1.omega",
+   "to": "A1.circ",
+   "kind": "def"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "A1.circ",
+   "kind": "def"
+  },
+  {
+   "from": "III1.period",
+   "to": "A1.circ",
+   "kind": "def"
+  },
+  {
+   "from": "A1.kin",
+   "to": "A1.cacc",
+   "kind": "def"
+  },
+  {
+   "from": "A1.circ",
+   "to": "A1.cacc",
+   "kind": "def"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "A1.cforce",
+   "kind": "law"
+  },
+  {
+   "from": "A1.cacc",
+   "to": "A1.cforce",
+   "kind": "def"
+  },
+  {
+   "from": "A1.cforce",
+   "to": "A1.conical",
+   "kind": "law"
+  },
+  {
+   "from": "A1.vector",
+   "to": "A1.conical",
+   "kind": "def"
+  },
+  {
+   "from": "I1.weight",
+   "to": "A1.conical",
+   "kind": "def"
+  },
+  {
+   "from": "A1.cforce",
+   "to": "A1.bank",
+   "kind": "law"
+  },
+  {
+   "from": "A1.vector",
+   "to": "A1.bank",
+   "kind": "def"
+  },
+  {
+   "from": "A1.cforce",
+   "to": "A1.hang",
+   "kind": "law"
+  },
+  {
+   "from": "A1.circ",
+   "to": "A1.hang",
+   "kind": "def"
+  },
+  {
+   "from": "I1.weight",
+   "to": "A1.hang",
+   "kind": "def"
+  },
+  {
+   "from": "I1.equil",
+   "to": "A1.hang",
+   "kind": "law"
+  },
+  {
+   "from": "A1.cforce",
+   "to": "A1.grav",
+   "kind": "law"
+  },
+  {
+   "from": "A1.kepler",
+   "to": "A1.grav",
+   "kind": "combine"
+  },
+  {
+   "from": "I1.newton3",
+   "to": "A1.grav",
+   "kind": "law"
+  },
+  {
+   "from": "A1.grav",
+   "to": "A1.g",
+   "kind": "def"
+  },
+  {
+   "from": "I1.weight",
+   "to": "A1.g",
+   "kind": "def"
+  },
+  {
+   "from": "A1.grav",
+   "to": "A1.sat",
+   "kind": "law"
+  },
+  {
+   "from": "A1.cforce",
+   "to": "A1.sat",
+   "kind": "law"
+  },
+  {
+   "from": "A1.circ",
+   "to": "A1.sat",
+   "kind": "def"
+  },
+  {
+   "from": "A1.grav",
+   "to": "A1.gravU",
+   "kind": "def"
+  },
+  {
+   "from": "I2.wcons",
+   "to": "A1.gravU",
+   "kind": "def"
+  },
+  {
+   "from": "A1.gravU",
+   "to": "A1.orbitE",
+   "kind": "def"
+  },
+  {
+   "from": "A1.sat",
+   "to": "A1.orbitE",
+   "kind": "def"
+  },
+  {
+   "from": "I2.ek",
+   "to": "A1.orbitE",
+   "kind": "def"
+  },
+  {
+   "from": "A1.gravU",
+   "to": "A1.escape",
+   "kind": "def"
+  },
+  {
+   "from": "I2.mcons",
+   "to": "A1.escape",
+   "kind": "conserve"
+  },
+  {
+   "from": "I2.ek",
+   "to": "A1.escape",
+   "kind": "def"
+  },
+  {
+   "from": "A1.vector",
+   "to": "A1.shmF",
+   "kind": "def"
+  },
+  {
+   "from": "I1.weight",
+   "to": "A1.shmF",
+   "kind": "approx"
+  },
+  {
+   "from": "A1.cacc",
+   "to": "A1.shmT",
+   "kind": "def"
+  },
+  {
+   "from": "A1.circ",
+   "to": "A1.shmT",
+   "kind": "def"
+  },
+  {
+   "from": "I1.hooke",
+   "to": "A1.shmT",
+   "kind": "law"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "A1.shmT",
+   "kind": "law"
+  },
+  {
+   "from": "A1.shmF",
+   "to": "A1.pend",
+   "kind": "def"
+  },
+  {
+   "from": "A1.shmT",
+   "to": "A1.pend",
+   "kind": "special"
+  },
+  {
+   "from": "I2.mconsG",
+   "to": "A1.pendV",
+   "kind": "special"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "A1.fict",
+   "kind": "def"
+  },
+  {
+   "from": "I1.newton1",
+   "to": "A1.fict",
+   "kind": "law"
+  },
+  {
+   "from": "A1.fict",
+   "to": "A1.geff",
+   "kind": "def"
+  },
+  {
+   "from": "A1.pend",
+   "to": "A1.geff",
+   "kind": "special"
+  },
+  {
+   "from": "A1.fict",
+   "to": "A1.tiltAcc",
+   "kind": "def"
+  },
+  {
+   "from": "A1.vector",
+   "to": "A1.tiltAcc",
+   "kind": "def"
+  },
+  {
+   "from": "A1.escape",
+   "to": "A1.bh",
+   "kind": "special"
+  },
+  {
+   "from": "A1.equiv",
+   "to": "A1.bh",
+   "kind": "law"
+  },
+  {
+   "from": "I2.work",
+   "to": "A2.power",
+   "kind": "def"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "A2.power",
+   "kind": "def"
+  },
+  {
+   "from": "I1.equil",
+   "to": "A2.slide",
+   "kind": "law"
+  },
+  {
+   "from": "I1.incline",
+   "to": "A2.slide",
+   "kind": "def"
+  },
+  {
+   "from": "I2.mconsG",
+   "to": "A2.projE",
+   "kind": "special"
+  },
+  {
+   "from": "A1.proj",
+   "to": "A2.projE",
+   "kind": "def"
+  },
+  {
+   "from": "I2.wke",
+   "to": "A2.wg",
+   "kind": "law"
+  },
+  {
+   "from": "A1.proj",
+   "to": "A2.wg",
+   "kind": "def"
+  },
+  {
+   "from": "A1.cforce",
+   "to": "A2.lowT",
+   "kind": "law"
+  },
+  {
+   "from": "I1.weight",
+   "to": "A2.lowT",
+   "kind": "def"
+  },
+  {
+   "from": "A2.heat",
+   "to": "A2.mix",
+   "kind": "def"
+  },
+  {
+   "from": "I2.first",
+   "to": "A2.mix",
+   "kind": "conserve"
+  },
+  {
+   "from": "A2.joule",
+   "to": "A2.jouleExp",
+   "kind": "def"
+  },
+  {
+   "from": "A2.heat",
+   "to": "A2.jouleExp",
+   "kind": "def"
+  },
+  {
+   "from": "I2.epg",
+   "to": "A2.jouleExp",
+   "kind": "def"
+  },
+  {
+   "from": "B1.efield",
+   "to": "B1.pointE",
+   "kind": "def"
+  },
+  {
+   "from": "II1.coulomb",
+   "to": "B1.pointE",
+   "kind": "def"
+  },
+  {
+   "from": "B1.pointE",
+   "to": "B1.Esum",
+   "kind": "def"
+  },
+  {
+   "from": "A1.vector",
+   "to": "B1.Esum",
+   "kind": "def"
+  },
+  {
+   "from": "B1.volt",
+   "to": "B1.uniform",
+   "kind": "def"
+  },
+  {
+   "from": "B1.efield",
+   "to": "B1.uniform",
+   "kind": "def"
+  },
+  {
+   "from": "I2.work",
+   "to": "B1.uniform",
+   "kind": "def"
+  },
+  {
+   "from": "B1.volt",
+   "to": "B1.accel",
+   "kind": "def"
+  },
+  {
+   "from": "I2.wke",
+   "to": "B1.accel",
+   "kind": "law"
+  },
+  {
+   "from": "II1.coulomb",
+   "to": "B1.pointU",
+   "kind": "def"
+  },
+  {
+   "from": "A1.gravU",
+   "to": "B1.pointU",
+   "kind": "combine"
+  },
+  {
+   "from": "B1.efield",
+   "to": "B1.beam",
+   "kind": "def"
+  },
+  {
+   "from": "I1.newton2",
+   "to": "B1.beam",
+   "kind": "law"
+  },
+  {
+   "from": "A1.horiz",
+   "to": "B1.beam",
+   "kind": "special"
+  },
+  {
+   "from": "B1.efield",
+   "to": "B1.hangQ",
+   "kind": "def"
+  },
+  {
+   "from": "A1.tilt",
+   "to": "B1.hangQ",
+   "kind": "special"
+  },
+  {
+   "from": "B1.cap",
+   "to": "B1.plate",
+   "kind": "def"
+  },
+  {
+   "from": "B1.kappa",
+   "to": "B1.plate",
+   "kind": "def"
+  },
+  {
+   "from": "B1.cap",
+   "to": "B1.capU",
+   "kind": "def"
+  },
+  {
+   "from": "B1.volt",
+   "to": "B1.capU",
+   "kind": "graph"
+  },
+  {
+   "from": "B1.cap",
+   "to": "B1.capComb",
+   "kind": "def"
+  },
+  {
+   "from": "II1.charge",
+   "to": "B1.capComb",
+   "kind": "conserve"
+  },
+  {
+   "from": "B1.capComb",
+   "to": "B1.share",
+   "kind": "special"
+  },
+  {
+   "from": "B1.capU",
+   "to": "B1.share",
+   "kind": "def"
+  },
+  {
+   "from": "II1.charge",
+   "to": "B1.share",
+   "kind": "conserve"
+  },
+  {
+   "from": "II1.charge",
+   "to": "B2.kirch",
+   "kind": "conserve"
+  },
+  {
+   "from": "B1.volt",
+   "to": "B2.kirch",
+   "kind": "conserve"
+  },
+  {
+   "from": "B2.kirch",
+   "to": "B2.Rcomb",
+   "kind": "law"
+  },
+  {
+   "from": "B2.ohm",
+   "to": "B2.Rcomb",
+   "kind": "def"
+  },
+  {
+   "from": "B2.kirch",
+   "to": "B2.bridge",
+   "kind": "law"
+  },
+  {
+   "from": "B2.ohm",
+   "to": "B2.bridge",
+   "kind": "def"
+  },
+  {
+   "from": "B1.volt",
+   "to": "B2.power",
+   "kind": "def"
+  },
+  {
+   "from": "B2.current",
+   "to": "B2.power",
+   "kind": "def"
+  },
+  {
+   "from": "B2.ohm",
+   "to": "B2.power",
+   "kind": "def"
+  },
+  {
+   "from": "B2.kirch",
+   "to": "B2.tr",
+   "kind": "special"
+  },
+  {
+   "from": "B2.tr",
+   "to": "B2.amp",
+   "kind": "def"
+  },
+  {
+   "from": "B2.Rcomb",
+   "to": "B2.bias",
+   "kind": "def"
+  },
+  {
+   "from": "B2.kirch",
+   "to": "B2.bias",
+   "kind": "law"
+  },
+  {
+   "from": "B2.ohm",
+   "to": "B2.bias",
+   "kind": "def"
+  },
+  {
+   "from": "II2.Bwire",
+   "to": "B2.compass",
+   "kind": "def"
+  },
+  {
+   "from": "A1.vector",
+   "to": "B2.compass",
+   "kind": "combine"
+  },
+  {
+   "from": "B2.force",
+   "to": "B2.rail",
+   "kind": "special"
+  },
+  {
+   "from": "II2.BLv",
+   "to": "B2.rail",
+   "kind": "def"
+  },
+  {
+   "from": "II2.induced",
+   "to": "B2.rail",
+   "kind": "def"
+  },
+  {
+   "from": "II2.BLv",
+   "to": "B2.rod",
+   "kind": "special"
+  },
+  {
+   "from": "A1.circ",
+   "to": "B2.rod",
+   "kind": "def"
+  },
+  {
+   "from": "II2.BLv",
+   "to": "B2.gen",
+   "kind": "def"
+  },
+  {
+   "from": "A1.circ",
+   "to": "B2.gen",
+   "kind": "def"
+  },
+  {
+   "from": "II2.flux",
+   "to": "B2.gen",
+   "kind": "def"
+  },
+  {
+   "from": "II2.faraday",
+   "to": "B2.mutual",
+   "kind": "def"
+  },
+  {
+   "from": "II2.Bsol",
+   "to": "B2.mutual",
+   "kind": "def"
+  },
+  {
+   "from": "II2.faraday",
+   "to": "B2.self",
+   "kind": "def"
+  },
+  {
+   "from": "II2.Bsol",
+   "to": "B2.self",
+   "kind": "def"
+  },
+  {
+   "from": "II2.faraday",
+   "to": "B2.trans",
+   "kind": "def"
+  },
+  {
+   "from": "B2.power",
+   "to": "B2.trans",
+   "kind": "conserve"
+  },
+  {
+   "from": "B2.power",
+   "to": "B2.loss",
+   "kind": "def"
+  },
+  {
+   "from": "B2.trans",
+   "to": "B2.loss",
+   "kind": "def"
+  },
+  {
+   "from": "B2.power",
+   "to": "B2.rms",
+   "kind": "def"
+  },
+  {
+   "from": "B2.gen",
+   "to": "B2.rms",
+   "kind": "def"
+  },
+  {
+   "from": "B2.self",
+   "to": "B2.react",
+   "kind": "def"
+  },
+  {
+   "from": "B1.cap",
+   "to": "B2.react",
+   "kind": "def"
+  },
+  {
+   "from": "A1.circ",
+   "to": "B2.react",
+   "kind": "def"
+  },
+  {
+   "from": "B2.react",
+   "to": "B2.res",
+   "kind": "special"
+  },
+  {
+   "from": "B2.res",
+   "to": "C1.tune",
+   "kind": "special"
+  },
+  {
+   "from": "III1.em",
+   "to": "C1.tune",
+   "kind": "def"
+  },
+  {
+   "from": "III1.wave",
+   "to": "C1.dopS",
+   "kind": "def"
+  },
+  {
+   "from": "I1.uniform",
+   "to": "C1.dopS",
+   "kind": "def"
+  },
+  {
+   "from": "C1.dopS",
+   "to": "C1.dopRatio",
+   "kind": "combine"
+  },
+  {
+   "from": "III1.wave",
+   "to": "C1.dopO",
+   "kind": "def"
+  },
+  {
+   "from": "I1.relv",
+   "to": "C1.dopO",
+   "kind": "def"
+  },
+  {
+   "from": "C1.dopS",
+   "to": "C1.dop",
+   "kind": "combine"
+  },
+  {
+   "from": "C1.dopO",
+   "to": "C1.dop",
+   "kind": "combine"
+  },
+  {
+   "from": "III1.interf",
+   "to": "C1.slit",
+   "kind": "special"
+  },
+  {
+   "from": "C1.slit",
+   "to": "C1.fringe",
+   "kind": "approx"
+  },
+  {
+   "from": "III1.interf",
+   "to": "C1.single",
+   "kind": "special"
+  },
+  {
+   "from": "C1.single",
+   "to": "C1.singleW",
+   "kind": "approx"
+  },
+  {
+   "from": "III1.snell",
+   "to": "C1.rays",
+   "kind": "approx"
+  },
+  {
+   "from": "C1.rays",
+   "to": "C1.lens",
+   "kind": "graph"
+  },
+  {
+   "from": "C1.lens",
+   "to": "C1.mag",
+   "kind": "combine"
+  },
+  {
+   "from": "C1.lens",
+   "to": "C1.twoPos",
+   "kind": "combine"
+  },
+  {
+   "from": "III2.stop",
+   "to": "C2.vs",
+   "kind": "def"
+  },
+  {
+   "from": "III2.einstein",
+   "to": "C2.vs",
+   "kind": "def"
+  },
+  {
+   "from": "II1.bohr",
+   "to": "C2.orbitWave",
+   "kind": "def"
+  },
+  {
+   "from": "III2.debroglie",
+   "to": "C2.orbitWave",
+   "kind": "def"
+  },
+  {
+   "from": "II1.bohr",
+   "to": "C2.radius",
+   "kind": "def"
+  },
+  {
+   "from": "A1.cforce",
+   "to": "C2.radius",
+   "kind": "law"
+  },
+  {
+   "from": "II1.coulomb",
+   "to": "C2.radius",
+   "kind": "def"
+  },
+  {
+   "from": "C2.orbitWave",
+   "to": "C2.radius",
+   "kind": "def"
+  },
+  {
+   "from": "III2.photon",
+   "to": "C2.photonP",
+   "kind": "def"
+  },
+  {
+   "from": "III1.em",
+   "to": "C2.photonP",
+   "kind": "def"
+  },
+  {
+   "from": "C2.uncert",
+   "to": "C2.microscope",
+   "kind": "special"
+  },
+  {
+   "from": "C2.photonP",
+   "to": "C2.microscope",
+   "kind": "def"
   }
  ]
 }

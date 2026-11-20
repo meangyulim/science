@@ -1,7 +1,7 @@
 /* 공식 지도 — 이 페이지만의 모양. 토큰(--bg, --paper, --ink, --copper …)은 ../kit/lab.css 것을 쓴다.
    배치: 맨 위 막대(.fm-bar: 실험실로 · 제목 · 찾기 · 목차·테마) → 지도(.fm-map, 화면 전체) + 자세히 패널(.fm-panel)
          넓은 화면: 패널이 오른쪽에 뜬다 / 좁은 화면(≤ 760px): 아래에서 올라오는 시트
-   지도 확대 단계(.lod0~3): 0 과목·대단원 이름만 → 1 단원 상자와 공식 칸 → 2 공식 이름 → 3 공식 카드(수식) */
+   지도 확대 단계(.lod0~3): 0 과목·대단원 이름과 공식 칸 → 1 단원 이름표와 공식 칸·선 → 2 공식 이름 → 3 공식 카드(수식) */
 :root{
   --u1:#2463c7; --u1-soft:rgba(36,99,199,.055); --u1-line:rgba(36,99,199,.30);
   --u2:#7a52c7; --u2-soft:rgba(122,82,199,.06); --u2-line:rgba(122,82,199,.30);
@@ -73,7 +73,7 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .fm-map:focus-visible{outline:2px solid var(--copper);outline-offset:-2px}
 .fm-map.drag{cursor:grabbing}
 .fm-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
-.fm-regions,.fm-cards{position:absolute;left:0;top:0}
+.fm-regions,.fm-cards,.fm-labels{position:absolute;left:0;top:0}
 .fm-edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
 
 /* 과목·대단원·단원 영역 */
@@ -84,11 +84,12 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .fm-big-lab span{font-size:40px;font-weight:700;line-height:1;color:var(--ink)}
 .fm-unit{position:absolute;border-radius:26px;background:var(--paper);border:1.5px solid var(--u-line);cursor:pointer}
 .fm-unit:hover{border-color:var(--u)}
-.fm-unit-lab{position:absolute;left:28px;top:24px;transform-origin:0 0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;color:var(--ink);line-height:1.2}
+.fm-unit-lab{position:absolute;left:0;top:0;width:max-content;transform-origin:0 0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;color:var(--ink);line-height:1.2;cursor:pointer}
+.fm-unit-lab:hover b{text-decoration:underline;text-decoration-color:var(--u-line);text-underline-offset:4px}
 .fm-unit-lab b{font-size:26px;font-weight:700}
 .fm-unit-lab small{font-size:17px;font-weight:600;color:var(--u)}
 .fm-unit.empty{background:transparent;border-style:dashed}
-.lod0 .fm-unit-lab,.lod1 .fm-unit-lab{left:50%;top:50%;transform-origin:50% 50%;justify-content:center;text-align:center;background:var(--glass);border:1px solid var(--u-line);border-radius:14px;padding:6px 14px}
+.lod1 .fm-unit-lab{transform-origin:50% 50%;box-shadow:0 2px 10px rgba(17,24,39,.10);justify-content:center;text-align:center;background:var(--glass);border:1px solid var(--u-line);border-radius:14px;padding:6px 14px}
 .lod1 .fm-unit.empty .fm-soon{display:none}
 .fm-unit.empty .fm-soon{position:absolute;left:28px;bottom:26px;font-size:17px;color:var(--muted)}
 
@@ -111,14 +112,16 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .fm-measure{position:absolute;left:-99999px;top:0;visibility:hidden}
 
 /* 확대 단계 */
-.lod0 .fm-card,.lod0 .fm-edges{visibility:hidden}
+/* 멀리서(lod0·1): 공식 하나 = 둥근 칸 하나. 물리 실험실 첫 화면의 개념 칸처럼 대단원 색으로 칠한다
+   출발점 = 구리색, 유도 = 대단원 색, 응용 = 옅은 대단원 색 */
+.lod0 .fm-edges,.lod0 .fm-unit-lab{visibility:hidden}
 .lod0 .fm-unit.empty .fm-soon{display:none}
-.lod0 .fm-unit{background:var(--u-soft)}
-.lod1 .fm-card > *{visibility:hidden}
-.lod1 .fm-card{box-shadow:none}
-.lod1 .fm-card.derived{background:var(--u-line);border-color:transparent}
-.lod1 .fm-card.applied{background:var(--u-soft);border-color:var(--u-line)}
-.lod1 .fm-card.basis{background:var(--copper);border-color:var(--copper)}
+.lod0 .fm-card > *,.lod1 .fm-card > *{visibility:hidden}
+.lod0 .fm-card,.lod1 .fm-card{box-shadow:none;border:0;border-radius:28px;transform:scale(.88);transition:opacity .2s}
+.lod0 .fm-card.derived,.lod1 .fm-card.derived{background:var(--u)}
+.lod0 .fm-card.applied,.lod1 .fm-card.applied{background:color-mix(in srgb,var(--u) 34%,var(--paper))}
+.lod0 .fm-card.basis,.lod1 .fm-card.basis{background:var(--copper)}
+.lod0 .fm-card:hover,.lod1 .fm-card:hover{transform:scale(1)}
 .lod2 .fm-card .t,.lod2 .fm-card .b{display:none}
 .lod2 .fm-card{justify-content:center;overflow:hidden}
 .lod2 .fm-card .n{font-size:26px;line-height:1.25;text-align:center;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
@@ -141,7 +144,7 @@ body.fm{padding:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-d
 .fm-card.cur{outline:3px solid var(--copper);outline-offset:3px;opacity:1}
 .fm-card.anc{border-color:var(--copper)}
 .fm-card.kid{border-color:var(--vel)}
-.lod1 .fm-card.cur{outline-width:8px}
+.lod0 .fm-card.cur,.lod1 .fm-card.cur{outline-width:10px;transform:scale(1)}
 
 /* 지도 위 고정 자리 */
 .fm-where{position:absolute;left:12px;top:12px;max-width:calc(100% - 24px);display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:13px;color:var(--ink-2);pointer-events:none}
