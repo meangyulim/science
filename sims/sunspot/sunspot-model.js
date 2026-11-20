@@ -39,7 +39,8 @@
     find: {label: '흑점 추적', icon: '⭐'},
     done2: {label: '자전 주기 완료', icon: '✅'},
     flare: {label: '플레어 경보', icon: '⚡'},
-    night: {label: '오로라 밤', icon: '🌌'}
+    night: {label: '오로라 밤', icon: '🌌'},
+    play: {label: '눈밭 놀이터', icon: '⛄'}
   };
   const DAY1_STAGES = ['prep', 'aim', 'focus', 'dir', 'sketch', 'done1'];
   const DAY2_STAGES = ['aim2', 'find', 'done2'];

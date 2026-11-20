@@ -260,3 +260,23 @@ body[data-shake] .student{animation:shakeit .25s 2}
 .t-dots{display:flex;gap:6px;justify-content:center;margin-top:auto;padding-top:6px}
 .t-dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2)}
 .t-dots i.on{background:var(--sun)}
+
+/* ── 눈밭 놀이터 ───────────────── */
+body[data-stage=play] .st-panel{display:none}
+body[data-stage=play] .student{grid-template-columns:1fr!important;grid-template-rows:1fr!important}
+.play-hud{position:absolute;inset:0;pointer-events:none}
+.play-hud>*{pointer-events:auto}
+.play-top{position:absolute;left:10px;right:56px;top:calc(56px + env(safe-area-inset-top));display:flex;align-items:center;gap:8px;flex-wrap:wrap;pointer-events:none}
+.play-top>*{pointer-events:auto}
+.play-stars,.play-hits{background:rgba(8,18,34,.75);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-weight:900;font-size:14px;color:#ffe08a}
+.play-hits:empty{display:none}
+.play-top button{min-height:36px;padding:4px 12px;font-size:13px;border-radius:999px;background:rgba(8,18,34,.75);margin-left:auto}
+.joy{position:absolute;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.35);pointer-events:none}
+.joy i{position:absolute;left:30px;top:30px;width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.8);box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.play-btns{position:absolute;right:14px;bottom:calc(18px + env(safe-area-inset-bottom));display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;gap:10px;align-items:end}
+.play-btns button{width:62px;height:62px;min-height:62px;padding:0;border-radius:50%;font-size:26px;background:rgba(8,18,34,.72);border:2px solid rgba(255,255,255,.3);box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.play-btns #pb-man{grid-column:1/3;justify-self:end;width:auto;padding:0 14px;border-radius:999px;font-size:20px;height:48px;min-height:48px}
+.play-btns button.main{width:78px;height:78px;font-size:34px;background:linear-gradient(180deg,#e7f5ff,#a5d8ff);border-color:#fff}
+.play-tip{position:absolute;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(8,18,34,.8);border:1px solid var(--line);border-radius:14px;padding:8px 14px;font-weight:800;font-size:13px;text-align:center;max-width:calc(100% - 200px);pointer-events:none}
+.play-tip small{color:#9fb3c8;font-weight:700}
+@media (max-width:520px){.play-tip{left:12px;transform:none;max-width:calc(100% - 120px);bottom:calc(120px + env(safe-area-inset-bottom))}}
