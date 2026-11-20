@@ -280,7 +280,7 @@
 (function () {
   'use strict';
   const M = window.B2_13;
-  const {$, C, text, rich, arrow, fmt} = Lab;
+  const {$, C, text, arrow, fmt} = Lab;
   const SQ2 = Math.SQRT2, TAU = 2 * Math.PI;
 
   // ── 상수 ────────────────────────────────────────────────
@@ -297,7 +297,6 @@
   const K3 = 36, V3MAX = 480;                      // 장면 3: 1 A 당 px/s. 순간 빠르기가 V3MAX 를 넘으면 두 회로를 같은 비율로 줄이고 무대에 밝힌다
   const MODES = {ramp: '그림 ① 의 1차 전류', sw: '직류 + 스위치', hand: '가변 저항', ac: '교류 (4 s 에 한 번으로 늦춤)'};
   const I2MAX = {ramp: 3.2, sw: 16, hand: 10, ac: 5};   // 2차 전류 그래프·검류계 눈금 끝 (A)
-  const SC = {mutual: '① 상호 유도', self: '② 자체 유도', trans: '③ 변압기', grid: '④ 송전'};
 
   // ── 코일이 있는 회로의 전류 기록: 바뀐 순간마다 (시각, 그때 전류, 목표 전류, τ) 를 적어 두고 어느 시각이든 정확히 계산한다 ──
   function Track(I0, extra) { this.a = [Object.assign({t: -1e9, Is: I0, Ia: I0, tau: 1}, extra || {})]; }
@@ -584,7 +583,7 @@
     if (S.mode === 'sw') lab(S.sw1 ? '스위치 (눌러서 열기)' : '스위치 (눌러서 닫기)', g.nar ? g.xs0 - 6 : (g.xs0 + g.xs1) / 2, g.yb + 19, C.copper, g.nar ? 'left' : 'center', 600);
     else if (rheo) lab(S.mode === 'hand' ? '가변 저항 (손잡이 끌기)' : '가변 저항', (g.xr0 + g.xr1) / 2, g.yb + 17, S.mode === 'hand' ? C.copper : C.muted, 'center', S.mode === 'hand' ? 600 : 500);
     const yl = g.yr - g.rc - 8 - 3 * g.lg - 14;
-    text(ctx, g.nar ? '자기력선 수 ∝ I₁' : '1차 전류가 만든 자기력선 (수 ∝ I₁)', g.nar ? W / 2 : (g.xL + g.xR) / 2 - W * 0.08, Math.max(g.nar ? 52 : 58, yl), {size: 13, w: 600, color: vio, halo: true});
+    if (yl >= 56) text(ctx, g.nar ? '자기력선 수 ∝ I₁' : '1차 전류가 만든 자기력선 (수 ∝ I₁)', g.nar ? W / 2 : (g.xL + g.xR) / 2 - W * 0.08, yl, {size: 13, w: 600, color: vio, halo: true});
     if (len > 3 && !g.nar) lab('유도 전류의 자기장', cm2, g.yr + g.rc + 14, blue, 'center', 600);
   }
 
@@ -638,7 +637,8 @@
       arrow(ctx, cm - d * l, ya, cm + d * l, ya, C.force, 3.4, 12);
       lab('ε = ' + sgn(s.emf, 1) + ' V' + (g.nar ? '' : s.emf < 0 ? ' (늘어나는 것을 막음)' : ' (줄어드는 것을 막음)'), cm, ya - 17, C.force);
     }
-    lab('전구 A', g.xbA, g.yA - g.rb - 13, cA); lab('전구 B', g.xbA, g.yB - g.rb - 13, cB);
+    if (g.yB - g.yA >= 2 * g.rb + 44) { lab('전구 A', g.xbA, g.yA - g.rb - 13, cA); lab('전구 B', g.xbA, g.yB - g.rb - 13, cB); }
+    else { lab('전구 A', g.xbA + g.rb + 4, g.yA - g.rb - 2, cA, 'left'); lab('전구 B', g.xbA + g.rb + 4, g.yB - g.rb - 2, cB, 'left'); }
     lab('코일 L = ' + fmt(S.L, 1) + ' H', cm, g.yA + 16, cA, 'center', 500);
     lab(g.nar ? '저항' : '저항 (코일과 같은 저항)', (g.rx0 + g.rx1) / 2, g.yB + 17, cB, 'center', 500);
     lab('전지 ' + E2 + ' V', g.xB + (g.nar ? 14 : 20), g.ybm, C.muted, 'left', 500);
@@ -694,8 +694,9 @@
     const nar = g.nar;
     T(nar ? 'N₁ = ' + S.N1 : '1차 N₁ = ' + S.N1 + '회', g.x0 + g.th / 2, g.y0 - 13, red, 'center', 700);
     T(nar ? 'N₂ = ' + S.N2 : '2차 N₂ = ' + S.N2 + '회', g.x1 - g.th / 2, g.y0 - 13, blue, 'center', 700);
-    T(nar ? '같은 Φ' : '철심 속 같은 Φ', g.cx, g.cy - 9, vio, 'center', 600);
-    if (!nar) T('(자기력선 수 ∝ |Φ|)', g.cx, g.cy + 11, vio, 'center', 500, 13);
+    const wide = g.cw - 2 * g.th > 150;
+    T(wide ? '철심 속 같은 Φ' : '같은 Φ', g.cx, g.cy - (wide ? 9 : 0), vio, 'center', 600);
+    if (wide) T('(자기력선 수 ∝ |Φ|)', g.cx, g.cy + 11, vio, 'center', 500, 13);
     T('V₁ = ' + sig(S.V1) + ' V', g.sx, g.yb + 18, red, 'center', 600);
     T('V₂ = ' + sig(f.V2) + ' V', g.lx, g.yb + 18, blue, 'center', 600);
     if (!nar) T('R = ' + S.Rl + ' Ω', g.lx + 14, g.cy, blue, 'left', 500);
@@ -762,7 +763,7 @@
       ctx.save(); ctx.globalAlpha = 0.85 * heat; ctx.strokeStyle = C.energy; ctx.lineWidth = 1.6;
       const nW = Math.round(2 + 6 * heat);
       for (let i = 0; i < nW; i++) {
-        const u = (i + 0.5) / nW, X = xs + (xe - xs) * u, Y = g.y1 - (nar ? 8 : 14), nj = nar ? 7 : 10;
+        const u = (i + 0.5) / nW, X = xs + (xe - xs) * u, Y = g.y1 - (nar ? 8 : 14), nj = Math.max(3, Math.min(nar ? 7 : 10, Math.floor((Y - 52) / 2.2)));
         ctx.beginPath(); for (let j = 0; j <= nj; j++) { const yy = Y - j * 2.2, xx = X + Math.sin(j * 1.2) * 3; j ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); } ctx.stroke();
       }
       ctx.restore();
@@ -780,7 +781,7 @@
     text(ctx, 'G', p0 + pw * 0.22, gy + gr + (nar ? 4 : 2), {size: 13, w: 700, color: C.muted});
     // 발전기 → 승압 변압기 (220 V 쪽, 전류 P/220)
     const yg1 = g.ty - g.tH + 8, yg2 = g.ty + g.tH - 8, xgL = gx + gr, xgR = g.su - g.tW - 4;
-    const pGen = joinPath([W_([[xgL, yg1], [xgR, yg1], [xgR, yg2], [xgL, yg2]]), {pts: [[xgL, yg2], [xgL, yg1]], gapHid: true}]);
+    const pGen = joinPath([W_([[xgL, yg1], [xgR, yg1], [xgR, yg2], [xgL, yg2]]), {pts: [[xgL, yg2], [xgL, yg1]], skip: true}]);
     Lab.line(ctx, [[gx + gr * 0.6, gy - gr * 0.8], [xgL, yg1], [xgR, yg1]], C.force, 2); Lab.line(ctx, [[gx + gr * 0.6, gy + gr * 0.8], [xgL, yg2], [xgR, yg2]], C.force, 2);
     // 변압기 두 개 (감은 수 비를 거칠게: 승압이면 오른쪽이 많다)
     const nHi = Math.min(9, 2 + Math.round(3.5 * Math.log10(V / 220)));
@@ -1060,10 +1061,10 @@
 
   // ── 지금 값 · HUD ───────────────────────────────────────
   const LEG = {
-    mutual: '<span><i style="background:var(--force)"></i><i style="background:var(--vel)"></i>1차 · 2차 전류 (점이 빠를수록 큰 전류)</span><span><b style="background:var(--violet)"></b>자기력선 (수 ∝ 자속 Φ)</span>',
-    self: '<span><i style="background:var(--copper)"></i><i style="background:var(--vel)"></i>전구 A · B 갈래의 전류</span><span><b style="background:var(--force)"></b>코일의 유도 기전력</span>',
-    trans: '<span><i style="background:var(--force)"></i><i style="background:var(--vel)"></i>1차 · 2차 전류 (점이 빠를수록 큰 전류)</span><span><b style="background:var(--violet)"></b>철심 속 자기력선 (수 ∝ |Φ|)</span>',
-    grid: '<span><i style="background:var(--vel)"></i>송전선 전류 (교류: 흔들림 ∝ I)</span><span><b style="background:var(--energy)"></b>전력 흐름 · 달아오름 ∝ 손실</span>',
+    mutual: '<span><i style="background:var(--force)"></i><i style="background:var(--vel)"></i>전류 (빠를수록 큼)</span><span><b style="background:var(--violet)"></b>자기력선 (수 ∝ Φ)</span>',
+    self: '<span><i style="background:var(--copper)"></i><i style="background:var(--vel)"></i>갈래 A · B 전류</span><span><b style="background:var(--force)"></b>코일의 유도 기전력</span>',
+    trans: '<span><i style="background:var(--force)"></i><i style="background:var(--vel)"></i>전류 (빠를수록 큼)</span><span><b style="background:var(--violet)"></b>자기력선 (수 ∝ |Φ|)</span>',
+    grid: '<span><i style="background:var(--vel)"></i>전류 (교류, 흔들림 ∝ I)</span><span><b style="background:var(--energy)"></b>전력 흐름 · 열 손실</span>',
   };
   let ansKey = '', lastOk = null;
   function ans(big, lines, o) {
@@ -1075,7 +1076,7 @@
   const setHud = (id, s, cls, hide) => { const e = $(id); if (e.textContent !== s) e.textContent = s; const c = 'pill' + (cls ? ' ' + cls : ''); if (e.className !== c) e.className = c; e.hidden = !!hide; };
   const narrowStage = () => (stage.W ? stage.W < 520 : innerWidth < 560);
   function readouts() {
-    const nar = narrowStage();
+    const nar = narrowStage(), full = stage.W >= 700;     // HUD 글: 폰(nar) · 중간 · 넓음(full). 오른쪽 위 범례와 겹치지 않게 짧게
     if (S.scene !== 'trans') setHud('hud4', '', '', true);
     if (S.scene === 'mutual') {
       const c = cur1(S.t), I1 = c.I, dI = c.dI, e2 = M.mutualEmf(S.Mh, dI), I2 = e2 / R2, dir = M.direction(dI, 0.005);
@@ -1092,10 +1093,10 @@
       setMini(3, '2차 전류 I₂ (+ = 1차와 같은 방향)', sgn(I2, 2) + ' A');
       setMini(4, S.mode === 'sw' ? '스위치' : S.mode === 'hand' ? '가변 저항이 정한 전류' : S.mode === 'ac' ? '1차 전류 최댓값 · 주기 (늦춤)' : '지금 구간 (그림 ①)',
         S.mode === 'sw' ? (S.sw1 ? '닫힘' : '열림') : S.mode === 'hand' ? fmt(S.hand, 2) + ' A' : S.mode === 'ac' ? AC_I + ' A · ' + AC_T + ' s' : M.RAMP[M.ramp(S.t).seg].name);
-      setHud('hud1', 't = ' + fmt(S.mode === 'ramp' ? M.ramp(S.t).u : S.t, 1) + ' s');
+      setHud('hud1', 't = ' + fmt(S.mode === 'ramp' ? M.ramp(S.t).u : S.mode === 'ac' ? S.t % (2 * AC_T) : S.t, 1) + ' s');
       const h2 = dir === 'opposite' ? ['I₁ 증가 → I₂ 반대 방향', 'I₂ 반대 방향'] : dir === 'same' ? ['I₁ 감소 → I₂ 같은 방향', 'I₂ 같은 방향'] : ['I₁ 일정 → I₂ = 0', 'I₂ = 0'];
-      setHud('hud2', h2[nar ? 1 : 0], dir === 'none' ? '' : dir === 'opposite' ? 'down' : 'up');
-      setHud('hud3', S.mode === 'ac' ? (nar ? '4 s 에 한 번 (늦춤)' : '교류: 4 s 에 한 번으로 늦춤') : S.mode === 'sw' ? '여는 순간은 늘려 그림' : S.mode === 'hand' ? '손잡이를 끌어 보자' : '그림 ① 의 1차 전류', '', nar && S.mode !== 'ac');
+      setHud('hud2', h2[full ? 0 : 1], dir === 'none' ? '' : dir === 'opposite' ? 'down' : 'up');
+      setHud('hud3', S.mode === 'ac' ? (full ? '교류: 4 s 에 한 번으로 늦춤' : '4 s 에 한 번 (늦춤)') : S.mode === 'sw' ? (full ? '여는 순간은 늘려 그림' : '늘려 그림') : S.mode === 'hand' ? '손잡이를 끌어 보자' : '그림 ① 의 1차 전류', '', nar && S.mode !== 'ac');
     } else if (S.scene === 'self') {
       const s = cur2(S.t), d = s.dIA, steady = Math.abs(d) < 0.005;
       const dS = sgn(d, 2), eS = sgn(s.emf, 2), Ls = fmt(S.L, 1);
@@ -1111,7 +1112,7 @@
       setMini(4, '다 켜진 뒤 전류 E/R', fmt(E2 / RB, 2) + ' A');
       setHud('hud1', s.first ? '스위치 ' + (s.closed ? '닫힘' : '열림') : (s.closed ? '닫은 뒤 ' : '연 뒤 ') + fmt(s.since, 1) + ' s');
       setHud('hud2', 'A ' + fmt(s.IA, 2) + ' A · B ' + sgn(s.IB, 2) + ' A');
-      setHud('hud3', '스위치를 눌러 보자', '', nar);
+      setHud('hud3', '스위치를 눌러 보자', '', !full);
     } else if (S.scene === 'trans') {
       const f = tf(), wrong = M.wrongI1(f.I2, S.N1, S.N2);
       ans('V<sub>2</sub> = ' + sig(f.V2) + ' V · I<sub>1</sub> = ' + sig(f.I1) + ' A', [
@@ -1124,9 +1125,9 @@
       setMini(3, '2차 전력 P₂ = V₂I₂', sig(f.P2) + ' W');
       setMini(4, '틀린 계산: 전류도 감은 수에 비례하면 I₁', sig(wrong) + ' A (틀림)');
       const sl = slow3(f);
-      setHud('hud1', 'V₂ = ' + sig(f.V2) + ' V');
-      setHud('hud2', 'I₂ = ' + sig(f.I2) + ' A · I₁ = ' + sig(f.I1) + ' A');
-      setHud('hud3', nar ? '120배 늦춤' : '교류 60 Hz → 120배 늦춤');
+      setHud('hud1', 'I₂ = ' + sig(f.I2) + ' A · I₁ = ' + sig(f.I1) + ' A');
+      setHud('hud2', full ? '교류 60 Hz → 120배 늦춤' : '120배 늦춤');
+      setHud('hud3', '', '', true);
       setHud('hud4', '전류가 커서 점은 1/' + sig(sl, 2) + ' 빠르기로', 'down', sl <= 1.001);
     } else {
       const x = tx(), V = VS[S.vi], other = S.vi === VS.length - 1 ? 220 : 22000, xo = M.transmission(S.P * 1000, other, S.Rline);
@@ -1138,9 +1139,9 @@
       setMini(2, other + ' V 로 보내면 손실', watt(xo.loss) + ' (×' + sig(M.lossRatio(V, other), 2) + ')');
       setMini(3, '송전선 양 끝 전압 IR', sig(x.drop) + ' V');
       setMini(4, '틀린 계산 V²/R (보내는 전력보다 큼)', sig(x.wrong, 3) + ' W (틀림)');
-      setHud('hud1', nar ? V + ' V · ' + sig(x.I) + ' A' : '송전 전압 ' + V + ' V · I = ' + sig(x.I) + ' A');
+      setHud('hud1', nar ? V + ' V · ' + sig(x.I) + ' A' : (full ? '송전 전압 ' : '') + V + ' V · I = ' + sig(x.I) + ' A');
       setHud('hud2', '손실 ' + watt(x.loss), x.frac > 0.05 ? 'down' : '');
-      setHud('hud3', nar ? '120배 늦춤' : '교류 60 Hz → 120배 늦춤');
+      setHud('hud3', full ? '교류 60 Hz → 120배 늦춤' : '120배 늦춤');
     }
     const ok = S.scene === 'grid' && Math.abs(S.P - 11) < 1e-9 && Math.abs(S.Rline - 2) < 1e-9 && (S.vi === 0 || S.vi === VS.length - 1);
     if (ok !== lastOk) { lastOk = ok; Lab.check('exCheck', ok, '개념서 예제 (2 Ω 송전선, 11 kW) → 220 V 이면 손실 5000 W, 22000 V 이면 0.5 W: 전압 100배 → 손실 1/10000',

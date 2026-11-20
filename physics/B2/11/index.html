@@ -463,7 +463,8 @@
       arrow(ctx, xq, ya + up * 8, xq, yb + up * 4, C.energy, 2.4, 9);
       if (!n) text(ctx, 'qvB', xq - dir * 9, (ya + yb) / 2, {size: 13, w: 600, color: C.energy, align: dir > 0 ? 'right' : 'left', halo: true});
     }
-    // 속도 (막대 위), 힘 (막대 가운데 높이)
+    // 속도 (막대 위), 힘 (막대 가운데 높이). 레일 끝에서 머무는 동안은 멈춘 화면이라 흐리게
+    ctx.save(); if (held) ctx.globalAlpha = 0.3;
     const big = p.mode === 'incline' ? 4 : 1;   // 빗면은 속력·힘이 작아 화살표 축척을 키운다 (이름표에 값)
     const kv = Math.min((n ? 7 : 11) * big, (n ? 44 : 88) / r.vMax), kF = Math.min((n ? 400 : 600) * big, (n ? 46 : 96) / r.fMax);
     // 힘 이름표: 화살표 쪽에 붙이고, 그쪽에 자리가 없으면 막대 반대쪽에
@@ -496,6 +497,7 @@
       const d = Math.sign(st.a), L = 14 + 46 * Math.abs(st.a) / r.aMax, ya = yT - 50;
       if (ya >= 48) { arrow(ctx, Xr + d * 10, ya, Xr + d * (10 + L), ya, C.acc, 2.8, 10); text(ctx, 'a', Xr + d * (18 + L), ya, {size: 14, w: 600, color: C.acc, align: d > 0 ? 'left' : 'right', halo: true}); }
     }
+    ctx.restore();
     // 막대 아래: 기전력·전류, 두 힘으로 정해지는 운동
     const e = Math.abs(st.emf), I = Math.abs(st.I);
     if (e > 1e-9) fTag(ctx, (n ? 'ε ' : 'ε = BLv = ') + n3(e) + ' V · I ' + n3(I) + ' A', Xr, yB + (n ? 22 : 26), C.energy, W);
@@ -584,11 +586,13 @@
     for (const xx of [X(0), g.xR]) for (const y of [yT, yB]) Lab.line(ctx, [[xx, y - 7], [xx, y + 7]], C.muted, 2.4);
     const ext = n ? 11 : 14, rw = n ? 7 : 9;
     for (const xx of [X1, X2]) { ctx.save(); ctx.fillStyle = C.copper; Lab.rrect(ctx, xx - rw / 2, yT - ext, rw, h + 2 * ext, rw / 2); ctx.fill(); ctx.restore(); }
+    const held = S.t >= T.tEnd - 1e-9;
     if (Math.abs(r.I) > 1e-9) loopCurrent(ctx, [[X2, yT], [X1, yT], [X1, yB], [X2, yB]], r.ccw, n);
+    ctx.save(); if (held) ctx.globalAlpha = 0.3;
     // 막대마다: 이름, 속도, 그 막대 혼자의 BLv 방향 (막대 바깥쪽 주황 화살표)
     const kv = n ? 6 : 10;
     [[X1, S.v1, r.up1, r.e1, 'P', -1, '₁'], [X2, S.v2, r.up2, r.e2, 'Q', 1, '₂']].forEach(([xx, v, up, e, nm, out, sub]) => {
-      text(ctx, nm, xx, yB + ext + 13, {size: 14, w: 700, halo: true});
+      text(ctx, nm, xx, yB + ext + 13, {size: 14, w: 600, halo: true});
       if (!n) lbl(ctx, 'v' + sub + ' = ' + (v < 0 ? '← ' : v > 0 ? '→ ' : '') + fmt(Math.abs(v), 1) + ' m/s', xx, yB + ext + 32, W, {size: 13, w: 600, color: C.vel, halo: true});
       if (Math.abs(v) > 1e-9) {
         const d = Math.sign(v), yv = yT - (n ? 30 : 34), L = Math.max(8, Math.min(Math.abs(v) * kv, d > 0 ? W - 6 - (xx + 10) : xx - 10 - 6));
@@ -612,6 +616,7 @@
         text(ctx, '외력', xx - d * (8 + L / 2), y - 13, {size: 13, w: 500, color: C.force, halo: true});
       });
     }
+    ctx.restore();
     bLabel(ctx, W, n, '', n ? g.box.y + 4 : null);
     // 아래 요약: 고리를 따라 같은 방향이면 합, 반대면 차
     const b = g.box, sameRod = r.up1 === r.up2 && r.up1 !== 0, y0 = b.y + (b.col ? 4 : 0);

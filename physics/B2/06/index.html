@@ -135,9 +135,9 @@
         <li class="card step" data-step="① 바이어스 없이">
           <div class="kind">관찰 1</div>
           <h3>바이어스가 없으면 역방향 반주기에 전류가 끊긴다</h3>
-          <p>장면 1은 이미터를 공통(접지)으로 쓰는 n-p-n 증폭 회로다. 베이스 회로에 바이어스 없이 마이크 신호(±0.1 V)만 넣어 보자. 신호가 (+)인 반주기에는 p형 베이스가 n형 이미터보다 전위가 높아 E-B 접합이 순방향이 되고 베이스 전류가 흐른다. (−)인 반주기에는 역방향이 되어 <b>베이스 전류가 끊기고 컬렉터 전류도 0</b>이 된다. 스위칭 작용처럼 켜졌다 꺼지므로 출력 신호의 절반이 사라진다.</p>
+          <p>장면 1은 이미터를 공통(접지)으로 쓰는 <span class="nw">n-p-n</span> 증폭 회로다. 베이스 회로에 바이어스 없이 마이크 신호(±0.1 V)만 넣어 보자. 신호가 (+)인 반주기에는 p형 베이스가 n형 이미터보다 전위가 높아 <span class="nw">E-B</span> 접합이 순방향이 되고 베이스 전류가 흐른다. (−)인 반주기에는 역방향이 되어 <b>베이스 전류가 끊기고 컬렉터 전류도 0</b>이 된다. 스위칭 작용처럼 켜졌다 꺼지므로 출력 신호의 절반이 사라진다.</p>
           <canvas class="flat" id="gT" aria-label="위는 베이스 전압, 아래는 컬렉터 전류의 시간 그래프. 베이스 전압이 붉은 띠(전류가 흐르지 못하는 전압)에 들어가는 동안 컬렉터 전류가 0이다."></canvas>
-          <p class="cap">위는 베이스 전압, 아래는 컬렉터 전류다. 붉은 띠는 E-B 접합이 역방향이라 전류가 흐르지 못하는 전압이고, 위 그래프가 그 띠에 들어가는 동안 아래 그래프가 바닥에 붙는다. 무대의 점도 그동안 멈춘다. 이 장면은 개념서 그림 ①처럼 접합이 순방향이면 흐르고 역방향이면 끊긴다고 보고(문턱 전압은 생각하지 않음), 베이스 전류는 베이스 전압에 비례한다고 단순화했다. 1초에 수백 번 진동하는 소리 신호를 3초에 한 번으로 느리게 보인다.</p>
+          <p class="cap">위는 베이스 전압, 아래는 컬렉터 전류다. 붉은 띠는 <span class="nw">E-B</span> 접합이 역방향이라 전류가 흐르지 못하는 전압이고, 위 그래프가 그 띠에 들어가는 동안 아래 그래프가 바닥에 붙는다. 무대의 점도 그동안 멈춘다. 이 장면은 개념서 그림 ①처럼 접합이 순방향이면 흐르고 역방향이면 끊긴다고 보고(문턱 전압은 생각하지 않음), 베이스 전류는 베이스 전압에 비례한다고 단순화했다. 1초에 수백 번 진동하는 소리 신호를 3초에 한 번으로 느리게 보인다.</p>
           <div class="acts"><button type="button" class="btn go" data-try="nobias">바이어스 없이 (가)</button><button type="button" class="btn" data-do="click:#step">¼ 주기씩 ▸</button></div>
         </li>
         <li class="card step" data-step="② 바이어스 위에 얹기">
@@ -180,8 +180,8 @@
           <div class="kind">핵심 정리</div>
           <h3>바이어스 = 신호를 순방향 영역에 띄워 두는 직류</h3>
           <ul>
-            <li>바이어스가 없으면 교류 신호가 E-B 접합을 역방향으로 만드는 반주기에 베이스 전류와 컬렉터 전류가 끊겨 출력의 절반이 사라진다.</li>
-            <li>증폭 조건은 E-B 순방향, B-C 역방향. n-p-n은 <span class="eq">V<sub>C</sub> &gt; V<sub>B</sub> &gt; V<sub>E</sub></span>, <span class="eq">I<sub>C</sub> = βI<sub>B</sub></span>, <span class="eq">I<sub>E</sub> = I<sub>B</sub> + I<sub>C</sub></span>.</li>
+            <li>바이어스가 없으면 교류 신호가 <span class="nw">E-B</span> 접합을 역방향으로 만드는 반주기에 베이스 전류와 컬렉터 전류가 끊겨 출력의 절반이 사라진다.</li>
+            <li>증폭 조건은 <span class="nw">E-B</span> 순방향, <span class="nw">B-C</span> 역방향. n-p-n은 <span class="eq">V<sub>C</sub> &gt; V<sub>B</sub> &gt; V<sub>E</sub></span>, <span class="eq">I<sub>C</sub> = βI<sub>B</sub></span>, <span class="eq">I<sub>E</sub> = I<sub>B</sub> + I<sub>C</sub></span>.</li>
             <li>전압 분할 바이어스: <span class="eq">V<sub>B</sub> = V<sub>CC</sub>R₂/(R₁ + R₂)</span>, <span class="eq">V<sub>B</sub> = V<sub>E</sub> + V<sub>BE</sub></span>, <span class="eq">V<sub>C</sub> = V<sub>E</sub> + V<sub>CE</sub></span>. 저항은 <span class="eq">R<sub>E</sub> = V<sub>E</sub>/I<sub>E</sub></span>, <span class="eq">R<sub>C</sub> = (V<sub>CC</sub> − V<sub>C</sub>)/I<sub>C</sub></span>로 고른다.</li>
             <li>입력(마이크)은 베이스 쪽, 출력(스피커)은 컬렉터 쪽. 에너지는 전원이 공급하고 트랜지스터는 흐름을 조절한다.</li>
             <li>자주 하는 실수: 베이스 전류를 0으로 본다(작지만 0이 아니고, 있어야 컬렉터 전류가 흐른다). R₁ 양단 전압을 베이스 전위로 착각한다.</li>
@@ -191,22 +191,22 @@
           <div class="kind">개념서 예제</div>
           <h3>V<sub>CC</sub> = 12 V, R₁ = 40 kΩ, R₂ = 10 kΩ인 전압 분할 바이어스 회로에서 V<sub>BE</sub> = 0.7 V, R<sub>E</sub> = 1.7 kΩ, R<sub>C</sub> = 5 kΩ이다. 베이스 전류를 무시할 때 V<sub>B</sub>, I<sub>C</sub>, V<sub>C</sub>는?</h3>
           <div class="acts"><button type="button" class="btn go" data-try="ex">예제 상황으로</button></div>
-          <details class="ans"><summary>풀이 보기</summary><p>V<sub>B</sub> = 12 × 10/(40 + 10) = 2.4 V. V<sub>E</sub> = V<sub>B</sub> − V<sub>BE</sub> = 1.7 V이므로 I<sub>E</sub> = 1.7 V ÷ 1.7 kΩ = 1 mA ≈ I<sub>C</sub>. V<sub>C</sub> = V<sub>CC</sub> − I<sub>C</sub>R<sub>C</sub> = 12 − 1 mA × 5 kΩ = 7 V. 7 V &gt; 2.4 V &gt; 1.7 V로 n-p-n 증폭 조건(V<sub>C</sub> &gt; V<sub>B</sub> &gt; V<sub>E</sub>)을 만족한다. 답: <b>V<sub>B</sub> = 2.4 V, I<sub>C</sub> ≈ 1 mA, V<sub>C</sub> = 7 V</b>. 관찰 3의 전위 계단에서 세 높이를 확인해 보자.</p></details>
+          <details class="ans"><summary>풀이 보기</summary><p>V<sub>B</sub> = 12 × 10/(40 + 10) = 2.4 V. V<sub>E</sub> = V<sub>B</sub> − V<sub>BE</sub> = 1.7 V이므로 I<sub>E</sub> = 1.7 V ÷ 1.7 kΩ = 1 mA ≈ I<sub>C</sub>. V<sub>C</sub> = V<sub>CC</sub> − I<sub>C</sub>R<sub>C</sub> = 12 − 1 mA × 5 kΩ = 7 V. 7 V &gt; 2.4 V &gt; 1.7 V로 <span class="nw">n-p-n</span> 증폭 조건(V<sub>C</sub> &gt; V<sub>B</sub> &gt; V<sub>E</sub>)을 만족한다. 답: <b>V<sub>B</sub> = 2.4 V, I<sub>C</sub> ≈ 1 mA, V<sub>C</sub> = 7 V</b>. 관찰 3의 전위 계단에서 세 높이를 확인해 보자.</p></details>
         </li>
         <li class="card step" data-step="⑦ 스스로 확인">
           <div class="kind">스스로 확인</div>
           <div class="q">
-            <h3>바이어스 전압 없이 교류 신호만 n-p-n 트랜지스터의 베이스–이미터 사이에 넣었다. 컬렉터 전류는 신호 전체가 β배로 커져 흐를까, 아니면 어떻게 될까?</h3>
+            <h3>바이어스 전압 없이 교류 신호만 <span class="nw">n-p-n</span> 트랜지스터의 베이스–이미터 사이에 넣었다. 컬렉터 전류는 신호 전체가 β배로 커져 흐를까, 아니면 어떻게 될까?</h3>
             <div class="acts"><button type="button" class="btn" data-try="nobias">바이어스 없이 신호만</button></div>
-            <details class="ans"><summary>답 보기</summary><p><b>E-B 접합이 순방향이 되는 반주기에만 흐르고, 나머지 반주기는 잘린다.</b> 신호가 E-B 접합을 역방향으로 만드는 반주기에는 베이스 전류가 끊기고 컬렉터 전류도 0이 된다. 역방향일 때 더 큰 전류가 흐르거나 진동수가 바뀌는 일은 없다. 직류 바이어스 위에 신호를 얹어 접합이 늘 순방향이 되게 해야 신호 전체가 증폭된다.</p></details>
+            <details class="ans"><summary>답 보기</summary><p><b><span class="nw">E-B</span> 접합이 순방향이 되는 반주기에만 흐르고, 나머지 반주기는 잘린다.</b> 신호가 <span class="nw">E-B</span> 접합을 역방향으로 만드는 반주기에는 베이스 전류가 끊기고 컬렉터 전류도 0이 된다. 역방향일 때 더 큰 전류가 흐르거나 진동수가 바뀌는 일은 없다. 직류 바이어스 위에 신호를 얹어 접합이 늘 순방향이 되게 해야 신호 전체가 증폭된다.</p></details>
           </div>
           <div class="q">
-            <h3>n-p-n 증폭 회로에서 전원 9 V를 R₁ = 20 kΩ(전원 쪽)과 R₂ = 10 kΩ(접지 쪽)으로 나누어 베이스에 걸었다. 이미터는 이미터 저항을 거쳐 접지되어 있고 V<sub>BE</sub> = 0.6 V이다. 베이스 전류를 무시할 때 이미터의 전위는?</h3>
+            <h3><span class="nw">n-p-n</span> 증폭 회로에서 전원 9 V를 R₁ = 20 kΩ(전원 쪽)과 R₂ = 10 kΩ(접지 쪽)으로 나누어 베이스에 걸었다. 이미터는 이미터 저항을 거쳐 접지되어 있고 V<sub>BE</sub> = 0.6 V이다. 베이스 전류를 무시할 때 이미터의 전위는?</h3>
             <div class="acts"><button type="button" class="btn" data-try="q2">9 V · 20 kΩ · 10 kΩ 회로</button></div>
             <details class="ans"><summary>답 보기</summary><p><b>2.4 V</b>. 베이스 전위는 분압으로 V<sub>B</sub> = 9 × 10 ÷ 30 = 3 V이고, 이미터는 0.6 V 낮은 2.4 V다. R₁ 양단 전압 6 V를 베이스 전위로 착각하면 5.4 V가 나온다. (무대는 R<sub>E</sub> = 2.4 kΩ, R<sub>C</sub> = 3 kΩ로 두었다. 이미터 전위는 R<sub>E</sub>와 상관없다.)</p></details>
           </div>
           <div class="q">
-            <h3>전원 10 V, R₁ = 32 kΩ, R₂ = 8 kΩ, V<sub>BE</sub> = 0.7 V, R<sub>E</sub> = 1.3 kΩ, β = 100인 n-p-n 증폭 회로다. 컬렉터 전위를 6 V로 맞추는 R<sub>C</sub>는? 입력 신호로 베이스 전류가 ±2 μA 진동하면 컬렉터 전위는 어느 범위에서 변할까?</h3>
+            <h3>전원 10 V, R₁ = 32 kΩ, R₂ = 8 kΩ, V<sub>BE</sub> = 0.7 V, R<sub>E</sub> = 1.3 kΩ, β = 100인 <span class="nw">n-p-n</span> 증폭 회로다. 컬렉터 전위를 6 V로 맞추는 R<sub>C</sub>는? 입력 신호로 베이스 전류가 ±2 μA 진동하면 컬렉터 전위는 어느 범위에서 변할까?</h3>
             <div class="acts"><button type="button" class="btn" data-try="q3">이 회로에 신호 넣기</button></div>
             <details class="ans"><summary>답 보기</summary><p>V<sub>B</sub> = 10 × 8/40 = 2 V, V<sub>E</sub> = 1.3 V, I<sub>E</sub> = 1 mA ≈ I<sub>C</sub>이므로 R<sub>C</sub> = (10 − 6) V ÷ 1 mA = 4 kΩ. ΔI<sub>C</sub> = βΔI<sub>B</sub> = 100 × 2 μA = 0.2 mA, ΔV<sub>C</sub> = 0.2 mA × 4 kΩ = 0.8 V. 컬렉터 전류가 늘면 R<sub>C</sub>에서 전압이 더 떨어져 컬렉터 전위는 내려가므로 <b>R<sub>C</sub> = 4 kΩ, 컬렉터 전위 5.2 V ~ 6.8 V</b>. 직류 바이어스로 동작점을 먼저 잡고, 신호는 그 위의 변화량으로 따로 계산한다. (무대는 입력 진폭을 0.26 V로 두어 베이스 전류가 ±2 μA 진동하게 했다.)</p></details>
           </div>
@@ -700,11 +700,11 @@
     const {ctx, W, H} = gV; if (!W) return;
     ctx.clearRect(0, 0, W, H);
     const p = par(), sc = S.scene, st = stAt(), c = getCyc(), nar = W < 420;
-    const Vcc = p.Vcc, L = nar ? 34 : 42, r = {x: L, y: 18, w: W - L - 10, h: H - 18 - 30};
+    const Vcc = p.Vcc, L = nar ? 34 : 42, r = {x: L, y: 28, w: W - L - 10, h: H - 28 - 30};
     const Y = (v) => r.y + r.h - Math.max(-0.02 * Vcc, Math.min(Vcc, v)) / Vcc * r.h;
     const step = Vcc > 10 ? 2 : 1;
     for (let v = 0; v <= Vcc + 1e-9; v += step) { Lab.line(ctx, [[r.x, Y(v)], [r.x + r.w, Y(v)]], C.grid, 1); text(ctx, String(v), r.x - 6, Y(v), {size: 13, w: 500, color: C.muted, align: 'right'}); }
-    text(ctx, '전위 (V)', r.x - 4, r.y - 8, {size: 13, w: 600, color: C.muted, align: 'left'});
+    text(ctx, '전위 (V)', r.x - 4, r.y - 18, {size: 13, w: 600, color: C.muted, align: 'left'});
     const x1 = r.x + r.w * (nar ? 0.2 : 0.17), x2 = r.x + r.w * (nar ? 0.56 : 0.5), zw = nar ? 6 : 7;
     const vC = st.VC, vB = st.vB, vE = st.vE, ok = vC > vB + 1e-9;
     // 오른쪽 기둥: V_CC → R_C → (B-C · E-B) → R_E → 0
@@ -741,25 +741,30 @@
       rich(ctx, 'R_1 ' + fmt(Vcc - vB, 2) + ' V', lx1, (Y(Vcc) + Y(vB)) / 2, {size: sz, w: 600, align: 'right'});
       rich(ctx, 'R_2 ' + fmt(vB, 2) + ' V', lx1, (Y(vB) + Y(0)) / 2, {size: sz, w: 600, align: 'right'});
     } else {
-      text(ctx, nar ? '전지' : '바이어스 전지', lx1, (Y(0) + Y(biasEff())) / 2, {size: sz, w: 600, align: 'right'});
-      text(ctx, '+ 신호', lx1, Y(Math.max(vB, biasEff())) - 10, {size: sz, w: 600, color: C.copper, align: 'right'});
+      const b = biasEff(), hb = Y(0) - Y(b);
+      if (hb > 18) {
+        text(ctx, (nar ? '' : '바이어스 ') + f1(b) + ' V', lx1, (Y(0) + Y(b)) / 2, {size: sz, w: 600, align: 'right'});
+        text(ctx, '+ 신호', lx1, Y(Math.max(vB, b)) - 10, {size: sz, w: 600, color: C.copper, align: 'right'});
+      } else text(ctx, (nar ? '' : '바이어스 ') + f1(b) + ' V + 신호', lx1, Y(Math.max(vB, b, 0)) - 14, {size: sz, w: 600, color: C.copper, align: 'right'});
     }
     rich(ctx, 'V_B ' + fmt(vB, 2) + ' V', (x1 + x2) / 2, Y(vB) - 10, {size: sz, w: 700, color: C.copper, halo: true});
+    const ebTxt = st.on ? '순방향' : st.fwd ? '0.7 V 못 미침' : '역방향';
     const items = [
+      {y: Y(Vcc), s: 'V_{CC} ' + fmt(Vcc, 1) + ' V', col: C.muted, top: true},
       {y: (Y(Vcc) + Y(vC)) / 2, s: 'R_C: I_CR_C = ' + fmt(Vcc - vC, 2) + ' V', col: C.ink},
       {y: (Y(vC) + Y(vB)) / 2, s: (ok ? 'B-C 역방향 ' : 'B-C 역방향 아님 ') + fmt(vC - vB, 2) + ' V', col: ok ? C.acc : C.neg},
-      {y: (Y(vB) + Y(vE)) / 2, s: 'E-B 순방향 ' + fmt(vB - vE, 2) + ' V', col: st.on ? C.acc : C.neg},
+      {y: (Y(vB) + Y(vE)) / 2, s: 'E-B ' + ebTxt + ' ' + fmt(vB - vE, 2) + ' V', col: st.on ? C.acc : C.neg},
     ];
     if (sc === 2) items.push({y: (Y(vE) + Y(0)) / 2, s: 'R_E: I_ER_E = ' + fmt(vE, 2) + ' V', col: C.ink});
     const mids = items.map((it) => it.y);
     spread(items, 17, r.y + 6, r.y + r.h - 4).forEach((it, i) => {
       const ym = mids[i];
-      if (Math.abs(it.y - ym) > 3) Lab.line(ctx, [[x2 + bw / 2 + 2, ym], [lx2 - 3, it.y]], Lab.alpha(it.col, 0.6), 1);
+      if (Math.abs(it.y - ym) > 3 && !it.top) Lab.line(ctx, [[x2 + bw / 2 + 2, ym], [lx2 - 3, it.y]], Lab.alpha(it.col, 0.6), 1);
       rich(ctx, it.s, lx2, it.y, {size: sz, w: 600, color: it.col, align: 'left', halo: true});
     });
-    rich(ctx, 'V_{CC} ' + fmt(Vcc, 1), x2, Y(Vcc) - 10, {size: 13, w: 600, color: C.muted});
-    rich(ctx, 'V_C ' + fmt(vC, 2), x2 - bw / 2 - 6, Y(vC) - 9, {size: 13, w: 600, align: 'right', halo: true});
-    if (sc === 2) rich(ctx, 'V_E ' + fmt(vE, 2), x2 - bw / 2 - 6, Y(vE) + 10, {size: 13, w: 600, align: 'right', halo: true});
+    rich(ctx, 'V_C ' + fmt(vC, 2), x2 - bw / 2 - 6, Y(vC) - (Math.abs(Y(vC) - Y(vB)) < 18 ? 24 : 9), {size: 13, w: 600, align: 'right', halo: true});
+    const yEl = Math.min(Y(vE) + 10, Y(0) - 4);
+    if (sc === 2 && yEl > Y(vB) + 4) rich(ctx, 'V_E ' + fmt(vE, 2), x2 - bw / 2 - 6, yEl, {size: 13, w: 600, align: 'right', halo: true});
     text(ctx, sc === 2 ? (nar ? '분압' : '분압 R₁ · R₂') : (nar ? '베이스 쪽' : '베이스 회로'), x1, r.y + r.h + 18, {size: 13, w: 600, color: C.muted});
     rich(ctx, nar ? '컬렉터 쪽' : (sc === 2 ? 'R_C · 트랜지스터 · R_E' : 'R_C · 트랜지스터'), x2, r.y + r.h + 18, {size: 13, w: 600, color: C.muted});
   }
