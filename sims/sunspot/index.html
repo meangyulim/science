@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1626">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>흑점 헌터스 · 다 같이 태양 관측</title>
+  <link rel="stylesheet" href="sunspot.css?v=20261121">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script defer src="../sun/sun-model.js?v=20261101"></script>
+  <script defer src="sunspot-model.js?v=20261121"></script>
+  <script defer src="sunspot-world.js?v=20261121"></script>
+  <script defer src="sunspot-board.js?v=20261121"></script>
+  <script defer src="sunspot.js?v=20261121"></script>
+</head>
+<body data-screen="entry">
+
+<!-- ───────────── 처음 화면 ───────────── -->
+<section class="screen entry" id="screen-entry" aria-labelledby="entry-title">
+  <div class="entry-sky" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="entry-inner">
+    <a class="home-link" href="../../">← 민규쌤의 과학 실험실</a>
+    <p class="eyebrow">행성우주과학 온라인 관측 / SUNSPOT HUNTERS</p>
+    <div class="entry-hero">
+      <div>
+        <h1 id="entry-title">흑점 헌터스<span class="title-dot">.</span></h1>
+        <p class="lede">밖은 너무 추우니까, 오늘은 <b>반 전체가 가상 관측소</b>에 모여요. 망원경을 태양에 맞추고, 흑점을 사냥하고, 며칠 뒤 다시 관측해 <b>태양의 자전 주기</b>까지 다 같이 밝혀냅니다.</p>
+      </div>
+      <div class="entry-sun" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    </div>
+
+    <p class="live" id="live-count"><i class="conn"></i> 관측소 연결 중…</p>
+    <div class="entry-actions">
+      <form class="card join-card" id="join-form" autocomplete="off">
+        <h2>🔭 관측소 입장</h2>
+        <div class="field">
+          <span>모둠</span>
+          <div class="team-picker" id="team-picker" role="radiogroup" aria-label="모둠 고르기"></div>
+        </div>
+        <label class="field">
+          <span>이름 (별명·번호도 좋아요, 8자까지)</span>
+          <input id="join-name" maxlength="8" placeholder="예: 12민지">
+        </label>
+        <button class="primary big" id="join-btn" type="submit">관측소 입장 🔭</button>
+        <p class="error" id="join-error" role="alert" hidden></p>
+        <p class="hint">방 번호는 없어요. 들어오면 지금 접속한 모든 친구와 <b>같은 관측소</b>에서 관측해요.</p>
+      </form>
+
+      <div class="card teacher-card">
+        <h2>📺 관측소 전광판</h2>
+        <p>TV·프로젝터에 띄우는 화면이에요. 모두의 망원경과 빛줄기, 실시간 순위, 반 전체가 찍은 흑점 지도와 자전 주기 그래프가 나와요. 진행 버튼은 없어요 — 학생들이 각자 속도로 해요.</p>
+        <button class="dark big" id="open-board">전광판 열기</button>
+        <button class="ghost" id="open-demo">가상 학생 20명으로 미리 보기</button>
+        <p class="hint" id="server-note"></p>
+      </div>
+    </div>
+
+    <details class="how">
+      <summary>어떻게 하나요? (한 판 약 10분)</summary>
+      <ol>
+        <li><b>입장</b> — 주소로 들어와 모둠과 이름만 고르면 끝. 눈 덮인 관측소에 내 망원경과 캐릭터가 생기고, 지금 접속한 친구들도 모두 보여요.</li>
+        <li><b>1일째 관측</b> — 🧢 안전 준비(태양을 망원경으로 직접 보면 절대 안 돼요) → 🎯 그림자로 조준 → 🔍 초점 → 🧭 상이 흘러가는 쪽 = 서쪽 → ✏️ 흑점 스케치. 렌즈 먼지에 속지 마세요!</li>
+        <li><b>며칠 뒤 다시 관측</b> — 내가 기록한 흑점(★)이 어디로 갔는지 찾으면 교과서 방법(θ : Δt = 360° : P)으로 자전 주기가 계산돼요. 친구들이 잰 값과 모아 보면 차등 자전이 보여요.</li>
+        <li><b>⚡ 플레어 경보 → 🌌 오로라 밤</b> — 플레어를 찾고, 오로라 아래 시상대에 오를 사람은?</li>
+        <li>각자 자기 속도로 진행해요. 다 끝나면 같은 태양으로 한 번 더 도전할 수 있어요(최고 점수가 남아요).</li>
+      </ol>
+    </details>
+  </div>
+</section>
+
+<!-- ───────────── 학생 화면 ───────────── -->
+<section class="screen student" id="screen-student" aria-label="관측소">
+  <div class="st-3d" id="st-3d-wrap">
+    <canvas id="st-3d" aria-label="3D 관측소: 끌어서 망원경을 돌립니다"></canvas>
+    <div class="hud-top">
+      <div class="hud-id"><span class="team-dot" id="st-team-dot"></span><div><strong id="st-name">관측소</strong><small id="st-room">방 ----</small></div></div>
+      <div class="hud-score"><small>점수</small><strong id="st-score" class="num">0</strong></div>
+      <div class="hud-rank"><small>순위</small><strong id="st-rank" class="num">-</strong></div>
+      <button class="icon-btn" id="st-sound" aria-pressed="true" aria-label="소리">🔊</button>
+      <span class="conn" id="st-conn" title="연결 상태"></span>
+    </div>
+    <div class="goal-pill" id="st-goal" hidden><span>🏆 우리 반 목표</span><i><b id="st-goal-bar"></b></i><em id="st-goal-text"></em></div>
+    <div class="emoji-bar" id="emoji-bar" aria-label="이모지 보내기"></div>
+    <div class="drag-hint" id="drag-hint" hidden>👆 여기를 끌어서 망원경을 크게 돌려요</div>
+  </div>
+  <div class="st-panel">
+    <div class="mission" id="mission">
+      <ol class="steps" id="steps" aria-hidden="true"></ol>
+      <h2 id="m-title">대기실</h2>
+      <p id="m-text"></p>
+    </div>
+    <div class="board-wrap" id="board-wrap">
+      <canvas id="board" aria-label="태양 투영판"></canvas>
+      <div class="dir-arrows" id="dir-arrows" hidden>
+        <button data-dir="N" aria-label="위">▲</button><button data-dir="W" aria-label="오른쪽">▶</button>
+        <button data-dir="S" aria-label="아래">▼</button><button data-dir="E" aria-label="왼쪽">◀</button>
+      </div>
+      <div class="sk-timer" id="sk-timer" hidden><b id="sk-time" class="num">75</b><i><span id="sk-bar"></span></i></div>
+      <div class="combo" id="combo" aria-live="polite"></div>
+    </div>
+    <div class="controls" id="controls"></div>
+  </div>
+  <div class="overlay" id="overlay" hidden><div class="ov-card" id="ov-card"></div></div>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="flash" id="flash"></div>
+</section>
+
+<!-- ───────────── 관측소 전광판 ───────────── -->
+<section class="screen teacher" id="screen-teacher" aria-label="관측소 전광판">
+  <canvas id="t-3d"></canvas>
+  <header class="t-top">
+    <div class="t-brand"><strong>흑점 헌터스</strong><span>오늘의 관측소</span></div>
+    <div class="t-room" id="t-room" title="눌러서 입장 안내 크게 보기"><small>여기로 들어와요</small><b id="t-url" class="t-url-small"></b><canvas id="t-qr-small" width="72" height="72"></canvas></div>
+    <div class="t-count"><b id="t-count" class="num">0</b><small>명 관측 중</small><span class="conn" id="t-conn"></span></div>
+  </header>
+
+  <div class="t-lobby" id="t-lobby">
+    <p class="eyebrow">관측소 입장!</p>
+    <div class="t-lobby-row">
+      <canvas id="t-qr" width="260" height="260"></canvas>
+      <div>
+        <p class="t-lobby-code">주소로 들어와요<b class="t-url-big" id="t-url-big"></b></p>
+        <p class="hint">방 번호 없이, 들어오면 모두 같은 관측소예요. 카메라로 QR을 찍어도 돼요.</p>
+      </div>
+    </div>
+  </div>
+
+  <aside class="t-left" id="t-left" hidden></aside>
+  <aside class="t-right" id="t-right">
+    <h3>🏅 지금 순위</h3>
+    <ol class="t-board" id="t-board"></ol>
+    <h3>모둠 평균</h3>
+    <div class="t-teambars" id="t-teambars"></div>
+  </aside>
+  <div class="t-feed" id="t-feed" aria-live="polite"></div>
+  <div class="t-banner" id="t-banner" hidden></div>
+
+  <nav class="t-controls">
+    <div class="t-stage" id="t-stage" aria-label="단계별 인원"></div>
+    <button id="t-qr-btn" title="입장 안내 크게 보기">📱</button>
+    <button id="t-fullscreen" title="전체 화면">⛶</button>
+  </nav>
+</section>
+
+</body>
+</html>

@@ -69,6 +69,21 @@
         }
       }
     },
+    "sunspot": {
+      "world": {
+        "$day": {
+          "players": {
+            ".read": "auth != null && $day.length === 8",
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid && $day.length === 8",
+              "name": { ".validate": "newData.isString() && newData.val().length <= 12" },
+              "mk": { ".validate": "newData.isString() && newData.val().length <= 2000" },
+              "st": { ".validate": "newData.isString() && newData.val().length <= 10" }
+            }
+          }
+        }
+      }
+    },
     "quake": {
       "rooms": {
         "$code": {
