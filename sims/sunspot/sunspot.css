@@ -165,7 +165,7 @@ body[data-shake] .student{animation:shakeit .25s 2}
 /* 가로로 넓은 화면(태블릿·노트북): 3D 왼쪽, 투영판 오른쪽 */
 @media (min-width:760px) and (min-aspect-ratio:1/1){
   .student{grid-template-rows:1fr;grid-template-columns:1fr auto}
-  .st-panel{border-top:none;border-left:1px solid var(--line);width:calc(var(--bs) + 28px);overflow-y:auto;justify-content:flex-start;padding-top:calc(10px + env(safe-area-inset-top))}
+  .st-panel{border-top:none;border-left:1px solid var(--line);width:max(calc(var(--bs) + 28px),380px);max-height:none;height:100%;overflow-y:auto;justify-content:flex-start;padding-top:calc(10px + env(safe-area-inset-top))}
   .goal-pill{bottom:12px}
 }
 
@@ -280,3 +280,9 @@ body[data-stage=play] .student{grid-template-columns:1fr!important;grid-template
 .play-tip{position:absolute;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(8,18,34,.8);border:1px solid var(--line);border-radius:14px;padding:8px 14px;font-weight:800;font-size:13px;text-align:center;max-width:calc(100% - 200px);pointer-events:none}
 .play-tip small{color:#9fb3c8;font-weight:700}
 @media (max-width:520px){.play-tip{left:12px;transform:none;max-width:calc(100% - 120px);bottom:calc(120px + env(safe-area-inset-bottom))}}
+
+/* 초점: 또렷함 막대와 미세 조정 단추 */
+.focus-row{display:flex;gap:8px;align-items:stretch}
+.focus-row .jog{flex:1}
+.focus-row button{width:56px;min-width:56px;padding:0;font-size:20px}
+.meter.sharp b{background:linear-gradient(90deg,#5f7282,#a5d8ff 60%,#2ecc71)}
