@@ -724,8 +724,9 @@
         const dv = M.dirVec(a, h);
         look = new THREE.Vector3(P.x + dv[0] * 9, 1.4 + dv[1] * 9, P.z + dv[2] * 9);
       } else {
-        const sway = Math.sin(t * 0.06) * 7;
-        pos = new THREE.Vector3(sway, 11.5, 29); look = new THREE.Vector3(sway * 0.3 + 1.5, 13.4, -16);
+        // 전광판 왼쪽 판에 가리지 않도록 장면을 조금 오른쪽으로 둔다
+        const sway = Math.sin(t * 0.06) * 3;
+        pos = new THREE.Vector3(sway - 4, 11.5, 29); look = new THREE.Vector3(sway * 0.3 - 7, 13.4, -16);
       }
       this.camPos.lerp(pos, 1 - Math.exp(-2.6 * dt));
       this.camLook.lerp(look, 1 - Math.exp(-3.2 * dt));

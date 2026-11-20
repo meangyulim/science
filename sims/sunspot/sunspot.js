@@ -1,15 +1,19 @@
-/* 흑점 헌터스 — 다 같이 태양 관측 (학생 화면 · 선생님 화면 · 가상 학생).
+/* 흑점 헌터스 — 다 같이 태양 관측 (학생 화면 · 관측소 전광판 · 가상 학생).
    계산은 sunspot-model.js, 3D 관측소는 sunspot-world.js, 태양 투영판은 sunspot-board.js.
+
+   온라인 게임처럼: 방 번호 없이 주소로 들어오면 모두가 '오늘의 관측소' 하나에 같이 접속한다.
+   날짜(한국 시각)마다 관측소가 하나씩 생기고, 그날 태양은 모두에게 같다(같은 seed).
+   각자 자기 속도로 1일째 관측 → 며칠 뒤 관측 → 플레어 → 오로라 밤까지 진행하고,
+   같은 3D 관측소에서 서로의 망원경·빛줄기·이모지·순위를 실시간으로 본다.
 
    실시간 공유는 캠퍼스 지진(sims/quake)과 같은 Firebase Realtime Database 를 쓴다.
    규칙은 sims/quake/database.rules.json 의 "sunspot" 부분 (콘솔에는 그 파일 전체를 붙여 넣는다).
-   모두가 같은 seed 로 같은 태양을 만들기 때문에, 서버로는 망원경 방향·단계·점수·찍은 자리만 오간다.
+   서로 주고받는 것은 망원경 방향·단계·점수·찍은 자리·이모지뿐이다.
 
    주소 뒤에 붙이는 것
-     ?room=1234   학생: 그 방 번호를 미리 채운다 (QR 코드가 이 주소다)
-     ?host=1234   선생님: 새로고침해도 열어 둔 방으로 돌아온다
-     ?demo        가상 학생 20명과 미리 해 보기
-     ?solo        학생 혼자 연습 (가상 친구 11명, 서버 없이)
+     ?board       관측소 전광판 (TV·프로젝터용, 3D 전체 보기와 순위·반 전체 자료)
+     ?demo        전광판 미리 보기: 가상 학생 20명 (서버 없이 이 기기 안에서만)
+     ?offline     학생 혼자 연습: 가상 친구들과 (서버 없이)
      ?local       서버 대신 같은 브라우저의 탭끼리만 연결 (개발·연습용) */
 (() => {
   'use strict';
@@ -25,32 +29,44 @@
   };
   const FB = 'https://www.gstatic.com/firebasejs/11.6.1/';
   const QR_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
-  const ROOT = 'sunspot/rooms';
+  const ROOT = 'sunspot/world';
   const params = new URLSearchParams(location.search);
   const DB_URL = params.get('db') || FIREBASE.databaseURL;
   const LOCAL_ONLY = params.has('local');
+  const ONLINE_MS = 90000;          // 이 시간 동안 소식이 없으면 나간 사람으로 본다
+  const PAGE_URL = location.origin + location.pathname;
 
   // ── 작은 도구들 ─────────────────────────────────────────────
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
   const entries = o => Object.entries(o || {});
-  const randInt = () => Math.floor(Math.random() * 2 ** 31);
   const rand = (a, b) => a + Math.random() * (b - a);
+  const randInt = () => Math.floor(Math.random() * 2 ** 31);
   const team = i => M.TEAMS[i] || {name: '?', color: '#8a96a3', icon: '❔'};
   const fmt = (v, d = 1) => (v < 0 ? '−' : '') + Math.abs(v).toFixed(d);
   const pref = (k, d) => { try { const v = localStorage.getItem('sunspot:' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } };
   const setPref = (k, v) => { try { localStorage.setItem('sunspot:' + k, JSON.stringify(v)); } catch (e) { /* 저장 못 해도 괜찮다 */ } };
   const sunCache = new Map();
   const sunOf = seed => { if (!sunCache.has(seed)) sunCache.set(seed, M.makeSun(seed)); return sunCache.get(seed); };
-  const PHASES = ['lobby', 'd1', 'r1', 'd2', 'r2', 'flare', 'night'];
-  const PHASE_NAME = {lobby: '대기실', d1: '1일째 관측', r1: '1일째 결과', d2: '며칠 뒤 관측', r2: '자전 주기 결과', flare: '⚡ 플레어 경보', night: '🌌 오로라 밤'};
-  const dayOf = phase => (phase === 'lobby' || phase === 'd1' || phase === 'r1') ? 0 : 1;
-  // 모두가 같은 하늘: 관측을 시작한 시각(meta.t0)부터 흐른 서버 시간으로 태양의 자리를 정한다
-  function skyNow(meta, now) {
-    const sun = sunOf(meta.seed), d = dayOf(meta.phase);
-    return M.sunAt(sun.sky[d], meta.t0 ? (now - meta.t0) / 1000 : 0);
+  // 오늘(한국 시각)의 관측소 이름과 그날의 태양
+  const dayKeyOf = ms => { const d = new Date(ms + 9 * 3600e3); return String(d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate()); };
+  const seedOf = day => M.hashStr('sunspot-hunters:' + day);
+  const pts = p => Math.max(p.sc || 0, p.best || 0);
+  const isOnline = (p, now) => !!(p && p.name && p.on !== false && (!p.seen || now - p.seen < ONLINE_MS));
+  const onlineList = (players, now, meId) => entries(players).filter(([id, p]) => p && p.name && (id === meId || isOnline(p, now)));
+  // 우리 반 목표: 지금 접속한 사람 수 × 오늘 흑점 수의 60%
+  function goalOf(list, sun) {
+    const n = M.spotsOn(sun, 0).length;
+    return {goal: Math.max(10, Math.round(list.length * n * 0.6)), hits: list.reduce((a, [, p]) => a + (p.hits || 0), 0), n};
   }
-  const activePlayers = (players, meta) => entries(players).filter(([, p]) => p && p.name && (!meta || p.r == null || p.r === meta.round));
+  // 이름 거르기: 지질시대 게임의 금지어 목록을 같이 쓴다
+  let BAD = [];
+  import('../geologic-game/data.js?v=5').then(m => { BAD = (m.badWords || []).map(w => String(w).toLowerCase()); }).catch(() => {});
+  const cleanName = n => {
+    const s = String(n || '').replace(/[<>]/g, '').trim().slice(0, 8);
+    const low = s.toLowerCase().replace(/\s/g, '');
+    return BAD.some(w => w && low.includes(w)) ? '관측자' + Math.floor(rand(10, 99)) : s;
+  };
 
   // ── 실시간 저장소 (캠퍼스 지진과 같은 모양) ──────────────────────────
   const parts = p => p.split('/').filter(Boolean);
@@ -141,22 +157,19 @@
       update: (p, o) => D.update(ref(p), o),
       remove: p => D.remove(ref(p)),
       get: p => D.get(ref(p)).then(s => s.val()),
-      on: (p, cb) => D.onValue(ref(p), s => cb(s.val()), err => console.warn('[sunspot]', p, err.message)),
+      on: (p, cb, onErr) => D.onValue(ref(p), s => cb(s.val()), err => { console.warn('[sunspot]', p, err.message); if (onErr) onErr(err); }),
       onLeave: (p, o) => D.onDisconnect(ref(p)).update(o),
       onStatus: cb => D.onValue(ref('.info/connected'), s => cb(!!s.val()))
     };
   }
+  // 실제 수업: Firebase. ?local: 같은 브라우저의 탭끼리. 혼자 연습(서버가 안 될 때): 이 기기 안에서만.
   async function openStore(kind) {
-    if (kind === 'solo') return new LocalStore(false);
-    if (LOCAL_ONLY) { const s = new LocalStore(true); await s.ready; return s; }
-    try { return await firebaseStore(); }
-    catch (e) {
-      if (kind !== 'demo') throw e;
-      const s = new LocalStore(true); await s.ready; return s;
-    }
+    if (kind === 'offline') return new LocalStore(false);
+    if (LOCAL_ONLY || kind === 'demo') { const s = new LocalStore(true); await s.ready; return s; }
+    return firebaseStore();
   }
   const isDenied = e => e && /permission|denied|PERMISSION/i.test(String(e.message || e.code || e));
-  const RULES_HELP = 'Firebase 콘솔 → Realtime Database → 규칙에 sims/quake/database.rules.json 내용 전체를 붙여 넣고 게시해 주세요(흑점 헌터스용 "sunspot" 부분이 새로 들어 있어요).';
+  const RULES_HELP = '선생님: Firebase 콘솔 → Realtime Database → 규칙에 sims/quake/database.rules.json 내용 전체를 붙여 넣고 게시해 주세요(흑점 헌터스용 "sunspot" 부분).';
 
   // ── 소리 (기기에서 바로 만드는 짧은 소리) ────────────────────────────
   const Sound = {
@@ -212,54 +225,29 @@
     x.fillStyle = '#fff'; x.fillRect(0, 0, W, W); x.fillStyle = '#0b1626';
     for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) x.fillRect(Math.floor((c + 1) * cell), Math.floor((r + 1) * cell), Math.ceil(cell), Math.ceil(cell));
   }
-  const joinURL = code => location.origin + location.pathname + '?room=' + code;
-
-  // ── 진행 (선생님 화면과 혼자 연습이 같이 쓴다) ──────────────────────────
-  function nextLabel(meta) {
-    const dt = sunOf(meta.seed).dt;
-    return {lobby: '☀️ 1일째 관측 시작', d1: '📊 1일째 결과 공개', r1: `⏩ ${dt}일 뒤 다시 관측`, d2: '📈 자전 주기 결과',
-      r2: '⚡ 플레어 경보!', flare: '🌌 그날 밤, 오로라', night: '🔁 새 태양으로 한 판 더'}[meta.phase];
-  }
-  function advance(store, base, meta, players, step = 1) {
-    const i = PHASES.indexOf(meta.phase), now = store.now();
-    if (step > 0 && meta.phase === 'night') {
-      const round = (meta.round || 1) + 1, upd = {};
-      entries(players).forEach(([id]) => {
-        ['sc', 'hits', 'mk', 'd1', 'rot', 'fl', 'al', 'cap', 'ev', 'em'].forEach(k => { upd[`${id}/${k}`] = null; });
-        upd[`${id}/st`] = 'lobby'; upd[`${id}/r`] = round;
-      });
-      return store.update(base + '/players', upd).then(() => store.update(base + '/meta', {phase: 'lobby', round, seed: randInt(), t0: now, flareAt: null, gold: null}));
-    }
-    const next = PHASES[clamp(i + step, 0, PHASES.length - 1)];
-    const upd = {phase: next};
-    if (next === 'd1' || next === 'd2') upd.t0 = now;
-    if (next === 'flare') upd.flareAt = now + 4200;
-    return store.update(base + '/meta', upd);
-  }
 
   // ╔══════════════════════════════════════════════════════════╗
   //   학생 화면
   // ╚══════════════════════════════════════════════════════════╝
   const S = {
-    store: null, code: '', base: '', name: '', team: 0, meta: null, players: {}, round: null, solo: false,
-    sun: null, pers: null, stage: 'lobby', stageT: 0,
-    tel: {az: 140, alt: 12}, motor: false, focus: 0.5, aligned: false, lockAnim: null,
+    store: null, base: '', day: '', name: '', team: 0, players: {}, offline: false, bots: null,
+    sun: null, pers: null, stage: '', stageT: 0,
+    tel: {az: 140, alt: 12}, motor: true, focus: 0.5, aligned: false, lockAnim: null,
     marks1: [], found: new Set(), dust: 0, combo: 0, lastHit: 0, skT0: 0, perfect: false,
     dirTries: 0, dirArmed: 0, prep: new Set(), eye: false, aimT0: 0,
-    find: null, flare: null, score: 0, pending: {}, lastFlush: 0, lastAim: null, lastAimT: 0,
-    shakeT: -9, drag: null, world: null, board: null, emojiT: 0, joinedOK: false, gone: false, overlayFor: null
+    find: null, flare: null, score: 0, best: 0, pending: {}, lastFlush: 0, lastAim: null, lastAimT: 0,
+    shakeT: -9, drag: null, world: null, board: null, emojiT: 0, overlayFor: null, gold: false, nightT: 0
   };
   const STAGE_TEXT = {
-    lobby: ['⏳ 대기실 — 곧 관측을 시작해요', '위 3D 화면을 끌어서 망원경을 돌려 보고, 오른쪽 이모지로 친구들에게 인사해 보세요!'],
     prep: ['🧢 안전 준비', '태양 관측 전에 꼭 할 일 <b>3가지</b>를 골라 누르세요. 하나는 <b>절대 하면 안 되는 일</b>이에요!'],
     aim: ['🎯 조준: 그림자를 동그랗게', '① 위 3D 화면을 끌어 망원경을 해 쪽으로 돌리고 ② <b>투영판을 끌어</b> 밝은 햇빛을 가운데로 — 그림자가 <b>동그랗게</b> 줄면 성공!'],
     focus: ['🔍 초점 맞추기', '초점 나사를 돌려 <b>태양 가장자리와 흑점이 가장 또렷할 때</b> ‘초점 맞음!’을 누르세요.'],
     dir: ['🧭 동서남북 정하기', '추적 모터를 잠깐 끄면 태양 상이 흘러가요. <b>상이 흘러가는 쪽이 서쪽!</b>'],
     sketch: ['✏️ 흑점 스케치', '흑점을 모두 찾아 찍으세요(꾹 누르면 돋보기). <b>렌즈 먼지</b>는 상이 흔들려도 제자리 — 찍으면 감점!'],
-    done1: ['✅ 1일째 관측 끝!', '친구들을 기다리는 중… 이모지로 응원해 주세요. 선생님이 결과를 공개해요.'],
-    aim2: ['🎯 며칠 뒤, 다시 조준', '관측 시각이 달라 태양의 자리가 바뀌었어요. 다시 그림자를 맞추세요.'],
+    done1: ['✅ 1일째 관측 끝!', '결과를 보고, 며칠 뒤 같은 태양을 다시 관측하러 가요.'],
+    aim2: ['🎯 며칠 뒤, 다시 조준', '망원경을 새로 설치했어요. 다시 그림자를 맞추세요.'],
     find: ['⭐ 내 흑점 추적', '투명 용지의 <b>★</b>은 지난번에 기록한 흑점. 오늘은 어디 있을까요? 흑점은 <b>같은 위도를 따라 서쪽(W)</b>으로 움직여요.'],
-    done2: ['✅ 자전 주기 측정 끝!', '반 전체의 결과를 모으는 중이에요. 선생님 화면을 보세요!'],
+    done2: ['✅ 자전 주기 측정 끝!', '반 친구들이 잰 값도 모아서 볼까요?'],
     flare: ['⚡ 플레어 경보!', 'Hα 필터로 바꿨어요. 흑점 무리 근처에서 <b>갑자기 하얗게 밝아지는 곳</b>을 찾아 누르세요!'],
     night: ['🌌 그날 밤…', '플레어 때 뿜어져 나온 물질이 지구에 도착했어요. 북쪽 하늘을 보세요!']
   };
@@ -271,7 +259,7 @@
   }
   function send(obj) { Object.assign(S.pending, obj); }
   function flush(force) {
-    if (!S.store || S.gone) return;
+    if (!S.store) return;
     const now = performance.now();
     if (!force && now - S.lastFlush < 180) return;
     if (!Object.keys(S.pending).length) return;
@@ -288,44 +276,45 @@
   }
   function event(pop, color) { send({ev: {pop, c: color || '#ffd43b', t: S.store.now()}}); }
 
-  async function joinRoom(code, name, teamIdx, opts = {}) {
+  // ── 관측소 입장 ─────────────────────────────────────────────
+  async function joinWorld(name, teamIdx, offline) {
     const err = $('join-error');
     err.hidden = true;
     Sound.unlock(); Wake.on();
-    try { S.store = opts.store || await openStore('student'); }
-    catch (e) { err.textContent = e.message; err.hidden = false; return; }
-    S.code = code; S.base = `${ROOT}/${code}`; S.name = name; S.team = teamIdx; S.solo = !!opts.solo;
-    let meta = null;
-    try { meta = await S.store.get(S.base + '/meta'); }
-    catch (e) { err.textContent = isDenied(e) ? '서버가 흑점 헌터스 방을 아직 받아 주지 않아요. 선생님께 알려 주세요(Firebase 규칙). 그동안 “혼자 연습”으로 해 볼 수 있어요.' : (e.message || String(e)); err.hidden = false; return; }
-    if (!meta) { err.textContent = `${code}번 방을 찾을 수 없어요. 방 번호를 다시 확인해 주세요.`; err.hidden = false; return; }
-    if (!S.solo) setPref('me', {name, team: teamIdx});
-    const me = S.base + '/players/' + S.store.uid;
-    const old = await S.store.get(me).catch(() => null);
-    const sameRound = old && old.r === meta.round;
-    S.score = sameRound && old.sc ? old.sc : 0;
-    const init = {name, team: teamIdx, on: true, joined: old && old.joined ? old.joined : S.store.now(), r: meta.round};
-    if (!sameRound) Object.assign(init, {sc: 0, st: 'lobby'});
-    try { await S.store.update(me, init); }
-    catch (e) { err.textContent = isDenied(e) ? '서버가 입장을 막았어요. 선생님께 Firebase 규칙을 확인해 달라고 해 주세요.' : e.message; err.hidden = false; return; }
-    S.round = meta.round;
-    S.resume = sameRound ? old : null;
-    S.store.onLeave(me, {on: false});
-    S.store.onStatus(on => { $('st-conn').className = 'conn ' + (on ? 'on' : 'off'); if (on && S.joinedOK && !S.gone) S.store.update(me, {on: true}); });
-    if (!S.solo) history.replaceState(null, '', '?room=' + code + (LOCAL_ONLY ? '&local' : ''));
+    let store;
+    try { store = await openStore(offline ? 'offline' : 'world'); }
+    catch (e) { showJoinError(e.message || String(e)); return; }
+    const day = dayKeyOf(store.now()), base = `${ROOT}/${day}`, me = `${base}/players/${store.uid}`;
+    let old = null;
+    try { old = await store.get(me); }
+    catch (e) { showJoinError(isDenied(e) ? '실시간 관측소가 아직 열리지 않았어요. ' + RULES_HELP : (e.message || String(e))); return; }
+    Object.assign(S, {store, day, base, name, team: teamIdx, offline: !!offline});
+    S.sun = sunOf(seedOf(day));
+    S.pers = M.personal(store.uid, S.sun);
+    S.score = old && old.sc ? old.sc : 0;
+    S.best = old && old.best ? old.best : 0;
+    const now = store.now();
+    try { await store.update(me, {name, team: teamIdx, on: true, seen: now, joined: old && old.joined ? old.joined : now}); }
+    catch (e) { showJoinError(isDenied(e) ? '서버가 입장을 막았어요. ' + RULES_HELP : e.message); return; }
+    if (!offline) setPref('me', {name, team: teamIdx});
+    store.onLeave(me, {on: false});
+    store.onStatus(on => { $('st-conn').className = 'conn ' + (on ? 'on' : 'off'); if (on) store.update(me, {on: true, seen: store.now()}); });
+    setInterval(() => { send({seen: S.store.now(), on: true}); }, 20000);
     document.body.dataset.screen = 'student';
     $('st-name').textContent = `${team(teamIdx).icon} ${name}`;
-    $('st-room').textContent = S.solo ? '혼자 연습' : `방 ${code} · ${team(teamIdx).name}`;
     $('st-team-dot').style.background = team(teamIdx).color;
     $('st-score').textContent = S.score;
     buildStudentUI();
-    S.store.on(me, v => {
-      if (v) { S.joinedOK = true; return; }
-      if (S.joinedOK && !S.gone) { S.gone = true; showOverlay(`<h2>👋 관측소에서 나왔어요</h2><p>선생님이 명단에서 내보냈어요. 다시 들어오려면 새로고침해 주세요.</p>`); }
-    });
-    S.store.on(S.base + '/meta', v => onStudentMeta(v));
-    S.store.on(S.base + '/players', v => { S.players = v || {}; S.playersDirty = true; });
+    store.on(base + '/players', v => { S.players = v || {}; S.playersDirty = true; });
+    if (offline) { S.bots = new Bots(store, base, 11, S.sun); S.bots.start(); }
+    resume(old);
     studentLoop();
+  }
+  function showJoinError(msg) {
+    const err = $('join-error');
+    err.innerHTML = esc(msg) + '<br><button type="button" class="ghost" id="join-offline">그동안 가상 친구들과 혼자 연습하기 →</button>';
+    err.hidden = false;
+    $('join-offline').onclick = () => { const n = cleanName($('join-name').value) || '나'; joinWorld(n, ENTRY.team == null ? 0 : ENTRY.team, true); };
   }
 
   // ── 화면 짜기 ────────────────────────────────────────────
@@ -335,6 +324,7 @@
     }
     if (!S.world) $('st-3d-wrap').style.background = 'linear-gradient(180deg,#5b8fd6,#cfe0f3 70%,#eef3f9)';
     S.board = new window.SunspotBoard($('board'));
+    S.board.setSun(S.sun, 0);
     if (S.world) S.world.setMyPlate($('board'));
     const bar = $('emoji-bar');
     bar.innerHTML = M.EMOJIS.slice(0, 6).map(e => `<button type="button" data-e="${e}">${e}</button>`).join('');
@@ -357,25 +347,21 @@
     addEventListener('resize', layout);
     layout();
   }
-  // 투영판 크기: 세로 화면이면 3D 를 위에 조금 남기고, 가로 화면이면 오른쪽 칸 높이에 맞춘다
+  // 투영판 크기: 세로 화면이면 3D 를 위에 조금 남기고, 가로 화면이면 오른쪽 칸 높이에 맞춘다.
+  // 단계마다 크기가 바뀌면 어지러우니 아래 조작 칸 높이는 넉넉히 하나로 잡는다(넘치면 칸이 스크롤된다).
   function layout() {
-    const W = innerWidth, H = innerHeight, wide = W >= 760 && W >= H;
-    // 단계마다 투영판 크기가 바뀌면 어지러우니, 아래 조작 칸 높이는 넉넉히 하나로 잡는다 (넘치면 칸이 스크롤된다)
-    const st = S.stage, ctrl = 120;
-    let bs;
-    if (wide) bs = Math.min(H - 110 - ctrl, 620, W * 0.5);
-    else bs = Math.min(W - 24, H - 140 - 76 - ctrl - 30, 580);
+    const W = innerWidth, H = innerHeight, wide = W >= 760 && W >= H, ctrl = 120;
+    const bs = wide ? Math.min(H - 110 - ctrl, 620, W * 0.5) : Math.min(W - 24, H - 140 - 76 - ctrl - 30, 580);
     document.documentElement.style.setProperty('--bs', Math.max(200, Math.floor(bs)) + 'px');
     if (S.board) S.board.resize();
   }
 
   function setStage(st) {
-    if (S.stage === st && S.stageT) return;
     S.stage = st; S.stageT = performance.now();
     document.body.dataset.stage = st;
     send({st}); flush(true);
     const [title, text] = STAGE_TEXT[st] || ['', ''];
-    $('m-title').textContent = title.replace('며칠', S.sun ? `${S.sun.dt}일` : '며칠');
+    $('m-title').textContent = title.replace('며칠', `${S.sun.dt}일`);
     $('m-text').innerHTML = text;
     const seq = M.DAY1_STAGES.includes(st) ? M.DAY1_STAGES.slice(0, 5) : M.DAY2_STAGES.includes(st) ? M.DAY2_STAGES.slice(0, 2) : [];
     const at = seq.indexOf(st), doneAll = st === 'done1' || st === 'done2';
@@ -391,13 +377,12 @@
 
   function renderControls() {
     const c = $('controls'), st = S.stage;
-    if (st === 'lobby') c.innerHTML = `<p class="small">👆 3D 화면을 끌어 망원경을 돌려 볼 수 있어요. 오늘 할 일: <b>조준 → 초점 → 방향 → 흑점 스케치</b>, 그리고 며칠 뒤 다시 관측!</p>`;
-    else if (st === 'prep') {
+    if (st === 'prep') {
       const acts = [
         {k: 'cap', i: '🧢', t: '파인더 뚜껑 닫기'}, {k: 'plate', i: '📋', t: '투영판 달기'},
         {k: 'sheet', i: '📄', t: '기록 용지(원) 끼우기'}, {k: 'eye', i: '👁', t: '접안렌즈로 태양 직접 보기'}
       ];
-      const order = acts.map((a, i) => [a, M.hashStr(S.store.uid + a.k + S.round) % 97 + i * 0.01]).sort((a, b) => a[1] - b[1]).map(x => x[0]);
+      const order = acts.map((a, i) => [a, M.hashStr(S.store.uid + a.k + S.day) % 97 + i * 0.01]).sort((a, b) => a[1] - b[1]).map(x => x[0]);
       c.innerHTML = `<div class="prep-grid">${order.filter(a => !(a.k === 'eye' && S.eye)).map(a => `<button type="button" data-k="${a.k}" class="${S.prep.has(a.k) ? 'ok' : ''}"><span>${a.i}</span>${a.t}</button>`).join('')}</div>`;
       c.querySelector('.prep-grid').onclick = e => { const b = e.target.closest('button[data-k]'); if (b) prepAction(b.dataset.k); };
     } else if (st === 'aim' || st === 'aim2') {
@@ -421,14 +406,24 @@
       c.innerHTML = `<div class="row"><button type="button" id="shake">🫨 살짝 흔들기</button><button type="button" class="btn-go" id="sk-done">✅ 다 찾았어요</button></div>`;
       $('shake').onclick = () => { if (performance.now() - S.shakeT > 1100) { S.shakeT = performance.now(); Sound.play('whoosh'); } };
       $('sk-done').onclick = () => finishSketch(false);
-    } else if (st === 'done1' || st === 'done2') renderWaiting();
-    else if (st === 'find') renderFindControls();
+    } else if (st === 'done1') {
+      const n = M.spotsOn(S.sun, 0).length;
+      c.innerHTML = `<div class="stat-row"><div class="stat"><small>찾은 흑점</small><b>${S.found.size}/${n}</b></div><div class="stat"><small>먼지에 속음</small><b>${S.dust}</b></div><div class="stat"><small>내 점수</small><b>${S.score}</b></div></div>
+        <button class="primary big" id="go-day2">⏩ ${S.sun.dt}일 뒤 다시 관측하기</button>`;
+      $('go-day2').onclick = goDay2;
+    } else if (st === 'done2') {
+      const r = ((S.find && S.find.results) || []).filter(Boolean);
+      c.innerHTML = `<div class="stat-row">${r.map(x => `<div class="stat"><small>위도 ${fmt(Math.abs(x.lat), 0)}° 흑점</small><b>${fmt(x.P)}일</b></div>`).join('')}<div class="stat"><small>내 점수</small><b>${S.score}</b></div></div>
+        <div class="row"><button class="ghost" id="see-r2">📈 반 전체 결과</button><button class="primary big" id="go-flare">⚡ 계속하기</button></div>`;
+      $('see-r2').onclick = showR2;
+      $('go-flare').onclick = startFlareSeq;
+    } else if (st === 'find') renderFindControls();
     else if (st === 'flare') c.innerHTML = `<p class="small" id="flare-msg">밝아지는 곳을 찾아 누르세요!</p>`;
     else c.innerHTML = '';
   }
 
   // ── 3D 화면 끌기 = 망원경 크게 돌리기 ─────────────────────────────
-  const canSlew = () => S.stage === 'lobby' || S.stage === 'aim' || S.stage === 'aim2';
+  const canSlew = () => S.stage === 'aim' || S.stage === 'aim2';
   function bind3DDrag() {
     const wrap = $('st-3d-wrap');
     let last = null;
@@ -486,8 +481,7 @@
   const canMark = () => S.stage === 'sketch' || S.stage === 'find' || S.stage === 'flare';
   // 상을 손가락 쪽으로 옮기려면 망원경은 반대로 돈다. 태양에서 멀수록 크게 움직인다.
   function nudgeImage(dx, dy) {
-    const b = S.board, sky = S.sky;
-    if (!b || !sky) return;
+    const b = S.board, sky = S.sun.sky[0];
     const off = M.tubeOffset(S.tel, sky);
     const gain = clamp(1 + Math.max(0, off.sep - 0.4) * 8, 1, 60);   // 상이 보이면 손가락을 그대로 따라오고, 멀면 성큼성큼
     const k = M.SUN_RADIUS_DEG / M.BOARD_SUN / b.u * gain;
@@ -531,8 +525,7 @@
     }
   }
   function lockAim() {
-    const sky = S.sky, from = {az: S.tel.az, alt: S.tel.alt};
-    S.lockAnim = {from, t0: performance.now()};
+    S.lockAnim = {from: {az: S.tel.az, alt: S.tel.alt}, t0: performance.now()};
     Sound.play('lock'); buzz(40);
   }
   function finishLock() {
@@ -540,10 +533,10 @@
     S.motor = true; S.aligned = true;
     send({al: true, az: +S.tel.az.toFixed(2), alt: +S.tel.alt.toFixed(2)});
     const sec = (performance.now() - S.aimT0) / 1000;
-    let pts = M.aimScore(sec);
-    if (S.stage === 'aim2') pts = Math.round(pts / 2);
+    let p = M.aimScore(sec);
+    if (S.stage === 'aim2') p = Math.round(p / 2);
     const c = S.board.imgCenter();
-    addScore(pts, `+${pts}`, c.x, c.y - 30, '#16a34a');
+    addScore(p, `+${p}`, c.x, c.y - 30, '#16a34a');
     event(`🎯 ${sec.toFixed(1)}초`, '#ffd43b');
     toast(`🎯 조준 완료! ${sec.toFixed(1)}초 · 추적 모터 켜짐`);
     const from = S.stage;
@@ -573,8 +566,8 @@
       toast(err > 0.1 ? '아직 많이 흐려요. 나사를 더 돌려 보세요.' : '조금만 더! 흑점 가장자리가 또렷해질 때까지');
       return;
     }
-    const pts = M.focusScore(err);
-    addScore(pts, `+${pts}`, S.board.u, S.board.u, '#16a34a');
+    const p = M.focusScore(err);
+    addScore(p, `+${p}`, S.board.u, S.board.u, '#16a34a');
     Sound.play('good');
     toast('🔍 초점이 딱 맞았어요! 쌀알 무늬까지 보여요');
     setStage('dir');
@@ -586,8 +579,8 @@
       toast('아니에요! 상이 어느 쪽으로 움직이는지 다시 잘 보세요');
       return;
     }
-    const pts = S.dirTries === 1 ? M.SCORE.dirFirst : M.SCORE.dirLater;
-    addScore(pts, `+${pts}`, S.board.S - 50, S.board.u, '#16a34a');
+    const p = S.dirTries === 1 ? M.SCORE.dirFirst : M.SCORE.dirLater;
+    addScore(p, `+${p}`, S.board.S - 50, S.board.u, '#16a34a');
     Sound.play('good');
     S.board.labels = true;
     $('dir-arrows').hidden = true;
@@ -596,6 +589,7 @@
     setTimeout(() => {
       if (S.stage !== 'dir') return;
       S.skT0 = S.store.now();
+      send({skT: S.skT0});
       setStage('sketch');
       $('m-text').innerHTML = '💡 방금 상이 흐를 때 <b>제자리에 있던 얼룩</b>은 렌즈 먼지예요. 헷갈리면 ‘살짝 흔들기’! 꾹 누르면 돋보기.';
     }, 1700);
@@ -639,10 +633,10 @@
     const now = performance.now();
     S.combo = now - S.lastHit < 2600 ? S.combo + 1 : 1;
     S.lastHit = now;
-    const pts = M.SPOT_PTS[h.spot.kind] + M.comboBonus(S.combo);
+    const p = M.SPOT_PTS[h.spot.kind] + M.comboBonus(S.combo);
     S.marks1.push({x: d.x, y: d.y, k: h.spot.id, t: now});
     b.marks = S.marks1;
-    addScore(pts, `+${pts}`, px, py, '#16a34a');
+    addScore(p, `+${p}`, px, py, '#16a34a');
     Sound.play('hit', S.combo - 1); buzz(15);
     showCombo();
     if (S.combo === 5 || S.combo === 8) event(`🔥 ${S.combo}콤보!`, '#ff8a1a');
@@ -654,14 +648,12 @@
     if (S.combo >= 2) { el.textContent = `COMBO ×${S.combo}`; el.classList.add('on'); clearTimeout(el._h); el._h = setTimeout(() => el.classList.remove('on'), 1200); }
     else el.classList.remove('on');
   }
-  function sendMarks() {
-    send({mk: M.encodeMarks(S.marks1.filter(m => m.k !== 'e')), hits: S.found.size});
-  }
+  function sendMarks() { send({mk: M.encodeMarks(S.marks1.filter(m => m.k !== 'e')), hits: S.found.size}); }
   function finishSketch(perfect) {
     if (S.stage !== 'sketch') return;
     const total = S.board.spots.length;
     if (perfect) {
-      const left = Math.max(0, (S.meta.sk || M.SKETCH_SEC) - (S.store.now() - S.skT0) / 1000);
+      const left = Math.max(0, M.SKETCH_SEC - (S.store.now() - S.skT0) / 1000);
       const bonus = M.SCORE.perfect + Math.round(left * M.SCORE.perSecLeft);
       addScore(bonus, `💯 +${bonus}`, S.board.u, S.board.u, '#f59f00');
       Sound.play('fanfare');
@@ -672,30 +664,21 @@
     sendMarks();
     S.perfect = perfect;
     setStage('done1');
-  }
-  function renderWaiting() {
-    const c = $('controls'), st = S.stage;
-    let stats = '';
-    if (st === 'done1') {
-      const n = S.board && S.sun ? M.spotsOn(S.sun, 0).length : 0;
-      stats = `<div class="stat-row"><div class="stat"><small>찾은 흑점</small><b>${S.found.size}/${n}</b></div><div class="stat"><small>먼지에 속음</small><b>${S.dust}</b></div><div class="stat"><small>내 점수</small><b>${S.score}</b></div></div>`;
-    } else {
-      const r = (S.find && S.find.results) || [];
-      stats = `<div class="stat-row">${r.map(x => `<div class="stat"><small>위도 ${fmt(Math.abs(x.lat), 0)}° 흑점</small><b>${fmt(x.P)}일</b></div>`).join('')}<div class="stat"><small>내 점수</small><b>${S.score}</b></div></div>`;
-    }
-    c.innerHTML = stats + `<p class="small" id="wait-count"></p>` + (S.solo ? `<button class="primary big" id="solo-next">${esc(nextLabel(S.meta))} ▶</button>` : '');
-    if (S.solo) $('solo-next').onclick = soloNext;
-    updateWaitCount();
-  }
-  function updateWaitCount() {
-    const el = $('wait-count');
-    if (!el || !S.meta) return;
-    const list = activePlayers(S.players, S.meta).filter(([, p]) => p.on !== false), goal = S.stage === 'done1' ? 'done1' : 'done2';
-    const done = list.filter(([, p]) => p.st === goal).length;
-    el.innerHTML = `친구들: <b>${done}/${list.length}명</b> 완료 · 선생님이 다음 단계를 열 때까지 이모지로 응원해요!`;
+    setTimeout(() => { if (S.stage === 'done1') showR1(); }, perfect ? 1600 : 700);
   }
 
-  // ── 둘째 관측: 내 흑점 따라가기 ─────────────────────────────────
+  // ── 며칠 뒤: 내 흑점 따라가기 ───────────────────────────────────
+  function goDay2() {
+    hideOverlay();
+    S.board.reveal = null; S.board.sheet = null; S.board.marks = []; S.board.calc = null;
+    S.board.setSun(S.sun, S.sun.dt);
+    // 망원경을 새로 설치했다: 태양에서 조금 벗어난 곳에서 다시 조준
+    const sky = S.sun.sky[0], a = rand(0, Math.PI * 2), d = rand(4, 9);
+    S.tel = {az: sky.az + Math.cos(a) * d, alt: clamp(sky.alt + Math.sin(a) * d * 0.6, 3, 80)};
+    S.motor = true; S.aligned = false; send({al: false});
+    S.aimT0 = performance.now();
+    setStage('aim2');
+  }
   function startFind() {
     const sun = S.sun, d1 = M.spotsOn(sun, 0);
     const targets = S.pers.track.map((id, i) => {
@@ -703,7 +686,7 @@
       const p1 = mine ? {x: mine.x, y: mine.y} : {x: truth.x, y: truth.y};
       return {id, p1, label: i === 0 ? '★ 내 흑점' : '★ 보너스', lat: truth.lat};
     });
-    S.find = {idx: 0, misses: 0, targets, results: S.find && S.find.results ? S.find.results : [], calc: null};
+    S.find = {idx: 0, misses: 0, targets, results: [], calc: null};
     S.board.setSun(sun, sun.dt);
     S.board.marks = [];
     S.board.sheet = {marks: S.marks1, stars: [{x: targets[0].p1.x, y: targets[0].p1.y, label: targets[0].label}]};
@@ -719,12 +702,11 @@
       return;
     }
     const m = f.calc, dt = S.sun.dt;
-    const same = m.sameSide;
     c.innerHTML = `<div class="calc">
       <div>위도 약 <b>${fmt(Math.abs(m.lat), 0)}°${m.lat >= 0 ? 'N' : 'S'}</b> · Δt = <b>${dt}일</b> · R′ = ${m.Rp.toFixed(2)}R</div>
       <div class="eq">α = sin⁻¹(x/R′) = sin⁻¹(${m.x.toFixed(2)}/${m.Rp.toFixed(2)}) = ${m.alpha.toFixed(1)}°</div>
       <div class="eq">β = sin⁻¹(y/R′) = sin⁻¹(${m.y.toFixed(2)}/${m.Rp.toFixed(2)}) = ${m.beta.toFixed(1)}°</div>
-      <div class="eq">θ = ${same ? '|β − α|' : 'α + β'} = ${m.theta.toFixed(1)}°   →   θ : Δt = 360° : P</div>
+      <div class="eq">θ = ${m.sameSide ? '|β − α|' : 'α + β'} = ${m.theta.toFixed(1)}°   →   θ : Δt = 360° : P</div>
       <div>자전 주기 P = 360° × ${dt}일 ÷ ${m.theta.toFixed(1)}° = <b class="P">${m.P.toFixed(1)}일</b></div>
       <small>그 위도의 실제 값 ≈ ${m.Ptrue.toFixed(1)}일 · 오차 ${fmt(Math.abs(m.P - m.Ptrue) / m.Ptrue * 100, 0)}%</small>
     </div>
@@ -738,7 +720,7 @@
       $('m-text').innerHTML = '두 번째 ★ 흑점은 위도가 달라요. 같은 방법으로 찾아 보세요 — 자전 주기도 다를까요?';
       renderControls(); layout();
     };
-    $('find-done').onclick = () => { S.board.calc = null; S.find.calc = null; setStage('done2'); };
+    $('find-done').onclick = () => { S.board.calc = null; S.find.calc = null; setStage('done2'); setTimeout(() => { if (S.stage === 'done2') showR2(); }, 500); };
   }
   function tapFind(px, py, d) {
     const f = S.find;
@@ -763,8 +745,8 @@
     if (!(m.P > 3 && m.P < 120) || m.backwards) m = M.measureRotation(t1 || t.p1, {x: h.spot.x, y: h.spot.y}, S.sun.dt);
     const Ptrue = M.rotationPeriod(t.lat);
     m.Ptrue = Ptrue;
-    const pts = M.SCORE.find + M.rotScore(m.P, Ptrue);
-    addScore(pts, `+${pts}`, px, py, '#16a34a');
+    const p = M.SCORE.find + M.rotScore(m.P, Ptrue);
+    addScore(p, `+${p}`, px, py, '#16a34a');
     Sound.play('fanfare');
     event(`⭐ ${m.P.toFixed(1)}일`, '#ffd43b');
     f.calc = m;
@@ -780,16 +762,26 @@
   }
 
   // ── 플레어 ──────────────────────────────────────────────
+  function startFlareSeq() {
+    hideOverlay();
+    S.overlayFor = 'flare';
+    showOverlay(`<h2>⚡ 플레어 경보!</h2><p>태양 관측 위성에서 경보가 왔어요. 망원경에 <b>Hα 필터</b>를 끼우고 채층을 보세요. 곧 흑점 무리 근처에서 폭발이 일어나요!</p>`);
+    $('ov-card').classList.add('alarm');
+    Sound.play('alarm'); buzz([200, 100, 200, 100, 200]);
+    document.body.dataset.shake = '1'; setTimeout(() => { delete document.body.dataset.shake; }, 800);
+    S.aligned = true; S.motor = true; S.tel = {az: S.sun.sky[0].az, alt: S.sun.sky[0].alt};
+    setTimeout(() => { $('ov-card').classList.remove('alarm'); hideOverlay(); startFlare(); }, 2600);
+  }
   function startFlare() {
     const sun = S.sun, g = sun.groups.find(x => x.id === sun.flareGroup);
     const sp = M.spotsOn(sun, sun.dt).filter(s => s.g === g.id);
     const fx = sp.reduce((a, s) => a + s.x, 0) / sp.length, fy = sp.reduce((a, s) => a + s.y, 0) / sp.length;
-    S.flare = {x: fx, y: fy, start: S.meta.flareAt + 1200, done: false};
-    S.board.setSun(sun, sun.dt, 'ha');
-    S.board.sheet = null; S.board.calc = null; S.board.marks = []; S.board.latGuide = null; S.board.labels = true;
-    S.board.off = {x: 0, y: 0};
-    const perfStart = performance.now() + (S.flare.start - S.store.now());
-    S.board.flare = {x: fx, y: fy, t0: perfStart};
+    const delay = rand(1800, 4200);
+    S.flare = {x: fx, y: fy, start: S.store.now() + delay, done: false};
+    const b = S.board;
+    b.setSun(sun, sun.dt, 'ha');
+    b.sheet = null; b.calc = null; b.marks = []; b.latGuide = null; b.labels = true; b.reveal = null; b.hint = null;
+    b.flare = {x: fx, y: fy, t0: performance.now() + delay};
     setStage('flare');
   }
   function tapFlare(px, py) {
@@ -800,185 +792,164 @@
     const d = S.board.toDisk(px, py);
     if (Math.hypot(d.x - f.x, d.y - f.y) > 0.16) { Sound.play('tap'); toast('거기는 아니에요!'); return; }
     f.done = true;
-    const sec = (now - f.start) / 1000, pts = M.flareScore(sec);
-    addScore(pts, `⚡ +${pts}`, px, py, '#f59f00');
+    const sec = (now - f.start) / 1000, p = M.flareScore(sec);
+    addScore(p, `⚡ +${p}`, px, py, '#f59f00');
     Sound.play('fanfare'); buzz([30, 40, 30]);
     event(`⚡ ${sec.toFixed(1)}초!`, '#ffd43b');
     send({fl: {ok: 1, s: +sec.toFixed(2)}});
-    flareFact(`⚡ ${sec.toFixed(1)}초 만에 찾았어요! +${pts}`);
+    flareFact(`⚡ ${sec.toFixed(1)}초 만에 찾았어요! +${p}`);
   }
   function flareFact(head) {
-    $('controls').innerHTML = (S.solo ? `<button class="primary big" id="solo-next">${esc(nextLabel(S.meta))} ▶</button>` : '') + `<p class="fact"><b>${head}</b><br>플레어는 흑점 근처의 강한 자기장 에너지가 갑자기 터지는 폭발이에요. 빛(X선·자외선)은 약 <b>8분 20초</b> 만에 지구에 와서 통신을 방해하고(델린저 현상), 함께 뿜어진 코로나 물질은 <b>1~3일 뒤</b> 도착해 자기 폭풍과 <b>오로라</b>를 일으켜요.</p>`;
-    if (S.solo) $('solo-next').onclick = soloNext;
+    $('controls').innerHTML = `<button class="primary big" id="go-night">🌌 그날 밤으로 ▶</button><p class="fact"><b>${head}</b><br>플레어는 흑점 근처의 강한 자기장 에너지가 갑자기 터지는 폭발이에요. 빛(X선·자외선)은 약 <b>8분 20초</b> 만에 지구에 와서 통신을 방해하고(델린저 현상), 함께 뿜어진 코로나 물질은 <b>1~3일 뒤</b> 도착해 자기 폭풍과 <b>오로라</b>를 일으켜요.</p>`;
+    $('go-night').onclick = startNight;
+  }
+
+  // ── 오로라 밤 ────────────────────────────────────────────
+  function topNow(n = 3) {
+    return onlineList(S.players, S.store.now(), S.store.uid).sort((a, b) => pts(b[1]) - pts(a[1])).slice(0, n).map(([id, p]) => ({id, name: p.name, team: p.team, sc: pts(p)}));
+  }
+  function startNight() {
+    setStage('night');
+    hideOverlay();
+    S.nightT = performance.now();
+    if (S.world) {
+      S.world.setNight(1); S.world.setAurora(1); S.world.setCamera('north');
+      setTimeout(() => {
+        if (S.stage !== 'night') return;
+        const top = topNow();
+        if (top.length) { S.world.showPodium(top); S.world.setCamera('podium'); }
+      }, 6500);
+    }
+    Sound.play('fanfare');
+    setTimeout(() => { if (S.stage === 'night') showFinal(); }, 1800);
+  }
+  function showFinal() {
+    S.overlayFor = 'night';
+    const list = onlineList(S.players, S.store.now(), S.store.uid).sort((a, b) => pts(b[1]) - pts(a[1]));
+    const rank = list.findIndex(([id]) => id === S.store.uid) + 1;
+    const teams = M.TEAMS.map((t, i) => {
+      const ms = list.filter(([, p]) => p.team === i);
+      return {t, n: ms.length, avg: ms.length ? ms.reduce((a, [, p]) => a + pts(p), 0) / ms.length : 0};
+    }).filter(x => x.n).sort((a, b) => b.avg - a.avg);
+    showOverlay(`<h2>🌌 오늘의 관측 끝!</h2>
+      <p>지금 접속한 ${list.length}명 중 <b class="big-num">${rank || '-'}</b>위 · <b>${S.score}</b>점</p>
+      <p class="small">모둠 순위: ${teams.map((x, i) => `${i + 1}. ${x.t.icon} ${x.t.name} ${Math.round(x.avg)}`).join(' · ')}</p>
+      <p class="fact"><b>오로라</b>는 태양에서 날아온 전기를 띤 입자가 지구 자기장을 따라 극지방 대기로 들어와 빛을 내는 현상이에요. 2024년 5월 강한 태양 폭풍 때는 <b>우리나라에서도 붉은 오로라</b>가 사진에 찍혔어요.</p>
+      <button class="primary big" id="again">🔁 한 번 더 관측하기 (최고 점수는 남아요)</button><button class="ghost" data-close>오로라 구경하기</button>`, null, true);
+    $('again').onclick = () => { hideOverlay(); restartRun(); };
+  }
+  function restartRun() {
+    S.best = Math.max(S.best, S.score);
+    S.score = 0; $('st-score').textContent = '0';
+    send({best: S.best, sc: 0, hits: 0, mk: null, d1: null, rot: null, fl: null, al: false, cap: false, skT: null});
+    if (S.world) { S.world.setNight(0); S.world.setAurora(0); S.world.hidePodium(); S.world.setCamera('me'); }
+    resetLocal();
+    setStage('prep');
   }
 
   // ── 덮개 카드 ────────────────────────────────────────────
   function showOverlay(html, onClose, clear) {
     const ov = $('overlay');
     $('ov-card').innerHTML = html;
+    $('ov-card').classList.remove('alarm');
     ov.hidden = false;
     ov.classList.toggle('clear', !!clear);
     $('ov-card').querySelectorAll('[data-close]').forEach(b => b.onclick = () => { ov.hidden = true; S.overlayFor = null; if (onClose) onClose(); });
-    const sn = $('ov-card').querySelector('#solo-next-ov');
-    if (sn) sn.onclick = () => { ov.hidden = true; S.overlayFor = null; soloNext(); };
   }
   const hideOverlay = () => { $('overlay').hidden = true; S.overlayFor = null; };
-  const soloBtn = () => S.solo && S.meta ? `<button class="primary big" id="solo-next-ov">${esc(nextLabel(S.meta))} ▶</button>` : '';
+  function showIntro() {
+    const n = onlineList(S.players, S.store.now(), S.store.uid).length;
+    S.overlayFor = 'intro';
+    showOverlay(`<h2>🔭 오늘의 관측 임무</h2>
+      <p>${S.offline ? '가상 친구들과 연습하는 관측소예요.' : `지금 <b>${n}명</b>이 같은 관측소에서 관측하고 있어요. 친구들의 망원경 빛줄기가 보이죠?`}</p>
+      <div class="fact">① 🧢 안전 준비 → 🎯 그림자로 조준 → 🔍 초점 → 🧭 동서 정하기 → ✏️ 흑점 스케치<br>② ⏩ ${S.sun.dt}일 뒤 다시 관측해 내 흑점(★)으로 <b>태양의 자전 주기</b> 재기<br>③ ⚡ 플레어 경보 → 🌌 오로라 밤</div>
+      <p class="small">모두 같은 태양을 봐요. 반 친구들이 찾은 흑점이 모이면 <b>🏆 황금 망원경</b>이 열려요!</p>
+      <button class="primary big" id="start-run">관측 시작!</button>`);
+    $('start-run').onclick = () => { hideOverlay(); Sound.unlock(); setStage('prep'); };
+  }
   function classStats1() {
-    const list = activePlayers(S.players, S.meta).map(([, p]) => p).filter(p => p.d1);
+    const list = onlineList(S.players, S.store.now(), S.store.uid).map(([, p]) => p).filter(p => p.d1);
     const n = M.spotsOn(S.sun, 0).length;
     const avg = list.length ? list.reduce((a, p) => a + p.d1.f, 0) / list.length : 0;
     return {n, players: list.length, avg, perfect: list.filter(p => p.d1.f >= p.d1.n).length, fooled: list.filter(p => p.d1.d > 0).length};
   }
   function showR1() {
     S.overlayFor = 'r1';
-    const cs = classStats1(), groups = S.sun.groups.length;
-    const d1 = M.spotsOn(S.sun, 0);
+    const cs = classStats1(), groups = S.sun.groups.length, d1 = M.spotsOn(S.sun, 0);
     S.board.setSun(S.sun, 0); S.board.sheet = null; S.board.marks = S.marks1; S.board.labels = true;
     S.board.reveal = d1.filter(s => !S.found.has(s.id));
     showOverlay(`<h2>📊 1일째 관측 결과</h2>
-      <div class="stat-row"><div class="stat"><small>내가 찾은 흑점</small><b>${S.found.size}/${cs.n}</b></div><div class="stat"><small>우리 반 평균</small><b>${cs.avg.toFixed(1)}</b></div><div class="stat"><small>완벽 관측</small><b>${cs.perfect}명</b></div></div>
+      <div class="stat-row"><div class="stat"><small>내가 찾은 흑점</small><b>${S.found.size}/${cs.n}</b></div><div class="stat"><small>친구들 평균 (${cs.players}명)</small><b>${cs.avg.toFixed(1)}</b></div><div class="stat"><small>완벽 관측</small><b>${cs.perfect}명</b></div></div>
       <p class="fact">오늘 태양에는 흑점 무리가 <b>${groups}개</b>, 흑점이 <b>${cs.n}개</b> 있었어요(놓친 흑점은 투영판에 주황 점선). 흑점은 대부분 이렇게 <b>무리 지어</b> 나타나요.</p>
       <p class="fact">흑점이 검게 보이는 까닭: 주변 광구(약 <b>5800 K</b>)보다 온도가 낮아서(<b>4000~5000 K</b>) 덜 밝기 때문이에요. 가장자리가 어두운 것은 <b>주연 감광</b>!</p>
       <p class="fact">렌즈 먼지에 속은 친구 <b>${cs.fooled}명</b> — 먼지는 상이 움직여도 제자리, 흑점은 태양과 함께 움직여요.</p>
-      ${soloBtn()}<button class="ghost" data-close>투영판 다시 보기</button>`);
+      <button class="primary big" id="ov-day2">⏩ ${S.sun.dt}일 뒤 다시 관측하기</button><button class="ghost" data-close>투영판 다시 보기</button>`);
+    $('ov-day2').onclick = goDay2;
   }
   function rotPoints() {
-    const pts = [];
-    activePlayers(S.players, S.meta).forEach(([id, p]) => { if (p.rot) ['a', 'b'].forEach(k => { if (p.rot[k]) pts.push(Object.assign({team: p.team, me: id === S.store.uid}, p.rot[k])); }); });
-    return pts;
+    const out = [];
+    onlineList(S.players, S.store.now(), S.store.uid).forEach(([id, p]) => { if (p.rot) ['a', 'b'].forEach(k => { if (p.rot[k]) out.push(Object.assign({team: p.team, me: id === S.store.uid}, p.rot[k])); }); });
+    return out;
   }
   function showR2() {
     S.overlayFor = 'r2';
-    const pts = rotPoints(), sum = M.rotationSummary(pts);
-    const mine = (S.find && S.find.results || []).filter(Boolean);
-    showOverlay(`<h2>📈 우리 반이 잰 태양의 자전 주기</h2>
+    const list = rotPoints(), sum = M.rotationSummary(list);
+    const mine = ((S.find && S.find.results) || []).filter(Boolean);
+    showOverlay(`<h2>📈 우리가 잰 태양의 자전 주기</h2>
       <canvas id="ov-scatter" width="640" height="440"></canvas>
       <div class="stat-row"><div class="stat"><small>적도 쪽 (|위도|&lt;15°)</small><b>${sum.low ? sum.low.toFixed(1) + '일' : '—'}</b></div><div class="stat"><small>고위도 (22° 이상)</small><b>${sum.high ? sum.high.toFixed(1) + '일' : '—'}</b></div></div>
       ${mine.length ? `<p class="small">내 측정: ${mine.map(r => `위도 ${fmt(Math.abs(r.lat), 0)}° → <b>${r.P.toFixed(1)}일</b>`).join(' · ')}</p>` : ''}
-      <p class="fact"><b>적도 쪽이 고위도보다 빨리 돌아요(차등 자전).</b> 단단한 고체라면 어디나 같은 주기로 돌겠죠? 태양이 <b>기체</b>로 되어 있다는 증거예요. 교과서: 적도 약 25일, 고위도 30일 이상.</p>
-      ${soloBtn()}<button class="ghost" data-close>닫기</button>`);
-    drawScatter($('ov-scatter'), pts, true);
+      <p class="fact"><b>적도 쪽이 고위도보다 빨리 돌아요(차등 자전).</b> 단단한 고체라면 어디나 같은 주기로 돌겠죠? 태양이 <b>기체</b>로 되어 있다는 증거예요. 교과서: 적도 약 25일, 고위도(60° 부근) 30일 이상.</p>
+      <button class="primary big" id="ov-flare">⚡ 계속하기</button><button class="ghost" data-close>닫기</button>`);
+    drawScatter($('ov-scatter'), list, true);
+    $('ov-flare').onclick = startFlareSeq;
   }
 
-  function onStudentMeta(m) {
-    if (!m) { if (S.joinedOK && !S.gone) { S.gone = true; showOverlay('<h2>수업 방이 닫혔어요</h2><p>선생님이 방을 닫았어요. 수고했어요!</p>'); } return; }
-    const prev = S.meta;
-    S.meta = m;
-    if (S.world) S.world.setGold(!!m.gold);
-    if (m.gold && prev && !prev.gold) { toast('🏆 우리 반 목표 달성! 모두의 망원경이 황금으로!', 3000); Sound.play('fanfare'); }
-    // 새 판: 다시 처음부터
-    if (S.round !== m.round || !S.sun || S.sun.seed !== m.seed) {
-      const fresh = S.round !== m.round;
-      S.round = m.round;
-      S.sun = sunOf(m.seed);
-      S.pers = M.personal(S.store.uid, S.sun);
-      resetLocal(fresh);
-    }
-    const ph = m.phase, st = S.stage;
-    if (ph !== 'night' && S.world) { S.world.setNight(0); S.world.setAurora(0); S.world.hidePodium(); S.world.setCamera('me'); }
-    if (S.overlayFor && S.overlayFor !== ph) hideOverlay();
-    if (ph === 'lobby') { if (st !== 'lobby' || !S.stageT) setStage('lobby'); }
-    else if (ph === 'd1') {
-      if (!M.DAY1_STAGES.includes(st)) resumeDay1();
-    } else if (ph === 'r1') {
-      if (st === 'sketch') finishSketch(false);
-      else if (M.DAY1_STAGES.includes(st) && st !== 'done1') { send({d1: {f: S.found.size, n: M.spotsOn(S.sun, 0).length, d: S.dust}}); setStage('done1'); }
-      else if (!M.DAY1_STAGES.includes(st)) setStage('done1');
-      if (S.overlayFor !== 'r1') { S.overlayFor = 'r1'; setTimeout(() => { if (S.meta && S.meta.phase === 'r1') showR1(); }, 1300); }
-    } else if (ph === 'd2') {
-      S.board.reveal = null;
-      if (!M.DAY2_STAGES.includes(st)) {
-        if (S.resume && S.resume.st && M.DAY2_STAGES.includes(S.resume.st) && S.resume.st !== 'aim2') { S.aligned = true; S.motor = true; snapToSun(); startFind(); if (S.resume.st === 'done2') setStage('done2'); }
-        else { S.motor = true; S.aligned = false; send({al: false}); S.board.setSun(S.sun, S.sun.dt); S.board.sheet = null; S.board.marks = []; S.board.reveal = null; S.aimT0 = performance.now(); setStage('aim2'); }
-        S.resume = null;
-      }
-    } else if (ph === 'r2') {
-      if (st !== 'done2') { if (S.find) { S.board.calc = null; S.find.calc = null; } setStage('done2'); }
-      if (S.overlayFor !== 'r2') { S.overlayFor = 'r2'; setTimeout(() => { if (S.meta && S.meta.phase === 'r2') showR2(); }, 1300); }
-    } else if (ph === 'flare') {
-      if (st !== 'flare') {
-        hideOverlay();
-        S.overlayFor = 'flare';
-        showOverlay(`<div class="alarm-wrap"><h2>⚡ 플레어 경보!</h2><p>태양 관측 위성에서 경보가 왔어요. 망원경에 <b>Hα 필터</b>를 끼우고 채층을 보세요. 곧 흑점 무리 근처에서 폭발이 일어나요!</p></div>`);
-        $('ov-card').classList.add('alarm');
-        Sound.play('alarm'); buzz([200, 100, 200, 100, 200]);
-        document.body.dataset.shake = '1'; setTimeout(() => { delete document.body.dataset.shake; }, 800);
-        setTimeout(() => { $('ov-card').classList.remove('alarm'); if (S.meta && S.meta.phase === 'flare') { hideOverlay(); S.overlayFor = 'flare'; } }, 2600);
-        S.aligned = true; S.motor = true; snapToSun();
-        startFlare();
-      }
-    } else if (ph === 'night') {
-      if (st !== 'night') startNight();
-    }
-  }
-  function resetLocal(fresh) {
+  // ── 처음 시작 / 새로고침해서 돌아왔을 때 ──────────────────────────────
+  function resetLocal() {
     S.marks1 = []; S.found = new Set(); S.dust = 0; S.combo = 0; S.prep = new Set(); S.eye = false; S.dirTries = 0; S.dirArmed = 0;
-    S.find = null; S.flare = null; S.aligned = false; S.motor = true; S.lockAnim = null;   // 추적 모터는 처음부터 켜져 있다(방향 정하기에서만 잠깐 끈다)
+    S.find = null; S.flare = null; S.aligned = false; S.motor = true; S.lockAnim = null;
     S.focus = S.pers.fStart; S.tel = {az: S.pers.aim0.az, alt: S.pers.aim0.alt};
-    if (fresh && S.stageT) { S.score = 0; $('st-score').textContent = '0'; send({sc: 0, al: false, cap: false}); }
-    if (S.board) { S.board.setSun(S.sun, 0); S.board.marks = []; S.board.sheet = null; S.board.calc = null; S.board.labels = false; S.board.flare = null; S.board.reveal = null; S.board.latGuide = null; }
-    S.stageT = 0;
-    // 새로고침해서 돌아왔으면 하던 곳부터
-    const r = S.resume;
-    if (r && r.mk) { S.marks1 = M.decodeMarks(r.mk).map(m => Object.assign(m, {t: 0})); S.marks1.forEach(m => { if (typeof m.k === 'number') S.found.add(m.k); else if (m.k === 'd') S.dust++; }); S.board.marks = S.marks1; }
+    const b = S.board;
+    b.setSun(S.sun, 0); b.marks = []; b.sheet = null; b.calc = null; b.labels = false; b.flare = null; b.reveal = null; b.latGuide = null; b.hint = null;
   }
-  function resumeDay1() {
-    const r = S.resume;
-    S.resume = null;
-    const st = r && r.st;
-    if (st && ['focus', 'dir', 'sketch', 'done1'].includes(st)) {
-      S.prep = new Set(['cap', 'plate', 'sheet']); S.aligned = true; S.motor = true; snapToSun();
+  function snapToSun() { S.tel = {az: S.sun.sky[0].az, alt: S.sun.sky[0].alt}; }
+  function resume(old) {
+    resetLocal();
+    const st = old && old.st;
+    if (!st || st === 'lobby' || st === 'prep' || st === 'aim') { showIntro(); return; }
+    if (old.mk) {
+      S.marks1 = M.decodeMarks(old.mk).map(m => Object.assign(m, {t: 0}));
+      S.marks1.forEach(m => { if (typeof m.k === 'number') S.found.add(m.k); else if (m.k === 'd') S.dust++; });
+      S.board.marks = S.marks1;
+    }
+    S.prep = new Set(['cap', 'plate', 'sheet']); S.aligned = true; S.motor = true; snapToSun();
+    toast('다시 왔네요! 하던 곳부터 이어서 해요', 2200);
+    if (st === 'focus' || st === 'dir' || st === 'sketch') {
       if (st !== 'focus') { S.focus = S.pers.f0; S.board.labels = true; }
-      if (st === 'sketch') { S.skT0 = S.store.now() - 20000; setStage('sketch'); }
-      else setStage(st);
-      return;
-    }
-    setStage('prep');
-  }
-  function snapToSun() { if (S.meta) { const sky = skyNow(S.meta, S.store.now()); S.tel = {az: sky.az, alt: sky.alt}; S.sky = sky; S.prevSky = sky; } }
-  function startNight() {
-    setStage('night');
-    hideOverlay();
-    if (S.world) {
-      S.world.setNight(1); S.world.setAurora(1); S.world.setCamera('north');
-      setTimeout(() => {
-        if (!S.meta || S.meta.phase !== 'night') return;
-        const top = activePlayers(S.players, S.meta).sort((a, b) => (b[1].sc || 0) - (a[1].sc || 0)).slice(0, 3).map(([id, p]) => ({id, name: p.name, team: p.team, sc: p.sc}));
-        if (top.length) { S.world.showPodium(top); S.world.setCamera('podium'); }
-      }, 6500);
-    }
-    Sound.play('fanfare');
-    setTimeout(() => { if (S.meta && S.meta.phase === 'night') showFinal(); }, 1800);
-  }
-  function showFinal() {
-    S.overlayFor = 'night';
-    const list = activePlayers(S.players, S.meta).sort((a, b) => (b[1].sc || 0) - (a[1].sc || 0));
-    const rank = list.findIndex(([id]) => id === S.store.uid) + 1;
-    const teams = M.TEAMS.map((t, i) => {
-      const ms = list.filter(([, p]) => p.team === i);
-      return {t, n: ms.length, avg: ms.length ? ms.reduce((a, [, p]) => a + (p.sc || 0), 0) / ms.length : 0};
-    }).filter(x => x.n).sort((a, b) => b.avg - a.avg);
-    showOverlay(`<h2>🌌 오늘의 관측 끝!</h2>
-      <p>내 순위 <b class="big-num">${rank || '-'}</b>위 / ${list.length}명 · <b>${S.score}</b>점</p>
-      <p class="small">모둠 순위: ${teams.map((x, i) => `${i + 1}. ${x.t.icon} ${x.t.name} ${Math.round(x.avg)}`).join(' · ')}</p>
-      <p class="fact"><b>오로라</b>는 태양에서 날아온 전기를 띤 입자가 지구 자기장을 따라 극지방 대기로 들어와 빛을 내는 현상이에요. 2024년 5월 강한 태양 폭풍 때는 <b>우리나라에서도 붉은 오로라</b>가 사진에 찍혔어요.</p>
-      ${soloBtn()}<button class="ghost" data-close>오로라 구경하기</button>`, null, true);
+      if (st === 'sketch') { S.skT0 = old.skT && S.store.now() - old.skT < M.SKETCH_SEC * 1000 ? old.skT : S.store.now() - (M.SKETCH_SEC - 30) * 1000; }
+      setStage(st);
+    } else if (st === 'done1') { S.focus = S.pers.f0; setStage('done1'); showR1(); }
+    else if (st === 'aim2' || st === 'find') { S.focus = S.pers.f0; goDay2(); }
+    else if (st === 'done2') {
+      S.focus = S.pers.f0;
+      if (old.rot) S.find = {results: [old.rot.a, old.rot.b].filter(Boolean), targets: [], idx: 0};
+      S.board.setSun(S.sun, S.sun.dt); setStage('done2');
+    } else if (st === 'flare') { S.focus = S.pers.f0; if (old.fl) startNight(); else startFlareSeq(); }
+    else if (st === 'night') { S.focus = S.pers.f0; startNight(); }
+    else showIntro();
   }
 
   // ── 매 장면 ───────────────────────────────────────────────
   function studentLoop() {
-    let lastPlate = 0, lastWorldPlayers = 0, lastWait = 0, prevT = performance.now();
+    let lastPlate = 0, lastPlayers = 0, prevT = performance.now();
     const tick = () => {
       requestAnimationFrame(tick);
       const now = performance.now(), dt = Math.min(0.1, (now - prevT) / 1000);
       prevT = now;
-      if (!S.meta || !S.sun) return;
-      const sky = skyNow(S.meta, S.store.now());
-      // 추적 모터: 망원경이 태양을 따라간다
-      if (S.motor && S.prevSky) { S.tel.az += sky.az - S.prevSky.az; S.tel.alt += sky.alt - S.prevSky.alt; }
-      S.prevSky = sky; S.sky = sky;
-      // 조준 완료 애니메이션 (태양 쪽으로 빨려 들어감)
+      const sky = S.sun.sky[0];
+      // 추적 모터를 끄면(방향 정하기) 망원경은 그대로인데 태양이 서쪽으로 가므로, 상이 서쪽으로 흘러간다
+      if (!S.motor) S.tel.az -= M.DRIFT * dt;
       if (S.lockAnim) {
         const k = clamp((now - S.lockAnim.t0) / 380, 0, 1), e = 1 - (1 - k) ** 3;
         S.tel.az = S.lockAnim.from.az + (sky.az - S.lockAnim.from.az) * e;
@@ -996,29 +967,25 @@
       if (S.stage === 'flare') b.off = {x: 0, y: 0};
       else if (off.sep > 80) b.off = {x: 9, y: 0};
       else b.off = {x: off.x / M.SUN_RADIUS_DEG * M.BOARD_SUN + shx, y: off.y / M.SUN_RADIUS_DEG * M.BOARD_SUN + shy};
-      b.mis = {x: off.x, y: off.y};
-      if (off.sep > 80) b.mis = {x: 40 * Math.sign(off.x || 1), y: 0};
+      b.mis = off.sep > 80 ? {x: 40 * Math.sign(off.x || 1), y: 0} : {x: off.x, y: off.y};
       b.blur = S.stage === 'flare' ? 0 : 40 * Math.abs(S.focus - S.pers.f0);
-      if (b.blur < 0.6 && (S.stage !== 'focus')) b.blur = 0;
+      if (b.blur < 0.6 && S.stage !== 'focus') b.blur = 0;
       b.dust = S.stage === 'flare' ? [] : S.pers.dust;
-      // 단계별 판정
       if ((S.stage === 'aim' || S.stage === 'aim2') && !S.lockAnim && !S.aligned) {
-        const r = off.sep / M.SUN_RADIUS_DEG, dragging = !!S.drag;
+        const r = off.sep / M.SUN_RADIUS_DEG;
         const mt = $('aim-meter');
         if (mt) {
           mt.style.width = (100 * (1 - clamp(Math.log10(Math.max(off.sep, 0.02) / 0.02) / Math.log10(60 / 0.02), 0, 1))) + '%';
           $('aim-deg').textContent = off.sep >= 10 ? `${off.sep.toFixed(0)}°` : `${off.sep.toFixed(2)}°`;
         }
-        if (r < (dragging ? 0.08 : M.ALIGN_TOL * 1.5)) lockAim();
+        if (r < (S.drag ? 0.08 : M.ALIGN_TOL * 1.5)) lockAim();
         if (off.sep < 3) $('drag-hint').hidden = true;
       }
-      if (S.stage === 'dir' && S.dirArmed) {
-        if (b.off.x > 1.35) { S.tel = {az: sky.az, alt: sky.alt}; }  // 너무 멀리 흘러가면 다시 가운데에서
-      }
+      if (S.stage === 'dir' && S.dirArmed && b.off.x > 1.35) S.tel = {az: sky.az, alt: sky.alt};  // 너무 멀리 흘러가면 다시 가운데에서
       if (S.stage === 'sketch') {
-        const total = S.meta.sk || M.SKETCH_SEC, left = total - (S.store.now() - S.skT0) / 1000;
+        const left = M.SKETCH_SEC - (S.store.now() - S.skT0) / 1000;
         $('sk-time').textContent = Math.max(0, Math.ceil(left));
-        $('sk-bar').style.width = clamp(left / total * 100, 0, 100) + '%';
+        $('sk-bar').style.width = clamp(left / M.SKETCH_SEC * 100, 0, 100) + '%';
         $('sk-timer').classList.toggle('low', left < 10);
         if (left <= 0) finishSketch(false);
       }
@@ -1037,47 +1004,37 @@
         S.world.setSun(sky);
         S.world.setMyAim(S.tel.az, S.tel.alt);
         if (now - lastPlate > 180) { lastPlate = now; S.world.plateDirty(); }
-        if (S.playersDirty && now - lastWorldPlayers > 200) {
-          lastWorldPlayers = now; S.playersDirty = false;
-          const show = {};
-          entries(S.players).forEach(([id, p]) => { if (p && p.name && (p.on !== false || id === S.store.uid)) show[id] = p; });
-          S.world.setPlayers(show, S.store.uid);
-          updateRank(); updateGoal();
-        }
-      } else if (S.playersDirty) { S.playersDirty = false; updateRank(); updateGoal(); }
-      if (now - lastWait > 700) { lastWait = now; updateWaitCount(); }
+      }
+      if (S.playersDirty && now - lastPlayers > 250) {
+        lastPlayers = now; S.playersDirty = false;
+        const list = onlineList(S.players, S.store.now(), S.store.uid);
+        if (S.world) S.world.setPlayers(Object.fromEntries(list), S.store.uid);
+        updateHud(list);
+      }
     };
     tick();
   }
-  function updateRank() {
-    const list = activePlayers(S.players, S.meta).sort((a, b) => (b[1].sc || 0) - (a[1].sc || 0));
-    const i = list.findIndex(([id]) => id === S.store.uid);
-    $('st-rank').textContent = i >= 0 ? `${i + 1}/${list.length}` : '-';
-  }
-  function goalOf(players, meta) {
-    const list = activePlayers(players, meta), n = M.spotsOn(sunOf(meta.seed), 0).length;
-    const goal = Math.max(10, Math.round(list.length * n * 0.6));
-    const hits = list.reduce((a, [, p]) => a + (p.hits || 0), 0);
-    return {goal, hits, n};
-  }
-  function updateGoal() {
-    if (!S.meta) return;
-    const g = goalOf(S.players, S.meta), el = $('st-goal');
-    el.hidden = S.meta.phase === 'lobby' || S.meta.phase === 'night';
+  function updateHud(list) {
+    const sorted = list.slice().sort((a, b) => pts(b[1]) - pts(a[1]));
+    const i = sorted.findIndex(([id]) => id === S.store.uid);
+    $('st-rank').textContent = i >= 0 ? `${i + 1}/${sorted.length}` : '-';
+    $('st-room').textContent = S.offline ? '혼자 연습 (가상 친구들)' : `오늘의 관측소 · ${list.length}명 접속`;
+    const g = goalOf(list, S.sun), el = $('st-goal');
+    el.hidden = S.stage === 'night';
     $('st-goal-bar').style.width = clamp(g.hits / g.goal * 100, 0, 100) + '%';
     $('st-goal-text').textContent = `흑점 ${g.hits}/${g.goal}`;
     el.classList.toggle('done', g.hits >= g.goal);
-  }
-  function soloNext() {
-    if (!S.solo || !S.meta) return;
-    advance(S.store, S.base, S.meta, S.players);
+    if (!S.gold && g.hits >= g.goal && list.length >= 2) {
+      S.gold = true;
+      if (S.world) S.world.setGold(true);
+      toast('🏆 우리 목표 달성! 모두의 망원경이 황금으로!', 3000); Sound.play('fanfare');
+    }
   }
 
-  // ── 자전 주기 산점도 (학생 결과 카드·선생님 화면이 같이 쓴다) ─────────────────
-  function drawScatter(cv, pts, compact) {
+  // ── 자전 주기 산점도 (학생 결과 카드·전광판이 같이 쓴다) ─────────────────
+  function drawScatter(cv, list, compact) {
     const x = cv.getContext('2d'), W = cv.width, H = cv.height;
-    const L = 64, R = 18, T = 26, B = 54;
-    const P0 = 22, P1 = 30;
+    const L = 64, R = 18, T = 26, B = 54, P0 = 22, P1 = 30;
     const X = lat => L + (lat / 40) * (W - L - R), Y = P => T + (1 - (clamp(P, P0, P1) - P0) / (P1 - P0)) * (H - T - B);
     x.fillStyle = '#0b1626'; x.fillRect(0, 0, W, H);
     x.strokeStyle = 'rgba(255,255,255,.1)'; x.lineWidth = 1;
@@ -1086,126 +1043,55 @@
     for (let l = 0; l <= 40; l += 10) { x.beginPath(); x.moveTo(X(l), T); x.lineTo(X(l), H - B); x.stroke(); x.textAlign = 'center'; x.fillText(l + '°', X(l), H - B + 22); }
     x.fillStyle = '#c4d3e3'; x.textAlign = 'center'; x.fillText('흑점의 위도 (북·남 상관없이)', (L + W - R) / 2, H - 10);
     x.save(); x.translate(18, (T + H - B) / 2); x.rotate(-Math.PI / 2); x.fillText('자전 주기 (일)', 0, 0); x.restore();
-    // 실제 태양(차등 자전)
     x.strokeStyle = '#ff8a1a'; x.lineWidth = 3; x.beginPath();
     for (let l = 0; l <= 40; l += 1) { const P = M.rotationPeriod(l); if (l) x.lineTo(X(l), Y(P)); else x.moveTo(X(l), Y(P)); }
     x.stroke();
     x.fillStyle = '#ff8a1a'; x.textAlign = 'left'; x.fillText('실제 태양', X(30) - 20, Y(M.rotationPeriod(30)) - 12);
-    pts.forEach(p => {
+    list.forEach(p => {
       if (!(p.P > 18 && p.P < 38)) return;
       x.fillStyle = team(p.team).color;
       x.beginPath(); x.arc(X(Math.abs(p.lat)), Y(p.P), p.me ? 9 : 6, 0, 7); x.fill();
       x.strokeStyle = p.me ? '#fff' : 'rgba(0,0,0,.4)'; x.lineWidth = p.me ? 3 : 1; x.stroke();
     });
-    if (!pts.length) { x.fillStyle = '#9fb3c8'; x.textAlign = 'center'; x.fillText('아직 자료가 없어요', W / 2, H / 2); }
+    if (!list.length) { x.fillStyle = '#9fb3c8'; x.textAlign = 'center'; x.fillText('아직 자료가 없어요', W / 2, H / 2); }
   }
 
   // ╔══════════════════════════════════════════════════════════╗
-  //   선생님 화면
+  //   관측소 전광판 (TV·프로젝터)
   // ╚══════════════════════════════════════════════════════════╝
-  const T = {store: null, code: '', base: '', meta: null, players: {}, world: null, bots: null, demo: false, lastEv: {}, lastPhase: null, podiumT: 0, hostBoard: null};
+  const T = {store: null, base: '', day: '', sun: null, players: {}, world: null, bots: null, lastEv: {}, dirty: false, hostBoard: null, card: 0, cardT: 0, gold: false};
 
-  async function openRoom(demo, existing) {
-    const note = $('server-note');
-    note.textContent = '연결 중…'; note.classList.remove('error');
-    try { T.store = await openStore(demo ? 'demo' : 'teacher'); }
-    catch (e) { note.textContent = e.message; note.classList.add('error'); return; }
-    T.demo = demo;
-    let code = existing;
-    try {
-      if (code) { const meta = await T.store.get(`${ROOT}/${code}/meta`); if (!meta || meta.teacher !== T.store.uid) code = null; }
-      if (!code) {
-        for (let i = 0; i < 20 && !code; i++) { const c = String(1000 + Math.floor(Math.random() * 9000)); if (!(await T.store.get(`${ROOT}/${c}/meta`))) code = c; }
-        const now = T.store.now();
-        await T.store.set(`${ROOT}/${code}/meta`, {teacher: T.store.uid, created: now, phase: 'lobby', round: 1, seed: randInt(), sk: M.SKETCH_SEC, t0: now, demo: demo || null});
-      }
-    } catch (e) {
-      if (isDenied(e) && !demo) { note.innerHTML = '서버가 흑점 헌터스 방을 아직 받아 주지 않아요. ' + esc(RULES_HELP) + ' 그 전에는 “가상 학생과 미리 해 보기”로 써 볼 수 있어요.'; note.classList.add('error'); return; }
-      if (isDenied(e) && demo) { T.store = new LocalStore(true); await T.store.ready; return openRoomWith(T.store, demo); }
-      note.textContent = e.message || String(e); note.classList.add('error'); return;
-    }
-    startTeacher(code);
-  }
-  async function openRoomWith(store, demo) {
-    const c = String(1000 + Math.floor(Math.random() * 9000)), now = store.now();
-    await store.set(`${ROOT}/${c}/meta`, {teacher: store.uid, created: now, phase: 'lobby', round: 1, seed: randInt(), sk: M.SKETCH_SEC, t0: now, demo: demo || null});
-    T.store = store; T.demo = demo;
-    startTeacher(c);
-  }
-  function startTeacher(code) {
-    T.code = code; T.base = `${ROOT}/${code}`;
-    if (!T.demo) history.replaceState(null, '', '?host=' + code + (LOCAL_ONLY ? '&local' : ''));
-    else if (T.store.kind === 'firebase') history.replaceState(null, '', '?demo&host=' + code);
+  async function openBoardView(demo) {
+    let store;
+    try { store = await openStore(demo ? 'demo' : 'world'); }
+    catch (e) { $('server-note').textContent = e.message || String(e); $('server-note').classList.add('error'); return; }
+    const day = dayKeyOf(store.now());
+    Object.assign(T, {store, day, base: `${ROOT}/${day}`, sun: sunOf(seedOf(day))});
+    history.replaceState(null, '', '?board' + (demo ? '&demo' : '') + (LOCAL_ONLY ? '&local' : ''));
     document.body.dataset.screen = 'teacher';
-    Sound.unlock(); Wake.on();
-    $('t-code').textContent = code; $('t-code-big').textContent = code;
-    const url = joinURL(code);
-    $('t-url').textContent = url.replace(/^https?:\/\//, '');
-    drawQR($('t-qr'), url); drawQR($('t-qr-small'), url);
-    if (T.store.kind === 'local' && !LOCAL_ONLY) $('t-url').textContent = '미리 해 보기: 이 기기 안에서만 돌아가요 (서버 연결 없음)';
+    Wake.on();
+    $('t-url').textContent = PAGE_URL.replace(/^https?:\/\//, '');
+    $('t-url-big').textContent = PAGE_URL.replace(/^https?:\/\//, '');
+    drawQR($('t-qr'), PAGE_URL); drawQR($('t-qr-small'), PAGE_URL);
     if (window.SunspotWorld && window.THREE) { try { T.world = new window.SunspotWorld($('t-3d'), {mode: 'host'}); if (!T.world.ok) T.world = null; } catch (e) { console.warn(e); } }
-    const hb = document.createElement('canvas');
-    T.hostBoard = new window.SunspotBoard(hb, {size: 600});
-    T.store.on(T.base + '/meta', v => { T.meta = v; T.dirty = true; onTeacherMeta(); });
-    T.store.on(T.base + '/players', v => { T.players = v || {}; T.dirty = true; });
-    T.store.onStatus(ok => { $('t-conn').className = 'conn ' + (ok ? 'on' : 'off'); });
-    bindTeacher();
-    if (T.demo) { T.bots = new Bots(T.store, T.base, 20, () => T.meta); T.bots.start(); }
-    teacherLoop();
-  }
-  function guard(p, what) {
-    return Promise.resolve(p).catch(e => alert(`${what}에 실패했어요.\n${e && e.message ? e.message : e}\n\n인터넷 연결과 Firebase 규칙을 확인해 주세요.`));
-  }
-  function bindTeacher() {
-    $('t-next').onclick = () => { if (T.meta) guard(advance(T.store, T.base, T.meta, T.players, 1), '다음 단계'); };
-    $('t-prev').onclick = () => {
-      if (!T.meta || T.meta.phase === 'lobby') return;
-      if (confirm(`이전 단계(${PHASE_NAME[PHASES[PHASES.indexOf(T.meta.phase) - 1]]})로 돌아갈까요?`)) guard(advance(T.store, T.base, T.meta, T.players, -1), '이전 단계');
-    };
-    $('t-sk').onchange = e => guard(T.store.update(T.base + '/meta', {sk: +e.target.value}), '스케치 시간');
+    T.hostBoard = new window.SunspotBoard(document.createElement('canvas'), {size: 600});
+    store.on(T.base + '/players', v => { T.players = v || {}; T.dirty = true; }, e => {
+      if (isDenied(e)) showBanner('실시간 관측소가 아직 열리지 않았어요', 'Firebase 규칙(sunspot)을 게시해 주세요', true);
+    });
+    store.onStatus(ok => { $('t-conn').className = 'conn ' + (ok ? 'on' : 'off'); });
     $('t-fullscreen').onclick = () => { const d = document.documentElement; if (!document.fullscreenElement && d.requestFullscreen) d.requestFullscreen().catch(() => {}); else if (document.exitFullscreen) document.exitFullscreen(); };
     $('t-qr-btn').onclick = () => $('screen-teacher').classList.toggle('qr-big');
     $('t-room').onclick = () => $('screen-teacher').classList.toggle('qr-big');
-    $('t-roster-btn').onclick = () => { $('t-roster').hidden = !$('t-roster').hidden; renderRoster(); };
-    $('t-roster').onclick = e => {
-      const b = e.target.closest('button[data-kick]');
-      if (b && confirm(`${b.dataset.name} 학생을 관측소에서 내보낼까요?`)) guard(T.store.remove(T.base + '/players/' + b.dataset.kick), '내보내기').then(renderRoster);
-      if (e.target.closest('[data-close-roster]')) $('t-roster').hidden = true;
-    };
-  }
-  function renderRoster() {
-    const list = entries(T.players).filter(([, p]) => p && p.name).sort((a, b) => (a[1].team - b[1].team) || String(a[1].name).localeCompare(b[1].name));
-    $('t-roster').innerHTML = `<h3>명단 (${list.length}명) <button class="ghost" data-close-roster>닫기</button></h3><ul>${list.map(([id, p]) =>
-      `<li><i class="conn ${p.on === false ? 'off' : 'on'}"></i><span style="color:${team(p.team).color}">${team(p.team).icon}</span><span>${esc(p.name)}</span><small>${(M.STAGES[p.st] || {}).icon || ''} ${p.sc || 0}</small><button data-kick="${esc(id)}" data-name="${esc(p.name)}">내보내기</button></li>`).join('')}</ul>`;
-  }
-  function onTeacherMeta() {
-    const m = T.meta;
-    if (!m) return;
-    $('t-sk').value = String(m.sk || 75);
-    if (m.phase !== T.lastPhase) {
-      const prev = T.lastPhase;
-      T.lastPhase = m.phase;
-      if (T.world) {
-        if (m.phase === 'night') { T.world.setNight(1); T.world.setAurora(1); T.world.setCamera('north'); T.podiumT = performance.now() + 7000; }
-        else { T.world.setNight(0); T.world.setAurora(0); T.world.hidePodium(); T.world.setCamera('overview'); T.podiumT = 0; }
-      }
-      if (prev) {
-        const banner = {d1: ['☀️ 1일째 관측 시작!', '안전 준비 → 조준 → 초점 → 방향 → 스케치'], r1: ['📊 1일째 결과', '우리 반이 함께 그린 흑점 지도'],
-          d2: [`⏩ ${sunOf(m.seed).dt}일 뒤…`, '내 흑점은 어디로 갔을까?'], r2: ['📈 자전 주기 결과', '위도에 따라 다를까?'],
-          flare: ['⚡ 플레어 경보!', 'Hα 필터로 바꿔 끼우세요'], night: ['🌌 그날 밤…', '북쪽 하늘에 오로라가!'], lobby: ['🔁 새 태양', '다시 한 판!']}[m.phase];
-        if (banner) showBanner(banner[0], banner[1], m.phase === 'flare');
-        if (m.phase === 'flare') Sound.play('alarm'); else if (m.phase === 'night' || m.phase === 'r2') Sound.play('fanfare'); else Sound.play('whoosh');
-      }
-      $('screen-teacher').classList.remove('qr-big');
-    }
-    renderTeacher();
+    if (demo) { T.bots = new Bots(store, T.base, 20, T.sun); T.bots.start(); }
+    if (T.world) T.world.setSun(T.sun.sky[0]);
+    boardLoop();
   }
   function showBanner(title, sub, alarm) {
     const b = $('t-banner');
     b.innerHTML = `${esc(title)}<small>${esc(sub)}</small>`;
     b.classList.toggle('alarm-text', !!alarm);
     b.hidden = false; b.style.animation = 'none'; void b.offsetWidth; b.style.animation = '';
-    clearTimeout(b._h); b._h = setTimeout(() => { b.hidden = true; }, 2600);
+    clearTimeout(b._h); b._h = setTimeout(() => { b.hidden = true; }, 3200);
   }
   function feed(text, color) {
     const box = $('t-feed'), d = document.createElement('div');
@@ -1214,336 +1100,256 @@
     while (box.children.length > 4) box.lastChild.remove();
     setTimeout(() => d.remove(), 4100);
   }
-
-  function renderTeacher() {
-    const m = T.meta;
-    if (!m) return;
-    const all = activePlayers(T.players, m), online = all.filter(([, p]) => p.on !== false);
-    $('t-count').textContent = online.length;
-    $('t-phase-name').textContent = PHASE_NAME[m.phase];
-    $('t-next').textContent = nextLabel(m);
-    const pi = PHASES.indexOf(m.phase);
-    $('t-stage').innerHTML = PHASES.map((p, i) => `<span class="${i < pi ? 'done' : i === pi ? 'now' : ''}" title="${PHASE_NAME[p]}"></span>`).join('');
-    $('t-lobby').hidden = m.phase !== 'lobby' && !$('screen-teacher').classList.contains('qr-big');
-    $('t-teams').innerHTML = M.TEAMS.map((t, i) => `<span style="--c:${t.color}">${t.icon} ${t.name} ${all.filter(([, p]) => p.team === i).length}</span>`).join('');
+  const STAGE_KEYS = ['prep', 'aim', 'focus', 'dir', 'sketch', 'done1', 'aim2', 'find', 'done2', 'flare', 'night'];
+  function renderBoardView() {
+    const now = T.store.now(), list = onlineList(T.players, now, null);
+    $('t-count').textContent = list.length;
+    $('t-lobby').hidden = !(list.length === 0 || $('screen-teacher').classList.contains('qr-big'));
     // 순위
-    const ranked = all.slice().sort((a, b) => (b[1].sc || 0) - (a[1].sc || 0));
-    $('t-board').innerHTML = ranked.slice(0, 10).map(([, p], i) => `<li><span class="rk">${i + 1}</span><span class="dot" style="background:${team(p.team).color}"></span><span class="nm">${esc(p.name)}</span><span class="st">${(M.STAGES[p.st] || {}).icon || ''}</span><span class="sc">${p.sc || 0}</span></li>`).join('') || '<li><span class="nm">아직 아무도 없어요</span></li>';
-    const tavg = M.TEAMS.map((t, i) => { const ms = all.filter(([, p]) => p.team === i); return {t, n: ms.length, avg: ms.length ? ms.reduce((a, [, p]) => a + (p.sc || 0), 0) / ms.length : 0}; });
+    const ranked = list.slice().sort((a, b) => pts(b[1]) - pts(a[1]));
+    $('t-board').innerHTML = ranked.slice(0, 10).map(([, p], i) => `<li><span class="rk">${i + 1}</span><span class="dot" style="background:${team(p.team).color}"></span><span class="nm">${esc(p.name)}</span><span class="st">${(M.STAGES[p.st] || {}).icon || ''}</span><span class="sc">${pts(p)}</span></li>`).join('') || '<li><span class="nm">아직 아무도 없어요</span></li>';
+    const tavg = M.TEAMS.map((t, i) => { const ms = list.filter(([, p]) => p.team === i); return {t, n: ms.length, avg: ms.length ? ms.reduce((a, [, p]) => a + pts(p), 0) / ms.length : 0}; });
     const maxAvg = Math.max(1, ...tavg.map(x => x.avg));
-    $('t-teambars').innerHTML = tavg.map(x => `<div><span>${x.t.icon} ${x.t.name}</span><i><b style="width:${x.avg / maxAvg * 100}%;background:${x.t.color}"></b></i><em>${Math.round(x.avg)}</em></div>`).join('');
-    renderLeft(m, all);
-    if (!$('t-roster').hidden) renderRoster();
+    $('t-teambars').innerHTML = tavg.map(x => `<div><span>${x.t.icon} ${x.t.name}</span><i><b style="width:${x.avg / maxAvg * 100}%;background:${x.t.color}"></b></i><em>${x.n ? Math.round(x.avg) : '-'}</em></div>`).join('');
+    $('t-stage').innerHTML = STAGE_KEYS.filter(k => k !== 'done1' && k !== 'done2').map(k => {
+      const n = list.filter(([, p]) => p.st === k || (k === 'sketch' && p.st === 'done1') || (k === 'find' && p.st === 'done2')).length;
+      return `<span class="chip${n ? '' : ' zero'}" title="${M.STAGES[k].label}">${M.STAGES[k].icon} <b>${n}</b></span>`;
+    }).join('');
+    renderBoardLeft(list);
   }
-  function stageChips(all, keys) {
-    return `<div class="chips">${keys.map(k => `<span>${M.STAGES[k].icon} ${M.STAGES[k].label} <b>${all.filter(([, p]) => p.st === k).length}</b></span>`).join('')}</div>`;
-  }
-  function renderLeft(m, all) {
-    const box = $('t-left'), ph = m.phase;
-    box.hidden = ph === 'lobby';
-    if (ph === 'lobby') return;
-    const key = ph + '|' + m.round;
-    if (box.dataset.key !== key) {
-      box.dataset.key = key;
-      const sun = sunOf(m.seed);
-      const html = {
-        d1: `<h3>✏️ 우리 반이 함께 그리는 흑점 지도</h3><canvas id="t-map" width="600" height="600"></canvas><div id="t-chips"></div><div class="goal" id="t-goal"></div>`,
-        r1: `<h3>📊 정답 공개: 1일째 태양</h3><canvas id="t-map" width="600" height="600"></canvas><div id="t-r1"></div>`,
-        d2: `<h3>⭐ ${sun.dt}일 뒤: 흑점 추적 중</h3><canvas id="t-map" width="600" height="600"></canvas><div id="t-chips"></div>`,
-        r2: `<h3>📈 우리 반이 잰 자전 주기</h3><canvas id="t-scatter" class="wide" width="640" height="480"></canvas><div id="t-r2"></div>`,
-        flare: `<h3>⚡ 플레어 경보 (Hα)</h3><canvas id="t-map" width="600" height="600"></canvas><div id="t-fl"></div>`,
-        night: `<h3>🌌 오늘의 관측 정리</h3><div id="t-night"></div>`
-      }[ph];
-      box.innerHTML = html;
+  // 왼쪽 판: 흑점 지도 → 자전 주기 → 플레어 기록을 12초마다 돌아가며 보여 준다
+  function renderBoardLeft(list) {
+    const box = $('t-left'), now = performance.now();
+    box.hidden = list.length === 0;
+    if (!list.length) return;
+    const rotPts = [];
+    list.forEach(([, p]) => { if (p.rot) ['a', 'b'].forEach(k => { if (p.rot[k]) rotPts.push(Object.assign({team: p.team}, p.rot[k])); }); });
+    const flares = list.map(([, p]) => p).filter(p => p.fl && p.fl.ok).sort((a, b) => a.fl.s - b.fl.s);
+    const cards = ['map'];
+    if (rotPts.length) cards.push('rot');
+    if (flares.length) cards.push('flare');
+    if (now - T.cardT > 12000) { T.cardT = now; T.card = (T.card + 1) % cards.length; }
+    const card = cards[T.card % cards.length];
+    if (box.dataset.card !== card) {
+      box.dataset.card = card;
+      box.innerHTML = {
+        map: `<h3>✏️ 우리가 함께 그리는 흑점 지도</h3><canvas id="t-map" width="600" height="600"></canvas><div class="goal" id="t-goal"></div>`,
+        rot: `<h3>📈 우리가 잰 태양의 자전 주기</h3><canvas id="t-scatter" class="wide" width="640" height="480"></canvas><div id="t-r2"></div>`,
+        flare: `<h3>⚡ 플레어 반응 속도</h3><div id="t-fl"></div>`
+      }[card] + `<div class="t-dots">${cards.map(c => `<i class="${c === card ? 'on' : ''}"></i>`).join('')}</div>`;
     }
-    const sun = sunOf(m.seed);
-    if (ph === 'd1') {
-      drawClassMap($('t-map'), sun, 0, all, false);
-      $('t-chips').innerHTML = stageChips(all, ['prep', 'aim', 'focus', 'dir', 'sketch', 'done1']);
-      const g = goalOf(T.players, m);
-      $('t-goal').innerHTML = `<span>🏆 우리 반 목표: 흑점 ${g.hits} / ${g.goal}개 ${g.hits >= g.goal ? '— 달성! 황금 망원경 🎉' : ''}</span><i><b style="width:${clamp(g.hits / g.goal * 100, 0, 100)}%"></b></i>`;
-    } else if (ph === 'r1') {
-      drawClassMap($('t-map'), sun, 0, all, true);
-      const done = all.map(([, p]) => p).filter(p => p.d1), n = M.spotsOn(sun, 0).length;
-      const avg = done.length ? done.reduce((a, p) => a + p.d1.f, 0) / done.length : 0;
-      $('t-r1').innerHTML = `<ul class="big"><li>흑점 무리 <b>${sun.groups.length}개</b>, 흑점 <b>${n}개</b> — 반 평균 <b>${avg.toFixed(1)}개</b> 찾음</li>
-        <li>완벽 관측 <b>${done.filter(p => p.d1.f >= p.d1.n).length}명</b> · 렌즈 먼지에 속음 <b>${done.filter(p => p.d1.d > 0).length}명</b></li>
-        <li>흑점이 어두운 까닭: 주변 광구(약 5800 K)보다 온도가 낮다(4000~5000 K)</li>
-        <li>가장자리가 어둡다 = 주연 감광 · 가장자리 흑점은 납작하게 보인다(공 모양)</li></ul>`;
-    } else if (ph === 'd2') {
-      drawClassMap($('t-map'), sun, sun.dt, all, false);
-      $('t-chips').innerHTML = stageChips(all, ['aim2', 'find', 'done2']);
-    } else if (ph === 'r2') {
-      const pts = [];
-      all.forEach(([, p]) => { if (p.rot) ['a', 'b'].forEach(k => { if (p.rot[k]) pts.push(Object.assign({team: p.team}, p.rot[k])); }); });
-      drawScatter($('t-scatter'), pts);
-      const s = M.rotationSummary(pts);
-      $('t-r2').innerHTML = `<ul class="big"><li>측정 <b>${s.n}개</b> · 전체 평균 <b>${s.all ? s.all.toFixed(1) : '—'}일</b></li>
-        <li>적도 쪽(|위도| &lt; 15°) <b>${s.low ? s.low.toFixed(1) + '일' : '—'}</b> · 고위도(22° 이상) <b>${s.high ? s.high.toFixed(1) + '일' : '—'}</b></li>
-        <li><b>적도가 더 빨리 돈다 → 차등 자전</b> → 태양은 고체가 아니라 기체</li>
-        <li>방법: θ : Δt = 360° : P (교과서 60쪽)</li></ul>`;
-    } else if (ph === 'flare') {
-      drawFlareMap($('t-map'), sun, m);
-      const ok = all.map(([, p]) => p).filter(p => p.fl && p.fl.ok).sort((a, b) => a.fl.s - b.fl.s);
-      $('t-fl').innerHTML = `<p class="big">찾은 학생 <b>${ok.length}</b> / ${all.length}명</p><ul>${ok.slice(0, 5).map((p, i) => `<li>${['🥇', '🥈', '🥉', '4', '5'][i]} ${esc(p.name)} — ${p.fl.s.toFixed(1)}초</li>`).join('')}</ul>
+    if (card === 'map') {
+      drawClassMap($('t-map'), list);
+      const g = goalOf(list, T.sun);
+      $('t-goal').innerHTML = `<span>🏆 우리 목표: 흑점 ${g.hits} / ${g.goal}개 ${g.hits >= g.goal ? '— 달성! 황금 망원경 🎉' : ''}</span><i><b style="width:${clamp(g.hits / g.goal * 100, 0, 100)}%"></b></i>`;
+    } else if (card === 'rot') {
+      drawScatter($('t-scatter'), rotPts);
+      const s = M.rotationSummary(rotPts);
+      $('t-r2').innerHTML = `<ul class="big"><li>측정 <b>${s.n}개</b> · 적도 쪽(|위도| &lt; 15°) <b>${s.low ? s.low.toFixed(1) + '일' : '—'}</b> · 고위도(22° 이상) <b>${s.high ? s.high.toFixed(1) + '일' : '—'}</b></li>
+        <li><b>적도가 더 빨리 돈다 → 차등 자전</b> → 태양은 기체</li><li>방법: θ : Δt = 360° : P (교과서 60쪽)</li></ul>`;
+    } else if (card === 'flare') {
+      $('t-fl').innerHTML = `<ol class="big">${flares.slice(0, 8).map(p => `<li>${team(p.team).icon} <b>${esc(p.name)}</b> — ${p.fl.s.toFixed(1)}초</li>`).join('')}</ol>
         <p class="hint">플레어의 빛은 약 8분 20초 만에 지구 도착(통신 장애), 코로나 물질 분출(CME)은 1~3일 뒤 도착 → 자기 폭풍·오로라</p>`;
-    } else if (ph === 'night') {
-      const ranked = all.slice().sort((a, b) => (b[1].sc || 0) - (a[1].sc || 0));
-      $('t-night').innerHTML = `<ol class="big">${ranked.slice(0, 5).map(([, p]) => `<li>${team(p.team).icon} <b>${esc(p.name)}</b> ${p.sc || 0}점</li>`).join('')}</ol>
-        <ul><li>안전: 태양은 투영판에 비춰서 본다</li><li>상이 흘러가는 쪽 = 서쪽 (일주 운동)</li><li>흑점은 동 → 서로 이동 = 태양의 자전</li><li>적도 약 25일, 고위도 30일 이상 = 차등 자전</li><li>플레어 → 자기 폭풍·오로라</li></ul>`;
     }
   }
-  // 반 전체의 찍은 자리: 점이 겹칠수록 밝게 빛난다
-  function drawClassMap(cv, sun, day, all, reveal) {
+  // 반 전체의 찍은 자리: 점이 겹칠수록 밝게 빛난다 (정답 그림은 보여 주지 않는다 — 아직 관측 중인 친구가 있으니)
+  function drawClassMap(cv, list) {
     if (!cv) return;
     const x = cv.getContext('2d'), W = cv.width, R = W * 0.43, c = W / 2;
     x.setTransform(1, 0, 0, 1, 0, 0);
     x.fillStyle = '#0b1626'; x.fillRect(0, 0, W, W);
-    if (reveal) {
-      const hb = T.hostBoard;
-      hb.setSun(sun, day); hb.buildImage();
-      const n = hb.img.width;
-      x.drawImage(hb.img, c - n / 2, c - n / 2, n, n);
-    } else {
-      const g = x.createRadialGradient(c, c, 0, c, c, R);
-      g.addColorStop(0, '#2a3e5c'); g.addColorStop(1, '#17263c');
-      x.fillStyle = g; x.beginPath(); x.arc(c, c, R, 0, 7); x.fill();
-      x.strokeStyle = 'rgba(255,214,120,.5)'; x.lineWidth = 2; x.stroke();
-    }
-    x.globalCompositeOperation = reveal ? 'source-over' : 'lighter';
-    all.forEach(([, p]) => {
-      if (day === 0) {
-        M.decodeMarks(p.mk).forEach(mk => {
-          const px = c + mk.x * R, py = c - mk.y * R;
-          if (mk.k === 'd') { x.fillStyle = reveal ? 'rgba(80,90,110,.9)' : 'rgba(120,130,150,.5)'; x.fillRect(px - 2, py - 2, 4, 4); return; }
-          x.fillStyle = reveal ? team(p.team).color : 'rgba(255,190,80,.33)';
-          x.beginPath(); x.arc(px, py, reveal ? 3 : 7, 0, 7); x.fill();
-        });
-      } else if (p.rot) ['a', 'b'].forEach(k => {
-        const r = p.rot[k]; if (!r) return;
-        x.fillStyle = 'rgba(255,190,80,.45)';
-        x.beginPath(); x.arc(c + r.x2 * R, c - r.y2 * R, 8, 0, 7); x.fill();
+    const g = x.createRadialGradient(c, c, 0, c, c, R);
+    g.addColorStop(0, '#2a3e5c'); g.addColorStop(1, '#17263c');
+    x.fillStyle = g; x.beginPath(); x.arc(c, c, R, 0, 7); x.fill();
+    x.strokeStyle = 'rgba(255,214,120,.5)'; x.lineWidth = 2; x.stroke();
+    x.globalCompositeOperation = 'lighter';
+    list.forEach(([, p]) => {
+      M.decodeMarks(p.mk).forEach(mk => {
+        const px = c + mk.x * R, py = c - mk.y * R;
+        if (mk.k === 'd') { x.fillStyle = 'rgba(120,130,150,.5)'; x.fillRect(px - 2, py - 2, 4, 4); return; }
+        x.fillStyle = 'rgba(255,190,80,.33)';
+        x.beginPath(); x.arc(px, py, 7, 0, 7); x.fill();
       });
     });
     x.globalCompositeOperation = 'source-over';
     x.font = '800 18px Pretendard, system-ui, sans-serif'; x.fillStyle = '#c4d3e3'; x.textAlign = 'center';
     x.fillText('북 N', c, 22); x.fillText('남 S', c, W - 10); x.textAlign = 'left'; x.fillText('동 E', 8, c + 6); x.textAlign = 'right'; x.fillText('서 W', W - 8, c + 6);
   }
-  function drawFlareMap(cv, sun, m) {
-    const x = cv.getContext('2d'), W = cv.width, c = W / 2, hb = T.hostBoard;
-    hb.setSun(sun, sun.dt, 'ha'); hb.buildImage();
-    x.fillStyle = '#1a0806'; x.fillRect(0, 0, W, W);
-    const n = hb.img.width; x.drawImage(hb.img, c - n / 2, c - n / 2, n, n);
-    if (T.store.now() > (m.flareAt || 0) + 1200) {
-      const g = sun.groups.find(q => q.id === sun.flareGroup), sp = M.spotsOn(sun, sun.dt).filter(s => s.g === g.id);
-      const fx = sp.reduce((a, s) => a + s.x, 0) / sp.length, fy = sp.reduce((a, s) => a + s.y, 0) / sp.length, R = W * 0.43;
-      const k = 0.7 + 0.3 * Math.sin(performance.now() / 120);
-      const gr = x.createRadialGradient(c + fx * R, c - fy * R, 0, c + fx * R, c - fy * R, 60);
-      gr.addColorStop(0, `rgba(255,255,230,${k})`); gr.addColorStop(1, 'rgba(255,200,150,0)');
-      x.fillStyle = gr; x.beginPath(); x.arc(c + fx * R, c - fy * R, 60, 0, 7); x.fill();
-    }
-  }
-
-  function teacherLoop() {
+  function boardLoop() {
     let last = 0;
     const tick = () => {
       requestAnimationFrame(tick);
       const now = performance.now();
-      if (!T.meta) return;
-      if (T.world) {
-        T.world.setSun(skyNow(T.meta, T.store.now()));
-        if (T.podiumT && now > T.podiumT) {
-          T.podiumT = 0;
-          const top = activePlayers(T.players, T.meta).sort((a, b) => (b[1].sc || 0) - (a[1].sc || 0)).slice(0, 3).map(([id, p]) => ({id, name: p.name, team: p.team}));
-          if (top.length) { T.world.showPodium(top); T.world.setCamera('podium'); }
-        }
-      }
-      if (now - last < 250) return;
+      if (now - last < 300) return;
       last = now;
+      const t = T.store.now(), list = onlineList(T.players, t, null);
       if (T.dirty) {
         T.dirty = false;
-        if (T.world) {
-          const show = {};
-          activePlayers(T.players, T.meta).forEach(([id, p]) => { if (p.on !== false) show[id] = p; });
-          T.world.setPlayers(show, null);
-        }
-        // 소식: 학생들의 눈에 띄는 일
-        activePlayers(T.players, T.meta).forEach(([id, p]) => {
+        if (T.world) T.world.setPlayers(Object.fromEntries(list), null);
+        list.forEach(([id, p]) => {
           if (p.ev && p.ev.t && p.ev.t !== T.lastEv[id]) {
-            const fresh = T.lastEv[id] !== undefined || T.store.now() - p.ev.t < 5000;
+            const fresh = T.lastEv[id] !== undefined || t - p.ev.t < 5000;
             T.lastEv[id] = p.ev.t;
-            if (fresh && T.store.now() - p.ev.t < 8000) feed(`${team(p.team).icon} ${p.name}  ${p.ev.pop}`, p.ev.c);
+            if (fresh && t - p.ev.t < 8000) feed(`${team(p.team).icon} ${p.name}  ${p.ev.pop}`, p.ev.c);
           }
         });
-        // 우리 반 목표 달성 → 황금 망원경
-        const g = goalOf(T.players, T.meta);
-        if (!T.meta.gold && g.hits >= g.goal && T.meta.phase !== 'lobby') {
-          T.store.update(T.base + '/meta', {gold: true});
-          showBanner('🏆 우리 반 목표 달성!', '모두의 망원경이 황금으로', false);
+        const g = goalOf(list, T.sun);
+        if (!T.gold && g.hits >= g.goal && list.length >= 2) {
+          T.gold = true;
+          if (T.world) T.world.setGold(true);
+          showBanner('🏆 우리 목표 달성!', '모두의 망원경이 황금으로', false);
           Sound.play('fanfare');
         }
-        if (T.world) T.world.setGold(!!T.meta.gold);
-        renderTeacher();
-      } else if (T.meta.phase === 'flare') renderLeft(T.meta, activePlayers(T.players, T.meta));
+      }
+      renderBoardView();
     };
     tick();
   }
 
   // ╔══════════════════════════════════════════════════════════╗
-  //   가상 학생 (미리 해 보기·혼자 연습)
+  //   가상 학생 (전광판 미리 보기·혼자 연습) — 각자 자기 속도로 끝까지 하고, 끝나면 한 번 더
   // ╚══════════════════════════════════════════════════════════╝
   class Bots {
-    constructor(store, base, n, getMeta) {
-      this.store = store; this.base = base; this.n = n; this.getMeta = getMeta; this.list = [];
-    }
+    constructor(store, base, n, sun) { this.store = store; this.base = base; this.n = n; this.sun = sun; this.list = []; }
     start() {
       const names = M.BOT_NAMES.slice().sort(() => Math.random() - 0.5);
       for (let k = 0; k < this.n; k++) {
         setTimeout(() => {
-          const m = this.getMeta(); if (!m) return;
-          const id = 'bot' + k + '_' + randInt().toString(36).slice(0, 4);
-          const b = {id, name: names[k % names.length], team: k % 4, st: 'lobby', sc: 0, az: rand(120, 230), alt: rand(5, 20), round: m.round, skill: rand(0.55, 1)};
+          const id = 'bot' + k + '_' + randInt().toString(36).slice(0, 4), now = this.store.now();
+          const b = {id, name: '🤖' + names[k % names.length], team: k % 4, sc: 0, best: 0, skill: rand(0.55, 1), pers: M.personal(id, this.sun)};
+          b.az = b.pers.aim0.az; b.alt = b.pers.aim0.alt;
           this.list.push(b);
-          this.store.update(`${this.base}/players/${id}`, {name: b.name, team: b.team, on: true, joined: this.store.now(), az: b.az, alt: b.alt, st: 'lobby', sc: 0, r: m.round});
-        }, 400 + k * rand(250, 700));
+          this.store.update(`${this.base}/players/${id}`, {name: b.name, team: b.team, on: true, seen: now, joined: now, az: b.az, alt: b.alt, sc: 0});
+          this.go(b, 'prep', rand(1, 8), {});
+        }, 400 + k * rand(300, 900));
       }
       this.timer = setInterval(() => this.tick(), 450);
     }
+    go(b, st, wait, upd) { b.st = st; b.t0 = this.store.now(); b.next = b.t0 + wait * 1000; upd.st = st; }
     tick() {
-      const m = this.getMeta();
-      if (!m) return;
-      const now = this.store.now(), sun = sunOf(m.seed), sky = skyNow(m, now), n1 = M.spotsOn(sun, 0);
+      const now = this.store.now(), sun = this.sun, sky = sun.sky[0], n1 = M.spotsOn(sun, 0);
       for (const b of this.list) {
         const upd = {};
-        const go = (st, wait) => { b.st = st; b.next = now + wait * 1000; b.t0 = now; upd.st = st; };
-        if (b.round !== m.round) { Object.assign(b, {round: m.round, st: 'lobby', sc: 0, marks: null, found: 0, dust: 0, rot: null, fl: null}); upd.r = m.round; }
         const score = d => { b.sc = Math.max(0, b.sc + d); upd.sc = b.sc; };
         const pop = (text, c) => { upd.ev = {pop: text, c: c || '#ffd43b', t: now}; };
+        const k = clamp((now - b.t0) / Math.max(1, b.next - b.t0), 0, 1), due = now >= b.next;
         if (Math.random() < 0.012) upd.em = {e: M.EMOJIS[Math.floor(Math.random() * M.EMOJIS.length)], t: now};
-        const ph = m.phase;
-        if (ph === 'lobby') {
-          if (b.st !== 'lobby') { b.st = 'lobby'; upd.st = 'lobby'; upd.al = false; upd.cap = false; }
-          if (Math.random() < 0.08) { b.az += rand(-15, 15); b.alt = clamp(b.alt + rand(-6, 6), 2, 60); upd.az = +b.az.toFixed(1); upd.alt = +b.alt.toFixed(1); }
-        } else if (ph === 'd1') {
-          if (!M.DAY1_STAGES.includes(b.st)) { go('prep', rand(2, 6)); b.pers = M.personal(b.id, sun); b.az = b.pers.aim0.az; b.alt = b.pers.aim0.alt; upd.az = b.az; upd.alt = b.alt; upd.al = false; }
-          else if (b.st === 'prep' && now > b.next) { if (Math.random() < 0.12) { score(M.SCORE.eye); pop('🙈 태양 직접 봄!', '#ff6b6b'); } score(M.SCORE.prep); upd.cap = true; go('aim', rand(7, 26) / b.skill); b.from = {az: b.az, alt: b.alt}; }
-          else if (b.st === 'aim') {
-            const k = clamp((now - b.t0) / (b.next - b.t0), 0, 1), e = 1 - (1 - k) ** 2, wob = (1 - k) * 6;
-            b.az = b.from.az + (sky.az - b.from.az) * e + Math.sin(now / 700 + b.alt) * wob;
-            b.alt = b.from.alt + (sky.alt - b.from.alt) * e + Math.cos(now / 900) * wob * 0.5;
-            upd.az = +b.az.toFixed(2); upd.alt = +b.alt.toFixed(2);
-            if (k >= 1) { const sec = (b.next - b.t0) / 1000; score(M.aimScore(sec)); pop(`🎯 ${sec.toFixed(1)}초`); upd.al = true; go('focus', rand(3, 10)); }
-          } else if (b.st === 'aim' || b.st === 'focus' || b.st === 'dir' || b.st === 'sketch') { upd.az = +sky.az.toFixed(2); upd.alt = +sky.alt.toFixed(2); }
-          if (b.st === 'focus' && now > b.next) { score(Math.round(rand(120, 200))); go('dir', rand(3, 8)); }
-          else if (b.st === 'dir' && now > b.next) { score(Math.random() < 0.75 ? M.SCORE.dirFirst : M.SCORE.dirLater); go('sketch', rand(25, (m.sk || 75) - 3)); b.marks = []; b.found = 0; b.dust = 0; b.goalN = Math.round(n1.length * clamp(rand(0.5, 1.05) * b.skill + 0.15, 0.3, 1)); b.order = n1.slice().sort(() => Math.random() - 0.5); }
-          else if (b.st === 'sketch') {
-            const k = clamp((now - b.t0) / (b.next - b.t0), 0, 1), want = Math.floor(k * b.goalN);
-            let changed = false;
-            while (b.found < want) {
-              const s = b.order[b.found++];
-              b.marks.push({x: s.x + rand(-0.012, 0.012), y: s.y + rand(-0.012, 0.012), k: s.id});
-              score(M.SPOT_PTS[s.kind] + (Math.random() < 0.3 ? 15 : 0)); changed = true;
-            }
-            if (Math.random() < 0.015 && b.dust < 2) { const q = b.pers.dust[b.dust]; if (q) { b.marks.push({x: q.x / M.BOARD_SUN, y: q.y / M.BOARD_SUN, k: 'd'}); b.dust++; score(M.SCORE.dust); changed = true; } }
-            if (changed) { upd.mk = M.encodeMarks(b.marks); upd.hits = b.found; }
-            if (b.found >= 5 && b.found === want && Math.random() < 0.02) pop(`🔥 ${b.found}콤보!`, '#ff8a1a');
-            if (k >= 1) { if (b.found >= n1.length) { score(M.SCORE.perfect); pop('💯 완벽 관측!'); } upd.d1 = {f: b.found, n: n1.length, d: b.dust}; go('done1', 0); }
+        if (b.st === 'prep' && due) { if (Math.random() < 0.12) { score(M.SCORE.eye); pop('🙈 태양 직접 봄!', '#ff6b6b'); } score(M.SCORE.prep); upd.cap = true; b.from = {az: b.az, alt: b.alt}; this.go(b, 'aim', rand(7, 26) / b.skill, upd); }
+        else if (b.st === 'aim' || b.st === 'aim2') {
+          const e = 1 - (1 - k) ** 2, wob = (1 - k) * 6;
+          b.az = b.from.az + (sky.az - b.from.az) * e + Math.sin(now / 700 + b.skill * 9) * wob;
+          b.alt = b.from.alt + (sky.alt - b.from.alt) * e + Math.cos(now / 900) * wob * 0.5;
+          upd.az = +b.az.toFixed(2); upd.alt = +b.alt.toFixed(2);
+          if (due) {
+            const sec = (b.next - b.t0) / 1000;
+            score(b.st === 'aim' ? M.aimScore(sec) : Math.round(M.aimScore(sec) / 2)); pop(`🎯 ${sec.toFixed(1)}초`); upd.al = true;
+            b.az = sky.az; b.alt = sky.alt; upd.az = +sky.az.toFixed(2); upd.alt = +sky.alt.toFixed(2);
+            if (b.st === 'aim') this.go(b, 'focus', rand(3, 10), upd); else this.go(b, 'find', rand(6, 22) / b.skill, upd);
           }
-        } else if (ph === 'r1') {
-          if (M.DAY1_STAGES.includes(b.st) && b.st !== 'done1') { upd.d1 = {f: b.found || 0, n: n1.length, d: b.dust || 0}; go('done1', 0); }
-        } else if (ph === 'd2') {
-          if (!b.pers) b.pers = M.personal(b.id, sun);
-          if (!M.DAY2_STAGES.includes(b.st)) { go('aim2', rand(5, 15) / b.skill); b.from = {az: sky.az + rand(-8, 8), alt: sky.alt + rand(-4, 4)}; upd.al = false; }
-          else if (b.st === 'aim2') {
-            const k = clamp((now - b.t0) / (b.next - b.t0), 0, 1);
-            b.az = b.from.az + (sky.az - b.from.az) * k; b.alt = b.from.alt + (sky.alt - b.from.alt) * k;
-            upd.az = +b.az.toFixed(2); upd.alt = +b.alt.toFixed(2);
-            if (k >= 1) { score(Math.round(M.aimScore((b.next - b.t0) / 1000) / 2)); upd.al = true; go('find', rand(6, 22) / b.skill); }
-          } else if (b.st === 'find') {
-            upd.az = +sky.az.toFixed(2); upd.alt = +sky.alt.toFixed(2);
-            if (now > b.next) {
-              const d2 = M.spotsOn(sun, sun.dt), rot = {};
-              b.pers.track.forEach((id, i) => {
-                if (i === 1 && Math.random() < 0.3) return;
-                const s = d2.find(q => q.id === id); if (!s) return;
-                const P = M.rotationPeriod(s.lat) * (1 + (Math.random() + Math.random() + Math.random() - 1.5) * 0.08);
-                rot[i ? 'b' : 'a'] = {lat: s.lat, P: +P.toFixed(2), x2: +s.x.toFixed(3), y2: +s.y.toFixed(3)};
-                score(M.SCORE.find + M.rotScore(P, M.rotationPeriod(s.lat)));
-                if (i === 0) pop(`⭐ ${P.toFixed(1)}일`);
-              });
-              upd.rot = rot; go('done2', 0);
-            }
+        } else if (b.st === 'focus' && due) { score(Math.round(rand(120, 200))); this.go(b, 'dir', rand(3, 8), upd); }
+        else if (b.st === 'dir' && due) {
+          score(Math.random() < 0.75 ? M.SCORE.dirFirst : M.SCORE.dirLater);
+          this.go(b, 'sketch', rand(25, M.SKETCH_SEC - 3), upd);
+          b.marks = []; b.found = 0; b.dust = 0;
+          b.goalN = Math.round(n1.length * clamp(rand(0.5, 1.05) * b.skill + 0.15, 0.3, 1));
+          b.order = n1.slice().sort(() => Math.random() - 0.5);
+        } else if (b.st === 'sketch') {
+          const want = Math.floor(k * b.goalN);
+          let changed = false;
+          while (b.found < want) {
+            const s = b.order[b.found++];
+            b.marks.push({x: s.x + rand(-0.012, 0.012), y: s.y + rand(-0.012, 0.012), k: s.id});
+            score(M.SPOT_PTS[s.kind] + (Math.random() < 0.3 ? 15 : 0)); changed = true;
           }
-        } else if (ph === 'r2') {
-          if (b.st !== 'done2') go('done2', 0);
-        } else if (ph === 'flare') {
-          if (b.st !== 'flare') { go('flare', 0); b.flT = (m.flareAt || now) + 1200 + rand(900, 9000) / b.skill; b.flDone = false; }
-          else if (!b.flDone && now > b.flT) {
-            b.flDone = true;
-            if (Math.random() < 0.85) { const s = (b.flT - (m.flareAt + 1200)) / 1000; score(M.flareScore(s)); upd.fl = {ok: 1, s: +s.toFixed(2)}; pop(`⚡ ${s.toFixed(1)}초!`); }
-            else upd.fl = {ok: 0};
-          }
-        } else if (ph === 'night') {
-          if (b.st !== 'night') go('night', 0);
+          if (Math.random() < 0.015 && b.dust < 2) { const q = b.pers.dust[b.dust]; if (q) { b.marks.push({x: q.x / M.BOARD_SUN, y: q.y / M.BOARD_SUN, k: 'd'}); b.dust++; score(M.SCORE.dust); changed = true; } }
+          if (changed) { upd.mk = M.encodeMarks(b.marks); upd.hits = b.found; }
+          if (b.found >= 5 && b.found === want && Math.random() < 0.02) pop(`🔥 ${b.found}콤보!`, '#ff8a1a');
+          if (due) { if (b.found >= n1.length) { score(M.SCORE.perfect); pop('💯 완벽 관측!'); } upd.d1 = {f: b.found, n: n1.length, d: b.dust}; this.go(b, 'done1', rand(4, 10), upd); }
+        } else if (b.st === 'done1' && due) {
+          const a = rand(0, 6.28), d = rand(4, 9);
+          b.from = {az: sky.az + Math.cos(a) * d, alt: sky.alt + Math.sin(a) * d * 0.6}; b.az = b.from.az; b.alt = b.from.alt; upd.al = false;
+          this.go(b, 'aim2', rand(5, 15) / b.skill, upd);
+        } else if (b.st === 'find' && due) {
+          const d2 = M.spotsOn(sun, sun.dt), rot = {};
+          b.pers.track.forEach((id, i) => {
+            if (i === 1 && Math.random() < 0.3) return;
+            const s = d2.find(q => q.id === id); if (!s) return;
+            const P = M.rotationPeriod(s.lat) * (1 + (Math.random() + Math.random() + Math.random() - 1.5) * 0.05);
+            rot[i ? 'b' : 'a'] = {lat: s.lat, P: +P.toFixed(2), x2: +s.x.toFixed(3), y2: +s.y.toFixed(3)};
+            score(M.SCORE.find + M.rotScore(P, M.rotationPeriod(s.lat)));
+            if (i === 0) pop(`⭐ ${P.toFixed(1)}일`);
+          });
+          upd.rot = rot; this.go(b, 'done2', rand(4, 9), upd);
+        } else if (b.st === 'done2' && due) this.go(b, 'flare', rand(4, 14) / b.skill, upd);
+        else if (b.st === 'flare' && due) {
+          if (Math.random() < 0.85) { const s = (b.next - b.t0) / 1000 - 2.5; score(M.flareScore(Math.max(0.8, s))); upd.fl = {ok: 1, s: +Math.max(0.8, s).toFixed(2)}; pop(`⚡ ${Math.max(0.8, s).toFixed(1)}초!`); }
+          else upd.fl = {ok: 0};
+          this.go(b, 'night', rand(25, 50), upd);
+        } else if (b.st === 'night') {
           if (Math.random() < 0.04) upd.em = {e: ['🎉', '😱', '🌌', '👍'][Math.floor(Math.random() * 4)], t: now};
+          if (due) {
+            b.best = Math.max(b.best, b.sc); b.sc = 0;
+            Object.assign(upd, {best: b.best, sc: 0, hits: 0, mk: null, d1: null, rot: null, fl: null, al: false});
+            b.from = {az: b.pers.aim0.az, alt: b.pers.aim0.alt}; b.az = b.from.az; b.alt = b.from.alt;
+            this.go(b, 'prep', rand(2, 6), upd);
+          }
         }
+        if (!b.seenT || now - b.seenT > 15000) { b.seenT = now; upd.seen = now; }
         if (Object.keys(upd).length) this.store.update(`${this.base}/players/${b.id}`, upd);
       }
     }
   }
 
-  // ── 혼자 연습: 이 기기 안에 방을 열고 가상 친구 11명과 함께 ─────────────────
-  async function openSolo(name, teamIdx) {
-    const store = await openStore('solo');
-    const code = '0000', base = `${ROOT}/${code}`, now = store.now();
-    await store.set(base + '/meta', {teacher: store.uid, created: now, phase: 'lobby', round: 1, seed: randInt(), sk: M.SKETCH_SEC, t0: now, solo: true});
-    const bots = new Bots(store, base, 11, () => S.meta);
-    await joinRoom(code, name || '나', teamIdx == null ? 0 : teamIdx, {store, solo: true});
-    bots.start();
-    setTimeout(() => { if (S.meta && S.meta.phase === 'lobby') toast('혼자 연습: 준비되면 아래 버튼으로 시작!', 2600); }, 600);
-    // 대기실에서 시작 버튼
-    const c = $('controls');
-    const btn = document.createElement('button'); btn.className = 'primary big'; btn.textContent = '☀️ 1일째 관측 시작 ▶';
-    btn.onclick = () => soloNext();
-    c.appendChild(btn);
-  }
-
   // ╔══════════════════════════════════════════════════════════╗
   //   처음 화면
   // ╚══════════════════════════════════════════════════════════╝
+  const ENTRY = {team: null};
+  async function liveCount() {
+    // 처음 화면에서도 '지금 몇 명이 관측 중인지' 보여 준다 (온라인 게임처럼)
+    const el = $('live-count');
+    try {
+      const store = await openStore('world');
+      const base = `${ROOT}/${dayKeyOf(store.now())}`;
+      store.on(base + '/players', v => {
+        if (document.body.dataset.screen !== 'entry') return;
+        const n = onlineList(v || {}, store.now(), null).length;
+        el.innerHTML = `<i class="conn on"></i> 지금 <b>${n}명</b> 관측 중`;
+      }, e => { el.innerHTML = isDenied(e) ? '⚠️ 실시간 관측소 준비 중 — 혼자 연습은 할 수 있어요' : ''; if (isDenied(e)) $('server-note').textContent = RULES_HELP; });
+    } catch (e) { el.textContent = '⚠️ 서버에 연결하지 못했어요 — 혼자 연습은 할 수 있어요'; }
+  }
   function initEntry() {
     Wake.init();
     const saved = pref('me', {name: '', team: null});
-    let chosen = saved.team;
+    ENTRY.team = saved.team;
     const picker = $('team-picker');
-    picker.innerHTML = M.TEAMS.map((t, i) => `<button type="button" role="radio" aria-checked="${chosen === i}" style="--c:${t.color}" data-team="${i}"><span>${t.icon}</span>${t.name}</button>`).join('');
+    picker.innerHTML = M.TEAMS.map((t, i) => `<button type="button" role="radio" aria-checked="${ENTRY.team === i}" style="--c:${t.color}" data-team="${i}"><span>${t.icon}</span>${t.name}</button>`).join('');
     picker.onclick = e => {
       const b = e.target.closest('button[data-team]'); if (!b) return;
-      chosen = +b.dataset.team;
+      ENTRY.team = +b.dataset.team;
       for (const x of picker.querySelectorAll('button')) x.setAttribute('aria-checked', String(x === b));
     };
     $('join-name').value = saved.name || '';
-    const room = (params.get('room') || '').replace(/\D/g, '').slice(0, 4);
-    if (room) $('join-code').value = room;
     $('join-form').onsubmit = e => {
       e.preventDefault();
-      const code = $('join-code').value.replace(/\D/g, ''), name = $('join-name').value.trim(), err = $('join-error');
+      const name = cleanName($('join-name').value), err = $('join-error');
       const fail = t => { err.textContent = t; err.hidden = false; };
-      if (code.length !== 4) return fail('방 번호 4자리를 넣어 주세요.');
-      if (chosen == null) return fail('모둠을 골라 주세요.');
-      if (!name) return fail('이름이나 번호를 넣어 주세요.');
+      if (ENTRY.team == null) return fail('모둠을 골라 주세요.');
+      if (!name) return fail('이름(별명)을 넣어 주세요.');
       $('join-btn').disabled = true; $('join-btn').textContent = '연결 중…';
-      joinRoom(code, name.slice(0, 8), chosen).finally(() => { $('join-btn').disabled = false; $('join-btn').textContent = '관측소 입장'; });
+      joinWorld(name, ENTRY.team, params.has('offline')).finally(() => { $('join-btn').disabled = false; $('join-btn').textContent = '관측소 입장 🔭'; });
     };
-    $('open-solo').onclick = () => { Sound.unlock(); openSolo($('join-name').value.trim().slice(0, 8) || '나', chosen == null ? Math.floor(Math.random() * 4) : chosen); };
-    $('open-room').onclick = () => openRoom(false);
-    $('open-demo').onclick = () => openRoom(true);
-    if (params.has('solo')) openSolo(saved.name || '나', saved.team == null ? 0 : saved.team);
-    else if (params.has('demo')) openRoom(true, params.get('host'));
-    else if (params.get('host')) openRoom(false, params.get('host'));
-    else if (room) $('join-name').focus();
+    $('open-board').onclick = () => openBoardView(false);
+    $('open-demo').onclick = () => openBoardView(true);
+    if (params.has('board')) openBoardView(params.has('demo'));
+    else if (params.has('demo')) openBoardView(true);
+    else {
+      if (params.has('offline')) $('live-count').textContent = '🤖 혼자 연습: 가상 친구들과 함께해요 (서버 없이)';
+      else if (LOCAL_ONLY) $('live-count').textContent = '🧪 같은 브라우저의 탭끼리만 연결';
+      else liveCount();
+      if (saved.name) $('join-btn').focus();
+    }
   }
 
-  if (params.has('debug')) window.__sunspot = {S, T, M, skyNow};
+  if (params.has('debug')) window.__sunspot = {S, T, M};
   initEntry();
 })();
