@@ -201,7 +201,7 @@
           <div class="acts">
             <button type="button" class="btn go" data-try="tQz">1000회 : 50회</button>
             <button type="button" class="btn" data-try="tUp">500회 : 1000회 (승압)</button>
-            <button type="button" class="btn" data-do="click:[data-scene=trans]; set:#rS=22">부하 R = 22 Ω</button>
+            <button type="button" class="btn" data-try="tR22">부하 R 2배 (22 Ω)</button>
           </div>
         </li>
         <li class="card step" data-step="④ 송전">
@@ -1280,7 +1280,7 @@
     mHand: () => mutual('hand'),
     mAc: () => mutual('ac'),
     sClose: () => self(3), sOpen: () => self(3, {on: true}), sBig: () => self(6),
-    tQz: () => trans(1000, 50, 11), tUp: () => trans(500, 1000, 220),
+    tQz: () => trans(1000, 50, 11), tUp: () => trans(500, 1000, 220), tR22: () => trans(1000, 50, 22),
   };
   Lab.tries(TRY, () => { sync(); refresh(); });
 

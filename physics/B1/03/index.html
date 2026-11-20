@@ -893,7 +893,8 @@
     onLine.forEach((c) => {                                       // 선 위의 전하: 그 자리에서 발산
       const i = cs.indexOf(c), x = A.X(c.at[ax]);
       Lab.line(ctx, [[x, r.y], [x, r.y + r.h]], Lab.alpha(col(i), 0.7), 1.4, [4, 4]);
-      text(ctx, S.ch[i].id + ' ' + qText(c.q), x, r.y - 8, {size: 13, w: 600, color: col(i), halo: true});
+      const right = x < r.x + r.w - 70;                           // 선 오른쪽(끝이면 왼쪽)에 이름
+      text(ctx, S.ch[i].id + ' ' + qText(c.q), x + (right ? 6 : -6), r.y + 9, {size: 13, w: 600, color: col(i), align: right ? 'left' : 'right', halo: true});
     });
     ctx.save(); ctx.beginPath(); ctx.rect(r.x, r.y - 2, r.w, r.h + 4); ctx.clip();
     ctx.strokeStyle = C.acc; ctx.lineWidth = 2.8; ctx.lineJoin = 'round'; ctx.beginPath();
@@ -1122,6 +1123,8 @@
     syncQ();
     $('add').disabled = S.ch.length >= 4; $('del').disabled = S.ch.length <= 1;
     const h = tabHeight() + 'px'; if (gTab.el.style.height !== h) gTab.el.style.height = h;
+    const nm = S.dim === 3 ? 'z' : 'x', cap = 'P를 지나는 ' + (S.dim === 3 ? '세로선' : '가로선') + ' 위의 E<sub>' + nm + '</sub> 그래프다. 전하가 이 선 위에 오면 그 자리에서 발산하고, 부호가 바뀌는 곳이 E<sub>' + nm + '</sub> = 0인 점이다. 그래프 문제는 이 세 곳으로 전하의 부호와 크기를 가린다.';
+    if ($('gExCap').innerHTML !== cap) $('gExCap').innerHTML = cap;
   }
   const TRY = {
     ex: () => load('ga'), ga: () => load('ga'), na: () => load('na'), sq: () => load('sq'), t345: () => load('t345'),
