@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전기장과 정전기 유도 — 물리 실험실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../kit/lab.css">
+<style>
+/* 단원 목록: 개념 카드를 원고 순서대로 */
+.u-lead{margin:2px 0 0;color:var(--ink-2);font-size:16.5px;max-width:64ch}
+.u-list{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.u-card{display:grid;gap:4px;align-content:start;height:100%;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:inherit;text-decoration:none;overflow:hidden}
+.u-thumb{display:block;margin:-14px -16px 8px;aspect-ratio:16/10;overflow:hidden;border-bottom:1px solid var(--line-soft);background:var(--copper-soft)}
+.u-thumb img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}
+.u-thumb .dk{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .u-thumb .lt{display:none} :root:not([data-theme="light"]) .u-thumb .dk{display:block}}
+:root[data-theme="dark"] .u-thumb .lt{display:none} :root[data-theme="dark"] .u-thumb .dk{display:block}
+a.u-card:hover{border-color:var(--copper)}
+.u-card b{font-size:16.5px;font-weight:700;line-height:1.45}
+.u-card .u-q{font-size:14.5px;color:var(--ink-2);line-height:1.6}
+.u-id{font-size:12.5px;font-weight:600;color:var(--copper-ink);background:var(--copper-soft);padding:1px 8px;border-radius:999px}
+.u-qual,.u-soon{font-size:12.5px;font-weight:500;color:var(--muted)}
+.u-card.off{opacity:.55}
+.u-head{display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body class="cx">
+<header class="topbar"><div class="tb">
+  <a class="home" href="../">← <span class="lg">물리 </span>실험실</a>
+  <nav class="unitnav" aria-label="B1 전기장과 정전기 유도: 개념 12개"><span class="uname">B1 전기장과 정전기 유도</span><span class="dots"><span title="B1-01 전하와 대전 (준비 중)"></span><span title="B1-02 쿨롱 법칙·전기장 (준비 중)"></span><a href="03/" title="B1-03 전기장의 중첩" aria-label="B1-03 전기장의 중첩"></a><a href="04/" title="B1-04 전기력선" aria-label="B1-04 전기력선"></a><span title="B1-05 전위차와 균일한 전기장 (준비 중)"></span><span title="B1-06 전기장 속 입자 운동 (준비 중)"></span><span title="B1-07 도체·절연체·유전 분극 (준비 중)"></span><span title="B1-08 정전기 유도·검전기 (준비 중)"></span><span title="B1-09 정전기의 이용 (준비 중)"></span><span title="B1-10 축전기의 전기 용량 (준비 중)"></span><span title="B1-11 V 일정 vs Q 일정 (준비 중)"></span><span title="B1-12 축전기의 연결 (준비 중)"></span></span></nav>
+  <div class="pn"></div>
+</div></header>
+<div class="page">
+  <div class="title">
+    <div class="crumb"><span class="id">B1</span><span>물리학Ⅱ · Ⅱ. 전자기장</span></div>
+    <h1>전기장과 정전기 유도</h1>
+    <p class="u-lead">개념 12개 가운데 2개를 실험 페이지로 만들었어요. 순서대로 보면 단원의 흐름이 이어져요.</p>
+  </div>
+  <ol class="u-list">
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B1-01</span><span class="u-soon">준비 중</span></span>
+      <b>전하·대전과 전하량 보존</b>
+      <span class="u-q">문지르기만 했는데 왜 두 물체가 반대 부호로 대전될까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B1-02</span><span class="u-soon">준비 중</span></span>
+      <b>쿨롱 법칙과 전기장의 정의</b>
+      <span class="u-q">전하가 떨어진 곳에 힘을 미치는 것을 왜 &#x27;전기장&#x27;으로 설명할까?</span>
+    </div></li>
+    <li><a class="u-card" href="03/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/B1-03.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/B1-03-dark.webp" alt="" loading="lazy"></span>
+      <span class="u-head"><span class="u-id">B1-03</span></span>
+      <b>전기장의 벡터 중첩 (2·3차원)</b>
+      <span class="u-q">전하가 여러 개일 때 한 점의 전기장을 실수 없이 합치는 방법은?</span>
+    </a></li>
+    <li><a class="u-card" href="04/">
+      <span class="u-thumb"><img class="lt" src="../data/thumbs/B1-04.webp" alt="" loading="lazy" onerror="this.parentNode.hidden=true"><img class="dk" src="../data/thumbs/B1-04-dark.webp" alt="" loading="lazy"></span>
+      <span class="u-head"><span class="u-id">B1-04</span></span>
+      <b>전기력선과 전기장이 0인 점</b>
+      <span class="u-q">전기력선 그림만 보고 두 전하의 부호와 크기 비를 어떻게 읽을까?</span>
+    </a></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B1-05</span><span class="u-soon">준비 중</span></span>
+      <b>전위차와 균일한 전기장</b>
+      <span class="u-q">전위는 무엇이고, 전위 그래프의 기울기는 왜 전기장일까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B1-06</span><span class="u-soon">준비 중</span></span>
+      <b>균일한 전기장 속 대전 입자의 운동과 힘의 평형</b>
+      <span class="u-q">전기장 속 입자 운동은 왜 포물선 운동 공식으로 풀리고, 매달린 대전 구는 어떻게 비교할까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B1-07</span><span class="u-soon">준비 중</span></span>
+      <b>도체와 절연체 — 자유 전자 이동과 유전 분극</b>
+      <span class="u-q">같은 전기장 속에서 도체와 절연체는 왜 다르게 반응하고, 중성 물체는 왜 끌려올까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B1-08</span><span class="u-soon">준비 중</span></span>
+      <b>도체의 정전기 유도·접지·검전기</b>
+      <span class="u-q">대전체를 대지도 않고 도체를 대전시키려면 어떤 순서가 필요할까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B1-09</span><span class="u-soon">준비 중</span></span>
+      <b>정전기의 이용과 방전·접지</b>
+      <span class="u-q">생활 속 정전기 장치들은 결국 어떤 원리 하나로 설명될까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B1-10</span><span class="u-soon">준비 중</span></span>
+      <b>축전기의 전기 용량과 에너지</b>
+      <span class="u-q">축전기는 전하를 어떻게 저장하고, 저장된 에너지는 왜 QV가 아니라 1/2 QV일까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B1-11</span><span class="u-soon">준비 중</span></span>
+      <b>V 일정 vs Q 일정, 그리고 축전기의 이용</b>
+      <span class="u-q">축전기의 간격이나 유전체를 바꿀 때 무엇이 변하고 무엇이 그대로일까?</span>
+    </div></li>
+    <li><div class="u-card off" aria-disabled="true">
+      <span class="u-head"><span class="u-id">B1-12</span><span class="u-soon">준비 중</span></span>
+      <b>축전기의 연결·유전체 부분 삽입·전하 재분배</b>
+      <span class="u-q">여러 축전기가 연결되거나 유전체가 일부만 들어가면 어떻게 하나의 용량으로 바꿀까?</span>
+    </div></li>
+  </ol>
+</div>
+<script src="../kit/lab.js"></script>
+</body>
+</html>
