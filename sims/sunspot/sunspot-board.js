@@ -19,6 +19,8 @@
     return c;
   }
   let GRAN = null, MOTTLE = null;
+  // 캔버스 blur 필터를 쓸 수 있는지 (사파리 18 전에는 안 된다)
+  const FILTER_OK = (() => { try { const x = document.createElement('canvas').getContext('2d'); x.filter = 'blur(1px)'; return x.filter === 'blur(1px)'; } catch (e) { return false; } })();
   function granulation() {
     if (GRAN) return GRAN;
     GRAN = noiseCanvas(256, (x, n) => {
@@ -196,26 +198,42 @@
       x.restore();
       x.globalCompositeOperation = 'source-over';
     }
-    // 흐린 상 (작게 줄였다가 다시 키우는 방식 — 모든 브라우저에서 된다)
+    // 흐린 상. 캔버스 blur 필터가 되는 브라우저는 그것을 쓰고, 안 되면(옛 사파리) 작게 줄였다가
+    // 두 배씩 여러 번 나눠 키워서 가장자리가 계단처럼 보이지 않게 한다.
     blurred() {
       const b = Math.round(this.blur * 2) / 2;
       if (b < 0.5) return this.img;
       const key = this.imgKey + '|' + b;
       if (key === this.blurKey) return this.blurImg;
       this.blurKey = key;
-      const n = this.img.width, k = clamp(1 / (1 + b * this.dpr * 0.45), 0.03, 1);
-      const t1 = this._t1 || (this._t1 = document.createElement('canvas'));
-      const m = Math.max(4, Math.round(n * k));
-      t1.width = t1.height = m;
-      const a = t1.getContext('2d'); a.imageSmoothingEnabled = true; a.imageSmoothingQuality = 'high';
-      a.drawImage(this.img, 0, 0, m, m);
-      const out = this.blurImg || (this.blurImg = document.createElement('canvas'));
+      const n = this.img.width, out = this.blurImg || (this.blurImg = document.createElement('canvas'));
       out.width = out.height = n;
-      const o = out.getContext('2d'); o.imageSmoothingEnabled = true; o.imageSmoothingQuality = 'high';
+      const o = out.getContext('2d');
       o.clearRect(0, 0, n, n);
-      // 두 번 겹쳐 그려 모서리를 부드럽게
-      o.drawImage(t1, 0, 0, n, n);
-      o.globalAlpha = 0.5; o.drawImage(t1, -k * 0.5 * n / m, k * 0.5 * n / m, n, n); o.globalAlpha = 1;
+      if (FILTER_OK) {
+        o.filter = `blur(${(b * this.dpr * 0.55).toFixed(1)}px)`;
+        o.drawImage(this.img, 0, 0);
+        o.filter = 'none';
+        return out;
+      }
+      let m = Math.max(4, Math.round(n / (1 + b * this.dpr * 0.45)));
+      let src = this.img, cur = n;
+      const steps = [];
+      while (cur / 2 > m) { cur = Math.round(cur / 2); steps.push(cur); }
+      steps.push(m);
+      this._tmp = this._tmp || [];
+      steps.forEach((sz, i) => {
+        const c = this._tmp[i] || (this._tmp[i] = document.createElement('canvas'));
+        c.width = c.height = sz;
+        const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+        x.clearRect(0, 0, sz, sz); x.drawImage(src, 0, 0, sz, sz); src = c;
+      });
+      for (let i = steps.length - 2; i >= 0; i--) {
+        const c = this._tmp[i], sz = c.width, x = c.getContext('2d');
+        x.clearRect(0, 0, sz, sz); x.drawImage(src, 0, 0, sz, sz); src = c;
+      }
+      o.imageSmoothingEnabled = true; o.imageSmoothingQuality = 'high';
+      o.drawImage(src, 0, 0, n, n);
       return out;
     }
 

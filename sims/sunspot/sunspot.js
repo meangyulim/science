@@ -360,9 +360,11 @@
   }
   // 투영판 크기: 세로 화면이면 3D 를 위에 조금 남기고, 가로 화면이면 오른쪽 칸 높이에 맞춘다.
   // 단계마다 크기가 바뀌면 어지러우니 아래 조작 칸 높이는 넉넉히 하나로 잡는다(넘치면 칸이 스크롤된다).
+  // 위 안내 글과 아래 조작 칸의 실제 높이를 재서, 단추가 화면 밖으로 밀려나지 않게 한다.
   function layout() {
-    const W = innerWidth, H = innerHeight, wide = W >= 760 && W >= H, ctrl = 120;
-    const bs = wide ? Math.min(H - 110 - ctrl, 620, W * 0.5) : Math.min(W - 24, H - 140 - 76 - ctrl - 30, 580);
+    const W = innerWidth, H = innerHeight, wide = W >= 760 && W >= H;
+    const mission = Math.max(64, $('mission').offsetHeight), ctrl = Math.max(110, $('controls').scrollHeight);
+    const bs = wide ? Math.min(H - mission - ctrl - 44, 620, W * 0.5) : Math.min(W - 24, H - 130 - mission - ctrl - 36, 580);
     document.documentElement.style.setProperty('--bs', Math.max(200, Math.floor(bs)) + 'px');
     if (S.board) S.board.resize();
   }
@@ -400,10 +402,14 @@
       c.innerHTML = `<div class="meter"><span>그림자</span><i><b id="aim-meter"></b></i><span id="aim-deg" class="num">—</span></div>
         <p class="small">밝은 쪽(햇빛)을 가운데로 끌어오세요. 키보드: 방향키(Shift = 크게)</p>`;
     } else if (st === 'focus') {
-      c.innerHTML = `<div class="jog" id="jog" role="slider" aria-label="초점 나사" tabindex="0"></div>
+      c.innerHTML = `<div class="meter sharp"><span>또렷함</span><i><b id="sharp-meter"></b></i></div>
+        <div class="focus-row"><button type="button" id="f-minus" aria-label="초점 조금 안쪽으로">◀</button><div class="jog" id="jog" role="slider" aria-label="초점 나사" tabindex="0"></div><button type="button" id="f-plus" aria-label="초점 조금 바깥쪽으로">▶</button></div>
         <div class="row"><button type="button" class="btn-go big" id="focus-ok">🔍 초점 맞음!</button></div>`;
       bindJog($('jog'));
+      holdRepeat($('f-minus'), () => turnFocus(-0.006));
+      holdRepeat($('f-plus'), () => turnFocus(0.006));
       $('focus-ok').onclick = confirmFocus;
+      $('m-text').innerHTML = '나사를 돌려(또는 투영판을 좌우로 끌어) <b>또렷함 막대가 가득 차고 흑점 가장자리가 선명할 때</b> ‘초점 맞음!’을 누르세요.';
     } else if (st === 'dir') {
       c.innerHTML = `<div class="row"><button type="button" class="btn-sun big" id="motor-off">⏸ 추적 모터 잠깐 끄기</button></div>`;
       $('motor-off').onclick = () => {
@@ -473,6 +479,7 @@
       const p = pos(e), dx = p.x - S.drag.x, dy = p.y - S.drag.y;
       S.drag.x = p.x; S.drag.y = p.y;
       if (canMark()) { S.board.loupe = p; return; }
+      if (S.stage === 'focus') { turnFocus(dx / 650); return; }
       if (canSlew() && !S.lockAnim) nudgeImage(dx, dy);
     });
     const up = e => {
@@ -556,13 +563,20 @@
     const from = S.stage;
     setTimeout(() => { if (S.stage !== from) return; if (from === 'aim') setStage('focus'); else startFind(); }, 600);
   }
+  // 누르고 있으면 계속 돌아간다
+  function holdRepeat(btn, fn) {
+    let timer = null;
+    const stop = () => { clearInterval(timer); timer = null; };
+    btn.addEventListener('pointerdown', e => { e.preventDefault(); fn(); stop(); timer = setInterval(fn, 60); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => btn.addEventListener(k, stop));
+  }
   function bindJog(el) {
     let last = null;
     el.addEventListener('pointerdown', e => { last = e.clientX; try { el.setPointerCapture(e.pointerId); } catch (x) { /* 괜찮다 */ } });
     el.addEventListener('pointermove', e => {
       if (last == null) return;
       const dx = e.clientX - last; last = e.clientX;
-      turnFocus(dx / 900);
+      turnFocus(dx / 650);
       el.style.backgroundPosition = `${(S.focus * 3000) % 280}px 0`;
     });
     const up = () => { last = null; };
@@ -1183,6 +1197,10 @@
         }
         if (r < (S.drag ? 0.08 : M.ALIGN_TOL * 1.5)) lockAim();
         if (off.sep < 3) $('drag-hint').hidden = true;
+      }
+      if (S.stage === 'focus') {
+        const sm = $('sharp-meter');
+        if (sm) sm.style.width = (100 * clamp(1 - Math.abs(S.focus - S.pers.f0) / 0.33, 0, 1)) + '%';
       }
       if (S.stage === 'dir' && S.dirArmed && b.off.x > 1.35) S.tel = {az: sky.az, alt: sky.alt};  // 너무 멀리 흘러가면 다시 가운데에서
       if (S.stage === 'play') updatePlay(dt, now);
