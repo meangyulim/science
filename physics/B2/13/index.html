@@ -75,7 +75,7 @@
               <button type="button" class="btn" data-mode="ac" aria-pressed="false">교류</button>
             </div>
             <button type="button" class="btn" id="swBtn" hidden>스위치 닫기</button>
-            <label class="chk" id="autoWrap" hidden><input type="checkbox" id="cAuto">3 s 마다 저절로 닫고 열기</label>
+            <label class="chk" id="autoWrap" hidden><input type="checkbox" id="cAuto">4 s 마다 저절로 닫고 열기</label>
           </div>
           <div class="row" data-for="mutual" hidden>
             <div class="grow" id="handWrap" hidden>
@@ -286,9 +286,9 @@
   // ── 상수 ────────────────────────────────────────────────
   // 장면 1 (상호 유도): 직류 전원이 정하는 전류 2 A, 닫을 때·열 때 전류가 바뀌는 빠르기(시간 상수), 가변 저항을 끌 때의 늦음
   const R2 = 1;                                    // 2차 회로(코일 + 검류계) 저항 1 Ω → I₂ = ε₂ ÷ 1 Ω
-  const SW_I = 2, TAU_ON = 0.5, TAU_OFF = 0.2, TAU_HAND = 0.25;
+  const SW_I = 2, TAU_ON = 0.4, TAU_OFF = 0.2, TAU_HAND = 0.25;
   const AC_T = 4, AC_I = 2;                        // 장면 1 교류: 4 s 에 한 번 (늦춤), 최댓값 2 A
-  const AUTO = 3;                                  // 저절로 닫고 열기 간격 (s)
+  const AUTO = 4;                                  // 저절로 닫고 열기 간격 (s): 닫아 둔 동안 2차 전류가 0 으로 가라앉는 것까지 보이게
   const E2 = 6, RB = 6;                            // 장면 2: 전지 6 V, 갈래마다 6 Ω → 다 켜지면 1 A
   const FT = 2;                                    // 장면 3·4: 교류 60 Hz 를 2 s 에 한 번으로 (120배 늦춤)
   const VS = [220, 330, 440, 550, 660, 880, 1100, 1650, 2200, 3300, 4400, 6600, 11000, 22000];

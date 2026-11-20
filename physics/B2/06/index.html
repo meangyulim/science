@@ -817,7 +817,7 @@
         l2 = `V<sub>E</sub> = ${v(d.VB)} − ${v(p.Vbe)} = ${v(d.VE)} V → I<sub>E</sub> = ${v(d.VE)} V ÷ ${r(p.Re)} kΩ = <em>${cur(d.IE)}</em> ≈ I<sub>C</sub>`;
         const vcs = `V<sub>C</sub> = ${v(p.Vcc)} − ${cur(d.IC)} × ${r(p.Rc)} kΩ = <em>${v(d.VC)} V</em>`;
         l3 = d.ok ? `${vcs} → ${v(d.VC)} V &gt; ${v(d.VB)} V &gt; ${v(d.VE)} V: 증폭 조건 ✓` : `${vcs} &lt; V<sub>B</sub> → B-C가 역방향이 아니다: 증폭 조건 ✗`;
-        big = `V<sub>B</sub> = ${v(d.VB)} V · I<sub>C</sub> ≈ ${cur(d.IC)} · V<sub>C</sub> = ${v(d.VC)} V`; tone = d.ok ? 'small' : 'neg small';
+        big = `V<sub>B</sub> = ${v(d.VB)} V · I<sub>C</sub> ≈ ${cur(d.IC)} · ` + (d.ok ? `V<sub>C</sub> = ${v(d.VC)} V` : 'V<sub>C</sub> &lt; V<sub>B</sub> ✗'); tone = d.ok ? 'small' : 'neg small';
       }
       const lines = [l1, l2, l3], cut = 1 - c.fracOn, pc = (x) => Math.round(x * 100) + ' %';
       if (d.on && cut > 0.004) { lines.push(`신호 ±${f1(S.amp)} V를 얹으면 v<sub>B</sub>가 ${v(p.Vbe)} V 아래로 내려가는 동안(${pc(cut)}) 전류가 끊겨 <em>출력이 잘린다</em>`); tone = 'neg small'; }
