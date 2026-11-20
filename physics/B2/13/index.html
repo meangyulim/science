@@ -69,7 +69,7 @@
           <div class="row" data-for="mutual" hidden>
             <div class="group" role="group" aria-label="1차 전류를 바꾸는 방법">
               <span class="gl">1차 전류</span>
-              <button type="button" class="btn" data-mode="ramp" aria-pressed="true">그림 ① 그래프</button>
+              <button type="button" class="btn" data-mode="ramp" aria-pressed="true">개념서 그래프</button>
               <button type="button" class="btn" data-mode="sw" aria-pressed="false">스위치</button>
               <button type="button" class="btn" data-mode="hand" aria-pressed="false">가변 저항</button>
               <button type="button" class="btn" data-mode="ac" aria-pressed="false">교류</button>
@@ -154,13 +154,13 @@
         <div class="big energy" id="ansBig">P<sub>손실</sub> = 5000 W</div>
         <div class="sub">
           <span class="f" id="ansF">P<sub>손실</sub> = I²R, I = P/V 에 지금 값을 넣으면</span>
-          <span id="ansLines"><span class="v">I = P/V = 11000 ÷ <em>220</em> = <em>50 A</em></span><span class="v">P<sub>손실</sub> = 50² × 2 = <em>5000 W</em> (보내는 전력의 45%)</span></span>
+          <span id="ansLines"><span class="v">I = P/V = 11000 ÷ <em>220</em> = <em>50 A</em></span><span class="v">P<sub>손실</sub> = I²R = 50² × 2 = <em>5000 W</em> (보내는 전력의 45%)</span></span>
         </div>
         <div class="minis">
           <div class="mini"><span id="mn1">가정에 닿는 전력 P − P손실</span><b id="mv1">6000 W</b></div>
-          <div class="mini"><span id="mn2">22000 V 로 보내면 손실</span><b id="mv2">0.5 W</b></div>
+          <div class="mini"><span id="mn2">22000 V 로 보내면 손실</span><b id="mv2">0.5 W (×0.0001)</b></div>
           <div class="mini"><span id="mn3">송전선 양 끝 전압 IR</span><b id="mv3">100 V</b></div>
-          <div class="mini"><span id="mn4">틀린 계산 V²/R</span><b id="mv4">24200 W (틀림)</b></div>
+          <div class="mini"><span id="mn4">틀린 계산 V²/R (보내는 전력보다 큼)</span><b id="mv4">24200 W (틀림)</b></div>
         </div>
         <p class="check" id="exCheck"></p>
       </div>
@@ -169,11 +169,11 @@
         <li class="card step" data-step="① 변할 때만 2차 전류">
           <div class="kind">관찰 1 · 상호 유도</div>
           <h3>2차 전류는 1차 전류가 클 때가 아니라 변할 때만 흐른다</h3>
-          <p>1차 코일의 전류 I₁ 이 만든 자기력선(보라)은 철심을 따라 2차 코일도 지난다. I₁ 이 늘어 자기력선이 늘면 2차 코일은 그 증가를 막는 쪽, 곧 1차와 반대 방향의 자기장을 만드는 전류를 흘리고, 줄면 같은 방향으로 흘린다. <b>I₁ 이 커도 일정하면</b> 자기력선 수가 그대로라 검류계 바늘은 0 에 머문다.</p>
+          <p>1차 코일의 전류 I₁ 이 만든 자기력선(보라)은 철심을 따라 2차 코일도 지난다. 자기력선 수, 곧 자속 Φ 는 I₁ 에 비례한다. I₁ 이 늘어 Φ 가 늘면 2차 코일은 그 증가를 막는 쪽, 곧 1차와 반대 방향의 자기장(파랑 화살표)을 만드는 전류를 흘리고, 줄면 같은 방향으로 흘린다. <b>I₁ 이 커도 일정하면</b> 자기력선 수가 그대로라 검류계 바늘은 0 에 머문다.</p>
           <canvas class="flat" id="gM" aria-label="같은 시간축의 1차 전류–시간 그래프와 2차 전류–시간 그래프. 2차 전류는 1차 전류 그래프의 기울기를 뒤집은 모양이다."></canvas>
           <p class="cap"><span class="eq">ε₂ = −M ΔI₁/Δt</span>: 아래 그래프는 위 그래프의 기울기를 뒤집어 놓은 모양이다. 기울기 +2 → −2(반대 방향), 0 → 0, −1 → +1(같은 방향, 크기 절반). 1 H 는 1차 전류가 1초에 1 A 씩 변할 때 2차 코일에 1 V 가 생기는 상호 유도 계수다(2차 회로의 저항을 1 Ω 으로 두어 I₂ = ε₂ ÷ 1 Ω). 가변 저항의 손잡이를 끌어 보면 빨리 끌수록 바늘이 크게 돌고, 멈추면 I₁ 이 커도 바늘은 0 으로 돌아온다.</p>
           <div class="acts">
-            <button type="button" class="btn go" data-try="mRamp">그림 ① 그래프로</button>
+            <button type="button" class="btn go" data-try="mRamp">개념서 그래프로</button>
             <button type="button" class="btn" data-try="mAuto">스위치 닫고 열기</button>
             <button type="button" class="btn" data-try="mHand">가변 저항 끌기</button>
             <button type="button" class="btn" data-try="mAc">교류 흘리기</button>
@@ -295,7 +295,7 @@
   const WIN1 = 6, WIN2 = 5;                        // 기록 그래프의 시간 폭 (s)
   const K1 = 34, K2 = 56, K4 = 1.6;                // 점의 빠르기: 1 A 당 px/s (장면 1, 2, 4)
   const K3 = 36, V3MAX = 480;                      // 장면 3: 1 A 당 px/s. 순간 빠르기가 V3MAX 를 넘으면 두 회로를 같은 비율로 줄이고 무대에 밝힌다
-  const MODES = {ramp: '그림 ① 의 1차 전류', sw: '직류 + 스위치', hand: '가변 저항', ac: '교류 (4 s 에 한 번으로 늦춤)'};
+  const MODES = {ramp: '개념서 그래프 (증가 → 일정 → 감소)', sw: '직류 + 스위치', hand: '가변 저항', ac: '교류 (4 s 에 한 번으로 늦춤)'};
   const I2MAX = {ramp: 3.2, sw: 16, hand: 10, ac: 5};   // 2차 전류 그래프·검류계 눈금 끝 (A)
 
   // ── 코일이 있는 회로의 전류 기록: 바뀐 순간마다 (시각, 그때 전류, 목표 전류, τ) 를 적어 두고 어느 시각이든 정확히 계산한다 ──
@@ -428,7 +428,7 @@
     const f = Math.max(-1.06, Math.min(1.06, frac)), a = -Math.PI / 2 + A * f;
     Lab.line(ctx, [[px, py], [px + Math.cos(a) * R * 0.92, py + Math.sin(a) * R * 0.92]], col, 2.6);
     Lab.circle(ctx, px, py, 3.6, {fill: C.ink});
-    if (letter) text(ctx, letter, x, py - r * 0.3, {size: 13, w: 700, color: C.muted});
+    if (letter) text(ctx, letter, x, py - r * 0.3, {size: 13, w: 600, color: C.muted});
     if (labs) {
       text(ctx, labs[0], x - r - 6, y - r * 0.35, {size: 13, w: 500, color: C.muted, align: 'right', halo: true});
       text(ctx, labs[1], x + r + 6, y - r * 0.35, {size: 13, w: 500, color: C.muted, align: 'left', halo: true});
@@ -564,19 +564,18 @@
     Lab.line(ctx, [[g.c2.inX, g.c2.y], [g.c2.inX, g.yt], [g.xa2, g.yt], [g.xa2, g.yb], [g.xb2, g.yb], [g.xb2, g.yt], [g.c2.outX, g.yt], [g.c2.outX, g.c2.y]], blue, 2.2);
     dotsOn(ctx, p1, S.ph.p1, 20, red, 'front'); dotsOn(ctx, p2, S.ph.s1, 20, blue, 'front');
     meter(ctx, g.gx, g.gy, g.rg, I2 / I2MAX[S.mode], blue, 'G', g.nar ? null : ['반대', '같은']);
-    // 2차 코일 속 유도 전류의 자기장 (렌츠: 변화를 막는 쪽)
-    const cm2 = (g.c2.xa + g.c2.xb) / 2, len = Math.min((g.c2.xb - g.c2.xa) * 0.42, Math.abs(I2) * 24);
-    if (len > 3) {
-      const d = I2 > 0 ? 1 : -1;
-      arrow(ctx, cm2 - d * len / 2, g.yr, cm2 + d * len / 2, g.yr, C.paper, 8, 14);
-      arrow(ctx, cm2 - d * len / 2, g.yr, cm2 + d * len / 2, g.yr, blue, 4.4, 12);
-    }
+    // 1차 코일 속 1차 전류의 자기장 (보라, 길이 ∝ I₁) 과 2차 코일 속 유도 전류의 자기장 (파랑, 길이 ∝ I₂, 렌츠: 변화를 막는 쪽)
+    const big = (cx, len, d, col) => { arrow(ctx, cx - d * len / 2, g.yr, cx + d * len / 2, g.yr, C.paper, 9, 15); arrow(ctx, cx - d * len / 2, g.yr, cx + d * len / 2, g.yr, col, 5, 13); };
+    const cm1 = (g.c1.xa + g.c1.xb) / 2, len1 = (g.c1.xb - g.c1.xa) * 0.46 * Math.min(1, Math.abs(I1) / SW_I);
+    const cm2 = (g.c2.xa + g.c2.xb) / 2, len = Math.min((g.c2.xb - g.c2.xa) * 0.46, Math.abs(I2) * 32);
+    if (len1 > 3) big(cm1, len1, dir1, vio);
+    if (len > 3) big(cm2, len, I2 > 0 ? 1 : -1, blue);
     // 이름표
     const lab = (s, x, y, col, al = 'center', w = 600) => text(ctx, s, x, y, {size: g.nar ? 13 : 14, w, color: col, align: al, halo: true});
     lab(g.nar ? '1차' : '1차 코일', (g.c1.xa + g.c1.xb) / 2, g.yt + 17, red);
     lab(g.nar ? '2차' : '2차 코일', (g.c2.xa + g.c2.xb) / 2, g.yt + 17, blue);
     if (!g.nar) {
-      lab('철심', (g.c1.outX + g.c2.inX) / 2, g.yr + g.hr + 13, C.muted, 'center', 500);
+      lab('철심', (g.c1.outX + g.c2.inX) / 2, g.yr - g.hr - 11, C.muted, 'center', 500);
       lab(S.mode === 'ac' ? '교류 전원' : '직류 전원', g.xa1 + 24, g.ym, C.muted, 'left', 500);
       lab('검류계', g.gx, g.gy + g.rg * 0.92 + 13, C.muted, 'center', 500);
     }
@@ -584,7 +583,10 @@
     else if (rheo) lab(S.mode === 'hand' ? '가변 저항 (손잡이 끌기)' : '가변 저항', (g.xr0 + g.xr1) / 2, g.yb + 17, S.mode === 'hand' ? C.copper : C.muted, 'center', S.mode === 'hand' ? 600 : 500);
     const yl = g.yr - g.rc - 8 - 3 * g.lg - 14;
     if (yl >= 56) text(ctx, g.nar ? '자기력선 수 ∝ I₁' : '1차 전류가 만든 자기력선 (수 ∝ I₁)', g.nar ? W / 2 : (g.xL + g.xR) / 2 - W * 0.08, yl, {size: 13, w: 600, color: vio, halo: true});
-    if (len > 3 && !g.nar) lab('유도 전류의 자기장', cm2, g.yr + g.rc + 14, blue, 'center', 600);
+    if (!g.nar) {
+      if (len1 > 3) lab('1차 전류의 자기장', cm1, g.yr + g.rc + 14, vio, 'center', 600);
+      if (len > 3) lab('유도 전류의 자기장', cm2, g.yr + g.rc + 14, blue, 'center', 600);
+    }
   }
 
   // ② 자체 유도: 전지 + 스위치, 두 갈래 (전구 A + 코일, 전구 B + 저항)
@@ -778,7 +780,7 @@
     const gx = (p0 + p1) / 2 + pw * 0.08, gy = g.ty, rot = TAU * S.t / FT;
     Lab.circle(ctx, gx, gy, gr, {fill: C.paper, stroke: ink, width: 2});
     Lab.line(ctx, [[gx - Math.cos(rot) * gr * 0.7, gy - Math.sin(rot) * gr * 0.7], [gx + Math.cos(rot) * gr * 0.7, gy + Math.sin(rot) * gr * 0.7]], C.copper, 2.6);
-    text(ctx, 'G', p0 + pw * 0.22, gy + gr + (nar ? 4 : 2), {size: 13, w: 700, color: C.muted});
+    text(ctx, 'G', p0 + pw * 0.22, gy + gr + (nar ? 4 : 2), {size: 13, w: 600, color: C.muted});
     // 발전기 → 승압 변압기 (220 V 쪽, 전류 P/220)
     const yg1 = g.ty - g.tH + 8, yg2 = g.ty + g.tH - 8, xgL = gx + gr, xgR = g.su - g.tW - 4;
     const pGen = joinPath([W_([[xgL, yg1], [xgR, yg1], [xgR, yg2], [xgL, yg2]]), {pts: [[xgL, yg2], [xgL, yg1]], skip: true}]);
@@ -806,8 +808,8 @@
     dotsOn(ctx, pGen, S.ph.gen, 14, C.force, 'front', 3.6);
     // 이름표
     const T = (s, X, Y, col, al = 'center', w = 600, size) => text(ctx, s, X, Y, {size: size || (nar ? 13 : 14), w, color: col, align: al, halo: true});
-    T('발전소', (p0 + p1) / 2, g.yG + 15, ink, 'center', 700);
-    T('가정', (h0 + h1) / 2, g.yG + 15, ink, 'center', 700);
+    T('발전소', (p0 + p1) / 2, g.yG + 15, ink, 'center', 600);
+    T('가정', (h0 + h1) / 2, g.yG + 15, ink, 'center', 600);
     if (!nar && H >= 400) T('220 V 로 만듦', (p0 + p1) / 2, g.yG + 33, C.muted, 'center', 500, 13);
     T((nar ? '' : '승압 ') + '1 : ' + sig(V / 220), g.su, g.ty + g.tH + 14, C.muted, 'center', 500, 13);
     if (!nar) T('강압', g.sd, g.ty + g.tH + 14, C.muted, 'center', 500, 13);
@@ -845,7 +847,7 @@
   function drawM() {
     const {ctx, W, H} = gM; if (!W) return;
     ctx.clearRect(0, 0, W, H);
-    const live = S.scene === 'mutual', mode = live ? S.mode : 'ramp';       // 다른 장면을 보는 동안은 그림 ① 을 그대로
+    const live = S.scene === 'mutual', mode = live ? S.mode : 'ramp';       // 다른 장면을 보는 동안은 개념서 그래프를 그대로
     const nar = W < 420, x0 = nar ? 40 : 50, x1 = W - (nar ? 12 : 18), top = 22, bot = H - 26, gap = 26, rh = (bot - top - gap) / 2;
     const strip = mode === 'sw' || mode === 'hand';
     const tA = strip ? S.t - WIN1 : 0, tB = strip ? S.t : (mode === 'ac' ? 2 * AC_T : M.RAMP_T);
@@ -862,6 +864,7 @@
       text(ctx, '(A)', x0 + 30, y0 - 6, {size: 13, w: 500, color: C.muted, align: 'left'});
     };
     axis(ya, Y1(0), 'I₁', red); axis(yb, Y2(0), 'I₂', blue);
+    if (!nar) text(ctx, '(I₁ ∝ 자속 Φ)', x0 + 56, ya - 6, {size: 13, w: 500, color: C.violet, align: 'left'});
     // 눈금
     const tk = (y, v, s) => { Lab.line(ctx, [[x0 - 3, y], [x0 + 3, y]], C.muted, 1); text(ctx, s, x0 - 7, y, {size: 13, w: 500, color: C.muted, align: 'right'}); };
     tk(Y1(2), 2, '2'); if (mode === 'ac') tk(Y1(-2), -2, '−2');
@@ -880,8 +883,8 @@
       const lv = M.RAMP.map((s) => -S.Mh * s.k / R2), v2 = [];
       M.RAMP.forEach((s, i) => { v2.push([X(s.t0), Y2(clip2(lv[i]))], [X(s.t1), Y2(clip2(lv[i]))]); });
       curve(ctx, v2, blue, 3);
-      // 구간 설명 (그림 ①)
-      const L1 = nar ? ['+2', '0', '−1'] : ['증가 (기울기 +2)', '일정 (크지만 기울기 0)', '감소 (기울기 −1)'];
+      // 구간 설명 (개념서 그래프)
+      const L1 = nar ? ['기울기 +2', '기울기 0', '기울기 −1'] : ['증가 (기울기 +2)', '일정 (크지만 기울기 0)', '감소 (기울기 −1)'];
       text(ctx, L1[0], X(0.55) + (nar ? 10 : 18), Y1(1) + 4, {size: 13, w: 600, color: red, align: 'left', halo: true});
       text(ctx, L1[1], X(2), Y1(2) - 13, {size: 13, w: 600, color: red, halo: true});
       text(ctx, L1[2], X(4.1) + 6, Y1(1) - 4, {size: 13, w: 600, color: red, align: 'left', halo: true});
@@ -989,8 +992,8 @@
     rows.forEach((r, i) => {
       const yc = top + i * (rh + gap) + rh / 2, A = rh * 0.42 * r.amp;
       Lab.line(ctx, [[x0, yc], [x1, yc]], C.line, 1);
-      text(ctx, r.name, nar ? 16 : 20, yc - (r.sub ? 8 : 0), {size: 15, w: 700, color: r.col});
-      if (r.sub) text(ctx, r.sub, nar ? 16 : 20, yc + 11, {size: 13, w: 500, color: C.muted, align: nar ? 'center' : 'left'});
+      text(ctx, r.name, nar ? 6 : 20, yc - (r.sub ? 8 : 0), {size: 15, w: 700, color: r.col, align: nar ? 'left' : 'center'});
+      if (r.sub) text(ctx, r.sub, nar ? 6 : 20, yc + 11, {size: 13, w: 500, color: C.muted, align: 'left'});
       const pts = [];
       for (let j = 0; j <= 160; j++) { const t = tm * j / 160; pts.push([X(t), yc - A * r.fn(t)]); }
       curve(ctx, pts, r.col, i ? 2.8 : 2.6);
@@ -1091,12 +1094,12 @@
       setMini(1, '1차 전류 I₁', fmt(I1, 2) + ' A');
       setMini(2, '1차 전류의 기울기 ΔI₁/Δt', dS + ' A/s');
       setMini(3, '2차 전류 I₂ (+ = 1차와 같은 방향)', sgn(I2, 2) + ' A');
-      setMini(4, S.mode === 'sw' ? '스위치' : S.mode === 'hand' ? '가변 저항이 정한 전류' : S.mode === 'ac' ? '1차 전류 최댓값 · 주기 (늦춤)' : '지금 구간 (그림 ①)',
+      setMini(4, S.mode === 'sw' ? '스위치' : S.mode === 'hand' ? '가변 저항이 정한 전류' : S.mode === 'ac' ? '1차 전류 최댓값 · 주기 (늦춤)' : '지금 구간 (개념서 그래프)',
         S.mode === 'sw' ? (S.sw1 ? '닫힘' : '열림') : S.mode === 'hand' ? fmt(S.hand, 2) + ' A' : S.mode === 'ac' ? AC_I + ' A · ' + AC_T + ' s' : M.RAMP[M.ramp(S.t).seg].name);
       setHud('hud1', 't = ' + fmt(S.mode === 'ramp' ? M.ramp(S.t).u : S.mode === 'ac' ? S.t % (2 * AC_T) : S.t, 1) + ' s');
       const h2 = dir === 'opposite' ? ['I₁ 증가 → I₂ 반대 방향', 'I₂ 반대 방향'] : dir === 'same' ? ['I₁ 감소 → I₂ 같은 방향', 'I₂ 같은 방향'] : ['I₁ 일정 → I₂ = 0', 'I₂ = 0'];
       setHud('hud2', h2[full ? 0 : 1], dir === 'none' ? '' : dir === 'opposite' ? 'down' : 'up');
-      setHud('hud3', S.mode === 'ac' ? (full ? '교류: 4 s 에 한 번으로 늦춤' : '4 s 에 한 번 (늦춤)') : S.mode === 'sw' ? (full ? '여는 순간은 늘려 그림' : '늘려 그림') : S.mode === 'hand' ? '손잡이를 끌어 보자' : '그림 ① 의 1차 전류', '', nar && S.mode !== 'ac');
+      setHud('hud3', S.mode === 'ac' ? (full ? '교류: 4 s 에 한 번으로 늦춤' : '4 s 에 한 번 (늦춤)') : S.mode === 'sw' ? (full ? '여는 순간은 늘려 그림' : '늘려 그림') : S.mode === 'hand' ? '손잡이를 끌어 보자' : '증가 → 일정 → 감소', '', nar && S.mode !== 'ac');
     } else if (S.scene === 'self') {
       const s = cur2(S.t), d = s.dIA, steady = Math.abs(d) < 0.005;
       const dS = sgn(d, 2), eS = sgn(s.emf, 2), Ls = fmt(S.L, 1);
@@ -1138,7 +1141,7 @@
       setMini(1, '가정에 닿는 전력 P − P손실', watt(x.delivered));
       setMini(2, other + ' V 로 보내면 손실', watt(xo.loss) + ' (×' + sig(M.lossRatio(V, other), 2) + ')');
       setMini(3, '송전선 양 끝 전압 IR', sig(x.drop) + ' V');
-      setMini(4, '틀린 계산 V²/R (보내는 전력보다 큼)', sig(x.wrong, 3) + ' W (틀림)');
+      setMini(4, '틀린 계산 V²/R (보내는 전력보다 큼)', (x.wrong < 1e5 ? sig(x.wrong, 3) : Lab.sci(x.wrong, 2)) + ' W (틀림)');
       setHud('hud1', nar ? V + ' V · ' + sig(x.I) + ' A' : (full ? '송전 전압 ' : '') + V + ' V · I = ' + sig(x.I) + ' A');
       setHud('hud2', '손실 ' + watt(x.loss), x.frac > 0.05 ? 'down' : '');
       setHud('hud3', full ? '교류 60 Hz → 120배 늦춤' : '120배 늦춤');
