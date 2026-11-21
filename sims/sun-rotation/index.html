@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2235">
+  <title>흑점은 동→서, 자전은 서→동? · 3D로 보는 태양의 자전 방향</title>
+  <link rel="stylesheet" href="sun-rotation.css?v=20261121">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script defer src="sun-rotation-model.js?v=20261121"></script>
+  <script defer src="sun-rotation.js?v=20261121"></script>
+</head>
+<body>
+<main class="app">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">행성우주과학 / WHICH WAY DOES THE SUN SPIN?</p>
+      <h1>흑점은 동→서, 자전은 서→동?<span class="title-dot">.</span></h1>
+      <p class="subtitle">반대처럼 들리는 두 말이 사실은 같은 움직임이에요. 위에서, 서울에서, 마주 보는 쪽에서 3D로 확인해 봐요.</p>
+    </div>
+    <a class="lesson-badge" href="../sun/#s2">Ⅱ-01 <span>태양 관측소 02 흑점으로 자전 주기 재기 →</span></a>
+  </header>
+
+  <nav class="steps" id="steps" aria-label="단계 고르기">
+    <button type="button" data-step="0"><span class="num">01</span><span>위에서 보기<small>서→동 자전</small></span></button>
+    <button type="button" data-step="1"><span class="num">02</span><span>서울에서 보기<small>흑점은 동→서</small></span></button>
+    <button type="button" data-step="2"><span class="num">03</span><span>마주 보는 면<small>왜 반대일까?</small></span></button>
+    <button type="button" data-step="3"><span class="num">04</span><span>동쪽이 두 개<small>태양의 동서 · 하늘의 동서</small></span></button>
+    <button type="button" data-step="4"><span class="num">05</span><span>직접 해 보기<small>만약에…?</small></span></button>
+  </nav>
+
+  <div class="lab">
+    <section class="stage-col" aria-label="3D 화면">
+      <div class="stage" id="stage">
+        <canvas id="view" role="img" aria-label="태양과 지구, 서울의 관측자를 그린 3D 화면"></canvas>
+        <div class="labels" id="labels" aria-hidden="true"></div>
+        <div class="pip-frame" id="pip-frame" aria-hidden="true">
+          <span class="pip-title" id="pip-title"></span>
+          <span class="pip-side pip-l" id="pip-l"></span>
+          <span class="pip-side pip-r" id="pip-r"></span>
+          <span class="pip-tb pip-t" id="pip-t"></span>
+          <span class="pip-tb pip-b" id="pip-b"></span>
+        </div>
+        <div class="hud" id="hud" aria-live="off">
+          <span class="hud-day" id="hud-day">0.0일째</span>
+          <span class="hud-zone" id="hud-zone"></span>
+        </div>
+        <div class="stage-ctrl">
+          <button type="button" id="play" class="dark-btn" aria-label="멈춤">❚❚</button>
+          <button type="button" id="plus-day" class="dark-btn">+1일</button>
+          <button type="button" id="restart" class="dark-btn">⟲ 처음부터</button>
+          <div class="dark-seg" id="speed" role="group" aria-label="빠르기">
+            <button type="button" data-speed="0.7" aria-pressed="false">느리게</button>
+            <button type="button" data-speed="1.6" aria-pressed="true">보통</button>
+            <button type="button" data-speed="3.2" aria-pressed="false">빠르게</button>
+          </div>
+        </div>
+        <button type="button" class="dark-btn recenter" id="recenter" hidden>↺ 원래 시점</button>
+        <p class="drag-hint" id="drag-hint">끌어서 돌려 보기 · 휠/두 손가락으로 확대</p>
+        <div class="fallback" id="fallback" hidden>
+          <p><b>3D 화면을 열 수 없어요.</b><br>이 기기의 브라우저가 WebGL을 지원하지 않거나 three.js를 불러오지 못했어요. 인터넷 연결을 확인하고 새로 고침해 보세요.</p>
+        </div>
+      </div>
+      <div class="legend-row" aria-label="색 설명">
+        <span><i class="sw cyan"></i>하늘의 동서 (지구의 관측자 기준)</span>
+        <span><i class="sw orange"></i>태양의 동서 (태양 자신 기준)</span>
+        <span><i class="sw white"></i>흑점 A가 가는 길 · 날마다 본 자리</span>
+      </div>
+    </section>
+
+    <aside class="guide" aria-live="polite">
+      <div class="step-card">
+        <p class="eyebrow" id="step-eyebrow">STEP 1 / 5</p>
+        <h2 id="step-title"></h2>
+        <div class="step-body" id="step-body"></div>
+      </div>
+
+      <div class="whatif" id="whatif" hidden>
+        <div class="ctl">
+          <span class="ctl-name">태양의 자전</span>
+          <div class="segmented" id="w-sense" role="group" aria-label="태양의 자전 방향">
+            <button type="button" data-sense="1" aria-pressed="true">서→동 <small>실제</small></button>
+            <button type="button" data-sense="-1" aria-pressed="false">동→서 <small>만약에</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <span class="ctl-name">관측 장소</span>
+          <div class="segmented" id="w-site" role="group" aria-label="관측 장소">
+            <button type="button" data-site="seoul" aria-pressed="true">서울 <small>북반구</small></button>
+            <button type="button" data-site="sydney" aria-pressed="false">시드니 <small>남반구</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <span class="ctl-name">시점 바로 가기</span>
+          <div class="chips" id="w-cam" role="group" aria-label="시점">
+            <button type="button" data-cam="top">위에서</button>
+            <button type="button" data-cam="shoulder">관측자 뒤</button>
+            <button type="button" data-cam="face">마주 보는 면</button>
+            <button type="button" data-cam="scope">망원경</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <span class="ctl-name">작은 화면</span>
+          <div class="segmented" id="w-pip" role="group" aria-label="작은 화면">
+            <button type="button" data-pip="scope" aria-pressed="true">망원경</button>
+            <button type="button" data-pip="top" aria-pressed="false">위에서</button>
+            <button type="button" data-pip="off" aria-pressed="false">끄기</button>
+          </div>
+        </div>
+        <p class="result" id="w-result"></p>
+      </div>
+
+      <div class="toggles" role="group" aria-label="보기 설정">
+        <button type="button" class="toggle cyan" data-show="sky" aria-pressed="false">하늘의 동서</button>
+        <button type="button" class="toggle orange" data-show="sunDirs" aria-pressed="false">태양의 동서</button>
+        <button type="button" class="toggle" data-show="rings" aria-pressed="false">자전 화살표</button>
+        <button type="button" class="toggle" data-show="path" aria-pressed="false">흑점 A의 길</button>
+      </div>
+
+      <div class="step-nav">
+        <button type="button" id="prev">◀ 이전</button>
+        <button type="button" id="next" class="primary">다음 ▶</button>
+      </div>
+    </aside>
+  </div>
+
+  <section class="sum" aria-labelledby="sum-title">
+    <h2 id="sum-title">한 장 정리</h2>
+    <div class="sum-grid">
+      <div class="sum-card orange">
+        <p class="tag">태양 자신의 동서로 말하면</p>
+        <p class="big">태양은 <b>서 → 동</b>으로 자전</p>
+        <p>북극 위에서 보면 시계 반대 방향 (지구와 같은 방향). 지구본처럼 바깥에서 보면 태양의 동쪽은 <b>오른쪽</b>.</p>
+      </div>
+      <div class="sum-card cyan">
+        <p class="tag">하늘의 동서로 말하면</p>
+        <p class="big">흑점은 <b>동 → 서</b>로 이동</p>
+        <p>서울에서 남쪽 하늘을 보면 동쪽은 <b>왼쪽</b>, 서쪽은 <b>오른쪽</b>. 흑점은 왼쪽 가장자리에서 나타나 약 2주 뒤 오른쪽으로 사라진다.</p>
+      </div>
+      <div class="sum-card ink">
+        <p class="tag">둘은 같은 움직임</p>
+        <p class="big">‘오른쪽’을 부르는 이름만 달라요</p>
+        <p>흑점이 가는 오른쪽이 태양에게는 <b>동쪽</b>, 하늘에서는 <b>서쪽</b>. 바깥에서 공을 볼 때와 안에서 하늘을 올려다볼 때 동서가 뒤바뀌기 때문이에요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="quiz" id="quiz" aria-labelledby="quiz-title">
+    <h2 id="quiz-title">스스로 확인 <span class="score" id="quiz-score"></span></h2>
+    <ol class="q-list" id="q-list"></ol>
+  </section>
+
+  <p class="hint">태양은 맨눈이나 태양 필터 없는 망원경으로 절대 보면 안 됩니다. 이 화면은 이해를 돕는 모형이라 크기와 거리는 실제와 다르고(실제 태양의 지름은 지구의 약 109배이고, 지구는 태양 지름의 약 107배만큼 떨어져 있어요), 지구의 공전과 위도마다 빠르기가 다른 차등 자전은 뺐어요. 흑점은 가상입니다.</p>
+  <footer class="credit">교과서 Ⅱ-01 태양의 광구와 대기 관측(56~63쪽) · 자전 주기는 지구에서 본 약 27일로 그렸어요. 차등 자전과 자전 주기 구하기는 <a href="../sun/#s2">태양 관측소 02</a>에서.</footer>
+</main>
+</body>
+</html>
