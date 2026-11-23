@@ -156,12 +156,53 @@ test('nebula type (how it looks) and gas state (what is there) are separate clas
     const sc = M.nebulaScene(s);
     assert.equal(sc.nebulae.emission, sc.gasState === 'HII');
     assert.equal(sc.dustState, 'molecular');
-    assert.equal(sc.nebulae.reflection, sc.dustLit);
+    // 반사 성운은 별빛이 닿고(dustLit) 별빛을 받는 면이 관측자 쪽을 향할 때만 보인다
+    assert.equal(sc.nebulae.reflection, sc.dustLit && sc.litFace >= M.FACE_MIN);
+    if (s.star.z > s.dust.z + 1e-9 && Math.abs(s.star.x - s.dust.x) < 1e-9) assert.ok(!sc.nebulae.reflection);
+    if (s.star.z < s.dust.z && sc.dustLit) assert.ok(sc.nebulae.reflection);   // 별이 구름보다 앞이면 늘 보인다
     assert.equal(sc.nebulae.dark, sc.dust === 'dark' || sc.dustAlsoDark);
-    if (!sc.dustLit) assert.equal(sc.litSide, 0);
-    else if (Math.abs(s.star.x - s.dust.x) >= 2) assert.equal(sc.litSide, Math.sign(s.star.x - s.dust.x));
+    if (!sc.nebulae.reflection) assert.equal(sc.litSide, 0);
+    else if (Math.abs(sc.lightX) >= 0.35) assert.equal(sc.litSide, Math.sign(s.star.x - s.dust.x));
+    // 구름 앞의 별은 소광되지 않고, 뒤의 별만 어두워지고 붉어진다(A_V = 3E)
+    if (s.star.z <= s.dust.z) assert.equal(sc.starAv, 0);
+    close(sc.starE, sc.starAv / 3, 1e-9);
+    assert.equal(sc.starHidden, sc.starLook === 'hidden');
   }
   assert.deepEqual(Object.keys(M.ISM_STATES).map(k => M.ISM_STATES[k].h), ['분자(H₂)', '원자(H)', '이온(H⁺)']);
+});
+
+test('star behind a molecular cloud: dark nebula and a dimmed, reddened star — not a reflection nebula (교과서 그림 14)', () => {
+  const dust = {x: 50, z: 50}, gas = {x: 8, z: 92}, cool = (x, z) => ({star: {x, z, hot: false}, dust, gas, background: true});
+  // 별 – 분자 구름 – 관측자가 일직선: 별은 가려지고, 별빛을 받는 면이 반대쪽을 향해 구름 가운데는 검다
+  const behind = M.nebulaScene(cool(50, 70));
+  assert.equal(behind.starLook, 'hidden');
+  assert.ok(behind.starHidden && behind.dustLit);
+  assert.ok(!behind.nebulae.reflection && behind.nebulae.dark);
+  assert.equal(behind.dust, 'dark');
+  assert.ok(behind.behind.includes('star'));
+  assert.ok(behind.rimGlow);                        // 가장자리로 새어 나온 빛만 옅게
+  close(behind.litFace, 0, 1e-9);
+  assert.ok(M.nebulaScene({...cool(50, 70), background: false}).nebulae.dark);   // 먼 별이 없어도 별빛을 가린다
+  // 얇은 가장자리 뒤의 별: 보이지만 어둡고 붉다 (03의 관측자 1)
+  const edge = M.nebulaScene(cool(61, 70));
+  assert.equal(edge.starLook, 'reddened');
+  assert.ok(edge.starAv > 0.3 && edge.starAv < M.HIDE_AV);
+  close(edge.starE, edge.starAv / 3, 1e-9);
+  assert.ok(!edge.nebulae.reflection);
+  // 가운데에서 바깥으로 갈수록 소광이 줄어든다
+  let last = Infinity;
+  for (let t = 0; t <= 1.3; t += 0.05) { const a = M.dustAv(t); assert.ok(a <= last + 1e-12); last = a; }
+  assert.equal(M.dustAv(M.DUST_EDGE), 0);
+  assert.ok(M.dustAv(0) >= M.HIDE_AV);
+  // 같은 거리의 별을 앞으로 옮기면 가운데가 푸른 반사 성운(보름달), 옆이면 별 쪽 절반(반달)
+  const front = M.nebulaScene(cool(50, 30));
+  assert.ok(front.nebulae.reflection && front.litSide === 0 && front.starLook === 'clear');
+  close(front.litFace, 1, 1e-9);
+  const side = M.nebulaScene(cool(70, 50));
+  assert.ok(side.nebulae.reflection && side.litSide === 1 && side.starLook === 'clear');
+  close(side.litFace, 0.5, 1e-9);
+  // 앞에 있는 별은 구름 가운데와 겹쳐도 가려지지 않는다
+  assert.equal(front.starAv, 0);
 });
 
 test('Barnard 68 model: fewer stars in the middle, infrared sees through (해 보기)', () => {

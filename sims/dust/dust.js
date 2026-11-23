@@ -147,6 +147,15 @@
     stations[name].render();
     try { history.replaceState(null, '', '#s' + (ORDER.indexOf(name) + 1)); } catch (_) {}
   }
+  // 헷갈리기 쉬운 보기: 눌러서 ○ / × 와 까닭을 펼친다
+  document.querySelectorAll('.ox-list button').forEach(b => b.addEventListener('click', () => {
+    const li = b.closest('li'), why = li.querySelector('.ox-why'), open = b.getAttribute('aria-expanded') !== 'true';
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    why.hidden = !open;
+    li.classList.toggle('shown', open);
+    b.querySelector('.ox-mark').textContent = open ? (li.dataset.ox === 'o' ? '○' : '×') : '?';
+  }));
+
   document.querySelectorAll('.stations button').forEach(b => b.addEventListener('click', () => {
     show(b.dataset.station);
     document.querySelector('.stations').scrollIntoView({block: 'nearest'});
@@ -283,6 +292,23 @@
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
       }
     }
+    // 별. 분자 구름을 지나온 별빛(starAv > 0)은 어두워지고(성간 소광) 붉어진다(성간 적색화, A_V = 3E).
+    function drawStar(ctx, x, y, u, sc) {
+      if (sc.starHidden) return;
+      const hot = st.star.hot, Av = sc.starAv;
+      const c = Av > 0 ? M.bvColor((hot ? -0.2 : 1.0) + sc.starE) : (hot ? [165, 195, 255] : [255, 214, 150]);
+      const vis = M.clamp(1 - Av / 7, 0.12, 1);
+      const rgba = a => `rgba(${c[0]},${c[1]},${c[2]},${a.toFixed(3)})`;
+      ctx.globalCompositeOperation = 'lighter';
+      blob(ctx, x, y, 5.5 * u * (0.45 + 0.55 * vis), rgba(0.45 * vis));
+      blob(ctx, x, y, 2.2 * u * (0.6 + 0.4 * vis), rgba(0.85 * Math.max(vis, 0.35)));
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = Av > 0 ? rgba(1) : '#fff';
+      ctx.beginPath(); ctx.arc(x, y, Math.max(1.6, 0.55 * u * (0.55 + 0.45 * vis)), 0, TAU); ctx.fill();
+      ctx.strokeStyle = Av > 0 ? rgba(0.55 * vis) : 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1;
+      const L = 3.2 * u * (0.4 + 0.6 * vis);
+      ctx.beginPath(); ctx.moveTo(x - L, y); ctx.lineTo(x + L, y); ctx.moveTo(x, y - L); ctx.lineTo(x, y + L); ctx.stroke();
+    }
     function drawSky(sc) {
       const c = fitCanvas(sky);
       if (!c) return;
@@ -304,15 +330,8 @@
         const x = o.x * u;
         if (k === 'star') {
           pos.star = {x, y: cy - 0.06 * h};
-          const col = st.star.hot ? 'rgba(165,195,255,0.85)' : 'rgba(255,214,150,0.85)';
-          ctx.globalCompositeOperation = 'lighter';
-          blob(ctx, x, pos.star.y, 5.5 * u, col.replace('0.85', '0.45'));
-          blob(ctx, x, pos.star.y, 2.2 * u, col);
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, pos.star.y, Math.max(2.2, 0.55 * u), 0, TAU); ctx.fill();
-          ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1;
-          const L = 3.2 * u;
-          ctx.beginPath(); ctx.moveTo(x - L, pos.star.y); ctx.lineTo(x + L, pos.star.y); ctx.moveTo(x, pos.star.y - L); ctx.lineTo(x, pos.star.y + L); ctx.stroke();
+          // 분자 구름 뒤의 별은 구름을 지나온 빛만 보이므로 구름을 그린 다음에 그린다
+          if (sc.starAv <= 0) drawStar(ctx, x, pos.star.y, u, sc);
         } else if (k === 'gas') {
           const rx = M.HALF.gas * u, ry = Math.min(h * 0.36, rx * 0.72);
           pos.gas = {x, y: cy, ry};
@@ -329,21 +348,31 @@
         } else {
           const rx = M.HALF.dust * u, ry = Math.min(h * 0.4, rx * 0.85);
           pos.dust = {x, y: cy + 0.02 * h, ry, rx};
+          const k2 = M.clamp(1.2 - sc.dStarDust / M.REACH, 0.3, 1);
+          if (sc.rimGlow) {
+            // 별이 구름 뒤에서 비추면 빛나는 면은 반대쪽을 향한다. 얇은 가장자리로 새어 나온 빛만 옅게 보인다.
+            ctx.globalCompositeOperation = 'lighter';
+            blob(ctx, x, pos.dust.y, rx * 1.5, `rgba(150,185,255,${(0.2 * k2 * Math.max(0.3, -sc.lightZ)).toFixed(3)})`);
+            ctx.globalCompositeOperation = 'source-over';
+          }
           dustBlob(ctx, x, pos.dust.y, rx, ry, 0.97);
-          if (sc.dustLit) {
-            // 별을 향한 쪽만 푸르게 빛난다. 별빛이 덜 닿는 쪽은 검은 채로 뒤의 빛을 가린다(암흑 성운).
-            const k2 = M.clamp(1.2 - sc.dStarDust / M.REACH, 0.3, 1);
-            const lean = M.clamp((st.star.x - st.dust.x) / M.HALF.dust, -1, 1);
+          if (sc.nebulae.reflection) {
+            // 달의 위상처럼, 별빛을 받는 면 가운데 관측자 쪽을 향한 부분만 푸르게 빛난다.
+            // 별이 앞이면 가운데가, 옆이면 별 쪽 절반이 빛난다. 나머지는 검은 채로 뒤의 빛을 가린다(암흑 성운).
+            const f = sc.litFace, lx = sc.lightX, lz = sc.lightZ;
             ctx.globalCompositeOperation = 'lighter';
             for (const b of LUMPS) {
-              const face = M.clamp(0.55 + 1.1 * b.dx * lean, 0, 1);
-              if (face > 0) blob(ctx, x + b.dx * rx, pos.dust.y + b.dy * ry, b.r * rx, `rgba(55,105,230,${(0.24 * k2 * face).toFixed(3)})`);
+              const px = M.clamp(b.dx / 0.65, -1, 1);
+              const face = Math.max(0, px * lx + Math.sqrt(1 - px * px) * lz);
+              if (face > 0) blob(ctx, x + b.dx * rx, pos.dust.y + b.dy * ry, b.r * rx, `rgba(55,105,230,${(0.26 * k2 * face).toFixed(3)})`);
             }
-            blob(ctx, x + lean * 0.5 * rx, pos.dust.y, rx * (0.8 - 0.15 * Math.abs(lean)), `rgba(120,170,255,${(0.42 * k2).toFixed(3)})`);
+            const off = Math.sign(lx) * (1 - f) * 0.9 * rx;
+            blob(ctx, x + off, pos.dust.y, rx * (0.4 + 0.4 * f), `rgba(120,170,255,${(0.42 * k2 * Math.min(1, 0.3 + f)).toFixed(3)})`);
             ctx.globalCompositeOperation = 'source-over';
           }
         }
       }
+      if (sc.starAv > 0) drawStar(ctx, pos.star.x, pos.star.y, u, sc);
       // 이름표 (겹치면 위로 올린다). 하늘에는 '보이는 모습'(성운의 종류)만 적는다.
       const fs = w < 520 ? 11 : 12.5;
       const tags = [];
@@ -352,7 +381,8 @@
       if (N.dark) tags.push({x: pos.dust.x - (N.reflection ? dir * pos.dust.rx * 0.62 : 0), t: '암흑 성운', c: '#d9dde3'});
       if (!N.reflection && !N.dark) tags.push({x: pos.dust.x, t: '분자 구름 (안 보임)', c: '#8a96a3'});
       tags.push(N.emission ? {x: pos.gas.x, t: '방출 성운', c: '#ff9aa9'} : {x: pos.gas.x, t: '중성수소 (안 보임)', c: '#8a96a3'});
-      tags.push({x: pos.star.x, t: sc.starHidden ? '별 (가려짐)' : (st.star.hot ? 'O·B형 별' : '덜 뜨거운 별'), c: sc.starHidden ? '#e6a93c' : '#ffffff', star: true});
+      const starTag = {hidden: ['별 (가려짐)', '#e6a93c'], reddened: ['별 (어둡고 붉게)', '#ff9a6a'], clear: [st.star.hot ? 'O·B형 별' : '덜 뜨거운 별', '#ffffff']}[sc.starLook];
+      tags.push({x: pos.star.x, t: starTag[0], c: starTag[1], star: true});
       const boxes = [];
       tags.forEach(t => {
         let y = t.star ? Math.max(fs + 6, pos.star.y - 4.5 * u) : h - 10;
@@ -385,16 +415,20 @@
           ? `${both ? `분자 구름에서 별빛이 덜 닿는 ${shade || '가장자리'}` : '분자 구름'} — 티끌이 뒤에서 오는 ${what}을 가려 검게 보입니다.`
           : '뒤에서 오는 빛이 없어 검은 하늘과 구별되지 않습니다. 뒤쪽 먼 별들을 켜거나, 분자 구름을 빛나는 것 앞에 두어 보세요.',
         reflection: N.reflection
-          ? `${lit ? `분자 구름에서 별을 향한 ${lit}` : '별빛을 받는 분자 구름'} — 가까운 별빛을 티끌이 산란하는데, 파란빛이 더 많이 산란되어 푸르게 보입니다.`
+          ? `${lit ? `분자 구름에서 별을 향한 ${lit}` : '별빛을 받는 분자 구름의 앞면'} — 가까운 별빛을 티끌이 산란하는데, 파란빛이 더 많이 산란되어 푸르게 보입니다.`
+          : sc.dustLit
+          ? '별이 분자 구름 뒤쪽에 있어 별빛을 받는 면이 관측자 반대쪽을 향합니다. 산란된 파란빛은 옆에서 보는 사람(03의 관측자 2)에게 반사 성운으로 보이고, 이쪽에서는 구름 가장자리만 옅게 빛납니다.'
           : '분자 구름 가까이(점선 안)에 별이 없어, 티끌이 산란할 별빛이 약합니다.',
         emission: N.emission
-          ? '수소 구름(전리수소 영역) — O·B형 별의 자외선이 수소를 이온화했고, 양성자와 전자가 재결합하며 붉은빛(방출선)을 냅니다.'
+          ? '수소 구름(전리수소 영역) — O·B형 별의 자외선이 수소를 이온화했고, 양성자와 전자가 재결합하며 붉은빛(방출선)을 냅니다. 별이 뜨거울수록 자외선이 많아 HⅡ 영역이 넓어집니다.'
           : hot ? '수소 구름이 O·B형 별에서 멀어 중성수소(HⅠ)로 남았습니다. 가시광선으로는 보이지 않고 파장 21 cm 전파로 관측합니다.'
           : sc.gasNear ? '별이 가까이 있지만 자외선이 약해 수소를 이온화하지 못합니다(중성수소 HⅠ). 가시광선으로는 보이지 않습니다.'
           : '자외선을 내는 뜨거운 별이 가까이 없어 수소가 중성수소(HⅠ)로 남았습니다. 가시광선으로는 보이지 않습니다.'
       };
-      const star = sc.starHidden
-        ? {b: '가려짐', c: 'hid', why: '분자 구름 뒤에 있어 별빛이 가려졌습니다. 이것이 02의 성간 소광입니다.'}
+      const star = sc.starLook === 'hidden'
+        ? {b: '가려짐', c: 'hid', why: '짙은 분자 구름 바로 뒤에 있어 별빛이 티끌을 지나오지 못합니다(02의 성간 소광). 파장이 긴 적외선으로는 보일 수 있습니다.'}
+        : sc.starLook === 'reddened'
+        ? {b: '어둡고 붉게', c: 'redden', why: `분자 구름의 얇은 가장자리 뒤에 있어, 별빛이 티끌을 지나며 파란빛이 더 많이 빠져 원래보다 어둡고(성간 소광) 붉게(성간 적색화) 보입니다. 03의 관측자 1과 같습니다. (이 모형에서 A<sub>V</sub> ≈ ${sc.starAv.toFixed(1)}, 색초과 E ≈ ${sc.starE.toFixed(1)})`}
         : {b: hot ? 'O·B형 별' : '덜 뜨거운 별', c: hot ? 'refl' : 'none', why: hot ? '태어난 지 얼마 안 된 뜨거운 별이라 강한 자외선을 냅니다.' : '빛은 밝지만 자외선이 약합니다.'};
       $('neb-looks').innerHTML = LOOKS.map(L => {
         const seen = N[L.k];
@@ -413,8 +447,11 @@
       if (both) main += sc.litSide
         ? ' <b>같은 분자 구름</b>이 별 쪽은 반사 성운, 반대쪽은 암흑 성운으로 보입니다.'
         : ' <b>같은 분자 구름</b>이 별빛을 받는 가운데는 반사 성운, 가장자리는 암흑 성운으로 보입니다.';
+      if (sc.starLook === 'hidden' && !N.reflection) main += ' 별이 분자 구름 바로 뒤에 있어 별빛이 이쪽으로 오지 못하고, 별빛을 받는 면도 반대쪽을 향해 구름이 검게 보입니다.';
+      else if (sc.starLook === 'reddened') main += ' 분자 구름의 얇은 가장자리를 지나온 별빛은 어둡고 붉게 보입니다(성간 적색화).';
       let tip = '';
-      if (!N.emission) tip = hot ? ' 수소 구름을 O·B형 별 가까이(점선 안) 옮겨 보세요.' : ' 별을 젊고 뜨거운 O·B형 별로 바꾸면 무엇이 달라질까요?';
+      if (sc.starAv > 0 && sc.dustLit && !N.reflection) tip = ' 별을 분자 구름 옆이나 앞(아래쪽)으로 옮기면 어떻게 보일까요?';
+      else if (!N.emission) tip = hot ? ' 수소 구름을 O·B형 별 가까이(점선 안) 옮겨 보세요.' : ' 별을 젊고 뜨거운 O·B형 별로 바꾸면 무엇이 달라질까요?';
       else if (sc.dust === 'dark' && !sc.behind.includes('gas')) tip = ' 분자 구름을 붉게 빛나는 수소 구름 앞(아래쪽)으로 옮기면 말머리 성운처럼 보입니다.';
       else if (!N.reflection) tip = ' 분자 구름을 별 가까이 옮기면 어떻게 될까요?';
       else if (!N.dark) tip = ' 뒤쪽 먼 별들을 켜면 별빛이 덜 닿는 쪽은 어떻게 보일까요?';
