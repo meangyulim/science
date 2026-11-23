@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0f2235">
   <title>성간 티끌 실험실 · 별빛을 가리고 붉게 바꾸는 우주의 티끌</title>
-  <link rel="stylesheet" href="dust.css?v=20261123c">
+  <link rel="stylesheet" href="dust.css?v=20261123d">
   <script defer src="dust-data.js?v=20261101"></script>
   <script defer src="dust-model.js?v=20261123c"></script>
-  <script defer src="dust.js?v=20261123c"></script>
+  <script defer src="dust.js?v=20261123d"></script>
 </head>
 <body>
 <main class="app">
@@ -80,15 +80,16 @@
             <table class="ref-table states" id="neb-states">
               <tr><th>상태</th><th>온도</th><th>특징</th></tr>
               <tr data-state="molecular"><td><b>분자 구름</b><small>수소 분자 H₂</small></td><td>약 10 K</td><td>차갑고 밀도가 높은 기체에 티끌이 섞여 뭉친 곳. 새로운 별이 태어나는 재료이자 장소</td></tr>
-              <tr data-state="HI"><td><b>중성수소(HⅠ) 영역</b><small>수소 원자 H</small></td><td>약 100 K</td><td>가시광선으로는 보이지 않고 파장 21 cm 전파로 관측 → 나선팔 구조를 알아냄<span class="also">구름 사이 공간에도 넓게 퍼져 있음 (모형에는 그리지 않음)</span></td></tr>
+              <tr data-state="HI"><td><b>중성수소(HⅠ) 영역</b><small>수소 원자 H</small></td><td>약 100 K</td><td>가시광선으로는 보이지 않고 파장 21 cm 전파로 관측(파장이 길어 티끌에 거의 가려지지 않음) → 나선팔 구조를 알아냄<span class="also">구름 사이 공간에도 넓게 퍼져 있음 (모형에는 그리지 않음)</span></td></tr>
               <tr data-state="HII"><td><b>전리수소(HⅡ) 영역</b><small>수소 이온 H⁺</small></td><td>약 1만 K</td><td>밀도가 낮다. 젊고 뜨거운 O·B형 별의 자외선이 수소를 이온화</td></tr>
             </table>
+            <p class="micro states-trend">온도는 분자 구름 &lt; HⅠ &lt; HⅡ, <b>개수 밀도는 그 반대</b>입니다. HⅡ 영역은 가장 뜨겁지만 가장 희박합니다.</p>
             <div class="comp">
               <p class="micro">성간 물질의 질량 (교과서 102·104쪽)</p>
               <div class="comp-bar" role="img" aria-label="수소 74 퍼센트, 헬륨 24 퍼센트, 나머지 약 2 퍼센트 가운데 성간 티끌 약 1 퍼센트">
                 <span class="h">수소 74 %</span><span class="he">헬륨 24 %</span><span class="d" title="성간 티끌 약 1 %"></span>
               </div>
-              <p class="micro">성간 <b>기체</b>(수소·헬륨) + 성간 <b>티끌</b>(얼음, 탄소·규소 알갱이, 약 1 %) — 분자 구름에도 수소 구름에도 둘이 함께 섞여 있습니다.</p>
+              <p class="micro">성간 <b>기체</b>(수소·헬륨) + 성간 <b>티끌</b>(흑연·규산염 알갱이를 얼음이 덮은 고체, 약 1 %) — 분자 구름에도 수소 구름에도 둘이 함께 섞여 있습니다.</p>
             </div>
           </div>
         </div>
@@ -121,6 +122,18 @@
       </section>
     </div>
     <p class="hint">별과 구름을 손가락으로 끌어 옮겨 보세요(키보드: 버튼을 고르고 화살표 키). 점선 원은 별빛과 자외선이 강하게 닿는 범위입니다. 크기와 거리는 실제와 다르게 그렸습니다. 모형은 단순하게 만들었습니다 — 실제로는 두 구름 모두 기체와 티끌이 섞여 있어서, 옅은 수소 구름의 티끌도 별빛을 조금 산란하고 방출 성운 속에도 티끌이 있습니다(3번 그림 불꽃 성운의 검은 줄무늬). 모형에서는 짙은 분자 구름의 티끌만 빛을 가리고 산란하게 했습니다.</p>
+    <section class="ox" aria-labelledby="neb-ox-title">
+      <div class="ox-head"><h3 id="neb-ox-title">헷갈리기 쉬운 보기</h3><span class="micro">맞으면 ○, 틀리면 × — 눌러서 확인</span></div>
+      <ol class="ox-list">
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">성간 물질 질량의 대부분은 성간 티끌이 차지한다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 성간 기체(대부분 수소·헬륨)가 약 99&nbsp;%, 성간 티끌은 약 1&nbsp;%입니다. 양은 적어도 별빛을 가리고 붉게 하는 주범은 티끌입니다.</p></li>
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">붉은 방출 성운은 푸른 반사 성운보다 온도가 낮다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 별과 반대입니다. 방출 성운(HⅡ 영역)은 약 1만 K이고, 반사 성운을 만드는 티끌 구름은 수십 K 이하입니다. 반사 성운이 푸른 것은 뜨거워서가 아니라 파란 별빛을 더 많이 산란하기 때문입니다.</p></li>
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">방출 성운은 성간 티끌이 별빛을 받아 빛나는 것이다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 방출 성운은 HⅡ 영역에서 이온화된 수소가 전자와 재결합하며 내는 빛(방출선)입니다. 티끌이 하는 일은 빛을 가리는 것(암흑 성운)과 산란하는 것(반사 성운)입니다.</p></li>
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">전리수소(HⅡ) 영역은 온도와 개수 밀도가 모두 가장 높다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 온도는 가장 높지만 개수 밀도는 가장 낮습니다. 온도는 분자 구름 &lt; HⅠ &lt; HⅡ, 개수 밀도는 그 반대입니다.</p></li>
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">새로운 별은 대부분 HⅡ 영역에서 태어난다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 별은 차갑고 밀도가 높은 분자 구름에서 태어납니다. 거기서 태어난 O·B형 별의 자외선이 주변 수소를 이온화해 HⅡ 영역을 만듭니다.</p></li>
+        <li data-ox="o"><button type="button" aria-expanded="false"><span class="ox-q">중심별의 표면 온도가 높을수록 그 둘레의 HⅡ 영역이 넓다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>○</b> O형 별처럼 뜨거운 별일수록 자외선을 많이 내어 더 먼 곳의 수소까지 이온화합니다.</p></li>
+        <li data-ox="o"><button type="button" aria-expanded="false"><span class="ox-q">별 – 분자 구름 – 관측자가 일직선이면, 관측자에게 분자 구름은 검게 보이고 반사 성운은 옆에서 보는 사람에게 보인다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>○</b> 별빛을 받는 면이 관측자 반대쪽을 향하기 때문입니다. 짙은 구름이면 별도 가려지고, 얇은 가장자리 뒤의 별은 어둡고 붉게 보입니다. 위 모형에서 별을 구름 바로 뒤로 옮겨 확인해 보세요.</p></li>
+      </ol>
+    </section>
   </section>
 
   <!-- ───────────── 02 성간 소광 ───────────── -->
@@ -176,7 +189,7 @@
         <details class="more">
           <summary>예시 답안과 바너드 68 이야기</summary>
           <p>① 가운데는 별이 거의 보이지 않고 바깥으로 갈수록 별이 많고 밝아집니다. 암흑 성운에 많은 성간 티끌이 뒤쪽 별빛을 가리기 때문(성간 소광)이고, 가운데에서 바깥으로 갈수록 티끌이 줄어 소광도 줄어듭니다.</p>
-          <p>② 가시광선보다 파장이 긴 적외선은 성간 티끌에 의한 흡수와 산란을 적게 겪어 뒤쪽 별빛이 통과합니다.</p>
+          <p>② 가시광선보다 파장이 긴 적외선은 성간 티끌에 의한 흡수와 산란을 적게 겪어 뒤쪽 별빛이 통과합니다. 티끌은 대부분 1 μm보다 작아 가시광선 파장과 크기가 비슷하므로 가시광선을 잘 가리고, 파장이 훨씬 긴 빛은 잘 가리지 못합니다.</p>
           <p>바너드 68은 뱀주인자리 쪽 약 410광년 거리에 있는 약 16 K의 차가운 분자 구름입니다. 오래 노출해 찍은 영상에서 이 구름 뒤의 별을 약 3700개 찾았고, 그중 1000개 넘게는 적외선으로만 보였습니다(ESO 보도 자료 eso0102).</p>
         </details>
       </section>
@@ -198,6 +211,16 @@
       </section>
     </div>
     <p class="hint">모형에서는 티끌이 없을 때 두 파장에서 보이는 별이 같다고 두었습니다. 적외선의 소광 등급은 같은 티끌에서 가시광선의 약 0.11배입니다(파장 2.2 μm 근적외선, 03의 소광 곡선). 실제 적외선 영상의 색은 사람 눈에 보이도록 입힌 색입니다.</p>
+    <section class="ox" aria-labelledby="ext-ox-title">
+      <div class="ox-head"><h3 id="ext-ox-title">헷갈리기 쉬운 보기</h3><span class="micro">맞으면 ○, 틀리면 × — 눌러서 확인</span></div>
+      <ol class="ox-list">
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">암흑 성운 가운데에 별이 거의 보이지 않는 것은 그 뒤에 별이 없기 때문이다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 별이 없는 것이 아니라 티끌에 가려진 것입니다. 적외선으로 보면 가려졌던 별이 보입니다.</p></li>
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">성간 소광은 주로 성간 기체 때문에 일어난다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 소광의 원인은 성간 티끌입니다. 기체의 상태(분자 · 원자 · 이온)는 "별 사이에 무엇이 있나"를 나눈 것이지 소광의 원인이 아닙니다.</p></li>
+        <li data-ox="o"><button type="button" aria-expanded="false"><span class="ox-q">같은 암흑 성운을 적외선으로 보면 가시광선으로 볼 때보다 별이 더 많이 보인다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>○</b> 파장이 긴 적외선은 티끌에 덜 흡수·산란되어 성운 뒤의 별빛이 지나옵니다.</p></li>
+        <li data-ox="o"><button type="button" aria-expanded="false"><span class="ox-q">티끌은 크기가 가시광선 파장과 비슷해 가시광선을 잘 산란한다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>○</b> 티끌은 대부분 1&nbsp;μm보다 작아 가시광선 파장(약 0.4~0.7&nbsp;μm)과 비슷합니다. 파장이 훨씬 긴 적외선과 전파는 잘 통과합니다.</p></li>
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">파장 21 cm 전파는 성간 물질에 잘 흡수되기 때문에 우리은하 구조 연구에 쓰인다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 반대입니다. 파장이 길어 티끌에 거의 가려지지 않으므로 원반 너머의 중성수소까지 관측해 나선팔 구조를 알아낼 수 있습니다.</p></li>
+      </ol>
+    </section>
   </section>
 
   <!-- ───────────── 03 성간 적색화 ───────────── -->
@@ -262,7 +285,17 @@
         </details>
       </section>
     </div>
-    <p class="hint">기출 용어: 관측된 색지수 (B−V), 고유한 색지수 (B−V)₀, 색초과 E(B−V), "V 필터 파장 영역의 겉보기 등급 변화량" = 소광 등급 A<sub>V</sub>. 별이 실제로 차가워진 것이 아니라 별빛의 색만 붉어 보입니다.</p>
+    <p class="hint">기출 용어: 관측된 색지수 (B−V), 고유한 색지수 (B−V)₀, 색초과 E(B−V), "V 필터 파장 영역의 겉보기 등급 변화량" = 소광 등급 A<sub>V</sub>. 별이 실제로 차가워진 것이 아니라 별빛의 색만 붉어 보입니다. 빛의 파장이 길어지는 것(적색 편이)도 아닙니다. 그림 14의 관측자 1·2는 문제에서 A·B로 나오기도 합니다.</p>
+    <section class="ox" aria-labelledby="red-ox-title">
+      <div class="ox-head"><h3 id="red-ox-title">헷갈리기 쉬운 보기</h3><span class="micro">맞으면 ○, 틀리면 × — 눌러서 확인</span></div>
+      <ol class="ox-list">
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">성간 적색화는 별빛이 티끌을 지나며 파장이 길어지기 때문에 일어난다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 빛의 파장은 그대로입니다. 파란빛이 더 많이 흡수·산란되어 빠지므로 남은 빛에서 붉은빛의 비율이 커진 것입니다. 파장 자체가 길어지는 적색 편이와 구별하세요.</p></li>
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">성간 소광은 붉은빛이 파란빛보다 크다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 파장이 짧을수록 소광이 큽니다. 그래서 B 등급이 V 등급보다 더 많이 커지고 색지수 B − V가 커집니다.</p></li>
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">성간 적색화를 받은 별은 표면 온도가 실제로 낮아진 것이다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 별은 그대로이고 오는 빛의 색만 붉어졌습니다. 별 본래의 색(고유 색지수)은 스펙트럼(분광형)으로 알 수 있습니다.</p></li>
+        <li data-ox="o"><button type="button" aria-expanded="false"><span class="ox-q">티끌 너머의 별을 일직선에서 보는 관측자에게는 별이 어둡고 붉게, 옆에서 보는 관측자에게는 푸른 반사 성운이 보인다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>○</b> 교과서 그림 14의 관측자 1과 관측자 2입니다. 문제에서는 A(일직선, 지나온 빛)와 B(옆, 산란된 빛)로 나오기도 합니다.</p></li>
+        <li data-ox="o"><button type="button" aria-expanded="false"><span class="ox-q">거리가 같아도 은하 원반 방향에 있는 별이 원반에 수직인 방향의 별보다 색초과가 크다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>○</b> 원반에 성간 물질이 많아 별빛이 더 많은 티끌을 지나옵니다(수업 Q4 ⓐ·ⓑ).</p></li>
+      </ol>
+    </section>
   </section>
 
   <!-- ───────────── 04 거리 보정 ───────────── -->
@@ -342,6 +375,17 @@
       </section>
     </div>
     <p class="hint">거리 지수 식의 r은 pc 단위입니다. 슬라이더를 움직이면 예제가 '직접 해 보기'로 바뀝니다.</p>
+    <section class="ox" aria-labelledby="dist-ox-title">
+      <div class="ox-head"><h3 id="dist-ox-title">헷갈리기 쉬운 보기</h3><span class="micro">맞으면 ○, 틀리면 × — 눌러서 확인</span></div>
+      <ol class="ox-list">
+        <li data-ox="o"><button type="button" aria-expanded="false"><span class="ox-q">소광을 보정하지 않으면 거리 지수가 커져 별까지의 거리가 실제보다 멀게 계산된다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>○</b> 소광 등급 A만큼 겉보기 등급이 커지므로 거리가 10<sup>A/5</sup>배로 커 보입니다.</p></li>
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">보정할 때는 관측한 겉보기 등급에 소광 등급을 더한다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 소광은 등급을 키웠으므로 보정할 때는 뺍니다: m − A − M = 5 log r − 5.</p></li>
+        <li data-ox="x"><button type="button" aria-expanded="false"><span class="ox-q">성간 소광이 있으면 별의 연주 시차도 작아진다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>×</b> 연주 시차는 별의 위치(각도) 변화로 재므로 밝기와 상관없습니다. 실제 거리가 같으면 연주 시차도 같습니다.</p></li>
+        <li data-ox="o"><button type="button" aria-expanded="false"><span class="ox-q">같은 별의 소광 등급은 B 필터로 볼 때가 V 필터로 볼 때보다 크다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>○</b> B 필터가 더 짧은 파장(파란빛)이므로 소광이 더 큽니다. 둘의 차이가 색초과 E입니다.</p></li>
+        <li data-ox="o"><button type="button" aria-expanded="false"><span class="ox-q">은하 원반 방향에서는 멀리 있는 별일수록 소광 등급이 크다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>○</b> 멀수록 지나오는 티끌이 많아집니다. 원반 근처에서는 1&nbsp;kpc마다 평균 1~2등급쯤 어두워집니다.</p></li>
+        <li data-ox="o"><button type="button" aria-expanded="false"><span class="ox-q">섀플리가 우리은하를 실제보다 크게 생각한 까닭 중 하나는 성간 소광을 보정하지 않았기 때문이다.</span><span class="ox-mark" aria-hidden="true">?</span></button><p class="ox-why" hidden><b>○</b> 구상 성단까지의 거리를 실제보다 멀게 계산했습니다.</p></li>
+      </ol>
+    </section>
   </section>
 
   <footer class="credit">모형의 수치는 교과서(102~107쪽)와 수업 활동지에 맞춘 교육용 값입니다. 소광 곡선: Cardelli, Clayton &amp; Mathis (1989). 플레이아데스 C-M도: Stauffer 외 (2007) 관측 자료. M3 색초과: Harris 구상 성단 목록(2010판).<br>

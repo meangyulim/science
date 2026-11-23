@@ -147,6 +147,15 @@
     stations[name].render();
     try { history.replaceState(null, '', '#s' + (ORDER.indexOf(name) + 1)); } catch (_) {}
   }
+  // 헷갈리기 쉬운 보기: 눌러서 ○ / × 와 까닭을 펼친다
+  document.querySelectorAll('.ox-list button').forEach(b => b.addEventListener('click', () => {
+    const li = b.closest('li'), why = li.querySelector('.ox-why'), open = b.getAttribute('aria-expanded') !== 'true';
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    why.hidden = !open;
+    li.classList.toggle('shown', open);
+    b.querySelector('.ox-mark').textContent = open ? (li.dataset.ox === 'o' ? '○' : '×') : '?';
+  }));
+
   document.querySelectorAll('.stations button').forEach(b => b.addEventListener('click', () => {
     show(b.dataset.station);
     document.querySelector('.stations').scrollIntoView({block: 'nearest'});
@@ -411,7 +420,7 @@
           ? '별이 분자 구름 뒤쪽에 있어 별빛을 받는 면이 관측자 반대쪽을 향합니다. 산란된 파란빛은 옆에서 보는 사람(03의 관측자 2)에게 반사 성운으로 보이고, 이쪽에서는 구름 가장자리만 옅게 빛납니다.'
           : '분자 구름 가까이(점선 안)에 별이 없어, 티끌이 산란할 별빛이 약합니다.',
         emission: N.emission
-          ? '수소 구름(전리수소 영역) — O·B형 별의 자외선이 수소를 이온화했고, 양성자와 전자가 재결합하며 붉은빛(방출선)을 냅니다.'
+          ? '수소 구름(전리수소 영역) — O·B형 별의 자외선이 수소를 이온화했고, 양성자와 전자가 재결합하며 붉은빛(방출선)을 냅니다. 별이 뜨거울수록 자외선이 많아 HⅡ 영역이 넓어집니다.'
           : hot ? '수소 구름이 O·B형 별에서 멀어 중성수소(HⅠ)로 남았습니다. 가시광선으로는 보이지 않고 파장 21 cm 전파로 관측합니다.'
           : sc.gasNear ? '별이 가까이 있지만 자외선이 약해 수소를 이온화하지 못합니다(중성수소 HⅠ). 가시광선으로는 보이지 않습니다.'
           : '자외선을 내는 뜨거운 별이 가까이 없어 수소가 중성수소(HⅠ)로 남았습니다. 가시광선으로는 보이지 않습니다.'
