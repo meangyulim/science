@@ -110,26 +110,51 @@
   const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
   // front가 back보다 관측자에 가깝고, 하늘에서 겹쳐 보이는가
   const covers = (front, back, half) => back.z > front.z && Math.abs(front.x - back.x) < half;
+  // 분자 구름을 지나는 시선의 소광 등급 A_V. t는 하늘에서 구름 가운데로부터의 가로 거리(반폭 = 1).
+  // 가운데는 짙어 별빛이 거의 지나오지 못하고, 바깥으로 갈수록 얇아져 t = DUST_EDGE에서 0이 된다.
+  const DUST_AV = 12, DUST_CORE = 0.5, DUST_EDGE = 1.15;
+  const HIDE_AV = 6;                      // 이보다 많이 가려지면(1/250 이하) 하늘에서 보이지 않는다
+  function dustAv(t) {
+    t = Math.abs(t);
+    if (t >= DUST_EDGE) return 0;
+    if (t <= DUST_CORE) return DUST_AV;
+    return DUST_AV * ((DUST_EDGE - t) / (DUST_EDGE - DUST_CORE)) ** 2;
+  }
+  // 별빛을 받는 면 가운데 관측자에게 보이는 비율 (달의 위상과 같다).
+  // 별이 구름 앞이면 1(보름달), 옆이면 0.5(반달), 바로 뒤면 0(삭) — 뒤에서 비추면 빛나는 면이 반대쪽을 향한다.
+  const FACE_MIN = 0.2;                   // 이보다 적게 보이면 반사 성운으로 보이지 않는다
   function nebulaScene(s) {
     const dStarGas = dist2(s.star, s.gas), dStarDust = dist2(s.star, s.dust);
     const gasLit = s.star.hot && dStarGas < REACH;            // 자외선 → 수소 이온화 → 방출 성운
     const gasNear = dStarGas < REACH;
-    const dustLit = dStarDust < REACH;                         // 별빛 산란 → 반사 성운
+    const dustLit = dStarDust < REACH;                         // 별빛이 분자 구름에 닿는다
+    // 분자 구름에서 본 별의 방향: 하늘의 가로(lightX, 오른쪽 +)와 관측자 쪽(lightZ, 별이 구름보다 가까우면 +)
+    const dx = s.star.x - s.dust.x, dz = s.star.z - s.dust.z;
+    const lightX = dStarDust > 0 ? dx / dStarDust : 0, lightZ = dStarDust > 0 ? -dz / dStarDust : 1;
+    const litFace = (1 + lightZ) / 2;
+    // 반사 성운: 티끌이 산란한 별빛이 관측자에게 와야 보인다 → 별빛을 받는 면이 이쪽을 향해야 한다
+    const reflection = dustLit && litFace >= FACE_MIN;
+    // 별이 구름 뒤에 있으면 별빛은 구름을 지나 관측자에게 온다 → 어두워지고(소광) 붉어진다(적색화). 짙으면 가려진다.
+    const starAv = dz > 0 ? dustAv(dx / HALF.dust) : 0;
+    const starE = eFromAv(starAv);
+    const starHidden = starAv >= HIDE_AV;
+    const starLook = starHidden ? 'hidden' : starAv >= 0.3 ? 'reddened' : 'clear';
+    // 산란된 빛이 앞으로 새어 나와 구름 가장자리만 옅게 빛나는 경우 (별이 구름 뒤에서 비출 때)
+    const rimGlow = dustLit && !reflection;
     const behind = [];
     if (s.background) behind.push('stars');
     if (gasLit && covers(s.dust, s.gas, HALF.dust + HALF.gas * 0.6)) behind.push('gas');
-    if (covers(s.dust, s.star, HALF.dust)) behind.push('star');
-    const starHidden = covers(s.dust, s.star, HALF.dust * 0.75);
-    const dust = dustLit ? 'reflection' : behind.length ? 'dark' : 'invisible';
+    if (starAv > 0) behind.push('star');
+    const dust = reflection ? 'reflection' : behind.length ? 'dark' : 'invisible';
     const gas = gasLit ? 'emission' : 'invisible';
     // 보이는 모습(성운의 종류). 같은 분자 구름이 별 쪽은 반사 성운, 별빛이 덜 닿는 쪽은 뒤의 빛을 가리는
     // 암흑 성운으로 함께 보일 수 있다 — 무엇이 보이는지는 구름의 성분이 아니라 빛이 오는 방향이 정한다.
-    const nebulae = {dark: behind.length > 0, reflection: dustLit, emission: gasLit};
-    // 분자 구름에서 별빛을 받는 쪽: 하늘에서 오른쪽 +1, 왼쪽 −1, 별이 거의 같은 시선에 있으면 0
-    const dx = s.star.x - s.dust.x;
-    const litSide = dustLit && Math.abs(dx) >= 2 ? Math.sign(dx) : 0;
-    return {gas, dust, gasLit, gasNear, dustLit, dustAlsoDark: dustLit && behind.length > 0,
-            behind, starHidden, dStarGas, dStarDust, nebulae, litSide,
+    const nebulae = {dark: behind.length > 0, reflection, emission: gasLit};
+    // 분자 구름에서 별빛을 받는 쪽: 하늘에서 오른쪽 +1, 왼쪽 −1, 별이 거의 앞에 있어 가운데가 빛나면 0
+    const litSide = reflection && Math.abs(lightX) >= 0.35 ? Math.sign(dx) : 0;
+    return {gas, dust, gasLit, gasNear, dustLit, dustAlsoDark: reflection && behind.length > 0,
+            behind, starHidden, starLook, starAv, starE, dStarGas, dStarDust, nebulae, litSide,
+            lightX, lightZ, litFace, rimGlow,
             gasState: gasLit ? 'HII' : 'HI', dustState: 'molecular'};
   }
   // 「○○ 성운 만들기」 단추의 배치. dark는 말머리 성운처럼 빛나는 방출 성운 앞에 분자 구름을 둔다.
@@ -254,7 +279,7 @@
     RV, ccm, BANDS, bandRatio, extinctionAt, transmission, airExtinction,
     AV_PER_E, colorExcess, avFromE, eFromAv, redden,
     distances, overestimate, extinctionForRatio, bvColor, rgb,
-    REACH, HALF, nebulaScene, NEBULA_PRESETS, ISM_STATES, ISM_MASS,
+    REACH, HALF, DUST_AV, DUST_EDGE, HIDE_AV, FACE_MIN, dustAv, nebulaScene, NEBULA_PRESETS, ISM_STATES, ISM_MASS,
     rng, FIELD, LOBES, cloudShape, LIMIT, makeField, bandFactor, seeStar, PROBES, countIn, radialProfile, onlyInIR,
     LIGHT, passProbability, shiftCMD, EXAMPLES};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

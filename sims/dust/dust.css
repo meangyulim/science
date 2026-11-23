@@ -140,7 +140,7 @@ details.more p{margin-top:6px;line-height:1.75}
 .status .row{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-bottom:2px}
 .status .who{font-weight:800;font-size:13px}
 .badge{display:inline-block;padding:1px 9px;border-radius:999px;font-size:11.5px;font-weight:800;color:#fff;background:var(--muted)}
-.badge.dark{background:var(--dark)}.badge.refl{background:var(--refl)}.badge.emis{background:var(--emis)}.badge.none{background:#9aa9b5}.badge.hid{background:#7a4b0c}
+.badge.dark{background:var(--dark)}.badge.refl{background:var(--refl)}.badge.emis{background:var(--emis)}.badge.none{background:#9aa9b5}.badge.hid{background:#7a4b0c}.badge.redden{background:#b5481f}
 .status.dark{background:var(--dark-soft)}.status.refl{background:var(--refl-soft)}.status.emis{background:var(--emis-soft)}
 .status .state{font-size:11.5px;color:var(--muted)}
 .status.off{color:var(--muted);background:#fff}
