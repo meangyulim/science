@@ -89,7 +89,7 @@ test('extinction curve: shorter wavelength, more extinction (그림 13)', () => 
 });
 
 test('nebula builder: dark, reflection and emission nebulae (교과서 103쪽)', () => {
-  // 말머리 성운처럼: 빛나는 방출 성운 앞의 차가운 티끌 구름 → 암흑 성운
+  // 말머리 성운처럼: 빛나는 방출 성운 앞의 차가운 분자 구름 → 암흑 성운
   const horse = M.nebulaScene({star: {x: 75, z: 75, hot: true}, gas: {x: 55, z: 78}, dust: {x: 52, z: 40}, background: true});
   assert.equal(horse.gas, 'emission');
   assert.equal(horse.dust, 'dark');
@@ -110,7 +110,7 @@ test('nebula builder: dark, reflection and emission nebulae (교과서 103쪽)',
   const lonely = M.nebulaScene({star: {x: 90, z: 10, hot: true}, gas: {x: 10, z: 10}, dust: {x: 40, z: 60}, background: false});
   assert.equal(lonely.dust, 'invisible');
   assert.equal(M.nebulaScene({star: {x: 90, z: 10, hot: true}, gas: {x: 10, z: 10}, dust: {x: 40, z: 60}, background: true}).dust, 'dark');
-  // 티끌 구름 뒤의 별은 가려진다
+  // 분자 구름 뒤의 별은 가려진다
   assert.ok(M.nebulaScene({star: {x: 50, z: 90, hot: true}, gas: {x: 10, z: 10}, dust: {x: 50, z: 30}, background: true}).starHidden);
   // 화면의 「만들기」 단추 세 개가 저마다 그 성운을 만든다
   const P = M.NEBULA_PRESETS, bg = s => ({...s, background: true});
@@ -122,6 +122,46 @@ test('nebula builder: dark, reflection and emission nebulae (교과서 103쪽)',
   assert.equal(M.ISM_STATES.HI.T, 100);
   assert.equal(M.ISM_STATES.HII.T, 10000);
   assert.equal(M.ISM_MASS.hydrogen + M.ISM_MASS.helium, 98);
+});
+
+test('nebula type (how it looks) and gas state (what is there) are separate classifications', () => {
+  const P = M.NEBULA_PRESETS, bg = s => ({...s, background: true});
+  // 세 성운 함께: O·B형 별 왼쪽의 분자 구름은 별 쪽이 반사 성운, 반대쪽이 암흑 성운. 오른쪽 수소 구름은 HⅡ → 방출 성운
+  const all = M.nebulaScene(bg(P.all));
+  assert.deepEqual(all.nebulae, {dark: true, reflection: true, emission: true});
+  assert.equal(all.dustState, 'molecular');
+  assert.equal(all.gasState, 'HII');
+  assert.equal(all.litSide, 1);                       // 별이 오른쪽 → 오른쪽이 빛을 받고 왼쪽이 그늘
+  assert.ok(P.all.star.hot && !all.starHidden && !all.behind.includes('gas'));
+  assert.ok(P.all.dust.x < P.all.star.x && P.all.star.x < P.all.gas.x);
+  // 뒤에서 오는 빛이 없으면 같은 배치에서 암흑 성운은 사라지고 반사·방출 성운만 남는다
+  assert.deepEqual(M.nebulaScene({...P.all, background: false}).nebulae, {dark: false, reflection: true, emission: true});
+  // 같은 분자 구름(같은 상태)이 빛이 오는 방향에 따라 암흑 성운으로도, 반사 성운으로도 보인다
+  const dark = M.nebulaScene(bg(P.dark)), refl = M.nebulaScene(bg(P.refl));
+  assert.equal(dark.dustState, refl.dustState);
+  assert.ok(dark.nebulae.dark && !dark.nebulae.reflection && dark.litSide === 0);
+  assert.ok(refl.nebulae.reflection && refl.nebulae.dark);   // 먼 별들 앞이라 별빛이 덜 닿는 쪽은 암흑 성운
+  assert.equal(refl.litSide, -1);                            // 반사 성운 만들기: 별이 분자 구름의 왼쪽
+  const lone = M.nebulaScene({...P.refl, background: false});
+  assert.ok(lone.nebulae.reflection && !lone.nebulae.dark);
+  // 상태가 바뀌면 모습이 바뀐다: 같은 수소 구름이 뜨거운 별 곁에서는 HⅡ(방출 성운), 덜 뜨거운 별 곁에서는 HⅠ(안 보임)
+  const cool = M.nebulaScene(bg({...P.all, star: {...P.all.star, hot: false}}));
+  assert.equal(cool.gasState, 'HI');
+  assert.ok(!cool.nebulae.emission && cool.nebulae.reflection && cool.nebulae.dark);
+  // 아무렇게나 놓아도: 방출 성운 ⇔ 전리수소(HⅡ), 암흑·반사 성운은 수소의 상태와 상관없이 분자 구름의 티끌과 빛의 배치로 정해진다
+  const r = M.rng(103);
+  const at = () => ({x: 3 + 94 * r(), z: 4 + 92 * r()});
+  for (let i = 0; i < 400; i++) {
+    const s = {star: {...at(), hot: r() < 0.5}, gas: at(), dust: at(), background: r() < 0.5};
+    const sc = M.nebulaScene(s);
+    assert.equal(sc.nebulae.emission, sc.gasState === 'HII');
+    assert.equal(sc.dustState, 'molecular');
+    assert.equal(sc.nebulae.reflection, sc.dustLit);
+    assert.equal(sc.nebulae.dark, sc.dust === 'dark' || sc.dustAlsoDark);
+    if (!sc.dustLit) assert.equal(sc.litSide, 0);
+    else if (Math.abs(s.star.x - s.dust.x) >= 2) assert.equal(sc.litSide, Math.sign(s.star.x - s.dust.x));
+  }
+  assert.deepEqual(Object.keys(M.ISM_STATES).map(k => M.ISM_STATES[k].h), ['분자(H₂)', '원자(H)', '이온(H⁺)']);
 });
 
 test('Barnard 68 model: fewer stars in the middle, infrared sees through (해 보기)', () => {
