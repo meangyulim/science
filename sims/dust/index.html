@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0f2235">
   <title>성간 티끌 실험실 · 별빛을 가리고 붉게 바꾸는 우주의 티끌</title>
-  <link rel="stylesheet" href="dust.css?v=20261123">
+  <link rel="stylesheet" href="dust.css?v=20261123b">
   <script defer src="dust-data.js?v=20261101"></script>
   <script defer src="dust-model.js?v=20261123"></script>
   <script defer src="dust.js?v=20261123"></script>
@@ -76,10 +76,11 @@
           </div>
           <div class="neb-block">
             <p class="block-title">성간 기체의 상태 <span>무엇이 있나</span><span class="view-chip map">위에서 내려다본 배치</span></p>
+            <p class="micro states-cap"><i aria-hidden="true"></i>색칠된 줄 = 지금 두 구름(분자 구름 · 수소 구름)의 상태</p>
             <table class="ref-table states" id="neb-states">
               <tr><th>상태</th><th>온도</th><th>특징</th></tr>
               <tr data-state="molecular"><td><b>분자 구름</b><small>수소 분자 H₂</small></td><td>약 10 K</td><td>차갑고 밀도가 높은 기체에 티끌이 섞여 뭉친 곳. 새로운 별이 태어나는 재료이자 장소</td></tr>
-              <tr data-state="HI"><td><b>중성수소(HⅠ) 영역</b><small>수소 원자 H</small></td><td>약 100 K</td><td>가시광선으로는 보이지 않고 파장 21 cm 전파로 관측 → 나선팔 구조를 알아냄</td></tr>
+              <tr data-state="HI"><td><b>중성수소(HⅠ) 영역</b><small>수소 원자 H</small></td><td>약 100 K</td><td>가시광선으로는 보이지 않고 파장 21 cm 전파로 관측 → 나선팔 구조를 알아냄<span class="also">구름 사이 공간에도 넓게 퍼져 있음 (모형에는 그리지 않음)</span></td></tr>
               <tr data-state="HII"><td><b>전리수소(HⅡ) 영역</b><small>수소 이온 H⁺</small></td><td>약 1만 K</td><td>밀도가 낮다. 젊고 뜨거운 O·B형 별의 자외선이 수소를 이온화</td></tr>
             </table>
             <div class="comp">
