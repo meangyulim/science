@@ -101,6 +101,10 @@
   // ── 01 성운 만들기 ────────────────────────────────────────────────
   // 위에서 내려다본 배치. x: 왼쪽~오른쪽(0~100), z: 관측자로부터의 거리(0~100, 클수록 멀다).
   // 배경 별은 모든 구름보다 멀리(z > 100) 있다.
+  // 두 구름 모두 기체(질량의 약 99 %)와 티끌(약 1 %)이 섞여 있다. 모형은 둘의 역할만 나누어 단순하게 했다.
+  //  · 분자 구름(dust): 차갑고 짙어 티끌이 빛을 가리고(암흑 성운) 산란하는(반사 성운) 모습이 두드러진다.
+  //  · 수소 구름(gas): 옅어 빛을 거의 가리지 않는다. O·B형 별의 자외선을 받으면 전리수소(HⅡ)가 되어 방출 성운으로 빛난다.
+  // 두 가지 분류를 따로 돌려준다 — 보이는 모습(nebulae: 암흑·반사·방출 성운)과 기체의 상태(dustState·gasState).
   const REACH = 24;                       // 별빛·자외선이 강하게 닿는 거리
   const HALF = {dust: 13, gas: 15};       // 하늘에서 구름이 차지하는 반폭
   const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -118,21 +122,29 @@
     const starHidden = covers(s.dust, s.star, HALF.dust * 0.75);
     const dust = dustLit ? 'reflection' : behind.length ? 'dark' : 'invisible';
     const gas = gasLit ? 'emission' : 'invisible';
+    // 보이는 모습(성운의 종류). 같은 분자 구름이 별 쪽은 반사 성운, 별빛이 덜 닿는 쪽은 뒤의 빛을 가리는
+    // 암흑 성운으로 함께 보일 수 있다 — 무엇이 보이는지는 구름의 성분이 아니라 빛이 오는 방향이 정한다.
+    const nebulae = {dark: behind.length > 0, reflection: dustLit, emission: gasLit};
+    // 분자 구름에서 별빛을 받는 쪽: 하늘에서 오른쪽 +1, 왼쪽 −1, 별이 거의 같은 시선에 있으면 0
+    const dx = s.star.x - s.dust.x;
+    const litSide = dustLit && Math.abs(dx) >= 2 ? Math.sign(dx) : 0;
     return {gas, dust, gasLit, gasNear, dustLit, dustAlsoDark: dustLit && behind.length > 0,
-            behind, starHidden, dStarGas, dStarDust,
+            behind, starHidden, dStarGas, dStarDust, nebulae, litSide,
             gasState: gasLit ? 'HII' : 'HI', dustState: 'molecular'};
   }
-  // 「○○ 성운 만들기」 단추의 배치. dark는 말머리 성운처럼 빛나는 방출 성운 앞에 티끌 구름을 둔다.
+  // 「○○ 성운 만들기」 단추의 배치. dark는 말머리 성운처럼 빛나는 방출 성운 앞에 분자 구름을 둔다.
+  // all은 O·B형 별 왼쪽에 분자 구름(별 쪽 반사 성운 + 반대쪽 암흑 성운), 오른쪽에 수소 구름(방출 성운).
   const NEBULA_PRESETS = {
     dark: {star: {x: 76, z: 72, hot: true}, gas: {x: 60, z: 78}, dust: {x: 44, z: 38}},
     refl: {star: {x: 42, z: 56, hot: false}, gas: {x: 14, z: 84}, dust: {x: 58, z: 62}},
-    emis: {star: {x: 50, z: 62, hot: true}, gas: {x: 50, z: 66}, dust: {x: 86, z: 24}}
+    emis: {star: {x: 50, z: 62, hot: true}, gas: {x: 50, z: 66}, dust: {x: 86, z: 24}},
+    all: {star: {x: 50, z: 58, hot: true}, gas: {x: 70, z: 62}, dust: {x: 30, z: 54}}
   };
-  // 수업 슬라이드 6·7쪽의 세 가지 상태
+  // 성간 기체의 세 가지 상태 (수업 슬라이드 6·7쪽, 학습지: 수소의 상태와 온도로 나눈다)
   const ISM_STATES = {
-    molecular: {name: '분자 구름', temp: '약 10 K', T: 10},
-    HI: {name: '중성수소(HⅠ) 영역', temp: '약 100 K', T: 100},
-    HII: {name: '전리수소(HⅡ) 영역', temp: '약 1만 K', T: 10000}
+    molecular: {name: '분자 구름', temp: '약 10 K', T: 10, h: '분자(H₂)'},
+    HI: {name: '중성수소(HⅠ) 영역', temp: '약 100 K', T: 100, h: '원자(H)'},
+    HII: {name: '전리수소(HⅡ) 영역', temp: '약 1만 K', T: 10000, h: '이온(H⁺)'}
   };
   // 성간 물질의 질량 구성 (교과서 102·104쪽)
   const ISM_MASS = {hydrogen: 74, helium: 24, dust: 1};

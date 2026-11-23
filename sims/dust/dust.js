@@ -268,7 +268,11 @@
       place(tokens.gas, st.gas.x, st.gas.z);
       tokens.star.classList.toggle('cool', !hot);
       tokens.star.querySelector('.tok-name').textContent = hot ? 'O·B형 별' : '덜 뜨거운 별';
+      // 위에서 본 배치에는 기체의 상태를 적는다. 같은 수소 구름이 자외선을 받으면 HⅠ → HⅡ로 바뀐다.
+      const gasName = M.ISM_STATES[sc.gasState].name.replace(' 영역', '');
       tokens.gas.classList.toggle('lit', sc.gasLit);
+      tokens.gas.querySelector('.tok-name').textContent = gasName.replace(/\(.*\)/, '');
+      tokens.gas.setAttribute('aria-label', `수소 구름 옮기기, 지금 ${gasName} (화살표 키)`);
     }
 
     function dustBlob(ctx, cx, cy, rx, ry, a) {
@@ -324,25 +328,30 @@
           }
         } else {
           const rx = M.HALF.dust * u, ry = Math.min(h * 0.4, rx * 0.85);
-          pos.dust = {x, y: cy + 0.02 * h, ry};
+          pos.dust = {x, y: cy + 0.02 * h, ry, rx};
           dustBlob(ctx, x, pos.dust.y, rx, ry, 0.97);
           if (sc.dustLit) {
+            // 별을 향한 쪽만 푸르게 빛난다. 별빛이 덜 닿는 쪽은 검은 채로 뒤의 빛을 가린다(암흑 성운).
             const k2 = M.clamp(1.2 - sc.dStarDust / M.REACH, 0.3, 1);
-            const side = M.clamp((st.star.x - st.dust.x) / M.HALF.dust, -1, 1) * 0.45;
+            const lean = M.clamp((st.star.x - st.dust.x) / M.HALF.dust, -1, 1);
             ctx.globalCompositeOperation = 'lighter';
-            for (const b of LUMPS) blob(ctx, x + b.dx * rx, pos.dust.y + b.dy * ry, b.r * rx, `rgba(55,105,230,${(0.24 * k2).toFixed(3)})`);
-            blob(ctx, x + side * rx, pos.dust.y, rx * 0.8, `rgba(120,170,255,${(0.42 * k2).toFixed(3)})`);
+            for (const b of LUMPS) {
+              const face = M.clamp(0.55 + 1.1 * b.dx * lean, 0, 1);
+              if (face > 0) blob(ctx, x + b.dx * rx, pos.dust.y + b.dy * ry, b.r * rx, `rgba(55,105,230,${(0.24 * k2 * face).toFixed(3)})`);
+            }
+            blob(ctx, x + lean * 0.5 * rx, pos.dust.y, rx * (0.8 - 0.15 * Math.abs(lean)), `rgba(120,170,255,${(0.42 * k2).toFixed(3)})`);
             ctx.globalCompositeOperation = 'source-over';
           }
         }
       }
-      // 이름표 (겹치면 위로 올린다)
+      // 이름표 (겹치면 위로 올린다). 하늘에는 '보이는 모습'(성운의 종류)만 적는다.
       const fs = w < 520 ? 11 : 12.5;
       const tags = [];
-      const dustTxt = {reflection: ['반사 성운', '#9cc2ff'], dark: ['암흑 성운', '#d9dde3'], invisible: ['티끌 구름 (안 보임)', '#8a96a3']}[sc.dust];
-      const gasTxt = sc.gas === 'emission' ? ['방출 성운', '#ff9aa9'] : ['수소 기체 (안 보임)', '#8a96a3'];
-      tags.push({x: pos.dust.x, t: dustTxt[0], c: dustTxt[1]});
-      tags.push({x: pos.gas.x, t: gasTxt[0], c: gasTxt[1]});
+      const N = sc.nebulae, dir = sc.litSide || 1;
+      if (N.reflection) tags.push({x: pos.dust.x + (N.dark ? dir * pos.dust.rx * 0.5 : 0), t: '반사 성운', c: '#9cc2ff'});
+      if (N.dark) tags.push({x: pos.dust.x - (N.reflection ? dir * pos.dust.rx * 0.62 : 0), t: '암흑 성운', c: '#d9dde3'});
+      if (!N.reflection && !N.dark) tags.push({x: pos.dust.x, t: '분자 구름 (안 보임)', c: '#8a96a3'});
+      tags.push(N.emission ? {x: pos.gas.x, t: '방출 성운', c: '#ff9aa9'} : {x: pos.gas.x, t: '중성수소 (안 보임)', c: '#8a96a3'});
       tags.push({x: pos.star.x, t: sc.starHidden ? '별 (가려짐)' : (st.star.hot ? 'O·B형 별' : '덜 뜨거운 별'), c: sc.starHidden ? '#e6a93c' : '#ffffff', star: true});
       const boxes = [];
       tags.forEach(t => {
@@ -359,39 +368,59 @@
       });
     }
 
+    // 성운의 종류 — 무엇이(성간 티끌 · 이온화된 수소), 어떻게(차단 · 산란 · 발광). 학습지 「성운 세 가지」 표와 같은 순서.
+    const LOOKS = [
+      {k: 'dark', c: 'dark', name: '암흑 성운', how: '성간 티끌에 의한 빛의 차단', color: '검게'},
+      {k: 'reflection', c: 'refl', name: '반사 성운', how: '성간 티끌에 의한 빛의 산란', color: '푸르게'},
+      {k: 'emission', c: 'emis', name: '방출 성운', how: '이온화된 수소 기체의 발광', color: '붉게'}
+    ];
     function status(sc) {
-      const hot = st.star.hot;
-      let dust;
-      if (sc.dust === 'reflection') dust = {b: '반사 성운', c: 'refl', why: '가까운 별의 빛 가운데 파란빛이 티끌에 더 많이 산란(반사)되어 푸르게 보입니다.' + (sc.dustAlsoDark ? ' 별빛이 덜 닿는 쪽은 뒤의 빛을 가려 어둡습니다.' : '')};
-      else if (sc.dust === 'dark') {
-        const what = sc.behind.includes('gas') ? '방출 성운의 붉은빛' : sc.behind.includes('star') ? '별빛' : '먼 별들의 빛';
-        dust = {b: '암흑 성운', c: 'dark', why: `티끌이 뒤에서 오는 ${what}을 가려 검게 보입니다.`};
-      } else dust = {b: '보이지 않음', c: 'none', why: '뒤에서 오는 빛도, 비추는 별도 없어 검은 하늘과 구별되지 않습니다. 뒤쪽 먼 별들을 켜 보세요.'};
-      let gas;
-      if (sc.gas === 'emission') gas = {b: '방출 성운', c: 'emis', s: M.ISM_STATES.HII, why: '젊고 뜨거운 O·B형 별의 강한 자외선이 수소를 이온화했습니다. 전리된 수소가 재결합하며 내는 빛으로 붉게 빛납니다.'};
-      else if (sc.gasNear) gas = {b: '보이지 않음', c: 'none', s: M.ISM_STATES.HI, why: '별이 가까이 있지만 자외선이 약해 수소를 이온화하지 못합니다. 가시광선으로는 보이지 않고, 파장 21 cm 전파로 관측합니다.'};
-      else gas = {b: '보이지 않음', c: 'none', s: M.ISM_STATES.HI, why: '자외선을 내는 별에서 멀어 수소가 원자 상태로 남았습니다. 가시광선으로는 보이지 않고, 파장 21 cm 전파로 관측합니다.'};
+      const hot = st.star.hot, N = sc.nebulae;
+      const sideName = s => s > 0 ? '오른쪽' : s < 0 ? '왼쪽' : '';
+      const lit = sideName(sc.litSide), shade = sideName(-sc.litSide);
+      const both = N.dark && N.reflection;
+      const what = sc.behind.includes('gas') ? '방출 성운의 붉은빛' : sc.behind.includes('star') ? '별빛' : '먼 별들의 빛';
+      const text = {
+        dark: N.dark
+          ? `${both ? `분자 구름에서 별빛이 덜 닿는 ${shade || '가장자리'}` : '분자 구름'} — 티끌이 뒤에서 오는 ${what}을 가려 검게 보입니다.`
+          : '뒤에서 오는 빛이 없어 검은 하늘과 구별되지 않습니다. 뒤쪽 먼 별들을 켜거나, 분자 구름을 빛나는 것 앞에 두어 보세요.',
+        reflection: N.reflection
+          ? `${lit ? `분자 구름에서 별을 향한 ${lit}` : '별빛을 받는 분자 구름'} — 가까운 별빛을 티끌이 산란하는데, 파란빛이 더 많이 산란되어 푸르게 보입니다.`
+          : '분자 구름 가까이(점선 안)에 별이 없어, 티끌이 산란할 별빛이 약합니다.',
+        emission: N.emission
+          ? '수소 구름(전리수소 영역) — O·B형 별의 자외선이 수소를 이온화했고, 양성자와 전자가 재결합하며 붉은빛(방출선)을 냅니다.'
+          : hot ? '수소 구름이 O·B형 별에서 멀어 중성수소(HⅠ)로 남았습니다. 가시광선으로는 보이지 않고 파장 21 cm 전파로 관측합니다.'
+          : sc.gasNear ? '별이 가까이 있지만 자외선이 약해 수소를 이온화하지 못합니다(중성수소 HⅠ). 가시광선으로는 보이지 않습니다.'
+          : '자외선을 내는 뜨거운 별이 가까이 없어 수소가 중성수소(HⅠ)로 남았습니다. 가시광선으로는 보이지 않습니다.'
+      };
       const star = sc.starHidden
-        ? {b: '가려짐', c: 'hid', why: '티끌 구름 뒤에 있어 별빛이 가려졌습니다. 이것이 02의 성간 소광입니다.'}
+        ? {b: '가려짐', c: 'hid', why: '분자 구름 뒤에 있어 별빛이 가려졌습니다. 이것이 02의 성간 소광입니다.'}
         : {b: hot ? 'O·B형 별' : '덜 뜨거운 별', c: hot ? 'refl' : 'none', why: hot ? '태어난 지 얼마 안 된 뜨거운 별이라 강한 자외선을 냅니다.' : '빛은 밝지만 자외선이 약합니다.'};
-      $('neb-status').innerHTML = `
-        <div class="status ${dust.c}"><div class="row"><span class="who">티끌 구름</span><span class="badge ${dust.c}">${dust.b}</span><span class="state">분자 구름 · 약 10 K</span></div>${dust.why}</div>
-        <div class="status ${gas.c === 'emis' ? 'emis' : ''}"><div class="row"><span class="who">수소 기체 구름</span><span class="badge ${gas.c}">${gas.b}</span><span class="state">${gas.s.name} · ${gas.s.temp}</span></div>${gas.why}</div>
-        <div class="status"><div class="row"><span class="who">별</span><span class="badge ${star.c}">${star.b}</span></div>${star.why}</div>`;
+      $('neb-looks').innerHTML = LOOKS.map(L => {
+        const seen = N[L.k];
+        return `<div class="status look ${seen ? L.c : 'off'}"><div class="row"><span class="badge ${seen ? L.c : 'none'}">${L.name}</span><span class="who">${L.how}</span><span class="seen">${seen ? L.color + ' 보임' : '안 보임'}</span></div>${text[L.k]}</div>`;
+      }).join('') + `<div class="status star-row"><div class="row"><span class="who">별</span><span class="badge ${star.c}">${star.b}</span></div>${star.why}</div>`;
       document.querySelectorAll('#neb-states tr[data-state]').forEach(tr => {
         const s = tr.dataset.state;
-        tr.classList.toggle('on', s === 'molecular' || s === sc.gasState);
+        tr.classList.toggle('on', s === sc.dustState || s === sc.gasState);
       });
+      $('neb-note').classList.toggle('on', both);
       const parts = [];
-      if (sc.dust === 'dark') parts.push('<b>암흑 성운</b> — 티끌이 뒤에서 오는 빛을 가려 검게 보입니다');
-      if (sc.dust === 'reflection') parts.push('<b>반사 성운</b> — 티끌이 가까운 별빛을 산란해 푸르게 보입니다');
-      if (sc.gas === 'emission') parts.push('<b>방출 성운</b> — 전리수소 영역에서 수소가 재결합하며 붉게 빛납니다');
+      if (N.dark) parts.push('<b>암흑 성운</b> — 티끌이 뒤에서 오는 빛을 가려 검게 보입니다');
+      if (N.reflection) parts.push('<b>반사 성운</b> — 티끌이 가까운 별빛을 산란해 푸르게 보입니다');
+      if (N.emission) parts.push('<b>방출 성운</b> — 전리수소 영역에서 수소가 재결합하며 붉게 빛납니다');
+      let main = parts.length ? parts.join(' · ') + '.' : '지금은 아무 성운도 보이지 않습니다.';
+      if (both) main += sc.litSide
+        ? ' <b>같은 분자 구름</b>이 별 쪽은 반사 성운, 반대쪽은 암흑 성운으로 보입니다.'
+        : ' <b>같은 분자 구름</b>이 별빛을 받는 가운데는 반사 성운, 가장자리는 암흑 성운으로 보입니다.';
       let tip = '';
-      if (sc.gas !== 'emission') tip = hot ? ' 수소 기체를 O·B형 별 가까이(점선 안) 옮겨 보세요.' : ' 별을 젊고 뜨거운 O·B형 별로 바꾸면 무엇이 달라질까요?';
-      else if (sc.dust === 'dark' && !sc.behind.includes('gas')) tip = ' 티끌 구름을 붉게 빛나는 기체 앞(아래쪽)으로 옮기면 말머리 성운처럼 보입니다.';
-      else if (sc.dust !== 'reflection') tip = ' 티끌 구름을 별 가까이 옮기면 어떻게 될까요?';
-      $('neb-insight').innerHTML = (parts.length ? parts.join(' · ') + '.' : '지금은 아무 성운도 보이지 않습니다.') + tip;
-      sky.setAttribute('aria-label', '관측자가 보는 하늘: ' + (parts.length ? parts.map(t => t.replace(/<[^>]+>/g, '')).join(', ') : '보이는 성운 없음'));
+      if (!N.emission) tip = hot ? ' 수소 구름을 O·B형 별 가까이(점선 안) 옮겨 보세요.' : ' 별을 젊고 뜨거운 O·B형 별로 바꾸면 무엇이 달라질까요?';
+      else if (sc.dust === 'dark' && !sc.behind.includes('gas')) tip = ' 분자 구름을 붉게 빛나는 수소 구름 앞(아래쪽)으로 옮기면 말머리 성운처럼 보입니다.';
+      else if (!N.reflection) tip = ' 분자 구름을 별 가까이 옮기면 어떻게 될까요?';
+      else if (!N.dark) tip = ' 뒤쪽 먼 별들을 켜면 별빛이 덜 닿는 쪽은 어떻게 보일까요?';
+      $('neb-insight').innerHTML = main + tip;
+      const seenNames = LOOKS.filter(L => N[L.k]).map(L => L.name);
+      sky.setAttribute('aria-label', '관측자가 보는 하늘: ' + (seenNames.length ? seenNames.join(', ') : '보이는 성운 없음'));
       setPressed($('neb-presets'), 'data-preset', st.preset || '');
       setPressed($('neb-startype'), 'data-hot', hot ? '1' : '0');
       $('neb-bg').checked = st.background;
@@ -411,7 +440,7 @@
       {id: 'ic435', name: 'IC 435', kind: 'refl', badge: '반사 성운', x: 0.646, y: 0.893, r: 0.045,
         text: '가까운 별의 빛이 티끌에 반사되어 푸르게 보이는 작은 반사 성운입니다.', link: ''},
       {id: 'zeta', name: '오리온자리 제타 별', kind: 'star', badge: '별', x: 0.374, y: 0.481, r: 0.06,
-        text: '오리온자리 허리띠의 세 별 가운데 하나(알니타크)로, 이 사진에서 가장 밝은 별입니다. 이 둘레에 성간 물질이 많이 모여 있어 세 가지 성운이 함께 보입니다.', link: ''}
+        text: '오리온자리 허리띠의 세 별 가운데 하나(알니타크)로, 이 사진에서 가장 밝은 별입니다. 이 둘레에 성간 물질이 많이 모여 있어 세 가지 성운이 함께 보입니다.', link: '→ 위 모형의 「세 성운 함께 보기」처럼, 성운의 종류는 같은 성간 물질에 빛이 어떻게 오느냐에 따라 달라집니다.'}
     ];
     const ocv = $('orion'), ophoto = $('orion-photo');
     const chips = $('orion-chips');
