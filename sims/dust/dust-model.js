@@ -259,6 +259,41 @@
     return brightnessRatio(A);
   }
 
+  // ── 03 노을 비유: 태양의 고도와 햇빛이 지나는 공기층 ─────────────────────
+  // 대기 질량: 햇빛이 지나는 공기의 양 (해가 머리 위 = 1). 해가 낮을수록 길어지고,
+  // 지구가 둥글어서 해가 지평선에 있을 때(고도 0°)에도 끝이 있다(약 38). Kasten & Young (1989)의 식.
+  function airMass(altDeg) {
+    const h = clamp(altDeg, 0, 90);
+    return 1 / (Math.sin(h * Math.PI / 180) + 0.50572 * (h + 6.07995) ** -1.6364);
+  }
+  // 해가 머리 위에 있을 때 공기 때문에 V(0.55 μm)에서 어두워지는 등급 (맑은 날 약 0.2등급)
+  const AIR_TAU_V = 0.2;
+  // 태양의 고도가 altDeg일 때 햇빛이 공기층을 그대로 통과하는 비율
+  function sunThroughAir(altDeg) {
+    const X = airMass(altDeg), tauV = AIR_TAU_V * X;
+    return {X, tauV, blue: passProbability('blue', tauV, 'air'), red: passProbability('red', tauV, 'air')};
+  }
+  // 관측자에게 보이는 해의 색 (표시용). 눈은 한낮의 햇빛에 익숙하므로 머리 위의 해를 흰색으로 두고,
+  // 그보다 더 지나온 공기층에서 빠지는 만큼 붉은(0.65)·초록(0.55)·파란(0.45 μm) 성분을 줄인다.
+  function sunColor(altDeg) {
+    const extra = AIR_TAU_V * (airMass(altDeg) - 1);
+    const t = [0.65, 0.55, 0.45].map(l => brightnessRatio(airExtinction(l, extra)));
+    const top = Math.max(...t);
+    return [255, 250, 240].map((c, i) => Math.round(c * (t[i] / top) ** (1 / 2.2)));
+  }
+  // 관측자가 보는 하늘의 색 (표시용). elevDeg: 바라보는 곳의 고도(0 = 지평선, 90 = 머리 위), toward: 해 쪽 하늘인가.
+  // 해가 높으면 공기가 산란한 파란빛이 하늘의 모든 방향에서 와서 하늘 전체가 파랗고,
+  // 해가 낮으면 해 쪽 지평선이 공기층을 길게 지나온 햇빛(붉어진 해의 색)으로 물들고 머리 위는 어두워진다.
+  const mixRGB = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+  function skyColor(altDeg, elevDeg, toward = true) {
+    const s = clamp(altDeg / 20, 0, 1), day = s * s * (3 - 2 * s);      // 고도 0° → 0, 20° 이상 → 1
+    const zenith = mixRGB([30, 52, 112], [64, 128, 224], day);
+    const horizon = toward ? mixRGB(sunColor(altDeg).map(c => c * 0.92), [196, 222, 250], day)
+                           : mixRGB([118, 112, 160], [186, 210, 245], day);
+    const w = (clamp(elevDeg, 0, 90) / 90) ** 0.45;
+    return mixRGB(horizon, zenith, w).map(Math.round);
+  }
+
   // ── 04 성단의 C-M도 이동 (교과서 124쪽 10번) ─────────────────────────
   // 성단의 별들은 거리가 같으므로 모두 같은 양만큼 옮겨진다: 색지수 +E, 겉보기 등급 +3E
   const shiftCMD = (pts, E) => pts.map(([bv, V]) => [bv + E, V + avFromE(E)]);
@@ -281,7 +316,7 @@
     distances, overestimate, extinctionForRatio, bvColor, rgb,
     REACH, HALF, DUST_AV, DUST_EDGE, HIDE_AV, FACE_MIN, dustAv, nebulaScene, NEBULA_PRESETS, ISM_STATES, ISM_MASS,
     rng, FIELD, LOBES, cloudShape, LIMIT, makeField, bandFactor, seeStar, PROBES, countIn, radialProfile, onlyInIR,
-    LIGHT, passProbability, shiftCMD, EXAMPLES};
+    LIGHT, passProbability, airMass, AIR_TAU_V, sunThroughAir, sunColor, skyColor, shiftCMD, EXAMPLES};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DustModel = api;
 })(typeof window !== 'undefined' ? window : this);

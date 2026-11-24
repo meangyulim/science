@@ -7,8 +7,8 @@
   <title>성간 티끌 실험실 · 별빛을 가리고 붉게 바꾸는 우주의 티끌</title>
   <link rel="stylesheet" href="dust.css?v=20261123d">
   <script defer src="dust-data.js?v=20261101"></script>
-  <script defer src="dust-model.js?v=20261123c"></script>
-  <script defer src="dust.js?v=20261123d"></script>
+  <script defer src="dust-model.js?v=20261124a"></script>
+  <script defer src="dust.js?v=20261124a"></script>
 </head>
 <body>
 <main class="app">
@@ -188,7 +188,7 @@
         </ol>
         <details class="more">
           <summary>예시 답안과 바너드 68 이야기</summary>
-          <p>① 가운데는 별이 거의 보이지 않고 바깥으로 갈수록 별이 많고 밝아집니다. 암흑 성운에 많은 성간 티끌이 뒤쪽 별빛을 가리기 때문(성간 소광)이고, 가운데에서 바깥으로 갈수록 티끌이 줄어 소광도 줄어듭니다.</p>
+          <p>① 가운데는 별이 거의 보이지 않고 바깥으로 갈수록 별이 많고 밝아집니다. 가운데 영역의 소광이 큰 것은 그곳에 성간 티끌이 많아 뒤쪽 별빛을 가리기 때문(성간 소광)이라고 해석할 수 있습니다.</p>
           <p>② 가시광선보다 파장이 긴 적외선은 성간 티끌에 의한 흡수와 산란을 적게 겪어 뒤쪽 별빛이 통과합니다. 티끌은 대부분 1 μm보다 작아 가시광선 파장과 크기가 비슷하므로 가시광선을 잘 가리고, 파장이 훨씬 긴 빛은 잘 가리지 못합니다.</p>
           <p>바너드 68은 뱀주인자리 쪽 약 410광년 거리에 있는 약 16 K의 차가운 분자 구름입니다. 오래 노출해 찍은 영상에서 이 구름 뒤의 별을 약 3700개 찾았고, 그중 1000개 넘게는 적외선으로만 보였습니다(ESO 보도 자료 eso0102).</p>
         </details>
@@ -248,10 +248,12 @@
         </div>
         <canvas id="red-canvas" class="photon-canvas" role="img" aria-label="별빛의 파란빛과 붉은빛이 티끌 층을 지나는 모습"></canvas>
         <div class="slider-row">
-          <label><span id="red-A-label">별과 관측자 사이의 티끌 양 <output id="red-A-out"></output></span><input id="red-A" type="range" min="0" max="4.5" step="0.05" value="1.5"></label>
+          <label id="red-A-wrap"><span>별과 관측자 사이의 티끌 양 <output id="red-A-out"></output></span><input id="red-A" type="range" min="0" max="4.5" step="0.05" value="1.5"></label>
+          <label id="red-alt-wrap" hidden><span>태양의 고도 <output id="red-alt-out"></output></span><input id="red-alt" type="range" min="0" max="90" step="1" value="60"></label>
         </div>
         <div class="readout" id="red-counts"></div>
-        <p class="panel-note">파란 선은 파장이 짧은 파란빛, 붉은 선은 파장이 긴 붉은빛입니다. 티끌 층에서 방향이 꺾이면 <b>산란</b>, 주황색으로 사라지면 <b>흡수</b>(빛이 티끌을 데움)입니다. 교과서 그림 14처럼 관측자 1은 티끌 너머의 별을, 관측자 2는 별빛을 산란하는 티끌 구름을 봅니다.</p>
+        <p class="panel-note" id="red-note-space">파란 선은 파장이 짧은 파란빛, 붉은 선은 파장이 긴 붉은빛입니다. 티끌 층에서 방향이 꺾이면 <b>산란</b>, 주황색으로 사라지면 <b>흡수</b>(빛이 티끌을 데움)입니다. 교과서 그림 14처럼 관측자 1은 티끌 너머의 별을, 관측자 2는 별빛을 산란하는 티끌 구름을 봅니다.</p>
+        <p class="panel-note" id="red-note-air" hidden>지구와 대기를 옆에서 본 그림입니다. 파란 선은 파란빛, 붉은 선은 붉은빛이고, 공기에 부딪혀 방향이 꺾이면 <b>산란</b>입니다. 파란빛이 훨씬 잘 산란되어 하늘 곳곳에서 관측자에게 들어옵니다. 오른쪽 위 작은 창은 관측자가 해 쪽을 바라본 모습입니다. 지구는 아주 작게, 대기는 아주 두껍게 그렸습니다.</p>
       </section>
       <section class="panel red-numbers">
         <div class="panel-heading"><h3><span class="step">2</span> B 등급과 V 등급, 그리고 색초과</h3></div>
