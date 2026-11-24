@@ -267,3 +267,45 @@ test('display colours redden with colour index', () => {
   assert.deepEqual(M.bvColor(-1), M.bvColor(-0.3));
   assert.match(M.rgb(white), /^rgb\(\d+,\d+,\d+\)$/);
 });
+
+test('sunset analogy: the lower the Sun, the longer the air path and the redder the Sun (노을 비유)', () => {
+  // 대기 질량(햇빛이 지나는 공기의 양): 머리 위 1, 고도 30°에서 약 2, 지평선에서 약 38. 해가 낮을수록 길어진다.
+  close(M.airMass(90), 1, 0.002);
+  assert.ok(Math.abs(M.airMass(30) - 2) < 0.02);
+  assert.ok(M.airMass(0) > 35 && M.airMass(0) < 40);
+  let last = 0;
+  for (let h = 90; h >= 0; h -= 1) { const X = M.airMass(h); assert.ok(X > last); last = X; }
+  close(M.sunThroughAir(90).tauV, M.AIR_TAU_V, 1e-3);
+  // 파란빛은 늘 붉은빛보다 적게 통과하고, 해가 낮을수록 둘 다 줄며 남는 빛에서 붉은빛의 몫이 커진다
+  let prev = M.sunThroughAir(90);
+  assert.ok(prev.blue > 0.5 && prev.red > 0.85);             // 해가 높으면 대부분 그대로 통과한다
+  for (let h = 89; h >= 0; h -= 1) {
+    const s = M.sunThroughAir(h);
+    assert.ok(s.blue < s.red);
+    assert.ok(s.blue < prev.blue && s.red < prev.red);
+    assert.ok(s.blue / s.red < prev.blue / prev.red);
+    prev = s;
+  }
+  const low = M.sunThroughAir(2);
+  assert.ok(low.blue < 0.01 && low.red > 0.1);                // 해가 뜨거나 질 때: 파란빛은 거의 다 빠지고 붉은빛이 남는다
+  // 보이는 해의 색: 머리 위에서는 희고, 낮아질수록 초록·파랑 성분이 줄어 붉어진다
+  assert.ok(M.sunColor(90).every(c => c >= 235));
+  let g = 1, b = 1;
+  for (let h = 90; h >= 0; h -= 5) {
+    const [R, G, B] = M.sunColor(h);
+    assert.equal(R, 255);
+    assert.ok(G / R <= g + 1e-9 && B / R <= b + 1e-9);
+    g = G / R; b = B / R;
+  }
+  const [r0, g0, b0] = M.sunColor(0);
+  assert.ok(r0 > 3 * g0 && b0 < 10);
+  // 하늘의 색: 해가 높으면 어느 쪽을 보아도 파랗고, 해가 지면 해 쪽 지평선은 붉고 머리 위는 어두운 파랑이다
+  for (const [e, toward] of [[90, true], [45, true], [10, true], [10, false], [0, false]]) {
+    const c = M.skyColor(60, e, toward);
+    assert.ok(c[2] > c[0], `noon sky ${e}° ${toward}: ${c}`);
+  }
+  const glow = M.skyColor(1, 0, true), zen = M.skyColor(1, 90, true), noonZen = M.skyColor(60, 90, true);
+  assert.ok(glow[0] > glow[2] && glow[0] > glow[1], `sunset glow ${glow}`);
+  assert.ok(zen[2] > zen[0] && zen[2] < noonZen[2], `sunset zenith ${zen}`);
+  assert.deepEqual(M.skyColor(1, 90, true), M.skyColor(1, 90, false));   // 머리 위는 어느 쪽에서 보아도 같다
+});

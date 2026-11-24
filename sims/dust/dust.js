@@ -781,7 +781,7 @@
       const pv = Math.round(100 * core(vis)), pi = Math.round(100 * core(ir));
       $('ext-insight').innerHTML = st.A0 === 0
         ? '티끌이 없으면 가운데와 바깥의 별의 수가 비슷합니다. 슬라이더로 티끌을 넣어 보세요.'
-        : `가시광선에서는 가운데 두 고리의 별이 티끌이 없을 때의 <b>${pv} %</b>뿐이고, 바깥으로 갈수록 많아집니다 → 가운데일수록 티끌이 많아 <b>소광이 큽니다</b>. 같은 티끌인데 적외선에서는 <b>${pi} %</b>가 보입니다 → 파장이 긴 적외선은 <b>티끌의 영향을 덜 받아</b> 가려진 별이 보입니다.`;
+        : `가시광선에서는 가운데 두 고리의 별이 티끌이 없을 때의 <b>${pv} %</b>뿐이고, 바깥으로 갈수록 많아집니다. 이 그림에서 <b>가운데 영역의 소광이 큰 것</b>은 그곳에 <b>티끌이 많아서</b>라고 해석할 수 있습니다. 같은 티끌인데 적외선에서는 <b>${pi} %</b>가 보입니다 → 파장이 긴 적외선은 <b>티끌의 영향을 덜 받아</b> 가려진 별이 보입니다.`;
     }
 
     function render() {
@@ -834,7 +834,7 @@
       q4: {star: {id: 'q4', name: '수업 Q4의 별 ⓑ', bv0: 0.2, V0: 11}, Av: 3,
         note: '수업 Q4 ⓑ: 은하 원반 방향의 별. 관측 색지수 1.2, 고유 색지수 0.2 → E = 1.0, A<sub>V</sub> = 3.0. ㄷ의 함정: B 등급 변화는 3.0이 아니라 A<sub>V</sub> + E = <b>4.0</b>'}
     };
-    const st = {star: STARS[1], Av: 1.5, medium: 'space', lambda: 0.44, ex: null};
+    const st = {star: STARS[1], Av: 1.5, medium: 'space', alt: 60, lambda: 0.44, ex: null};
     const cv = $('red-canvas'), ladder = $('red-ladder'), chart = $('red-chart');
     const starChips = $('red-stars');
     STARS.forEach(s => {
@@ -850,28 +850,36 @@
       render();
     }));
     $('red-A').addEventListener('input', e => { st.Av = +e.target.value; if (st.ex) st.ex = null; render(); });
-    document.querySelectorAll('#red-medium [data-medium]').forEach(b => b.addEventListener('click', () => { st.medium = b.dataset.medium; resetPhotons(); render(); }));
+    $('red-alt').addEventListener('input', e => { st.alt = +e.target.value; render(); });
+    document.querySelectorAll('#red-medium [data-medium]').forEach(b => b.addEventListener('click', () => {
+      if (st.medium === b.dataset.medium) return;
+      st.medium = b.dataset.medium; resetPhotons(); render();
+    }));
 
     // ── 1. 빛 알갱이 장면 (설계 좌표 640 × 300) ──
     const G = {star: [70, 120], slab: [250, 380, 42, 205], o1: [592, 120], o2: [315, 272]};
     const ph = {list: [], last: null, spawn: 0};
-    function resetPhotons() { ph.list = []; }
+    // 장면을 바꾸면 빛 알갱이를 비우고, 빈 화면 대신 몇 초 움직인 모습에서 시작한다
+    function resetPhotons() {
+      ph.list = []; ph.spawn = 0;
+      if (!reduceMotion) for (let i = 0; i < 90; i++) step(1 / 30);
+    }
     function spawnPhoton() {
       const blue = Math.random() < 0.5, ang = (Math.random() - 0.5) * 0.1;
       ph.list.push({x: G.star[0] + 14, y: G.star[1] + (Math.random() - 0.5) * 16, vx: Math.cos(ang), vy: Math.sin(ang), c: blue ? 'blue' : 'red', fate: null, ex: 0, state: 'fly', life: 1});
     }
     function step(dt) {
+      if (st.medium === 'air') { stepAir(dt); return; }
       ph.spawn += dt * 34;
       while (ph.spawn >= 1) { spawnPhoton(); ph.spawn -= 1; }
       const sp = 175;
-      const air = st.medium === 'air';
       for (const p of ph.list) {
         if (p.state === 'absorb') { p.life -= dt * 2.4; continue; }
         p.x += p.vx * sp * dt; p.y += p.vy * sp * dt;
         if (p.fate === null && p.x >= G.slab[0]) {
-          const pass = M.passProbability(p.c, st.Av, st.medium);
+          const pass = M.passProbability(p.c, st.Av);
           const u = Math.random();
-          p.fate = u < pass ? 'pass' : (air || Math.random() < 0.6) ? 'scatter' : 'absorb';
+          p.fate = u < pass ? 'pass' : Math.random() < 0.6 ? 'scatter' : 'absorb';
           p.ex = G.slab[0] + Math.random() * (G.slab[1] - G.slab[0]);
         }
         if (p.state === 'fly' && p.fate && p.fate !== 'pass' && p.x >= p.ex) {
@@ -888,36 +896,255 @@
         !(p.state === 'fly' && p.x > G.o1[0] - 16) && !(p.state === 'scat' && Math.hypot(p.x - G.o2[0], p.y - G.o2[1]) < 16));
       if (ph.list.length > 260) ph.list.splice(0, ph.list.length - 260);
     }
-    function eye(ctx, x, y, s, up) {
-      ctx.save(); ctx.translate(x, y); if (up) ctx.rotate(-Math.PI / 2);
+    // 왼쪽을 보는 눈. rot만큼 돌린다 (−π/2 = 위를 본다)
+    function eye(ctx, x, y, s, rot = 0) {
+      ctx.save(); ctx.translate(x, y); if (rot) ctx.rotate(rot);
       ctx.fillStyle = '#f4f7fb'; ctx.strokeStyle = '#0b1626'; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.moveTo(-14 * s, 0); ctx.quadraticCurveTo(0, -11 * s, 14 * s, 0); ctx.quadraticCurveTo(0, 11 * s, -14 * s, 0); ctx.fill(); ctx.stroke();
       ctx.fillStyle = '#0b1626'; ctx.beginPath(); ctx.arc(-3 * s, 0, 4.2 * s, 0, TAU); ctx.fill();
       ctx.restore();
     }
+    // ── 1-2. 노을 비유: 지구와 대기를 옆에서 본 단면 (설계 좌표 640 × 300) ──
+    // 관측자의 눈 (ex, ey), 발밑 지면 gy, 지구 반지름 RE, 대기 두께 H — 지구는 아주 작게, 대기는 아주 두껍게 그렸다.
+    // 해는 관측자에게서 고도 alt° 방향의 타원(가로 반지름 a, 세로 반지름 b) 위에 둔다: 늘 대기 바깥, 화면 안.
+    const AIR = {ex: 380, ey: 262, gy: 271, RE: 380, H: 95, a: 340, b: 236};
+    AIR.cx = AIR.ex; AIR.cy = AIR.gy + AIR.RE; AIR.RO = AIR.RE + AIR.H;
+    // 해에서 관측자의 눈으로 곧장 오는 빛은 모형(M.sunThroughAir)의 비율대로 통과하거나 공기층 어딘가에서 산란된다 → 아래 읽기 칸과 같다.
+    // 하늘의 다른 곳을 지나는 햇빛이 산란되는 정도(설계 좌표 1당)는 하늘빛이 잘 보이도록 크게 잡았다.
+    // 파장의 4제곱에 반비례해 파란빛이 붉은빛의 약 4.8배다.
+    const SIG = {blue: 1.2 / (AIR.RO - (AIR.cy - AIR.ey))};
+    SIG.red = SIG.blue * (M.LIGHT.blue / M.LIGHT.red) ** 4;
+    const RAD = Math.PI / 180;
+    // 고도 alt°의 해: 위치와, 해에서 관측자 쪽으로 오는 햇빛의 방향 (dx, dy)
+    function sunAt(alt) {
+      const c = Math.cos(alt * RAD), s = Math.sin(alt * RAD), R = 1 / Math.hypot(c / AIR.a, s / AIR.b);
+      return {x: AIR.ex - R * c, y: AIR.ey - R * s, dx: c, dy: s};
+    }
+    const fromCenter = (x, y) => Math.hypot(x - AIR.cx, y - AIR.cy);
+    const inAir = (x, y) => { const r = fromCenter(x, y); return r >= AIR.RE && r <= AIR.RO; };
+    // 관측자의 눈에서 해 쪽으로 대기 끝까지의 거리 (그림 속 길이)
+    function airPath(alt) {
+      const s = Math.sin(alt * RAD), r0 = AIR.cy - AIR.ey;
+      return -r0 * s + Math.sqrt(r0 * r0 * s * s - r0 * r0 + AIR.RO * AIR.RO);
+    }
+    // 하늘의 (x, y)에서 관측자 쪽으로 산란된 빛이 눈까지 오는 동안 남는 비율.
+    // 그 방향(고도 e)을 볼 때의 공기층(대기 질량)에서, 그림 속 거리만큼의 몫을 지난다고 본다.
+    function reachEye(x, y, c) {
+      const d = Math.hypot(x - AIR.ex, y - AIR.ey), e = Math.atan2(AIR.ey - y, Math.abs(x - AIR.ex)) / RAD;
+      return M.passProbability(c, M.AIR_TAU_V * M.airMass(e) * Math.min(1, d / airPath(e)), 'air');
+    }
+    // 반직선이 화면(조금 넓게) 안에 있는 구간 [t0, t1]
+    function clipRay(px, py, dx, dy) {
+      let t0 = -Infinity, t1 = Infinity;
+      for (const [p, d, lo, hi] of [[px, dx, -12, 652], [py, dy, -12, 312]]) {
+        if (Math.abs(d) < 1e-9) { if (p < lo || p > hi) return null; continue; }
+        let a = (lo - p) / d, b = (hi - p) / d;
+        if (a > b) [a, b] = [b, a];
+        t0 = Math.max(t0, a); t1 = Math.min(t1, b);
+      }
+      return t0 < t1 ? [t0, t1] : null;
+    }
+    // 햇빛은 나란히 들어온다. 해를 지나는 파면(햇빛에 수직인 선)에서 출발해 관측자의 지평선 위 하늘(대기)을 지나는 빛줄기만 만든다.
+    // direct: 관측자의 눈으로 곧장 오는 빛줄기 (해를 볼 때 들어오는 빛)
+    function spawnAir(pass) {
+      const S = sunAt(st.alt), nx = S.dy, ny = -S.dx;        // 햇빛에 수직인 방향 (위쪽이 +)
+      const R = Math.hypot(S.x - AIR.ex, S.y - AIR.ey);
+      for (let tries = 0; tries < 12; tries++) {
+        const direct = Math.random() < 0.25;
+        const u = direct ? (st.alt < 8 ? 1 + Math.random() * 4 : (Math.random() - 0.5) * 6) : (Math.random() * 2 - 1) * 330;
+        const px = AIR.ex + u * nx, py = AIR.ey + u * ny;
+        const span = clipRay(px, py, S.dx, S.dy);
+        if (!span || span[1] < -R) continue;
+        let ok = direct;
+        for (let t = Math.max(span[0], -R); !ok && t < span[1]; t += 8) {
+          const x = px + t * S.dx, y = py + t * S.dy;
+          if (fromCenter(x, y) < AIR.RE) break;              // 하늘에 닿기 전에 땅에 닿는다
+          if (y < AIR.gy - 2 && inAir(x, y)) ok = true;
+        }
+        if (!ok) continue;
+        const t0 = Math.max(span[0], -R) + (direct ? 14 : 0), c = Math.random() < 0.5 ? 'blue' : 'red';
+        // 곧장 오는 빛: 통과하지 못하면 공기층에 들어선 뒤 어디서 산란될지 정해 둔다 (sAt: 눈까지 남은 거리).
+        // 공기층이 길수록(해가 낮을수록) 파란빛은 들어서자마자 거의 다 빠진다.
+        let sAt = 0;
+        if (direct && Math.random() >= pass[c]) {
+          const T = M.clamp(pass[c], 1e-12, 1 - 1e-9), f = Math.log(1 - Math.random() * (1 - T)) / Math.log(T);
+          sAt = airPath(st.alt) * (1 - f);
+        }
+        ph.list.push({x: px + t0 * S.dx, y: py + t0 * S.dy, vx: S.dx, vy: S.dy, c, direct, sAt, state: 'fly', life: 1});
+        return;
+      }
+    }
+    function stepAir(dt) {
+      const pass = M.sunThroughAir(st.alt);
+      ph.spawn += dt * 100;
+      while (ph.spawn >= 1) { spawnAir(pass); ph.spawn -= 1; }
+      const ds = 175 * dt;
+      for (const p of ph.list) {
+        p.x += p.vx * ds; p.y += p.vy * ds;
+        if (p.state === 'eye') continue;                      // 관측자 쪽으로 꺾인 빛은 그대로 눈에 닿는다
+        const scatter = p.direct ? p.sAt > 0 && Math.hypot(p.x - AIR.ex, p.y - AIR.ey) <= p.sAt
+                                 : inAir(p.x, p.y) && Math.random() < 1 - Math.exp(-SIG[p.c] * ds);
+        if (scatter) {
+          // 산란: 해에서 곧장 오던 빛은 그 길에서 빠진다(아무 방향으로).
+          // 하늘의 다른 곳을 지나던 빛은 관측자 쪽으로도 꺾인다 → 하늘의 모든 방향에서 눈에 들어오는 빛.
+          // 눈까지 오는 길에서 빠지지 않고 남을 확률(그 방향의 공기층 길이로 모형이 계산)을 곱해 눈에 닿는 빛만 관측자 쪽으로 그린다.
+          // 그래서 해가 낮으면 해 쪽 낮은 하늘에서 오는 파란빛은 거의 없고, 붉은빛과 머리 위에서 오는 빛이 남는다.
+          const toEye = !p.direct && p.y < AIR.gy - 4 && Math.random() < reachEye(p.x, p.y, p.c);
+          const a = toEye ? Math.atan2(AIR.ey - p.y, AIR.ex - p.x) + (Math.random() - 0.5) * 0.08 : Math.random() * TAU;
+          p.vx = Math.cos(a); p.vy = Math.sin(a); p.state = toEye ? 'eye' : 'scat'; p.direct = false;
+        }
+      }
+      ph.list = ph.list.filter(p => p.x > -14 && p.x < 654 && p.y > -14 && p.y < 314 &&
+        fromCenter(p.x, p.y) >= AIR.RE && Math.hypot(p.x - AIR.ex, p.y - AIR.ey) > 9);
+      if (ph.list.length > 480) ph.list.splice(0, ph.list.length - 480);
+    }
+    // 태양의 고도에 따라 보이는 해와 하늘 (M.sunColor · M.skyColor와 같은 구간)
+    function airLook(alt) {
+      if (alt >= 25) return {sun: '희다', sky: '파랗다'};
+      if (alt >= 12) return {sun: '노랗다', sky: '파랗다'};
+      if (alt >= 4) return {sun: '주황빛', sky: '해 둘레가 노랗다'};
+      return {sun: '붉다', sky: '붉은 노을'};
+    }
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h);
+    }
+    // 고도가 바뀔 때만 다시 그리는 바탕: 우주, 대기, 관측자가 보는 하늘의 색, 지구, 오른쪽 위 작은 창
+    const airBg = {key: '', cv: document.createElement('canvas'), tmp: document.createElement('canvas')};
+    function airBackground(w, h, dpr) {
+      const key = `${w}x${h}x${dpr}@${st.alt}`;
+      if (airBg.key === key) return airBg.cv;
+      airBg.key = key;
+      const k = w / 640, X = v => v * k, Y = v => v * (h / 300), alt = st.alt;
+      const prep = cv2 => { cv2.width = Math.round(w * dpr); cv2.height = Math.round(h * dpr); const c2 = cv2.getContext('2d'); c2.setTransform(dpr, 0, 0, dpr, 0, 0); return c2; };
+      const ctx = prep(airBg.cv), tctx = prep(airBg.tmp);
+      const g = ctx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, '#070d1b'); g.addColorStop(1, '#0b1424');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+      const cx = X(AIR.cx), cy = Y(AIR.cy), ring = c2 => { c2.beginPath(); c2.arc(cx, cy, X(AIR.RO), 0, TAU); c2.arc(cx, cy, X(AIR.RE), 0, TAU, true); };
+      ring(ctx); ctx.fillStyle = 'rgba(110,150,220,0.16)'; ctx.fill();
+      // 관측자의 지평선 위 대기: 관측자가 그 방향을 볼 때의 하늘 색 (0° = 해 쪽 지평선, 90° = 머리 위, 180° = 반대쪽 지평선)
+      tctx.save();
+      tctx.beginPath(); tctx.rect(0, 0, w, Y(AIR.gy)); tctx.clip();
+      ring(tctx); tctx.clip();
+      const ex = X(AIR.ex), ey = Y(AIR.ey), far = X(720);
+      for (let a0 = 0; a0 < 180; a0 += 3) {
+        const mid = a0 + 1.5, a1 = a0 + 3.8;
+        tctx.fillStyle = M.rgb(M.skyColor(alt, mid <= 90 ? mid : 180 - mid, mid <= 90));
+        tctx.beginPath(); tctx.moveTo(ex, ey);
+        tctx.lineTo(ex - far * Math.cos(a0 * RAD), ey - far * Math.sin(a0 * RAD));
+        tctx.lineTo(ex - far * Math.cos(a1 * RAD), ey - far * Math.sin(a1 * RAD));
+        tctx.closePath(); tctx.fill();
+      }
+      tctx.restore();
+      ctx.globalAlpha = 0.62; ctx.drawImage(airBg.tmp, 0, 0, w, h); ctx.globalAlpha = 1;
+      // 지구
+      const eg = ctx.createLinearGradient(0, Y(AIR.gy), 0, h);
+      eg.addColorStop(0, '#2b3b2f'); eg.addColorStop(1, '#121a15');
+      ctx.fillStyle = eg; ctx.beginPath(); ctx.arc(cx, cy, X(AIR.RE), 0, TAU); ctx.fill();
+      // 작은 창: 관측자가 해 쪽을 바라본 모습 (아래 = 지평선, 위 = 머리 위)
+      const vx = X(466), vy = Y(14), vw = X(162), vh = Y(92), hz = vy + vh * 0.8;
+      ctx.save();
+      roundRect(ctx, vx, vy, vw, vh, 8 * k); ctx.clip();
+      const sg = ctx.createLinearGradient(0, hz, 0, vy);
+      [0, 4, 10, 20, 35, 55, 90].forEach(e => sg.addColorStop(e / 90, M.rgb(M.skyColor(alt, e, true))));
+      ctx.fillStyle = sg; ctx.fillRect(vx, vy, vw, hz - vy + 1);
+      const sc = M.sunColor(alt), sx = vx + vw * 0.5, sy = hz - (hz - vy - 9 * k) * alt / 90;
+      ctx.globalCompositeOperation = 'lighter';
+      blob(ctx, sx, sy, X(34), `rgba(${sc[0]},${sc[1]},${sc[2]},0.5)`);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = M.rgb(sc); ctx.beginPath(); ctx.arc(sx, sy, X(7), 0, TAU); ctx.fill();
+      ctx.fillStyle = '#18231b'; ctx.fillRect(vx, hz, vw, vy + vh - hz);
+      ctx.restore();
+      roundRect(ctx, vx, vy, vw, vh, 8 * k); ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.font = `700 ${w < 520 ? 9.5 : 10.5}px ${FONT}`; ctx.fillStyle = '#d6e2ee'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      ctx.fillText(w < 520 ? '보이는 모습' : '관측자가 해 쪽을 본 모습', vx + 6 * k, vy + vh - 5 * k);
+      return airBg.cv;
+    }
+    function drawAirScene(c) {
+      const {ctx, w, h, dpr} = c, k = w / 640, X = v => v * k, Y = v => v * (h / 300);
+      ctx.drawImage(airBackground(w, h, dpr), 0, 0, w, h);
+      const alt = st.alt, S = sunAt(alt), ex = X(AIR.ex), ey = Y(AIR.ey), sx = X(S.x), sy = Y(S.y);
+      // 해에서 관측자로 곧장 오는 햇빛과, 그 가운데 공기층을 지나는 부분
+      const L = airPath(alt);
+      ctx.setLineDash([4 * k, 5 * k]); ctx.strokeStyle = 'rgba(255,236,190,0.45)'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]);
+      ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(255,214,120,0.3)'; ctx.lineWidth = Math.max(4, 9 * k);
+      ctx.beginPath(); ctx.moveTo(ex - X(L * S.dx), ey - Y(L * S.dy)); ctx.lineTo(ex, ey); ctx.stroke();
+      // 고도: 지평선 방향(수평)에서 해까지의 각
+      ctx.strokeStyle = 'rgba(255,226,168,0.9)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(ex - X(48), ey); ctx.lineTo(ex, ey); ctx.stroke();
+      if (alt > 0) { ctx.beginPath(); ctx.arc(ex, ey, X(32), Math.PI, Math.PI + alt * RAD); ctx.stroke(); }
+      // 빛 알갱이
+      if (!reduceMotion) {
+        // 해에서 곧장 눈으로 오는 빛과 관측자 쪽으로 산란된 빛은 진하게 그린다.
+        // 하늘의 다른 곳을 지나는 햇빛은 공기층 안에서만 옅게, 다른 쪽으로 산란된 빛은 공기층을 벗어나면 더 옅게.
+        ctx.lineCap = 'round';
+        for (const p of ph.list) {
+          const main = p.direct || p.state === 'eye', air = inAir(p.x, p.y);
+          if (!main && !air && p.state === 'fly') continue;
+          const tail = main ? 12 : 9;
+          const x1 = X(p.x), y1 = Y(p.y), x0 = X(p.x - p.vx * tail), y0 = Y(p.y - p.vy * tail);
+          ctx.globalAlpha = main ? 1 : air ? 0.4 : 0.14;
+          if (main) { ctx.strokeStyle = 'rgba(4,9,20,0.7)'; ctx.lineWidth = Math.max(3, 4.2 * k); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x0, y0); ctx.stroke(); }
+          ctx.strokeStyle = p.c === 'blue' ? '#6aa9ff' : '#ff5d4f'; ctx.lineWidth = Math.max(1.6, 2.4 * k);
+          ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x0, y0); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      } else {
+        // 움직임을 줄인 화면: 곧장 오는 파란빛·붉은빛은 통과하는 비율만큼 굵게, 하늘 곳곳에서 오는 파란빛은 해가 높을수록 진하게
+        const s = M.sunThroughAir(alt), ax = ex - X(L * S.dx), ay = ey - Y(L * S.dy);
+        [['#5fa2ff', -4, s.blue], ['#ff5d4f', 4, s.red]].forEach(([col, off, t]) => {
+          const ox = -S.dy * off * k, oy = S.dx * off * k;
+          ctx.strokeStyle = col; ctx.lineWidth = 4 * k;
+          ctx.beginPath(); ctx.moveTo(sx + ox, sy + oy); ctx.lineTo(ax + ox, ay + oy); ctx.stroke();
+          ctx.lineWidth = Math.max(0.5, 4 * k * t);
+          ctx.beginPath(); ctx.moveTo(ax + ox, ay + oy); ctx.lineTo(ex + ox, ey + oy); ctx.stroke();
+        });
+        const sky = M.clamp(alt / 20, 0, 1);
+        ctx.strokeStyle = `rgba(95,162,255,${(0.15 + 0.75 * sky).toFixed(2)})`; ctx.lineWidth = 3 * k;
+        [25, 60, 95, 130, 160].forEach(a => {
+          const r0 = X(AIR.H * 0.85), x0 = ex - r0 * Math.cos(a * RAD) * 1.6, y0 = ey - r0 * Math.sin(a * RAD);
+          ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(ex + (x0 - ex) * 0.2, ey + (y0 - ey) * 0.2); ctx.stroke();
+        });
+      }
+      // 해 (우주에서 본 햇빛은 흰빛)
+      ctx.globalCompositeOperation = 'lighter';
+      blob(ctx, sx, sy, X(46), 'rgba(255,244,214,0.45)');
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = '#fff4d6'; ctx.beginPath(); ctx.arc(sx, sy, X(15), 0, TAU); ctx.fill();
+      // 관측자 (해를 바라보는 눈)
+      eye(ctx, ex, ey, Math.max(0.7, k * 0.9), alt * RAD);
+      // 이름표
+      const fs = w < 520 ? 10.5 : 12, look = airLook(alt);
+      label(ctx, '해', sx, S.y < 200 ? Y(S.y + 38) : Y(S.y - 22), '#fff', fs);
+      label(ctx, '공기층 (대기)', X(520), Y(238), '#cfe0ff', fs);
+      label(ctx, `고도 ${alt}°`, ex - X(8), Y(AIR.gy + 20), '#ffe2a8', fs, 'right');
+      label(ctx, '관측자', ex + X(8), Y(AIR.gy + 20), '#fff', fs, 'left');
+      // 작은 창 아래: 보이는 해와 하늘 (화면이 좁으면 오른쪽 끝에 맞춘다)
+      const cap = `해: ${look.sun} · 하늘: ${look.sky}`;
+      ctx.font = `800 ${fs}px ${FONT}`;
+      label(ctx, cap, Math.min(X(547), w - 4 - (ctx.measureText(cap).width + 10) / 2), Y(128), '#fff', fs);
+    }
     function drawScene() {
       const c = fitCanvas(cv);
       if (!c) return;
+      if (st.medium === 'air') { drawAirScene(c); return; }
       const {ctx, w, h} = c, k = w / 640, X = v => v * k, Y = v => v * (h / 300);
-      const air = st.medium === 'air';
       const r = M.redden(st.star, st.Av);
       const g = ctx.createLinearGradient(0, 0, 0, h);
-      if (air) { g.addColorStop(0, '#0d1d3a'); g.addColorStop(1, '#2a1a24'); } else { g.addColorStop(0, '#070d1b'); g.addColorStop(1, '#04070f'); }
+      g.addColorStop(0, '#070d1b'); g.addColorStop(1, '#04070f');
       ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-      // 별(해)
-      const sc = air ? [255, 238, 200] : M.bvColor(st.star.bv0);
+      // 별
+      const sc = M.bvColor(st.star.bv0);
       ctx.globalCompositeOperation = 'lighter';
       blob(ctx, X(G.star[0]), Y(G.star[1]), X(48), `rgba(${sc[0]},${sc[1]},${sc[2]},0.45)`);
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = M.rgb(sc); ctx.beginPath(); ctx.arc(X(G.star[0]), Y(G.star[1]), X(17), 0, TAU); ctx.fill();
-      // 티끌 층 (대기 층)
+      // 티끌 층
       const dens = M.clamp(st.Av / 4.5, 0, 1);
       const [x0, x1, y0, y1] = G.slab;
-      if (air) {
-        const ag = ctx.createLinearGradient(X(x0), 0, X(x1), 0);
-        ag.addColorStop(0, 'rgba(150,180,230,0)'); ag.addColorStop(0.5, `rgba(150,185,235,${0.12 + 0.3 * dens})`); ag.addColorStop(1, 'rgba(150,180,230,0)');
-        ctx.fillStyle = ag; ctx.fillRect(X(x0 - 20), Y(y0), X(x1 - x0 + 40), Y(y1 - y0));
-      } else if (st.Av > 0) {
+      if (st.Av > 0) {
         const rr = M.rng(5);
         for (let i = 0; i < 14; i++) blob(ctx, X(x0 + 20 + rr() * (x1 - x0 - 40)), Y(y0 + 25 + rr() * (y1 - y0 - 50)), X(38 + rr() * 22), `rgba(120,98,78,${(0.1 + 0.28 * dens).toFixed(3)})`);
         ctx.fillStyle = `rgba(190,165,140,${(0.35 + 0.4 * dens).toFixed(2)})`;
@@ -934,7 +1161,7 @@
         ctx.globalAlpha = 1;
       } else {
         // 움직임을 줄인 화면: 통과하는 비율만큼 굵은 화살표
-        const tb = M.passProbability('blue', st.Av, st.medium), tr = M.passProbability('red', st.Av, st.medium);
+        const tb = M.passProbability('blue', st.Av), tr = M.passProbability('red', st.Av);
         [['#5fa2ff', -10, tb], ['#ff5d4f', 10, tr]].forEach(([col, dy, t]) => {
           ctx.strokeStyle = col; ctx.lineWidth = 5 * k;
           ctx.beginPath(); ctx.moveTo(X(G.star[0] + 24), Y(G.star[1] + dy)); ctx.lineTo(X(x0), Y(G.star[1] + dy)); ctx.stroke();
@@ -945,9 +1172,8 @@
         ctx.beginPath(); ctx.moveTo(X((x0 + x1) / 2), Y(G.star[1])); ctx.lineTo(X(G.o2[0]), Y(G.o2[1] - 24)); ctx.stroke();
       }
       // 관측자 1: 보이는 별
-      eye(ctx, X(G.o1[0]), Y(G.o1[1]), Math.max(0.8, k), false);
-      const seen = air ? (() => { const tb = M.passProbability('blue', st.Av, 'air'), tr = M.passProbability('red', st.Av, 'air'); return [255, Math.round(150 + 88 * Math.sqrt(tb / Math.max(tr, 1e-6)) * tr), Math.round(90 + 110 * tb)]; })() : M.bvColor(r.bv);
-      const bright = air ? M.passProbability('red', st.Av, 'air') : M.brightnessRatio(st.Av);
+      eye(ctx, X(G.o1[0]), Y(G.o1[1]), Math.max(0.8, k));
+      const seen = M.bvColor(r.bv), bright = M.brightnessRatio(st.Av);
       const ix = X(G.o1[0] - 4), iy = Y(G.o1[1] - 62);
       ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.beginPath(); ctx.arc(ix, iy, X(26), 0, TAU); ctx.fill();
       ctx.globalCompositeOperation = 'lighter';
@@ -955,10 +1181,10 @@
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = M.rgb(seen); ctx.globalAlpha = 0.35 + 0.65 * Math.sqrt(bright);
       ctx.beginPath(); ctx.arc(ix, iy, X(8), 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
-      label(ctx, air ? '보이는 해' : '보이는 별', ix - X(30), iy + 5, '#ffd0b0', w < 520 ? 10.5 : 12, 'right', null);
+      label(ctx, '보이는 별', ix - X(30), iy + 5, '#ffd0b0', w < 520 ? 10.5 : 12, 'right', null);
       // 관측자 2: 산란된 빛
-      eye(ctx, X(G.o2[0]), Y(G.o2[1]), Math.max(0.8, k), true);
-      const scatB = 1 - M.passProbability('blue', st.Av, st.medium);
+      eye(ctx, X(G.o2[0]), Y(G.o2[1]), Math.max(0.8, k), -Math.PI / 2);
+      const scatB = 1 - M.passProbability('blue', st.Av);
       const jx = X(G.o2[0] + 70), jy = Y(G.o2[1] - 6);
       ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.beginPath(); ctx.arc(jx, jy, X(20), 0, TAU); ctx.fill();
       ctx.globalCompositeOperation = 'lighter';
@@ -966,11 +1192,9 @@
       ctx.globalCompositeOperation = 'source-over';
       // 이름표
       const fs = w < 520 ? 10.5 : 12;
-      const T = air
-        ? {star: '해', slab: '두꺼운 대기', o1: '노을: 해가 붉다', o2: '하늘이 파랗다'}
-        : {star: '별', slab: st.Av > 0 ? '성간 티끌' : '티끌 없음', o1: '관측자 1: 어둡고 붉게', o2: '관측자 2: 파란빛 (반사 성운)'};
+      const T = {star: '별', slab: st.Av > 0 ? '성간 티끌' : '티끌 없음', o1: '관측자 1: 어둡고 붉게', o2: '관측자 2: 파란빛 (반사 성운)'};
       label(ctx, T.star, X(G.star[0]), Y(G.star[1] + 48), '#fff', fs);
-      label(ctx, T.slab, X((x0 + x1) / 2), Y(y0) + fs, air ? '#cfe0ff' : '#e8d6c2', fs);
+      label(ctx, T.slab, X((x0 + x1) / 2), Y(y0) + fs, '#e8d6c2', fs);
       label(ctx, T.o1, w - 4, Y(G.o1[1] + 40), '#ffd0b0', fs, 'right');
       label(ctx, T.o2, M.clamp(X(G.o2[0] + 96), 0, w - 4), Y(G.o2[1] + 12), '#a9c8ff', fs, 'left');
     }
@@ -1098,18 +1322,45 @@
         <div><span>도착하는 밝기</span><strong>${left >= 10 ? Math.round(left) : num(left, 1)} %</strong></div>`;
     }
 
+    // 노을 비유의 읽기 칸과 설명
+    const fmtX = X => X < 10 ? num(X, 1) : String(Math.round(X));
+    const pct = v => v >= 0.01 ? `${Math.round(v * 100)} %` : '1 % 미만';
+    function airInsight(alt) {
+      const s = M.sunThroughAir(alt);
+      let t = '<b>노을 비유</b> · ' + (s.X < 1.05 ? `태양의 고도 ${alt}°: 해가 높아 햇빛이 지나는 공기층이 해가 머리 위에 있을 때와 거의 같습니다. `
+        : `태양의 고도 ${alt}°에서 햇빛이 지나는 공기층은 해가 머리 위에 있을 때의 <b>${fmtX(s.X)}배</b>입니다. `);
+      if (alt >= 25) t += '공기층이 짧아 해는 희게 보이고, 공기가 사방으로 산란한 파란빛이 <b>하늘의 모든 방향에서</b> 눈에 들어와 <b>하늘이 파랗게</b> 보입니다 — 관측자 2가 보는 푸른 반사 성운과 같은 원리입니다. 고도를 낮춰 보세요.';
+      else if (alt >= 4) t += '해가 낮아질수록 공기층이 길어져 파란빛이 더 많이 산란되어 빠지므로 해가 노랗게, 다시 주황빛으로 바뀝니다. 머리 위 하늘은 아직 파랗습니다.';
+      else t += '해가 뜨거나 질 때는 공기층이 아주 길어서 파란빛은 거의 다 산란되어 빠지고 <b>붉은빛이 남아</b> 해와 그 둘레 하늘이 붉게 보입니다(<b>노을</b>) — 관측자 1이 보는, 티끌 너머의 어둡고 붉어진 별(성간 적색화)과 같은 원리입니다.';
+      return t;
+    }
+
     function render() {
-      const r = M.redden(st.star, st.Av);
+      const r = M.redden(st.star, st.Av), air = st.medium === 'air';
       setPressed(starChips, 'data-star', st.star.id);
       setPressed($('red-examples'), 'data-ex', st.ex || '');
       setPressed($('red-medium'), 'data-medium', st.medium);
+      $('red-A-wrap').hidden = air; $('red-alt-wrap').hidden = !air;
+      $('red-note-space').hidden = air; $('red-note-air').hidden = !air;
       $('red-A').value = st.Av;
-      $('red-A-label').firstChild.textContent = st.medium === 'air' ? '대기의 두께 (노을 비유) ' : '별과 관측자 사이의 티끌 양 ';
-      $('red-A-out').innerHTML = st.medium === 'air' ? `V에서 ${num(st.Av, 2)}등급 어두워짐` : `소광 등급 A<sub>V</sub> = ${num(st.Av, 2)}`;
-      const tb = M.passProbability('blue', st.Av, st.medium), tr = M.passProbability('red', st.Av, st.medium);
-      $('red-counts').innerHTML = `<div><span>그대로 통과하는 파란빛</span><strong style="color:var(--bband)">${Math.round(tb * 100)} %</strong></div>
-        <div><span>그대로 통과하는 붉은빛</span><strong style="color:var(--bad)">${Math.round(tr * 100)} %</strong></div>
-        <div><span>${st.medium === 'air' ? '노을' : '관측자 1이 보는 별'}</span><strong>${st.medium === 'air' ? '붉은빛이 남는다' : `밝기 ${Math.round(M.brightnessRatio(st.Av) * 100)} % · 더 붉게`}</strong></div>`;
+      $('red-A-out').innerHTML = `소광 등급 A<sub>V</sub> = ${num(st.Av, 2)}`;
+      $('red-alt').value = st.alt;
+      $('red-alt-out').textContent = `${st.alt}°` + (st.alt <= 4 ? ' · 해가 뜨거나 질 때' : st.alt >= 80 ? ' · 거의 머리 위' : '');
+      if (air) {
+        const s = M.sunThroughAir(st.alt), look = airLook(st.alt);
+        $('red-counts').innerHTML = `<div><span>햇빛이 지나는 공기층</span><strong>머리 위의 ${fmtX(s.X)}배</strong></div>
+          <div><span>그대로 통과하는 파란빛</span><strong style="color:var(--bband)">${pct(s.blue)}</strong></div>
+          <div><span>그대로 통과하는 붉은빛</span><strong style="color:var(--bad)">${pct(s.red)}</strong></div>
+          <div><span>해를 보면</span><strong>${look.sun}</strong></div>
+          <div><span>하늘을 보면</span><strong>${look.sky}</strong></div>`;
+        cv.setAttribute('aria-label', `지구와 대기를 옆에서 본 그림: 태양의 고도 ${st.alt}°, 햇빛이 지나는 공기층은 머리 위의 ${fmtX(s.X)}배. 해는 ${look.sun}, 하늘은 ${look.sky}`);
+      } else {
+        cv.setAttribute('aria-label', '별빛의 파란빛과 붉은빛이 티끌 층을 지나는 모습');
+        const tb = M.passProbability('blue', st.Av), tr = M.passProbability('red', st.Av);
+        $('red-counts').innerHTML = `<div><span>그대로 통과하는 파란빛</span><strong style="color:var(--bband)">${Math.round(tb * 100)} %</strong></div>
+          <div><span>그대로 통과하는 붉은빛</span><strong style="color:var(--bad)">${Math.round(tr * 100)} %</strong></div>
+          <div><span>관측자 1이 보는 별</span><strong>밝기 ${Math.round(M.brightnessRatio(st.Av) * 100)} % · 더 붉게</strong></div>`;
+      }
       drawLadder(r);
       $('red-swatches').innerHTML = `<div class="swatch swatch-sky"><i style="background:${M.rgb(M.bvColor(r.bv0))};box-shadow:0 0 14px 2px ${M.rgb(M.bvColor(r.bv0))}"></i><b>고유한 색</b>(B−V) ${num(r.bv0, 2)}</div>
         <div class="swatch swatch-sky"><i style="background:${M.rgb(M.bvColor(r.bv))};box-shadow:0 0 14px 2px ${M.rgb(M.bvColor(r.bv))}"></i><b>관측한 색</b>(B−V) ${num(r.bv, 2)} · 밝기 ${M.brightnessRatio(st.Av) >= 0.1 ? Math.round(M.brightnessRatio(st.Av) * 100) + ' %' : Math.round(1 / M.brightnessRatio(st.Av)) + '분의 1'}</div>`;
@@ -1122,7 +1373,7 @@
       if (st.Av === 0) ins = '티끌이 없으면 B 등급과 V 등급이 그대로이고, 관측 색지수가 고유 색지수와 같습니다. 슬라이더로 티끌을 넣어 보세요.';
       else ins = `티끌이 별빛을 B 등급으로 <b>${num(r.AB, 2)}</b>, V 등급으로 <b>${num(r.Av, 2)}</b>만큼 어둡게 해 색지수가 커졌습니다: (B − V) 고유 ${num(r.bv0, 2)} → 관측 ${num(r.bv, 2)} (<b>성간 적색화</b>). 색초과를 재면 V 등급의 증가량(소광 등급)도 구할 수 있습니다: E = ${num(r.E, 2)} → A<sub>V</sub> ≈ 3E = ${num(r.Av, 2)}.`;
       if (st.ex) ins = EX[st.ex].note + (st.ex === 'q3' ? ' <button type="button" class="compact" id="red-to-dist">(3) 거리는 04에서 구하기 →</button>' : '') + '<br>' + ins;
-      if (st.medium === 'air') ins = '<b>노을 비유</b>: 해가 두꺼운 대기를 지나면 파란빛이 산란되어 빠지고 붉은빛이 남습니다(관측자 1). 옆으로 산란된 파란빛 때문에 하늘은 파랗게 보입니다(관측자 2). 우주의 티끌도 같은 원리로 별빛을 붉게 하고(성간 적색화), 반사 성운을 푸르게 합니다.<br>' + ins;
+      if (air) ins = airInsight(st.alt) + '<br>' + ins;
       $('red-insight').innerHTML = ins;
       const go = $('red-to-dist');
       if (go) go.addEventListener('click', () => { stations.distance.load('q3'); show('distance'); window.scrollTo({top: 0}); });
